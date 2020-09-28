@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30320.27
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpreadCheetah", "SpreadCheetah\SpreadCheetah.csproj", "{2A3B8833-9C43-495F-BBDD-3DDE5A334C73}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpreadCheetah.Test", "SpreadCheetah.Test\SpreadCheetah.Test.csproj", "{AB4D5E46-E737-4F7B-9C06-BC5C1523921C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{9293B230-E996-44D7-B9E9-0900D05AA116}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		Directory.Build.props = Directory.Build.props
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2A3B8833-9C43-495F-BBDD-3DDE5A334C73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A3B8833-9C43-495F-BBDD-3DDE5A334C73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A3B8833-9C43-495F-BBDD-3DDE5A334C73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A3B8833-9C43-495F-BBDD-3DDE5A334C73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB4D5E46-E737-4F7B-9C06-BC5C1523921C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB4D5E46-E737-4F7B-9C06-BC5C1523921C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB4D5E46-E737-4F7B-9C06-BC5C1523921C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB4D5E46-E737-4F7B-9C06-BC5C1523921C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FCEB6D46-0B18-4540-A498-8C5AA9B990E1}
+	EndGlobalSection
+EndGlobal

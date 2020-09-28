@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <LangVersion>8.0</LangVersion>
+    <PackageId>SpreadCheetah</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Authors>sveinungf</Authors>
+    <Description>SpreadCheetah is a high-performance .NET library for generating spreadsheet (Microsoft Excel XLSX) files.</Description>
+    <PackageProjectUrl>https://github.com/sveinungf/spreadcheetah</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/sveinungf/spreadcheetah</RepositoryUrl>
+    <PackageTags>spreadsheet;excel;xlsx;openxml</PackageTags>
+    <PackageId>SpreadCheetah</PackageId>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.1" />
+    <PackageReference Include="System.Memory" Version="4.5.4" />
+  </ItemGroup>
+
+</Project>
