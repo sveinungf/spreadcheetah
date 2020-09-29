@@ -1,22 +1,44 @@
 # SpreadCheetah
 SpreadCheetah is a high-performance .NET library for generating spreadsheet (Microsoft Excel XLSX) files.
 
+
 ## Features
 - Performance (see benchmarks below)
 - Low memory allocation (see benchmarks below)
 - Async APIs
 - No dependency to Microsoft Excel
-- Targeting .NET Standard 2.0
+- Targeting .NET Standard 2.0 (for .NET Framework 4.6.1 and later)
 - Free and open source!
 
 SpreadCheetah is designed to create spreadsheet files in a forward-only manner.
 That means worksheets from left to right, rows from top to bottom, and row cells from left to right.
 This allows for creating spreadsheet files in a streaming manner, while also keeping a low memory footprint.
 
+
 ## How to install
-SpreadCheetah is available as a NuGet package. The NuGet package targets both .NET Standard 2.0 and .NET Standard 2.1.
+SpreadCheetah is available as a [NuGet package](https://www.nuget.org/packages/SpreadCheetah). The NuGet package targets both .NET Standard 2.0 and .NET Standard 2.1.
 The .NET Standard 2.0 version is just intended for backwards compatibility. Use the .NET Standard 2.1 version to achieve the best performance.
 
+
+## Usage
+```cs
+using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+{
+    // A spreadsheet must contain at least one worksheet.
+    await spreadsheet.PutNextWorksheetAsync("Sheet 1");
+
+    // Cells are inserted row by row.
+    var row = new List<Cell>();
+    row.Add(new Cell("Answer to the ultimate question:"));
+    row.Add(new Cell(42));
+
+    // Rows are inserted from top to bottom.
+    await spreadsheet.AddRowAsync(row);
+
+    // Remember to call Finish before disposing. This is important to properly finalize the XLSX file.
+    await spreadsheet.FinishAsync();
+}
+```
 
 ## Benchmarks
 The benchmark results here have been collected using [Benchmark.NET](https://github.com/dotnet/benchmarkdotnet) with the following system configuration:
