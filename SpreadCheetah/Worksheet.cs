@@ -131,11 +131,7 @@ namespace SpreadCheetah
                     continue;
                 }
 
-                // Flush if can't fit the longest cell start element
-                if (CellSpanHelper.MaxCellStartElementLength > GetRemainingBuffer())
-                    await _buffer.FlushToStreamAsync(_stream, ref _bufferIndex, token).ConfigureAwait(false);
-
-                // Write start element directly
+                // Write start element
                 _bufferIndex += CellSpanHelper.GetStartElementBytes(cell.DataType, GetNextSpan());
 
                 // Write as much as possible from cell value

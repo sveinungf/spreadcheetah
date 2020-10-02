@@ -30,9 +30,8 @@ namespace SpreadCheetah.Helpers
             (byte)'<', (byte)'/', (byte)'t', (byte)'>', (byte)'<', (byte)'/', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
 
-        public static readonly int MaxCellStartElementLength = StringCellStart.Length;
         public static readonly int MaxCellEndElementLength = StringCellEnd.Length;
-        public static readonly int MaxCellElementLength = MaxCellStartElementLength + MaxCellEndElementLength;
+        public static readonly int MaxCellElementLength = StringCellStart.Length + MaxCellEndElementLength;
 
         public static int GetBytes(Cell cell, Span<byte> bytes)
         {
