@@ -1,9 +1,11 @@
+using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 
 namespace SpreadCheetah
 {
-    public class Cell
+    public readonly struct Cell : IEquatable<Cell>
     {
         public CellDataType DataType { get; }
         public string Value { get; }
@@ -73,5 +75,19 @@ namespace SpreadCheetah
         }
 
         private static string GetStringValue(bool value) => value ? "1" : "0";
+
+        public override bool Equals(object? obj) => obj is Cell cell && Equals(cell);
+        public bool Equals(Cell other) => DataType == other.DataType && Value == other.Value;
+
+        public override int GetHashCode()
+        {
+            var hashCode = -1382053921;
+            hashCode = hashCode * -1521134295 + DataType.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Value);
+            return hashCode;
+        }
+
+        public static bool operator ==(Cell left, Cell right) => left.Equals(right);
+        public static bool operator !=(Cell left, Cell right) => !left.Equals(right);
     }
 }

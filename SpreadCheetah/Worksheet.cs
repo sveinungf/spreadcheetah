@@ -69,7 +69,7 @@ namespace SpreadCheetah
             return bytesWritten + RowStartEndTag.Length;
         }
 
-        private bool TryWriteCell(Cell cell, out int bytesNeeded)
+        private bool TryWriteCell(in Cell cell, out int bytesNeeded)
         {
             bytesNeeded = 0;
             var remainingBuffer = GetRemainingBuffer();

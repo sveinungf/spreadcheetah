@@ -33,7 +33,7 @@ namespace SpreadCheetah.Helpers
         public static readonly int MaxCellEndElementLength = StringCellEnd.Length;
         public static readonly int MaxCellElementLength = StringCellStart.Length + MaxCellEndElementLength;
 
-        public static int GetBytes(Cell cell, Span<byte> bytes)
+        public static int GetBytes(in Cell cell, Span<byte> bytes)
         {
             switch (cell.DataType)
             {
