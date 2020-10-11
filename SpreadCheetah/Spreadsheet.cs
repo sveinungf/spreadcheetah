@@ -47,7 +47,7 @@ namespace SpreadCheetah
             return level == SpreadCheetahCompressionLevel.Optimal ? CompressionLevel.Optimal : CompressionLevel.Fastest;
         }
 
-        public ValueTask PutNextWorksheetAsync(string name, CancellationToken token = default)
+        public ValueTask StartWorksheetAsync(string name, CancellationToken token = default)
         {
             if (name is null)
                 throw new ArgumentNullException(nameof(name));
@@ -67,10 +67,10 @@ namespace SpreadCheetah
             if (_worksheetNames.Contains(name))
                 throw new ArgumentException("A worksheet with the given name already exists.");
 
-            return PutNextWorksheetInternalAsync(name, token);
+            return StartWorksheetInternalAsync(name, token);
         }
 
-        private async ValueTask PutNextWorksheetInternalAsync(string name, CancellationToken token)
+        private async ValueTask StartWorksheetInternalAsync(string name, CancellationToken token)
         {
             await FinishAndDisposeWorksheetAsync(token).ConfigureAwait(false);
 

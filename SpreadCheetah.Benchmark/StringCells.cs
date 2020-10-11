@@ -73,7 +73,7 @@ namespace SpreadCheetah.Benchmark
         public async Task SpreadCheetah()
         {
             using var spreadsheet = await Spreadsheet.CreateNewAsync(_stream);
-            await spreadsheet.PutNextWorksheetAsync(SheetName);
+            await spreadsheet.StartWorksheetAsync(SheetName);
             for (var row = 1; row <= NumberOfRows; ++row)
             {
                 var cells = _cells[row - 1];

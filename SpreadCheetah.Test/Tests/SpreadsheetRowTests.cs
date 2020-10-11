@@ -19,7 +19,7 @@ namespace SpreadCheetah.Test.Tests
         {
             // Arrange
             using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-            await spreadsheet.PutNextWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet");
 
             if (finished)
                 await spreadsheet.FinishAsync();
@@ -48,7 +48,7 @@ namespace SpreadCheetah.Test.Tests
             using var stream = new MemoryStream();
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
-                await spreadsheet.PutNextWorksheetAsync("Sheet");
+                await spreadsheet.StartWorksheetAsync("Sheet");
                 var cell = new Cell(value);
 
                 // Act
@@ -79,7 +79,7 @@ namespace SpreadCheetah.Test.Tests
             using var stream = new MemoryStream();
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
-                await spreadsheet.PutNextWorksheetAsync("Sheet");
+                await spreadsheet.StartWorksheetAsync("Sheet");
                 var cell = new Cell(value);
 
                 // Act
@@ -107,7 +107,7 @@ namespace SpreadCheetah.Test.Tests
             using var stream = new MemoryStream();
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
-                await spreadsheet.PutNextWorksheetAsync("Sheet");
+                await spreadsheet.StartWorksheetAsync("Sheet");
                 var cell = new Cell(value);
 
                 // Act
@@ -140,7 +140,7 @@ namespace SpreadCheetah.Test.Tests
             using var stream = new MemoryStream();
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
-                await spreadsheet.PutNextWorksheetAsync("Sheet");
+                await spreadsheet.StartWorksheetAsync("Sheet");
                 var cell = new Cell(initialValue);
 
                 // Act
@@ -174,7 +174,7 @@ namespace SpreadCheetah.Test.Tests
             using var stream = new MemoryStream();
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
-                await spreadsheet.PutNextWorksheetAsync("Sheet");
+                await spreadsheet.StartWorksheetAsync("Sheet");
                 var cell = new Cell(initialValue);
 
                 // Act
@@ -209,7 +209,7 @@ namespace SpreadCheetah.Test.Tests
             using var stream = new MemoryStream();
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
-                await spreadsheet.PutNextWorksheetAsync("Sheet");
+                await spreadsheet.StartWorksheetAsync("Sheet");
                 var cell = new Cell(decimalValue);
 
                 // Act
@@ -236,7 +236,7 @@ namespace SpreadCheetah.Test.Tests
             using var stream = new MemoryStream();
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
-                await spreadsheet.PutNextWorksheetAsync("Sheet");
+                await spreadsheet.StartWorksheetAsync("Sheet");
                 var cell = new Cell(initialValue);
 
                 // Act

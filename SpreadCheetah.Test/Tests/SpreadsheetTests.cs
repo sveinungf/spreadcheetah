@@ -21,7 +21,7 @@ namespace SpreadCheetah.Test.Tests
             // Act
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
-                await spreadsheet.PutNextWorksheetAsync("Name");
+                await spreadsheet.StartWorksheetAsync("Name");
                 await spreadsheet.FinishAsync();
             }
 
@@ -43,7 +43,7 @@ namespace SpreadCheetah.Test.Tests
             // Act
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
-                await spreadsheet.PutNextWorksheetAsync("Name");
+                await spreadsheet.StartWorksheetAsync("Name");
                 await spreadsheet.FinishAsync();
             }
 
@@ -60,7 +60,7 @@ namespace SpreadCheetah.Test.Tests
             using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
 
             if (hasWorksheet)
-                await spreadsheet.PutNextWorksheetAsync("Book 1");
+                await spreadsheet.StartWorksheetAsync("Book 1");
 
             // Act
             var exception = await Record.ExceptionAsync(async () => await spreadsheet.FinishAsync());
@@ -78,7 +78,7 @@ namespace SpreadCheetah.Test.Tests
         [InlineData("With'Single'Quotes")]
         [InlineData("With\"Quotation\"Marks")]
         [InlineData("WithNorwegianCharactersÆØÅ")]
-        public async Task Spreadsheet_PutNextWorksheet_CorrectName(string name)
+        public async Task Spreadsheet_StartWorksheet_CorrectName(string name)
         {
             // Arrange
             using var stream = new MemoryStream();
@@ -86,7 +86,7 @@ namespace SpreadCheetah.Test.Tests
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 // Act
-                await spreadsheet.PutNextWorksheetAsync(name);
+                await spreadsheet.StartWorksheetAsync(name);
                 await spreadsheet.FinishAsync();
             }
 
@@ -111,13 +111,13 @@ namespace SpreadCheetah.Test.Tests
         [InlineData("With * asterisk")]
         [InlineData("With [ left square bracket")]
         [InlineData("With ] right square bracket")]
-        public async Task Spreadsheet_PutNextWorksheet_InvalidName(string name)
+        public async Task Spreadsheet_StartWorksheet_InvalidName(string name)
         {
             // Arrange
             using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
 
             // Act
-            var exception = await Record.ExceptionAsync(async () => await spreadsheet.PutNextWorksheetAsync(name));
+            var exception = await Record.ExceptionAsync(async () => await spreadsheet.StartWorksheetAsync(name));
 
             // Assert
             Assert.NotNull(exception);
@@ -126,16 +126,16 @@ namespace SpreadCheetah.Test.Tests
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task Spreadsheet_PutNextWorksheet_ThrowsOnDuplicateName(bool duplicateName)
+        public async Task Spreadsheet_StartWorksheet_ThrowsOnDuplicateName(bool duplicateName)
         {
             // Arrange
             const string name = "Sheet";
             using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-            await spreadsheet.PutNextWorksheetAsync(name);
+            await spreadsheet.StartWorksheetAsync(name);
             var nextName = duplicateName ? name : "Sheet 2";
 
             // Act
-            var exception = await Record.ExceptionAsync(async () => await spreadsheet.PutNextWorksheetAsync(nextName));
+            var exception = await Record.ExceptionAsync(async () => await spreadsheet.StartWorksheetAsync(nextName));
 
             // Assert
             Assert.Equal(duplicateName, exception != null);
@@ -145,7 +145,7 @@ namespace SpreadCheetah.Test.Tests
         [InlineData(2)]
         [InlineData(10)]
         [InlineData(1000)]
-        public async Task Spreadsheet_PutNextWorksheet_MultipleWorksheets(int count)
+        public async Task Spreadsheet_StartWorksheet_MultipleWorksheets(int count)
         {
             // Arrange
             var sheetNames = Enumerable.Range(1, count).Select(x => "Sheet " + x).ToList();
@@ -155,7 +155,7 @@ namespace SpreadCheetah.Test.Tests
                 // Act
                 foreach (var name in sheetNames)
                 {
-                    await spreadsheet.PutNextWorksheetAsync(name);
+                    await spreadsheet.StartWorksheetAsync(name);
                     await spreadsheet.AddRowAsync(new Cell(name));
                 }
 

@@ -25,7 +25,7 @@ The .NET Standard 2.0 version is just intended for backwards compatibility. Use 
 using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
 {
     // A spreadsheet must contain at least one worksheet.
-    await spreadsheet.PutNextWorksheetAsync("Sheet 1");
+    await spreadsheet.StartWorksheetAsync("Sheet 1");
 
     // Cells are inserted row by row.
     var row = new List<Cell>();
