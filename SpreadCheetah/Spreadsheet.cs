@@ -20,6 +20,7 @@ namespace SpreadCheetah
         private readonly ZipArchive _archive;
         private readonly CompressionLevel _compressionLevel;
         private readonly byte[] _buffer;
+        private List<Style>? _styles;
         private Worksheet? _worksheet;
         private bool _disposed;
 
@@ -92,9 +93,22 @@ namespace SpreadCheetah
             return _worksheet.AddRowAsync(cells, token);
         }
 
+        public StyleId AddStyle(Style style)
+        {
+            if (style is null)
+                throw new ArgumentNullException(nameof(style));
+
+            if (_styles is null)
+                _styles = new List<Style> { style };
+            else
+                _styles.Add(style);
+
+            return new StyleId(_styles.Count);
+        }
+
         private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
         {
-            if (_worksheet == null) return;
+            if (_worksheet is null) return;
             await _worksheet.FinishAsync(token).ConfigureAwait(false);
             await _worksheet.DisposeAsync().ConfigureAwait(false);
             _worksheet = null;
@@ -114,6 +128,8 @@ namespace SpreadCheetah
             await WriteFileAsync("[Content_Types].xml", _worksheetPaths, ContentTypesXml.WriteContentAsync, token).ConfigureAwait(false);
             await WriteFileAsync("xl/_rels/workbook.xml.rels", _worksheetPaths, WorkbookRelsXml.WriteContentAsync, token).ConfigureAwait(false);
             await WriteFileAsync("xl/workbook.xml", _worksheetNames, WorkbookXml.WriteContentAsync, token).ConfigureAwait(false);
+
+            // TODO: Write styles.xml if there are any styles
         }
 
         private async ValueTask WriteFileAsync(
