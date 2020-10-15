@@ -121,7 +121,7 @@ namespace SpreadCheetah
                 var cell = cells[i];
 
                 // Write cell if it fits in the buffer
-                if (TryWriteCell(cell, out var bytesNeeded))
+                if (TryWriteCell(cell, out _))
                     continue;
 
                 currentIndex = i;
@@ -144,12 +144,14 @@ namespace SpreadCheetah
 
         public async ValueTask AddRowAsync(IList<Cell> cells, int currentIndex, CancellationToken token)
         {
+            // If we get here that means that the next cell didn't fit in the buffer, so just flush right away
+            await _buffer.FlushToStreamAsync(_stream, ref _bufferIndex, token).ConfigureAwait(false);
+
             for (var i = currentIndex; i < cells.Count; ++i)
             {
                 var cell = cells[i];
 
                 // Write cell if it fits in the buffer
-                // TODO: Will always fail on first try? Maybe just flush buffer right away?
                 if (TryWriteCell(cell, out var bytesNeeded))
                     continue;
 
