@@ -20,6 +20,10 @@ namespace SpreadCheetah
         // Maximum number of rows limited to 1,048,576 in Excel
         private const int RowIndexMaxDigits = 7;
 
+        private const int Utf8MaxBytePerChar = 6;
+
+        private static readonly int RowStartMaxByteCount = RowStart.Length + RowIndexMaxDigits + RowStartEndTag.Length;
+
         private static ReadOnlySpan<byte> RowStart => new byte[]
         {
             (byte)'<', (byte)'r', (byte)'o', (byte)'w', (byte)' ', (byte)'r', (byte)'=', (byte)'"'
@@ -57,8 +61,6 @@ namespace SpreadCheetah
         }
 
         private void WriteHead() => _bufferIndex += Utf8Helper.GetBytes(SheetHeader, _buffer);
-
-        private const int Utf8MaxBytePerChar = 6;
 
         private static int GetRowStartBytes(int rowIndex, Span<byte> bytes)
         {
@@ -111,9 +113,7 @@ namespace SpreadCheetah
 
         public async ValueTask AddRowAsync(IList<Cell> cells, CancellationToken token)
         {
-            if (RowStart.Length + RowIndexMaxDigits + RowStartEndTag.Length > GetRemainingBuffer())
-                await _buffer.FlushToStreamAsync(_stream, ref _bufferIndex, token).ConfigureAwait(false);
-
+            // Assuming previous actions on the worksheet ensured space in the buffer for row start
             _bufferIndex += GetRowStartBytes(_nextRowIndex++, GetNextSpan());
 
             for (var i = 0; i < cells.Count; ++i)
@@ -151,7 +151,8 @@ namespace SpreadCheetah
                 _bufferIndex += CellSpanHelper.GetEndElementBytes(cell.DataType, GetNextSpan());
             }
 
-            if (RowEnd.Length > GetRemainingBuffer())
+            // Also ensuring space in the buffer for the next row start, so that we don't need to check space in the buffer twice
+            if (RowEnd.Length + RowStartMaxByteCount > GetRemainingBuffer())
                 await _buffer.FlushToStreamAsync(_stream, ref _bufferIndex, token).ConfigureAwait(false);
 
             RowEnd.CopyTo(GetNextSpan());
