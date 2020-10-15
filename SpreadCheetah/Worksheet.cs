@@ -17,6 +17,9 @@ namespace SpreadCheetah
 
         private const string SheetFooter = "</sheetData></worksheet>";
 
+        // Maximum number of rows limited to 1,048,576 in Excel
+        private const int RowIndexMaxDigits = 7;
+
         private static ReadOnlySpan<byte> RowStart => new byte[]
         {
             (byte)'<', (byte)'r', (byte)'o', (byte)'w', (byte)' ', (byte)'r', (byte)'=', (byte)'"'
@@ -108,8 +111,7 @@ namespace SpreadCheetah
 
         public async ValueTask AddRowAsync(IList<Cell> cells, CancellationToken token)
         {
-            var numberOfDigits = _nextRowIndex.GetNumberOfDigits();
-            if (RowStart.Length + numberOfDigits + RowStartEndTag.Length > GetRemainingBuffer())
+            if (RowStart.Length + RowIndexMaxDigits + RowStartEndTag.Length > GetRemainingBuffer())
                 await _buffer.FlushToStreamAsync(_stream, ref _bufferIndex, token).ConfigureAwait(false);
 
             _bufferIndex += GetRowStartBytes(_nextRowIndex++, GetNextSpan());
