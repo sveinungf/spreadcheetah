@@ -111,7 +111,7 @@ namespace SpreadCheetah
             return lastIteration;
         }
 
-        public async ValueTask AddRowAsync(IList<Cell> cells, CancellationToken token)
+        public bool TryAddRow(IList<Cell> cells, out int currentIndex)
         {
             // Assuming previous actions on the worksheet ensured space in the buffer for row start
             _bufferIndex += GetRowStartBytes(_nextRowIndex++, GetNextSpan());
@@ -121,6 +121,35 @@ namespace SpreadCheetah
                 var cell = cells[i];
 
                 // Write cell if it fits in the buffer
+                if (TryWriteCell(cell, out var bytesNeeded))
+                    continue;
+
+                currentIndex = i;
+                return false;
+            }
+
+            // Also ensuring space in the buffer for the next row start, so that we don't need to check space in the buffer twice
+            if (RowEnd.Length + RowStartMaxByteCount > GetRemainingBuffer())
+            {
+                currentIndex = cells.Count;
+                return false;
+            }
+
+            RowEnd.CopyTo(GetNextSpan());
+            _bufferIndex += RowEnd.Length;
+
+            currentIndex = 0;
+            return true;
+        }
+
+        public async ValueTask AddRowAsync(IList<Cell> cells, int currentIndex, CancellationToken token)
+        {
+            for (var i = currentIndex; i < cells.Count; ++i)
+            {
+                var cell = cells[i];
+
+                // Write cell if it fits in the buffer
+                // TODO: Will always fail on first try? Maybe just flush buffer right away?
                 if (TryWriteCell(cell, out var bytesNeeded))
                     continue;
 

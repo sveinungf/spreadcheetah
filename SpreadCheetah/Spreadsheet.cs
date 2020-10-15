@@ -90,7 +90,10 @@ namespace SpreadCheetah
             if (_worksheet is null)
                 throw new SpreadCheetahException("Can't add rows when there is not an active worksheet.");
 
-            return _worksheet.AddRowAsync(cells, token);
+            if (_worksheet.TryAddRow(cells, out var currentIndex))
+                return default;
+
+            return _worksheet.AddRowAsync(cells, currentIndex, token);
         }
 
         public StyleId AddStyle(Style style)
