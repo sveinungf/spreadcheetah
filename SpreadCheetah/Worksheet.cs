@@ -116,29 +116,20 @@ namespace SpreadCheetah
             // Assuming previous actions on the worksheet ensured space in the buffer for row start
             _bufferIndex += GetRowStartBytes(_nextRowIndex++, GetNextSpan());
 
-            for (var i = 0; i < cells.Count; ++i)
+            for (currentIndex = 0; currentIndex < cells.Count; ++currentIndex)
             {
-                var cell = cells[i];
-
                 // Write cell if it fits in the buffer
-                if (TryWriteCell(cell, out _))
-                    continue;
-
-                currentIndex = i;
-                return false;
+                if (!TryWriteCell(cells[currentIndex], out _))
+                    return false;
             }
 
             // Also ensuring space in the buffer for the next row start, so that we don't need to check space in the buffer twice
             if (RowEnd.Length + RowStartMaxByteCount > GetRemainingBuffer())
-            {
-                currentIndex = cells.Count;
                 return false;
-            }
 
             RowEnd.CopyTo(GetNextSpan());
             _bufferIndex += RowEnd.Length;
 
-            currentIndex = 0;
             return true;
         }
 
