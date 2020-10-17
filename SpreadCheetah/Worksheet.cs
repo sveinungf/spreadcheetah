@@ -62,14 +62,12 @@ namespace SpreadCheetah
 
         private static int GetRowStartBytes(int rowIndex, Span<byte> bytes)
         {
-            RowStart.CopyTo(bytes);
-            var bytesWritten = RowStart.Length;
+            var bytesWritten = SpanHelper.GetBytes(RowStart, bytes);
 
             Utf8Formatter.TryFormat(rowIndex, bytes.Slice(bytesWritten), out var rowIndexBytes);
             bytesWritten += rowIndexBytes;
 
-            RowStartEndTag.CopyTo(bytes.Slice(bytesWritten));
-            return bytesWritten + RowStartEndTag.Length;
+            return bytesWritten + SpanHelper.GetBytes(RowStartEndTag, bytes.Slice(bytesWritten));
         }
 
         private bool TryWriteCell(in Cell cell, out int bytesNeeded)
@@ -173,8 +171,7 @@ namespace SpreadCheetah
             if (RowEnd.Length + RowStartMaxByteCount > GetRemainingBuffer())
                 await _buffer.FlushToStreamAsync(_stream, ref _bufferIndex, token).ConfigureAwait(false);
 
-            RowEnd.CopyTo(GetNextSpan());
-            _bufferIndex += RowEnd.Length;
+            _bufferIndex += SpanHelper.GetBytes(RowEnd, GetNextSpan());
         }
 
         private Span<byte> GetNextSpan() => _buffer.AsSpan(_bufferIndex);
