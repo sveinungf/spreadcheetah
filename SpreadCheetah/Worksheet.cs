@@ -41,7 +41,6 @@ namespace SpreadCheetah
 
         private readonly Stream _stream;
         private readonly byte[] _buffer;
-        private readonly int _bufferSize;
         private int _bufferIndex;
         private int _nextRowIndex;
 
@@ -50,7 +49,6 @@ namespace SpreadCheetah
             _stream = stream;
             _nextRowIndex = 1;
             _buffer = buffer;
-            _bufferSize = buffer.Length;
         }
 
         public static Worksheet Create(Stream stream, byte[] buffer)
@@ -127,9 +125,7 @@ namespace SpreadCheetah
             if (RowEnd.Length + RowStartMaxByteCount > GetRemainingBuffer())
                 return false;
 
-            RowEnd.CopyTo(GetNextSpan());
-            _bufferIndex += RowEnd.Length;
-
+            _bufferIndex += SpanHelper.GetBytes(RowEnd, GetNextSpan());
             return true;
         }
 
@@ -149,7 +145,7 @@ namespace SpreadCheetah
                 await _buffer.FlushToStreamAsync(_stream, ref _bufferIndex, token).ConfigureAwait(false);
 
                 // Write cell if it fits in the buffer
-                if (bytesNeeded < _bufferSize)
+                if (bytesNeeded < GetRemainingBuffer())
                 {
                     _bufferIndex += CellSpanHelper.GetBytes(cell, GetNextSpan());
                     continue;
@@ -182,7 +178,7 @@ namespace SpreadCheetah
         }
 
         private Span<byte> GetNextSpan() => _buffer.AsSpan(_bufferIndex);
-        private int GetRemainingBuffer() => _bufferSize - _bufferIndex;
+        private int GetRemainingBuffer() => _buffer.Length - _bufferIndex;
 
         public async ValueTask FinishAsync(CancellationToken token)
         {
