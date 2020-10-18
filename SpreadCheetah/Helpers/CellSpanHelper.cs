@@ -14,7 +14,7 @@ namespace SpreadCheetah.Helpers
             (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'b', (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
         };
 
-        private static ReadOnlySpan<byte> DefaultCellEnd => new[]
+        public static ReadOnlySpan<byte> DefaultCellEnd => new[]
         {
             (byte)'<', (byte)'/', (byte)'v', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
@@ -25,7 +25,7 @@ namespace SpreadCheetah.Helpers
             (byte)'S', (byte)'t', (byte)'r', (byte)'"', (byte)'>', (byte)'<', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'t', (byte)'>'
         };
 
-        private static ReadOnlySpan<byte> StringCellEnd => new[]
+        public static ReadOnlySpan<byte> StringCellEnd => new[]
         {
             (byte)'<', (byte)'/', (byte)'t', (byte)'>', (byte)'<', (byte)'/', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
