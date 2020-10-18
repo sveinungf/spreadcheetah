@@ -19,6 +19,7 @@ namespace SpreadCheetah
         private readonly Stream _stream;
         private readonly SpreadsheetBuffer _buffer;
         private readonly DataCellWriter _dataCellWriter;
+        private readonly StyledCellWriter _styledCellWriter;
         private int _nextRowIndex;
 
         private Worksheet(Stream stream, SpreadsheetBuffer buffer)
@@ -26,6 +27,7 @@ namespace SpreadCheetah
             _stream = stream;
             _buffer = buffer;
             _dataCellWriter = new DataCellWriter(buffer);
+            _styledCellWriter = new StyledCellWriter(buffer);
             _nextRowIndex = 1;
         }
 
@@ -37,16 +39,10 @@ namespace SpreadCheetah
         }
 
         private void WriteHead() => _buffer.Index += Utf8Helper.GetBytes(SheetHeader, _buffer.GetNextSpan());
-
-        public bool TryAddRow(IList<Cell> cells, out int currentIndex)
-        {
-            return _dataCellWriter.TryAddRow(cells, ref _nextRowIndex, out currentIndex);
-        }
-
-        public ValueTask AddRowAsync(IList<Cell> cells, int currentIndex, CancellationToken token)
-        {
-            return _dataCellWriter.AddRowAsync(cells, currentIndex, _stream, token);
-        }
+        public bool TryAddRow(IList<Cell> cells, out int currentIndex) => _dataCellWriter.TryAddRow(cells, _nextRowIndex++, out currentIndex);
+        public bool TryAddRow(IList<StyledCell> cells, out int currentIndex) => _styledCellWriter.TryAddRow(cells, _nextRowIndex++, out currentIndex);
+        public ValueTask AddRowAsync(IList<Cell> cells, int startIndex, CancellationToken ct) => _dataCellWriter.AddRowAsync(cells, startIndex, _stream, ct);
+        public ValueTask AddRowAsync(IList<StyledCell> cells, int startIndex, CancellationToken ct) => _styledCellWriter.AddRowAsync(cells, startIndex, _stream, ct);
 
         public async ValueTask FinishAsync(CancellationToken token)
         {

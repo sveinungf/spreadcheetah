@@ -87,15 +87,26 @@ namespace SpreadCheetah
 
         public ValueTask AddRowAsync(IList<Cell> cells, CancellationToken token = default)
         {
+            EnsureCanAddRows(cells);
+            return _worksheet!.TryAddRow(cells, out var currentIndex)
+                ? default
+                : _worksheet.AddRowAsync(cells, currentIndex, token);
+        }
+
+        public ValueTask AddRowAsync(IList<StyledCell> cells, CancellationToken token = default)
+        {
+            EnsureCanAddRows(cells);
+            return _worksheet!.TryAddRow(cells, out var currentIndex)
+                ? default
+                : _worksheet.AddRowAsync(cells, currentIndex, token);
+        }
+
+        private void EnsureCanAddRows<T>(IList<T> cells)
+        {
             if (cells is null)
                 throw new ArgumentNullException(nameof(cells));
             if (_worksheet is null)
                 throw new SpreadCheetahException("Can't add rows when there is not an active worksheet.");
-
-            if (_worksheet.TryAddRow(cells, out var currentIndex))
-                return default;
-
-            return _worksheet.AddRowAsync(cells, currentIndex, token);
         }
 
         public StyleId AddStyle(Style style)

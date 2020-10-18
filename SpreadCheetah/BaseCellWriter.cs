@@ -22,10 +22,10 @@ namespace SpreadCheetah
         protected abstract int GetEndElementBytes(T cell, Span<byte> bytes);
         protected abstract bool FinishWritingCellValue(T cell, ref int cellValueIndex);
 
-        public bool TryAddRow(IList<T> cells, ref int nextRowIndex, out int currentListIndex)
+        public bool TryAddRow(IList<T> cells, int rowIndex, out int currentListIndex)
         {
             // Assuming previous actions on the worksheet ensured space in the buffer for row start
-            Buffer.Index += GetRowStartBytes(nextRowIndex++, Buffer.GetNextSpan());
+            Buffer.Index += GetRowStartBytes(rowIndex, Buffer.GetNextSpan());
 
             for (currentListIndex = 0; currentListIndex < cells.Count; ++currentListIndex)
             {
