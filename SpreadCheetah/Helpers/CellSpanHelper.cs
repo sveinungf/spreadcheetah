@@ -4,28 +4,28 @@ namespace SpreadCheetah.Helpers
 {
     internal static class CellSpanHelper
     {
-        private static ReadOnlySpan<byte> NumberCellStart => new byte[]
+        private static ReadOnlySpan<byte> NumberCellStart => new[]
         {
             (byte)'<', (byte)'c', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
         };
 
-        private static ReadOnlySpan<byte> BooleanCellStart => new byte[]
+        private static ReadOnlySpan<byte> BooleanCellStart => new[]
         {
             (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'b', (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
         };
 
-        private static ReadOnlySpan<byte> DefaultCellEnd => new byte[]
+        private static ReadOnlySpan<byte> DefaultCellEnd => new[]
         {
             (byte)'<', (byte)'/', (byte)'v', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
 
-        private static ReadOnlySpan<byte> StringCellStart => new byte[]
+        private static ReadOnlySpan<byte> StringCellStart => new[]
         {
             (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'i', (byte)'n', (byte)'l', (byte)'i', (byte)'n', (byte)'e',
             (byte)'S', (byte)'t', (byte)'r', (byte)'"', (byte)'>', (byte)'<', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'t', (byte)'>'
         };
 
-        private static ReadOnlySpan<byte> StringCellEnd => new byte[]
+        private static ReadOnlySpan<byte> StringCellEnd => new[]
         {
             (byte)'<', (byte)'/', (byte)'t', (byte)'>', (byte)'<', (byte)'/', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
