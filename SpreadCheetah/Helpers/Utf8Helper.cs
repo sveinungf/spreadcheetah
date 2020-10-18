@@ -1,4 +1,5 @@
 using System;
+using System.Buffers.Text;
 using System.Diagnostics;
 using System.Text;
 
@@ -7,6 +8,12 @@ namespace SpreadCheetah.Helpers
     internal static class Utf8Helper
     {
         private static readonly UTF8Encoding Utf8NoBom = new UTF8Encoding(false);
+
+        public static int GetBytes(int number, Span<byte> destination)
+        {
+            Utf8Formatter.TryFormat(number, destination, out var bytesWritten);
+            return bytesWritten;
+        }
 
 #if NETSTANDARD2_0
         public static unsafe int GetBytes(string chars, Span<byte> bytes, bool assertSize = true)

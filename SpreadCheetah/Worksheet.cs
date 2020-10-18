@@ -1,6 +1,5 @@
 using SpreadCheetah.Helpers;
 using System;
-using System.Buffers.Text;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -17,24 +16,21 @@ namespace SpreadCheetah
 
         private const string SheetFooter = "</sheetData></worksheet>";
 
-        // Maximum number of rows limited to 1,048,576 in Excel
-        private const int RowIndexMaxDigits = 7;
-
         private const int Utf8MaxBytePerChar = 6;
 
-        private static readonly int RowStartMaxByteCount = RowStart.Length + RowIndexMaxDigits + RowStartEndTag.Length;
+        private static readonly int RowStartMaxByteCount = RowStart.Length + SpreadsheetConstants.RowIndexMaxDigits + RowStartEndTag.Length;
 
-        private static ReadOnlySpan<byte> RowStart => new byte[]
+        private static ReadOnlySpan<byte> RowStart => new[]
         {
             (byte)'<', (byte)'r', (byte)'o', (byte)'w', (byte)' ', (byte)'r', (byte)'=', (byte)'"'
         };
 
-        private static ReadOnlySpan<byte> RowStartEndTag => new byte[]
+        private static ReadOnlySpan<byte> RowStartEndTag => new[]
         {
             (byte)'"', (byte)'>'
         };
 
-        private static ReadOnlySpan<byte> RowEnd => new byte[]
+        private static ReadOnlySpan<byte> RowEnd => new[]
         {
             (byte)'<', (byte)'/', (byte)'r', (byte)'o', (byte)'w', (byte)'>'
         };
@@ -63,11 +59,9 @@ namespace SpreadCheetah
         private static int GetRowStartBytes(int rowIndex, Span<byte> bytes)
         {
             var bytesWritten = SpanHelper.GetBytes(RowStart, bytes);
-
-            Utf8Formatter.TryFormat(rowIndex, bytes.Slice(bytesWritten), out var rowIndexBytes);
-            bytesWritten += rowIndexBytes;
-
-            return bytesWritten + SpanHelper.GetBytes(RowStartEndTag, bytes.Slice(bytesWritten));
+            bytesWritten += Utf8Helper.GetBytes(rowIndex, bytes.Slice(bytesWritten));
+            bytesWritten += SpanHelper.GetBytes(RowStartEndTag, bytes.Slice(bytesWritten));
+            return bytesWritten;
         }
 
         private bool TryWriteCell(in Cell cell, out int bytesNeeded)

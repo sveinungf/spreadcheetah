@@ -1,6 +1,5 @@
 using SpreadCheetah.Helpers;
 using System;
-using System.Buffers.Text;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -68,14 +67,10 @@ namespace SpreadCheetah.MetadataXml
             var bytesWritten = SpanHelper.GetBytes(SheetStart, bytes);
             bytesWritten += Utf8Helper.GetBytes(name, bytes.Slice(bytesWritten));
             bytesWritten += SpanHelper.GetBytes(BetweenNameAndSheetId, bytes.Slice(bytesWritten));
-
-            Utf8Formatter.TryFormat(sheetId, bytes.Slice(bytesWritten), out var sheetIdBytes);
-            bytesWritten += sheetIdBytes;
+            bytesWritten += Utf8Helper.GetBytes(sheetId, bytes.Slice(bytesWritten));
             bytesWritten += SpanHelper.GetBytes(BetweenSheetIdAndRelationId, bytes.Slice(bytesWritten));
             bytesWritten += SpanHelper.GetBytes(SharedMetadata.RelationIdPrefix, bytes.Slice(bytesWritten));
-
-            Utf8Formatter.TryFormat(sheetId, bytes.Slice(bytesWritten), out sheetIdBytes);
-            bytesWritten += sheetIdBytes;
+            bytesWritten += Utf8Helper.GetBytes(sheetId, bytes.Slice(bytesWritten));
             bytesWritten += SpanHelper.GetBytes(SheetEnd, bytes.Slice(bytesWritten));
             return bytesWritten;
         }
