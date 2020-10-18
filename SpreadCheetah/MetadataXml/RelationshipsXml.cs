@@ -1,5 +1,4 @@
 using SpreadCheetah.Helpers;
-using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,10 +13,10 @@ namespace SpreadCheetah.MetadataXml
                 "<Relationship Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"/xl/workbook.xml\" Id=\"rId1\" />" +
             "</Relationships>";
 
-        public static ValueTask WriteContentAsync(Stream stream, byte[] buffer, CancellationToken token)
+        public static ValueTask WriteContentAsync(SpreadsheetBuffer buffer, Stream stream, CancellationToken token)
         {
-            var bytesWritten = Utf8Helper.GetBytes(Content, buffer.AsSpan());
-            return buffer.FlushToStreamAsync(stream, ref bytesWritten, token);
+            buffer.Index = Utf8Helper.GetBytes(Content, buffer.GetNextSpan());
+            return buffer.FlushToStreamAsync(stream, token);
         }
     }
 }

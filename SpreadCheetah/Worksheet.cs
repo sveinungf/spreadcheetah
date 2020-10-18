@@ -36,25 +36,24 @@ namespace SpreadCheetah
         };
 
         private readonly Stream _stream;
-        private readonly byte[] _buffer;
-        private int _bufferIndex;
+        private readonly SpreadsheetBuffer _buffer;
         private int _nextRowIndex;
 
-        private Worksheet(Stream stream, byte[] buffer)
+        private Worksheet(Stream stream, SpreadsheetBuffer buffer)
         {
             _stream = stream;
             _nextRowIndex = 1;
             _buffer = buffer;
         }
 
-        public static Worksheet Create(Stream stream, byte[] buffer)
+        public static Worksheet Create(Stream stream, SpreadsheetBuffer buffer)
         {
             var worksheet = new Worksheet(stream, buffer);
             worksheet.WriteHead();
             return worksheet;
         }
 
-        private void WriteHead() => _bufferIndex += Utf8Helper.GetBytes(SheetHeader, _buffer);
+        private void WriteHead() => _buffer.Index += Utf8Helper.GetBytes(SheetHeader, _buffer.GetNextSpan());
 
         private static int GetRowStartBytes(int rowIndex, Span<byte> bytes)
         {
@@ -67,13 +66,13 @@ namespace SpreadCheetah
         private bool TryWriteCell(in Cell cell, out int bytesNeeded)
         {
             bytesNeeded = 0;
-            var remainingBuffer = GetRemainingBuffer();
+            var remainingBuffer = _buffer.GetRemainingBuffer();
 
             // Try with an approximate cell value length
             var cellValueLength = cell.Value.Length * Utf8MaxBytePerChar;
             if (CellSpanHelper.MaxCellElementLength + cellValueLength < remainingBuffer)
             {
-                _bufferIndex += CellSpanHelper.GetBytes(cell, GetNextSpan());
+                _buffer.Index += CellSpanHelper.GetBytes(cell, _buffer.GetNextSpan());
                 return true;
             }
 
@@ -82,7 +81,7 @@ namespace SpreadCheetah
             bytesNeeded = CellSpanHelper.MaxCellElementLength + cellValueLength;
             if (bytesNeeded < remainingBuffer)
             {
-                _bufferIndex += CellSpanHelper.GetBytes(cell, GetNextSpan());
+                _buffer.Index += CellSpanHelper.GetBytes(cell, _buffer.GetNextSpan());
                 return true;
             }
 
@@ -91,12 +90,12 @@ namespace SpreadCheetah
 
         private bool FinishWritingCellValue(string cellValue, ref int cellValueIndex)
         {
-            var remainingBuffer = GetRemainingBuffer();
+            var remainingBuffer = _buffer.GetRemainingBuffer();
             var maxCharCount = remainingBuffer / Utf8MaxBytePerChar;
             var remainingLength = cellValue.Length - cellValueIndex;
             var lastIteration = remainingLength <= maxCharCount;
             var length = lastIteration ? remainingLength : maxCharCount;
-            _bufferIndex += Utf8Helper.GetBytes(cellValue.AsSpan(cellValueIndex, length), GetNextSpan());
+            _buffer.Index += Utf8Helper.GetBytes(cellValue.AsSpan(cellValueIndex, length), _buffer.GetNextSpan());
             cellValueIndex += length;
             return lastIteration;
         }
@@ -104,7 +103,7 @@ namespace SpreadCheetah
         public bool TryAddRow(IList<Cell> cells, out int currentIndex)
         {
             // Assuming previous actions on the worksheet ensured space in the buffer for row start
-            _bufferIndex += GetRowStartBytes(_nextRowIndex++, GetNextSpan());
+            _buffer.Index += GetRowStartBytes(_nextRowIndex++, _buffer.GetNextSpan());
 
             for (currentIndex = 0; currentIndex < cells.Count; ++currentIndex)
             {
@@ -114,17 +113,17 @@ namespace SpreadCheetah
             }
 
             // Also ensuring space in the buffer for the next row start, so that we don't need to check space in the buffer twice
-            if (RowEnd.Length + RowStartMaxByteCount > GetRemainingBuffer())
+            if (RowEnd.Length + RowStartMaxByteCount > _buffer.GetRemainingBuffer())
                 return false;
 
-            _bufferIndex += SpanHelper.GetBytes(RowEnd, GetNextSpan());
+            _buffer.Index += SpanHelper.GetBytes(RowEnd, _buffer.GetNextSpan());
             return true;
         }
 
         public async ValueTask AddRowAsync(IList<Cell> cells, int currentIndex, CancellationToken token)
         {
             // If we get here that means that the next cell didn't fit in the buffer, so just flush right away
-            await _buffer.FlushToStreamAsync(_stream, ref _bufferIndex, token).ConfigureAwait(false);
+            await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);
 
             for (var i = currentIndex; i < cells.Count; ++i)
             {
@@ -134,51 +133,48 @@ namespace SpreadCheetah
                 if (TryWriteCell(cell, out var bytesNeeded))
                     continue;
 
-                await _buffer.FlushToStreamAsync(_stream, ref _bufferIndex, token).ConfigureAwait(false);
+                await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);
 
                 // Write cell if it fits in the buffer
-                if (bytesNeeded < GetRemainingBuffer())
+                if (bytesNeeded < _buffer.GetRemainingBuffer())
                 {
-                    _bufferIndex += CellSpanHelper.GetBytes(cell, GetNextSpan());
+                    _buffer.Index += CellSpanHelper.GetBytes(cell, _buffer.GetNextSpan());
                     continue;
                 }
 
                 // Write start element
-                _bufferIndex += CellSpanHelper.GetStartElementBytes(cell.DataType, GetNextSpan());
+                _buffer.Index += CellSpanHelper.GetStartElementBytes(cell.DataType, _buffer.GetNextSpan());
 
                 // Write as much as possible from cell value
                 var cellValueIndex = 0;
                 while (!FinishWritingCellValue(cell.Value, ref cellValueIndex))
                 {
-                    await _buffer.FlushToStreamAsync(_stream, ref _bufferIndex, token).ConfigureAwait(false);
+                    await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);
                 }
 
                 // Flush if can't fit the longest cell end element
-                if (CellSpanHelper.MaxCellEndElementLength > GetRemainingBuffer())
-                    await _buffer.FlushToStreamAsync(_stream, ref _bufferIndex, token).ConfigureAwait(false);
+                if (CellSpanHelper.MaxCellEndElementLength > _buffer.GetRemainingBuffer())
+                    await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);
 
                 // Write end element directly
-                _bufferIndex += CellSpanHelper.GetEndElementBytes(cell.DataType, GetNextSpan());
+                _buffer.Index += CellSpanHelper.GetEndElementBytes(cell.DataType, _buffer.GetNextSpan());
             }
 
             // Also ensuring space in the buffer for the next row start, so that we don't need to check space in the buffer twice
-            if (RowEnd.Length + RowStartMaxByteCount > GetRemainingBuffer())
-                await _buffer.FlushToStreamAsync(_stream, ref _bufferIndex, token).ConfigureAwait(false);
+            if (RowEnd.Length + RowStartMaxByteCount > _buffer.GetRemainingBuffer())
+                await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);
 
-            _bufferIndex += SpanHelper.GetBytes(RowEnd, GetNextSpan());
+            _buffer.Index += SpanHelper.GetBytes(RowEnd, _buffer.GetNextSpan());
         }
-
-        private Span<byte> GetNextSpan() => _buffer.AsSpan(_bufferIndex);
-        private int GetRemainingBuffer() => _buffer.Length - _bufferIndex;
 
         public async ValueTask FinishAsync(CancellationToken token)
         {
-            if (Utf8Helper.GetByteCount(SheetFooter) > GetRemainingBuffer())
-                await _buffer.FlushToStreamAsync(_stream, ref _bufferIndex, token).ConfigureAwait(false);
+            if (Utf8Helper.GetByteCount(SheetFooter) > _buffer.GetRemainingBuffer())
+                await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);
 
-            _bufferIndex += Utf8Helper.GetBytes(SheetFooter, GetNextSpan());
+            _buffer.Index += Utf8Helper.GetBytes(SheetFooter, _buffer.GetNextSpan());
 
-            await _buffer.FlushToStreamAsync(_stream, ref _bufferIndex, token).ConfigureAwait(false);
+            await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);
             await _stream.FlushAsync(token).ConfigureAwait(false);
         }
 

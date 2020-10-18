@@ -19,7 +19,8 @@ namespace SpreadCheetah
         private readonly List<string> _worksheetPaths = new List<string>();
         private readonly ZipArchive _archive;
         private readonly CompressionLevel _compressionLevel;
-        private readonly byte[] _buffer;
+        private readonly SpreadsheetBuffer _buffer;
+        private readonly byte[] _arrayPoolBuffer;
         private List<Style>? _styles;
         private Worksheet? _worksheet;
         private bool _disposed;
@@ -28,7 +29,8 @@ namespace SpreadCheetah
         {
             _archive = archive;
             _compressionLevel = compressionLevel;
-            _buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+            _arrayPoolBuffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+            _buffer = new SpreadsheetBuffer(_arrayPoolBuffer);
         }
 
         public static async ValueTask<Spreadsheet> CreateNewAsync(
@@ -137,7 +139,7 @@ namespace SpreadCheetah
 
         private async ValueTask WriteFileAsync(
             string path,
-            Func<Stream, byte[], CancellationToken, ValueTask> writeContentFunc,
+            Func<SpreadsheetBuffer, Stream, CancellationToken, ValueTask> writeContentFunc,
             CancellationToken token)
         {
             var stream = _archive.CreateEntry(path, _compressionLevel).Open();
@@ -147,14 +149,14 @@ namespace SpreadCheetah
             await using (stream.ConfigureAwait(false))
 #endif
             {
-                await writeContentFunc(stream, _buffer, token).ConfigureAwait(false);
+                await writeContentFunc(_buffer, stream, token).ConfigureAwait(false);
             }
         }
 
         private async ValueTask WriteFileAsync(
             string path,
             List<string> sheets,
-            Func<Stream, byte[], List<string>, CancellationToken, ValueTask> writeContentFunc,
+            Func<SpreadsheetBuffer, Stream, List<string>, CancellationToken, ValueTask> writeContentFunc,
             CancellationToken token)
         {
             var stream = _archive.CreateEntry(path, _compressionLevel).Open();
@@ -164,7 +166,7 @@ namespace SpreadCheetah
             await using (stream.ConfigureAwait(false))
 #endif
             {
-                await writeContentFunc(stream, _buffer, sheets, token).ConfigureAwait(false);
+                await writeContentFunc(_buffer, stream, sheets, token).ConfigureAwait(false);
             }
         }
 
@@ -176,7 +178,7 @@ namespace SpreadCheetah
             if (_worksheet != null)
                 await _worksheet.DisposeAsync().ConfigureAwait(false);
 
-            ArrayPool<byte>.Shared.Return(_buffer, true);
+            ArrayPool<byte>.Shared.Return(_arrayPoolBuffer, true);
             _archive?.Dispose();
         }
 
@@ -185,7 +187,7 @@ namespace SpreadCheetah
             if (_disposed) return;
             _disposed = true;
             _worksheet?.Dispose();
-            ArrayPool<byte>.Shared.Return(_buffer, true);
+            ArrayPool<byte>.Shared.Return(_arrayPoolBuffer, true);
             _archive?.Dispose();
         }
     }

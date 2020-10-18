@@ -22,9 +22,9 @@ namespace SpreadCheetah.MetadataXml
         private static readonly byte[] BetweenPathAndRelationId = Utf8Helper.GetBytes(BetweenPathAndRelationIdString);
         private static readonly byte[] SheetEnd = Utf8Helper.GetBytes(SheetEndString);
 
-        public static async ValueTask WriteContentAsync(Stream stream, byte[] buffer, List<string> worksheetPaths, CancellationToken token)
+        public static async ValueTask WriteContentAsync(SpreadsheetBuffer buffer, Stream stream, List<string> worksheetPaths, CancellationToken token)
         {
-            var bytesWritten = Utf8Helper.GetBytes(Header, buffer.AsSpan());
+            buffer.Index = Utf8Helper.GetBytes(Header, buffer.GetNextSpan());
 
             for (var i = 0; i < worksheetPaths.Count; ++i)
             {
@@ -32,17 +32,17 @@ namespace SpreadCheetah.MetadataXml
                 var sheetId = i + 1;
                 var sheetElementLength = GetSheetElementByteCount(path, sheetId);
 
-                if (sheetElementLength > buffer.Length - bytesWritten)
-                    await buffer.FlushToStreamAsync(stream, ref bytesWritten, token).ConfigureAwait(false);
+                if (sheetElementLength > buffer.GetRemainingBuffer())
+                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-                bytesWritten += GetSheetElementBytes(path, sheetId, buffer.AsSpan(bytesWritten));
+                buffer.Index += GetSheetElementBytes(path, sheetId, buffer.GetNextSpan());
             }
 
-            if (Footer.Length > buffer.Length - bytesWritten)
-                await buffer.FlushToStreamAsync(stream, ref bytesWritten, token).ConfigureAwait(false);
+            if (Footer.Length > buffer.GetRemainingBuffer())
+                await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-            bytesWritten += Utf8Helper.GetBytes(Footer, buffer.AsSpan(bytesWritten));
-            await buffer.FlushToStreamAsync(stream, ref bytesWritten, token).ConfigureAwait(false);
+            buffer.Index += Utf8Helper.GetBytes(Footer, buffer.GetNextSpan());
+            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }
 
         private static int GetSheetElementByteCount(string path, int sheetId)
