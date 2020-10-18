@@ -35,26 +35,31 @@ namespace SpreadCheetah.Helpers
 
         public static int GetBytes(in Cell cell, Span<byte> bytes)
         {
+            ReadOnlySpan<byte> cellStart;
+            ReadOnlySpan<byte> cellEnd;
+
             switch (cell.DataType)
             {
                 case CellDataType.InlineString:
-                    StringCellStart.CopyTo(bytes);
-                    var a = Utf8Helper.GetBytes(cell.Value, bytes.Slice(StringCellStart.Length), false);
-                    StringCellEnd.CopyTo(bytes.Slice(StringCellStart.Length + a));
-                    return StringCellStart.Length + StringCellEnd.Length + a;
+                    cellStart = StringCellStart;
+                    cellEnd = StringCellEnd;
+                    break;
                 case CellDataType.Number:
-                    NumberCellStart.CopyTo(bytes);
-                    var b = Utf8Helper.GetBytes(cell.Value, bytes.Slice(NumberCellStart.Length));
-                    DefaultCellEnd.CopyTo(bytes.Slice(NumberCellStart.Length + b));
-                    return NumberCellStart.Length + DefaultCellEnd.Length + b;
+                    cellStart = NumberCellStart;
+                    cellEnd = DefaultCellEnd;
+                    break;
                 case CellDataType.Boolean:
-                    BooleanCellStart.CopyTo(bytes);
-                    var c = Utf8Helper.GetBytes(cell.Value, bytes.Slice(BooleanCellStart.Length));
-                    DefaultCellEnd.CopyTo(bytes.Slice(BooleanCellStart.Length + c));
-                    return BooleanCellStart.Length + DefaultCellEnd.Length + c;
+                    cellStart = BooleanCellStart;
+                    cellEnd = DefaultCellEnd;
+                    break;
                 default:
                     return 0;
             }
+
+            var bytesWritten = SpanHelper.GetBytes(cellStart, bytes);
+            bytesWritten += Utf8Helper.GetBytes(cell.Value, bytes.Slice(bytesWritten));
+            bytesWritten += SpanHelper.GetBytes(cellEnd, bytes.Slice(bytesWritten));
+            return bytesWritten;
         }
 
         public static int GetStartElementBytes(CellDataType type, Span<byte> bytes) => type switch
