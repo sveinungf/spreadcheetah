@@ -141,11 +141,16 @@ namespace SpreadCheetah
         private async ValueTask FinishInternalAsync(CancellationToken token)
         {
             await FinishAndDisposeWorksheetAsync(token).ConfigureAwait(false);
-            await WriteFileAsync("[Content_Types].xml", _worksheetPaths, ContentTypesXml.WriteContentAsync, token).ConfigureAwait(false);
-            await WriteFileAsync("xl/_rels/workbook.xml.rels", _worksheetPaths, WorkbookRelsXml.WriteContentAsync, token).ConfigureAwait(false);
+
+            var hasStyles = _styles != null;
+            await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetPaths, hasStyles, token).ConfigureAwait(false);
+            await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetPaths, hasStyles, token).ConfigureAwait(false);
+
+            // TODO: Avoid Func
             await WriteFileAsync("xl/workbook.xml", _worksheetNames, WorkbookXml.WriteContentAsync, token).ConfigureAwait(false);
 
-            // TODO: Write styles.xml if there are any styles
+            if (_styles != null)
+                await StylesXml.WriteAsync(_archive, "xl/styles.xml", _compressionLevel, _styles, token).ConfigureAwait(false);
         }
 
         private async ValueTask WriteFileAsync(
