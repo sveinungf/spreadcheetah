@@ -94,7 +94,6 @@ namespace SpreadCheetah.MetadataXml
 
         private static void ProcessFonts(List<Style> styles, out List<Font> uniqueFonts, out List<int> fontLookup)
         {
-            // TODO: Font must implement Equals and Hashcode
             var fontSet = new Dictionary<Font, int>(styles.Count);
             uniqueFonts = new List<Font>(styles.Count);
             fontLookup = new List<int>(styles.Count);
