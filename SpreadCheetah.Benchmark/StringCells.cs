@@ -8,6 +8,7 @@ using OfficeOpenXml;
 using SpreadCheetah.Benchmark.Helpers;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Packaging;
 using System.Linq;
 using System.Threading.Tasks;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
@@ -86,7 +87,7 @@ namespace SpreadCheetah.Benchmark
         [Benchmark]
         public void EpPlus4()
         {
-            using var package = new ExcelPackage(_stream);
+            using var package = new ExcelPackage(_stream) { Compression = CompressionLevel.BestSpeed };
             var worksheet = package.Workbook.Worksheets.Add(SheetName);
             var dataTypes = Enumerable.Repeat(eDataTypes.String, NumberOfColumns).ToArray();
             var excelTextFormat = new ExcelTextFormat { DataTypes = dataTypes };
@@ -105,6 +106,7 @@ namespace SpreadCheetah.Benchmark
         public void OpenXmlSax()
         {
             using var xl = SpreadsheetDocument.Create(_stream, SpreadsheetDocumentType.Workbook);
+            xl.CompressionOption = CompressionOption.SuperFast;
             xl.AddWorkbookPart();
             var wsp = xl.WorkbookPart.AddNewPart<WorksheetPart>();
 
@@ -159,19 +161,19 @@ namespace SpreadCheetah.Benchmark
         [Benchmark]
         public void OpenXmlDom()
         {
-            using var spreadsheetDocument = SpreadsheetDocument.Create(_stream, SpreadsheetDocumentType.Workbook);
-
-            var workbookpart = spreadsheetDocument.AddWorkbookPart();
+            using var xl = SpreadsheetDocument.Create(_stream, SpreadsheetDocumentType.Workbook);
+            xl.CompressionOption = CompressionOption.SuperFast;
+            var workbookpart = xl.AddWorkbookPart();
             workbookpart.Workbook = new Workbook();
             var worksheetPart = workbookpart.AddNewPart<WorksheetPart>();
             var sheetData = new SheetData();
             worksheetPart.Worksheet = new Worksheet();
             worksheetPart.Worksheet.AppendChild(sheetData);
 
-            var sheets = spreadsheetDocument.WorkbookPart.Workbook.AppendChild(new Sheets());
+            var sheets = xl.WorkbookPart.Workbook.AppendChild(new Sheets());
             var sheet = new Sheet
             {
-                Id = spreadsheetDocument.WorkbookPart.GetIdOfPart(worksheetPart),
+                Id = xl.WorkbookPart.GetIdOfPart(worksheetPart),
                 SheetId = 1,
                 Name = SheetName
             };
@@ -185,7 +187,7 @@ namespace SpreadCheetah.Benchmark
 
             sheets.AppendChild(sheet);
             workbookpart.Workbook.Save();
-            spreadsheetDocument.Close();
+            xl.Close();
         }
 
         [Benchmark]
