@@ -42,9 +42,13 @@ namespace SpreadCheetah.MetadataXml
             {
                 buffer.Index = Utf8Helper.GetBytes(Header, buffer.GetNextSpan());
 
-                // TODO: Verify that this does not explode the buffer
                 if (hasStylesXml)
-                    buffer.Index = Utf8Helper.GetBytes(Styles, buffer.GetNextSpan());
+                {
+                    if (Styles.Length > buffer.GetRemainingBuffer())
+                        await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+
+                    buffer.Index += Utf8Helper.GetBytes(Styles, buffer.GetNextSpan());
+                }
 
                 for (var i = 0; i < worksheetPaths.Count; ++i)
                 {
