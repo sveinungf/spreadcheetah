@@ -1,3 +1,5 @@
+using SpreadCheetah.Styling;
+
 namespace SpreadCheetah
 {
     public class StyledCell

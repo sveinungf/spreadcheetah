@@ -1,7 +1,7 @@
 using SpreadCheetah.Helpers;
 using System;
 
-namespace SpreadCheetah
+namespace SpreadCheetah.CellWriters
 {
     internal sealed class DataCellWriter : BaseCellWriter<Cell>
     {

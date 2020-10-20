@@ -1,4 +1,5 @@
 using SpreadCheetah.MetadataXml;
+using SpreadCheetah.Styling;
 using System;
 using System.Buffers;
 using System.Collections.Generic;

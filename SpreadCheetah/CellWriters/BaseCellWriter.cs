@@ -5,7 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SpreadCheetah
+namespace SpreadCheetah.CellWriters
 {
     internal abstract class BaseCellWriter<T>
     {

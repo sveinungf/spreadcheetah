@@ -1,8 +1,7 @@
-using SpreadCheetah.Styling;
 using System;
 using System.Collections.Generic;
 
-namespace SpreadCheetah
+namespace SpreadCheetah.Styling
 {
     public sealed class Style : IEquatable<Style>
     {

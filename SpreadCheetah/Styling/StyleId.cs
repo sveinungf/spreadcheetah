@@ -1,6 +1,6 @@
-namespace SpreadCheetah
+namespace SpreadCheetah.Styling
 {
-    public class StyleId
+    public sealed class StyleId
     {
         public int Id { get; }
 

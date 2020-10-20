@@ -1,4 +1,5 @@
 using ClosedXML.Excel;
+using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
 using System.IO;
 using System.Linq;
