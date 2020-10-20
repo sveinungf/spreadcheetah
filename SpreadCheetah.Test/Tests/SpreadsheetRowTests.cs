@@ -1,3 +1,4 @@
+using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using SpreadCheetah.Test.Helpers;
@@ -251,6 +252,59 @@ namespace SpreadCheetah.Test.Tests
             var actualCell = sheetPart.Worksheet.Descendants<DocumentFormat.OpenXml.Spreadsheet.Cell>().Single();
             Assert.Equal(CellValues.Boolean, actualCell.GetDataType());
             Assert.Equal(expectedValue, actualCell.InnerText);
+        }
+
+        [Theory]
+        [InlineData(1000)]
+        public async Task Spreadsheet_AddRow_MultipleColumns(int columns)
+        {
+            // Arrange
+            var values = Enumerable.Range(1, columns).Select(x => x.ToString()).ToList();
+            using var stream = new MemoryStream();
+            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            {
+                await spreadsheet.StartWorksheetAsync("Sheet");
+                var cells = values.Select(x => new Cell(x)).ToList();
+
+                // Act
+                await spreadsheet.AddRowAsync(cells);
+                await spreadsheet.FinishAsync();
+            }
+
+            // Assert
+            stream.Position = 0;
+            using var workbook = new XLWorkbook(stream);
+            var worksheet = workbook.Worksheets.Single();
+            var actualValues = worksheet.Cells(true).Select(x => x.Value).ToList();
+            Assert.Equal(values, actualValues);
+        }
+
+        [Theory]
+        [InlineData(1000)]
+        public async Task Spreadsheet_AddRow_MultipleRows(int rows)
+        {
+            // Arrange
+            var values = Enumerable.Range(1, rows).Select(x => x.ToString()).ToList();
+            using var stream = new MemoryStream();
+            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            {
+                await spreadsheet.StartWorksheetAsync("Sheet");
+
+                // Act
+                foreach (var value in values)
+                {
+                    await spreadsheet.AddRowAsync(new Cell(value));
+                }
+
+                await spreadsheet.FinishAsync();
+            }
+
+            // Assert
+            stream.Position = 0;
+            using var workbook = new XLWorkbook(stream);
+            var worksheet = workbook.Worksheets.Single();
+            var actualValues = worksheet.Cells(true).Select(x => x.Value).ToList();
+            Assert.Equal(values, actualValues);
         }
     }
 }
