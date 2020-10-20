@@ -41,13 +41,18 @@ namespace SpreadCheetah
             var archive = new ZipArchive(stream, ZipArchiveMode.Create, true);
             options ??= new SpreadCheetahOptions();
             var spreadsheet = new Spreadsheet(archive, GetCompressionLevel(options.CompressionLevel), options.BufferSize);
-            await spreadsheet.WriteFileAsync("_rels/.rels", RelationshipsXml.WriteContentAsync, cancellationToken).ConfigureAwait(false);
+            await spreadsheet.Initialize(cancellationToken).ConfigureAwait(false);
             return spreadsheet;
         }
 
         private static CompressionLevel GetCompressionLevel(SpreadCheetahCompressionLevel level)
         {
             return level == SpreadCheetahCompressionLevel.Optimal ? CompressionLevel.Optimal : CompressionLevel.Fastest;
+        }
+
+        private ValueTask Initialize(CancellationToken token)
+        {
+            return RelationshipsXml.WriteAsync(_archive, _compressionLevel, _buffer, token);
         }
 
         public ValueTask StartWorksheetAsync(string name, CancellationToken token = default)
@@ -145,45 +150,10 @@ namespace SpreadCheetah
             var hasStyles = _styles != null;
             await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetPaths, hasStyles, token).ConfigureAwait(false);
             await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetPaths, hasStyles, token).ConfigureAwait(false);
-
-            // TODO: Avoid Func
-            await WriteFileAsync("xl/workbook.xml", _worksheetNames, WorkbookXml.WriteContentAsync, token).ConfigureAwait(false);
+            await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetNames, token).ConfigureAwait(false);
 
             if (_styles != null)
-                await StylesXml.WriteAsync(_archive, "xl/styles.xml", _compressionLevel, _styles, token).ConfigureAwait(false);
-        }
-
-        private async ValueTask WriteFileAsync(
-            string path,
-            Func<SpreadsheetBuffer, Stream, CancellationToken, ValueTask> writeContentFunc,
-            CancellationToken token)
-        {
-            var stream = _archive.CreateEntry(path, _compressionLevel).Open();
-#if NETSTANDARD2_0
-            using (stream)
-#else
-            await using (stream.ConfigureAwait(false))
-#endif
-            {
-                await writeContentFunc(_buffer, stream, token).ConfigureAwait(false);
-            }
-        }
-
-        private async ValueTask WriteFileAsync(
-            string path,
-            List<string> sheets,
-            Func<SpreadsheetBuffer, Stream, List<string>, CancellationToken, ValueTask> writeContentFunc,
-            CancellationToken token)
-        {
-            var stream = _archive.CreateEntry(path, _compressionLevel).Open();
-#if NETSTANDARD2_0
-            using (stream)
-#else
-            await using (stream.ConfigureAwait(false))
-#endif
-            {
-                await writeContentFunc(_buffer, stream, sheets, token).ConfigureAwait(false);
-            }
+                await StylesXml.WriteAsync(_archive, _compressionLevel, _styles, token).ConfigureAwait(false);
         }
 
         public async ValueTask DisposeAsync()

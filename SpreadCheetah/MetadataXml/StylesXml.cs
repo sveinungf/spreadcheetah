@@ -12,12 +12,11 @@ namespace SpreadCheetah.MetadataXml
     {
         public static async ValueTask WriteAsync(
             ZipArchive archive,
-            string path,
             CompressionLevel compressionLevel,
             List<Style> styles,
             CancellationToken token)
         {
-            var stream = archive.CreateEntry(path, compressionLevel).Open();
+            var stream = archive.CreateEntry("xl/styles.xml", compressionLevel).Open();
 #if NETSTANDARD2_0
             using (stream)
 #else

@@ -1,5 +1,5 @@
 using SpreadCheetah.Helpers;
-using System.IO;
+using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,10 +13,22 @@ namespace SpreadCheetah.MetadataXml
                 "<Relationship Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"/xl/workbook.xml\" Id=\"rId1\" />" +
             "</Relationships>";
 
-        public static ValueTask WriteContentAsync(SpreadsheetBuffer buffer, Stream stream, CancellationToken token)
+        public static async ValueTask WriteAsync(
+            ZipArchive archive,
+            CompressionLevel compressionLevel,
+            SpreadsheetBuffer buffer,
+            CancellationToken token)
         {
-            buffer.Index = Utf8Helper.GetBytes(Content, buffer.GetNextSpan());
-            return buffer.FlushToStreamAsync(stream, token);
+            var stream = archive.CreateEntry("_rels/.rels", compressionLevel).Open();
+#if NETSTANDARD2_0
+            using (stream)
+#else
+            await using (stream.ConfigureAwait(false))
+#endif
+            {
+                buffer.Index = Utf8Helper.GetBytes(Content, buffer.GetNextSpan());
+                await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            }
         }
     }
 }

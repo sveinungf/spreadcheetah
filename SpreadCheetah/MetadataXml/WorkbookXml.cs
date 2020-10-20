@@ -1,7 +1,7 @@
 using SpreadCheetah.Helpers;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,27 +26,40 @@ namespace SpreadCheetah.MetadataXml
         private static readonly byte[] BetweenSheetIdAndRelationId = Utf8Helper.GetBytes(BetweenSheetIdAndRelationIdString);
         private static readonly byte[] SheetEnd = Utf8Helper.GetBytes(SheetEndString);
 
-        public static async ValueTask WriteContentAsync(SpreadsheetBuffer buffer, Stream stream, List<string> worksheetNames, CancellationToken token)
+        public static async ValueTask WriteAsync(
+            ZipArchive archive,
+            CompressionLevel compressionLevel,
+            SpreadsheetBuffer buffer,
+            List<string> worksheetNames,
+            CancellationToken token)
         {
-            buffer.Index += Utf8Helper.GetBytes(Header, buffer.GetNextSpan());
-
-            for (var i = 0; i < worksheetNames.Count; ++i)
+            var stream = archive.CreateEntry("xl/workbook.xml", compressionLevel).Open();
+#if NETSTANDARD2_0
+            using (stream)
+#else
+            await using (stream.ConfigureAwait(false))
+#endif
             {
-                var sheetId = i + 1;
-                var name = WebUtility.HtmlEncode(worksheetNames[i]);
-                var sheetElementLength = GetSheetElementByteCount(name, sheetId);
+                buffer.Index += Utf8Helper.GetBytes(Header, buffer.GetNextSpan());
 
-                if (sheetElementLength > buffer.GetRemainingBuffer())
+                for (var i = 0; i < worksheetNames.Count; ++i)
+                {
+                    var sheetId = i + 1;
+                    var name = WebUtility.HtmlEncode(worksheetNames[i]);
+                    var sheetElementLength = GetSheetElementByteCount(name, sheetId);
+
+                    if (sheetElementLength > buffer.GetRemainingBuffer())
+                        await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+
+                    buffer.Index += GetSheetElementBytes(name, sheetId, buffer.GetNextSpan());
+                }
+
+                if (Footer.Length > buffer.GetRemainingBuffer())
                     await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-                buffer.Index += GetSheetElementBytes(name, sheetId, buffer.GetNextSpan());
-            }
-
-            if (Footer.Length > buffer.GetRemainingBuffer())
+                buffer.Index += Utf8Helper.GetBytes(Footer, buffer.GetNextSpan());
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-            buffer.Index += Utf8Helper.GetBytes(Footer, buffer.GetNextSpan());
-            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            }
         }
 
         private static int GetSheetElementByteCount(string name, int sheetId)
