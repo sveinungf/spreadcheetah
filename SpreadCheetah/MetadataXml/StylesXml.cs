@@ -36,7 +36,7 @@ namespace SpreadCheetah.MetadataXml
                 // The default font must be the first one (index 0)
                 sb.Append("<font><sz val=\"11\" /><name val=\"Calibri\" /></font>");
 
-                for (var i = 0; i < fontList.Count; ++i)
+                for (var i = 1; i < fontList.Count; ++i)
                 {
                     var font = fontList[i];
                     sb.Append("<font>");
@@ -77,7 +77,7 @@ namespace SpreadCheetah.MetadataXml
 
                     sb.Append("<xf numFmtId=\"0\" applyNumberFormat=\"1\" fontId=\"");
                     sb.Append(fontIndex);
-                    sb.Append("\" fontId=\"1\" applyFont=\"1\" xfId=\"0\" applyProtection=\"1\" />");
+                    sb.Append("\" applyFont=\"1\" xfId=\"0\" applyProtection=\"1\" />");
                 }
 
                 sb.Append("</cellXfs>");
@@ -94,15 +94,15 @@ namespace SpreadCheetah.MetadataXml
 
         private static void ProcessFonts(List<Style> styles, out List<Font> uniqueFonts, out List<int> fontLookup)
         {
-            var fontSet = new Dictionary<Font, int>(styles.Count);
-            uniqueFonts = new List<Font>(styles.Count);
+            var defaultFont = new Font();
+            var fontSet = new Dictionary<Font, int>(styles.Count) { { defaultFont, 0 } };
+            uniqueFonts = new List<Font>(styles.Count) { defaultFont };
             fontLookup = new List<int>(styles.Count);
 
-            for (var i = 0; i <= styles.Count; ++i)
+            for (var i = 0; i < styles.Count; ++i)
             {
                 var font = styles[i].Font;
 
-                // TODO: Handle the default font. Maybe just add it to the fontSet first?
                 // New unique font?
                 if (!fontSet.TryGetValue(font, out var listIndex))
                 {
