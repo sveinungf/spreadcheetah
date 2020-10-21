@@ -9,9 +9,67 @@ namespace SpreadCheetah
         public Cell Cell { get; }
         public StyleId? StyleId { get; }
 
-        public StyledCell(Cell cell, StyleId? styleId)
+        public StyledCell(string? value, StyleId? styleId)
         {
-            Cell = cell;
+            Cell = new Cell(value);
+            StyleId = styleId;
+        }
+
+        public StyledCell(int value, StyleId? styleId)
+        {
+            Cell = new Cell(value);
+            StyleId = styleId;
+        }
+
+        public StyledCell(int? value, StyleId? styleId)
+        {
+            Cell = new Cell(value);
+            StyleId = styleId;
+        }
+
+        public StyledCell(float value, StyleId? styleId)
+        {
+            Cell = new Cell(value);
+            StyleId = styleId;
+        }
+
+        public StyledCell(float? value, StyleId? styleId)
+        {
+            Cell = new Cell(value);
+            StyleId = styleId;
+        }
+
+        public StyledCell(double value, StyleId? styleId)
+        {
+            Cell = new Cell(value);
+            StyleId = styleId;
+        }
+
+        public StyledCell(double? value, StyleId? styleId)
+        {
+            Cell = new Cell(value);
+            StyleId = styleId;
+        }
+
+        public StyledCell(decimal value, StyleId? styleId)
+            : this(decimal.ToDouble(value), styleId)
+        {
+        }
+
+        public StyledCell(decimal? value, StyleId? styleId)
+            : this(value != null ? decimal.ToDouble(value.Value) : null as double?, styleId)
+        {
+        }
+
+        public StyledCell(bool value, StyleId? styleId)
+        {
+            Cell = new Cell(value);
+            StyleId = styleId;
+        }
+
+        public StyledCell(bool? value, StyleId? styleId)
+        {
+            Cell = new Cell(value);
             StyleId = styleId;
         }
 

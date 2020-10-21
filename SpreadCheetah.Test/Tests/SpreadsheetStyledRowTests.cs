@@ -28,8 +28,7 @@ namespace SpreadCheetah.Test.Tests
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
-                var cell = new Cell(value);
-                var styledCell = new StyledCell(cell, null);
+                var styledCell = new StyledCell(value, null);
 
                 // Act
                 await spreadsheet.AddRowAsync(styledCell);
@@ -59,9 +58,7 @@ namespace SpreadCheetah.Test.Tests
                 var style = new Style();
                 style.Font.Bold = bold;
                 var styleId = spreadsheet.AddStyle(style);
-
-                var cell = new Cell(cellValue);
-                var styledCell = new StyledCell(cell, styleId);
+                var styledCell = new StyledCell(cellValue, styleId);
 
                 // Act
                 await spreadsheet.AddRowAsync(styledCell);
@@ -94,8 +91,8 @@ namespace SpreadCheetah.Test.Tests
                 style.Font.Bold = bold;
                 var styleId = spreadsheet.AddStyle(style);
 
-                var firstCell = new StyledCell(new Cell(firstCellValue), styleId);
-                var secondCell = new StyledCell(new Cell(secondCellValue), styleId);
+                var firstCell = new StyledCell(firstCellValue, styleId);
+                var secondCell = new StyledCell(secondCellValue, styleId);
 
                 // Act
                 await spreadsheet.AddRowAsync(new[] { firstCell, secondCell });
@@ -131,8 +128,8 @@ namespace SpreadCheetah.Test.Tests
                 style.Font.Bold = true;
                 var styleId = spreadsheet.AddStyle(style);
 
-                var firstCell = new StyledCell(new Cell(firstCellValue), firstCellBold ? styleId : null);
-                var secondCell = new StyledCell(new Cell(secondCellValue), firstCellBold ? null : styleId);
+                var firstCell = new StyledCell(firstCellValue, firstCellBold ? styleId : null);
+                var secondCell = new StyledCell(secondCellValue, firstCellBold ? null : styleId);
 
                 // Act
                 await spreadsheet.AddRowAsync(new[] { firstCell, secondCell });
@@ -168,19 +165,16 @@ namespace SpreadCheetah.Test.Tests
                 style.Font.Bold = true;
                 var styleId = spreadsheet.AddStyle(style);
 
-                var firstCell = new Cell(firstCellValue);
-                var secondCell = new Cell(secondCellValue);
-
                 // Act
                 if (firstRowStyled)
                 {
-                    await spreadsheet.AddRowAsync(new StyledCell(firstCell, styleId));
-                    await spreadsheet.AddRowAsync(secondCell);
+                    await spreadsheet.AddRowAsync(new StyledCell(firstCellValue, styleId));
+                    await spreadsheet.AddRowAsync(new Cell(secondCellValue));
                 }
                 else
                 {
-                    await spreadsheet.AddRowAsync(firstCell);
-                    await spreadsheet.AddRowAsync(new StyledCell(secondCell, styleId));
+                    await spreadsheet.AddRowAsync(new Cell(firstCellValue));
+                    await spreadsheet.AddRowAsync(new StyledCell(secondCellValue, styleId));
                 }
 
                 await spreadsheet.FinishAsync();
