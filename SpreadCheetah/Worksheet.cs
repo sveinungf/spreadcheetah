@@ -1,5 +1,6 @@
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Worksheets;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,7 +24,7 @@ namespace SpreadCheetah
         private readonly StyledCellWriter _styledCellWriter;
         private int _nextRowIndex;
 
-        private Worksheet(Stream stream, SpreadsheetBuffer buffer)
+        public Worksheet(Stream stream, SpreadsheetBuffer buffer)
         {
             _stream = stream;
             _buffer = buffer;
@@ -32,14 +33,12 @@ namespace SpreadCheetah
             _nextRowIndex = 1;
         }
 
-        public static Worksheet Create(Stream stream, SpreadsheetBuffer buffer)
+        public async ValueTask WriteHeadAsync(WorksheetOptions? options, CancellationToken token)
         {
-            var worksheet = new Worksheet(stream, buffer);
-            worksheet.WriteHead();
-            return worksheet;
+            // TODO: Write column options
+            _buffer.Index += Utf8Helper.GetBytes(SheetHeader, _buffer.GetNextSpan());
         }
 
-        private void WriteHead() => _buffer.Index += Utf8Helper.GetBytes(SheetHeader, _buffer.GetNextSpan());
         public bool TryAddRow(IList<Cell> cells, out int currentIndex) => _dataCellWriter.TryAddRow(cells, _nextRowIndex++, out currentIndex);
         public bool TryAddRow(IList<StyledCell> cells, out int currentIndex) => _styledCellWriter.TryAddRow(cells, _nextRowIndex++, out currentIndex);
         public ValueTask AddRowAsync(IList<Cell> cells, int startIndex, CancellationToken ct) => _dataCellWriter.AddRowAsync(cells, startIndex, _stream, ct);

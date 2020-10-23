@@ -1,5 +1,6 @@
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Worksheets;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -56,7 +57,7 @@ namespace SpreadCheetah
             return RelationshipsXml.WriteAsync(_archive, _compressionLevel, _buffer, token);
         }
 
-        public ValueTask StartWorksheetAsync(string name, CancellationToken token = default)
+        public ValueTask StartWorksheetAsync(string name, WorksheetOptions? options = null, CancellationToken token = default)
         {
             if (name is null)
                 throw new ArgumentNullException(nameof(name));
@@ -76,17 +77,18 @@ namespace SpreadCheetah
             if (_worksheetNames.Contains(name))
                 throw new ArgumentException("A worksheet with the given name already exists.");
 
-            return StartWorksheetInternalAsync(name, token);
+            return StartWorksheetInternalAsync(name, options, token);
         }
 
-        private async ValueTask StartWorksheetInternalAsync(string name, CancellationToken token)
+        private async ValueTask StartWorksheetInternalAsync(string name, WorksheetOptions? options, CancellationToken token)
         {
             await FinishAndDisposeWorksheetAsync(token).ConfigureAwait(false);
 
             var path = $"xl/worksheets/sheet{_worksheetNames.Count + 1}.xml";
             var entry = _archive.CreateEntry(path, _compressionLevel);
             var entryStream = entry.Open();
-            _worksheet = Worksheet.Create(entryStream, _buffer);
+            _worksheet = new Worksheet(entryStream, _buffer);
+            await _worksheet.WriteHeadAsync(options, token).ConfigureAwait(false);
             _worksheetNames.Add(name);
             _worksheetPaths.Add(path);
         }
