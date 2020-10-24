@@ -3,6 +3,7 @@ using SpreadCheetah.Helpers;
 using SpreadCheetah.Worksheets;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -60,7 +61,7 @@ namespace SpreadCheetah
                 sb.Append("\" max=\"");
                 sb.Append(keyValuePair.Key);
                 sb.Append("\" width=\"");
-                sb.Append(column.Width.Value);
+                sb.Append(column.Width.Value.ToString("G15", CultureInfo.InvariantCulture));
                 sb.Append("\" customWidth=\"1\" />");
 
                 if (sb.Length > _buffer.GetRemainingBuffer())
