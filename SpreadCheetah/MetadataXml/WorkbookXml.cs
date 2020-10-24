@@ -54,10 +54,7 @@ namespace SpreadCheetah.MetadataXml
                     buffer.Index += GetSheetElementBytes(name, sheetId, buffer.GetNextSpan());
                 }
 
-                if (Footer.Length > buffer.GetRemainingBuffer())
-                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-                buffer.Index += Utf8Helper.GetBytes(Footer, buffer.GetNextSpan());
+                await buffer.WriteAsciiStringAsync(Footer, stream, token).ConfigureAwait(false);
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
             }
         }

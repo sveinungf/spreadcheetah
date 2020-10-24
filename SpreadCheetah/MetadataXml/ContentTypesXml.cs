@@ -44,10 +44,7 @@ namespace SpreadCheetah.MetadataXml
 
                 if (hasStylesXml)
                 {
-                    if (Styles.Length > buffer.GetRemainingBuffer())
-                        await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-                    buffer.Index += Utf8Helper.GetBytes(Styles, buffer.GetNextSpan());
+                    await buffer.WriteAsciiStringAsync(Styles, stream, token).ConfigureAwait(false);
                 }
 
                 for (var i = 0; i < worksheetPaths.Count; ++i)
@@ -61,10 +58,7 @@ namespace SpreadCheetah.MetadataXml
                     buffer.Index += GetSheetElementBytes(path, buffer.GetNextSpan());
                 }
 
-                if (Footer.Length > buffer.GetRemainingBuffer())
-                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-                buffer.Index += Utf8Helper.GetBytes(Footer, buffer.GetNextSpan());
+                await buffer.WriteAsciiStringAsync(Footer, stream, token).ConfigureAwait(false);
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
             }
         }

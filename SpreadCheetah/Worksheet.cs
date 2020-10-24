@@ -64,16 +64,10 @@ namespace SpreadCheetah
                 sb.Append(column.Width.Value.ToString("G15", CultureInfo.InvariantCulture));
                 sb.Append("\" customWidth=\"1\" />");
 
-                if (sb.Length > _buffer.GetRemainingBuffer())
-                    await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);
-
-                _buffer.Index += Utf8Helper.GetBytes(sb.ToString(), _buffer.GetNextSpan());
+                await _buffer.WriteAsciiStringAsync(sb.ToString(), _stream, token).ConfigureAwait(false);
             }
 
-            if (ColsEndSheetDataBegin.Length > _buffer.GetRemainingBuffer())
-                await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);
-
-            _buffer.Index += Utf8Helper.GetBytes(ColsEndSheetDataBegin, _buffer.GetNextSpan());
+            await _buffer.WriteAsciiStringAsync(ColsEndSheetDataBegin, _stream, token).ConfigureAwait(false);
         }
 
         public bool TryAddRow(IList<Cell> cells, out int currentIndex) => _dataCellWriter.TryAddRow(cells, _nextRowIndex++, out currentIndex);
@@ -83,11 +77,7 @@ namespace SpreadCheetah
 
         public async ValueTask FinishAsync(CancellationToken token)
         {
-            if (Utf8Helper.GetByteCount(SheetFooter) > _buffer.GetRemainingBuffer())
-                await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);
-
-            _buffer.Index += Utf8Helper.GetBytes(SheetFooter, _buffer.GetNextSpan());
-
+            await _buffer.WriteAsciiStringAsync(SheetFooter, _stream, token).ConfigureAwait(false);
             await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);
             await _stream.FlushAsync(token).ConfigureAwait(false);
         }
