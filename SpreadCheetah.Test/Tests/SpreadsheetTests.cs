@@ -1,7 +1,9 @@
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Validation;
+using OfficeOpenXml;
 using SpreadCheetah.Test.Helpers;
+using SpreadCheetah.Worksheets;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -171,6 +173,33 @@ namespace SpreadCheetah.Test.Tests
             Assert.Equal(count, sheets.Count);
             Assert.Equal(sheetNames, sheets.Select(x => x.Name.Value));
             Assert.Equal(sheetNames, cells.Select(x => x.InnerText));
+        }
+
+        [Theory]
+        [InlineData(0.1)]
+        [InlineData(10)]
+        [InlineData(100)]
+        [InlineData(255)]
+        public async Task Spreadsheet_StartWorksheet_ColumnWidth(double width)
+        {
+            // Arrange
+            var worksheetOptions = new WorksheetOptions();
+            worksheetOptions.Column(1).Width = width;
+
+            using var stream = new MemoryStream();
+            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            {
+                // Act
+                await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions);
+                await spreadsheet.FinishAsync();
+            }
+
+            // Assert
+            stream.Position = 0;
+            using var package = new ExcelPackage(stream);
+            var worksheet = package.Workbook.Worksheets.Single();
+            var actualWidth = worksheet.Column(1).Width;
+            Assert.Equal(width, actualWidth, 5);
         }
     }
 }
