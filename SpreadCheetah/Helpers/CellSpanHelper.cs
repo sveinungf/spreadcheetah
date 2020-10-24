@@ -33,7 +33,7 @@ namespace SpreadCheetah.Helpers
         public static readonly int MaxCellEndElementLength = StringCellEnd.Length;
         public static readonly int MaxCellElementLength = StringCellStart.Length + MaxCellEndElementLength;
 
-        public static int GetBytes(in Cell cell, Span<byte> bytes)
+        public static int GetBytes(in Cell cell, Span<byte> bytes, bool assertSize)
         {
             ReadOnlySpan<byte> cellStart;
             ReadOnlySpan<byte> cellEnd;
@@ -57,7 +57,7 @@ namespace SpreadCheetah.Helpers
             }
 
             var bytesWritten = SpanHelper.GetBytes(cellStart, bytes);
-            bytesWritten += Utf8Helper.GetBytes(cell.Value, bytes.Slice(bytesWritten));
+            bytesWritten += Utf8Helper.GetBytes(cell.Value, bytes.Slice(bytesWritten), assertSize);
             bytesWritten += SpanHelper.GetBytes(cellEnd, bytes.Slice(bytesWritten));
             return bytesWritten;
         }

@@ -18,7 +18,7 @@ namespace SpreadCheetah.CellWriters
             var cellValueLength = cell.Cell.Value.Length * Utf8Helper.MaxBytePerChar;
             if (StyledCellSpanHelper.MaxCellElementLength + cellValueLength < remainingBuffer)
             {
-                Buffer.Index += StyledCellSpanHelper.GetBytes(cell, Buffer.GetNextSpan());
+                Buffer.Index += StyledCellSpanHelper.GetBytes(cell, Buffer.GetNextSpan(), false);
                 return true;
             }
 
@@ -27,7 +27,7 @@ namespace SpreadCheetah.CellWriters
             bytesNeeded = StyledCellSpanHelper.MaxCellElementLength + cellValueLength;
             if (bytesNeeded < remainingBuffer)
             {
-                Buffer.Index += StyledCellSpanHelper.GetBytes(cell, Buffer.GetNextSpan());
+                Buffer.Index += StyledCellSpanHelper.GetBytes(cell, Buffer.GetNextSpan(), false);
                 return true;
             }
 
@@ -39,9 +39,9 @@ namespace SpreadCheetah.CellWriters
             return FinishWritingCellValue(cell.Cell.Value, ref cellValueIndex);
         }
 
-        protected override int GetBytes(in StyledCell cell, Span<byte> bytes)
+        protected override int GetBytes(in StyledCell cell, Span<byte> bytes, bool assertSize)
         {
-            return StyledCellSpanHelper.GetBytes(cell, Buffer.GetNextSpan());
+            return StyledCellSpanHelper.GetBytes(cell, Buffer.GetNextSpan(), assertSize);
         }
 
         protected override int GetStartElementBytes(StyledCell cell, Span<byte> bytes)

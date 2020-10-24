@@ -41,12 +41,12 @@ namespace SpreadCheetah.Helpers
             + StringCellStartEndTag.Length
             + CellSpanHelper.StringCellEnd.Length;
 
-        public static int GetBytes(StyledCell styledCell, Span<byte> bytes)
+        public static int GetBytes(StyledCell styledCell, Span<byte> bytes, bool assertSize)
         {
             var cell = styledCell.Cell;
             var styleId = styledCell.StyleId;
             if (styleId is null)
-                return CellSpanHelper.GetBytes(cell, bytes);
+                return CellSpanHelper.GetBytes(cell, bytes, assertSize);
 
             ReadOnlySpan<byte> cellStart;
             ReadOnlySpan<byte> cellStartEndTag;

@@ -17,7 +17,7 @@ namespace SpreadCheetah.CellWriters
         }
 
         protected abstract bool TryWriteCell(in T cell, out int bytesNeeded);
-        protected abstract int GetBytes(in T cell, Span<byte> bytes);
+        protected abstract int GetBytes(in T cell, Span<byte> bytes, bool assertSize);
         protected abstract int GetStartElementBytes(T cell, Span<byte> bytes);
         protected abstract int GetEndElementBytes(T cell, Span<byte> bytes);
         protected abstract bool FinishWritingCellValue(T cell, ref int cellValueIndex);
@@ -68,7 +68,7 @@ namespace SpreadCheetah.CellWriters
                 // Write cell if it fits in the buffer
                 if (bytesNeeded < Buffer.GetRemainingBuffer())
                 {
-                    Buffer.Index += GetBytes(cell, Buffer.GetNextSpan());
+                    Buffer.Index += GetBytes(cell, Buffer.GetNextSpan(), false);
                     continue;
                 }
 
