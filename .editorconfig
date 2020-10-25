@@ -151,3 +151,10 @@ dotnet_diagnostic.MA0011.severity = none
 
 # MA0025: Implement the functionality
 dotnet_diagnostic.MA0025.severity = none
+
+###############################
+# Threading.Analyzers Options #
+###############################
+[{*.Test,*.Benchmark}/**.cs]
+# VSTHRD200: Use "Async" suffix for async methods
+dotnet_diagnostic.VSTHRD200.severity = none

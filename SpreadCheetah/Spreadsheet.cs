@@ -43,7 +43,7 @@ namespace SpreadCheetah
             var archive = new ZipArchive(stream, ZipArchiveMode.Create, true);
             options ??= new SpreadCheetahOptions();
             var spreadsheet = new Spreadsheet(archive, GetCompressionLevel(options.CompressionLevel), options.BufferSize);
-            await spreadsheet.Initialize(cancellationToken).ConfigureAwait(false);
+            await spreadsheet.InitializeAsync(cancellationToken).ConfigureAwait(false);
             return spreadsheet;
         }
 
@@ -52,7 +52,7 @@ namespace SpreadCheetah
             return level == SpreadCheetahCompressionLevel.Optimal ? CompressionLevel.Optimal : CompressionLevel.Fastest;
         }
 
-        private ValueTask Initialize(CancellationToken token)
+        private ValueTask InitializeAsync(CancellationToken token)
         {
             return RelationshipsXml.WriteAsync(_archive, _compressionLevel, _buffer, token);
         }
