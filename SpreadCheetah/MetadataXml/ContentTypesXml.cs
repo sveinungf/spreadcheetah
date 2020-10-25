@@ -9,7 +9,6 @@ namespace SpreadCheetah.MetadataXml
 {
     internal static class ContentTypesXml
     {
-        // TODO: Default for XML could be worksheet+xml instead of main+xml?
         private const string Header =
             "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
             "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">" +

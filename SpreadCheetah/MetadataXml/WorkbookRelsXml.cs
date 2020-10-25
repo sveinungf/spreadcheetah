@@ -65,7 +65,6 @@ namespace SpreadCheetah.MetadataXml
             }
         }
 
-        // TODO: Approximate
         private static int GetSheetElementByteCount(string path, int sheetId)
         {
             var sheetIdDigits = sheetId.GetNumberOfDigits();

@@ -156,7 +156,7 @@ namespace SpreadCheetah
             await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetNames, token).ConfigureAwait(false);
 
             if (_styles != null)
-                await StylesXml.WriteAsync(_archive, _compressionLevel, _styles, token).ConfigureAwait(false);
+                await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styles, token).ConfigureAwait(false);
         }
 
         public async ValueTask DisposeAsync()
