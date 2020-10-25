@@ -15,6 +15,34 @@ namespace SpreadCheetah.MetadataXml
             "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">" +
             "<numFmts count=\"0\" />";
 
+        private const string XmlPart1 =
+            "</fonts>" +
+            "<fills count=\"2\">" +
+            "<fill><patternFill patternType=\"none\" /></fill>" +
+            "<fill><patternFill patternType=\"gray125\" /></fill>" +
+            "</fills>" +
+            "<borders count=\"1\">" +
+            "<border>" +
+            "<left />" +
+            "<right />" +
+            "<top />" +
+            "<bottom />" +
+            "<diagonal />" +
+            "</border>" +
+            "</borders>" +
+            "<cellStyleXfs count=\"1\">" +
+            "<xf numFmtId=\"0\" fontId=\"0\" />" +
+            "</cellStyleXfs>" +
+            "<cellXfs count=\"";
+
+        private const string XmlPart2 =
+            "</cellXfs>" +
+            "<cellStyles count=\"1\">" +
+            "<cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\" />" +
+            "</cellStyles>" +
+            "<dxfs count=\"0\" />" +
+            "</styleSheet>";
+
         public static async ValueTask WriteAsync(
             ZipArchive archive,
             CompressionLevel compressionLevel,
@@ -55,27 +83,7 @@ namespace SpreadCheetah.MetadataXml
                     await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
                 }
 
-                const string xmlPart1 =
-                    "</fonts>" +
-                    "<fills count=\"2\">" +
-                    "<fill><patternFill patternType=\"none\" /></fill>" +
-                    "<fill><patternFill patternType=\"gray125\" /></fill>" +
-                    "</fills>" +
-                    "<borders count=\"1\">" +
-                    "<border>" +
-                    "<left />" +
-                    "<right />" +
-                    "<top />" +
-                    "<bottom />" +
-                    "<diagonal />" +
-                    "</border>" +
-                    "</borders>" +
-                    "<cellStyleXfs count=\"1\">" +
-                    "<xf numFmtId=\"0\" fontId=\"0\" />" +
-                    "</cellStyleXfs>" +
-                    "<cellXfs count=\"";
-
-                await buffer.WriteAsciiStringAsync(xmlPart1, stream, token).ConfigureAwait(false);
+                await buffer.WriteAsciiStringAsync(XmlPart1, stream, token).ConfigureAwait(false);
 
                 var styleCount = styles.Count + 1;
                 if (styleCount.GetNumberOfDigits() > buffer.GetRemainingBuffer())
@@ -95,15 +103,7 @@ namespace SpreadCheetah.MetadataXml
                     await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
                 }
 
-                const string xmlPart2 =
-                    "</cellXfs>" +
-                    "<cellStyles count=\"1\">" +
-                    "<cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\" />" +
-                    "</cellStyles>" +
-                    "<dxfs count=\"0\" />" +
-                    "</styleSheet>";
-
-                await buffer.WriteAsciiStringAsync(xmlPart2, stream, token).ConfigureAwait(false);
+                await buffer.WriteAsciiStringAsync(XmlPart2, stream, token).ConfigureAwait(false);
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
             }
         }

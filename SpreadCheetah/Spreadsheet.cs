@@ -75,7 +75,7 @@ namespace SpreadCheetah
                 throw new ArgumentException("The name can not contain any of the following characters: " + InvalidSheetNameCharString, nameof(name));
 
             if (_worksheetNames.Contains(name))
-                throw new ArgumentException("A worksheet with the given name already exists.");
+                throw new ArgumentException("A worksheet with the given name already exists.", nameof(name));
 
             return StartWorksheetInternalAsync(name, options, token);
         }

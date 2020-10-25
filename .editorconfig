@@ -138,3 +138,16 @@ dotnet_diagnostic.CA2007.severity = none
 [*.cs]
 # S3925: "ISerializable" should be implemented correctly
 dotnet_diagnostic.S3925.severity = none
+
+###############################
+# Meziantou.Analyzers Options #
+###############################
+[{*.Test,*.Benchmark}/**.cs]
+# MA0004: Use .ConfigureAwait(false)
+dotnet_diagnostic.MA0004.severity = none
+
+# MA0011: IFormatProvider is missing
+dotnet_diagnostic.MA0011.severity = none
+
+# MA0025: Implement the functionality
+dotnet_diagnostic.MA0025.severity = none

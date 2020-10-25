@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 
@@ -77,13 +76,13 @@ namespace SpreadCheetah
         private static string GetStringValue(bool value) => value ? "1" : "0";
 
         public override bool Equals(object? obj) => obj is Cell cell && Equals(cell);
-        public bool Equals(Cell other) => DataType == other.DataType && Value == other.Value;
+        public bool Equals(Cell other) => DataType == other.DataType && string.Equals(Value, other.Value, StringComparison.Ordinal);
 
         public override int GetHashCode()
         {
             var hashCode = -1382053921;
             hashCode = hashCode * -1521134295 + DataType.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Value);
+            hashCode = hashCode * -1521134295 + StringComparer.Ordinal.GetHashCode(Value);
             return hashCode;
         }
 
