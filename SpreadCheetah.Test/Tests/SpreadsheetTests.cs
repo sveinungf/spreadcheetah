@@ -158,7 +158,7 @@ namespace SpreadCheetah.Test.Tests
                 foreach (var name in sheetNames)
                 {
                     await spreadsheet.StartWorksheetAsync(name);
-                    await spreadsheet.AddRowAsync(new Cell(name));
+                    await spreadsheet.AddRowAsync(new DataCell(name));
                 }
 
                 await spreadsheet.FinishAsync();

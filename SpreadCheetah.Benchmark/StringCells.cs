@@ -25,7 +25,7 @@ namespace SpreadCheetah.Benchmark
         private const int NumberOfColumns = 10;
         private const string SheetName = "Book1";
 
-        private List<List<Cell>> _cells = null!;
+        private List<List<DataCell>> _cells = null!;
         private List<string> _epplusRows = null!;
         private List<List<OpenXmlCell>> _openXmlDomCells = null!;
         private List<List<Text>> _openXmlSaxCells = null!;
@@ -38,7 +38,7 @@ namespace SpreadCheetah.Benchmark
         [GlobalSetup]
         public void GlobalSetup()
         {
-            _cells = new List<List<Cell>>(NumberOfRows);
+            _cells = new List<List<DataCell>>(NumberOfRows);
             _epplusRows = new List<string>(NumberOfRows);
             _stringValues = new List<List<string>>(NumberOfRows);
             _openXmlSaxCells = new List<List<Text>>(NumberOfRows);
@@ -46,7 +46,7 @@ namespace SpreadCheetah.Benchmark
             for (var row = 1; row <= NumberOfRows; ++row)
             {
                 var columns = Enumerable.Range(1, NumberOfColumns).ToList();
-                _cells.Add(columns.Select(x => new Cell($"{x}-{row}")).ToList());
+                _cells.Add(columns.Select(x => new DataCell($"{x}-{row}")).ToList());
                 _epplusRows.Add(string.Join(",", columns.Select(x => $"{x}-{row}")));
                 _openXmlSaxCells.Add(columns.Select(x => new Text($"{x}-{row}")).ToList());
                 _stringValues.Add(columns.Select(x => $"{x}-{row}").ToList());

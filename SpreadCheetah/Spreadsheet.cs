@@ -93,7 +93,23 @@ namespace SpreadCheetah
             _worksheetPaths.Add(path);
         }
 
+        [Obsolete("Use overload with list of " + nameof(DataCell))]
         public ValueTask AddRowAsync(IList<Cell> cells, CancellationToken token = default)
+        {
+            EnsureCanAddRows(cells);
+
+            var mappedCells = new List<DataCell>(cells.Count);
+            for (var i = 0; i < cells.Count; ++i)
+            {
+                var cell = cells[i];
+                var mappedCell = new DataCell(cell.DataType, cell.Value);
+                mappedCells.Add(mappedCell);
+            }
+
+            return AddRowAsync(mappedCells, token);
+        }
+
+        public ValueTask AddRowAsync(IList<DataCell> cells, CancellationToken token = default)
         {
             EnsureCanAddRows(cells);
             return _worksheet!.TryAddRow(cells, out var currentIndex)

@@ -15,7 +15,7 @@ namespace SpreadCheetah.CellWriters
             var remainingBuffer = Buffer.GetRemainingBuffer();
 
             // Try with an approximate cell value length
-            var cellValueLength = cell.Cell.Value.Length * Utf8Helper.MaxBytePerChar;
+            var cellValueLength = cell.DataCell.Value.Length * Utf8Helper.MaxBytePerChar;
             if (StyledCellSpanHelper.MaxCellElementLength + cellValueLength < remainingBuffer)
             {
                 Buffer.Index += StyledCellSpanHelper.GetBytes(cell, Buffer.GetNextSpan(), false);
@@ -23,7 +23,7 @@ namespace SpreadCheetah.CellWriters
             }
 
             // Try with a more accurate cell value length
-            cellValueLength = Utf8Helper.GetByteCount(cell.Cell.Value);
+            cellValueLength = Utf8Helper.GetByteCount(cell.DataCell.Value);
             bytesNeeded = StyledCellSpanHelper.MaxCellElementLength + cellValueLength;
             if (bytesNeeded < remainingBuffer)
             {
@@ -36,7 +36,7 @@ namespace SpreadCheetah.CellWriters
 
         protected override bool FinishWritingCellValue(StyledCell cell, ref int cellValueIndex)
         {
-            return FinishWritingCellValue(cell.Cell.Value, ref cellValueIndex);
+            return FinishWritingCellValue(cell.DataCell.Value, ref cellValueIndex);
         }
 
         protected override int GetBytes(in StyledCell cell, Span<byte> bytes, bool assertSize)
@@ -51,7 +51,7 @@ namespace SpreadCheetah.CellWriters
 
         protected override int GetEndElementBytes(StyledCell cell, Span<byte> bytes)
         {
-            return CellSpanHelper.GetEndElementBytes(cell.Cell.DataType, Buffer.GetNextSpan());
+            return CellSpanHelper.GetEndElementBytes(cell.DataCell.DataType, Buffer.GetNextSpan());
         }
     }
 }

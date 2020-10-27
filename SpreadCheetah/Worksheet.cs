@@ -70,9 +70,9 @@ namespace SpreadCheetah
             await _buffer.WriteAsciiStringAsync(ColsEndSheetDataBegin, _stream, token).ConfigureAwait(false);
         }
 
-        public bool TryAddRow(IList<Cell> cells, out int currentIndex) => _dataCellWriter.TryAddRow(cells, _nextRowIndex++, out currentIndex);
+        public bool TryAddRow(IList<DataCell> cells, out int currentIndex) => _dataCellWriter.TryAddRow(cells, _nextRowIndex++, out currentIndex);
         public bool TryAddRow(IList<StyledCell> cells, out int currentIndex) => _styledCellWriter.TryAddRow(cells, _nextRowIndex++, out currentIndex);
-        public ValueTask AddRowAsync(IList<Cell> cells, int startIndex, CancellationToken ct) => _dataCellWriter.AddRowAsync(cells, startIndex, _stream, ct);
+        public ValueTask AddRowAsync(IList<DataCell> cells, int startIndex, CancellationToken ct) => _dataCellWriter.AddRowAsync(cells, startIndex, _stream, ct);
         public ValueTask AddRowAsync(IList<StyledCell> cells, int startIndex, CancellationToken ct) => _styledCellWriter.AddRowAsync(cells, startIndex, _stream, ct);
 
         public async ValueTask FinishAsync(CancellationToken token)

@@ -26,7 +26,7 @@ namespace SpreadCheetah.Test.Tests
                 await spreadsheet.FinishAsync();
 
             // Act
-            var exception = await Record.ExceptionAsync(async () => await spreadsheet.AddRowAsync(Array.Empty<Cell>()));
+            var exception = await Record.ExceptionAsync(async () => await spreadsheet.AddRowAsync(Array.Empty<DataCell>()));
 
             // Assert
             Assert.Equal(finished, exception != null);
@@ -50,7 +50,7 @@ namespace SpreadCheetah.Test.Tests
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
-                var cell = new Cell(value);
+                var cell = new DataCell(value);
 
                 // Act
                 await spreadsheet.AddRowAsync(cell);
@@ -81,7 +81,7 @@ namespace SpreadCheetah.Test.Tests
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
-                var cell = new Cell(value);
+                var cell = new DataCell(value);
 
                 // Act
                 await spreadsheet.AddRowAsync(cell);
@@ -109,7 +109,7 @@ namespace SpreadCheetah.Test.Tests
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
-                var cell = new Cell(value);
+                var cell = new DataCell(value);
 
                 // Act
                 await spreadsheet.AddRowAsync(cell);
@@ -142,7 +142,7 @@ namespace SpreadCheetah.Test.Tests
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
-                var cell = new Cell(initialValue);
+                var cell = new DataCell(initialValue);
 
                 // Act
                 await spreadsheet.AddRowAsync(cell);
@@ -176,7 +176,7 @@ namespace SpreadCheetah.Test.Tests
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
-                var cell = new Cell(initialValue);
+                var cell = new DataCell(initialValue);
 
                 // Act
                 await spreadsheet.AddRowAsync(cell);
@@ -211,7 +211,7 @@ namespace SpreadCheetah.Test.Tests
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
-                var cell = new Cell(decimalValue);
+                var cell = new DataCell(decimalValue);
 
                 // Act
                 await spreadsheet.AddRowAsync(cell);
@@ -238,7 +238,7 @@ namespace SpreadCheetah.Test.Tests
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
-                var cell = new Cell(initialValue);
+                var cell = new DataCell(initialValue);
 
                 // Act
                 await spreadsheet.AddRowAsync(cell);
@@ -264,7 +264,7 @@ namespace SpreadCheetah.Test.Tests
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
-                var cells = values.Select(x => new Cell(x)).ToList();
+                var cells = values.Select(x => new DataCell(x)).ToList();
 
                 // Act
                 await spreadsheet.AddRowAsync(cells);
@@ -293,7 +293,7 @@ namespace SpreadCheetah.Test.Tests
                 // Act
                 foreach (var value in values)
                 {
-                    await spreadsheet.AddRowAsync(new Cell(value));
+                    await spreadsheet.AddRowAsync(new DataCell(value));
                 }
 
                 await spreadsheet.FinishAsync();

@@ -43,7 +43,7 @@ namespace SpreadCheetah.Helpers
 
         public static int GetBytes(StyledCell styledCell, Span<byte> bytes, bool assertSize)
         {
-            var cell = styledCell.Cell;
+            var cell = styledCell.DataCell;
             var styleId = styledCell.StyleId;
             if (styleId is null)
                 return CellSpanHelper.GetBytes(cell, bytes, assertSize);
@@ -83,7 +83,7 @@ namespace SpreadCheetah.Helpers
 
         public static int GetStartElementBytes(StyledCell styledCell, Span<byte> bytes)
         {
-            var cell = styledCell.Cell;
+            var cell = styledCell.DataCell;
             var styleId = styledCell.StyleId;
             if (styleId is null)
                 return CellSpanHelper.GetStartElementBytes(cell.DataType, bytes);

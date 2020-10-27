@@ -169,11 +169,11 @@ namespace SpreadCheetah.Test.Tests
                 if (firstRowStyled)
                 {
                     await spreadsheet.AddRowAsync(new StyledCell(firstCellValue, styleId));
-                    await spreadsheet.AddRowAsync(new Cell(secondCellValue));
+                    await spreadsheet.AddRowAsync(new DataCell(secondCellValue));
                 }
                 else
                 {
-                    await spreadsheet.AddRowAsync(new Cell(firstCellValue));
+                    await spreadsheet.AddRowAsync(new DataCell(firstCellValue));
                     await spreadsheet.AddRowAsync(new StyledCell(secondCellValue, styleId));
                 }
 

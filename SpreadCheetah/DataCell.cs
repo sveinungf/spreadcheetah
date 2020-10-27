@@ -4,77 +4,79 @@ using System.Net;
 
 namespace SpreadCheetah
 {
-    [Obsolete("Use " + nameof(DataCell))]
-    public readonly struct Cell : IEquatable<Cell>
+    public readonly struct DataCell : IEquatable<DataCell>
     {
         public CellDataType DataType { get; }
         public string Value { get; }
 
-        internal Cell(CellDataType dataType, string value)
+#pragma warning disable CS0618 // Type or member is obsolete
+        [Obsolete("Just temporary for mapping from " + nameof(Cell))]
+#pragma warning restore CS0618 // Type or member is obsolete
+        internal DataCell(CellDataType dataType, string value)
         {
             DataType = dataType;
             Value = value;
         }
 
-        public Cell(string? value)
+        public DataCell(string? value)
         {
             DataType = CellDataType.InlineString;
             Value = value != null ? WebUtility.HtmlEncode(value) : string.Empty;
         }
 
-        public Cell(int value)
+        public DataCell(int value)
         {
             DataType = CellDataType.Number;
             Value = value.ToString(CultureInfo.InvariantCulture);
         }
 
-        public Cell(int? value)
+        public DataCell(int? value)
         {
             DataType = CellDataType.Number;
             Value = value?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
         }
 
-        public Cell(float value)
+        public DataCell(float value)
         {
             DataType = CellDataType.Number;
             Value = value.ToString("G7", CultureInfo.InvariantCulture);
         }
 
-        public Cell(float? value)
+        public DataCell(float? value)
         {
             DataType = CellDataType.Number;
             Value = value?.ToString("G7", CultureInfo.InvariantCulture) ?? string.Empty;
         }
 
-        public Cell(double value)
+        public DataCell(double value)
         {
             DataType = CellDataType.Number;
             Value = value.ToString("G15", CultureInfo.InvariantCulture);
         }
 
-        public Cell(double? value)
+        public DataCell(double? value)
         {
             DataType = CellDataType.Number;
             Value = value?.ToString("G15", CultureInfo.InvariantCulture) ?? string.Empty;
         }
 
-        public Cell(decimal value)
+        public DataCell(decimal value)
             : this(decimal.ToDouble(value))
         {
         }
 
-        public Cell(decimal? value)
+        public DataCell(decimal? value)
             : this(value != null ? decimal.ToDouble(value.Value) : null as double?)
         {
         }
 
-        public Cell(bool value)
+        public DataCell(bool value)
         {
             DataType = CellDataType.Boolean;
             Value = GetStringValue(value);
         }
 
-        public Cell(bool? value)
+        public DataCell(bool? value)
         {
             DataType = CellDataType.Boolean;
             Value = value != null ? GetStringValue(value.Value) : string.Empty;
@@ -82,8 +84,8 @@ namespace SpreadCheetah
 
         private static string GetStringValue(bool value) => value ? "1" : "0";
 
-        public override bool Equals(object? obj) => obj is Cell cell && Equals(cell);
-        public bool Equals(Cell other) => DataType == other.DataType && string.Equals(Value, other.Value, StringComparison.Ordinal);
+        public override bool Equals(object? obj) => obj is DataCell cell && Equals(cell);
+        public bool Equals(DataCell other) => DataType == other.DataType && string.Equals(Value, other.Value, StringComparison.Ordinal);
 
         public override int GetHashCode()
         {
@@ -93,7 +95,7 @@ namespace SpreadCheetah
             return hashCode;
         }
 
-        public static bool operator ==(Cell left, Cell right) => left.Equals(right);
-        public static bool operator !=(Cell left, Cell right) => !left.Equals(right);
+        public static bool operator ==(DataCell left, DataCell right) => left.Equals(right);
+        public static bool operator !=(DataCell left, DataCell right) => !left.Equals(right);
     }
 }

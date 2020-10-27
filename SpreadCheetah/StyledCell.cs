@@ -6,48 +6,51 @@ namespace SpreadCheetah
 {
     public readonly struct StyledCell : IEquatable<StyledCell>
     {
-        public Cell Cell { get; }
+        [Obsolete("Use " + nameof(DataCell))]
+        public Cell Cell => new Cell(DataCell.DataType, DataCell.Value);
+
+        public DataCell DataCell { get; }
         public StyleId? StyleId { get; }
 
         public StyledCell(string? value, StyleId? styleId)
         {
-            Cell = new Cell(value);
+            DataCell = new DataCell(value);
             StyleId = styleId;
         }
 
         public StyledCell(int value, StyleId? styleId)
         {
-            Cell = new Cell(value);
+            DataCell = new DataCell(value);
             StyleId = styleId;
         }
 
         public StyledCell(int? value, StyleId? styleId)
         {
-            Cell = new Cell(value);
+            DataCell = new DataCell(value);
             StyleId = styleId;
         }
 
         public StyledCell(float value, StyleId? styleId)
         {
-            Cell = new Cell(value);
+            DataCell = new DataCell(value);
             StyleId = styleId;
         }
 
         public StyledCell(float? value, StyleId? styleId)
         {
-            Cell = new Cell(value);
+            DataCell = new DataCell(value);
             StyleId = styleId;
         }
 
         public StyledCell(double value, StyleId? styleId)
         {
-            Cell = new Cell(value);
+            DataCell = new DataCell(value);
             StyleId = styleId;
         }
 
         public StyledCell(double? value, StyleId? styleId)
         {
-            Cell = new Cell(value);
+            DataCell = new DataCell(value);
             StyleId = styleId;
         }
 
@@ -63,19 +66,19 @@ namespace SpreadCheetah
 
         public StyledCell(bool value, StyleId? styleId)
         {
-            Cell = new Cell(value);
+            DataCell = new DataCell(value);
             StyleId = styleId;
         }
 
         public StyledCell(bool? value, StyleId? styleId)
         {
-            Cell = new Cell(value);
+            DataCell = new DataCell(value);
             StyleId = styleId;
         }
 
         public bool Equals(StyledCell other)
         {
-            return Cell.Equals(other.Cell) && EqualityComparer<StyleId?>.Default.Equals(StyleId, other.StyleId);
+            return DataCell.Equals(other.DataCell) && EqualityComparer<StyleId?>.Default.Equals(StyleId, other.StyleId);
         }
 
         public override bool Equals(object? obj)
@@ -86,7 +89,7 @@ namespace SpreadCheetah
         public override int GetHashCode()
         {
             var hashCode = -1472682488;
-            hashCode = hashCode * -1521134295 + Cell.GetHashCode();
+            hashCode = hashCode * -1521134295 + DataCell.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<StyleId?>.Default.GetHashCode(StyleId);
             return hashCode;
         }
