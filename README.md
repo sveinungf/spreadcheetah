@@ -1,4 +1,7 @@
 # SpreadCheetah
+
+[![Nuget](https://img.shields.io/nuget/v/SpreadCheetah)](https://www.nuget.org/packages/SpreadCheetah)
+
 SpreadCheetah is a high-performance .NET library for generating spreadsheet (Microsoft Excel XLSX) files.
 
 
