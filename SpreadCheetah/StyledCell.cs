@@ -27,6 +27,18 @@ namespace SpreadCheetah
             StyleId = styleId;
         }
 
+        public StyledCell(long value, StyleId? styleId)
+        {
+            DataCell = new DataCell(value);
+            StyleId = styleId;
+        }
+
+        public StyledCell(long? value, StyleId? styleId)
+        {
+            DataCell = new DataCell(value);
+            StyleId = styleId;
+        }
+
         public StyledCell(float value, StyleId? styleId)
         {
             DataCell = new DataCell(value);
@@ -52,13 +64,15 @@ namespace SpreadCheetah
         }
 
         public StyledCell(decimal value, StyleId? styleId)
-            : this(decimal.ToDouble(value), styleId)
         {
+            DataCell = new DataCell(value);
+            StyleId = styleId;
         }
 
         public StyledCell(decimal? value, StyleId? styleId)
-            : this(value != null ? decimal.ToDouble(value.Value) : null as double?, styleId)
         {
+            DataCell = new DataCell(value);
+            StyleId = styleId;
         }
 
         public StyledCell(bool value, StyleId? styleId)

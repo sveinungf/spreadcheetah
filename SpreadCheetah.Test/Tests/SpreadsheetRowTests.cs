@@ -61,7 +61,7 @@ namespace SpreadCheetah.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var actualCell = sheetPart.Worksheet.Descendants<DocumentFormat.OpenXml.Spreadsheet.Cell>().Single();
+            var actualCell = sheetPart.Worksheet.Descendants<Cell>().Single();
             Assert.Equal(CellValues.InlineString, actualCell.DataType.Value);
             Assert.Equal(value ?? string.Empty, actualCell.InnerText);
         }
@@ -92,7 +92,7 @@ namespace SpreadCheetah.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var actualCell = sheetPart.Worksheet.Descendants<DocumentFormat.OpenXml.Spreadsheet.Cell>().Single();
+            var actualCell = sheetPart.Worksheet.Descendants<Cell>().Single();
             Assert.Equal(CellValues.InlineString, actualCell.DataType.Value);
             Assert.Equal(value, actualCell.InnerText);
         }
@@ -101,6 +101,8 @@ namespace SpreadCheetah.Test.Tests
         [InlineData(1234)]
         [InlineData(0)]
         [InlineData(-1234)]
+        [InlineData(int.MinValue)]
+        [InlineData(int.MaxValue)]
         [InlineData(null)]
         public async Task Spreadsheet_AddRow_CellWithIntegerValue(int? value)
         {
@@ -120,9 +122,40 @@ namespace SpreadCheetah.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var actualCell = sheetPart.Worksheet.Descendants<DocumentFormat.OpenXml.Spreadsheet.Cell>().Single();
+            var actualCell = sheetPart.Worksheet.Descendants<Cell>().Single();
             Assert.Equal(CellValues.Number, actualCell.GetDataType());
             Assert.Equal(value?.ToString() ?? string.Empty, actualCell.InnerText);
+        }
+
+        [Theory]
+        [InlineData(1234, "1234")]
+        [InlineData(0, "0")]
+        [InlineData(-1234, "-1234")]
+        [InlineData(314748364700000, "314748364700000")]
+        [InlineData(long.MinValue, "-9.22337203685478E+18")]
+        [InlineData(long.MaxValue, "9.22337203685478E+18")]
+        [InlineData(null, "")]
+        public async Task Spreadsheet_AddRow_CellWithLongValue(long? initialValue, string expectedValue)
+        {
+            // Arrange
+            using var stream = new MemoryStream();
+            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            {
+                await spreadsheet.StartWorksheetAsync("Sheet");
+                var cell = new DataCell(initialValue);
+
+                // Act
+                await spreadsheet.AddRowAsync(cell);
+                await spreadsheet.FinishAsync();
+            }
+
+            // Assert
+            stream.Position = 0;
+            using var actual = SpreadsheetDocument.Open(stream, true);
+            var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
+            var actualCell = sheetPart.Worksheet.Descendants<Cell>().Single();
+            Assert.Equal(CellValues.Number, actualCell.GetDataType());
+            Assert.Equal(expectedValue, actualCell.InnerText);
         }
 
         [Theory]
@@ -153,7 +186,7 @@ namespace SpreadCheetah.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var actualCell = sheetPart.Worksheet.Descendants<DocumentFormat.OpenXml.Spreadsheet.Cell>().Single();
+            var actualCell = sheetPart.Worksheet.Descendants<Cell>().Single();
             Assert.Equal(CellValues.Number, actualCell.GetDataType());
             Assert.Equal(expectedValue, actualCell.InnerText);
         }
@@ -187,7 +220,7 @@ namespace SpreadCheetah.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var actualCell = sheetPart.Worksheet.Descendants<DocumentFormat.OpenXml.Spreadsheet.Cell>().Single();
+            var actualCell = sheetPart.Worksheet.Descendants<Cell>().Single();
             Assert.Equal(CellValues.Number, actualCell.GetDataType());
             Assert.Equal(expectedValue, actualCell.InnerText);
         }
@@ -222,7 +255,7 @@ namespace SpreadCheetah.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var actualCell = sheetPart.Worksheet.Descendants<DocumentFormat.OpenXml.Spreadsheet.Cell>().Single();
+            var actualCell = sheetPart.Worksheet.Descendants<Cell>().Single();
             Assert.Equal(CellValues.Number, actualCell.GetDataType());
             Assert.Equal(expectedValue, actualCell.InnerText);
         }
@@ -249,7 +282,7 @@ namespace SpreadCheetah.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var actualCell = sheetPart.Worksheet.Descendants<DocumentFormat.OpenXml.Spreadsheet.Cell>().Single();
+            var actualCell = sheetPart.Worksheet.Descendants<Cell>().Single();
             Assert.Equal(CellValues.Boolean, actualCell.GetDataType());
             Assert.Equal(expectedValue, actualCell.InnerText);
         }

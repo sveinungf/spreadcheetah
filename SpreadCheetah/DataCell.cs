@@ -27,6 +27,14 @@ namespace SpreadCheetah
             Value = value?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
         }
 
+        public DataCell(long value) : this((double)value)
+        {
+        }
+
+        public DataCell(long? value) : this((double?)value)
+        {
+        }
+
         public DataCell(float value)
         {
             DataType = CellDataType.Number;
@@ -51,13 +59,11 @@ namespace SpreadCheetah
             Value = value?.ToString("G15", CultureInfo.InvariantCulture) ?? string.Empty;
         }
 
-        public DataCell(decimal value)
-            : this(decimal.ToDouble(value))
+        public DataCell(decimal value) : this(decimal.ToDouble(value))
         {
         }
 
-        public DataCell(decimal? value)
-            : this(value != null ? decimal.ToDouble(value.Value) : null as double?)
+        public DataCell(decimal? value) : this(value != null ? decimal.ToDouble(value.Value) : null as double?)
         {
         }
 
