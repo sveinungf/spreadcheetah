@@ -6,9 +6,6 @@ namespace SpreadCheetah
 {
     public readonly struct StyledCell : IEquatable<StyledCell>
     {
-        [Obsolete("Use " + nameof(DataCell))]
-        public Cell Cell => new Cell(DataCell.DataType, DataCell.Value);
-
         public DataCell DataCell { get; }
         public StyleId? StyleId { get; }
 

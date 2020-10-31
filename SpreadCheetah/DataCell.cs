@@ -9,15 +9,6 @@ namespace SpreadCheetah
         public CellDataType DataType { get; }
         public string Value { get; }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        [Obsolete("Just temporary for mapping from " + nameof(Cell))]
-#pragma warning restore CS0618 // Type or member is obsolete
-        internal DataCell(CellDataType dataType, string value)
-        {
-            DataType = dataType;
-            Value = value;
-        }
-
         public DataCell(string? value)
         {
             DataType = CellDataType.InlineString;
