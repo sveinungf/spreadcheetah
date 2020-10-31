@@ -61,7 +61,7 @@ namespace SpreadCheetah
                 sb.Append("\" max=\"");
                 sb.Append(keyValuePair.Key);
                 sb.Append("\" width=\"");
-                sb.Append(column.Width.Value.ToString("G15", CultureInfo.InvariantCulture));
+                sb.AppendFormat(CultureInfo.InvariantCulture, "{0:G15}", column.Width.Value);
                 sb.Append("\" customWidth=\"1\" />");
 
                 await _buffer.WriteAsciiStringAsync(sb.ToString(), _stream, token).ConfigureAwait(false);
