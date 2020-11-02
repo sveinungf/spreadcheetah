@@ -151,6 +151,37 @@ namespace SpreadCheetah.Test.Tests
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
+        public async Task Spreadsheet_AddRow_ItalicCellWithStringValue(bool italic)
+        {
+            // Arrange
+            const string cellValue = "Italic test";
+            using var stream = new MemoryStream();
+            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            {
+                await spreadsheet.StartWorksheetAsync("Sheet");
+
+                var style = new Style();
+                style.Font.Italic = italic;
+                var styleId = spreadsheet.AddStyle(style);
+                var styledCell = new StyledCell(cellValue, styleId);
+
+                // Act
+                await spreadsheet.AddRowAsync(styledCell);
+                await spreadsheet.FinishAsync();
+            }
+
+            // Assert
+            stream.Position = 0;
+            using var workbook = new XLWorkbook(stream);
+            var worksheet = workbook.Worksheets.Single();
+            var actualCell = worksheet.Cell(1, 1);
+            Assert.Equal(cellValue, actualCell.Value);
+            Assert.Equal(italic, actualCell.Style.Font.Italic);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
         public async Task Spreadsheet_AddRow_MixedCellTypeRows(bool firstRowStyled)
         {
             // Arrange

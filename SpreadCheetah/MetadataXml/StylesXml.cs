@@ -76,8 +76,8 @@ namespace SpreadCheetah.MetadataXml
                     sb.Clear();
                     sb.Append("<font>");
 
-                    if (font.Bold)
-                        sb.Append("<b />");
+                    if (font.Bold) sb.Append("<b/>");
+                    if (font.Italic) sb.Append("<i/>");
 
                     sb.Append("<sz val=\"11\" /><name val=\"Calibri\" /></font>");
                     await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
