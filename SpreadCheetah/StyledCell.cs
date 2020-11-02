@@ -92,19 +92,8 @@ namespace SpreadCheetah
             return DataCell.Equals(other.DataCell) && EqualityComparer<StyleId?>.Default.Equals(StyleId, other.StyleId);
         }
 
-        public override bool Equals(object? obj)
-        {
-            return obj is StyledCell other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            var hashCode = -1472682488;
-            hashCode = hashCode * -1521134295 + DataCell.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<StyleId?>.Default.GetHashCode(StyleId);
-            return hashCode;
-        }
-
+        public override bool Equals(object? obj) => obj is StyledCell other && Equals(other);
+        public override int GetHashCode() => HashCode.Combine(DataCell, StyleId);
         public static bool operator ==(StyledCell left, StyledCell right) => left.Equals(right);
         public static bool operator !=(StyledCell left, StyledCell right) => !left.Equals(right);
     }

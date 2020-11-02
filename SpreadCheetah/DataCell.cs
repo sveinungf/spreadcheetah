@@ -81,17 +81,9 @@ namespace SpreadCheetah
 
         private static string GetStringValue(bool value) => value ? "1" : "0";
 
-        public override bool Equals(object? obj) => obj is DataCell cell && Equals(cell);
         public bool Equals(DataCell other) => DataType == other.DataType && string.Equals(Value, other.Value, StringComparison.Ordinal);
-
-        public override int GetHashCode()
-        {
-            var hashCode = -1382053921;
-            hashCode = hashCode * -1521134295 + DataType.GetHashCode();
-            hashCode = hashCode * -1521134295 + StringComparer.Ordinal.GetHashCode(Value);
-            return hashCode;
-        }
-
+        public override bool Equals(object? obj) => obj is DataCell cell && Equals(cell);
+        public override int GetHashCode() => HashCode.Combine(DataType, Value);
         public static bool operator ==(DataCell left, DataCell right) => left.Equals(right);
         public static bool operator !=(DataCell left, DataCell right) => !left.Equals(right);
     }
