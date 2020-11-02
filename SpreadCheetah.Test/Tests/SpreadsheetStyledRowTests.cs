@@ -182,6 +182,72 @@ namespace SpreadCheetah.Test.Tests
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
+        public async Task Spreadsheet_AddRow_StrikethroughCellWithStringValue(bool strikethrough)
+        {
+            // Arrange
+            const string cellValue = "Italic test";
+            using var stream = new MemoryStream();
+            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            {
+                await spreadsheet.StartWorksheetAsync("Sheet");
+
+                var style = new Style();
+                style.Font.Strikethrough = strikethrough;
+                var styleId = spreadsheet.AddStyle(style);
+                var styledCell = new StyledCell(cellValue, styleId);
+
+                // Act
+                await spreadsheet.AddRowAsync(styledCell);
+                await spreadsheet.FinishAsync();
+            }
+
+            // Assert
+            stream.Position = 0;
+            using var workbook = new XLWorkbook(stream);
+            var worksheet = workbook.Worksheets.Single();
+            var actualCell = worksheet.Cell(1, 1);
+            Assert.Equal(cellValue, actualCell.Value);
+            Assert.Equal(strikethrough, actualCell.Style.Font.Strikethrough);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task Spreadsheet_AddRow_MultiFormatCellWithStringValue(bool formatting)
+        {
+            // Arrange
+            const string cellValue = "Formatting test";
+            using var stream = new MemoryStream();
+            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            {
+                await spreadsheet.StartWorksheetAsync("Sheet");
+
+                var style = new Style();
+                style.Font.Bold = formatting;
+                style.Font.Italic = formatting;
+                style.Font.Strikethrough = formatting;
+                var styleId = spreadsheet.AddStyle(style);
+                var styledCell = new StyledCell(cellValue, styleId);
+
+                // Act
+                await spreadsheet.AddRowAsync(styledCell);
+                await spreadsheet.FinishAsync();
+            }
+
+            // Assert
+            stream.Position = 0;
+            using var workbook = new XLWorkbook(stream);
+            var worksheet = workbook.Worksheets.Single();
+            var actualCell = worksheet.Cell(1, 1);
+            Assert.Equal(cellValue, actualCell.Value);
+            Assert.Equal(formatting, actualCell.Style.Font.Bold);
+            Assert.Equal(formatting, actualCell.Style.Font.Italic);
+            Assert.Equal(formatting, actualCell.Style.Font.Strikethrough);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
         public async Task Spreadsheet_AddRow_MixedCellTypeRows(bool firstRowStyled)
         {
             // Arrange
