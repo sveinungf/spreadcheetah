@@ -16,7 +16,7 @@ namespace SpreadCheetah.Test.Helpers
             set => throw new NotImplementedException();
         }
 
-        public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback callback, object? state)
+        public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state)
         {
             throw new NotImplementedException();
         }
