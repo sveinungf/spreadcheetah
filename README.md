@@ -47,25 +47,26 @@ using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
 The benchmark results here have been collected using [Benchmark.NET](https://github.com/dotnet/benchmarkdotnet) with the following system configuration:
 
 ``` ini
-BenchmarkDotNet=v0.12.1, OS=Windows 10.0.19041.572 (2004/?/20H1)
+BenchmarkDotNet=v0.12.1, OS=Windows 10.0.19041.630 (2004/?/20H1)
 Intel Core i5-8600K CPU 3.60GHz (Coffee Lake), 1 CPU, 6 logical and 6 physical cores
-.NET Core SDK=5.0.100-preview.8.20417.9
-  [Host]        : .NET Core 3.1.9 (CoreCLR 4.700.20.47201, CoreFX 4.700.20.47203), X64 RyuJIT
+.NET Core SDK=5.0.100
+  [Host]        : .NET Core 5.0.0 (CoreCLR 5.0.20.51904, CoreFX 5.0.20.51904), X64 RyuJIT
   .NET 4.8      : .NET Framework 4.8 (4.8.4250.0), X64 RyuJIT
   .NET Core 3.1 : .NET Core 3.1.9 (CoreCLR 4.700.20.47201, CoreFX 4.700.20.47203), X64 RyuJIT
+  .NET Core 5.0 : .NET Core 5.0.0 (CoreCLR 5.0.20.51904, CoreFX 5.0.20.51904), X64 RyuJIT
 ```
 
 The code executed in the benchmark is filling a worksheet with 20000 rows and 10 columns. I've also implemented the same use case in other spreadsheet libraries for comparison. You can also see the how they perform in .NET Framework and .NET Core.
 
-|       Library |       Runtime |        Mean |     Error |    StdDev |    Allocated |
-|-------------- |-------------- |------------:|----------:|----------:|-------------:|
-| **SpreadCheetah** |      **.NET 4.8** | **61.93 ms** | **0.257 ms** | **0.215 ms** | **152.23 KB** |
-|       EpPlus4 |      .NET 4.8 |   711.77 ms |  1.779 ms |  1.577 ms | 331002.49 KB |
-|    OpenXmlSax |      .NET 4.8 |   384.09 ms |  0.986 ms |  0.922 ms |  10407.93 KB |
-|    OpenXmlDom |      .NET 4.8 |   655.18 ms |  1.173 ms |  1.097 ms |  53369.68 KB |
-|     ClosedXml |      .NET 4.8 | 2,209.31 ms |  7.445 ms |  6.964 ms | 557844.45 KB |
-| **SpreadCheetah** | **.NET Core 3.1** | **29.42 ms** | **0.215 ms** | **0.201 ms** |  **51.93 KB** |
-|       EpPlus4 | .NET Core 3.1 |   579.76 ms |  0.659 ms |  0.550 ms | 245572.94 KB |
-|    OpenXmlSax | .NET Core 3.1 |   201.78 ms |  0.687 ms |  0.536 ms |  33235.98 KB |
-|    OpenXmlDom | .NET Core 3.1 |   546.74 ms |  2.881 ms |  2.554 ms |  76051.36 KB |
-|     ClosedXml | .NET Core 3.1 | 1,964.78 ms | 35.960 ms | 33.637 ms |  531324.8 KB |
+|       Library |       Runtime |        Mean |     Error |    StdDev |     Allocated |
+|-------------- |-------------- |------------:|----------:|----------:|--------------:|
+| **SpreadCheetah** |      **.NET 4.8** |    **64.33 ms** |  **0.484 ms** |  **0.404 ms** |     **136.23 KB** |
+|       EpPlus4 |      .NET 4.8 |   571.33 ms |  6.479 ms |  6.061 ms |  286368.81 KB |
+|    OpenXmlSax |      .NET 4.8 |   330.48 ms |  2.532 ms |  2.368 ms |   35485.21 KB |
+|    OpenXmlDom |      .NET 4.8 |   794.46 ms |  9.945 ms |  9.302 ms |  135947.15 KB |
+|     ClosedXml |      .NET 4.8 | 2,158.61 ms | 18.147 ms | 16.975 ms |  558507.04 KB |
+| **SpreadCheetah** | **.NET Core 3.1** |    **32.69 ms** |  **0.295 ms** |  **0.262 ms** |      **68.95 KB** |
+|       EpPlus4 | .NET Core 3.1 |   453.88 ms |  8.675 ms | 10.972 ms |  216141.84 KB |
+|    OpenXmlSax | .NET Core 3.1 |   195.84 ms |  2.985 ms |  2.792 ms |   58245.29 KB |
+|    OpenXmlDom | .NET Core 3.1 |   644.66 ms |  2.634 ms |  2.335 ms |  158085.77 KB |
+|     ClosedXml | .NET Core 3.1 | 1,897.42 ms | 13.222 ms | 11.721 ms |  531326.55 KB |
