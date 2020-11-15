@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Packaging;
-using System.Linq;
 using System.Threading.Tasks;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
@@ -92,16 +91,14 @@ namespace SpreadCheetah.Benchmark
         {
             using var package = new ExcelPackage(Stream) { Compression = CompressionLevel.BestSpeed };
             var worksheet = package.Workbook.Worksheets.Add(SheetName);
-            var dataTypes = Enumerable.Repeat(eDataTypes.String, NumberOfColumns).ToArray();
-            var excelTextFormat = new ExcelTextFormat { DataTypes = dataTypes };
 
-            // TODO: Try other approaches in EPPlus
             for (var row = 0; row < Values.Count; ++row)
             {
                 var rowValues = Values[row];
-                var rowText = string.Join(",", rowValues);
-                var cells = worksheet.Cells[row + 1, 1];
-                cells.LoadFromText(rowText, excelTextFormat);
+                for (var col = 0; col < rowValues.Count; ++col)
+                {
+                    worksheet.Cells[row + 1, col + 1].Value = rowValues[col];
+                }
             }
 
             package.Save();
