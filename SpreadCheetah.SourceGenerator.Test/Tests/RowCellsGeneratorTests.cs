@@ -10,18 +10,33 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests
 {
     public class RowCellsGeneratorTests
     {
-        [Fact]
-        public async Task Spreadsheet_AddAsRow_ClassWithProperties()
+        [Theory]
+        [InlineData(ObjectType.Class)]
+        [InlineData(ObjectType.Record)]
+        [InlineData(ObjectType.Struct)]
+        [InlineData(ObjectType.ReadOnlyStruct)]
+        public async Task Spreadsheet_AddAsRow_ObjectWithProperties(ObjectType type)
         {
             // Arrange
-            var obj = new ClassWithProperties("Ola", "Nordmann", 30);
+            const string firstName = "Ola";
+            const string lastName = "Nordmann";
+            const int age = 30;
+
             using var stream = new MemoryStream();
             using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
 
                 // Act
-                await spreadsheet.AddAsRowAsync(obj);
+                if (type == ObjectType.Class)
+                    await spreadsheet.AddAsRowAsync(new ClassWithProperties(firstName, lastName, age));
+                else if (type == ObjectType.Record)
+                    await spreadsheet.AddAsRowAsync(new RecordWithProperties(firstName, lastName, age));
+                else if (type == ObjectType.Struct)
+                    await spreadsheet.AddAsRowAsync(new StructWithProperties(firstName, lastName, age));
+                else if (type == ObjectType.ReadOnlyStruct)
+                    await spreadsheet.AddAsRowAsync(new ReadOnlyStructWithProperties(firstName, lastName, age));
+
                 await spreadsheet.FinishAsync();
             }
 
@@ -30,9 +45,9 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests
             using var actual = SpreadsheetDocument.Open(stream, false);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
             var cells = sheetPart.Worksheet.Descendants<Cell>().ToList();
-            Assert.Equal(obj.FirstName, cells[0].InnerText);
-            Assert.Equal(obj.LastName, cells[1].InnerText);
-            Assert.Equal(obj.Age.ToString(), cells[2].InnerText);
+            Assert.Equal(firstName, cells[0].InnerText);
+            Assert.Equal(lastName, cells[1].InnerText);
+            Assert.Equal(age.ToString(), cells[2].InnerText);
             Assert.Equal(3, cells.Count);
         }
     }

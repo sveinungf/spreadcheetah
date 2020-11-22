@@ -1,0 +1,3 @@
+[*.cs]
+# CA1815: Override equals and operator equals on value types
+dotnet_diagnostic.CA1815.severity = none
