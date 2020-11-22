@@ -82,16 +82,24 @@ namespace SpreadCheetah
 
         private static void GenerateValidateMethodBody(StringBuilder sb, ClassPropertiesInfo info, string indent)
         {
-            sb.AppendLine($"{indent}var cells = new[]");
-            sb.AppendLine($"{indent}{{");
-
-            var innerIndent = indent + "    ";
-            foreach (var propertyName in info.PropertyNames)
+            if (info.PropertyNames.Count > 0)
             {
-                sb.AppendLine($"{innerIndent}new DataCell(obj.{propertyName}),");
+                sb.AppendLine($"{indent}var cells = new[]");
+                sb.AppendLine($"{indent}{{");
+
+                var innerIndent = indent + "    ";
+                foreach (var propertyName in info.PropertyNames)
+                {
+                    sb.AppendLine($"{innerIndent}new DataCell(obj.{propertyName}),");
+                }
+
+                sb.AppendLine($"{indent}}};");
+            }
+            else
+            {
+                sb.AppendLine($"{indent}var cells = System.Array.Empty<DataCell>();");
             }
 
-            sb.AppendLine($"{indent}}};");
             sb.AppendLine($"{indent}await spreadsheet.AddRowAsync(cells, token).ConfigureAwait(false);");
         }
 
