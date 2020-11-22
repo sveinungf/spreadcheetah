@@ -16,7 +16,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpreadCheetah.Benchmark", "SpreadCheetah.Benchmark\SpreadCheetah.Benchmark.csproj", "{94A9EB95-DB35-4E4B-BE34-7BFA5F46EDC7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpreadCheetah.Benchmark.Test", "SpreadCheetah.Benchmark.Test\SpreadCheetah.Benchmark.Test.csproj", "{731959E5-0D4A-4BE8-9AF0-9A584A30484E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpreadCheetah.Benchmark.Test", "SpreadCheetah.Benchmark.Test\SpreadCheetah.Benchmark.Test.csproj", "{731959E5-0D4A-4BE8-9AF0-9A584A30484E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpreadCheetah.SourceGenerator", "SpreadCheetah.SourceGenerator\SpreadCheetah.SourceGenerator.csproj", "{160C81CD-9A4D-4889-A444-C21821D30A0C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,6 +42,10 @@ Global
 		{731959E5-0D4A-4BE8-9AF0-9A584A30484E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{731959E5-0D4A-4BE8-9AF0-9A584A30484E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{731959E5-0D4A-4BE8-9AF0-9A584A30484E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{160C81CD-9A4D-4889-A444-C21821D30A0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{160C81CD-9A4D-4889-A444-C21821D30A0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{160C81CD-9A4D-4889-A444-C21821D30A0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{160C81CD-9A4D-4889-A444-C21821D30A0C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

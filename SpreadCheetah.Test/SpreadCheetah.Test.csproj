@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>net472;net5.0</TargetFrameworks>
-    <LangVersion>9.0</LangVersion>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
