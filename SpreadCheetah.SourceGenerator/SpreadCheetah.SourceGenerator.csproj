@@ -2,6 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>SpreadCheetah.SourceGenerator</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Authors>sveinungf</Authors>
+    <Description>Extensions to SpreadCheetah based on Source Generators.</Description>
+    <PackageProjectUrl>https://github.com/sveinungf/spreadcheetah</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/sveinungf/spreadcheetah</RepositoryUrl>
+    <PackageTags>spreadsheet;excel;xlsx;openxml;sourcegenerator</PackageTags>
+    <Version>1.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
