@@ -8,6 +8,7 @@ namespace SpreadCheetah.SourceGenerator
     {
         public ITypeSymbol ClassType { get; }
         public List<string> PropertyNames { get; }
+        public List<Location> Locations { get; } = new();
 
         public ClassPropertiesInfo(ITypeSymbol classType)
         {

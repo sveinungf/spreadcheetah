@@ -38,18 +38,15 @@ namespace SpreadCheetah
                 throw new InvalidOperationException("We were given the wrong syntax receiver.");
 
             var classesToValidate = GetClassPropertiesInfo(context.Compilation, syntaxReceiver.ArgumentsToValidate).ToList();
-            if (classesToValidate.Any())
-            {
-                var sb = new StringBuilder();
-                GenerateValidator(context, sb, classesToValidate);
-                context.AddSource("SpreadsheetExtensions.cs", sb.ToString());
-            }
-            else
+            if (!classesToValidate.Any())
             {
                 context.AddSource("SpreadsheetExtensions.cs", AddAsRowStub);
+                return;
             }
 
-            context.ReportDiagnostic(Diagnostic.Create("SPCH001", nameof(RowCellsGenerator), "msg", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 4));
+            var sb = new StringBuilder();
+            GenerateValidator(context, sb, classesToValidate);
+            context.AddSource("SpreadsheetExtensions.cs", sb.ToString());
         }
 
         private static void GenerateValidator(GeneratorExecutionContext context, StringBuilder sb, IEnumerable<ClassPropertiesInfo> infos)
@@ -79,7 +76,8 @@ namespace SpreadCheetah
 
             sb.AppendLine(
 @"    }
-}");
+}
+");
         }
 
         private static void GenerateValidateMethodBody(GeneratorExecutionContext context, StringBuilder sb, ClassPropertiesInfo info, string indent)
@@ -100,7 +98,11 @@ namespace SpreadCheetah
             else
             {
                 sb.AppendLine($"{indent}var cells = System.Array.Empty<DataCell>();");
-                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.NoPropertiesFoundWarning, Location.None, info.ClassType));
+
+                foreach (var location in info.Locations)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(Diagnostics.NoPropertiesFoundWarning, location, info.ClassType));
+                }
             }
 
             sb.AppendLine($"{indent}await spreadsheet.AddRowAsync(cells, token).ConfigureAwait(false);");
@@ -108,22 +110,26 @@ namespace SpreadCheetah
 
         private static IEnumerable<ClassPropertiesInfo> GetClassPropertiesInfo(Compilation compilation, List<SyntaxNode> argumentsToValidate)
         {
-            var foundTypes = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
+            var foundTypes = new Dictionary<ITypeSymbol, ClassPropertiesInfo>(SymbolEqualityComparer.Default);
 
             foreach (var argument in argumentsToValidate)
             {
                 var semanticModel = compilation.GetSemanticModel(argument.SyntaxTree);
 
                 var classType = semanticModel.GetTypeInfo(argument).Type;
-                if (classType is null || foundTypes.Contains(classType))
-                {
+                if (classType is null)
                     continue;
+
+                if (!foundTypes.TryGetValue(classType, out var info))
+                {
+                    info = new ClassPropertiesInfo(classType);
+                    foundTypes.Add(classType, info);
                 }
 
-                foundTypes.Add(classType);
-
-                yield return new ClassPropertiesInfo(classType);
+                info.Locations.Add(argument.GetLocation());
             }
+
+            return foundTypes.Values;
         }
     }
 }
