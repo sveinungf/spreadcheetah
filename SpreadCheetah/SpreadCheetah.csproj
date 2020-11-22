@@ -9,7 +9,6 @@
     <PackageProjectUrl>https://github.com/sveinungf/spreadcheetah</PackageProjectUrl>
     <RepositoryUrl>https://github.com/sveinungf/spreadcheetah</RepositoryUrl>
     <PackageTags>spreadsheet;excel;xlsx;openxml</PackageTags>
-    <PackageId>SpreadCheetah</PackageId>
     <Version>1.2.0</Version>
   </PropertyGroup>
 
