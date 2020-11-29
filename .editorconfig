@@ -121,15 +121,15 @@ csharp_preserve_single_line_blocks = true
 # FxCopAnalyzers Options      #
 ###############################
 [*.cs]
-# Localized strings
+# CA1303: Do not pass literals as localized parameters
 dotnet_diagnostic.CA1303.severity = none
 
 [{*.Test,*.Benchmark}/**.cs]
-# Specify IFormatProvider
+# CA1305: Specify IFormatProvider
 dotnet_diagnostic.CA1305.severity = none
-# Underscores in member name
+# CA1707: Identifiers should not contain underscores
 dotnet_diagnostic.CA1707.severity = none
-# ConfigureAwait
+# CA2007: Do not directly await a Task
 dotnet_diagnostic.CA2007.severity = none
 
 ###############################
@@ -145,17 +145,14 @@ dotnet_diagnostic.S3925.severity = none
 [*.cs]
 # MA0003: Name parameter
 dotnet_diagnostic.MA0003.severity = none
-
 # MA0007: Add comma after the last property
 dotnet_diagnostic.MA0007.severity = none
 
 [{*.Test,*.Benchmark}/**.cs]
 # MA0004: Use .ConfigureAwait(false)
 dotnet_diagnostic.MA0004.severity = none
-
 # MA0011: IFormatProvider is missing
 dotnet_diagnostic.MA0011.severity = none
-
 # MA0025: Implement the functionality
 dotnet_diagnostic.MA0025.severity = none
 
