@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace SpreadCheetah
 {
-    public sealed class Spreadsheet : IDisposable
+    public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         // Invalid worksheet name characters in Excel
         private const string InvalidSheetNameCharString = "/\\*?[]";
