@@ -113,7 +113,7 @@ namespace SpreadCheetah.Benchmark
             var wsp = xl.WorkbookPart.AddNewPart<WorksheetPart>();
 
             var oxw = OpenXmlWriter.Create(wsp);
-            oxw.WriteStartElement(new Worksheet());
+            oxw.WriteStartElement(new DocumentFormat.OpenXml.Spreadsheet.Worksheet());
             oxw.WriteStartElement(new SheetData());
 
             var rowObject = new Row();
@@ -169,7 +169,7 @@ namespace SpreadCheetah.Benchmark
             workbookpart.Workbook = new Workbook();
             var worksheetPart = workbookpart.AddNewPart<WorksheetPart>();
             var sheetData = new SheetData();
-            worksheetPart.Worksheet = new Worksheet();
+            worksheetPart.Worksheet = new DocumentFormat.OpenXml.Spreadsheet.Worksheet();
             worksheetPart.Worksheet.AppendChild(sheetData);
 
             var sheets = xl.WorkbookPart.Workbook.AppendChild(new Sheets());

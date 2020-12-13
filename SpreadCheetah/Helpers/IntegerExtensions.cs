@@ -1,9 +1,17 @@
+using System.Diagnostics;
+
 namespace SpreadCheetah.Helpers
 {
     internal static class IntegerExtensions
     {
+        /// <summary>
+        /// Gets the number of digits for positive integers.
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
         public static int GetNumberOfDigits(this int n)
         {
+            Debug.Assert(n >= 0);
             if (n < 10) return 1;
             if (n < 100) return 2;
             if (n < 1000) return 3;
