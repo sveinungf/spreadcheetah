@@ -8,22 +8,21 @@ namespace SpreadCheetah.SourceGenerator
     {
         public ITypeSymbol ClassType { get; }
         public List<string> PropertyNames { get; }
+        public List<string> UnsupportedPropertyNames { get; }
         public List<Location> Locations { get; } = new();
 
-        private ClassPropertiesInfo(ITypeSymbol classType, List<string> propertyNames)
+        private ClassPropertiesInfo(ITypeSymbol classType, List<string> propertyNames, List<string> unsupportedPropertyNames)
         {
             ClassType = classType;
             PropertyNames = propertyNames;
+            UnsupportedPropertyNames = unsupportedPropertyNames;
         }
 
         public static ClassPropertiesInfo CreateFrom(Compilation compilation, ITypeSymbol classType)
         {
-            var propertyNames = GetPropertyNames(compilation, classType).ToList();
-            return new ClassPropertiesInfo(classType, propertyNames);
-        }
+            var propertyNames = new List<string>();
+            var unsupportedPropertyNames = new List<string>();
 
-        private static IEnumerable<string> GetPropertyNames(Compilation compilation, ITypeSymbol classType)
-        {
             foreach (var member in classType.GetMembers())
             {
                 if (member is not IPropertySymbol
@@ -36,15 +35,19 @@ namespace SpreadCheetah.SourceGenerator
                     continue;
                 }
 
-                if (p.Type.SpecialType == SpecialType.System_String)
-                    yield return p.Name;
-
-                if (SupportedPrimitiveTypes.Contains(p.Type.SpecialType))
-                    yield return p.Name;
-
-                if (IsSupportedNullableType(compilation, p.Type))
-                    yield return p.Name;
+                if (p.Type.SpecialType == SpecialType.System_String
+                    || SupportedPrimitiveTypes.Contains(p.Type.SpecialType)
+                    || IsSupportedNullableType(compilation, p.Type))
+                {
+                    propertyNames.Add(p.Name);
+                }
+                else
+                {
+                    unsupportedPropertyNames.Add(p.Name);
+                }
             }
+
+            return new ClassPropertiesInfo(classType, propertyNames, unsupportedPropertyNames);
         }
 
         private static bool IsSupportedNullableType(Compilation compilation, ITypeSymbol type)
