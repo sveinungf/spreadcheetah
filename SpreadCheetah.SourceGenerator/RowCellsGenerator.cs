@@ -122,7 +122,7 @@ namespace SpreadCheetah
 
                 if (!foundTypes.TryGetValue(classType, out var info))
                 {
-                    info = new ClassPropertiesInfo(classType);
+                    info = ClassPropertiesInfo.CreateFrom(compilation, classType);
                     foundTypes.Add(classType, info);
                 }
 

@@ -83,5 +83,31 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
             Assert.Empty(sheetPart.Worksheet.Descendants<Cell>());
         }
+
+        [Fact]
+        public async Task Spreadsheet_AddAsRow_ObjectWithCustomType()
+        {
+            // Arrange
+            const string value = "value";
+            var customType = new CustomType("The name");
+            using var stream = new MemoryStream();
+            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            {
+                await spreadsheet.StartWorksheetAsync("Sheet");
+
+                // Act
+                await spreadsheet.AddAsRowAsync(new RecordWithCustomType(customType, value));
+
+                await spreadsheet.FinishAsync();
+            }
+
+            // Assert
+            stream.Position = 0;
+            using var actual = SpreadsheetDocument.Open(stream, false);
+            var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
+            var cells = sheetPart.Worksheet.Descendants<Cell>().ToList();
+            var actualCell = Assert.Single(cells);
+            Assert.Equal(value, actualCell.InnerText);
+        }
     }
 }

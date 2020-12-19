@@ -1,3 +1,5 @@
 [*.cs]
 # CA1815: Override equals and operator equals on value types
 dotnet_diagnostic.CA1815.severity = none
+# MA0048: File name must match type name
+dotnet_diagnostic.MA0048.severity = none
