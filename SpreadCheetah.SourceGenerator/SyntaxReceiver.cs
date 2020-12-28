@@ -10,7 +10,6 @@ namespace SpreadCheetah.SourceGenerator
 
         public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
         {
-            // TODO: Also filter on the type which the method belongs to
             if (syntaxNode is InvocationExpressionSyntax
                 {
                     ArgumentList:
