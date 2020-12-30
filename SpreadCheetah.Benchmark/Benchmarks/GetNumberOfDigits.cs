@@ -4,7 +4,7 @@ using SpreadCheetah.Helpers;
 using System;
 using System.Collections.Generic;
 
-namespace SpreadCheetah.Benchmark
+namespace SpreadCheetah.Benchmark.Benchmarks
 {
     [SimpleJob(RuntimeMoniker.Net48)]
     [SimpleJob(RuntimeMoniker.NetCoreApp50)]

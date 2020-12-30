@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SpreadCheetah.Benchmark
+namespace SpreadCheetah.Benchmark.Benchmarks
 {
     [SimpleJob(RuntimeMoniker.Net48)]
     [SimpleJob(RuntimeMoniker.NetCoreApp31)]

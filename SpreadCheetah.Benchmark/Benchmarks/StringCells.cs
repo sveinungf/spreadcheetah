@@ -12,7 +12,7 @@ using System.IO.Packaging;
 using System.Threading.Tasks;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
-namespace SpreadCheetah.Benchmark
+namespace SpreadCheetah.Benchmark.Benchmarks
 {
     [SimpleJob(RuntimeMoniker.Net48)]
     [SimpleJob(RuntimeMoniker.NetCoreApp31)]
