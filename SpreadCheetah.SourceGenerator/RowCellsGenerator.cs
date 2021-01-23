@@ -86,7 +86,7 @@ namespace SpreadCheetah.SourceGenerator
             foreach (var info in infos)
             {
                 WriteSummary(sb, indent);
-                sb.AppendLine(indent, $"public static async ValueTask AddAsRowAsync(this Spreadsheet spreadsheet, {info.ClassType} obj, CancellationToken token = default)");
+                sb.AppendLine(indent, $"public static ValueTask AddAsRowAsync(this Spreadsheet spreadsheet, {info.ClassType} obj, CancellationToken token = default)");
                 sb.AppendLine(indent, "{");
 
                 GenerateValidateMethodBody(sb, indent + 1, info);
@@ -114,7 +114,7 @@ namespace SpreadCheetah.SourceGenerator
                 sb.AppendLine(indent, "var cells = System.Array.Empty<DataCell>();");
             }
 
-            sb.AppendLine(indent, "await spreadsheet.AddRowAsync(cells, token).ConfigureAwait(false);");
+            sb.AppendLine(indent, "return spreadsheet.AddRowAsync(cells, token);");
         }
 
         private static ICollection<ClassPropertiesInfo> GetClassPropertiesInfo(Compilation compilation, List<SyntaxNode> argumentsToValidate)
