@@ -25,7 +25,7 @@ namespace SpreadCheetah.Test.Tests
         {
             // Arrange
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
                 var styledCell = new StyledCell(value, null);
@@ -51,7 +51,7 @@ namespace SpreadCheetah.Test.Tests
             // Arrange
             const string cellValue = "Bold test";
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
 
@@ -83,7 +83,7 @@ namespace SpreadCheetah.Test.Tests
             const string firstCellValue = "First";
             const string secondCellValue = "Second";
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
 
@@ -120,7 +120,7 @@ namespace SpreadCheetah.Test.Tests
             const string firstCellValue = "First";
             const string secondCellValue = "Second";
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
 
@@ -156,7 +156,7 @@ namespace SpreadCheetah.Test.Tests
             // Arrange
             const string cellValue = "Italic test";
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
 
@@ -187,7 +187,7 @@ namespace SpreadCheetah.Test.Tests
             // Arrange
             const string cellValue = "Italic test";
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
 
@@ -218,7 +218,7 @@ namespace SpreadCheetah.Test.Tests
             // Arrange
             const string cellValue = "Formatting test";
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
 
@@ -254,7 +254,7 @@ namespace SpreadCheetah.Test.Tests
             const string firstCellValue = "First";
             const string secondCellValue = "Second";
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
 

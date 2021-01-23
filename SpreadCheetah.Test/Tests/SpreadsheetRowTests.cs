@@ -19,7 +19,7 @@ namespace SpreadCheetah.Test.Tests
         public async Task Spreadsheet_AddRow_ThrowsWhenAlreadyFinished(bool finished)
         {
             // Arrange
-            using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+            await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
             await spreadsheet.StartWorksheetAsync("Sheet");
 
             if (finished)
@@ -47,7 +47,7 @@ namespace SpreadCheetah.Test.Tests
         {
             // Arrange
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
                 var cell = new DataCell(value);
@@ -78,7 +78,7 @@ namespace SpreadCheetah.Test.Tests
             // Arrange
             var value = new string('a', length);
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
                 var cell = new DataCell(value);
@@ -108,7 +108,7 @@ namespace SpreadCheetah.Test.Tests
         {
             // Arrange
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
                 var cell = new DataCell(value);
@@ -139,7 +139,7 @@ namespace SpreadCheetah.Test.Tests
         {
             // Arrange
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
                 var cell = new DataCell(initialValue);
@@ -172,7 +172,7 @@ namespace SpreadCheetah.Test.Tests
         {
             // Arrange
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
                 var cell = new DataCell(initialValue);
@@ -206,7 +206,7 @@ namespace SpreadCheetah.Test.Tests
         {
             // Arrange
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
                 var cell = new DataCell(initialValue);
@@ -241,7 +241,7 @@ namespace SpreadCheetah.Test.Tests
             // Arrange
             var decimalValue = initialValue != null ? decimal.Parse(initialValue, CultureInfo.InvariantCulture) : null as decimal?;
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
                 var cell = new DataCell(decimalValue);
@@ -268,7 +268,7 @@ namespace SpreadCheetah.Test.Tests
         {
             // Arrange
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
                 var cell = new DataCell(initialValue);
@@ -294,7 +294,7 @@ namespace SpreadCheetah.Test.Tests
             // Arrange
             var values = Enumerable.Range(1, columns).Select(x => x.ToString()).ToList();
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
                 var cells = values.Select(x => new DataCell(x)).ToList();
@@ -319,7 +319,7 @@ namespace SpreadCheetah.Test.Tests
             // Arrange
             var values = Enumerable.Range(1, rows).Select(x => x.ToString()).ToList();
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
 

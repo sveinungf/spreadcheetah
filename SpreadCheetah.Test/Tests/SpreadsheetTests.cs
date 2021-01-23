@@ -21,7 +21,7 @@ namespace SpreadCheetah.Test.Tests
             var validator = new OpenXmlValidator();
 
             // Act
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Name");
                 await spreadsheet.FinishAsync();
@@ -43,7 +43,7 @@ namespace SpreadCheetah.Test.Tests
                 : new WriteOnlyMemoryStream();
 
             // Act
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Name");
                 await spreadsheet.FinishAsync();
@@ -59,7 +59,7 @@ namespace SpreadCheetah.Test.Tests
         public async Task Spreadsheet_Finish_ThrowsWhenNoWorksheet(bool hasWorksheet)
         {
             // Arrange
-            using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+            await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
 
             if (hasWorksheet)
                 await spreadsheet.StartWorksheetAsync("Book 1");
@@ -85,7 +85,7 @@ namespace SpreadCheetah.Test.Tests
             // Arrange
             using var stream = new MemoryStream();
 
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 // Act
                 await spreadsheet.StartWorksheetAsync(name);
@@ -116,7 +116,7 @@ namespace SpreadCheetah.Test.Tests
         public async Task Spreadsheet_StartWorksheet_InvalidName(string name)
         {
             // Arrange
-            using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+            await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
 
             // Act
             var exception = await Record.ExceptionAsync(async () => await spreadsheet.StartWorksheetAsync(name));
@@ -132,7 +132,7 @@ namespace SpreadCheetah.Test.Tests
         {
             // Arrange
             const string name = "Sheet";
-            using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+            await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
             await spreadsheet.StartWorksheetAsync(name);
             var nextName = duplicateName ? name : "Sheet 2";
 
@@ -152,7 +152,7 @@ namespace SpreadCheetah.Test.Tests
             // Arrange
             var sheetNames = Enumerable.Range(1, count).Select(x => "Sheet " + x).ToList();
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 // Act
                 foreach (var name in sheetNames)
@@ -187,7 +187,7 @@ namespace SpreadCheetah.Test.Tests
             worksheetOptions.Column(1).Width = width;
 
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 // Act
                 await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions);

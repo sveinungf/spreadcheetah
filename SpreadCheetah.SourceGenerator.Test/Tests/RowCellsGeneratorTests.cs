@@ -23,7 +23,7 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests
             const int age = 30;
 
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
 
@@ -60,7 +60,7 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests
         {
             // Arrange
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
 
@@ -91,7 +91,7 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests
             const string value = "value";
             var customType = new CustomType("The name");
             using var stream = new MemoryStream();
-            using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
 

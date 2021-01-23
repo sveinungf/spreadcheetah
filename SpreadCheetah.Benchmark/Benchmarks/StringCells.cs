@@ -68,7 +68,7 @@ namespace SpreadCheetah.Benchmark.Benchmarks
         [Benchmark]
         public async Task SpreadCheetah()
         {
-            using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream);
+            await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream);
             await spreadsheet.StartWorksheetAsync(SheetName);
             var cells = new DataCell[NumberOfColumns];
 
