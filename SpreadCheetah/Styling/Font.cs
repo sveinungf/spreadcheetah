@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Drawing;
 
 namespace SpreadCheetah.Styling
 {
@@ -7,9 +9,13 @@ namespace SpreadCheetah.Styling
         public bool Bold { get; set; }
         public bool Italic { get; set; }
         public bool Strikethrough { get; set; }
+        public Color? Color { get; set; }
 
-        public bool Equals(Font? other) => other != null && Bold == other.Bold && Italic == other.Italic && Strikethrough == other.Strikethrough;
+        public bool Equals(Font? other) => other != null
+            && Bold == other.Bold && Italic == other.Italic && Strikethrough == other.Strikethrough
+            && EqualityComparer<Color?>.Default.Equals(Color, other.Color);
+
         public override bool Equals(object? obj) => obj is Font other && Equals(other);
-        public override int GetHashCode() => HashCode.Combine(Bold, Italic, Strikethrough);
+        public override int GetHashCode() => HashCode.Combine(Bold, Italic, Strikethrough, Color);
     }
 }
