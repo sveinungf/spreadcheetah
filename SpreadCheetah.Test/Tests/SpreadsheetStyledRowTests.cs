@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -210,6 +211,36 @@ namespace SpreadCheetah.Test.Tests
             Assert.Equal(strikethrough, actualCell.Style.Font.Strikethrough);
         }
 
+        [Fact]
+        public async Task Spreadsheet_AddRow_FontColorCellWithStringValue()
+        {
+            // Arrange
+            const string cellValue = "Color test";
+            var color = Color.Blue;
+            using var stream = new MemoryStream();
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            {
+                await spreadsheet.StartWorksheetAsync("Sheet");
+
+                var style = new Style();
+                style.Font.Color = color;
+                var styleId = spreadsheet.AddStyle(style);
+                var styledCell = new StyledCell(cellValue, styleId);
+
+                // Act
+                await spreadsheet.AddRowAsync(styledCell);
+                await spreadsheet.FinishAsync();
+            }
+
+            // Assert
+            stream.Position = 0;
+            using var workbook = new XLWorkbook(stream);
+            var worksheet = workbook.Worksheets.Single();
+            var actualCell = worksheet.Cell(1, 1);
+            Assert.Equal(cellValue, actualCell.Value);
+            Assert.Equal(color, actualCell.Style.Font.FontColor.Color);
+        }
+
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
@@ -217,6 +248,7 @@ namespace SpreadCheetah.Test.Tests
         {
             // Arrange
             const string cellValue = "Formatting test";
+            var color = formatting ? Color.Red as Color? : null;
             using var stream = new MemoryStream();
             await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
@@ -224,6 +256,7 @@ namespace SpreadCheetah.Test.Tests
 
                 var style = new Style();
                 style.Font.Bold = formatting;
+                style.Font.Color = color;
                 style.Font.Italic = formatting;
                 style.Font.Strikethrough = formatting;
                 var styleId = spreadsheet.AddStyle(style);
@@ -241,6 +274,7 @@ namespace SpreadCheetah.Test.Tests
             var actualCell = worksheet.Cell(1, 1);
             Assert.Equal(cellValue, actualCell.Value);
             Assert.Equal(formatting, actualCell.Style.Font.Bold);
+            Assert.Equal(formatting, actualCell.Style.Font.FontColor.Color == color);
             Assert.Equal(formatting, actualCell.Style.Font.Italic);
             Assert.Equal(formatting, actualCell.Style.Font.Strikethrough);
         }
