@@ -15,34 +15,34 @@ namespace SpreadCheetah.MetadataXml
         private const string Header =
             "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
             "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">" +
-            "<numFmts count=\"0\" />";
+            "<numFmts count=\"0\"/>";
 
         private const string XmlPart1 =
             "</fonts>" +
             "<fills count=\"2\">" +
-            "<fill><patternFill patternType=\"none\" /></fill>" +
-            "<fill><patternFill patternType=\"gray125\" /></fill>" +
+            "<fill><patternFill patternType=\"none\"/></fill>" +
+            "<fill><patternFill patternType=\"gray125\"/></fill>" +
             "</fills>" +
             "<borders count=\"1\">" +
             "<border>" +
-            "<left />" +
-            "<right />" +
-            "<top />" +
-            "<bottom />" +
-            "<diagonal />" +
+            "<left/>" +
+            "<right/>" +
+            "<top/>" +
+            "<bottom/>" +
+            "<diagonal/>" +
             "</border>" +
             "</borders>" +
             "<cellStyleXfs count=\"1\">" +
-            "<xf numFmtId=\"0\" fontId=\"0\" />" +
+            "<xf numFmtId=\"0\" fontId=\"0\"/>" +
             "</cellStyleXfs>" +
             "<cellXfs count=\"";
 
         private const string XmlPart2 =
             "</cellXfs>" +
             "<cellStyles count=\"1\">" +
-            "<cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\" />" +
+            "<cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\"/>" +
             "</cellStyles>" +
-            "<dxfs count=\"0\" />" +
+            "<dxfs count=\"0\"/>" +
             "</styleSheet>";
 
         public static async ValueTask WriteAsync(
@@ -78,7 +78,7 @@ namespace SpreadCheetah.MetadataXml
             buffer.Index += Utf8Helper.GetBytes("\">", buffer.GetNextSpan());
 
             // The default font must be the first one (index 0)
-            const string defaultFont = "<font><sz val=\"11\" /><name val=\"Calibri\" /></font>";
+            const string defaultFont = "<font><sz val=\"11\"/><name val=\"Calibri\"/></font>";
             await buffer.WriteAsciiStringAsync(defaultFont, stream, token).ConfigureAwait(false);
 
             var sb = new StringBuilder();
@@ -107,7 +107,7 @@ namespace SpreadCheetah.MetadataXml
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
             // The default style must be the first one (index 0)
-            const string defaultStyle = "\"><xf numFmtId=\"0\" applyNumberFormat=\"1\" fontId=\"0\" applyFont=\"1\" xfId=\"0\" applyProtection=\"1\" />";
+            const string defaultStyle = "\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\"/>";
             await buffer.WriteAsciiStringAsync(defaultStyle, stream, token).ConfigureAwait(false);
 
             sb.Clear();
@@ -116,7 +116,7 @@ namespace SpreadCheetah.MetadataXml
                 var fontIndex = fontLookup[i];
                 sb.Append("<xf numFmtId=\"0\" applyNumberFormat=\"1\" fontId=\"");
                 sb.Append(fontIndex);
-                sb.Append("\" applyFont=\"1\" xfId=\"0\" applyProtection=\"1\" />");
+                sb.Append("\" applyFont=\"1\" xfId=\"0\"/>");
                 await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
             }
 
