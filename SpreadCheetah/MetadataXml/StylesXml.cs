@@ -1,6 +1,8 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Threading;
@@ -57,57 +59,72 @@ namespace SpreadCheetah.MetadataXml
             await using (stream.ConfigureAwait(false))
 #endif
             {
-                buffer.Index += Utf8Helper.GetBytes(Header, buffer.GetNextSpan());
-
-                // Fonts
-                ProcessFonts(styles, out var fontList, out var fontLookup);
-                buffer.Index += Utf8Helper.GetBytes("<fonts count=\"", buffer.GetNextSpan());
-                buffer.Index += Utf8Helper.GetBytes(fontList.Count, buffer.GetNextSpan());
-                buffer.Index += Utf8Helper.GetBytes("\">", buffer.GetNextSpan());
-
-                // The default font must be the first one (index 0)
-                const string defaultFont = "<font><sz val=\"11\" /><name val=\"Calibri\" /></font>";
-                await buffer.WriteAsciiStringAsync(defaultFont, stream, token).ConfigureAwait(false);
-
-                var sb = new StringBuilder();
-                for (var i = 1; i < fontList.Count; ++i)
-                {
-                    var font = fontList[i];
-                    sb.Clear();
-                    sb.Append("<font>");
-
-                    if (font.Bold) sb.Append("<b/>");
-                    if (font.Italic) sb.Append("<i/>");
-                    if (font.Strikethrough) sb.Append("<strike/>");
-
-                    sb.Append("<sz val=\"11\" /><name val=\"Calibri\" /></font>");
-                    await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
-                }
-
-                await buffer.WriteAsciiStringAsync(XmlPart1, stream, token).ConfigureAwait(false);
-
-                var styleCount = styles.Count + 1;
-                if (styleCount.GetNumberOfDigits() > buffer.GetRemainingBuffer())
-                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-                // The default style must be the first one (index 0)
-                const string defaultStyle = "\"><xf numFmtId=\"0\" applyNumberFormat=\"1\" fontId=\"0\" applyFont=\"1\" xfId=\"0\" applyProtection=\"1\" />";
-                await buffer.WriteAsciiStringAsync(defaultStyle, stream, token).ConfigureAwait(false);
-
-                sb.Clear();
-                for (var i = 0; i < styles.Count; ++i)
-                {
-                    var fontIndex = fontLookup[i];
-                    sb.Append("<xf numFmtId=\"0\" applyNumberFormat=\"1\" fontId=\"");
-                    sb.Append(fontIndex);
-                    sb.Append("\" applyFont=\"1\" xfId=\"0\" applyProtection=\"1\" />");
-                    await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
-                }
-
-                await buffer.WriteAsciiStringAsync(XmlPart2, stream, token).ConfigureAwait(false);
-                await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+                await WriteAsync(stream, buffer, styles, token).ConfigureAwait(false);
             }
         }
+
+        private static async ValueTask WriteAsync(
+            Stream stream,
+            SpreadsheetBuffer buffer,
+            List<Style> styles,
+            CancellationToken token)
+        {
+            buffer.Index += Utf8Helper.GetBytes(Header, buffer.GetNextSpan());
+
+            // Fonts
+            ProcessFonts(styles, out var fontList, out var fontLookup);
+            buffer.Index += Utf8Helper.GetBytes("<fonts count=\"", buffer.GetNextSpan());
+            buffer.Index += Utf8Helper.GetBytes(fontList.Count, buffer.GetNextSpan());
+            buffer.Index += Utf8Helper.GetBytes("\">", buffer.GetNextSpan());
+
+            // The default font must be the first one (index 0)
+            const string defaultFont = "<font><sz val=\"11\" /><name val=\"Calibri\" /></font>";
+            await buffer.WriteAsciiStringAsync(defaultFont, stream, token).ConfigureAwait(false);
+
+            var sb = new StringBuilder();
+            for (var i = 1; i < fontList.Count; ++i)
+            {
+                var font = fontList[i];
+                sb.Clear();
+                sb.Append("<font>");
+
+                if (font.Bold) sb.Append("<b/>");
+                if (font.Italic) sb.Append("<i/>");
+                if (font.Strikethrough) sb.Append("<strike/>");
+                sb.Append("<sz val=\"11\"/>");
+
+                if (font.Color != null)
+                    sb.Append("<color rgb=\"").Append(HexString(font.Color.Value)).Append("\"/>");
+
+                sb.Append("<name val=\"Calibri\"/></font>");
+                await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
+            }
+
+            await buffer.WriteAsciiStringAsync(XmlPart1, stream, token).ConfigureAwait(false);
+
+            var styleCount = styles.Count + 1;
+            if (styleCount.GetNumberOfDigits() > buffer.GetRemainingBuffer())
+                await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+
+            // The default style must be the first one (index 0)
+            const string defaultStyle = "\"><xf numFmtId=\"0\" applyNumberFormat=\"1\" fontId=\"0\" applyFont=\"1\" xfId=\"0\" applyProtection=\"1\" />";
+            await buffer.WriteAsciiStringAsync(defaultStyle, stream, token).ConfigureAwait(false);
+
+            sb.Clear();
+            for (var i = 0; i < styles.Count; ++i)
+            {
+                var fontIndex = fontLookup[i];
+                sb.Append("<xf numFmtId=\"0\" applyNumberFormat=\"1\" fontId=\"");
+                sb.Append(fontIndex);
+                sb.Append("\" applyFont=\"1\" xfId=\"0\" applyProtection=\"1\" />");
+                await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
+            }
+
+            await buffer.WriteAsciiStringAsync(XmlPart2, stream, token).ConfigureAwait(false);
+            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        }
+
+        private static string HexString(Color c) => $"{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
 
         private static void ProcessFonts(List<Style> styles, out List<Font> uniqueFonts, out List<int> fontLookup)
         {
