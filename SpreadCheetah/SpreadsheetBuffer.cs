@@ -22,6 +22,7 @@ namespace SpreadCheetah
 
         public async ValueTask WriteAsciiStringAsync(string value, Stream stream, CancellationToken token)
         {
+            // When value is ASCII, the number of bytes equals the length of the string
             if (value.Length > GetRemainingBuffer())
                 await FlushToStreamAsync(stream, token).ConfigureAwait(false);
 

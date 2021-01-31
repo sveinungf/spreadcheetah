@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,11 +19,6 @@ namespace SpreadCheetah.MetadataXml
             "<numFmts count=\"0\"/>";
 
         private const string XmlPart1 =
-            "</fonts>" +
-            "<fills count=\"2\">" +
-            "<fill><patternFill patternType=\"none\"/></fill>" +
-            "<fill><patternFill patternType=\"gray125\"/></fill>" +
-            "</fills>" +
             "<borders count=\"1\">" +
             "<border>" +
             "<left/>" +
@@ -71,34 +67,8 @@ namespace SpreadCheetah.MetadataXml
         {
             buffer.Index += Utf8Helper.GetBytes(Header, buffer.GetNextSpan());
 
-            // Fonts
-            ProcessFonts(styles, out var fontList, out var fontLookup);
-            buffer.Index += Utf8Helper.GetBytes("<fonts count=\"", buffer.GetNextSpan());
-            buffer.Index += Utf8Helper.GetBytes(fontList.Count, buffer.GetNextSpan());
-            buffer.Index += Utf8Helper.GetBytes("\">", buffer.GetNextSpan());
-
-            // The default font must be the first one (index 0)
-            const string defaultFont = "<font><sz val=\"11\"/><name val=\"Calibri\"/></font>";
-            await buffer.WriteAsciiStringAsync(defaultFont, stream, token).ConfigureAwait(false);
-
-            var sb = new StringBuilder();
-            for (var i = 1; i < fontList.Count; ++i)
-            {
-                var font = fontList[i];
-                sb.Clear();
-                sb.Append("<font>");
-
-                if (font.Bold) sb.Append("<b/>");
-                if (font.Italic) sb.Append("<i/>");
-                if (font.Strikethrough) sb.Append("<strike/>");
-                sb.Append("<sz val=\"11\"/>");
-
-                if (font.Color != null)
-                    sb.Append("<color rgb=\"").Append(HexString(font.Color.Value)).Append("\"/>");
-
-                sb.Append("<name val=\"Calibri\"/></font>");
-                await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
-            }
+            var fontLookup = await WriteFontsAsync(stream, buffer, styles, token).ConfigureAwait(false);
+            var fillLookup = await WriteFillsAsync(stream, buffer, styles, token).ConfigureAwait(false);
 
             await buffer.WriteAsciiStringAsync(XmlPart1, stream, token).ConfigureAwait(false);
 
@@ -110,13 +80,22 @@ namespace SpreadCheetah.MetadataXml
             const string defaultStyle = "\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\"/>";
             await buffer.WriteAsciiStringAsync(defaultStyle, stream, token).ConfigureAwait(false);
 
-            sb.Clear();
+            var sb = new StringBuilder();
             for (var i = 0; i < styles.Count; ++i)
             {
-                var fontIndex = fontLookup[i];
-                sb.Append("<xf numFmtId=\"0\" applyNumberFormat=\"1\" fontId=\"");
-                sb.Append(fontIndex);
-                sb.Append("\" applyFont=\"1\" xfId=\"0\"/>");
+                var style = styles[i];
+                var fontIndex = fontLookup[style.Font];
+                var fillIndex = fillLookup[style.Fill];
+
+                sb.Clear();
+                sb.Append("<xf numFmtId=\"0\"");
+                sb.Append(" fontId=\"").Append(fontIndex).Append('"');
+                if (fontIndex > 0) sb.Append(" applyFont=\"1\"");
+
+                sb.Append(" fillId=\"").Append(fillIndex).Append('"');
+                if (fillIndex > 1) sb.Append(" applyFill=\"1\"");
+
+                sb.Append(" xfId=\"0\"/>");
                 await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
             }
 
@@ -124,29 +103,113 @@ namespace SpreadCheetah.MetadataXml
             await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }
 
-        private static string HexString(Color c) => $"{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
-
-        private static void ProcessFonts(List<Style> styles, out List<Font> uniqueFonts, out List<int> fontLookup)
+        private static async ValueTask<Dictionary<Font, int>> WriteFontsAsync(
+            Stream stream,
+            SpreadsheetBuffer buffer,
+            List<Style> styles,
+            CancellationToken token)
         {
             var defaultFont = new Font();
-            var fontSet = new Dictionary<Font, int>(styles.Count) { { defaultFont, 0 } };
-            uniqueFonts = new List<Font>(styles.Count) { defaultFont };
-            fontLookup = new List<int>(styles.Count);
+            const int defaultCount = 1;
 
+            var uniqueFonts = new Dictionary<Font, int> { { defaultFont, 0 } };
             for (var i = 0; i < styles.Count; ++i)
             {
                 var font = styles[i].Font;
-
-                // New unique font?
-                if (!fontSet.TryGetValue(font, out var listIndex))
-                {
-                    listIndex = uniqueFonts.Count;
-                    fontSet[font] = listIndex;
-                    uniqueFonts.Add(font);
-                }
-
-                fontLookup.Add(listIndex);
+                uniqueFonts[font] = 0;
             }
+
+            var sb = new StringBuilder();
+            var totalCount = uniqueFonts.Count + defaultCount - 1;
+            sb.Append("<fonts count=\"").Append(totalCount).Append("\">");
+
+            // The default font must be the first one (index 0)
+            sb.Append("<font><sz val=\"11\"/><name val=\"Calibri\"/></font>");
+            await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
+
+            var fontIndex = defaultCount;
+            foreach (var font in uniqueFonts.Keys.ToArray())
+            {
+                if (font.Equals(defaultFont)) continue;
+
+                sb.Clear();
+                sb.AppendFont(font);
+                await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
+
+                uniqueFonts[font] = fontIndex;
+                ++fontIndex;
+            }
+
+            await buffer.WriteAsciiStringAsync("</fonts>", stream, token).ConfigureAwait(false);
+            return uniqueFonts;
         }
+
+        private static async ValueTask<Dictionary<Fill, int>> WriteFillsAsync(
+            Stream stream,
+            SpreadsheetBuffer buffer,
+            List<Style> styles,
+            CancellationToken token)
+        {
+            var defaultFill = new Fill();
+            const int defaultCount = 2;
+
+            var uniqueFills = new Dictionary<Fill, int> { { defaultFill, 0 } };
+            for (var i = 0; i < styles.Count; ++i)
+            {
+                var fill = styles[i].Fill;
+                uniqueFills[fill] = 0;
+            }
+
+            var sb = new StringBuilder();
+            var totalCount = uniqueFills.Count + defaultCount - 1;
+            sb.Append("<fills count=\"").Append(totalCount).Append("\">");
+
+            // The 2 default fills must come first
+            sb.Append("<fill><patternFill patternType=\"none\"/></fill>");
+            sb.Append("<fill><patternFill patternType=\"gray125\"/></fill>");
+            await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
+
+            var fillIndex = defaultCount;
+            foreach (var fill in uniqueFills.Keys.ToArray())
+            {
+                if (fill.Equals(defaultFill)) continue;
+
+                sb.Clear();
+                sb.AppendFill(fill);
+                await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
+
+                uniqueFills[fill] = fillIndex;
+                ++fillIndex;
+            }
+
+            await buffer.WriteAsciiStringAsync("</fills>", stream, token).ConfigureAwait(false);
+            return uniqueFills;
+        }
+
+        private static void AppendFont(this StringBuilder sb, Font font)
+        {
+            sb.Append("<font>");
+
+            if (font.Bold) sb.Append("<b/>");
+            if (font.Italic) sb.Append("<i/>");
+            if (font.Strikethrough) sb.Append("<strike/>");
+
+            sb.Append("<sz val=\"11\"/>");
+
+            if (font.Color != null)
+                sb.Append("<color rgb=\"").Append(HexString(font.Color.Value)).Append("\"/>");
+
+            sb.Append("<name val=\"Calibri\"/></font>");
+        }
+
+        private static void AppendFill(this StringBuilder sb, Fill fill)
+        {
+            if (fill.Color is null) return;
+            sb.Append("<fill><patternFill patternType=\"solid\"><fgColor rgb=\"");
+            sb.Append(HexString(fill.Color.Value));
+            sb.Append("\"/></patternFill></fill>");
+        }
+
+        private static string HexString(Color c) => $"{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
     }
 }
