@@ -241,6 +241,36 @@ namespace SpreadCheetah.Test.Tests
             Assert.Equal(color, actualCell.Style.Font.FontColor.Color);
         }
 
+        [Fact]
+        public async Task Spreadsheet_AddRow_FillColorCellWithStringValue()
+        {
+            // Arrange
+            const string cellValue = "Color test";
+            var color = Color.Brown;
+            using var stream = new MemoryStream();
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            {
+                await spreadsheet.StartWorksheetAsync("Sheet");
+
+                var style = new Style();
+                style.Fill.Color = color;
+                var styleId = spreadsheet.AddStyle(style);
+                var styledCell = new StyledCell(cellValue, styleId);
+
+                // Act
+                await spreadsheet.AddRowAsync(styledCell);
+                await spreadsheet.FinishAsync();
+            }
+
+            // Assert
+            stream.Position = 0;
+            using var workbook = new XLWorkbook(stream);
+            var worksheet = workbook.Worksheets.Single();
+            var actualCell = worksheet.Cell(1, 1);
+            Assert.Equal(cellValue, actualCell.Value);
+            Assert.Equal(color, actualCell.Style.Fill.BackgroundColor.Color);
+        }
+
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
@@ -248,15 +278,17 @@ namespace SpreadCheetah.Test.Tests
         {
             // Arrange
             const string cellValue = "Formatting test";
-            var color = formatting ? Color.Red as Color? : null;
+            var fillColor = formatting ? Color.Green as Color? : null;
+            var fontColor = formatting ? Color.Red as Color? : null;
             using var stream = new MemoryStream();
             await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
 
                 var style = new Style();
+                style.Fill.Color = fillColor;
                 style.Font.Bold = formatting;
-                style.Font.Color = color;
+                style.Font.Color = fontColor;
                 style.Font.Italic = formatting;
                 style.Font.Strikethrough = formatting;
                 var styleId = spreadsheet.AddStyle(style);
@@ -273,8 +305,9 @@ namespace SpreadCheetah.Test.Tests
             var worksheet = workbook.Worksheets.Single();
             var actualCell = worksheet.Cell(1, 1);
             Assert.Equal(cellValue, actualCell.Value);
+            Assert.Equal(formatting, actualCell.Style.Fill.BackgroundColor.Color == fillColor);
             Assert.Equal(formatting, actualCell.Style.Font.Bold);
-            Assert.Equal(formatting, actualCell.Style.Font.FontColor.Color == color);
+            Assert.Equal(formatting, actualCell.Style.Font.FontColor.Color == fontColor);
             Assert.Equal(formatting, actualCell.Style.Font.Italic);
             Assert.Equal(formatting, actualCell.Style.Font.Strikethrough);
         }
