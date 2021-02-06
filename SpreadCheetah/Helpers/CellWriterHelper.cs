@@ -2,23 +2,17 @@ using System;
 
 namespace SpreadCheetah.Helpers
 {
-    internal static class CellWriterHelper
+    internal static partial class CellWriterHelper
     {
-        public static readonly int RowStartMaxByteCount = RowStart.Length + SpreadsheetConstants.RowIndexMaxDigits + RowStartEndTag.Length;
+        public static readonly int RowStartMaxByteCount = RowStart().Length + SpreadsheetConstants.RowIndexMaxDigits + RowStartEndTag().Length;
 
-        public static ReadOnlySpan<byte> RowStart => new[]
-{
-            (byte)'<', (byte)'r', (byte)'o', (byte)'w', (byte)' ', (byte)'r', (byte)'=', (byte)'"'
-        };
+        [StringLiteral.Utf8("<row r=\"")]
+        public static partial ReadOnlySpan<byte> RowStart();
 
-        public static ReadOnlySpan<byte> RowStartEndTag => new[]
-        {
-            (byte)'"', (byte)'>'
-        };
+        [StringLiteral.Utf8("\">")]
+        public static partial ReadOnlySpan<byte> RowStartEndTag();
 
-        public static ReadOnlySpan<byte> RowEnd => new[]
-        {
-            (byte)'<', (byte)'/', (byte)'r', (byte)'o', (byte)'w', (byte)'>'
-        };
+        [StringLiteral.Utf8("</row>")]
+        public static partial ReadOnlySpan<byte> RowEnd();
     }
 }

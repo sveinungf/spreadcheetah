@@ -35,18 +35,18 @@ namespace SpreadCheetah.CellWriters
             }
 
             // Also ensuring space in the buffer for the next row start, so that we don't need to check space in the buffer twice
-            if (CellWriterHelper.RowEnd.Length + CellWriterHelper.RowStartMaxByteCount > Buffer.GetRemainingBuffer())
+            if (CellWriterHelper.RowEnd().Length + CellWriterHelper.RowStartMaxByteCount > Buffer.GetRemainingBuffer())
                 return false;
 
-            Buffer.Index += SpanHelper.GetBytes(CellWriterHelper.RowEnd, Buffer.GetNextSpan());
+            Buffer.Index += SpanHelper.GetBytes(CellWriterHelper.RowEnd(), Buffer.GetNextSpan());
             return true;
         }
 
         private static int GetRowStartBytes(int rowIndex, Span<byte> bytes)
         {
-            var bytesWritten = SpanHelper.GetBytes(CellWriterHelper.RowStart, bytes);
+            var bytesWritten = SpanHelper.GetBytes(CellWriterHelper.RowStart(), bytes);
             bytesWritten += Utf8Helper.GetBytes(rowIndex, bytes.Slice(bytesWritten));
-            bytesWritten += SpanHelper.GetBytes(CellWriterHelper.RowStartEndTag, bytes.Slice(bytesWritten));
+            bytesWritten += SpanHelper.GetBytes(CellWriterHelper.RowStartEndTag(), bytes.Slice(bytesWritten));
             return bytesWritten;
         }
 
@@ -91,10 +91,10 @@ namespace SpreadCheetah.CellWriters
             }
 
             // Also ensuring space in the buffer for the next row start, so that we don't need to check space in the buffer twice
-            if (CellWriterHelper.RowEnd.Length + CellWriterHelper.RowStartMaxByteCount > Buffer.GetRemainingBuffer())
+            if (CellWriterHelper.RowEnd().Length + CellWriterHelper.RowStartMaxByteCount > Buffer.GetRemainingBuffer())
                 await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-            Buffer.Index += SpanHelper.GetBytes(CellWriterHelper.RowEnd, Buffer.GetNextSpan());
+            Buffer.Index += SpanHelper.GetBytes(CellWriterHelper.RowEnd(), Buffer.GetNextSpan());
         }
 
         protected bool FinishWritingCellValue(string cellValue, ref int cellValueIndex)

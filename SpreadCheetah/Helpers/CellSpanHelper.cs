@@ -2,36 +2,25 @@ using System;
 
 namespace SpreadCheetah.Helpers
 {
-    internal static class CellSpanHelper
+    internal static partial class CellSpanHelper
     {
-        private static ReadOnlySpan<byte> NumberCellStart => new[]
-        {
-            (byte)'<', (byte)'c', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
-        };
+        [StringLiteral.Utf8("<c><v>")]
+        private static partial ReadOnlySpan<byte> NumberCellStart();
 
-        private static ReadOnlySpan<byte> BooleanCellStart => new[]
-        {
-            (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'b', (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
-        };
+        [StringLiteral.Utf8("<c t=\"b\"><v>")]
+        private static partial ReadOnlySpan<byte> BooleanCellStart();
 
-        public static ReadOnlySpan<byte> DefaultCellEnd => new[]
-        {
-            (byte)'<', (byte)'/', (byte)'v', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
-        };
+        [StringLiteral.Utf8("</v></c>")]
+        public static partial ReadOnlySpan<byte> DefaultCellEnd();
 
-        private static ReadOnlySpan<byte> StringCellStart => new[]
-        {
-            (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'i', (byte)'n', (byte)'l', (byte)'i', (byte)'n', (byte)'e',
-            (byte)'S', (byte)'t', (byte)'r', (byte)'"', (byte)'>', (byte)'<', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'t', (byte)'>'
-        };
+        [StringLiteral.Utf8("<c t=\"inlineStr\"><is><t>")]
+        private static partial ReadOnlySpan<byte> StringCellStart();
 
-        public static ReadOnlySpan<byte> StringCellEnd => new[]
-        {
-            (byte)'<', (byte)'/', (byte)'t', (byte)'>', (byte)'<', (byte)'/', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
-        };
+        [StringLiteral.Utf8("</t></is></c>")]
+        public static partial ReadOnlySpan<byte> StringCellEnd();
 
-        public static readonly int MaxCellEndElementLength = StringCellEnd.Length;
-        public static readonly int MaxCellElementLength = StringCellStart.Length + MaxCellEndElementLength;
+        public static readonly int MaxCellEndElementLength = StringCellEnd().Length;
+        public static readonly int MaxCellElementLength = StringCellStart().Length + MaxCellEndElementLength;
 
         public static int GetBytes(in DataCell cell, Span<byte> bytes, bool assertSize)
         {
@@ -41,16 +30,16 @@ namespace SpreadCheetah.Helpers
             switch (cell.DataType)
             {
                 case CellDataType.InlineString:
-                    cellStart = StringCellStart;
-                    cellEnd = StringCellEnd;
+                    cellStart = StringCellStart();
+                    cellEnd = StringCellEnd();
                     break;
                 case CellDataType.Number:
-                    cellStart = NumberCellStart;
-                    cellEnd = DefaultCellEnd;
+                    cellStart = NumberCellStart();
+                    cellEnd = DefaultCellEnd();
                     break;
                 case CellDataType.Boolean:
-                    cellStart = BooleanCellStart;
-                    cellEnd = DefaultCellEnd;
+                    cellStart = BooleanCellStart();
+                    cellEnd = DefaultCellEnd();
                     break;
                 default:
                     return 0;
@@ -64,17 +53,17 @@ namespace SpreadCheetah.Helpers
 
         public static int GetStartElementBytes(CellDataType type, Span<byte> bytes) => type switch
         {
-            CellDataType.InlineString => SpanHelper.GetBytes(StringCellStart, bytes),
-            CellDataType.Number => SpanHelper.GetBytes(NumberCellStart, bytes),
-            CellDataType.Boolean => SpanHelper.GetBytes(BooleanCellStart, bytes),
+            CellDataType.InlineString => SpanHelper.GetBytes(StringCellStart(), bytes),
+            CellDataType.Number => SpanHelper.GetBytes(NumberCellStart(), bytes),
+            CellDataType.Boolean => SpanHelper.GetBytes(BooleanCellStart(), bytes),
             _ => 0
         };
 
         public static int GetEndElementBytes(CellDataType type, Span<byte> bytes) => type switch
         {
-            CellDataType.InlineString => SpanHelper.GetBytes(StringCellEnd, bytes),
-            CellDataType.Number => SpanHelper.GetBytes(DefaultCellEnd, bytes),
-            CellDataType.Boolean => SpanHelper.GetBytes(DefaultCellEnd, bytes),
+            CellDataType.InlineString => SpanHelper.GetBytes(StringCellEnd(), bytes),
+            CellDataType.Number => SpanHelper.GetBytes(DefaultCellEnd(), bytes),
+            CellDataType.Boolean => SpanHelper.GetBytes(DefaultCellEnd(), bytes),
             _ => 0
         };
     }

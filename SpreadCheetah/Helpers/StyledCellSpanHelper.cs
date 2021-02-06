@@ -2,44 +2,31 @@ using System;
 
 namespace SpreadCheetah.Helpers
 {
-    internal static class StyledCellSpanHelper
+    internal static partial class StyledCellSpanHelper
     {
-        private static ReadOnlySpan<byte> NumberCellStart => new[]
-        {
-            (byte)'<', (byte)'c', (byte)' ', (byte)'s', (byte)'=', (byte)'"'
-        };
+        [StringLiteral.Utf8("<c s=\"")]
+        public static partial ReadOnlySpan<byte> NumberCellStart();
 
-        private static ReadOnlySpan<byte> NumberCellStartEndTag => new[]
-        {
-            (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
-        };
+        [StringLiteral.Utf8("\"><v>")]
+        private static partial ReadOnlySpan<byte> NumberCellStartEndTag();
 
-        private static ReadOnlySpan<byte> BooleanCellStart => new[]
-        {
-            (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'b', (byte)'"', (byte)' ', (byte)'s', (byte)'=', (byte)'"'
-        };
+        [StringLiteral.Utf8("<c t=\"b\" s=\"")]
+        private static partial ReadOnlySpan<byte> BooleanCellStart();
 
-        private static ReadOnlySpan<byte> BooleanCellStartEndTag => new[]
-        {
-            (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
-        };
+        [StringLiteral.Utf8("\"><v>")]
+        private static partial ReadOnlySpan<byte> BooleanCellStartEndTag();
 
-        private static ReadOnlySpan<byte> StringCellStart => new[]
-        {
-            (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'i', (byte)'n', (byte)'l', (byte)'i', (byte)'n', (byte)'e',
-            (byte)'S', (byte)'t', (byte)'r', (byte)'"', (byte)' ', (byte)'s', (byte)'=', (byte)'"'
-        };
+        [StringLiteral.Utf8("<c t=\"inlineStr\" s=\"")]
+        private static partial ReadOnlySpan<byte> StringCellStart();
 
-        private static ReadOnlySpan<byte> StringCellStartEndTag => new[]
-        {
-            (byte)'"', (byte)'>', (byte)'<', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'t', (byte)'>'
-        };
+        [StringLiteral.Utf8("\"><is><t>")]
+        private static partial ReadOnlySpan<byte> StringCellStartEndTag();
 
-        public static readonly int MaxCellEndElementLength = CellSpanHelper.StringCellEnd.Length;
-        public static readonly int MaxCellElementLength = StringCellStart.Length
+        public static readonly int MaxCellEndElementLength = CellSpanHelper.StringCellEnd().Length;
+        public static readonly int MaxCellElementLength = StringCellStart().Length
             + SpreadsheetConstants.StyleIdMaxDigits
-            + StringCellStartEndTag.Length
-            + CellSpanHelper.StringCellEnd.Length;
+            + StringCellStartEndTag().Length
+            + CellSpanHelper.StringCellEnd().Length;
 
         public static int GetBytes(StyledCell styledCell, Span<byte> bytes, bool assertSize)
         {
@@ -55,19 +42,19 @@ namespace SpreadCheetah.Helpers
             switch (cell.DataType)
             {
                 case CellDataType.InlineString:
-                    cellStart = StringCellStart;
-                    cellStartEndTag = StringCellStartEndTag;
-                    cellEnd = CellSpanHelper.StringCellEnd;
+                    cellStart = StringCellStart();
+                    cellStartEndTag = StringCellStartEndTag();
+                    cellEnd = CellSpanHelper.StringCellEnd();
                     break;
                 case CellDataType.Number:
-                    cellStart = NumberCellStart;
-                    cellStartEndTag = NumberCellStartEndTag;
-                    cellEnd = CellSpanHelper.DefaultCellEnd;
+                    cellStart = NumberCellStart();
+                    cellStartEndTag = NumberCellStartEndTag();
+                    cellEnd = CellSpanHelper.DefaultCellEnd();
                     break;
                 case CellDataType.Boolean:
-                    cellStart = BooleanCellStart;
-                    cellStartEndTag = BooleanCellStartEndTag;
-                    cellEnd = CellSpanHelper.DefaultCellEnd;
+                    cellStart = BooleanCellStart();
+                    cellStartEndTag = BooleanCellStartEndTag();
+                    cellEnd = CellSpanHelper.DefaultCellEnd();
                     break;
                 default:
                     return 0;
@@ -94,16 +81,16 @@ namespace SpreadCheetah.Helpers
             switch (cell.DataType)
             {
                 case CellDataType.InlineString:
-                    cellStart = StringCellStart;
-                    cellStartEndTag = StringCellStartEndTag;
+                    cellStart = StringCellStart();
+                    cellStartEndTag = StringCellStartEndTag();
                     break;
                 case CellDataType.Number:
-                    cellStart = NumberCellStart;
-                    cellStartEndTag = NumberCellStartEndTag;
+                    cellStart = NumberCellStart();
+                    cellStartEndTag = NumberCellStartEndTag();
                     break;
                 case CellDataType.Boolean:
-                    cellStart = BooleanCellStart;
-                    cellStartEndTag = BooleanCellStartEndTag;
+                    cellStart = BooleanCellStart();
+                    cellStartEndTag = BooleanCellStartEndTag();
                     break;
                 default:
                     return 0;
