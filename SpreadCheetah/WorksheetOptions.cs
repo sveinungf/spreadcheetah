@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace SpreadCheetah.Worksheets
 {
+    /// <summary>
+    /// Provides options to be used when starting a worksheet with <see cref="Spreadsheet"/>.
+    /// </summary>
     public class WorksheetOptions
     {
         internal SortedDictionary<int, ColumnOptions> ColumnOptions { get; } = new SortedDictionary<int, ColumnOptions>();

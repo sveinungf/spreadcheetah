@@ -2,6 +2,9 @@ using System;
 
 namespace SpreadCheetah.Worksheets
 {
+    /// <summary>
+    /// Provides column options to be used with <see cref="WorksheetOptions"/>.
+    /// </summary>
     public class ColumnOptions
     {
         /// <summary>

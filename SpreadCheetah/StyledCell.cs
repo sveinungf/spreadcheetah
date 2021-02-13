@@ -87,13 +87,18 @@ namespace SpreadCheetah
             StyleId = styleId;
         }
 
+        /// <inheritdoc/>
         public bool Equals(StyledCell other)
         {
             return DataCell.Equals(other.DataCell) && EqualityComparer<StyleId?>.Default.Equals(StyleId, other.StyleId);
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object? obj) => obj is StyledCell other && Equals(other);
+
+        /// <inheritdoc/>
         public override int GetHashCode() => HashCode.Combine(DataCell, StyleId);
+
         public static bool operator ==(StyledCell left, StyledCell right) => left.Equals(right);
         public static bool operator !=(StyledCell left, StyledCell right) => !left.Equals(right);
     }

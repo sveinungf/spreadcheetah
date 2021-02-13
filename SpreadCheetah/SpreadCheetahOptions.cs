@@ -2,6 +2,9 @@ using System;
 
 namespace SpreadCheetah
 {
+    /// <summary>
+    /// Provides options to be used when creating a spreadsheet with <see cref="Spreadsheet"/>.
+    /// </summary>
     public class SpreadCheetahOptions
 
     {
@@ -10,6 +13,9 @@ namespace SpreadCheetah
         /// </summary>
         public static readonly int MinimumBufferSize = 512;
 
+        /// <summary>
+        /// Compression level to use when generating the spreadsheet archive. Defaults to <see cref="SpreadCheetahCompressionLevel.Fastest"/>.
+        /// </summary>
         public SpreadCheetahCompressionLevel CompressionLevel { get; set; } = SpreadCheetahCompressionLevel.Fastest;
 
         /// <summary>

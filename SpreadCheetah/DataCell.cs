@@ -81,9 +81,15 @@ namespace SpreadCheetah
 
         private static string GetStringValue(bool value) => value ? "1" : "0";
 
+        /// <inheritdoc/>
         public bool Equals(DataCell other) => DataType == other.DataType && string.Equals(Value, other.Value, StringComparison.Ordinal);
+
+        /// <inheritdoc/>
         public override bool Equals(object? obj) => obj is DataCell cell && Equals(cell);
+
+        /// <inheritdoc/>
         public override int GetHashCode() => HashCode.Combine(DataType, Value);
+
         public static bool operator ==(DataCell left, DataCell right) => left.Equals(right);
         public static bool operator !=(DataCell left, DataCell right) => !left.Equals(right);
     }
