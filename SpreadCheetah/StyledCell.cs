@@ -6,7 +6,15 @@ namespace SpreadCheetah
 {
     public readonly struct StyledCell : IEquatable<StyledCell>
     {
+        /// <summary>
+        /// Data type and value for the cell.
+        /// </summary>
         public DataCell DataCell { get; }
+
+        /// <summary>
+        /// Identifier for the style used by this cell. It is optional and can be <c>null</c>.
+        /// Style IDs are created with <see cref="Spreadsheet.AddStyle(Style)"/>.
+        /// </summary>
         public StyleId? StyleId { get; }
 
         public StyledCell(string? value, StyleId? styleId)
@@ -99,7 +107,10 @@ namespace SpreadCheetah
         /// <inheritdoc/>
         public override int GetHashCode() => HashCode.Combine(DataCell, StyleId);
 
+        /// <summary>Determines whether two instances have the same value.</summary>
         public static bool operator ==(StyledCell left, StyledCell right) => left.Equals(right);
+
+        /// <summary>Determines whether two instances have different values.</summary>
         public static bool operator !=(StyledCell left, StyledCell right) => !left.Equals(right);
     }
 }

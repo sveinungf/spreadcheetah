@@ -6,7 +6,15 @@ namespace SpreadCheetah
 {
     public readonly struct DataCell : IEquatable<DataCell>
     {
+        /// <summary>
+        /// The cell's Open XML data type.
+        /// </summary>
         public CellDataType DataType { get; }
+
+        /// <summary>
+        /// The XML encoded value for the cell. Note that the value can differ from the original value
+        /// passed to the constructor due to XML encoding or change in number precision.
+        /// </summary>
         public string Value { get; }
 
         public DataCell(string? value)
@@ -90,7 +98,10 @@ namespace SpreadCheetah
         /// <inheritdoc/>
         public override int GetHashCode() => HashCode.Combine(DataType, Value);
 
+        /// <summary>Determines whether two instances have the same value.</summary>
         public static bool operator ==(DataCell left, DataCell right) => left.Equals(right);
+
+        /// <summary>Determines whether two instances have different values.</summary>
         public static bool operator !=(DataCell left, DataCell right) => !left.Equals(right);
     }
 }

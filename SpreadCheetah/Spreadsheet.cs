@@ -159,6 +159,7 @@ namespace SpreadCheetah
                 await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styles, token).ConfigureAwait(false);
         }
 
+        /// <inheritdoc/>
         public async ValueTask DisposeAsync()
         {
             if (_disposed) return;
@@ -171,6 +172,7 @@ namespace SpreadCheetah
             _archive?.Dispose();
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             if (_disposed) return;
