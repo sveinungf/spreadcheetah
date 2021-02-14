@@ -5,7 +5,7 @@ using System.Net;
 namespace SpreadCheetah
 {
     /// <summary>
-    /// Represents data in a worksheet cell.
+    /// Represents the value and data type for a worksheet cell.
     /// </summary>
     public readonly struct DataCell : IEquatable<DataCell>
     {
