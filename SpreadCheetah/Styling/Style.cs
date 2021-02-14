@@ -3,9 +3,15 @@ using System.Collections.Generic;
 
 namespace SpreadCheetah.Styling
 {
+    /// <summary>
+    /// Represents style for one or more worksheet cells.
+    /// </summary>
     public sealed class Style : IEquatable<Style>
     {
+        /// <summary>Fill for the cell.</summary>
         public Fill Fill { get; set; } = new Fill();
+
+        /// <summary>Font for the cell's value.</summary>
         public Font Font { get; set; } = new Font();
 
         /// <inheritdoc/>
