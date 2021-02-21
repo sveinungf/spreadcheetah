@@ -10,6 +10,7 @@
     <RepositoryUrl>https://github.com/sveinungf/spreadcheetah</RepositoryUrl>
     <PackageTags>spreadsheet;excel;xlsx;openxml</PackageTags>
     <Version>1.2.0</Version>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IncludeSymbols>true</IncludeSymbols>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
