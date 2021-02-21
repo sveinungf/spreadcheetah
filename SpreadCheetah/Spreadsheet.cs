@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace SpreadCheetah
 {
+    /// <summary>
+    /// The main class for generating spreadsheets with SpreadCheetah. Use <see cref="CreateNewAsync"/> to initialize a new instance.
+    /// </summary>
     public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         // Invalid worksheet name characters in Excel
@@ -35,6 +38,9 @@ namespace SpreadCheetah
             _buffer = new SpreadsheetBuffer(_arrayPoolBuffer);
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="Spreadsheet"/> that writes its output to a <see cref="Stream"/>.
+        /// </summary>
         public static async ValueTask<Spreadsheet> CreateNewAsync(
             Stream stream,
             SpreadCheetahOptions? options = null,
@@ -57,6 +63,17 @@ namespace SpreadCheetah
             return RelationshipsXml.WriteAsync(_archive, _compressionLevel, _buffer, token);
         }
 
+        /// <summary>
+        /// Starts a new worksheet in the spreadsheet. Every spreadsheet must have at least one worksheet.
+        /// The name must satisfy these requirements:
+        /// <list type="bullet">
+        ///   <item><description>Can not be empty or consist only of whitespace.</description></item>
+        ///   <item><description>Can not be more than 31 characters.</description></item>
+        ///   <item><description>Can not start or end with a single quote.</description></item>
+        ///   <item><description>Can not contain these characters: / \ * ? [ ] </description></item>
+        ///   <item><description>Must be unique across all worksheets.</description></item>
+        /// </list>
+        /// </summary>
         public ValueTask StartWorksheetAsync(string name, WorksheetOptions? options = null, CancellationToken token = default)
         {
             if (name is null)
@@ -93,6 +110,9 @@ namespace SpreadCheetah
             _worksheetPaths.Add(path);
         }
 
+        /// <summary>
+        /// Adds a row of cells to the worksheet and increments the current row number by 1.
+        /// </summary>
         public ValueTask AddRowAsync(IList<DataCell> cells, CancellationToken token = default)
         {
             EnsureCanAddRows(cells);
@@ -101,6 +121,9 @@ namespace SpreadCheetah
                 : _worksheet.AddRowAsync(cells, currentIndex, token);
         }
 
+        /// <summary>
+        /// Adds a row of cells to the worksheet and increments the current row number by 1.
+        /// </summary>
         public ValueTask AddRowAsync(IList<StyledCell> cells, CancellationToken token = default)
         {
             EnsureCanAddRows(cells);
@@ -117,6 +140,9 @@ namespace SpreadCheetah
                 throw new SpreadCheetahException("Can't add rows when there is not an active worksheet.");
         }
 
+        /// <summary>
+        /// Adds a reusable style to the spreadsheet and returns a style ID.
+        /// </summary>
         public StyleId AddStyle(Style style)
         {
             if (style is null)
@@ -138,6 +164,10 @@ namespace SpreadCheetah
             _worksheet = null;
         }
 
+        /// <summary>
+        /// Finalize the spreadsheet. This will write remaining metadata to the output which is important to get a valid XLSX file.
+        /// No more data can be added after this has been called. Will throw a <see cref="SpreadCheetahException"/> if the spreadsheet contains no worksheets.
+        /// </summary>
         public ValueTask FinishAsync(CancellationToken token = default)
         {
             if (_worksheetNames.Count == 0)
