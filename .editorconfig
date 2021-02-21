@@ -155,6 +155,8 @@ dotnet_diagnostic.MA0004.severity = none
 dotnet_diagnostic.MA0011.severity = none
 # MA0025: Implement the functionality
 dotnet_diagnostic.MA0025.severity = none
+# MA0075: Do not use implicit culture-sensitive ToString
+dotnet_diagnostic.MA0075.severity = none
 
 ###############################
 # Threading.Analyzers Options #
