@@ -29,6 +29,7 @@ namespace SpreadCheetah
         private List<Style>? _styles;
         private Worksheet? _worksheet;
         private bool _disposed;
+        private bool _finished;
 
         private Spreadsheet(ZipArchive archive, CompressionLevel compressionLevel, int bufferSize)
         {
@@ -93,6 +94,9 @@ namespace SpreadCheetah
 
             if (_worksheetNames.Contains(name))
                 throw new ArgumentException("A worksheet with the given name already exists.", nameof(name));
+
+            if (_finished)
+                throw new SpreadCheetahException("Can't start another worksheet after " + nameof(FinishAsync) + " has been called.");
 
             return StartWorksheetInternalAsync(name, options, token);
         }
@@ -187,6 +191,8 @@ namespace SpreadCheetah
 
             if (_styles != null)
                 await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styles, token).ConfigureAwait(false);
+
+            _finished = true;
         }
 
         /// <inheritdoc/>

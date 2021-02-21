@@ -201,5 +201,24 @@ namespace SpreadCheetah.Test.Tests
             var actualWidth = worksheet.Column(1).Width;
             Assert.Equal(width, actualWidth, 5);
         }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task Spreadsheet_StartWorksheet_ThrowsWhenHasFinished(bool hasFinished)
+        {
+            // Arrange
+            await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+            await spreadsheet.StartWorksheetAsync("Book 1");
+
+            if (hasFinished)
+                await spreadsheet.FinishAsync();
+
+            // Act
+            var exception = await Record.ExceptionAsync(async () => await spreadsheet.StartWorksheetAsync("Book 2"));
+
+            // Assert
+            Assert.Equal(!hasFinished, exception is null);
+        }
     }
 }
