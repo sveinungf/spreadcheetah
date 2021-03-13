@@ -7,15 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Meziantou.Analyzer" Version="1.0.646">
+    <PackageReference Include="Meziantou.Analyzer" Version="1.0.647">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="16.8.55">
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="16.9.60">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="8.18.0.27296">
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="8.19.0.28253">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
