@@ -211,6 +211,39 @@ namespace SpreadCheetah.Test.Tests
             Assert.Equal(strikethrough, actualCell.Style.Font.Strikethrough);
         }
 
+        [Theory]
+        [InlineData(8)]
+        [InlineData(11)]
+        [InlineData(11.5)]
+        [InlineData(72)]
+        public async Task Spreadsheet_AddRow_FontSizeCellWithStringValue(double size)
+        {
+            // Arrange
+            const string cellValue = "Font size test";
+            using var stream = new MemoryStream();
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            {
+                await spreadsheet.StartWorksheetAsync("Sheet");
+
+                var style = new Style();
+                style.Font.Size = size;
+                var styleId = spreadsheet.AddStyle(style);
+                var styledCell = new StyledCell(cellValue, styleId);
+
+                // Act
+                await spreadsheet.AddRowAsync(styledCell);
+                await spreadsheet.FinishAsync();
+            }
+
+            // Assert
+            stream.Position = 0;
+            using var workbook = new XLWorkbook(stream);
+            var worksheet = workbook.Worksheets.Single();
+            var actualCell = worksheet.Cell(1, 1);
+            Assert.Equal(cellValue, actualCell.Value);
+            Assert.Equal(size, actualCell.Style.Font.FontSize);
+        }
+
         [Fact]
         public async Task Spreadsheet_AddRow_FontColorCellWithStringValue()
         {
