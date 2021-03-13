@@ -18,18 +18,22 @@ namespace SpreadCheetah.Styling
         /// <summary>Adds a horizontal line through the center of the characters. Defaults to <c>false</c>.</summary>
         public bool Strikethrough { get; set; }
 
+        /// <summary>Font size. Defaults to 11.</summary>
+        public double Size { get; set; } = 11;
+
         /// <summary>ARGB (alpha, red, green, blue) color of the font.</summary>
         public Color? Color { get; set; }
 
         /// <inheritdoc/>
         public bool Equals(Font? other) => other != null
             && Bold == other.Bold && Italic == other.Italic && Strikethrough == other.Strikethrough
+            && Size == other.Size
             && EqualityComparer<Color?>.Default.Equals(Color, other.Color);
 
         /// <inheritdoc/>
         public override bool Equals(object? obj) => obj is Font other && Equals(other);
 
         /// <inheritdoc/>
-        public override int GetHashCode() => HashCode.Combine(Bold, Italic, Strikethrough, Color);
+        public override int GetHashCode() => HashCode.Combine(Bold, Italic, Strikethrough, Size, Color);
     }
 }

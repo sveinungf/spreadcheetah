@@ -194,7 +194,7 @@ namespace SpreadCheetah.MetadataXml
             if (font.Italic) sb.Append("<i/>");
             if (font.Strikethrough) sb.Append("<strike/>");
 
-            sb.Append("<sz val=\"11\"/>");
+            sb.Append("<sz val=\"").AppendDouble(font.Size).Append("\"/>");
 
             if (font.Color != null)
                 sb.Append("<color rgb=\"").Append(HexString(font.Color.Value)).Append("\"/>");
