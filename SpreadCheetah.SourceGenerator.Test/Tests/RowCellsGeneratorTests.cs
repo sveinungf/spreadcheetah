@@ -1,10 +1,10 @@
 using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Spreadsheet;
 using SpreadCheetah.SourceGenerator.Test.Models;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
 namespace SpreadCheetah.SourceGenerator.Test.Tests
 {
@@ -44,7 +44,7 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, false);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var cells = sheetPart.Worksheet.Descendants<Cell>().ToList();
+            var cells = sheetPart.Worksheet.Descendants<OpenXmlCell>().ToList();
             Assert.Equal(firstName, cells[0].InnerText);
             Assert.Equal(lastName, cells[1].InnerText);
             Assert.Equal(age.ToString(), cells[2].InnerText);
@@ -81,7 +81,7 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, false);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            Assert.Empty(sheetPart.Worksheet.Descendants<Cell>());
+            Assert.Empty(sheetPart.Worksheet.Descendants<OpenXmlCell>());
         }
 
         [Fact]
@@ -105,7 +105,7 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, false);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var cells = sheetPart.Worksheet.Descendants<Cell>().ToList();
+            var cells = sheetPart.Worksheet.Descendants<OpenXmlCell>().ToList();
             var actualCell = Assert.Single(cells);
             Assert.Equal(value, actualCell.InnerText);
         }

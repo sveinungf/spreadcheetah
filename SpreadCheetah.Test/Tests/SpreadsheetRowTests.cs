@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
 namespace SpreadCheetah.Test.Tests
 {
@@ -61,7 +62,7 @@ namespace SpreadCheetah.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var actualCell = sheetPart.Worksheet.Descendants<Cell>().Single();
+            var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
             Assert.Equal(CellValues.InlineString, actualCell.DataType.Value);
             Assert.Equal(value ?? string.Empty, actualCell.InnerText);
         }
@@ -92,7 +93,7 @@ namespace SpreadCheetah.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var actualCell = sheetPart.Worksheet.Descendants<Cell>().Single();
+            var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
             Assert.Equal(CellValues.InlineString, actualCell.DataType.Value);
             Assert.Equal(value, actualCell.InnerText);
         }
@@ -122,7 +123,7 @@ namespace SpreadCheetah.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var actualCell = sheetPart.Worksheet.Descendants<Cell>().Single();
+            var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
             Assert.Equal(CellValues.Number, actualCell.GetDataType());
             Assert.Equal(value?.ToString() ?? string.Empty, actualCell.InnerText);
         }
@@ -153,7 +154,7 @@ namespace SpreadCheetah.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var actualCell = sheetPart.Worksheet.Descendants<Cell>().Single();
+            var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
             Assert.Equal(CellValues.Number, actualCell.GetDataType());
             Assert.Equal(expectedValue, actualCell.InnerText);
         }
@@ -186,7 +187,7 @@ namespace SpreadCheetah.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var actualCell = sheetPart.Worksheet.Descendants<Cell>().Single();
+            var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
             Assert.Equal(CellValues.Number, actualCell.GetDataType());
             Assert.Equal(expectedValue, actualCell.InnerText);
         }
@@ -220,7 +221,7 @@ namespace SpreadCheetah.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var actualCell = sheetPart.Worksheet.Descendants<Cell>().Single();
+            var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
             Assert.Equal(CellValues.Number, actualCell.GetDataType());
             Assert.Equal(expectedValue, actualCell.InnerText);
         }
@@ -255,7 +256,7 @@ namespace SpreadCheetah.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var actualCell = sheetPart.Worksheet.Descendants<Cell>().Single();
+            var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
             Assert.Equal(CellValues.Number, actualCell.GetDataType());
             Assert.Equal(expectedValue, actualCell.InnerText);
         }
@@ -282,7 +283,7 @@ namespace SpreadCheetah.Test.Tests
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var actualCell = sheetPart.Worksheet.Descendants<Cell>().Single();
+            var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
             Assert.Equal(CellValues.Boolean, actualCell.GetDataType());
             Assert.Equal(expectedValue, actualCell.InnerText);
         }
