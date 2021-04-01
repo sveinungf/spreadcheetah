@@ -35,18 +35,18 @@ namespace SpreadCheetah.Helpers
             (byte)'"', (byte)'>', (byte)'<', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'t', (byte)'>'
         };
 
-        public static readonly int MaxCellEndElementLength = CellSpanHelper.StringCellEnd.Length;
+        public static readonly int MaxCellEndElementLength = DataCellSpanHelper.StringCellEnd.Length;
         public static readonly int MaxCellElementLength = StringCellStart.Length
             + SpreadsheetConstants.StyleIdMaxDigits
             + StringCellStartEndTag.Length
-            + CellSpanHelper.StringCellEnd.Length;
+            + DataCellSpanHelper.StringCellEnd.Length;
 
         public static int GetBytes(StyledCell styledCell, Span<byte> bytes, bool assertSize)
         {
             var cell = styledCell.DataCell;
             var styleId = styledCell.StyleId;
             if (styleId is null)
-                return CellSpanHelper.GetBytes(cell, bytes, assertSize);
+                return DataCellSpanHelper.GetBytes(cell, bytes, assertSize);
 
             ReadOnlySpan<byte> cellStart;
             ReadOnlySpan<byte> cellStartEndTag;
@@ -57,17 +57,17 @@ namespace SpreadCheetah.Helpers
                 case CellDataType.InlineString:
                     cellStart = StringCellStart;
                     cellStartEndTag = StringCellStartEndTag;
-                    cellEnd = CellSpanHelper.StringCellEnd;
+                    cellEnd = DataCellSpanHelper.StringCellEnd;
                     break;
                 case CellDataType.Number:
                     cellStart = NumberCellStart;
                     cellStartEndTag = NumberCellStartEndTag;
-                    cellEnd = CellSpanHelper.DefaultCellEnd;
+                    cellEnd = DataCellSpanHelper.DefaultCellEnd;
                     break;
                 case CellDataType.Boolean:
                     cellStart = BooleanCellStart;
                     cellStartEndTag = BooleanCellStartEndTag;
-                    cellEnd = CellSpanHelper.DefaultCellEnd;
+                    cellEnd = DataCellSpanHelper.DefaultCellEnd;
                     break;
                 default:
                     return 0;
@@ -86,7 +86,7 @@ namespace SpreadCheetah.Helpers
             var cell = styledCell.DataCell;
             var styleId = styledCell.StyleId;
             if (styleId is null)
-                return CellSpanHelper.GetStartElementBytes(cell.DataType, bytes);
+                return DataCellSpanHelper.GetStartElementBytes(cell.DataType, bytes);
 
             ReadOnlySpan<byte> cellStart;
             ReadOnlySpan<byte> cellStartEndTag;

@@ -16,18 +16,18 @@ namespace SpreadCheetah.CellWriters
 
             // Try with an approximate cell value length
             var cellValueLength = cell.Value.Length * Utf8Helper.MaxBytePerChar;
-            if (CellSpanHelper.MaxCellElementLength + cellValueLength < remainingBuffer)
+            if (DataCellSpanHelper.MaxCellElementLength + cellValueLength < remainingBuffer)
             {
-                Buffer.Index += CellSpanHelper.GetBytes(cell, Buffer.GetNextSpan(), false);
+                Buffer.Index += DataCellSpanHelper.GetBytes(cell, Buffer.GetNextSpan(), false);
                 return true;
             }
 
             // Try with a more accurate cell value length
             cellValueLength = Utf8Helper.GetByteCount(cell.Value);
-            bytesNeeded = CellSpanHelper.MaxCellElementLength + cellValueLength;
+            bytesNeeded = DataCellSpanHelper.MaxCellElementLength + cellValueLength;
             if (bytesNeeded < remainingBuffer)
             {
-                Buffer.Index += CellSpanHelper.GetBytes(cell, Buffer.GetNextSpan(), false);
+                Buffer.Index += DataCellSpanHelper.GetBytes(cell, Buffer.GetNextSpan(), false);
                 return true;
             }
 
@@ -41,17 +41,17 @@ namespace SpreadCheetah.CellWriters
 
         protected override int GetBytes(in DataCell cell, Span<byte> bytes, bool assertSize)
         {
-            return CellSpanHelper.GetBytes(cell, Buffer.GetNextSpan(), assertSize);
+            return DataCellSpanHelper.GetBytes(cell, Buffer.GetNextSpan(), assertSize);
         }
 
         protected override int GetStartElementBytes(DataCell cell, Span<byte> bytes)
         {
-            return CellSpanHelper.GetStartElementBytes(cell.DataType, Buffer.GetNextSpan());
+            return DataCellSpanHelper.GetStartElementBytes(cell.DataType, Buffer.GetNextSpan());
         }
 
         protected override int GetEndElementBytes(DataCell cell, Span<byte> bytes)
         {
-            return CellSpanHelper.GetEndElementBytes(cell.DataType, Buffer.GetNextSpan());
+            return DataCellSpanHelper.GetEndElementBytes(cell.DataType, Buffer.GetNextSpan());
         }
     }
 }

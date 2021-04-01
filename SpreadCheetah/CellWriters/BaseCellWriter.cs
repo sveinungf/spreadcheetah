@@ -83,7 +83,7 @@ namespace SpreadCheetah.CellWriters
                 }
 
                 // Flush if can't fit the longest cell end element
-                if (CellSpanHelper.MaxCellEndElementLength > Buffer.GetRemainingBuffer())
+                if (DataCellSpanHelper.MaxCellEndElementLength > Buffer.GetRemainingBuffer())
                     await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
                 // Write end element directly
