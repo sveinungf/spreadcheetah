@@ -37,14 +37,35 @@ namespace SpreadCheetah.Helpers
             (byte)'"', (byte)'>', (byte)'<', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'t', (byte)'>'
         };
 
-        public static readonly int MaxCellElementLength = BeginStyledStringCell.Length
+        private static readonly int MaxCellElementLength =
+            BeginStyledStringCell.Length
             + SpreadsheetConstants.StyleIdMaxDigits
             + EndStyleBeginInlineString.Length
             + DataCellSpanHelper.StringCellEnd.Length;
 
-        public static int GetBytes(StyledCell styledCell, Span<byte> bytes, bool assertSize)
+        public static bool TryWriteCell(in DataCell cell, StyleId? styleId, SpreadsheetBuffer buffer, out int bytesNeeded)
         {
-            return GetBytes(styledCell.DataCell, styledCell.StyleId, bytes, assertSize);
+            bytesNeeded = 0;
+            var remainingBuffer = buffer.GetRemainingBuffer();
+
+            // Try with an approximate cell value length
+            var cellValueLength = cell.Value.Length * Utf8Helper.MaxBytePerChar;
+            if (MaxCellElementLength + cellValueLength < remainingBuffer)
+            {
+                buffer.Index += GetBytes(cell, styleId, buffer.GetNextSpan(), false);
+                return true;
+            }
+
+            // Try with a more accurate cell value length
+            cellValueLength = Utf8Helper.GetByteCount(cell.Value);
+            bytesNeeded = MaxCellElementLength + cellValueLength;
+            if (bytesNeeded < remainingBuffer)
+            {
+                buffer.Index += GetBytes(cell, styleId, buffer.GetNextSpan(), false);
+                return true;
+            }
+
+            return false;
         }
 
         public static int GetBytes(DataCell cell, StyleId? styleId, Span<byte> bytes, bool assertSize)
