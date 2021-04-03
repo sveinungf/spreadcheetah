@@ -10,27 +10,7 @@ namespace SpreadCheetah.CellWriters
 
         protected override bool TryWriteCell(in DataCell cell, out int bytesNeeded)
         {
-            bytesNeeded = 0;
-            var remainingBuffer = Buffer.GetRemainingBuffer();
-
-            // Try with an approximate cell value length
-            var cellValueLength = cell.Value.Length * Utf8Helper.MaxBytePerChar;
-            if (DataCellSpanHelper.MaxCellElementLength + cellValueLength < remainingBuffer)
-            {
-                Buffer.Index += DataCellSpanHelper.GetBytes(cell, Buffer.GetNextSpan(), false);
-                return true;
-            }
-
-            // Try with a more accurate cell value length
-            cellValueLength = Utf8Helper.GetByteCount(cell.Value);
-            bytesNeeded = DataCellSpanHelper.MaxCellElementLength + cellValueLength;
-            if (bytesNeeded < remainingBuffer)
-            {
-                Buffer.Index += DataCellSpanHelper.GetBytes(cell, Buffer.GetNextSpan(), false);
-                return true;
-            }
-
-            return false;
+            return DataCellSpanHelper.TryWriteCell(cell, Buffer, out bytesNeeded);
         }
 
         protected override bool FinishWritingCellValue(in DataCell cell, ref int cellValueIndex)

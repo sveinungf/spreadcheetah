@@ -30,7 +30,32 @@ namespace SpreadCheetah.Helpers
             (byte)'<', (byte)'/', (byte)'t', (byte)'>', (byte)'<', (byte)'/', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
 
-        public static readonly int MaxCellElementLength = StringCellStart.Length + StringCellEnd.Length;
+        private static readonly int MaxCellElementLength = StringCellStart.Length + StringCellEnd.Length;
+
+        public static bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer, out int bytesNeeded)
+        {
+            bytesNeeded = 0;
+            var remainingBuffer = buffer.GetRemainingBuffer();
+
+            // Try with an approximate cell value length
+            var cellValueLength = cell.Value.Length * Utf8Helper.MaxBytePerChar;
+            if (MaxCellElementLength + cellValueLength < remainingBuffer)
+            {
+                buffer.Index += GetBytes(cell, buffer.GetNextSpan(), false);
+                return true;
+            }
+
+            // Try with a more accurate cell value length
+            cellValueLength = Utf8Helper.GetByteCount(cell.Value);
+            bytesNeeded = MaxCellElementLength + cellValueLength;
+            if (bytesNeeded < remainingBuffer)
+            {
+                buffer.Index += GetBytes(cell, buffer.GetNextSpan(), false);
+                return true;
+            }
+
+            return false;
+        }
 
         public static int GetBytes(in DataCell cell, Span<byte> bytes, bool assertSize)
         {
