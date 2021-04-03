@@ -1,5 +1,4 @@
 using SpreadCheetah.Helpers;
-using System;
 
 namespace SpreadCheetah.CellWriters
 {
@@ -34,21 +33,24 @@ namespace SpreadCheetah.CellWriters
             return false;
         }
 
-        protected override bool FinishWritingCellValue(DataCell cell, ref int cellValueIndex)
+        protected override bool FinishWritingCellValue(in DataCell cell, ref int cellValueIndex)
         {
             return FinishWritingCellValue(cell.Value, ref cellValueIndex);
         }
 
-        protected override int GetBytes(in DataCell cell, Span<byte> bytes, bool assertSize)
+        protected override int GetBytes(in DataCell cell, bool assertSize)
         {
             return DataCellSpanHelper.GetBytes(cell, Buffer.GetNextSpan(), assertSize);
         }
 
-        protected override int GetStartElementBytes(DataCell cell, Span<byte> bytes)
+        protected override int GetStartElementBytes(in DataCell cell)
         {
             return DataCellSpanHelper.GetStartElementBytes(cell.DataType, Buffer.GetNextSpan());
         }
 
-        protected override bool TryWriteEndElement(in DataCell cell) => DataCellSpanHelper.TryWriteEndElement(in cell, Buffer);
+        protected override bool TryWriteEndElement(in DataCell cell)
+        {
+            return DataCellSpanHelper.TryWriteEndElement(cell, Buffer);
+        }
     }
 }

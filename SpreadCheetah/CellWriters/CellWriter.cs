@@ -31,17 +31,17 @@ namespace SpreadCheetah.CellWriters
             throw new Exception();
         }
 
-        protected override bool FinishWritingCellValue(Cell cell, ref int cellValueIndex)
+        protected override bool FinishWritingCellValue(in Cell cell, ref int cellValueIndex)
         {
             throw new NotImplementedException();
         }
 
-        protected override int GetBytes(in Cell cell, Span<byte> bytes, bool assertSize)
+        protected override int GetBytes(in Cell cell, bool assertSize)
         {
             throw new NotImplementedException();
         }
 
-        protected override int GetStartElementBytes(Cell cell, Span<byte> bytes)
+        protected override int GetStartElementBytes(in Cell cell)
         {
             throw new NotImplementedException();
         }
