@@ -72,23 +72,7 @@ namespace SpreadCheetah.CellWriters
                     continue;
                 }
 
-                // Write start element
-                Buffer.Index += GetStartElementBytes(cell);
-
-                // Write as much as possible from cell value
-                var cellValueIndex = 0;
-                while (!FinishWritingCellValue(cell, ref cellValueIndex))
-                {
-                    await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-                }
-
-                // Write end element if it fits in the buffer.
-                if (TryWriteEndElement(cell))
-                    continue;
-
-                // Flush if the end element doesn't fit. It should always fit after flushing due to the minimum buffer size.
-                await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-                TryWriteEndElement(cell);
+                await WriteCellPieceByPieceAsync(cell, stream, token).ConfigureAwait(false);
             }
 
             // Also ensuring space in the buffer for the next row start, so that we don't need to check space in the buffer twice
@@ -96,6 +80,27 @@ namespace SpreadCheetah.CellWriters
                 await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
             Buffer.Index += SpanHelper.GetBytes(CellWriterHelper.RowEnd, Buffer.GetNextSpan());
+        }
+
+        private async ValueTask WriteCellPieceByPieceAsync(T cell, Stream stream, CancellationToken token)
+        {
+            // Write start element
+            Buffer.Index += GetStartElementBytes(cell);
+
+            // Write as much as possible from cell value
+            var cellValueIndex = 0;
+            while (!FinishWritingCellValue(cell, ref cellValueIndex))
+            {
+                await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            }
+
+            // Write end element if it fits in the buffer.
+            if (TryWriteEndElement(cell))
+                return;
+
+            // Flush if the end element doesn't fit. It should always fit after flushing due to the minimum buffer size.
+            await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            TryWriteEndElement(cell);
         }
 
         protected bool FinishWritingCellValue(string cellValue, ref int cellValueIndex)
