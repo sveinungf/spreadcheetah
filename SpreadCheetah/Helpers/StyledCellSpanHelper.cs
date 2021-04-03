@@ -37,7 +37,6 @@ namespace SpreadCheetah.Helpers
             (byte)'"', (byte)'>', (byte)'<', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'t', (byte)'>'
         };
 
-        public static readonly int MaxCellEndElementLength = DataCellSpanHelper.StringCellEnd.Length;
         public static readonly int MaxCellElementLength = BeginStyledStringCell.Length
             + SpreadsheetConstants.StyleIdMaxDigits
             + EndStyleBeginInlineString.Length

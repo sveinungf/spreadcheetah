@@ -49,9 +49,6 @@ namespace SpreadCheetah.CellWriters
             return StyledCellSpanHelper.GetStartElementBytes(cell, bytes);
         }
 
-        protected override int GetEndElementBytes(StyledCell cell, Span<byte> bytes)
-        {
-            return DataCellSpanHelper.GetEndElementBytes(cell.DataCell.DataType, Buffer.GetNextSpan());
-        }
+        protected override bool TryWriteEndElement(in StyledCell cell) => DataCellSpanHelper.TryWriteEndElement(cell.DataCell, Buffer);
     }
 }

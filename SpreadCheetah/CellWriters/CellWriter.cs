@@ -1,7 +1,5 @@
 using SpreadCheetah.Helpers;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SpreadCheetah.CellWriters
 {
@@ -48,7 +46,7 @@ namespace SpreadCheetah.CellWriters
             throw new NotImplementedException();
         }
 
-        protected override int GetEndElementBytes(Cell cell, Span<byte> bytes)
+        protected override bool TryWriteEndElement(in Cell cell)
         {
             throw new NotImplementedException();
         }

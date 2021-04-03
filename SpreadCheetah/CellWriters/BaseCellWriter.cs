@@ -19,7 +19,7 @@ namespace SpreadCheetah.CellWriters
         protected abstract bool TryWriteCell(in T cell, out int bytesNeeded);
         protected abstract int GetBytes(in T cell, Span<byte> bytes, bool assertSize);
         protected abstract int GetStartElementBytes(T cell, Span<byte> bytes);
-        protected abstract int GetEndElementBytes(T cell, Span<byte> bytes);
+        protected abstract bool TryWriteEndElement(in T cell);
         protected abstract bool FinishWritingCellValue(T cell, ref int cellValueIndex);
 
         public bool TryAddRow(IList<T> cells, int rowIndex, out int currentListIndex)
@@ -82,12 +82,13 @@ namespace SpreadCheetah.CellWriters
                     await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
                 }
 
-                // Flush if can't fit the longest cell end element
-                if (DataCellSpanHelper.MaxCellEndElementLength > Buffer.GetRemainingBuffer())
-                    await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+                // Write end element if it fits in the buffer.
+                if (TryWriteEndElement(cell))
+                    continue;
 
-                // Write end element directly
-                Buffer.Index += GetEndElementBytes(cell, Buffer.GetNextSpan());
+                // Flush if the end element doesn't fit. It should always fit after flushing due to the minimum buffer size.
+                await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+                TryWriteEndElement(cell);
             }
 
             // Also ensuring space in the buffer for the next row start, so that we don't need to check space in the buffer twice

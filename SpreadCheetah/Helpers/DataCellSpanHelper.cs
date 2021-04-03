@@ -30,8 +30,7 @@ namespace SpreadCheetah.Helpers
             (byte)'<', (byte)'/', (byte)'t', (byte)'>', (byte)'<', (byte)'/', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
 
-        public static readonly int MaxCellEndElementLength = StringCellEnd.Length;
-        public static readonly int MaxCellElementLength = StringCellStart.Length + MaxCellEndElementLength;
+        public static readonly int MaxCellElementLength = StringCellStart.Length + StringCellEnd.Length;
 
         public static int GetBytes(in DataCell cell, Span<byte> bytes, bool assertSize)
         {
@@ -70,12 +69,17 @@ namespace SpreadCheetah.Helpers
             _ => 0
         };
 
-        public static int GetEndElementBytes(CellDataType type, Span<byte> bytes) => type switch
+        public static bool TryWriteEndElement(in DataCell cell, SpreadsheetBuffer buffer)
         {
-            CellDataType.InlineString => SpanHelper.GetBytes(StringCellEnd, bytes),
-            CellDataType.Number => SpanHelper.GetBytes(DefaultCellEnd, bytes),
-            CellDataType.Boolean => SpanHelper.GetBytes(DefaultCellEnd, bytes),
-            _ => 0
-        };
+            var cellEnd = cell.DataType == CellDataType.InlineString
+                ? StringCellEnd
+                : DefaultCellEnd;
+
+            if (cellEnd.Length > buffer.GetRemainingBuffer())
+                return false;
+
+            buffer.Index += SpanHelper.GetBytes(cellEnd, buffer.GetNextSpan());
+            return true;
+        }
     }
 }
