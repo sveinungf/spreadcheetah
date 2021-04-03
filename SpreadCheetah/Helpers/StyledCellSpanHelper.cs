@@ -43,7 +43,7 @@ namespace SpreadCheetah.Helpers
             + EndStyleBeginInlineString.Length
             + DataCellSpanHelper.StringCellEnd.Length;
 
-        public static bool TryWriteCell(in DataCell cell, StyleId? styleId, SpreadsheetBuffer buffer, out int bytesNeeded)
+        public static bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer, out int bytesNeeded)
         {
             bytesNeeded = 0;
             var remainingBuffer = buffer.GetRemainingBuffer();
@@ -68,11 +68,8 @@ namespace SpreadCheetah.Helpers
             return false;
         }
 
-        public static int GetBytes(DataCell cell, StyleId? styleId, Span<byte> bytes, bool assertSize)
+        public static int GetBytes(DataCell cell, StyleId styleId, Span<byte> bytes, bool assertSize)
         {
-            if (styleId is null)
-                return DataCellSpanHelper.GetBytes(cell, bytes, assertSize);
-
             ReadOnlySpan<byte> cellStart;
             ReadOnlySpan<byte> cellStartEndTag;
             ReadOnlySpan<byte> cellEnd;
@@ -101,18 +98,13 @@ namespace SpreadCheetah.Helpers
             var bytesWritten = SpanHelper.GetBytes(cellStart, bytes);
             bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
             bytesWritten += SpanHelper.GetBytes(cellStartEndTag, bytes.Slice(bytesWritten));
-            bytesWritten += Utf8Helper.GetBytes(cell.Value, bytes.Slice(bytesWritten));
+            bytesWritten += Utf8Helper.GetBytes(cell.Value, bytes.Slice(bytesWritten), assertSize);
             bytesWritten += SpanHelper.GetBytes(cellEnd, bytes.Slice(bytesWritten));
             return bytesWritten;
         }
 
-        public static int GetStartElementBytes(StyledCell styledCell, Span<byte> bytes)
+        public static int GetStartElementBytes(DataCell cell, StyleId styleId, Span<byte> bytes)
         {
-            var cell = styledCell.DataCell;
-            var styleId = styledCell.StyleId;
-            if (styleId is null)
-                return DataCellSpanHelper.GetStartElementBytes(cell.DataType, bytes);
-
             ReadOnlySpan<byte> cellStart;
             ReadOnlySpan<byte> cellStartEndTag;
 
