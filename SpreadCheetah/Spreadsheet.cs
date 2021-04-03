@@ -117,6 +117,17 @@ namespace SpreadCheetah
         /// <summary>
         /// Adds a row of cells to the worksheet and increments the current row number by 1.
         /// </summary>
+        public ValueTask AddRowAsync(IList<Cell> cells, CancellationToken token = default)
+        {
+            EnsureCanAddRows(cells);
+            return _worksheet!.TryAddRow(cells, out var currentIndex)
+                ? default
+                : _worksheet.AddRowAsync(cells, currentIndex, token);
+        }
+
+        /// <summary>
+        /// Adds a row of cells to the worksheet and increments the current row number by 1.
+        /// </summary>
         public ValueTask AddRowAsync(IList<DataCell> cells, CancellationToken token = default)
         {
             EnsureCanAddRows(cells);
