@@ -9,27 +9,12 @@ namespace SpreadCheetah.CellWriters
         {
         }
 
-        protected override bool TryWriteCell(in Cell cell, out int bytesNeeded)
+        protected override bool TryWriteCell(in Cell cell, out int bytesNeeded) => cell switch
         {
-            bytesNeeded = 0;
-            var remainingBuffer = Buffer.GetRemainingBuffer();
-
-            // Try with an approximate cell value/formula length
-            var cellValueLength = cell.DataCell.Value.Length * Utf8Helper.MaxBytePerChar;
-
-            var formulaChars = cell.Formula?.FormulaText.Length ?? 0;
-
-            if (cell.Formula is null)
-            {
-                // TODO: Same as for styled cells
-            }
-            else
-            {
-
-            }
-
-            throw new Exception();
-        }
+            { Formula: not null } => FormulaCellSpanHelper.TryWriteCell(cell.Formula.Value.FormulaText, cell.DataCell, cell.StyleId, Buffer, out bytesNeeded),
+            { StyleId: not null } => StyledCellSpanHelper.TryWriteCell(cell.DataCell, cell.StyleId, Buffer, out bytesNeeded),
+            _ => DataCellSpanHelper.TryWriteCell(cell.DataCell, Buffer, out bytesNeeded)
+        };
 
         protected override bool FinishWritingCellValue(in Cell cell, ref int cellValueIndex)
         {

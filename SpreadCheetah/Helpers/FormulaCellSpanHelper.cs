@@ -1,3 +1,4 @@
+using SpreadCheetah.Styling;
 using System;
 
 namespace SpreadCheetah.Helpers
@@ -49,35 +50,51 @@ namespace SpreadCheetah.Helpers
             (byte)'<', (byte)'/', (byte)'v', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
 
-        // TODO: Try with skipping the <v> element when no cached value.
         // </f></c>
         private static ReadOnlySpan<byte> EndFormulaEndCell => new[]
         {
             (byte)'<', (byte)'/', (byte)'f', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
 
-        // TODO: Is this the longest? What about inlineStr?
-        public static readonly int MaxCellElementLength =
+        private static readonly int MaxCellElementLength =
             BeginStyledStringFormulaCell.Length
             + SpreadsheetConstants.StyleIdMaxDigits
             + EndStyleBeginFormula.Length
             + EndFormulaBeginCachedValue.Length
             + EndCachedValueEndCell.Length;
-        //<c t="str" s="1">
-        //	<f>UPPER(B1)</f>
-        //	<v>TEST</v>
-        //</c>
 
-        public static int GetBytes(Cell cell, Span<byte> bytes, bool assertSize)
+        public static bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer, out int bytesNeeded)
         {
-            if (cell.Formula is null)
-                return StyledCellSpanHelper.GetBytes(cell.DataCell, cell.StyleId, bytes, assertSize);
+            bytesNeeded = 0;
+            var remainingBuffer = buffer.GetRemainingBuffer();
 
+            // Try with approximate formula text and cached value lengths
+            var cellValueLength = (formulaText.Length + cachedValue.Value.Length) * Utf8Helper.MaxBytePerChar;
+            if (MaxCellElementLength + cellValueLength < remainingBuffer)
+            {
+                buffer.Index += GetBytes(formulaText, cachedValue, styleId, buffer.GetNextSpan(), false);
+                return true;
+            }
+
+            // Try with more accurate lengths
+            cellValueLength = Utf8Helper.GetByteCount(formulaText) + Utf8Helper.GetByteCount(cachedValue.Value);
+            bytesNeeded = MaxCellElementLength + cellValueLength;
+            if (bytesNeeded < remainingBuffer)
+            {
+                buffer.Index += GetBytes(formulaText, cachedValue, styleId, buffer.GetNextSpan(), false);
+                return true;
+            }
+
+            return false;
+        }
+
+        public static int GetBytes(string formulaText, in DataCell cachedValue, StyleId? styleId, Span<byte> bytes, bool assertSize)
+        {
             int bytesWritten;
 
-            if (cell.StyleId is null)
+            if (styleId is null)
             {
-                var cellStart = cell.DataCell.DataType switch
+                var cellStart = cachedValue.DataType switch
                 {
                     CellDataType.InlineString => BeginStringFormulaCell,
                     CellDataType.Boolean => BeginBooleanFormulaCell,
@@ -88,7 +105,7 @@ namespace SpreadCheetah.Helpers
             }
             else
             {
-                var cellStart = cell.DataCell.DataType switch
+                var cellStart = cachedValue.DataType switch
                 {
                     CellDataType.InlineString => BeginStyledStringFormulaCell,
                     CellDataType.Boolean => StyledCellSpanHelper.BeginStyledBooleanCell,
@@ -96,20 +113,20 @@ namespace SpreadCheetah.Helpers
                 };
 
                 bytesWritten = SpanHelper.GetBytes(cellStart, bytes);
-                bytesWritten += Utf8Helper.GetBytes(cell.StyleId.Id, bytes.Slice(bytesWritten));
+                bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
                 bytesWritten += SpanHelper.GetBytes(EndStyleBeginFormula, bytes.Slice(bytesWritten));
             }
 
-            bytesWritten += Utf8Helper.GetBytes(cell.Formula.Value.FormulaText, bytes.Slice(bytesWritten));
+            bytesWritten += Utf8Helper.GetBytes(formulaText, bytes.Slice(bytesWritten), assertSize);
 
-            if (string.IsNullOrEmpty(cell.DataCell.Value))
+            if (string.IsNullOrEmpty(cachedValue.Value))
             {
                 bytesWritten += SpanHelper.GetBytes(EndFormulaEndCell, bytes.Slice(bytesWritten));
                 return bytesWritten;
             }
 
             bytesWritten += SpanHelper.GetBytes(EndFormulaBeginCachedValue, bytes.Slice(bytesWritten));
-            bytesWritten += Utf8Helper.GetBytes(cell.DataCell.Value, bytes.Slice(bytesWritten));
+            bytesWritten += Utf8Helper.GetBytes(cachedValue.Value, bytes.Slice(bytesWritten), assertSize);
             bytesWritten += SpanHelper.GetBytes(EndCachedValueEndCell, bytes.Slice(bytesWritten));
             return bytesWritten;
         }
