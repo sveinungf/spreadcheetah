@@ -39,7 +39,7 @@ namespace SpreadCheetah.Helpers
         };
 
         // </f><v>
-        private static ReadOnlySpan<byte> EndFormulaBeginCachedValue => new[]
+        public static ReadOnlySpan<byte> EndFormulaBeginCachedValue => new[]
         {
             (byte)'<', (byte)'/', (byte)'f', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
         };

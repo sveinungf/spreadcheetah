@@ -18,7 +18,39 @@ namespace SpreadCheetah.CellWriters
 
         protected override bool FinishWritingCellValue(in Cell cell, ref int cellValueIndex)
         {
-            throw new NotImplementedException();
+            if (cell.Formula is null)
+                return FinishWritingCellValue(cell.DataCell.Value, ref cellValueIndex);
+
+            var formulaText = cell.Formula.Value.FormulaText;
+
+            // Write the formula
+            if (cellValueIndex < formulaText.Length)
+            {
+                var formulaWritten = FinishWritingCellValue(formulaText, ref cellValueIndex);
+
+                // If no cached value, we only need to write the formula
+                if (string.IsNullOrEmpty(cell.DataCell.Value)) return formulaWritten;
+
+                // Otherwise, we need to also write "</f><v>[CACHEDVALUE]"
+                if (!formulaWritten) return false;
+            }
+
+            var separator = FormulaCellSpanHelper.EndFormulaBeginCachedValue;
+            var cachedValueStartIndex = formulaText.Length + separator.Length;
+
+            // Write the "</f><v>" part
+            if (cellValueIndex < cachedValueStartIndex)
+            {
+                if (separator.Length > Buffer.GetRemainingBuffer()) return false;
+                Buffer.Index += SpanHelper.GetBytes(separator, Buffer.GetNextSpan());
+                cellValueIndex += separator.Length;
+            }
+
+            // Write the cached value
+            var cachedValueIndex = cellValueIndex - cachedValueStartIndex;
+            var result = FinishWritingCellValue(cell.DataCell.Value, ref cachedValueIndex);
+            cellValueIndex = cachedValueStartIndex + cachedValueIndex;
+            return result;
         }
 
         protected override int GetBytes(in Cell cell, bool assertSize)
