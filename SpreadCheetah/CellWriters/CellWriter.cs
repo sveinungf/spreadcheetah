@@ -33,21 +33,21 @@ namespace SpreadCheetah.CellWriters
                 if (string.IsNullOrEmpty(cell.DataCell.Value)) return true;
             }
 
-            var separator = FormulaCellSpanHelper.EndFormulaBeginCachedValue;
-            var cachedValueStartIndex = formulaText.Length + separator.Length;
+            var cachedValueStartIndex = formulaText.Length + 1;
 
             // Write the "</f><v>" part
             if (cellValueIndex < cachedValueStartIndex)
             {
+                var separator = FormulaCellSpanHelper.EndFormulaBeginCachedValue;
                 if (separator.Length > Buffer.GetRemainingBuffer()) return false;
                 Buffer.Index += SpanHelper.GetBytes(separator, Buffer.GetNextSpan());
-                cellValueIndex += separator.Length;
+                cellValueIndex = cachedValueStartIndex;
             }
 
             // Write the cached value
             var cachedValueIndex = cellValueIndex - cachedValueStartIndex;
             var result = FinishWritingCellValue(cell.DataCell.Value, ref cachedValueIndex);
-            cellValueIndex = cachedValueStartIndex + cachedValueIndex;
+            cellValueIndex = cachedValueIndex + cachedValueStartIndex;
             return result;
         }
 
