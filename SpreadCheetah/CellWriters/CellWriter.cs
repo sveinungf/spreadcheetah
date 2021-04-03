@@ -26,13 +26,11 @@ namespace SpreadCheetah.CellWriters
             // Write the formula
             if (cellValueIndex < formulaText.Length)
             {
-                var formulaWritten = FinishWritingCellValue(formulaText, ref cellValueIndex);
+                // If there is a cached value, we need to write "[FORMULA]</f><v>[CACHEDVALUE]"
+                if (!FinishWritingCellValue(formulaText, ref cellValueIndex)) return false;
 
-                // If no cached value, we only need to write the formula
-                if (string.IsNullOrEmpty(cell.DataCell.Value)) return formulaWritten;
-
-                // Otherwise, we need to also write "</f><v>[CACHEDVALUE]"
-                if (!formulaWritten) return false;
+                // Otherwise, we only need to write the formula
+                if (string.IsNullOrEmpty(cell.DataCell.Value)) return true;
             }
 
             var separator = FormulaCellSpanHelper.EndFormulaBeginCachedValue;
