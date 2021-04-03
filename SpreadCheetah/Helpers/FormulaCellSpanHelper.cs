@@ -1,41 +1,117 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SpreadCheetah.Helpers
 {
     internal static class FormulaCellSpanHelper
     {
-        // TODO: Cell start with style (part 1)
         // <c t="str" s="
-        private static ReadOnlySpan<byte> StyledStringFormulaCellStart => new[]
+        private static ReadOnlySpan<byte> BeginStyledStringFormulaCell => new[]
         {
             (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'s',
             (byte)'t', (byte)'r', (byte)'"', (byte)' ', (byte)'s', (byte)'=', (byte)'"'
         };
 
-        // TODO: Cell start with style (part 2)
         // "><f>
+        private static ReadOnlySpan<byte> EndStyleBeginFormula => new[]
+        {
+            (byte)'"', (byte)'>', (byte)'<', (byte)'f', (byte)'>'
+        };
 
-        // TODO: Cell start without style
+        // <c><f>
+        private static ReadOnlySpan<byte> BeginNumberFormulaCell => new[]
+        {
+            (byte)'<', (byte)'c', (byte)'>', (byte)'<', (byte)'f', (byte)'>'
+        };
+
+        // <c t="b"><f>
+        private static ReadOnlySpan<byte> BeginBooleanFormulaCell => new[]
+        {
+            (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'b',
+            (byte)'"', (byte)'>', (byte)'<', (byte)'f', (byte)'>'
+        };
+
         // <c t="str"><f>
+        private static ReadOnlySpan<byte> BeginStringFormulaCell => new[]
+        {
+            (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'s',
+            (byte)'t', (byte)'r', (byte)'"', (byte)'>', (byte)'<', (byte)'f', (byte)'>'
+        };
 
-        // TODO: After formula, with cached value
         // </f><v>
+        private static ReadOnlySpan<byte> EndFormulaBeginCachedValue => new[]
+        {
+            (byte)'<', (byte)'/', (byte)'f', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
+        };
 
-        // TODO: End with cached value
         // </v></c>
+        private static ReadOnlySpan<byte> EndCachedValueEndCell => new[]
+        {
+            (byte)'<', (byte)'/', (byte)'v', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
+        };
 
         // TODO: Try with skipping the <v> element when no cached value.
-        // TODO: After formula, without cached value
         // </f></c>
+        private static ReadOnlySpan<byte> EndFormulaEndCell => new[]
+        {
+            (byte)'<', (byte)'/', (byte)'f', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
+        };
 
+        // TODO: Is this the longest? What about inlineStr?
+        public static readonly int MaxCellElementLength =
+            BeginStyledStringFormulaCell.Length
+            + SpreadsheetConstants.StyleIdMaxDigits
+            + EndStyleBeginFormula.Length
+            + EndFormulaBeginCachedValue.Length
+            + EndCachedValueEndCell.Length;
+        //<c t="str" s="1">
+        //	<f>UPPER(B1)</f>
+        //	<v>TEST</v>
+        //</c>
 
+        public static int GetBytes(Cell cell, Span<byte> bytes, bool assertSize)
+        {
+            if (cell.Formula is null)
+                return StyledCellSpanHelper.GetBytes(cell.DataCell, cell.StyleId, bytes, assertSize);
 
-        public static readonly int MaxCellElementLength = 0;
-            //<c t="str" s="1">
-			//	<f>UPPER(B1)</f>
-			//	<v>TEST</v>
-			//</c>
+            int bytesWritten;
+
+            if (cell.StyleId is null)
+            {
+                var cellStart = cell.DataCell.DataType switch
+                {
+                    CellDataType.InlineString => BeginStringFormulaCell,
+                    CellDataType.Boolean => BeginBooleanFormulaCell,
+                    _ => BeginNumberFormulaCell
+                };
+
+                bytesWritten = SpanHelper.GetBytes(cellStart, bytes);
+            }
+            else
+            {
+                var cellStart = cell.DataCell.DataType switch
+                {
+                    CellDataType.InlineString => BeginStyledStringFormulaCell,
+                    CellDataType.Boolean => StyledCellSpanHelper.BeginStyledBooleanCell,
+                    _ => StyledCellSpanHelper.BeginStyledNumberCell
+                };
+
+                bytesWritten = SpanHelper.GetBytes(cellStart, bytes);
+                bytesWritten += Utf8Helper.GetBytes(cell.StyleId.Id, bytes.Slice(bytesWritten));
+                bytesWritten += SpanHelper.GetBytes(EndStyleBeginFormula, bytes.Slice(bytesWritten));
+            }
+
+            bytesWritten += Utf8Helper.GetBytes(cell.Formula.Value.FormulaText, bytes.Slice(bytesWritten));
+
+            if (string.IsNullOrEmpty(cell.DataCell.Value))
+            {
+                bytesWritten += SpanHelper.GetBytes(EndFormulaEndCell, bytes.Slice(bytesWritten));
+                return bytesWritten;
+            }
+
+            bytesWritten += SpanHelper.GetBytes(EndFormulaBeginCachedValue, bytes.Slice(bytesWritten));
+            bytesWritten += Utf8Helper.GetBytes(cell.DataCell.Value, bytes.Slice(bytesWritten));
+            bytesWritten += SpanHelper.GetBytes(EndCachedValueEndCell, bytes.Slice(bytesWritten));
+            return bytesWritten;
+        }
     }
 }
