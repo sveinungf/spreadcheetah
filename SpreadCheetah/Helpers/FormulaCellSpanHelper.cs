@@ -133,8 +133,29 @@ namespace SpreadCheetah.Helpers
 
         public static int GetStartElementBytes(CellDataType dataType, StyleId? styleId, Span<byte> bytes)
         {
-            // TODO: Assume has formula text
-            throw new NotImplementedException();
+            if (styleId is null)
+            {
+                var span = dataType switch
+                {
+                    CellDataType.InlineString => BeginStringFormulaCell,
+                    CellDataType.Boolean => BeginBooleanFormulaCell,
+                    _ => BeginNumberFormulaCell
+                };
+
+                return SpanHelper.GetBytes(span, bytes);
+            }
+
+            var cellStart = dataType switch
+            {
+                CellDataType.InlineString => BeginStyledStringFormulaCell,
+                CellDataType.Boolean => StyledCellSpanHelper.BeginStyledBooleanCell,
+                _ => StyledCellSpanHelper.BeginStyledNumberCell
+            };
+
+            var bytesWritten = SpanHelper.GetBytes(cellStart, bytes);
+            bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
+            bytesWritten += SpanHelper.GetBytes(EndStyleBeginFormula, bytes.Slice(bytesWritten));
+            return bytesWritten;
         }
     }
 }
