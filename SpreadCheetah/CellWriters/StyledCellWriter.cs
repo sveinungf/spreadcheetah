@@ -15,11 +15,6 @@ namespace SpreadCheetah.CellWriters
                 : StyledCellSpanHelper.TryWriteCell(cell.DataCell, cell.StyleId, Buffer, out bytesNeeded);
         }
 
-        protected override bool FinishWritingCellValue(in StyledCell cell, ref int cellValueIndex)
-        {
-            return FinishWritingCellValue(cell.DataCell.Value, ref cellValueIndex);
-        }
-
         protected override int GetBytes(in StyledCell cell, bool assertSize)
         {
             return cell.StyleId is null
@@ -37,6 +32,11 @@ namespace SpreadCheetah.CellWriters
         protected override bool TryWriteEndElement(in StyledCell cell)
         {
             return DataCellSpanHelper.TryWriteEndElement(cell.DataCell, Buffer);
+        }
+
+        protected override bool FinishWritingCellValue(in StyledCell cell, ref int cellValueIndex)
+        {
+            return FinishWritingCellValue(cell.DataCell.Value, ref cellValueIndex);
         }
     }
 }

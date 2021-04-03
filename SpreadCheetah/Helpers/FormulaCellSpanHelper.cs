@@ -45,13 +45,13 @@ namespace SpreadCheetah.Helpers
         };
 
         // </v></c>
-        private static ReadOnlySpan<byte> EndCachedValueEndCell => new[]
+        public static ReadOnlySpan<byte> EndCachedValueEndCell => new[]
         {
             (byte)'<', (byte)'/', (byte)'v', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
 
         // </f></c>
-        private static ReadOnlySpan<byte> EndFormulaEndCell => new[]
+        public static ReadOnlySpan<byte> EndFormulaEndCell => new[]
         {
             (byte)'<', (byte)'/', (byte)'f', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
@@ -129,6 +129,12 @@ namespace SpreadCheetah.Helpers
             bytesWritten += Utf8Helper.GetBytes(cachedValue.Value, bytes.Slice(bytesWritten), assertSize);
             bytesWritten += SpanHelper.GetBytes(EndCachedValueEndCell, bytes.Slice(bytesWritten));
             return bytesWritten;
+        }
+
+        public static int GetStartElementBytes(CellDataType dataType, StyleId? styleId, Span<byte> bytes)
+        {
+            // TODO: Assume has formula text
+            throw new NotImplementedException();
         }
     }
 }

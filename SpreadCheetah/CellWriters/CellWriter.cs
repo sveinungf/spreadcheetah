@@ -1,5 +1,4 @@
 using SpreadCheetah.Helpers;
-using System;
 
 namespace SpreadCheetah.CellWriters
 {
@@ -15,6 +14,36 @@ namespace SpreadCheetah.CellWriters
             { StyleId: not null } => StyledCellSpanHelper.TryWriteCell(cell.DataCell, cell.StyleId, Buffer, out bytesNeeded),
             _ => DataCellSpanHelper.TryWriteCell(cell.DataCell, Buffer, out bytesNeeded)
         };
+
+        protected override int GetBytes(in Cell cell, bool assertSize) => cell switch
+        {
+            { Formula: not null } => FormulaCellSpanHelper.GetBytes(cell.Formula.Value.FormulaText, cell.DataCell, cell.StyleId, Buffer.GetNextSpan(), assertSize),
+            { StyleId: not null } => StyledCellSpanHelper.GetBytes(cell.DataCell, cell.StyleId, Buffer.GetNextSpan(), assertSize),
+            _ => DataCellSpanHelper.GetBytes(cell.DataCell, Buffer.GetNextSpan(), assertSize)
+        };
+
+        protected override int GetStartElementBytes(in Cell cell) => cell switch
+        {
+            { Formula: not null } => FormulaCellSpanHelper.GetStartElementBytes(cell.DataCell.DataType, cell.StyleId, Buffer.GetNextSpan()),
+            { StyleId: not null } => StyledCellSpanHelper.GetStartElementBytes(cell.DataCell, cell.StyleId, Buffer.GetNextSpan()),
+            _ => DataCellSpanHelper.GetStartElementBytes(cell.DataCell.DataType, Buffer.GetNextSpan())
+        };
+
+        protected override bool TryWriteEndElement(in Cell cell)
+        {
+            if (cell.Formula is null)
+                return DataCellSpanHelper.TryWriteEndElement(cell.DataCell, Buffer);
+
+            var cellEnd = string.IsNullOrEmpty(cell.DataCell.Value)
+                ? FormulaCellSpanHelper.EndFormulaEndCell
+                : FormulaCellSpanHelper.EndCachedValueEndCell;
+
+            if (cellEnd.Length > Buffer.GetRemainingBuffer())
+                return false;
+
+            Buffer.Index += SpanHelper.GetBytes(cellEnd, Buffer.GetNextSpan());
+            return true;
+        }
 
         protected override bool FinishWritingCellValue(in Cell cell, ref int cellValueIndex)
         {
@@ -49,21 +78,6 @@ namespace SpreadCheetah.CellWriters
             var result = FinishWritingCellValue(cell.DataCell.Value, ref cachedValueIndex);
             cellValueIndex = cachedValueIndex + cachedValueStartIndex;
             return result;
-        }
-
-        protected override int GetBytes(in Cell cell, bool assertSize)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override int GetStartElementBytes(in Cell cell)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override bool TryWriteEndElement(in Cell cell)
-        {
-            throw new NotImplementedException();
         }
     }
 }
