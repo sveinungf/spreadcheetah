@@ -42,7 +42,7 @@ namespace SpreadCheetah.Helpers
             BeginStyledStringCell.Length
             + SpreadsheetConstants.StyleIdMaxDigits
             + EndStyleBeginInlineString.Length
-            + DataCellHelper.StringCellEnd.Length;
+            + DataCellHelper.EndStringCell.Length;
 
         public static bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer, out int bytesNeeded)
         {
@@ -80,17 +80,17 @@ namespace SpreadCheetah.Helpers
                 case CellDataType.InlineString:
                     cellStart = BeginStyledStringCell;
                     cellStartEndTag = EndStyleBeginInlineString;
-                    cellEnd = DataCellHelper.StringCellEnd;
+                    cellEnd = DataCellHelper.EndStringCell;
                     break;
                 case CellDataType.Number:
                     cellStart = BeginStyledNumberCell;
                     cellStartEndTag = EndStyleBeginValue;
-                    cellEnd = DataCellHelper.DefaultCellEnd;
+                    cellEnd = DataCellHelper.EndDefaultCell;
                     break;
                 case CellDataType.Boolean:
                     cellStart = BeginStyledBooleanCell;
                     cellStartEndTag = EndStyleBeginValue;
-                    cellEnd = DataCellHelper.DefaultCellEnd;
+                    cellEnd = DataCellHelper.EndDefaultCell;
                     break;
                 default:
                     return 0;

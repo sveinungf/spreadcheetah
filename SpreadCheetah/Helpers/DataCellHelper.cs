@@ -4,33 +4,38 @@ namespace SpreadCheetah.Helpers
 {
     internal static class DataCellHelper
     {
-        private static ReadOnlySpan<byte> NumberCellStart => new[]
+        // <c><v>
+        private static ReadOnlySpan<byte> BeginNumberCell => new[]
         {
             (byte)'<', (byte)'c', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
         };
 
-        private static ReadOnlySpan<byte> BooleanCellStart => new[]
+        // <c t="b"><v>
+        private static ReadOnlySpan<byte> BeginBooleanCell => new[]
         {
             (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'b', (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
         };
 
-        public static ReadOnlySpan<byte> DefaultCellEnd => new[]
+        // </v></c>
+        public static ReadOnlySpan<byte> EndDefaultCell => new[]
         {
             (byte)'<', (byte)'/', (byte)'v', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
 
-        private static ReadOnlySpan<byte> StringCellStart => new[]
+        // <c t="inlineStr"><is><t>
+        private static ReadOnlySpan<byte> BeginStringCell => new[]
         {
             (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'i', (byte)'n', (byte)'l', (byte)'i', (byte)'n', (byte)'e',
             (byte)'S', (byte)'t', (byte)'r', (byte)'"', (byte)'>', (byte)'<', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'t', (byte)'>'
         };
 
-        public static ReadOnlySpan<byte> StringCellEnd => new[]
+        // </t></is></c>
+        public static ReadOnlySpan<byte> EndStringCell => new[]
         {
             (byte)'<', (byte)'/', (byte)'t', (byte)'>', (byte)'<', (byte)'/', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
 
-        private static readonly int MaxCellElementLength = StringCellStart.Length + StringCellEnd.Length;
+        private static readonly int MaxCellElementLength = BeginStringCell.Length + EndStringCell.Length;
 
         public static bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer, out int bytesNeeded)
         {
@@ -65,16 +70,16 @@ namespace SpreadCheetah.Helpers
             switch (cell.DataType)
             {
                 case CellDataType.InlineString:
-                    cellStart = StringCellStart;
-                    cellEnd = StringCellEnd;
+                    cellStart = BeginStringCell;
+                    cellEnd = EndStringCell;
                     break;
                 case CellDataType.Number:
-                    cellStart = NumberCellStart;
-                    cellEnd = DefaultCellEnd;
+                    cellStart = BeginNumberCell;
+                    cellEnd = EndDefaultCell;
                     break;
                 case CellDataType.Boolean:
-                    cellStart = BooleanCellStart;
-                    cellEnd = DefaultCellEnd;
+                    cellStart = BeginBooleanCell;
+                    cellEnd = EndDefaultCell;
                     break;
                 default:
                     return 0;
@@ -88,17 +93,17 @@ namespace SpreadCheetah.Helpers
 
         public static int GetStartElementBytes(CellDataType type, Span<byte> bytes) => type switch
         {
-            CellDataType.InlineString => SpanHelper.GetBytes(StringCellStart, bytes),
-            CellDataType.Number => SpanHelper.GetBytes(NumberCellStart, bytes),
-            CellDataType.Boolean => SpanHelper.GetBytes(BooleanCellStart, bytes),
+            CellDataType.InlineString => SpanHelper.GetBytes(BeginStringCell, bytes),
+            CellDataType.Number => SpanHelper.GetBytes(BeginNumberCell, bytes),
+            CellDataType.Boolean => SpanHelper.GetBytes(BeginBooleanCell, bytes),
             _ => 0
         };
 
         public static bool TryWriteEndElement(in DataCell cell, SpreadsheetBuffer buffer)
         {
             var cellEnd = cell.DataType == CellDataType.InlineString
-                ? StringCellEnd
-                : DefaultCellEnd;
+                ? EndStringCell
+                : EndDefaultCell;
 
             if (cellEnd.Length > buffer.GetRemainingBuffer())
                 return false;

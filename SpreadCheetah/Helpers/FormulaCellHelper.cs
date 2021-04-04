@@ -108,8 +108,8 @@ namespace SpreadCheetah.Helpers
                 var cellStart = cachedValue.DataType switch
                 {
                     CellDataType.InlineString => BeginStyledStringFormulaCell,
-                    CellDataType.Boolean => StyledCellSpanHelper.BeginStyledBooleanCell,
-                    _ => StyledCellSpanHelper.BeginStyledNumberCell
+                    CellDataType.Boolean => StyledCellHelper.BeginStyledBooleanCell,
+                    _ => StyledCellHelper.BeginStyledNumberCell
                 };
 
                 bytesWritten = SpanHelper.GetBytes(cellStart, bytes);
@@ -148,8 +148,8 @@ namespace SpreadCheetah.Helpers
             var cellStart = dataType switch
             {
                 CellDataType.InlineString => BeginStyledStringFormulaCell,
-                CellDataType.Boolean => StyledCellSpanHelper.BeginStyledBooleanCell,
-                _ => StyledCellSpanHelper.BeginStyledNumberCell
+                CellDataType.Boolean => StyledCellHelper.BeginStyledBooleanCell,
+                _ => StyledCellHelper.BeginStyledNumberCell
             };
 
             var bytesWritten = SpanHelper.GetBytes(cellStart, bytes);
