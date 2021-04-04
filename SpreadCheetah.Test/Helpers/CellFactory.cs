@@ -1,3 +1,4 @@
+using SpreadCheetah.Styling;
 using System;
 
 namespace SpreadCheetah.Test.Helpers
@@ -84,6 +85,16 @@ namespace SpreadCheetah.Test.Helpers
                 return new DataCell(value);
             if (type == typeof(StyledCell))
                 return new StyledCell(value, null);
+
+            throw new ArgumentOutOfRangeException(nameof(type), type, null);
+        }
+
+        public static object Create(Type type, string? value, StyleId? styleId)
+        {
+            if (type == typeof(Cell))
+                return new Cell(value, styleId);
+            if (type == typeof(StyledCell))
+                return new StyledCell(value, styleId);
 
             throw new ArgumentOutOfRangeException(nameof(type), type, null);
         }
