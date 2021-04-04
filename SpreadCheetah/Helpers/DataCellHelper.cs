@@ -2,7 +2,7 @@ using System;
 
 namespace SpreadCheetah.Helpers
 {
-    internal static class DataCellSpanHelper
+    internal static class DataCellHelper
     {
         private static ReadOnlySpan<byte> NumberCellStart => new[]
         {

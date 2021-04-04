@@ -10,22 +10,22 @@ namespace SpreadCheetah.CellWriters
 
         protected override bool TryWriteCell(in DataCell cell, out int bytesNeeded)
         {
-            return DataCellSpanHelper.TryWriteCell(cell, Buffer, out bytesNeeded);
+            return DataCellHelper.TryWriteCell(cell, Buffer, out bytesNeeded);
         }
 
         protected override int GetBytes(in DataCell cell, bool assertSize)
         {
-            return DataCellSpanHelper.GetBytes(cell, Buffer.GetNextSpan(), assertSize);
+            return DataCellHelper.GetBytes(cell, Buffer.GetNextSpan(), assertSize);
         }
 
         protected override int GetStartElementBytes(in DataCell cell)
         {
-            return DataCellSpanHelper.GetStartElementBytes(cell.DataType, Buffer.GetNextSpan());
+            return DataCellHelper.GetStartElementBytes(cell.DataType, Buffer.GetNextSpan());
         }
 
         protected override bool TryWriteEndElement(in DataCell cell)
         {
-            return DataCellSpanHelper.TryWriteEndElement(cell, Buffer);
+            return DataCellHelper.TryWriteEndElement(cell, Buffer);
         }
 
         protected override bool FinishWritingCellValue(in DataCell cell, ref int cellValueIndex)

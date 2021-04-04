@@ -11,27 +11,27 @@ namespace SpreadCheetah.CellWriters
         protected override bool TryWriteCell(in StyledCell cell, out int bytesNeeded)
         {
             return cell.StyleId is null
-                ? DataCellSpanHelper.TryWriteCell(cell.DataCell, Buffer, out bytesNeeded)
-                : StyledCellSpanHelper.TryWriteCell(cell.DataCell, cell.StyleId, Buffer, out bytesNeeded);
+                ? DataCellHelper.TryWriteCell(cell.DataCell, Buffer, out bytesNeeded)
+                : StyledCellHelper.TryWriteCell(cell.DataCell, cell.StyleId, Buffer, out bytesNeeded);
         }
 
         protected override int GetBytes(in StyledCell cell, bool assertSize)
         {
             return cell.StyleId is null
-                ? DataCellSpanHelper.GetBytes(cell.DataCell, Buffer.GetNextSpan(), assertSize)
-                : StyledCellSpanHelper.GetBytes(cell.DataCell, cell.StyleId, Buffer.GetNextSpan(), assertSize);
+                ? DataCellHelper.GetBytes(cell.DataCell, Buffer.GetNextSpan(), assertSize)
+                : StyledCellHelper.GetBytes(cell.DataCell, cell.StyleId, Buffer.GetNextSpan(), assertSize);
         }
 
         protected override int GetStartElementBytes(in StyledCell cell)
         {
             return cell.StyleId is null
-                ? DataCellSpanHelper.GetStartElementBytes(cell.DataCell.DataType, Buffer.GetNextSpan())
-                : StyledCellSpanHelper.GetStartElementBytes(cell.DataCell, cell.StyleId, Buffer.GetNextSpan());
+                ? DataCellHelper.GetStartElementBytes(cell.DataCell.DataType, Buffer.GetNextSpan())
+                : StyledCellHelper.GetStartElementBytes(cell.DataCell, cell.StyleId, Buffer.GetNextSpan());
         }
 
         protected override bool TryWriteEndElement(in StyledCell cell)
         {
-            return DataCellSpanHelper.TryWriteEndElement(cell.DataCell, Buffer);
+            return DataCellHelper.TryWriteEndElement(cell.DataCell, Buffer);
         }
 
         protected override bool FinishWritingCellValue(in StyledCell cell, ref int cellValueIndex)

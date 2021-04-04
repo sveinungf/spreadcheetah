@@ -3,7 +3,7 @@ using System;
 
 namespace SpreadCheetah.Helpers
 {
-    internal static class FormulaCellSpanHelper
+    internal static class FormulaCellHelper
     {
         // <c t="str" s="
         private static ReadOnlySpan<byte> BeginStyledStringFormulaCell => new[]

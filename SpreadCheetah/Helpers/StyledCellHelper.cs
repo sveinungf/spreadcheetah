@@ -3,7 +3,8 @@ using System;
 
 namespace SpreadCheetah.Helpers
 {
-    internal static class StyledCellSpanHelper
+    internal static class StyledCellHelper
+
     {
         // <c s="
         public static ReadOnlySpan<byte> BeginStyledNumberCell => new[]
@@ -41,7 +42,7 @@ namespace SpreadCheetah.Helpers
             BeginStyledStringCell.Length
             + SpreadsheetConstants.StyleIdMaxDigits
             + EndStyleBeginInlineString.Length
-            + DataCellSpanHelper.StringCellEnd.Length;
+            + DataCellHelper.StringCellEnd.Length;
 
         public static bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer, out int bytesNeeded)
         {
@@ -79,17 +80,17 @@ namespace SpreadCheetah.Helpers
                 case CellDataType.InlineString:
                     cellStart = BeginStyledStringCell;
                     cellStartEndTag = EndStyleBeginInlineString;
-                    cellEnd = DataCellSpanHelper.StringCellEnd;
+                    cellEnd = DataCellHelper.StringCellEnd;
                     break;
                 case CellDataType.Number:
                     cellStart = BeginStyledNumberCell;
                     cellStartEndTag = EndStyleBeginValue;
-                    cellEnd = DataCellSpanHelper.DefaultCellEnd;
+                    cellEnd = DataCellHelper.DefaultCellEnd;
                     break;
                 case CellDataType.Boolean:
                     cellStart = BeginStyledBooleanCell;
                     cellStartEndTag = EndStyleBeginValue;
-                    cellEnd = DataCellSpanHelper.DefaultCellEnd;
+                    cellEnd = DataCellHelper.DefaultCellEnd;
                     break;
                 default:
                     return 0;

@@ -10,33 +10,33 @@ namespace SpreadCheetah.CellWriters
 
         protected override bool TryWriteCell(in Cell cell, out int bytesNeeded) => cell switch
         {
-            { Formula: not null } => FormulaCellSpanHelper.TryWriteCell(cell.Formula.Value.FormulaText, cell.DataCell, cell.StyleId, Buffer, out bytesNeeded),
-            { StyleId: not null } => StyledCellSpanHelper.TryWriteCell(cell.DataCell, cell.StyleId, Buffer, out bytesNeeded),
-            _ => DataCellSpanHelper.TryWriteCell(cell.DataCell, Buffer, out bytesNeeded)
+            { Formula: not null } => FormulaCellHelper.TryWriteCell(cell.Formula.Value.FormulaText, cell.DataCell, cell.StyleId, Buffer, out bytesNeeded),
+            { StyleId: not null } => StyledCellHelper.TryWriteCell(cell.DataCell, cell.StyleId, Buffer, out bytesNeeded),
+            _ => DataCellHelper.TryWriteCell(cell.DataCell, Buffer, out bytesNeeded)
         };
 
         protected override int GetBytes(in Cell cell, bool assertSize) => cell switch
         {
-            { Formula: not null } => FormulaCellSpanHelper.GetBytes(cell.Formula.Value.FormulaText, cell.DataCell, cell.StyleId, Buffer.GetNextSpan(), assertSize),
-            { StyleId: not null } => StyledCellSpanHelper.GetBytes(cell.DataCell, cell.StyleId, Buffer.GetNextSpan(), assertSize),
-            _ => DataCellSpanHelper.GetBytes(cell.DataCell, Buffer.GetNextSpan(), assertSize)
+            { Formula: not null } => FormulaCellHelper.GetBytes(cell.Formula.Value.FormulaText, cell.DataCell, cell.StyleId, Buffer.GetNextSpan(), assertSize),
+            { StyleId: not null } => StyledCellHelper.GetBytes(cell.DataCell, cell.StyleId, Buffer.GetNextSpan(), assertSize),
+            _ => DataCellHelper.GetBytes(cell.DataCell, Buffer.GetNextSpan(), assertSize)
         };
 
         protected override int GetStartElementBytes(in Cell cell) => cell switch
         {
-            { Formula: not null } => FormulaCellSpanHelper.GetStartElementBytes(cell.DataCell.DataType, cell.StyleId, Buffer.GetNextSpan()),
-            { StyleId: not null } => StyledCellSpanHelper.GetStartElementBytes(cell.DataCell, cell.StyleId, Buffer.GetNextSpan()),
-            _ => DataCellSpanHelper.GetStartElementBytes(cell.DataCell.DataType, Buffer.GetNextSpan())
+            { Formula: not null } => FormulaCellHelper.GetStartElementBytes(cell.DataCell.DataType, cell.StyleId, Buffer.GetNextSpan()),
+            { StyleId: not null } => StyledCellHelper.GetStartElementBytes(cell.DataCell, cell.StyleId, Buffer.GetNextSpan()),
+            _ => DataCellHelper.GetStartElementBytes(cell.DataCell.DataType, Buffer.GetNextSpan())
         };
 
         protected override bool TryWriteEndElement(in Cell cell)
         {
             if (cell.Formula is null)
-                return DataCellSpanHelper.TryWriteEndElement(cell.DataCell, Buffer);
+                return DataCellHelper.TryWriteEndElement(cell.DataCell, Buffer);
 
             var cellEnd = string.IsNullOrEmpty(cell.DataCell.Value)
-                ? FormulaCellSpanHelper.EndFormulaEndCell
-                : FormulaCellSpanHelper.EndCachedValueEndCell;
+                ? FormulaCellHelper.EndFormulaEndCell
+                : FormulaCellHelper.EndCachedValueEndCell;
 
             if (cellEnd.Length > Buffer.GetRemainingBuffer())
                 return false;
@@ -67,7 +67,7 @@ namespace SpreadCheetah.CellWriters
             // Write the "</f><v>" part
             if (cellValueIndex < cachedValueStartIndex)
             {
-                var separator = FormulaCellSpanHelper.EndFormulaBeginCachedValue;
+                var separator = FormulaCellHelper.EndFormulaBeginCachedValue;
                 if (separator.Length > Buffer.GetRemainingBuffer()) return false;
                 Buffer.Index += SpanHelper.GetBytes(separator, Buffer.GetNextSpan());
                 cellValueIndex = cachedValueStartIndex;
