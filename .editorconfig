@@ -118,11 +118,13 @@ csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
 
 ###############################
-# FxCopAnalyzers Options      #
+# .NET Analyzers Options      #
 ###############################
 [*.cs]
 # CA1303: Do not pass literals as localized parameters
 dotnet_diagnostic.CA1303.severity = none
+# CA1815: Override equals and operator equals on value types
+dotnet_diagnostic.CA1815.severity = warning
 
 [{*.Test,*.Benchmark}/**.cs]
 # CA1305: Specify IFormatProvider
