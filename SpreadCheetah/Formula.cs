@@ -1,3 +1,5 @@
+using System.Net;
+
 namespace SpreadCheetah
 {
     public readonly struct Formula
@@ -5,6 +7,9 @@ namespace SpreadCheetah
         // TODO: Without '='
         public string FormulaText { get; }
 
-        public Formula(string? formulaText) => FormulaText = formulaText ?? string.Empty;
+        public Formula(string? formulaText)
+        {
+            FormulaText = formulaText != null ? WebUtility.HtmlEncode(formulaText) : string.Empty;
+        }
     }
 }
