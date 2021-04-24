@@ -9,6 +9,10 @@ namespace SpreadCheetah
     /// </summary>
     public readonly struct DataCell : IEquatable<DataCell>
     {
+        internal CellValue CellValue { get; } // TODO: Rename to Value when the existing Value field is replaced
+
+        internal string? StringValue { get; }
+
         /// <summary>
         /// The cell's Open XML data type.
         /// </summary>
@@ -24,7 +28,7 @@ namespace SpreadCheetah
         /// Initializes a new instance of the <see cref="DataCell"/> struct with a text value.
         /// If <c>value</c> is <c>null</c>, the cell will be empty.
         /// </summary>
-        public DataCell(string? value)
+        public DataCell(string? value) : this()
         {
             DataType = CellDataType.InlineString;
             Value = value != null ? WebUtility.HtmlEncode(value) : string.Empty;
@@ -33,7 +37,7 @@ namespace SpreadCheetah
         /// <summary>
         /// Initializes a new instance of the <see cref="DataCell"/> struct with an integer value.
         /// </summary>
-        public DataCell(int value)
+        public DataCell(int value) : this()
         {
             DataType = CellDataType.Number;
             Value = value.ToString(CultureInfo.InvariantCulture);
@@ -43,7 +47,7 @@ namespace SpreadCheetah
         /// Initializes a new instance of the <see cref="DataCell"/> struct with an integer value.
         /// If <c>value</c> is <c>null</c>, the cell will be empty.
         /// </summary>
-        public DataCell(int? value)
+        public DataCell(int? value) : this()
         {
             DataType = CellDataType.Number;
             Value = value?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
@@ -69,7 +73,7 @@ namespace SpreadCheetah
         /// <summary>
         /// Initializes a new instance of the <see cref="DataCell"/> struct with a floating point value.
         /// </summary>
-        public DataCell(float value)
+        public DataCell(float value) : this()
         {
             DataType = CellDataType.Number;
             Value = value.ToString("G7", CultureInfo.InvariantCulture);
@@ -79,7 +83,7 @@ namespace SpreadCheetah
         /// Initializes a new instance of the <see cref="DataCell"/> struct with a floating-point value.
         /// If <c>value</c> is <c>null</c>, the cell will be empty.
         /// </summary>
-        public DataCell(float? value)
+        public DataCell(float? value) : this()
         {
             DataType = CellDataType.Number;
             Value = value?.ToString("G7", CultureInfo.InvariantCulture) ?? string.Empty;
@@ -89,7 +93,7 @@ namespace SpreadCheetah
         /// Initializes a new instance of the <see cref="DataCell"/> struct with a double-precision floating-point value.
         /// Note that Open XML limits the precision to 15 significant digits for numbers. This could potentially lead to a loss of precision.
         /// </summary>
-        public DataCell(double value)
+        public DataCell(double value) : this()
         {
             DataType = CellDataType.Number;
             Value = value.ToString("G15", CultureInfo.InvariantCulture);
@@ -100,7 +104,7 @@ namespace SpreadCheetah
         /// If <c>value</c> is <c>null</c>, the cell will be empty.
         /// Note that Open XML limits the precision to 15 significant digits for numbers. This could potentially lead to a loss of precision.
         /// </summary>
-        public DataCell(double? value)
+        public DataCell(double? value) : this()
         {
             DataType = CellDataType.Number;
             Value = value?.ToString("G15", CultureInfo.InvariantCulture) ?? string.Empty;
@@ -126,7 +130,7 @@ namespace SpreadCheetah
         /// <summary>
         /// Initializes a new instance of the <see cref="DataCell"/> struct with a boolean value.
         /// </summary>
-        public DataCell(bool value)
+        public DataCell(bool value) : this()
         {
             DataType = CellDataType.Boolean;
             Value = GetStringValue(value);
@@ -136,7 +140,7 @@ namespace SpreadCheetah
         /// Initializes a new instance of the <see cref="DataCell"/> struct with a boolean value.
         /// If <c>value</c> is <c>null</c>, the cell will be empty.
         /// </summary>
-        public DataCell(bool? value)
+        public DataCell(bool? value) : this()
         {
             DataType = CellDataType.Boolean;
             Value = value != null ? GetStringValue(value.Value) : string.Empty;
