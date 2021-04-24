@@ -19,7 +19,7 @@ namespace SpreadCheetah.Helpers
         };
 
         // <c><f>
-        private static ReadOnlySpan<byte> BeginNumberFormulaCell => new[]
+        public static ReadOnlySpan<byte> BeginNumberFormulaCell => new[]
         {
             (byte)'<', (byte)'c', (byte)'>', (byte)'<', (byte)'f', (byte)'>'
         };

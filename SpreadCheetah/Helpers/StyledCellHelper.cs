@@ -27,7 +27,7 @@ namespace SpreadCheetah.Helpers
         };
 
         // "><v>
-        private static ReadOnlySpan<byte> EndStyleBeginValue => new[]
+        public static ReadOnlySpan<byte> EndStyleBeginValue => new[]
         {
             (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
         };
