@@ -20,7 +20,7 @@ namespace SpreadCheetah.Helpers
         };
 
         // <c t="inlineStr" s="
-        private static ReadOnlySpan<byte> BeginStyledStringCell => new[]
+        public static ReadOnlySpan<byte> BeginStyledStringCell => new[]
         {
             (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'i', (byte)'n', (byte)'l', (byte)'i',
             (byte)'n', (byte)'e', (byte)'S', (byte)'t', (byte)'r', (byte)'"', (byte)' ', (byte)'s', (byte)'=', (byte)'"'
@@ -54,9 +54,16 @@ namespace SpreadCheetah.Helpers
         };
 
         // "><is><t>
-        private static ReadOnlySpan<byte> EndStyleBeginInlineString => new[]
+        public static ReadOnlySpan<byte> EndStyleBeginInlineString => new[]
         {
             (byte)'"', (byte)'>', (byte)'<', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'t', (byte)'>'
+        };
+
+        // "><is><t></t></is></c>
+        public static ReadOnlySpan<byte> EndStyleNullStringValue => new[]
+        {
+            (byte)'"', (byte)'>', (byte)'<', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'t', (byte)'>',
+            (byte)'<', (byte)'/', (byte)'t', (byte)'>', (byte)'<', (byte)'/', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
 
         private static readonly int MaxCellElementLength =

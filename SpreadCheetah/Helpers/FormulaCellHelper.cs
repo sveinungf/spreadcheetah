@@ -32,7 +32,7 @@ namespace SpreadCheetah.Helpers
         };
 
         // <c t="str"><f>
-        private static ReadOnlySpan<byte> BeginStringFormulaCell => new[]
+        public static ReadOnlySpan<byte> BeginStringFormulaCell => new[]
         {
             (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'s',
             (byte)'t', (byte)'r', (byte)'"', (byte)'>', (byte)'<', (byte)'f', (byte)'>'
