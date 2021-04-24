@@ -32,6 +32,27 @@ namespace SpreadCheetah.Helpers
             (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
         };
 
+        // "><v></v></c>
+        public static ReadOnlySpan<byte> EndStyleNullValue => new[]
+        {
+            (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>',
+            (byte)'<', (byte)'/', (byte)'v', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
+        };
+
+        // "><v>0</v></c>
+        public static ReadOnlySpan<byte> EndStyleFalseBooleanValue => new[]
+        {
+            (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>', (byte)'0',
+            (byte)'<', (byte)'/', (byte)'v', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
+        };
+
+        // "><v>1</v></c>
+        public static ReadOnlySpan<byte> EndStyleTrueBooleanValue => new[]
+        {
+            (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>', (byte)'1',
+            (byte)'<', (byte)'/', (byte)'v', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
+        };
+
         // "><is><t>
         private static ReadOnlySpan<byte> EndStyleBeginInlineString => new[]
         {

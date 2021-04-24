@@ -13,7 +13,7 @@ namespace SpreadCheetah.Helpers
         };
 
         // "><f>
-        private static ReadOnlySpan<byte> EndStyleBeginFormula => new[]
+        public static ReadOnlySpan<byte> EndStyleBeginFormula => new[]
         {
             (byte)'"', (byte)'>', (byte)'<', (byte)'f', (byte)'>'
         };
@@ -25,7 +25,7 @@ namespace SpreadCheetah.Helpers
         };
 
         // <c t="b"><f>
-        private static ReadOnlySpan<byte> BeginBooleanFormulaCell => new[]
+        public static ReadOnlySpan<byte> BeginBooleanFormulaCell => new[]
         {
             (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'b',
             (byte)'"', (byte)'>', (byte)'<', (byte)'f', (byte)'>'
@@ -54,6 +54,20 @@ namespace SpreadCheetah.Helpers
         public static ReadOnlySpan<byte> EndFormulaEndCell => new[]
         {
             (byte)'<', (byte)'/', (byte)'f', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
+        };
+
+        // </f><v>0</v></c>
+        public static ReadOnlySpan<byte> EndFormulaFalseBooleanValue => new[]
+        {
+            (byte)'<', (byte)'/', (byte)'f', (byte)'>', (byte)'<', (byte)'v', (byte)'>', (byte)'0',
+            (byte)'<', (byte)'/', (byte)'v', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
+        };
+
+        // </f><v>1</v></c>
+        public static ReadOnlySpan<byte> EndFormulaTrueBooleanValue => new[]
+        {
+            (byte)'<', (byte)'/', (byte)'f', (byte)'>', (byte)'<', (byte)'v', (byte)'>', (byte)'1',
+            (byte)'<', (byte)'/', (byte)'v', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
 
         private static readonly int MaxCellElementLength =

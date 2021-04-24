@@ -35,6 +35,27 @@ namespace SpreadCheetah.Helpers
             (byte)'<', (byte)'/', (byte)'t', (byte)'>', (byte)'<', (byte)'/', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
 
+        // <c t="b"><v></v></c>
+        public static ReadOnlySpan<byte> NullBooleanCell => new[]
+        {
+            (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'b', (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>',
+            (byte)'<', (byte)'/', (byte)'v', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
+        };
+
+        // <c t="b"><v>0</v></c>
+        public static ReadOnlySpan<byte> FalseBooleanCell => new[]
+        {
+            (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'b', (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>',
+            (byte)'0', (byte)'<', (byte)'/', (byte)'v', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
+        };
+
+        // <c t="b"><v>1</v></c>
+        public static ReadOnlySpan<byte> TrueBooleanCell => new[]
+        {
+            (byte)'<', (byte)'c', (byte)' ', (byte)'t', (byte)'=', (byte)'"', (byte)'b', (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>',
+            (byte)'1', (byte)'<', (byte)'/', (byte)'v', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
+        };
+
         private static readonly int MaxCellElementLength = BeginStringCell.Length + EndStringCell.Length;
 
         public static bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer, out int bytesNeeded)
