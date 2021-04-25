@@ -29,7 +29,7 @@ namespace SpreadCheetah.CellValueWriters.String
             if (cellEnd.Length >= bytes.Length)
                 return false;
 
-            buffer.Index += SpanHelper.GetBytes(cellEnd, bytes);
+            buffer.Advance(SpanHelper.GetBytes(cellEnd, bytes));
             return true;
         }
 
@@ -42,7 +42,7 @@ namespace SpreadCheetah.CellValueWriters.String
             if (cellEnd.Length > buffer.GetRemainingBuffer())
                 return false;
 
-            buffer.Index += SpanHelper.GetBytes(cellEnd, buffer.GetNextSpan());
+            buffer.Advance(SpanHelper.GetBytes(cellEnd, buffer.GetNextSpan()));
             return true;
         }
 
@@ -50,7 +50,7 @@ namespace SpreadCheetah.CellValueWriters.String
         {
             if (styleId is null)
             {
-                buffer.Index += SpanHelper.GetBytes(FormulaCellHelper.BeginStringFormulaCell, buffer.GetNextSpan());
+                buffer.Advance(SpanHelper.GetBytes(FormulaCellHelper.BeginStringFormulaCell, buffer.GetNextSpan()));
                 return true;
             }
 
@@ -58,13 +58,13 @@ namespace SpreadCheetah.CellValueWriters.String
             var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledStringCell, bytes);
             bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
             bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndStyleBeginFormula, bytes.Slice(bytesWritten));
-            buffer.Index += bytesWritten;
+            buffer.Advance(bytesWritten);
             return true;
         }
 
         public override bool WriteStartElement(SpreadsheetBuffer buffer)
         {
-            buffer.Index += SpanHelper.GetBytes(DataCellHelper.BeginStringCell, buffer.GetNextSpan());
+            buffer.Advance(SpanHelper.GetBytes(DataCellHelper.BeginStringCell, buffer.GetNextSpan()));
             return true;
         }
 
@@ -74,7 +74,7 @@ namespace SpreadCheetah.CellValueWriters.String
             var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledStringCell, bytes);
             bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
             bytesWritten += SpanHelper.GetBytes(StyledCellHelper.EndStyleBeginInlineString, bytes.Slice(bytesWritten));
-            buffer.Index += bytesWritten;
+            buffer.Advance(bytesWritten);
             return true;
         }
     }

@@ -7,7 +7,7 @@ namespace SpreadCheetah.CellValueWriters.String
     {
         public override bool GetBytes(in DataCell cell, SpreadsheetBuffer buffer)
         {
-            buffer.Index += SpanHelper.GetBytes(DataCellHelper.NullStringCell, buffer.GetNextSpan());
+            buffer.Advance(SpanHelper.GetBytes(DataCellHelper.NullStringCell, buffer.GetNextSpan()));
             return true;
         }
 
@@ -17,7 +17,7 @@ namespace SpreadCheetah.CellValueWriters.String
             var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledStringCell, bytes);
             bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
             bytesWritten += SpanHelper.GetBytes(StyledCellHelper.EndStyleNullStringValue, bytes.Slice(bytesWritten));
-            buffer.Index += bytesWritten;
+            buffer.Advance(bytesWritten);
             return true;
         }
 
@@ -39,7 +39,7 @@ namespace SpreadCheetah.CellValueWriters.String
 
             bytesWritten += Utf8Helper.GetBytes(formulaText, bytes.Slice(bytesWritten), false);
             bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndFormulaEndCell, bytes.Slice(bytesWritten));
-            buffer.Index += bytesWritten;
+            buffer.Advance(bytesWritten);
             return true;
         }
 

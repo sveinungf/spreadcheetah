@@ -40,7 +40,7 @@ namespace SpreadCheetah.MetadataXml
             await using (stream.ConfigureAwait(false))
 #endif
             {
-                buffer.Index += Utf8Helper.GetBytes(Header, buffer.GetNextSpan());
+                buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetNextSpan()));
 
                 for (var i = 0; i < worksheetNames.Count; ++i)
                 {
@@ -51,7 +51,7 @@ namespace SpreadCheetah.MetadataXml
                     if (sheetElementLength > buffer.GetRemainingBuffer())
                         await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-                    buffer.Index += GetSheetElementBytes(name, sheetId, buffer.GetNextSpan());
+                    buffer.Advance(GetSheetElementBytes(name, sheetId, buffer.GetNextSpan()));
                 }
 
                 await buffer.WriteAsciiStringAsync(Footer, stream, token).ConfigureAwait(false);

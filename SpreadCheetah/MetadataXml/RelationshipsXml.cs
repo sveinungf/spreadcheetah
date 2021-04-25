@@ -26,7 +26,7 @@ namespace SpreadCheetah.MetadataXml
             await using (stream.ConfigureAwait(false))
 #endif
             {
-                buffer.Index = Utf8Helper.GetBytes(Content, buffer.GetNextSpan());
+                buffer.Advance(Utf8Helper.GetBytes(Content, buffer.GetNextSpan()));
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
             }
         }

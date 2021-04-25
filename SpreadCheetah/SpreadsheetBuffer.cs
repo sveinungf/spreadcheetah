@@ -9,16 +9,16 @@ namespace SpreadCheetah
     internal sealed class SpreadsheetBuffer
     {
         private readonly byte[] _buffer;
-
-        public int Index { get; set; }
+        private int _index;
 
         public SpreadsheetBuffer(byte[] buffer)
         {
             _buffer = buffer;
         }
 
-        public Span<byte> GetNextSpan() => _buffer.AsSpan(Index);
-        public int GetRemainingBuffer() => _buffer.Length - Index;
+        public Span<byte> GetNextSpan() => _buffer.AsSpan(_index);
+        public int GetRemainingBuffer() => _buffer.Length - _index;
+        public void Advance(int bytes) => _index += bytes;
 
         public async ValueTask WriteAsciiStringAsync(string value, Stream stream, CancellationToken token)
         {
@@ -26,13 +26,13 @@ namespace SpreadCheetah
             if (value.Length > GetRemainingBuffer())
                 await FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-            Index += Utf8Helper.GetBytes(value, GetNextSpan());
+            _index += Utf8Helper.GetBytes(value, GetNextSpan());
         }
 
         public ValueTask FlushToStreamAsync(Stream stream, CancellationToken token)
         {
-            var index = Index;
-            Index = 0;
+            var index = _index;
+            _index = 0;
 #if NETSTANDARD2_0
             return new ValueTask(stream.WriteAsync(_buffer, 0, index, token));
 #else

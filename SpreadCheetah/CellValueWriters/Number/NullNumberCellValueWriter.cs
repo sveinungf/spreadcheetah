@@ -24,7 +24,7 @@ namespace SpreadCheetah.CellValueWriters.Number
 
         private static bool GetBytes(SpreadsheetBuffer buffer)
         {
-            buffer.Index += SpanHelper.GetBytes(DataCellHelper.NullNumberCell, buffer.GetNextSpan());
+            buffer.Advance(SpanHelper.GetBytes(DataCellHelper.NullNumberCell, buffer.GetNextSpan()));
             return true;
         }
 
@@ -34,7 +34,7 @@ namespace SpreadCheetah.CellValueWriters.Number
             var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledNumberCell, bytes);
             bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
             bytesWritten += SpanHelper.GetBytes(StyledCellHelper.EndStyleNullValue, bytes.Slice(bytesWritten));
-            buffer.Index += bytesWritten;
+            buffer.Advance(bytesWritten);
             return true;
         }
 
@@ -56,7 +56,7 @@ namespace SpreadCheetah.CellValueWriters.Number
 
             bytesWritten += Utf8Helper.GetBytes(formulaText, bytes.Slice(bytesWritten), false);
             bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndFormulaEndCell, bytes.Slice(bytesWritten));
-            buffer.Index += bytesWritten;
+            buffer.Advance(bytesWritten);
             return true;
         }
 
@@ -98,7 +98,7 @@ namespace SpreadCheetah.CellValueWriters.Number
             if (cellEnd.Length > buffer.GetRemainingBuffer())
                 return false;
 
-            buffer.Index += SpanHelper.GetBytes(cellEnd, buffer.GetNextSpan());
+            buffer.Advance(SpanHelper.GetBytes(cellEnd, buffer.GetNextSpan()));
             return true;
         }
 

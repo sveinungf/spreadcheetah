@@ -25,7 +25,7 @@ namespace SpreadCheetah.CellWriters
         public bool TryAddRow(IList<T> cells, int rowIndex, out int currentListIndex)
         {
             // Assuming previous actions on the worksheet ensured space in the buffer for row start
-            Buffer.Index += GetRowStartBytes(rowIndex, Buffer.GetNextSpan());
+            Buffer.Advance(GetRowStartBytes(rowIndex, Buffer.GetNextSpan()));
 
             for (currentListIndex = 0; currentListIndex < cells.Count; ++currentListIndex)
             {
@@ -38,7 +38,7 @@ namespace SpreadCheetah.CellWriters
             if (CellWriterHelper.RowEnd.Length + CellWriterHelper.RowStartMaxByteCount > Buffer.GetRemainingBuffer())
                 return false;
 
-            Buffer.Index += SpanHelper.GetBytes(CellWriterHelper.RowEnd, Buffer.GetNextSpan());
+            Buffer.Advance(SpanHelper.GetBytes(CellWriterHelper.RowEnd, Buffer.GetNextSpan()));
             return true;
         }
 
@@ -79,7 +79,7 @@ namespace SpreadCheetah.CellWriters
             if (CellWriterHelper.RowEnd.Length + CellWriterHelper.RowStartMaxByteCount > Buffer.GetRemainingBuffer())
                 await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-            Buffer.Index += SpanHelper.GetBytes(CellWriterHelper.RowEnd, Buffer.GetNextSpan());
+            Buffer.Advance(SpanHelper.GetBytes(CellWriterHelper.RowEnd, Buffer.GetNextSpan()));
         }
 
         private async ValueTask WriteCellPieceByPieceAsync(T cell, Stream stream, CancellationToken token)
@@ -110,7 +110,7 @@ namespace SpreadCheetah.CellWriters
             var remainingLength = cellValue.Length - cellValueIndex;
             var lastIteration = remainingLength <= maxCharCount;
             var length = lastIteration ? remainingLength : maxCharCount;
-            Buffer.Index += Utf8Helper.GetBytes(cellValue.AsSpan(cellValueIndex, length), Buffer.GetNextSpan());
+            Buffer.Advance(Utf8Helper.GetBytes(cellValue.AsSpan(cellValueIndex, length), Buffer.GetNextSpan()));
             cellValueIndex += length;
             return lastIteration;
         }

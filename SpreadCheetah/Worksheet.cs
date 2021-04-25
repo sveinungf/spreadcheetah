@@ -41,14 +41,14 @@ namespace SpreadCheetah
 
         public async ValueTask WriteHeadAsync(WorksheetOptions? options, CancellationToken token)
         {
-            _buffer.Index += Utf8Helper.GetBytes(SheetHeader, _buffer.GetNextSpan());
+            _buffer.Advance(Utf8Helper.GetBytes(SheetHeader, _buffer.GetNextSpan()));
             if (options == null)
             {
-                _buffer.Index += Utf8Helper.GetBytes(SheetDataBegin, _buffer.GetNextSpan());
+                _buffer.Advance(Utf8Helper.GetBytes(SheetDataBegin, _buffer.GetNextSpan()));
                 return;
             }
 
-            _buffer.Index += Utf8Helper.GetBytes(ColsBegin, _buffer.GetNextSpan());
+            _buffer.Advance(Utf8Helper.GetBytes(ColsBegin, _buffer.GetNextSpan()));
 
             var sb = new StringBuilder();
             foreach (var keyValuePair in options.ColumnOptions)

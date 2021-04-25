@@ -11,7 +11,7 @@ namespace SpreadCheetah.CellValueWriters.String
             var bytesWritten = SpanHelper.GetBytes(DataCellHelper.BeginStringCell, bytes);
             bytesWritten += Utf8Helper.GetBytes(cell.StringValue!, bytes.Slice(bytesWritten), false);
             bytesWritten += SpanHelper.GetBytes(DataCellHelper.EndStringCell, bytes.Slice(bytesWritten));
-            buffer.Index += bytesWritten;
+            buffer.Advance(bytesWritten);
             return true;
         }
 
@@ -23,7 +23,7 @@ namespace SpreadCheetah.CellValueWriters.String
             bytesWritten += SpanHelper.GetBytes(StyledCellHelper.EndStyleBeginInlineString, bytes.Slice(bytesWritten));
             bytesWritten += Utf8Helper.GetBytes(cell.StringValue!, bytes.Slice(bytesWritten), false);
             bytesWritten += SpanHelper.GetBytes(DataCellHelper.EndStringCell, bytes.Slice(bytesWritten));
-            buffer.Index += bytesWritten;
+            buffer.Advance(bytesWritten);
             return true;
         }
 
@@ -47,7 +47,7 @@ namespace SpreadCheetah.CellValueWriters.String
             bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndFormulaBeginCachedValue, bytes.Slice(bytesWritten));
             bytesWritten += Utf8Helper.GetBytes(cachedValue.StringValue!, bytes.Slice(bytesWritten), false);
             bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndCachedValueEndCell, bytes.Slice(bytesWritten));
-            buffer.Index += bytesWritten;
+            buffer.Advance(bytesWritten);
             return true;
         }
 

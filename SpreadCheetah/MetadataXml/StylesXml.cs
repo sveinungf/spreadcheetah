@@ -65,7 +65,7 @@ namespace SpreadCheetah.MetadataXml
             List<Style> styles,
             CancellationToken token)
         {
-            buffer.Index += Utf8Helper.GetBytes(Header, buffer.GetNextSpan());
+            buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetNextSpan()));
 
             var fontLookup = await WriteFontsAsync(stream, buffer, styles, token).ConfigureAwait(false);
             var fillLookup = await WriteFillsAsync(stream, buffer, styles, token).ConfigureAwait(false);

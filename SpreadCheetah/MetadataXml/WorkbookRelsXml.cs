@@ -39,7 +39,7 @@ namespace SpreadCheetah.MetadataXml
             await using (stream.ConfigureAwait(false))
 #endif
             {
-                buffer.Index = Utf8Helper.GetBytes(Header, buffer.GetNextSpan());
+                buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetNextSpan()));
 
                 for (var i = 0; i < worksheetPaths.Count; ++i)
                 {
@@ -50,7 +50,7 @@ namespace SpreadCheetah.MetadataXml
                     if (sheetElementLength > buffer.GetRemainingBuffer())
                         await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-                    buffer.Index += GetSheetElementBytes(path, sheetId, buffer.GetNextSpan());
+                    buffer.Advance(GetSheetElementBytes(path, sheetId, buffer.GetNextSpan()));
                 }
 
                 var bufferNeeded = Footer.Length + (hasStylesXml ? MaxStylesXmlElementByteCount : 0);
@@ -58,9 +58,9 @@ namespace SpreadCheetah.MetadataXml
                     await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
                 if (hasStylesXml)
-                    buffer.Index += GetStylesXmlElementBytes(worksheetPaths.Count + 1, buffer.GetNextSpan());
+                    buffer.Advance(GetStylesXmlElementBytes(worksheetPaths.Count + 1, buffer.GetNextSpan()));
 
-                buffer.Index += Utf8Helper.GetBytes(Footer, buffer.GetNextSpan());
+                buffer.Advance(Utf8Helper.GetBytes(Footer, buffer.GetNextSpan()));
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
             }
         }

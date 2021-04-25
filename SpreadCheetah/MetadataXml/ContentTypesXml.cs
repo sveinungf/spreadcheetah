@@ -39,7 +39,7 @@ namespace SpreadCheetah.MetadataXml
             await using (stream.ConfigureAwait(false))
 #endif
             {
-                buffer.Index = Utf8Helper.GetBytes(Header, buffer.GetNextSpan());
+                buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetNextSpan()));
 
                 if (hasStylesXml)
                 {
@@ -54,7 +54,7 @@ namespace SpreadCheetah.MetadataXml
                     if (sheetElementLength > buffer.GetRemainingBuffer())
                         await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-                    buffer.Index += GetSheetElementBytes(path, buffer.GetNextSpan());
+                    buffer.Advance(GetSheetElementBytes(path, buffer.GetNextSpan()));
                 }
 
                 await buffer.WriteAsciiStringAsync(Footer, stream, token).ConfigureAwait(false);

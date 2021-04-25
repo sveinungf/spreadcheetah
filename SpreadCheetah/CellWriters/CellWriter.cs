@@ -58,7 +58,7 @@ namespace SpreadCheetah.CellWriters
             {
                 var separator = FormulaCellHelper.EndFormulaBeginCachedValue;
                 if (separator.Length > Buffer.GetRemainingBuffer()) return false;
-                Buffer.Index += SpanHelper.GetBytes(separator, Buffer.GetNextSpan());
+                Buffer.Advance(SpanHelper.GetBytes(separator, Buffer.GetNextSpan()));
                 cellValueIndex = cachedValueStartIndex;
             }
 
