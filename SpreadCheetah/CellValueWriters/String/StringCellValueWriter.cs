@@ -38,7 +38,7 @@ namespace SpreadCheetah.CellValueWriters.String
             }
             else
             {
-                bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledStringCell, bytes);
+                bytesWritten = SpanHelper.GetBytes(FormulaCellHelper.BeginStyledStringFormulaCell, bytes);
                 bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
                 bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndStyleBeginFormula, bytes.Slice(bytesWritten));
             }

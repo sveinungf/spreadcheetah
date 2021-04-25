@@ -9,7 +9,7 @@ namespace SpreadCheetah.CellValueWriters.Number
 
         protected override int GetValueBytes(in DataCell cell, Span<byte> destination)
         {
-            Utf8Formatter.TryFormat(cell.CellValue.IntValue, destination, out var bytesWritten);
+            Utf8Formatter.TryFormat(cell.NumberValue.IntValue, destination, out var bytesWritten);
             return bytesWritten;
         }
     }

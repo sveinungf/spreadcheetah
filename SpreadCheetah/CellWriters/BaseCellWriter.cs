@@ -17,8 +17,8 @@ namespace SpreadCheetah.CellWriters
         }
 
         protected abstract bool TryWriteCell(in T cell, out int bytesNeeded);
-        protected abstract int GetBytes(in T cell, bool assertSize);
-        protected abstract int GetStartElementBytes(in T cell);
+        protected abstract bool GetBytes(in T cell, bool assertSize);
+        protected abstract bool WriteStartElement(in T cell);
         protected abstract bool TryWriteEndElement(in T cell);
         protected abstract bool FinishWritingCellValue(in T cell, ref int cellValueIndex);
 
@@ -66,9 +66,9 @@ namespace SpreadCheetah.CellWriters
                 await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
                 // Write cell if it fits in the buffer
-                if (bytesNeeded < Buffer.GetRemainingBuffer())
+                if (bytesNeeded <= Buffer.GetRemainingBuffer())
                 {
-                    Buffer.Index += GetBytes(cell, false);
+                    GetBytes(cell, false);
                     continue;
                 }
 
@@ -85,7 +85,7 @@ namespace SpreadCheetah.CellWriters
         private async ValueTask WriteCellPieceByPieceAsync(T cell, Stream stream, CancellationToken token)
         {
             // Write start element
-            Buffer.Index += GetStartElementBytes(cell);
+            WriteStartElement(cell);
 
             // Write as much as possible from cell value
             var cellValueIndex = 0;

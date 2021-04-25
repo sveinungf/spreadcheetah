@@ -16,7 +16,7 @@ namespace SpreadCheetah.CellValueWriters.String
             DataCellHelper.EndStringCell.Length;
 
         protected static readonly int FormulaCellElementLength =
-            StyledCellHelper.BeginStyledStringCell.Length +
+            FormulaCellHelper.BeginStyledStringFormulaCell.Length +
             SpreadsheetConstants.StyleIdMaxDigits +
             FormulaCellHelper.EndStyleBeginFormula.Length +
             FormulaCellHelper.EndFormulaBeginCachedValue.Length +

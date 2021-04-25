@@ -1,5 +1,3 @@
-using SpreadCheetah.Helpers;
-
 namespace SpreadCheetah.CellWriters
 {
     internal sealed class DataCellWriter : BaseCellWriter<DataCell>
@@ -10,27 +8,27 @@ namespace SpreadCheetah.CellWriters
 
         protected override bool TryWriteCell(in DataCell cell, out int bytesNeeded)
         {
-            return DataCellHelper.TryWriteCell(cell, Buffer, out bytesNeeded);
+            return cell.Writer.TryWriteCell(cell, Buffer, out bytesNeeded);
         }
 
-        protected override int GetBytes(in DataCell cell, bool assertSize)
+        protected override bool GetBytes(in DataCell cell, bool assertSize)
         {
-            return DataCellHelper.GetBytes(cell, Buffer.GetNextSpan(), assertSize);
+            return cell.Writer.GetBytes(cell, Buffer);
         }
 
-        protected override int GetStartElementBytes(in DataCell cell)
+        protected override bool WriteStartElement(in DataCell cell)
         {
-            return DataCellHelper.GetStartElementBytes(cell.DataType, Buffer.GetNextSpan());
+            return cell.Writer.WriteStartElement(cell, Buffer);
         }
 
         protected override bool TryWriteEndElement(in DataCell cell)
         {
-            return DataCellHelper.TryWriteEndElement(cell, Buffer);
+            return cell.Writer.TryWriteEndElement(cell, Buffer);
         }
 
         protected override bool FinishWritingCellValue(in DataCell cell, ref int cellValueIndex)
         {
-            return FinishWritingCellValue(cell.Value, ref cellValueIndex);
+            return FinishWritingCellValue(cell.StringValue!, ref cellValueIndex);
         }
     }
 }

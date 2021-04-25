@@ -1,5 +1,5 @@
+using SpreadCheetah.CellValueWriters;
 using System;
-using System.Globalization;
 using System.Net;
 
 namespace SpreadCheetah
@@ -9,20 +9,11 @@ namespace SpreadCheetah
     /// </summary>
     public readonly struct DataCell : IEquatable<DataCell>
     {
-        internal CellValue CellValue { get; } // TODO: Rename to Value when the existing Value field is replaced
+        internal CellValue NumberValue { get; }
 
         internal string? StringValue { get; }
 
-        /// <summary>
-        /// The cell's Open XML data type.
-        /// </summary>
-        public CellDataType DataType { get; }
-
-        /// <summary>
-        /// The XML encoded value for the cell. Note that the value can differ from the original value
-        /// passed to the constructor due to XML encoding or change in number precision.
-        /// </summary>
-        public string Value { get; }
+        internal CellValueWriter Writer { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataCell"/> struct with a text value.
@@ -30,8 +21,8 @@ namespace SpreadCheetah
         /// </summary>
         public DataCell(string? value) : this()
         {
-            DataType = CellDataType.InlineString;
-            Value = value != null ? WebUtility.HtmlEncode(value) : string.Empty;
+            StringValue = value != null ? WebUtility.HtmlEncode(value) : string.Empty;
+            Writer = CellValueWriter.String;
         }
 
         /// <summary>
@@ -39,8 +30,8 @@ namespace SpreadCheetah
         /// </summary>
         public DataCell(int value) : this()
         {
-            DataType = CellDataType.Number;
-            Value = value.ToString(CultureInfo.InvariantCulture);
+            NumberValue = new CellValue(value);
+            Writer = CellValueWriter.Integer;
         }
 
         /// <summary>
@@ -49,8 +40,8 @@ namespace SpreadCheetah
         /// </summary>
         public DataCell(int? value) : this()
         {
-            DataType = CellDataType.Number;
-            Value = value?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+            NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
+            Writer = value is null ? CellValueWriter.NullNumber : CellValueWriter.Integer;
         }
 
         /// <summary>
@@ -75,8 +66,8 @@ namespace SpreadCheetah
         /// </summary>
         public DataCell(float value) : this()
         {
-            DataType = CellDataType.Number;
-            Value = value.ToString("G7", CultureInfo.InvariantCulture);
+            NumberValue = new CellValue(value);
+            Writer = CellValueWriter.Float;
         }
 
         /// <summary>
@@ -85,8 +76,8 @@ namespace SpreadCheetah
         /// </summary>
         public DataCell(float? value) : this()
         {
-            DataType = CellDataType.Number;
-            Value = value?.ToString("G7", CultureInfo.InvariantCulture) ?? string.Empty;
+            NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
+            Writer = value is null ? CellValueWriter.NullNumber : CellValueWriter.Float;
         }
 
         /// <summary>
@@ -95,8 +86,8 @@ namespace SpreadCheetah
         /// </summary>
         public DataCell(double value) : this()
         {
-            DataType = CellDataType.Number;
-            Value = value.ToString("G15", CultureInfo.InvariantCulture);
+            NumberValue = new CellValue(value);
+            Writer = CellValueWriter.Double;
         }
 
         /// <summary>
@@ -106,8 +97,8 @@ namespace SpreadCheetah
         /// </summary>
         public DataCell(double? value) : this()
         {
-            DataType = CellDataType.Number;
-            Value = value?.ToString("G15", CultureInfo.InvariantCulture) ?? string.Empty;
+            NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
+            Writer = value is null ? CellValueWriter.NullNumber : CellValueWriter.Double;
         }
 
         /// <summary>
@@ -123,7 +114,7 @@ namespace SpreadCheetah
         /// If <c>value</c> is <c>null</c>, the cell will be empty.
         /// Note that Open XML limits the precision to 15 significant digits for numbers. This could potentially lead to a loss of precision.
         /// </summary>
-        public DataCell(decimal? value) : this(value != null ? decimal.ToDouble(value.Value) : null as double?)
+        public DataCell(decimal? value) : this(value != null ? decimal.ToDouble(value.Value) : null)
         {
         }
 
@@ -132,8 +123,7 @@ namespace SpreadCheetah
         /// </summary>
         public DataCell(bool value) : this()
         {
-            DataType = CellDataType.Boolean;
-            Value = GetStringValue(value);
+            Writer = GetBooleanWriter(value);
         }
 
         /// <summary>
@@ -142,20 +132,19 @@ namespace SpreadCheetah
         /// </summary>
         public DataCell(bool? value) : this()
         {
-            DataType = CellDataType.Boolean;
-            Value = value != null ? GetStringValue(value.Value) : string.Empty;
+            Writer = value is null ? CellValueWriter.NullBoolean : GetBooleanWriter(value.Value);
         }
 
-        private static string GetStringValue(bool value) => value ? "1" : "0";
+        private static CellValueWriter GetBooleanWriter(bool value) => value ? CellValueWriter.TrueBoolean : CellValueWriter.FalseBoolean;
 
         /// <inheritdoc/>
-        public bool Equals(DataCell other) => DataType == other.DataType && string.Equals(Value, other.Value, StringComparison.Ordinal);
+        public bool Equals(DataCell other) => Writer == other.Writer;
 
         /// <inheritdoc/>
         public override bool Equals(object? obj) => obj is DataCell cell && Equals(cell);
 
         /// <inheritdoc/>
-        public override int GetHashCode() => HashCode.Combine(DataType, Value);
+        public override int GetHashCode() => HashCode.Combine(Writer);
 
         /// <summary>Determines whether two instances have the same value.</summary>
         public static bool operator ==(DataCell left, DataCell right) => left.Equals(right);

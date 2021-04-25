@@ -1,5 +1,3 @@
-using SpreadCheetah.Helpers;
-
 namespace SpreadCheetah.CellWriters
 {
     internal sealed class StyledCellWriter : BaseCellWriter<StyledCell>
@@ -11,32 +9,32 @@ namespace SpreadCheetah.CellWriters
         protected override bool TryWriteCell(in StyledCell cell, out int bytesNeeded)
         {
             return cell.StyleId is null
-                ? DataCellHelper.TryWriteCell(cell.DataCell, Buffer, out bytesNeeded)
-                : StyledCellHelper.TryWriteCell(cell.DataCell, cell.StyleId, Buffer, out bytesNeeded);
+                ? cell.DataCell.Writer.TryWriteCell(cell.DataCell, Buffer, out bytesNeeded)
+                : cell.DataCell.Writer.TryWriteCell(cell.DataCell, cell.StyleId, Buffer, out bytesNeeded);
         }
 
-        protected override int GetBytes(in StyledCell cell, bool assertSize)
+        protected override bool GetBytes(in StyledCell cell, bool assertSize)
         {
             return cell.StyleId is null
-                ? DataCellHelper.GetBytes(cell.DataCell, Buffer.GetNextSpan(), assertSize)
-                : StyledCellHelper.GetBytes(cell.DataCell, cell.StyleId, Buffer.GetNextSpan(), assertSize);
+                ? cell.DataCell.Writer.GetBytes(cell.DataCell, Buffer)
+                : cell.DataCell.Writer.GetBytes(cell.DataCell, cell.StyleId, Buffer);
         }
 
-        protected override int GetStartElementBytes(in StyledCell cell)
+        protected override bool WriteStartElement(in StyledCell cell)
         {
             return cell.StyleId is null
-                ? DataCellHelper.GetStartElementBytes(cell.DataCell.DataType, Buffer.GetNextSpan())
-                : StyledCellHelper.GetStartElementBytes(cell.DataCell, cell.StyleId, Buffer.GetNextSpan());
+                ? cell.DataCell.Writer.WriteStartElement(cell.DataCell, Buffer)
+                : cell.DataCell.Writer.WriteStartElement(cell.DataCell, cell.StyleId, Buffer);
         }
 
         protected override bool TryWriteEndElement(in StyledCell cell)
         {
-            return DataCellHelper.TryWriteEndElement(cell.DataCell, Buffer);
+            return cell.DataCell.Writer.TryWriteEndElement(cell.DataCell, Buffer);
         }
 
         protected override bool FinishWritingCellValue(in StyledCell cell, ref int cellValueIndex)
         {
-            return FinishWritingCellValue(cell.DataCell.Value, ref cellValueIndex);
+            return FinishWritingCellValue(cell.DataCell.StringValue!, ref cellValueIndex);
         }
     }
 }

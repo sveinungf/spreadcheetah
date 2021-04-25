@@ -1,4 +1,4 @@
 using BenchmarkDotNet.Running;
 using SpreadCheetah.Benchmark.Benchmarks;
 
-_ = BenchmarkRunner.Run<StringCells>();
+_ = BenchmarkRunner.Run<MixedDataTypeCells>();
