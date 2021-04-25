@@ -25,8 +25,8 @@ namespace SpreadCheetah.CellWriters
         protected override bool WriteStartElement(in Cell cell) => cell switch
         {
             { Formula: not null } => cell.DataCell.Writer.WriteFormulaStartElement(cell.StyleId, Buffer),
-            { StyleId: not null } => cell.DataCell.Writer.WriteStartElement(cell.DataCell, cell.StyleId, Buffer),
-            _ => cell.DataCell.Writer.WriteStartElement(cell.DataCell, Buffer)
+            { StyleId: not null } => cell.DataCell.Writer.WriteStartElement(cell.StyleId, Buffer),
+            _ => cell.DataCell.Writer.WriteStartElement(Buffer)
         };
 
         protected override bool TryWriteEndElement(in Cell cell)

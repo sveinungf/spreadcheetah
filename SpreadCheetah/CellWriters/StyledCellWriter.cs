@@ -23,13 +23,13 @@ namespace SpreadCheetah.CellWriters
         protected override bool WriteStartElement(in StyledCell cell)
         {
             return cell.StyleId is null
-                ? cell.DataCell.Writer.WriteStartElement(cell.DataCell, Buffer)
-                : cell.DataCell.Writer.WriteStartElement(cell.DataCell, cell.StyleId, Buffer);
+                ? cell.DataCell.Writer.WriteStartElement(Buffer)
+                : cell.DataCell.Writer.WriteStartElement(cell.StyleId, Buffer);
         }
 
         protected override bool TryWriteEndElement(in StyledCell cell)
         {
-            return cell.DataCell.Writer.TryWriteEndElement(cell.DataCell, Buffer);
+            return cell.DataCell.Writer.TryWriteEndElement(Buffer);
         }
 
         protected override bool FinishWritingCellValue(in StyledCell cell, ref int cellValueIndex)

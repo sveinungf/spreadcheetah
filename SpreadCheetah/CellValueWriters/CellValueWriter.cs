@@ -23,10 +23,10 @@ namespace SpreadCheetah.CellValueWriters
         public abstract bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer, out int bytesNeeded);
         public abstract bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer, out int bytesNeeded);
         public abstract bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer, out int bytesNeeded);
-        public abstract bool WriteStartElement(in DataCell cell, SpreadsheetBuffer buffer);
-        public abstract bool WriteStartElement(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer);
+        public abstract bool WriteStartElement(SpreadsheetBuffer buffer);
+        public abstract bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer);
         public abstract bool WriteFormulaStartElement(StyleId? styleId, SpreadsheetBuffer buffer);
-        public abstract bool TryWriteEndElement(in DataCell cell, SpreadsheetBuffer buffer);
+        public abstract bool TryWriteEndElement(SpreadsheetBuffer buffer);
         public abstract bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer);
     }
 }

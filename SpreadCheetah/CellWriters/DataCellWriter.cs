@@ -18,12 +18,12 @@ namespace SpreadCheetah.CellWriters
 
         protected override bool WriteStartElement(in DataCell cell)
         {
-            return cell.Writer.WriteStartElement(cell, Buffer);
+            return cell.Writer.WriteStartElement(Buffer);
         }
 
         protected override bool TryWriteEndElement(in DataCell cell)
         {
-            return cell.Writer.TryWriteEndElement(cell, Buffer);
+            return cell.Writer.TryWriteEndElement(Buffer);
         }
 
         protected override bool FinishWritingCellValue(in DataCell cell, ref int cellValueIndex)

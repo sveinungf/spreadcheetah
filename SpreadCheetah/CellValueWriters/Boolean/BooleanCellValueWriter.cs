@@ -20,10 +20,20 @@ namespace SpreadCheetah.CellValueWriters.Boolean
             FormulaCellHelper.EndStyleBeginFormula.Length +
             FormulaCellHelper.EndFormulaTrueBooleanValue.Length;
 
+        protected abstract ReadOnlySpan<byte> DataCellBytes();
         protected abstract ReadOnlySpan<byte> EndFormulaValueBytes();
         protected abstract ReadOnlySpan<byte> EndStyleValueBytes();
 
-        public override bool GetBytes(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+        public override bool GetBytes(in DataCell cell, SpreadsheetBuffer buffer) => GetBytes(buffer);
+        public override bool GetBytes(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer) => GetBytes(styleId, buffer);
+
+        private bool GetBytes(SpreadsheetBuffer buffer)
+        {
+            buffer.Index += SpanHelper.GetBytes(DataCellBytes(), buffer.GetNextSpan());
+            return true;
+        }
+
+        private bool GetBytes(StyleId styleId, SpreadsheetBuffer buffer)
         {
             var bytes = buffer.GetNextSpan();
             var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledBooleanCell, bytes);
@@ -82,12 +92,12 @@ namespace SpreadCheetah.CellValueWriters.Boolean
             return bytesNeeded <= remaining && GetBytes(formulaText, cachedValue, styleId, buffer);
         }
 
-        public override bool TryWriteEndElement(in DataCell cell, SpreadsheetBuffer buffer) => true;
+        public override bool TryWriteEndElement(SpreadsheetBuffer buffer) => true;
 
         public override bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer)
         {
             if (cell.Formula is null)
-                return TryWriteEndElement(cell.DataCell, buffer);
+                return true;
 
             var cellEnd = EndFormulaValueBytes();
             if (cellEnd.Length > buffer.GetRemainingBuffer())
@@ -113,8 +123,8 @@ namespace SpreadCheetah.CellValueWriters.Boolean
             return true;
         }
 
-        public override bool WriteStartElement(in DataCell cell, SpreadsheetBuffer buffer) => GetBytes(cell, buffer);
+        public override bool WriteStartElement(SpreadsheetBuffer buffer) => GetBytes(buffer);
 
-        public override bool WriteStartElement(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer) => GetBytes(cell, styleId, buffer);
+        public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => GetBytes(styleId, buffer);
     }
 }

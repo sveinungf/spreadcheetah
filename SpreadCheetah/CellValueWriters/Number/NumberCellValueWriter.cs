@@ -100,13 +100,13 @@ namespace SpreadCheetah.CellValueWriters.Number
             return bytesNeeded <= remaining && GetBytes(formulaText, cachedValue, styleId, buffer);
         }
 
-        public override bool WriteStartElement(in DataCell cell, SpreadsheetBuffer buffer)
+        public override bool WriteStartElement(SpreadsheetBuffer buffer)
         {
             buffer.Index += SpanHelper.GetBytes(DataCellHelper.BeginNumberCell, buffer.GetNextSpan());
             return true;
         }
 
-        public override bool WriteStartElement(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+        public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer)
         {
             var bytes = buffer.GetNextSpan();
             var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledNumberCell, bytes);
@@ -137,7 +137,7 @@ namespace SpreadCheetah.CellValueWriters.Number
             return true;
         }
 
-        public override bool TryWriteEndElement(in DataCell cell, SpreadsheetBuffer buffer)
+        public override bool TryWriteEndElement(SpreadsheetBuffer buffer)
         {
             var cellEnd = DataCellHelper.EndDefaultCell;
             var bytes = buffer.GetNextSpan();
@@ -151,7 +151,7 @@ namespace SpreadCheetah.CellValueWriters.Number
         public override bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer)
         {
             if (cell.Formula is null)
-                return TryWriteEndElement(cell.DataCell, buffer);
+                return TryWriteEndElement(buffer);
 
             var cellEnd = FormulaCellHelper.EndCachedValueEndCell;
             if (cellEnd.Length > buffer.GetRemainingBuffer())
