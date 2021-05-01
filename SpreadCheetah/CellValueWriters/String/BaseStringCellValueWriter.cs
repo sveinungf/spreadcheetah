@@ -77,5 +77,8 @@ namespace SpreadCheetah.CellValueWriters.String
             buffer.Advance(bytesWritten);
             return true;
         }
+
+        public override bool Equals(in CellValue value, in CellValue other) => true;
+        public override int GetHashCodeFor(in CellValue value) => 0;
     }
 }

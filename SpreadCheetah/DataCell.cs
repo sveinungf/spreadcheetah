@@ -138,13 +138,15 @@ namespace SpreadCheetah
         private static CellValueWriter GetBooleanWriter(bool value) => value ? CellValueWriter.TrueBoolean : CellValueWriter.FalseBoolean;
 
         /// <inheritdoc/>
-        public bool Equals(DataCell other) => Writer == other.Writer;
+        public bool Equals(DataCell other) => Writer == other.Writer
+            && string.Equals(StringValue, other.StringValue, StringComparison.Ordinal)
+            && Writer.Equals(NumberValue, other.NumberValue);
 
         /// <inheritdoc/>
         public override bool Equals(object? obj) => obj is DataCell cell && Equals(cell);
 
         /// <inheritdoc/>
-        public override int GetHashCode() => HashCode.Combine(Writer);
+        public override int GetHashCode() => HashCode.Combine(StringValue, Writer, Writer.GetHashCodeFor(NumberValue));
 
         /// <summary>Determines whether two instances have the same value.</summary>
         public static bool operator ==(DataCell left, DataCell right) => left.Equals(right);

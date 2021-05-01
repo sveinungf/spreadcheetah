@@ -28,5 +28,7 @@ namespace SpreadCheetah.CellValueWriters
         public abstract bool WriteFormulaStartElement(StyleId? styleId, SpreadsheetBuffer buffer);
         public abstract bool TryWriteEndElement(SpreadsheetBuffer buffer);
         public abstract bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer);
+        public abstract bool Equals(in CellValue value, in CellValue other);
+        public abstract int GetHashCodeFor(in CellValue value);
     }
 }

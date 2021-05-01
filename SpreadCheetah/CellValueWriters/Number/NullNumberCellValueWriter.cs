@@ -110,5 +110,8 @@ namespace SpreadCheetah.CellValueWriters.Number
         public override bool WriteStartElement(SpreadsheetBuffer buffer) => GetBytes(buffer);
 
         public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => GetBytes(styleId, buffer);
+
+        public override bool Equals(in CellValue value, in CellValue other) => true;
+        public override int GetHashCodeFor(in CellValue value) => 0;
     }
 }

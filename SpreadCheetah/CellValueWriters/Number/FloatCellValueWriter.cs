@@ -13,5 +13,8 @@ namespace SpreadCheetah.CellValueWriters.Number
             Utf8Formatter.TryFormat(cell.NumberValue.FloatValue, destination, out var bytesWritten);
             return bytesWritten;
         }
+
+        public override bool Equals(in CellValue value, in CellValue other) => value.FloatValue == other.FloatValue;
+        public override int GetHashCodeFor(in CellValue value) => value.FloatValue.GetHashCode();
     }
 }
