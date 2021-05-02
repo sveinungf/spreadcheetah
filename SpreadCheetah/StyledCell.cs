@@ -6,19 +6,13 @@ namespace SpreadCheetah
 {
     /// <summary>
     /// Represents the value and an optional style for a worksheet cell.
+    /// Style IDs are created with <see cref="Spreadsheet.AddStyle(Style)"/>.
     /// </summary>
     public readonly struct StyledCell : IEquatable<StyledCell>
     {
-        /// <summary>
-        /// Data type and value for the cell.
-        /// </summary>
-        public DataCell DataCell { get; }
+        internal DataCell DataCell { get; }
 
-        /// <summary>
-        /// Identifier for the style used by this cell. It is optional and can be <c>null</c>.
-        /// Style IDs are created with <see cref="Spreadsheet.AddStyle(Style)"/>.
-        /// </summary>
-        public StyleId? StyleId { get; }
+        internal StyleId? StyleId { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StyledCell"/> struct with a text value and an optional style.
