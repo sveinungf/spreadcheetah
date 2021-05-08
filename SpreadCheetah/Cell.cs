@@ -2,6 +2,11 @@ using SpreadCheetah.Styling;
 
 namespace SpreadCheetah
 {
+    /// <summary>
+    /// Represents the content and an optional style for a worksheet cell.
+    /// The content can either be a value, or a formula with an optional cached value.
+    /// Style IDs are created with <see cref="Spreadsheet.AddStyle(Style)"/>.
+    /// </summary>
     public readonly struct Cell
     {
         internal DataCell DataCell { get; }
@@ -16,7 +21,15 @@ namespace SpreadCheetah
         {
         }
 
+        public Cell(int value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
+        {
+        }
+
         public Cell(int? value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
+        {
+        }
+
+        public Cell(long value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
         {
         }
 
@@ -24,7 +37,15 @@ namespace SpreadCheetah
         {
         }
 
+        public Cell(float value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
+        {
+        }
+
         public Cell(float? value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
+        {
+        }
+
+        public Cell(double value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
         {
         }
 
@@ -32,7 +53,15 @@ namespace SpreadCheetah
         {
         }
 
+        public Cell(decimal value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
+        {
+        }
+
         public Cell(decimal? value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
+        {
+        }
+
+        public Cell(bool value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
         {
         }
 
@@ -48,7 +77,51 @@ namespace SpreadCheetah
         {
         }
 
+        public Cell(Formula formula, int cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
+        {
+        }
+
         public Cell(Formula formula, int? cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
+        {
+        }
+
+        public Cell(Formula formula, long cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
+        {
+        }
+
+        public Cell(Formula formula, long? cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
+        {
+        }
+
+        public Cell(Formula formula, float cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
+        {
+        }
+
+        public Cell(Formula formula, float? cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
+        {
+        }
+
+        public Cell(Formula formula, double cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
+        {
+        }
+
+        public Cell(Formula formula, double? cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
+        {
+        }
+
+        public Cell(Formula formula, decimal cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
+        {
+        }
+
+        public Cell(Formula formula, decimal? cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
+        {
+        }
+
+        public Cell(Formula formula, bool cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
+        {
+        }
+
+        public Cell(Formula formula, bool? cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
         {
         }
     }
