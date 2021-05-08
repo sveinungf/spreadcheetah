@@ -1,4 +1,6 @@
 using SpreadCheetah.Styling;
+using System;
+using System.Collections.Generic;
 
 namespace SpreadCheetah
 {
@@ -7,7 +9,7 @@ namespace SpreadCheetah
     /// The content can either be a value, or a formula with an optional cached value.
     /// Style IDs are created with <see cref="Spreadsheet.AddStyle(Style)"/>.
     /// </summary>
-    public readonly struct Cell
+    public readonly struct Cell : IEquatable<Cell>
     {
         internal DataCell DataCell { get; }
 
@@ -124,5 +126,25 @@ namespace SpreadCheetah
         public Cell(Formula formula, bool? cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
         {
         }
+
+        /// <inheritdoc/>
+        public bool Equals(Cell other)
+        {
+            return DataCell.Equals(other.DataCell)
+                && EqualityComparer<Formula?>.Default.Equals(Formula, other.Formula)
+                && EqualityComparer<StyleId?>.Default.Equals(StyleId, other.StyleId);
+        }
+
+        /// <inheritdoc/>
+        public override bool Equals(object? obj) => obj is Cell other && Equals(other);
+
+        /// <inheritdoc/>
+        public override int GetHashCode() => HashCode.Combine(DataCell, Formula, StyleId);
+
+        /// <summary>Determines whether two instances have the same value.</summary>
+        public static bool operator ==(Cell left, Cell right) => left.Equals(right);
+
+        /// <summary>Determines whether two instances have different values.</summary>
+        public static bool operator !=(Cell left, Cell right) => !left.Equals(right);
     }
 }
