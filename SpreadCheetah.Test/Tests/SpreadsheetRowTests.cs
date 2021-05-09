@@ -86,7 +86,8 @@ namespace SpreadCheetah.Test.Tests
             // Arrange
             var value = new string('a', length);
             using var stream = new MemoryStream();
-            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet");
                 var cell = CellFactory.Create(type, value);

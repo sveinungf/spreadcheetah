@@ -40,5 +40,38 @@ namespace SpreadCheetah.Test.Tests
             var actualCell = worksheet.Cell(1, 1);
             Assert.Equal(formulaText, actualCell.FormulaA1);
         }
+
+        [Theory]
+        [InlineData(100)]
+        [InlineData(511)]
+        [InlineData(512)]
+        [InlineData(513)]
+        [InlineData(4100)]
+        [InlineData(8192)]
+        public async Task Spreadsheet_AddRow_CellWithVeryLongFormula(int length)
+        {
+            // Arrange
+            var formulaText = FormulaGenerator.Generate(length);
+            using var stream = new MemoryStream();
+            var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
+            {
+                await spreadsheet.StartWorksheetAsync("Sheet");
+
+                var formula = new Formula(formulaText);
+                var cell = new Cell(formula);
+
+                // Act
+                await spreadsheet.AddRowAsync(cell);
+                await spreadsheet.FinishAsync();
+            }
+
+            // Assert
+            stream.Position = 0;
+            using var workbook = new XLWorkbook(stream);
+            var worksheet = workbook.Worksheets.Single();
+            var actualCell = worksheet.Cell(1, 1);
+            Assert.Equal(formulaText, actualCell.FormulaA1);
+        }
     }
 }
