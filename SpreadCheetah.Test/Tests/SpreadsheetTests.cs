@@ -18,7 +18,6 @@ namespace SpreadCheetah.Test.Tests
         {
             // Arrange
             using var stream = new MemoryStream();
-            var validator = new OpenXmlValidator();
 
             // Act
             await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
@@ -28,9 +27,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
-            using var actual = SpreadsheetDocument.Open(stream, true);
-            Assert.Empty(validator.Validate(actual));
+            SpreadsheetAssert.Valid(stream);
         }
 
         [Theory]
@@ -93,7 +90,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheets = actual.WorkbookPart.Workbook.Sheets.Cast<Sheet>();
             var sheet = Assert.Single(sheets);
@@ -165,7 +162,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheets = actual.WorkbookPart.Workbook.Sheets.Cast<Sheet>().ToList();
             var worksheets = actual.WorkbookPart.WorksheetParts.Select(x => x.Worksheet);
@@ -195,7 +192,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var package = new ExcelPackage(stream);
             var worksheet = package.Workbook.Worksheets.Single();
             var actualWidth = worksheet.Column(1).Width;

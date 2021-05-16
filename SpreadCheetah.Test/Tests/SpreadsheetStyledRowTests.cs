@@ -37,7 +37,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheets.Single();
             var actualCell = worksheet.Cell(1, 1);
@@ -70,7 +70,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheets.Single();
             var actualFirstCell = worksheet.Cell(1, 1);
@@ -106,7 +106,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheets.Single();
             var actualFirstCell = worksheet.Cell(1, 1);
@@ -139,7 +139,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheets.Single();
             var actualCell = worksheet.Cell(1, 1);
@@ -169,7 +169,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheets.Single();
             var actualCell = worksheet.Cell(1, 1);
@@ -205,7 +205,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheets.Single();
             var actualCell = worksheet.Cell(1, 1);
@@ -236,7 +236,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheets.Single();
             var actualCell = worksheet.Cell(1, 1);
@@ -267,7 +267,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheets.Single();
             var actualCell = worksheet.Cell(1, 1);
@@ -303,7 +303,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheets.Single();
             var actualCell = worksheet.Cell(1, 1);
@@ -347,7 +347,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheets.Single();
             var actualFirstCell = worksheet.Cell(1, 1);

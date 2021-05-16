@@ -63,7 +63,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
             var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
@@ -98,7 +98,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
             var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
@@ -131,7 +131,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
             var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
@@ -170,7 +170,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
             var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
@@ -206,7 +206,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
             var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
@@ -247,7 +247,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
             var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
@@ -290,7 +290,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
             var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
@@ -320,7 +320,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
             var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
@@ -346,7 +346,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheets.Single();
             var actualValues = worksheet.Cells(true).Select(x => x.Value).ToList();
@@ -374,7 +374,7 @@ namespace SpreadCheetah.Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
+            SpreadsheetAssert.Valid(stream);
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheets.Single();
             var actualValues = worksheet.Cells(true).Select(x => x.Value).ToList();
