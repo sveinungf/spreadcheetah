@@ -1,12 +1,12 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 
-namespace SpreadCheetah.CellValueWriters.Number
+namespace SpreadCheetah.CellValueWriters
 {
-    internal sealed class NullNumberCellValueWriter : CellValueWriter
+    internal sealed class NullValueWriter : CellValueWriter
     {
         private static readonly int DataCellElementLength =
-            DataCellHelper.NullNumberCell.Length;
+            DataCellHelper.NullCell.Length;
 
         private static readonly int StyledCellElementLength =
             StyledCellHelper.BeginStyledNumberCell.Length +
@@ -24,7 +24,7 @@ namespace SpreadCheetah.CellValueWriters.Number
 
         private static bool GetBytes(SpreadsheetBuffer buffer)
         {
-            buffer.Advance(SpanHelper.GetBytes(DataCellHelper.NullNumberCell, buffer.GetNextSpan()));
+            buffer.Advance(SpanHelper.GetBytes(DataCellHelper.NullCell, buffer.GetNextSpan()));
             return true;
         }
 
@@ -104,7 +104,18 @@ namespace SpreadCheetah.CellValueWriters.Number
 
         public override bool WriteFormulaStartElement(StyleId? styleId, SpreadsheetBuffer buffer)
         {
-            return NumberCellValueWriter.DoWriteFormulaStartElement(styleId, buffer);
+            if (styleId is null)
+            {
+                buffer.Advance(SpanHelper.GetBytes(FormulaCellHelper.BeginNumberFormulaCell, buffer.GetNextSpan()));
+                return true;
+            }
+
+            var bytes = buffer.GetNextSpan();
+            var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledNumberCell, bytes);
+            bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
+            bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndStyleBeginFormula, bytes.Slice(bytesWritten));
+            buffer.Advance(bytesWritten);
+            return true;
         }
 
         public override bool WriteStartElement(SpreadsheetBuffer buffer) => GetBytes(buffer);

@@ -7,9 +7,7 @@ namespace SpreadCheetah.CellValueWriters
 {
     internal abstract class CellValueWriter
     {
-        public static CellValueWriter NullNumber { get; } = new NullNumberCellValueWriter();
-        public static CellValueWriter NullBoolean { get; } = new NullBooleanCellValueWriter();
-        public static CellValueWriter NullString { get; } = new NullStringCellValueWriter();
+        public static CellValueWriter Null { get; } = new NullValueWriter();
         public static CellValueWriter Integer { get; } = new IntegerCellValueWriter();
         public static CellValueWriter Float { get; } = new FloatCellValueWriter();
         public static CellValueWriter Double { get; } = new DoubleCellValueWriter();

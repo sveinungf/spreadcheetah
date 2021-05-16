@@ -3,7 +3,6 @@ using System;
 namespace SpreadCheetah.Helpers
 {
     internal static class StyledCellHelper
-
     {
         // <c s="
         public static ReadOnlySpan<byte> BeginStyledNumberCell => new[]
@@ -31,11 +30,10 @@ namespace SpreadCheetah.Helpers
             (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
         };
 
-        // "><v></v></c>
+        // "/>
         public static ReadOnlySpan<byte> EndStyleNullValue => new[]
         {
-            (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>',
-            (byte)'<', (byte)'/', (byte)'v', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
+            (byte)'"', (byte)'/', (byte)'>'
         };
 
         // "><v>0</v></c>
@@ -56,13 +54,6 @@ namespace SpreadCheetah.Helpers
         public static ReadOnlySpan<byte> EndStyleBeginInlineString => new[]
         {
             (byte)'"', (byte)'>', (byte)'<', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'t', (byte)'>'
-        };
-
-        // "><is><t></t></is></c>
-        public static ReadOnlySpan<byte> EndStyleNullStringValue => new[]
-        {
-            (byte)'"', (byte)'>', (byte)'<', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'t', (byte)'>',
-            (byte)'<', (byte)'/', (byte)'t', (byte)'>', (byte)'<', (byte)'/', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
         };
     }
 }

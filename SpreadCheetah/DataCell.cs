@@ -22,7 +22,7 @@ namespace SpreadCheetah
         public DataCell(string? value) : this()
         {
             StringValue = value != null ? WebUtility.HtmlEncode(value) : string.Empty;
-            Writer = CellValueWriter.String;
+            Writer = value != null ? CellValueWriter.String : CellValueWriter.Null;
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace SpreadCheetah
         public DataCell(int? value) : this()
         {
             NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
-            Writer = value is null ? CellValueWriter.NullNumber : CellValueWriter.Integer;
+            Writer = value is null ? CellValueWriter.Null : CellValueWriter.Integer;
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace SpreadCheetah
         public DataCell(float? value) : this()
         {
             NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
-            Writer = value is null ? CellValueWriter.NullNumber : CellValueWriter.Float;
+            Writer = value is null ? CellValueWriter.Null : CellValueWriter.Float;
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace SpreadCheetah
         public DataCell(double? value) : this()
         {
             NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
-            Writer = value is null ? CellValueWriter.NullNumber : CellValueWriter.Double;
+            Writer = value is null ? CellValueWriter.Null : CellValueWriter.Double;
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace SpreadCheetah
         /// </summary>
         public DataCell(bool? value) : this()
         {
-            Writer = value is null ? CellValueWriter.NullBoolean : GetBooleanWriter(value.Value);
+            Writer = value is null ? CellValueWriter.Null : GetBooleanWriter(value.Value);
         }
 
         private static CellValueWriter GetBooleanWriter(bool value) => value ? CellValueWriter.TrueBoolean : CellValueWriter.FalseBoolean;
