@@ -67,7 +67,8 @@ namespace SpreadCheetah.Test.Tests
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
             var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
-            Assert.Equal(CellValues.InlineString, actualCell.DataType.Value);
+            CellValues? expectedDataType = value is null ? null : CellValues.InlineString;
+            Assert.Equal(expectedDataType, actualCell.DataType?.Value);
             Assert.Equal(value ?? string.Empty, actualCell.InnerText);
         }
 
@@ -324,7 +325,8 @@ namespace SpreadCheetah.Test.Tests
             using var actual = SpreadsheetDocument.Open(stream, true);
             var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
             var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
-            Assert.Equal(CellValues.Boolean, actualCell.GetDataType());
+            var expectedDataType = initialValue is null ? CellValues.Number : CellValues.Boolean;
+            Assert.Equal(expectedDataType, actualCell.GetDataType());
             Assert.Equal(expectedValue, actualCell.InnerText);
         }
 
