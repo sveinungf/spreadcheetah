@@ -1,6 +1,5 @@
 using SpreadCheetah.CellValueWriters.Boolean;
 using SpreadCheetah.CellValueWriters.Number;
-using SpreadCheetah.CellValueWriters.String;
 using SpreadCheetah.Styling;
 
 namespace SpreadCheetah.CellValueWriters
