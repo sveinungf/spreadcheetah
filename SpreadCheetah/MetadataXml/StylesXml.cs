@@ -76,11 +76,14 @@ namespace SpreadCheetah.MetadataXml
             if (styleCount.GetNumberOfDigits() > buffer.GetRemainingBuffer())
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-            // The default style must be the first one (index 0)
-            const string defaultStyle = "\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\"/>";
-            await buffer.WriteAsciiStringAsync(defaultStyle, stream, token).ConfigureAwait(false);
-
             var sb = new StringBuilder();
+            sb.Append(styleCount);
+
+            // The default style must be the first one (index 0)
+            sb.Append("\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\"/>");
+            await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
+            sb.Clear();
+            
             for (var i = 0; i < styles.Count; ++i)
             {
                 var style = styles[i];
