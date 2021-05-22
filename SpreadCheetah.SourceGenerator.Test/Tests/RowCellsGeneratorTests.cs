@@ -43,7 +43,7 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests
             // Assert
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, false);
-            var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
+            var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
             var cells = sheetPart.Worksheet.Descendants<OpenXmlCell>().ToList();
             Assert.Equal(firstName, cells[0].InnerText);
             Assert.Equal(lastName, cells[1].InnerText);
@@ -80,8 +80,8 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests
             // Assert
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, false);
-            var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            Assert.Empty(sheetPart.Worksheet.Descendants<OpenXmlCell>());
+            var sheetPart = actual.WorkbookPart?.WorksheetParts.Single();
+            Assert.Empty(sheetPart?.Worksheet.Descendants<OpenXmlCell>());
         }
 
         [Fact]
@@ -104,7 +104,7 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests
             // Assert
             stream.Position = 0;
             using var actual = SpreadsheetDocument.Open(stream, false);
-            var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
+            var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
             var cells = sheetPart.Worksheet.Descendants<OpenXmlCell>().ToList();
             var actualCell = Assert.Single(cells);
             Assert.Equal(value, actualCell.InnerText);

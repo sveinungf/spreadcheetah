@@ -109,21 +109,21 @@ namespace SpreadCheetah.Benchmark.Benchmarks
         {
             using var xl = SpreadsheetDocument.Create(Stream, SpreadsheetDocumentType.Workbook);
             xl.CompressionOption = CompressionOption.SuperFast;
-            xl.AddWorkbookPart();
-            var wsp = xl.WorkbookPart.AddNewPart<WorksheetPart>();
+            var workbookPart = xl.AddWorkbookPart();
+            var wsp = workbookPart.AddNewPart<WorksheetPart>();
 
             var oxw = OpenXmlWriter.Create(wsp);
             oxw.WriteStartElement(new DocumentFormat.OpenXml.Spreadsheet.Worksheet());
             oxw.WriteStartElement(new SheetData());
 
             var rowObject = new Row();
-            var cellAttributes = new[] { new OpenXmlAttribute("t", null, "inlineStr") };
+            var cellAttributes = new[] { new OpenXmlAttribute("t", "", "inlineStr") };
             var cell = new OpenXmlCell();
             var inlineString = new InlineString();
 
             for (var row = 0; row < NumberOfRows; ++row)
             {
-                var rowAttributes = new[] { new OpenXmlAttribute("r", null, (row + 1).ToString()) };
+                var rowAttributes = new[] { new OpenXmlAttribute("r", "", (row + 1).ToString()) };
                 oxw.WriteStartElement(rowObject, rowAttributes);
                 var rowValues = Values[row];
 
@@ -143,7 +143,7 @@ namespace SpreadCheetah.Benchmark.Benchmarks
             oxw.WriteEndElement();
             oxw.Close();
 
-            oxw = OpenXmlWriter.Create(xl.WorkbookPart);
+            oxw = OpenXmlWriter.Create(workbookPart);
             oxw.WriteStartElement(new Workbook());
             oxw.WriteStartElement(new Sheets());
 
@@ -151,7 +151,7 @@ namespace SpreadCheetah.Benchmark.Benchmarks
             {
                 Name = "Sheet1",
                 SheetId = 1,
-                Id = xl.WorkbookPart.GetIdOfPart(wsp)
+                Id = workbookPart.GetIdOfPart(wsp)
             });
 
             oxw.WriteEndElement();
@@ -172,10 +172,10 @@ namespace SpreadCheetah.Benchmark.Benchmarks
             worksheetPart.Worksheet = new DocumentFormat.OpenXml.Spreadsheet.Worksheet();
             worksheetPart.Worksheet.AppendChild(sheetData);
 
-            var sheets = xl.WorkbookPart.Workbook.AppendChild(new Sheets());
+            var sheets = workbookpart.Workbook.AppendChild(new Sheets());
             var sheet = new Sheet
             {
-                Id = xl.WorkbookPart.GetIdOfPart(worksheetPart),
+                Id = workbookpart.GetIdOfPart(worksheetPart),
                 SheetId = 1,
                 Name = SheetName
             };
