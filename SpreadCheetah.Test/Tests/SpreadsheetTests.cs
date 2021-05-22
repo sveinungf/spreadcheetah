@@ -1,6 +1,5 @@
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using DocumentFormat.OpenXml.Validation;
 using OfficeOpenXml;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
@@ -92,9 +91,9 @@ namespace SpreadCheetah.Test.Tests
             // Assert
             SpreadsheetAssert.Valid(stream);
             using var actual = SpreadsheetDocument.Open(stream, true);
-            var sheets = actual.WorkbookPart.Workbook.Sheets.Cast<Sheet>();
+            var sheets = actual.WorkbookPart?.Workbook.Sheets?.Cast<Sheet>();
             var sheet = Assert.Single(sheets);
-            Assert.Equal(name, sheet?.Name.Value);
+            Assert.Equal(name, sheet.Name?.Value);
         }
 
         [Theory]
@@ -164,7 +163,7 @@ namespace SpreadCheetah.Test.Tests
             // Assert
             SpreadsheetAssert.Valid(stream);
             using var actual = SpreadsheetDocument.Open(stream, true);
-            var sheets = actual.WorkbookPart.Workbook.Sheets.Cast<Sheet>().ToList();
+            var sheets = actual.WorkbookPart!.Workbook.Sheets!.Cast<Sheet>().ToList();
             var worksheets = actual.WorkbookPart.WorksheetParts.Select(x => x.Worksheet);
             var cells = worksheets.Select(x => x.Descendants<DocumentFormat.OpenXml.Spreadsheet.Cell>().Single());
             Assert.Equal(count, sheets.Count);
