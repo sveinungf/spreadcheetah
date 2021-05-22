@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SpreadCheetah.Benchmark.Benchmarks
 {
-    [SimpleJob(RuntimeMoniker.NetCoreApp50)]
+    [SimpleJob(RuntimeMoniker.Net50)]
     [MemoryDiagnoser]
     public class AddObjectAsRow
     {
