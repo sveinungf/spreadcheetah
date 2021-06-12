@@ -157,9 +157,9 @@ namespace SpreadCheetah
         public override int GetHashCode() => HashCode.Combine(DataCell, StyleId);
 
         /// <summary>Determines whether two instances have the same value.</summary>
-        public static bool operator ==(StyledCell left, StyledCell right) => left.Equals(right);
+        public static bool operator ==(in StyledCell left, in StyledCell right) => left.Equals(right);
 
         /// <summary>Determines whether two instances have different values.</summary>
-        public static bool operator !=(StyledCell left, StyledCell right) => !left.Equals(right);
+        public static bool operator !=(in StyledCell left, in StyledCell right) => !left.Equals(right);
     }
 }

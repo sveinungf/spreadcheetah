@@ -135,6 +135,13 @@ dotnet_diagnostic.CA1707.severity = none
 dotnet_diagnostic.CA2007.severity = none
 
 ###############################
+# ErrorProne.NET.Structs      #
+###############################
+[*.cs]
+# EPS05: Use in-modifier for passing large readonly structs
+dotnet_diagnostic.EPS05.severity = warning
+
+###############################
 # SonarAnalyzer Options       #
 ###############################
 [*.cs]

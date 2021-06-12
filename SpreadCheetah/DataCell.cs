@@ -149,9 +149,9 @@ namespace SpreadCheetah
         public override int GetHashCode() => HashCode.Combine(StringValue, Writer, Writer.GetHashCodeFor(NumberValue));
 
         /// <summary>Determines whether two instances have the same value.</summary>
-        public static bool operator ==(DataCell left, DataCell right) => left.Equals(right);
+        public static bool operator ==(in DataCell left, in DataCell right) => left.Equals(right);
 
         /// <summary>Determines whether two instances have different values.</summary>
-        public static bool operator !=(DataCell left, DataCell right) => !left.Equals(right);
+        public static bool operator !=(in DataCell left, in DataCell right) => !left.Equals(right);
     }
 }
