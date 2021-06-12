@@ -1,5 +1,6 @@
 using ClosedXML.Excel;
 using SpreadCheetah.Benchmark.Benchmarks;
+using SpreadCheetah.Benchmark.Test.Helpers;
 using System;
 using System.IO;
 using System.Linq;
@@ -83,6 +84,8 @@ namespace SpreadCheetah.Benchmark.Test.Tests
 
         private void AssertCellValuesEqual()
         {
+            SpreadsheetAssert.Valid(_stringCells.Stream);
+
             _stringCells.Stream.Position = 0;
             using var workbook = new XLWorkbook(_stringCells.Stream);
             var worksheet = workbook.Worksheets.Single();
