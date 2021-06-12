@@ -34,6 +34,31 @@ namespace SpreadCheetah.Test.Tests
             Assert.Equal(finished, exception != null);
         }
 
+        [Theory]
+        [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
+        public async Task Spreadsheet_AddRow_CellWithoutValue(Type type)
+        {
+            // Arrange
+            using var stream = new MemoryStream();
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            {
+                await spreadsheet.StartWorksheetAsync("Sheet");
+                var cell = CellFactory.CreateWithoutValue(type);
+
+                // Act
+                await spreadsheet.AddRowAsync(cell);
+                await spreadsheet.FinishAsync();
+            }
+
+            // Assert
+            SpreadsheetAssert.Valid(stream);
+            using var actual = SpreadsheetDocument.Open(stream, true);
+            var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
+            var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
+            Assert.Null(actualCell.DataType?.Value);
+            Assert.Equal(string.Empty, actualCell.InnerText);
+        }
+
         public static IEnumerable<object?[]> Strings() => TestData.CombineWithCellTypes(
             "OneWord",
             "With whitespace",

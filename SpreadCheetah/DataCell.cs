@@ -9,11 +9,13 @@ namespace SpreadCheetah
     /// </summary>
     public readonly struct DataCell : IEquatable<DataCell>
     {
+        private readonly CellValueWriter? _writer;
+
         internal CellValue NumberValue { get; }
 
         internal string? StringValue { get; }
 
-        internal CellValueWriter Writer { get; }
+        internal CellValueWriter Writer => _writer ?? CellValueWriter.Null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataCell"/> struct with a text value.
@@ -22,7 +24,7 @@ namespace SpreadCheetah
         public DataCell(string? value) : this()
         {
             StringValue = value != null ? WebUtility.HtmlEncode(value) : string.Empty;
-            Writer = value != null ? CellValueWriter.String : CellValueWriter.Null;
+            _writer = value != null ? CellValueWriter.String : CellValueWriter.Null;
         }
 
         /// <summary>
@@ -31,7 +33,7 @@ namespace SpreadCheetah
         public DataCell(int value) : this()
         {
             NumberValue = new CellValue(value);
-            Writer = CellValueWriter.Integer;
+            _writer = CellValueWriter.Integer;
         }
 
         /// <summary>
@@ -41,7 +43,7 @@ namespace SpreadCheetah
         public DataCell(int? value) : this()
         {
             NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
-            Writer = value is null ? CellValueWriter.Null : CellValueWriter.Integer;
+            _writer = value is null ? CellValueWriter.Null : CellValueWriter.Integer;
         }
 
         /// <summary>
@@ -67,7 +69,7 @@ namespace SpreadCheetah
         public DataCell(float value) : this()
         {
             NumberValue = new CellValue(value);
-            Writer = CellValueWriter.Float;
+            _writer = CellValueWriter.Float;
         }
 
         /// <summary>
@@ -77,7 +79,7 @@ namespace SpreadCheetah
         public DataCell(float? value) : this()
         {
             NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
-            Writer = value is null ? CellValueWriter.Null : CellValueWriter.Float;
+            _writer = value is null ? CellValueWriter.Null : CellValueWriter.Float;
         }
 
         /// <summary>
@@ -87,7 +89,7 @@ namespace SpreadCheetah
         public DataCell(double value) : this()
         {
             NumberValue = new CellValue(value);
-            Writer = CellValueWriter.Double;
+            _writer = CellValueWriter.Double;
         }
 
         /// <summary>
@@ -98,7 +100,7 @@ namespace SpreadCheetah
         public DataCell(double? value) : this()
         {
             NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
-            Writer = value is null ? CellValueWriter.Null : CellValueWriter.Double;
+            _writer = value is null ? CellValueWriter.Null : CellValueWriter.Double;
         }
 
         /// <summary>
@@ -123,7 +125,7 @@ namespace SpreadCheetah
         /// </summary>
         public DataCell(bool value) : this()
         {
-            Writer = GetBooleanWriter(value);
+            _writer = GetBooleanWriter(value);
         }
 
         /// <summary>
@@ -132,7 +134,7 @@ namespace SpreadCheetah
         /// </summary>
         public DataCell(bool? value) : this()
         {
-            Writer = value is null ? CellValueWriter.Null : GetBooleanWriter(value.Value);
+            _writer = value is null ? CellValueWriter.Null : GetBooleanWriter(value.Value);
         }
 
         private static CellValueWriter GetBooleanWriter(bool value) => value ? CellValueWriter.TrueBoolean : CellValueWriter.FalseBoolean;
