@@ -42,6 +42,8 @@ namespace SpreadCheetah.Helpers
             }
         }
 #else
+        public static int GetBytes(string chars, Span<byte> bytes, bool assertSize = true) => GetBytes(chars.AsSpan(), bytes, assertSize);
+
         public static int GetBytes(ReadOnlySpan<char> chars, Span<byte> bytes, bool assertSize = true)
         {
             if (assertSize)
