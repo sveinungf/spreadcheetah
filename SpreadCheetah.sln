@@ -10,6 +10,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{9293B230-E996-44D7-B9E9-0900D05AA116}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.globalconfig = .globalconfig
 		Directory.Build.props = Directory.Build.props
 		README.md = README.md
 	EndProjectSection
@@ -20,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpreadCheetah.Benchmark.Tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpreadCheetah.SourceGenerator", "SpreadCheetah.SourceGenerator\SpreadCheetah.SourceGenerator.csproj", "{160C81CD-9A4D-4889-A444-C21821D30A0C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpreadCheetah.SourceGenerator.Test", "SpreadCheetah.SourceGenerator.Test\SpreadCheetah.SourceGenerator.Test.csproj", "{AA2AE8D2-0155-406F-9566-93A82CFD7F09}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpreadCheetah.SourceGenerator.Test", "SpreadCheetah.SourceGenerator.Test\SpreadCheetah.SourceGenerator.Test.csproj", "{AA2AE8D2-0155-406F-9566-93A82CFD7F09}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

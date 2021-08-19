@@ -133,6 +133,8 @@ dotnet_diagnostic.CA1305.severity = none
 dotnet_diagnostic.CA1707.severity = none
 # CA2007: Do not directly await a Task
 dotnet_diagnostic.CA2007.severity = none
+# CA5394: Do not use insecure randomness
+dotnet_diagnostic.CA5394.severity = none
 
 ###############################
 # ErrorProne.NET.Structs      #
