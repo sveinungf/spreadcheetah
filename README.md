@@ -81,26 +81,48 @@ await spreadsheet.FinishAsync();
 The benchmark results here have been collected using [Benchmark.NET](https://github.com/dotnet/benchmarkdotnet) with the following system configuration:
 
 ``` ini
-BenchmarkDotNet=v0.12.1, OS=Windows 10.0.19041.630 (2004/?/20H1)
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1165 (21H1/May2021Update)
 Intel Core i5-8600K CPU 3.60GHz (Coffee Lake), 1 CPU, 6 logical and 6 physical cores
-.NET Core SDK=5.0.100
-  [Host]        : .NET Core 5.0.0 (CoreCLR 5.0.20.51904, CoreFX 5.0.20.51904), X64 RyuJIT
-  .NET 4.8      : .NET Framework 4.8 (4.8.4250.0), X64 RyuJIT
-  .NET Core 3.1 : .NET Core 3.1.9 (CoreCLR 4.700.20.47201, CoreFX 4.700.20.47203), X64 RyuJIT
-  .NET Core 5.0 : .NET Core 5.0.0 (CoreCLR 5.0.20.51904, CoreFX 5.0.20.51904), X64 RyuJIT
+.NET SDK=6.0.100-preview.7.21379.14
+  [Host]             : .NET 6.0.0 (6.0.21.37719), X64 RyuJIT
+  .NET 6.0           : .NET 6.0.0 (6.0.21.37719), X64 RyuJIT
+  .NET Core 3.1      : .NET Core 3.1.18 (CoreCLR 4.700.21.35901, CoreFX 4.700.21.36305), X64 RyuJIT
+  .NET Framework 4.8 : .NET Framework 4.8 (4.8.4400.0), X64 RyuJIT
+
+InvocationCount=1  UnrollFactor=1  
 ```
 
-The code executed in the benchmark is filling a worksheet with 20000 rows and 10 columns. I've also implemented the same use case in other spreadsheet libraries for comparison. You can also see the how they perform in .NET Framework and .NET Core.
+The code executed in the benchmark creates a worksheet of 20 000 rows and 10 columns filled with string values. The same use case has been implemented in other spreadsheet libraries for comparison.
 
-|       Library |       Runtime |        Mean |     Error |    StdDev |     Allocated |
-|-------------- |-------------- |------------:|----------:|----------:|--------------:|
-| **SpreadCheetah** |      **.NET 4.8** |    **64.33 ms** |  **0.484 ms** |  **0.404 ms** |     **136.23 KB** |
-|       EpPlus4 |      .NET 4.8 |   571.33 ms |  6.479 ms |  6.061 ms |  286368.81 KB |
-|    OpenXmlSax |      .NET 4.8 |   330.48 ms |  2.532 ms |  2.368 ms |   35485.21 KB |
-|    OpenXmlDom |      .NET 4.8 |   794.46 ms |  9.945 ms |  9.302 ms |  135947.15 KB |
-|     ClosedXml |      .NET 4.8 | 2,158.61 ms | 18.147 ms | 16.975 ms |  558507.04 KB |
-| **SpreadCheetah** | **.NET Core 3.1** |    **32.69 ms** |  **0.295 ms** |  **0.262 ms** |      **68.95 KB** |
-|       EpPlus4 | .NET Core 3.1 |   453.88 ms |  8.675 ms | 10.972 ms |  216141.84 KB |
-|    OpenXmlSax | .NET Core 3.1 |   195.84 ms |  2.985 ms |  2.792 ms |   58245.29 KB |
-|    OpenXmlDom | .NET Core 3.1 |   644.66 ms |  2.634 ms |  2.335 ms |  158085.77 KB |
-|     ClosedXml | .NET Core 3.1 | 1,897.42 ms | 13.222 ms | 11.721 ms |  531326.55 KB |
+
+### .NET Framework 4.8
+
+|                    Library |         Mean |        Error |       StdDev |  Allocated |
+|----------------------------|-------------:|-------------:|-------------:|-----------:|
+|          **SpreadCheetah** | **64.36 ms** | **0.072 ms** | **0.064 ms** | **152 KB** |
+|    Open XML (SAX approach) |    400.71 ms |     0.455 ms |     0.380 ms |  35 485 KB |
+|                  EPPlus v4 |    591.03 ms |     9.409 ms |     8.801 ms | 286 367 KB |
+|    Open XML (DOM approach) |    843.70 ms |     4.120 ms |     3.216 ms | 135 835 KB |
+|                  ClosedXML |  2,181.33 ms |    10.425 ms |     9.751 ms | 556 917 KB |
+
+
+### .NET Core 3.1
+
+|                    Library |         Mean |        Error |       StdDev |  Allocated |
+|----------------------------|-------------:|-------------:|-------------:|-----------:|
+|          **SpreadCheetah** | **34.07 ms** | **0.180 ms** | **0.160 ms** |  **53 KB** |
+|    Open XML (SAX approach) |    235.70 ms |     0.875 ms |     0.819 ms |  58 244 KB |
+|                  EPPlus v4 |    473.14 ms |     7.686 ms |     7.189 ms | 216 130 KB |
+|    Open XML (DOM approach) |    689.44 ms |     9.184 ms |     8.591 ms | 158 084 KB |
+|                  ClosedXML |  1,959.02 ms |    16.269 ms |    15.218 ms | 529 764 KB |
+
+
+### .NET 6 Preview 7
+
+|                    Library |         Mean |        Error |       StdDev |  Allocated |
+|----------------------------|-------------:|-------------:|-------------:|-----------:|
+|          **SpreadCheetah** | **29.87 ms** | **0.043 ms** | **0.036 ms** |   **6 KB** |
+|    Open XML (SAX approach) |    201.42 ms |     0.792 ms |     0.741 ms |  58 235 KB |
+|                  EPPlus v4 |    398.64 ms |     5.165 ms |     4.579 ms | 195 793 KB |
+|    Open XML (DOM approach) |    568.19 ms |    11.192 ms |    14.155 ms | 158 116 KB |
+|                  ClosedXML |  1,686.36 ms |    15.595 ms |    14.588 ms | 518 731 KB |
