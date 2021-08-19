@@ -1,9 +1,11 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using SpreadCheetah.Benchmark.Helpers;
+#if !NET6_0
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+#endif
 
 namespace SpreadCheetah.Benchmark.Benchmarks
 {

@@ -5,18 +5,20 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using OfficeOpenXml;
+using System.IO.Packaging;
+using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
+#if !NET6_0
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Packaging;
 using System.Threading.Tasks;
-using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
+#endif
 
 namespace SpreadCheetah.Benchmark.Benchmarks
 {
     [SimpleJob(RuntimeMoniker.Net48)]
     [SimpleJob(RuntimeMoniker.NetCoreApp31)]
-    [SimpleJob(RuntimeMoniker.Net50)]
+    [SimpleJob(RuntimeMoniker.Net60)]
     [MemoryDiagnoser]
     public class StringCells : IDisposable
     {
