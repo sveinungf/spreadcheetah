@@ -1,6 +1,4 @@
-#if !NET6_0
 using System;
-#endif
 
 namespace SpreadCheetah.Benchmark.Helpers
 {

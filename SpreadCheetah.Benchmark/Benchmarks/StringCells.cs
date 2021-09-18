@@ -5,14 +5,12 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using OfficeOpenXml;
-using System.IO.Packaging;
-using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
-#if !NET6_0
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Packaging;
 using System.Threading.Tasks;
-#endif
+using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
 namespace SpreadCheetah.Benchmark.Benchmarks
 {
