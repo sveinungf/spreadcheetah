@@ -20,7 +20,7 @@ SpreadCheetah is designed to create spreadsheet files in a forward-only manner.
 That means worksheets from left to right, rows from top to bottom, and row cells from left to right.
 This allows for creating spreadsheet files in a streaming manner, while also keeping a low memory footprint.
 
-Styling support is currently very limited, and formulas are not yet supported. This is planned for future releases.
+Most basic spreadsheet functionality is supported, such as cells with different data types, basic styling, and formulas. More advanced functionality is planned for future releases.
 
 ## How to install
 SpreadCheetah is available as a [NuGet package](https://www.nuget.org/packages/SpreadCheetah). The NuGet package targets both .NET Standard 2.0 and .NET Standard 2.1.
@@ -35,9 +35,9 @@ using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
     await spreadsheet.StartWorksheetAsync("Sheet 1");
 
     // Cells are inserted row by row.
-    var row = new List<DataCell>();
-    row.Add(new DataCell("Answer to the ultimate question:"));
-    row.Add(new DataCell(42));
+    var row = new List<Cell>();
+    row.Add(new Cell("Answer to the ultimate question:"));
+    row.Add(new Cell(42));
 
     // Rows are inserted from top to bottom.
     await spreadsheet.AddRowAsync(row);
@@ -81,18 +81,19 @@ await spreadsheet.FinishAsync();
 The benchmark results here have been collected using [Benchmark.NET](https://github.com/dotnet/benchmarkdotnet) with the following system configuration:
 
 ``` ini
-BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1165 (21H1/May2021Update)
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1237 (21H1/May2021Update)
 Intel Core i5-8600K CPU 3.60GHz (Coffee Lake), 1 CPU, 6 logical and 6 physical cores
-.NET SDK=6.0.100-preview.7.21379.14
-  [Host]             : .NET 6.0.0 (6.0.21.37719), X64 RyuJIT
-  .NET 6.0           : .NET 6.0.0 (6.0.21.37719), X64 RyuJIT
-  .NET Core 3.1      : .NET Core 3.1.18 (CoreCLR 4.700.21.35901, CoreFX 4.700.21.36305), X64 RyuJIT
+.NET SDK=6.0.100-rc.1.21458.32
+  [Host]             : .NET 6.0.0 (6.0.21.45113), X64 RyuJIT
+  .NET 6.0           : .NET 6.0.0 (6.0.21.45113), X64 RyuJIT
+  .NET Core 3.1      : .NET Core 3.1.19 (CoreCLR 4.700.21.41101, CoreFX 4.700.21.41603), X64 RyuJIT
   .NET Framework 4.8 : .NET Framework 4.8 (4.8.4400.0), X64 RyuJIT
 
 InvocationCount=1  UnrollFactor=1  
 ```
 
 The code executed in the benchmark creates a worksheet of 20 000 rows and 10 columns filled with string values. The same use case has been implemented in other spreadsheet libraries for comparison.
+Some of these libraries have multiple ways of achieving the same result, but to make this a fair comparison the idea is to use the most efficient approach for each library. The code is available [here](https://github.com/sveinungf/spreadcheetah/blob/main/SpreadCheetah.Benchmark/Benchmarks/StringCells.cs).
 
 
 ### .NET Framework 4.8
@@ -110,19 +111,19 @@ The code executed in the benchmark creates a worksheet of 20 000 rows and 10 col
 
 |                    Library |         Mean |        Error |       StdDev |  Allocated |
 |----------------------------|-------------:|-------------:|-------------:|-----------:|
-|          **SpreadCheetah** | **34.07 ms** | **0.180 ms** | **0.160 ms** |  **53 KB** |
-|    Open XML (SAX approach) |    235.70 ms |     0.875 ms |     0.819 ms |  58 244 KB |
-|                  EPPlus v4 |    473.14 ms |     7.686 ms |     7.189 ms | 216 130 KB |
-|    Open XML (DOM approach) |    689.44 ms |     9.184 ms |     8.591 ms | 158 084 KB |
-|                  ClosedXML |  1,959.02 ms |    16.269 ms |    15.218 ms | 529 764 KB |
+|          **SpreadCheetah** | **34.22 ms** | **0.231 ms** | **0.216 ms** |  **53 KB** |
+|    Open XML (SAX approach) |    238.03 ms |     1.449 ms |     1.355 ms |  58 243 KB |
+|                  EPPlus v4 |    463.71 ms |     2.204 ms |     1.721 ms | 216 127 KB |
+|    Open XML (DOM approach) |    684.81 ms |     5.108 ms |     4.528 ms | 158 087 KB |
+|                  ClosedXML |  1,912.72 ms |    11.683 ms |    10.928 ms | 529 764 KB |
 
 
-### .NET 6 Preview 7
+### .NET 6 Release Candidate 1
 
 |                    Library |         Mean |        Error |       StdDev |  Allocated |
 |----------------------------|-------------:|-------------:|-------------:|-----------:|
-|          **SpreadCheetah** | **29.87 ms** | **0.043 ms** | **0.036 ms** |   **6 KB** |
-|    Open XML (SAX approach) |    201.42 ms |     0.792 ms |     0.741 ms |  58 235 KB |
-|                  EPPlus v4 |    398.64 ms |     5.165 ms |     4.579 ms | 195 793 KB |
-|    Open XML (DOM approach) |    568.19 ms |    11.192 ms |    14.155 ms | 158 116 KB |
-|                  ClosedXML |  1,686.36 ms |    15.595 ms |    14.588 ms | 518 731 KB |
+|          **SpreadCheetah** | **29.76 ms** | **0.008 ms** | **0.007 ms** |   **6 KB** |
+|    Open XML (SAX approach) |    198.44 ms |     0.624 ms |     0.584 ms |  58 241 KB |
+|                  EPPlus v4 |    398.76 ms |     2.814 ms |     2.494 ms | 195 792 KB |
+|    Open XML (DOM approach) |    563.99 ms |    11.237 ms |    16.819 ms | 158 083 KB |
+|                  ClosedXML |  1,635.94 ms |     8.442 ms |     7.483 ms | 518 734 KB |
