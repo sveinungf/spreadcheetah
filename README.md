@@ -81,15 +81,15 @@ await spreadsheet.FinishAsync();
 The benchmark results here have been collected using [Benchmark.NET](https://github.com/dotnet/benchmarkdotnet) with the following system configuration:
 
 ``` ini
-BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1237 (21H1/May2021Update)
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1288 (21H1/May2021Update)
 Intel Core i5-8600K CPU 3.60GHz (Coffee Lake), 1 CPU, 6 logical and 6 physical cores
-.NET SDK=6.0.100-rc.1.21458.32
-  [Host]             : .NET 6.0.0 (6.0.21.45113), X64 RyuJIT
-  .NET 6.0           : .NET 6.0.0 (6.0.21.45113), X64 RyuJIT
-  .NET Core 3.1      : .NET Core 3.1.19 (CoreCLR 4.700.21.41101, CoreFX 4.700.21.41603), X64 RyuJIT
-  .NET Framework 4.8 : .NET Framework 4.8 (4.8.4400.0), X64 RyuJIT
+.NET SDK=6.0.100-rc.2.21505.57
+  [Host]             : .NET 6.0.0 (6.0.21.48005), X64 RyuJIT
+  .NET 6.0           : .NET 6.0.0 (6.0.21.48005), X64 RyuJIT
+  .NET Core 3.1      : .NET Core 3.1.20 (CoreCLR 4.700.21.47003, CoreFX 4.700.21.47101), X64 RyuJIT
+  .NET Framework 4.8 : .NET Framework 4.8 (4.8.4420.0), X64 RyuJIT
 
-InvocationCount=1  UnrollFactor=1  
+InvocationCount=1  UnrollFactor=1
 ```
 
 The code executed in the benchmark creates a worksheet of 20 000 rows and 10 columns filled with string values. The same use case has been implemented in other spreadsheet libraries for comparison.
@@ -118,12 +118,12 @@ Some of these libraries have multiple ways of achieving the same result, but to 
 |                  ClosedXML |  1,912.72 ms |    11.683 ms |    10.928 ms | 529 764 KB |
 
 
-### .NET 6 Release Candidate 1
+### .NET 6 Release Candidate 2
 
 |                    Library |         Mean |        Error |       StdDev |  Allocated |
 |----------------------------|-------------:|-------------:|-------------:|-----------:|
-|          **SpreadCheetah** | **29.76 ms** | **0.008 ms** | **0.007 ms** |   **6 KB** |
-|    Open XML (SAX approach) |    198.44 ms |     0.624 ms |     0.584 ms |  58 241 KB |
-|                  EPPlus v4 |    398.76 ms |     2.814 ms |     2.494 ms | 195 792 KB |
-|    Open XML (DOM approach) |    563.99 ms |    11.237 ms |    16.819 ms | 158 083 KB |
-|                  ClosedXML |  1,635.94 ms |     8.442 ms |     7.483 ms | 518 734 KB |
+|          **SpreadCheetah** | **29.82 ms** | **0.038 ms** | **0.034 ms** |   **6 KB** |
+|    Open XML (SAX approach) |    193.82 ms |     0.866 ms |     0.768 ms |  58 239 KB |
+|                  EPPlus v4 |    397.18 ms |     5.775 ms |     5.402 ms | 195 793 KB |
+|    Open XML (DOM approach) |    564.94 ms |    11.278 ms |    16.175 ms | 158 082 KB |
+|                  ClosedXML |  1,642.94 ms |    13.094 ms |    12.249 ms | 518 732 KB |
