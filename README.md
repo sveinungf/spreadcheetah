@@ -48,6 +48,12 @@ using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
 }
 ```
 
+### Other examples
+- [Writing to a file](https://github.com/sveinungf/spreadcheetah-samples/blob/main/SpreadCheetahSamples/SpreadCheetahSamples/WriteToFile.cs)
+- [Styling basics](https://github.com/sveinungf/spreadcheetah-samples/blob/main/SpreadCheetahSamples/SpreadCheetahSamples/StylingBasics.cs)
+- [Formula basics](https://github.com/sveinungf/spreadcheetah-samples/blob/main/SpreadCheetahSamples/SpreadCheetahSamples/FormulaBasics.cs)
+- [Performance tips](https://github.com/sveinungf/spreadcheetah-samples/blob/main/SpreadCheetahSamples/SpreadCheetahSamples/PerformanceTips.cs)
+
 ## The Source Generator extension
 [Source Generators](https://devblogs.microsoft.com/dotnet/introducing-c-source-generators) is a newly released feature in the C# compiler. The experimental Source Generator extension for SpreadCheetah makes it easier to create a row from an object. It adds the method `AddAsRowAsync()`, and by calling the method with your own custom type, the generator will analyze the type and create an implementation of the method. The value of each property with a public getter will become the value of a cell in the row. Here is an example:
 ```cs
