@@ -87,11 +87,11 @@ await spreadsheet.FinishAsync();
 The benchmark results here have been collected using [Benchmark.NET](https://github.com/dotnet/benchmarkdotnet) with the following system configuration:
 
 ``` ini
-BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1288 (21H1/May2021Update)
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1348 (21H1/May2021Update)
 Intel Core i5-8600K CPU 3.60GHz (Coffee Lake), 1 CPU, 6 logical and 6 physical cores
-.NET SDK=6.0.100-rc.2.21505.57
-  [Host]             : .NET 6.0.0 (6.0.21.48005), X64 RyuJIT
-  .NET 6.0           : .NET 6.0.0 (6.0.21.48005), X64 RyuJIT
+.NET SDK=6.0.100
+  [Host]             : .NET 6.0.0 (6.0.21.52210), X64 RyuJIT
+  .NET 6.0           : .NET 6.0.0 (6.0.21.52210), X64 RyuJIT
   .NET Core 3.1      : .NET Core 3.1.20 (CoreCLR 4.700.21.47003, CoreFX 4.700.21.47101), X64 RyuJIT
   .NET Framework 4.8 : .NET Framework 4.8 (4.8.4420.0), X64 RyuJIT
 
@@ -124,12 +124,12 @@ Some of these libraries have multiple ways of achieving the same result, but to 
 |                  ClosedXML |  1,912.72 ms |    11.683 ms |    10.928 ms | 529 764 KB |
 
 
-### .NET 6 Release Candidate 2
+### .NET 6
 
 |                    Library |         Mean |        Error |       StdDev |  Allocated |
 |----------------------------|-------------:|-------------:|-------------:|-----------:|
-|          **SpreadCheetah** | **29.82 ms** | **0.038 ms** | **0.034 ms** |   **6 KB** |
-|    Open XML (SAX approach) |    193.82 ms |     0.866 ms |     0.768 ms |  58 239 KB |
-|                  EPPlus v4 |    397.18 ms |     5.775 ms |     5.402 ms | 195 793 KB |
-|    Open XML (DOM approach) |    564.94 ms |    11.278 ms |    16.175 ms | 158 082 KB |
-|                  ClosedXML |  1,642.94 ms |    13.094 ms |    12.249 ms | 518 732 KB |
+|          **SpreadCheetah** | **29.81 ms** | **0.020 ms** | **0.018 ms** |   **6 KB** |
+|    Open XML (SAX approach) |    194.56 ms |     0.507 ms |     0.474 ms |  58 243 KB |
+|                  EPPlus v4 |    392.12 ms |     2.842 ms |     2.373 ms | 195 793 KB |
+|    Open XML (DOM approach) |    554.49 ms |    10.882 ms |    15.951 ms | 158 082 KB |
+|                  ClosedXML |  1,595.52 ms |    29.951 ms |    26.551 ms | 518 732 KB |
