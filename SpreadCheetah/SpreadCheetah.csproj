@@ -2,20 +2,30 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1;net5.0</TargetFrameworks>
+
+    <!-- NuGet package -->
     <PackageId>SpreadCheetah</PackageId>
+    <Version>1.4.0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>sveinungf</Authors>
     <Description>SpreadCheetah is a high-performance .NET library for generating spreadsheet (Microsoft Excel XLSX) files.</Description>
     <PackageProjectUrl>https://github.com/sveinungf/spreadcheetah</PackageProjectUrl>
     <RepositoryUrl>https://github.com/sveinungf/spreadcheetah</RepositoryUrl>
     <PackageTags>spreadsheet;excel;xlsx;openxml</PackageTags>
-    <Version>1.4.0</Version>
     <PackageReleaseNotes>https://github.com/sveinungf/spreadcheetah/releases/tag/v1.4.0</PackageReleaseNotes>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <!-- SourceLink -->
     <IncludeSymbols>true</IncludeSymbols>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <DebugType>embedded</DebugType>
+
+    <!-- Package validation -->
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageValidationBaselineVersion>1.4.0</PackageValidationBaselineVersion>
+    <EnableStrictModeForCompatibleTfms>true</EnableStrictModeForCompatibleTfms>
+    <EnableStrictModeForCompatibleFrameworksInPackage>true</EnableStrictModeForCompatibleFrameworksInPackage>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
