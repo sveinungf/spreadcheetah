@@ -6,7 +6,7 @@ namespace SpreadCheetah.SourceGenerator
     {
         private const string Category = "SpreadCheetah.SourceGenerator";
 
-        public static readonly DiagnosticDescriptor NoPropertiesFound = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor NoPropertiesFound = new(
             id: "SPCH1001",
             title: "Missing properties with public getters",
             messageFormat: "The type '{0}' has no properties with public getters. This will cause an empty row to be added.",
@@ -14,7 +14,7 @@ namespace SpreadCheetah.SourceGenerator
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor UnsupportedTypeForCellValue = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor UnsupportedTypeForCellValue = new(
             id: "SPCH1002",
             title: "Unsupported type for cell value",
             messageFormat: "The type '{0}' has a property of type '{1}' which is not supported as a cell value. The property will be ignored when creating the row.",

@@ -21,8 +21,8 @@ namespace SpreadCheetah
         private const string InvalidSheetNameCharString = "/\\*?[]";
         private static readonly char[] InvalidSheetNameChars = InvalidSheetNameCharString.ToCharArray();
 
-        private readonly List<string> _worksheetNames = new List<string>();
-        private readonly List<string> _worksheetPaths = new List<string>();
+        private readonly List<string> _worksheetNames = new();
+        private readonly List<string> _worksheetPaths = new();
         private readonly ZipArchive _archive;
         private readonly CompressionLevel _compressionLevel;
         private readonly SpreadsheetBuffer _buffer;
