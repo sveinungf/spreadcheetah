@@ -20,7 +20,7 @@ internal abstract class BaseCellWriter<T>
     public bool TryAddRow(IList<T> cells, int rowIndex, out int currentListIndex)
     {
         // Assuming previous actions on the worksheet ensured space in the buffer for row start
-        Buffer.Advance(GetRowStartBytes(rowIndex, Buffer.GetNextSpan()));
+        Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, Buffer.GetNextSpan()));
 
         for (currentListIndex = 0; currentListIndex < cells.Count; ++currentListIndex)
         {
@@ -30,19 +30,11 @@ internal abstract class BaseCellWriter<T>
         }
 
         // Also ensuring space in the buffer for the next row start, so that we don't need to check space in the buffer twice
-        if (CellWriterHelper.RowEnd.Length + CellWriterHelper.RowStartMaxByteCount > Buffer.GetRemainingBuffer())
+        if (CellRowHelper.RowEnd.Length + CellRowHelper.BasicRowStartMaxByteCount > Buffer.GetRemainingBuffer())
             return false;
 
-        Buffer.Advance(SpanHelper.GetBytes(CellWriterHelper.RowEnd, Buffer.GetNextSpan()));
+        Buffer.Advance(SpanHelper.GetBytes(CellRowHelper.RowEnd, Buffer.GetNextSpan()));
         return true;
-    }
-
-    private static int GetRowStartBytes(int rowIndex, Span<byte> bytes)
-    {
-        var bytesWritten = SpanHelper.GetBytes(CellWriterHelper.RowStart, bytes);
-        bytesWritten += Utf8Helper.GetBytes(rowIndex, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(CellWriterHelper.RowStartEndTag, bytes.Slice(bytesWritten));
-        return bytesWritten;
     }
 
     public async ValueTask AddRowAsync(IList<T> cells, int currentIndex, Stream stream, CancellationToken token)
@@ -71,10 +63,10 @@ internal abstract class BaseCellWriter<T>
         }
 
         // Also ensuring space in the buffer for the next row start, so that we don't need to check space in the buffer twice
-        if (CellWriterHelper.RowEnd.Length + CellWriterHelper.RowStartMaxByteCount > Buffer.GetRemainingBuffer())
+        if (CellRowHelper.RowEnd.Length + CellRowHelper.BasicRowStartMaxByteCount > Buffer.GetRemainingBuffer())
             await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-        Buffer.Advance(SpanHelper.GetBytes(CellWriterHelper.RowEnd, Buffer.GetNextSpan()));
+        Buffer.Advance(SpanHelper.GetBytes(CellRowHelper.RowEnd, Buffer.GetNextSpan()));
     }
 
     private async ValueTask WriteCellPieceByPieceAsync(T cell, Stream stream, CancellationToken token)
