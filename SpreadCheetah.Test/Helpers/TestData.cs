@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace SpreadCheetah.Test.Helpers
 {
     internal static class TestData

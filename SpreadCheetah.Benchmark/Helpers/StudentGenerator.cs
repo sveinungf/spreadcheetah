@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace SpreadCheetah.Benchmark.Helpers
 {
     internal static class StudentGenerator

@@ -1,8 +1,5 @@
 using DocumentFormat.OpenXml.Packaging;
 using SpreadCheetah.SourceGenerator.Test.Models;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 

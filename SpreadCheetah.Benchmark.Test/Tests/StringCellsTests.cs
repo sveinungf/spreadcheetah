@@ -1,10 +1,6 @@
 using ClosedXML.Excel;
 using SpreadCheetah.Benchmark.Benchmarks;
 using SpreadCheetah.Benchmark.Test.Helpers;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace SpreadCheetah.Benchmark.Test.Tests

@@ -3,9 +3,6 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using OfficeOpenXml;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace SpreadCheetah.Test.Tests

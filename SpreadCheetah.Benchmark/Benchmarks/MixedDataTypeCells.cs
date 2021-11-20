@@ -1,8 +1,5 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace SpreadCheetah.Benchmark.Benchmarks
 {

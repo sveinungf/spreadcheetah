@@ -1,5 +1,4 @@
 using SpreadCheetah.Styling;
-using System;
 
 namespace SpreadCheetah.Test.Helpers
 {

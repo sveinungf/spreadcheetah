@@ -1,12 +1,7 @@
 using ClosedXML.Excel;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
-using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace SpreadCheetah.Test.Tests

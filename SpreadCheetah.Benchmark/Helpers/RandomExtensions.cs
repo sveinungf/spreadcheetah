@@ -1,5 +1,3 @@
-using System;
-
 namespace SpreadCheetah.Benchmark.Helpers
 {
     internal static class RandomExtensions

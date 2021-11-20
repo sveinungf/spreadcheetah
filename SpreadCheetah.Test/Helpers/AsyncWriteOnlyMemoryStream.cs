@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-
 namespace SpreadCheetah.Test.Helpers
 {
     internal class AsyncWriteOnlyMemoryStream : WriteOnlyMemoryStream

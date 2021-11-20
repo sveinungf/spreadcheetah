@@ -1,6 +1,5 @@
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
-using System.IO;
 using Xunit;
 
 namespace SpreadCheetah.Test.Helpers
