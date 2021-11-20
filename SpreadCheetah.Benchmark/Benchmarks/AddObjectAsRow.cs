@@ -2,35 +2,34 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using SpreadCheetah.Benchmark.Helpers;
 
-namespace SpreadCheetah.Benchmark.Benchmarks
+namespace SpreadCheetah.Benchmark.Benchmarks;
+
+[SimpleJob(RuntimeMoniker.Net50)]
+[MemoryDiagnoser]
+public class AddObjectAsRow
 {
-    [SimpleJob(RuntimeMoniker.Net50)]
-    [MemoryDiagnoser]
-    public class AddObjectAsRow
+    public IList<Student> Students { get; private set; } = null!;
+
+    [Params(10, 1000, 100000)]
+    public int NumberOfRows { get; set; }
+
+    [GlobalSetup]
+    public void GlobalSetup()
     {
-        public IList<Student> Students { get; private set; } = null!;
+        Students = StudentGenerator.Generate(NumberOfRows);
+    }
 
-        [Params(10, 1000, 100000)]
-        public int NumberOfRows { get; set; }
+    [Benchmark]
+    public async Task SpreadCheetah()
+    {
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Book1");
 
-        [GlobalSetup]
-        public void GlobalSetup()
+        for (var i = 0; i < Students.Count; ++i)
         {
-            Students = StudentGenerator.Generate(NumberOfRows);
+            await spreadsheet.AddAsRowAsync(Students[i]);
         }
 
-        [Benchmark]
-        public async Task SpreadCheetah()
-        {
-            await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-            await spreadsheet.StartWorksheetAsync("Book1");
-
-            for (var i = 0; i < Students.Count; ++i)
-            {
-                await spreadsheet.AddAsRowAsync(Students[i]);
-            }
-
-            await spreadsheet.FinishAsync();
-        }
+        await spreadsheet.FinishAsync();
     }
 }

@@ -1,19 +1,18 @@
 using Microsoft.CodeAnalysis;
 
-namespace SpreadCheetah.SourceGenerator.Helpers
+namespace SpreadCheetah.SourceGenerator.Helpers;
+
+internal static class GeneratorExecutionContextExtensions
 {
-    internal static class GeneratorExecutionContextExtensions
+    public static void ReportDiagnostics(
+        this GeneratorExecutionContext context,
+        DiagnosticDescriptor descriptor,
+        IEnumerable<Location> locations,
+        params object?[]? messageArgs)
     {
-        public static void ReportDiagnostics(
-            this GeneratorExecutionContext context,
-            DiagnosticDescriptor descriptor,
-            IEnumerable<Location> locations,
-            params object?[]? messageArgs)
+        foreach (var location in locations)
         {
-            foreach (var location in locations)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(descriptor, location, messageArgs));
-            }
+            context.ReportDiagnostic(Diagnostic.Create(descriptor, location, messageArgs));
         }
     }
 }

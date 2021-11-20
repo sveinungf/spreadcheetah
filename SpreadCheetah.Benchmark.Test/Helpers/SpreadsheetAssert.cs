@@ -2,20 +2,19 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using Xunit;
 
-namespace SpreadCheetah.Benchmark.Test.Helpers
+namespace SpreadCheetah.Benchmark.Test.Helpers;
+
+internal static class SpreadsheetAssert
 {
-    internal static class SpreadsheetAssert
+    public static void Valid(Stream stream)
     {
-        public static void Valid(Stream stream)
-        {
-            stream.Position = 0;
+        stream.Position = 0;
 
-            using var document = SpreadsheetDocument.Open(stream, false);
-            var validator = new OpenXmlValidator();
-            var errors = validator.Validate(document);
-            Assert.Empty(errors);
+        using var document = SpreadsheetDocument.Open(stream, false);
+        var validator = new OpenXmlValidator();
+        var errors = validator.Validate(document);
+        Assert.Empty(errors);
 
-            stream.Position = 0;
-        }
+        stream.Position = 0;
     }
 }

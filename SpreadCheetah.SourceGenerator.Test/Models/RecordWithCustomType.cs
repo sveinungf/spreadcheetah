@@ -1,6 +1,5 @@
-namespace SpreadCheetah.SourceGenerator.Test.Models
-{
-    public record CustomType(string Name);
+namespace SpreadCheetah.SourceGenerator.Test.Models;
 
-    public record RecordWithCustomType(CustomType CustomType, string AnotherValue);
-}
+public record CustomType(string Name);
+
+public record RecordWithCustomType(CustomType CustomType, string AnotherValue);

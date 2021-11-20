@@ -1,6 +1,5 @@
-namespace SpreadCheetah.SourceGenerator.Test.Models
+namespace SpreadCheetah.SourceGenerator.Test.Models;
+
+public struct StructWithNoProperties
 {
-    public struct StructWithNoProperties
-    {
-    }
 }

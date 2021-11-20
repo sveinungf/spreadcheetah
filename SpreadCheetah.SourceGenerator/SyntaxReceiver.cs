@@ -1,37 +1,36 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace SpreadCheetah.SourceGenerator
-{
-    internal class SyntaxReceiver : ISyntaxReceiver
-    {
-        public List<SyntaxNode> ArgumentsToValidate { get; } = new();
+namespace SpreadCheetah.SourceGenerator;
 
-        public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
-        {
-            if (syntaxNode is InvocationExpressionSyntax
+internal class SyntaxReceiver : ISyntaxReceiver
+{
+    public List<SyntaxNode> ArgumentsToValidate { get; } = new();
+
+    public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
+    {
+        if (syntaxNode is InvocationExpressionSyntax
+            {
+                ArgumentList:
                 {
-                    ArgumentList:
+                    Arguments:
                     {
-                        Arguments:
-                        {
-                            Count: <= 3
-                        } arguments
-                    },
-                    Expression: MemberAccessExpressionSyntax
+                        Count: <= 3
+                    } arguments
+                },
+                Expression: MemberAccessExpressionSyntax
+                {
+                    Name:
                     {
-                        Name:
+                        Identifier:
                         {
-                            Identifier:
-                            {
-                                ValueText: "AddAsRowAsync"
-                            }
+                            ValueText: "AddAsRowAsync"
                         }
                     }
-                })
-            {
-                ArgumentsToValidate.Add(arguments.First().Expression);
-            }
+                }
+            })
+        {
+            ArgumentsToValidate.Add(arguments.First().Expression);
         }
     }
 }

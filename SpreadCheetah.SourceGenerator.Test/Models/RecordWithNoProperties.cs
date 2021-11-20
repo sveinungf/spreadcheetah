@@ -1,4 +1,3 @@
-namespace SpreadCheetah.SourceGenerator.Test.Models
-{
-    public record RecordWithNoProperties;
-}
+namespace SpreadCheetah.SourceGenerator.Test.Models;
+
+public record RecordWithNoProperties;

@@ -1,10 +1,9 @@
-namespace SpreadCheetah.SourceGenerator.Test.Models
+namespace SpreadCheetah.SourceGenerator.Test.Models;
+
+public enum ObjectType
 {
-    public enum ObjectType
-    {
-        Class,
-        Record,
-        Struct,
-        ReadOnlyStruct
-    }
+    Class,
+    Record,
+    Struct,
+    ReadOnlyStruct
 }
