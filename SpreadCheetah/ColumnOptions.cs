@@ -1,5 +1,3 @@
-using System;
-
 namespace SpreadCheetah.Worksheets
 {
     /// <summary>
@@ -14,7 +12,7 @@ namespace SpreadCheetah.Worksheets
         public double? Width
         {
             get => _width;
-            set => _width = value <= 0 || value > 255
+            set => _width = value is <= 0 or > 255
                 ? throw new ArgumentOutOfRangeException(nameof(value), value, "Column width must be between 0 and 255.")
                 : value;
         }

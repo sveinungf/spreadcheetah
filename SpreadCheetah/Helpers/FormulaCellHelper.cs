@@ -1,5 +1,3 @@
-using System;
-
 namespace SpreadCheetah.Helpers
 {
     internal static class FormulaCellHelper

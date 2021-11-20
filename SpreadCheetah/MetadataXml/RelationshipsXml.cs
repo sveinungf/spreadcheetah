@@ -1,7 +1,5 @@
 using SpreadCheetah.Helpers;
 using System.IO.Compression;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SpreadCheetah.MetadataXml
 {

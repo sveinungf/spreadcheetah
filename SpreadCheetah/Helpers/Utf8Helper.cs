@@ -1,4 +1,3 @@
-using System;
 using System.Buffers.Text;
 using System.Diagnostics;
 using System.Text;
@@ -9,7 +8,7 @@ namespace SpreadCheetah.Helpers
     {
         public const int MaxBytePerChar = 6;
 
-        private static readonly UTF8Encoding Utf8NoBom = new UTF8Encoding(false);
+        private static readonly UTF8Encoding Utf8NoBom = new(false);
 
         public static int GetBytes(int number, Span<byte> destination)
         {

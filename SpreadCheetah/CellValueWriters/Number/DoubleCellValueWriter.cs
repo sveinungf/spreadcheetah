@@ -1,4 +1,3 @@
-using System;
 using System.Buffers.Text;
 
 namespace SpreadCheetah.CellValueWriters.Number

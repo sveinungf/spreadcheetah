@@ -1,6 +1,4 @@
 using SpreadCheetah.Styling;
-using System;
-using System.Collections.Generic;
 
 namespace SpreadCheetah
 {
