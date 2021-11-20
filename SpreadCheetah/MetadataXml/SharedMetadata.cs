@@ -1,9 +1,8 @@
 using SpreadCheetah.Helpers;
 
-namespace SpreadCheetah.MetadataXml
+namespace SpreadCheetah.MetadataXml;
+
+internal static class SharedMetadata
 {
-    internal static class SharedMetadata
-    {
-        public static readonly byte[] RelationIdPrefix = Utf8Helper.GetBytes("rId");
-    }
+    public static readonly byte[] RelationIdPrefix = Utf8Helper.GetBytes("rId");
 }

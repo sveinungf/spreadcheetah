@@ -1,11 +1,10 @@
-namespace SpreadCheetah.Helpers
+namespace SpreadCheetah.Helpers;
+
+internal static class SpanHelper
 {
-    internal static class SpanHelper
+    public static int GetBytes(ReadOnlySpan<byte> source, Span<byte> destination)
     {
-        public static int GetBytes(ReadOnlySpan<byte> source, Span<byte> destination)
-        {
-            source.CopyTo(destination);
-            return source.Length;
-        }
+        source.CopyTo(destination);
+        return source.Length;
     }
 }
