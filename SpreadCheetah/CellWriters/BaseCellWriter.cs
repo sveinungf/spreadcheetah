@@ -1,4 +1,5 @@
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Worksheets;
 
 namespace SpreadCheetah.CellWriters;
 
@@ -21,7 +22,26 @@ internal abstract class BaseCellWriter<T>
     {
         // Assuming previous actions on the worksheet ensured space in the buffer for row start
         Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, Buffer.GetNextSpan()));
+        return TryAddRowCells(cells, out currentListIndex);
+    }
 
+    public bool TryAddRow(IList<T> cells, int rowIndex, RowOptions options, out bool rowStartWritten, out int currentListIndex)
+    {
+        rowStartWritten = false;
+        currentListIndex = 0;
+
+        // Need to check if buffer has enough space. Previous actions only ensure space for a basic row (a row with no options set).
+        if (CellRowHelper.ConfiguredRowStartMaxByteCount > Buffer.GetRemainingBuffer())
+            return false;
+
+        Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, options, Buffer.GetNextSpan()));
+        rowStartWritten = true;
+
+        return TryAddRowCells(cells, out currentListIndex);
+    }
+
+    private bool TryAddRowCells(IList<T> cells, out int currentListIndex)
+    {
         for (currentListIndex = 0; currentListIndex < cells.Count; ++currentListIndex)
         {
             // Write cell if it fits in the buffer
@@ -29,7 +49,7 @@ internal abstract class BaseCellWriter<T>
                 return false;
         }
 
-        // Also ensuring space in the buffer for the next row start, so that we don't need to check space in the buffer twice
+        // Also ensuring space in the buffer for starting another basic row, so that we might not need to check space in the buffer twice.
         if (CellRowHelper.RowEnd.Length + CellRowHelper.BasicRowStartMaxByteCount > Buffer.GetRemainingBuffer())
             return false;
 
@@ -41,7 +61,22 @@ internal abstract class BaseCellWriter<T>
     {
         // If we get here that means that the next cell didn't fit in the buffer, so just flush right away
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        await AddRowCellsAsync(cells, currentIndex, stream, token).ConfigureAwait(false);
+    }
 
+    public async ValueTask AddRowAsync(IList<T> cells, int rowIndex, RowOptions options, bool rowStartWritten, int currentCellIndex, Stream stream, CancellationToken token)
+    {
+        // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
+        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+
+        if (!rowStartWritten)
+            Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, options, Buffer.GetNextSpan()));
+
+        await AddRowCellsAsync(cells, currentCellIndex, stream, token).ConfigureAwait(false);
+    }
+
+    private async ValueTask AddRowCellsAsync(IList<T> cells, int currentIndex, Stream stream, CancellationToken token)
+    {
         for (var i = currentIndex; i < cells.Count; ++i)
         {
             var cell = cells[i];

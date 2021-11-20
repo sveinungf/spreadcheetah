@@ -16,6 +16,12 @@ internal static class Utf8Helper
         return bytesWritten;
     }
 
+    public static int GetBytes(double number, Span<byte> destination)
+    {
+        Utf8Formatter.TryFormat(number, destination, out var bytesWritten);
+        return bytesWritten;
+    }
+
 #if NETSTANDARD2_0
     public static unsafe int GetBytes(string chars, Span<byte> bytes, bool assertSize = true)
     {

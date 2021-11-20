@@ -123,6 +123,18 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Adds a row of cells to the worksheet and increments the current row number by 1.
     /// </summary>
+    public ValueTask AddRowAsync(IList<Cell> cells, RowOptions? options, CancellationToken token = default)
+    {
+        if (options is null) return AddRowAsync(cells, token);
+        EnsureCanAddRows(cells);
+        return _worksheet!.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
+            ? default
+            : _worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, token);
+    }
+
+    /// <summary>
+    /// Adds a row of cells to the worksheet and increments the current row number by 1.
+    /// </summary>
     public ValueTask AddRowAsync(IList<DataCell> cells, CancellationToken token = default)
     {
         EnsureCanAddRows(cells);
@@ -134,12 +146,36 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Adds a row of cells to the worksheet and increments the current row number by 1.
     /// </summary>
+    public ValueTask AddRowAsync(IList<DataCell> cells, RowOptions? options, CancellationToken token = default)
+    {
+        if (options is null) return AddRowAsync(cells, token);
+        EnsureCanAddRows(cells);
+        return _worksheet!.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
+            ? default
+            : _worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, token);
+    }
+
+    /// <summary>
+    /// Adds a row of cells to the worksheet and increments the current row number by 1.
+    /// </summary>
     public ValueTask AddRowAsync(IList<StyledCell> cells, CancellationToken token = default)
     {
         EnsureCanAddRows(cells);
         return _worksheet!.TryAddRow(cells, out var currentIndex)
             ? default
             : _worksheet.AddRowAsync(cells, currentIndex, token);
+    }
+
+    /// <summary>
+    /// Adds a row of cells to the worksheet and increments the current row number by 1.
+    /// </summary>
+    public ValueTask AddRowAsync(IList<StyledCell> cells, RowOptions? options, CancellationToken token = default)
+    {
+        if (options is null) return AddRowAsync(cells, token);
+        EnsureCanAddRows(cells);
+        return _worksheet!.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
+            ? default
+            : _worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, token);
     }
 
     private void EnsureCanAddRows<T>(IList<T> cells)
