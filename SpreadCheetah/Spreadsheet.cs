@@ -6,6 +6,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -92,7 +93,7 @@ namespace SpreadCheetah
             if (name.IndexOfAny(InvalidSheetNameChars) != -1)
                 throw new ArgumentException("The name can not contain any of the following characters: " + InvalidSheetNameCharString, nameof(name));
 
-            if (_worksheetNames.Contains(name))
+            if (_worksheetNames.Contains(name, StringComparer.OrdinalIgnoreCase))
                 throw new ArgumentException("A worksheet with the given name already exists.", nameof(name));
 
             if (_finished)

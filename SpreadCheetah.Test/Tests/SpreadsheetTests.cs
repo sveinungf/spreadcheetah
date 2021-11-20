@@ -122,15 +122,21 @@ namespace SpreadCheetah.Test.Tests
         }
 
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task Spreadsheet_StartWorksheet_ThrowsOnDuplicateName(bool duplicateName)
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public async Task Spreadsheet_StartWorksheet_ThrowsOnDuplicateName(bool duplicateName, bool sameCasing)
         {
             // Arrange
             const string name = "Sheet";
             await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
             await spreadsheet.StartWorksheetAsync(name);
-            var nextName = duplicateName ? name : "Sheet 2";
+            var nextName = duplicateName switch
+            {
+                true when sameCasing => name,
+                true when !sameCasing => name.ToUpperInvariant(),
+                _ => "Sheet 2"
+            };
 
             // Act
             var exception = await Record.ExceptionAsync(async () => await spreadsheet.StartWorksheetAsync(nextName));
