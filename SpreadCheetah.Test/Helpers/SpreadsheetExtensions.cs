@@ -8,27 +8,19 @@ internal static class SpreadsheetExtensions
 
     public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, StyledCell cell) => spreadsheet.AddRowAsync(new[] { cell });
 
-    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, object obj)
+    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, object obj) => obj switch
     {
-        if (obj is Cell cell)
-            return spreadsheet.AddRowAsync(cell);
-        if (obj is DataCell dataCell)
-            return spreadsheet.AddRowAsync(dataCell);
-        if (obj is StyledCell styledCell)
-            return spreadsheet.AddRowAsync(styledCell);
+        Cell cell => spreadsheet.AddRowAsync(cell),
+        DataCell dataCell => spreadsheet.AddRowAsync(dataCell),
+        StyledCell styledCell => spreadsheet.AddRowAsync(styledCell),
+        _ => throw new ArgumentOutOfRangeException(nameof(obj), obj, null)
+    };
 
-        throw new ArgumentOutOfRangeException(nameof(obj), obj, null);
-    }
-
-    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, IList<object> obj)
+    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, IList<object> obj) => obj[0] switch
     {
-        if (obj[0] is Cell)
-            return spreadsheet.AddRowAsync(obj.Cast<Cell>().ToList());
-        if (obj[0] is DataCell)
-            return spreadsheet.AddRowAsync(obj.Cast<DataCell>().ToList());
-        if (obj[0] is StyledCell)
-            return spreadsheet.AddRowAsync(obj.Cast<StyledCell>().ToList());
-
-        throw new ArgumentOutOfRangeException(nameof(obj), obj, null);
-    }
+        Cell => spreadsheet.AddRowAsync(obj.Cast<Cell>().ToList()),
+        DataCell => spreadsheet.AddRowAsync(obj.Cast<DataCell>().ToList()),
+        StyledCell => spreadsheet.AddRowAsync(obj.Cast<StyledCell>().ToList()),
+        _ => throw new ArgumentOutOfRangeException(nameof(obj), obj, null)
+    };
 }
