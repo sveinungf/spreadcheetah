@@ -1,18 +1,20 @@
+using SpreadCheetah.Worksheets;
+
 namespace SpreadCheetah.Test.Helpers;
 
 internal static class SpreadsheetExtensions
 {
-    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, Cell cell) => spreadsheet.AddRowAsync(new[] { cell });
+    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, Cell cell, RowOptions? options = null) => spreadsheet.AddRowAsync(new[] { cell }, options);
 
-    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, DataCell cell) => spreadsheet.AddRowAsync(new[] { cell });
+    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, DataCell cell, RowOptions? options = null) => spreadsheet.AddRowAsync(new[] { cell }, options);
 
-    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, StyledCell cell) => spreadsheet.AddRowAsync(new[] { cell });
+    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, StyledCell cell, RowOptions? options = null) => spreadsheet.AddRowAsync(new[] { cell }, options);
 
-    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, object obj) => obj switch
+    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, object obj, RowOptions? options = null) => obj switch
     {
-        Cell cell => spreadsheet.AddRowAsync(cell),
-        DataCell dataCell => spreadsheet.AddRowAsync(dataCell),
-        StyledCell styledCell => spreadsheet.AddRowAsync(styledCell),
+        Cell cell => spreadsheet.AddRowAsync(cell, options),
+        DataCell dataCell => spreadsheet.AddRowAsync(dataCell, options),
+        StyledCell styledCell => spreadsheet.AddRowAsync(styledCell, options),
         _ => throw new ArgumentOutOfRangeException(nameof(obj), obj, null)
     };
 

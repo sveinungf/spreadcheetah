@@ -2,6 +2,7 @@ using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using SpreadCheetah.Test.Helpers;
+using SpreadCheetah.Worksheets;
 using System.Globalization;
 using Xunit;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
@@ -401,5 +402,36 @@ public class SpreadsheetRowTests
         var worksheet = workbook.Worksheets.Single();
         var actualValues = worksheet.Cells(true).Select(x => x.Value).ToList();
         Assert.Equal(values, actualValues);
+    }
+
+    public static IEnumerable<object?[]> RowHeights() => TestData.CombineWithCellTypes(
+        0.1,
+        10,
+        123.456,
+        409,
+        null);
+
+    [Theory]
+    [MemberData(nameof(RowHeights))]
+    public async Task Spreadsheet_AddRow_RowHeight(double? height, Type type)
+    {
+        // Arrange
+        var rowOptions = new RowOptions { Height = height };
+        var expectedHeight = height ?? 15;
+
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.AddRowAsync(CellFactory.Create(type, "My value"), rowOptions);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualHeight = worksheet.Row(1).Height;
+        Assert.Equal(expectedHeight, actualHeight, 5);
     }
 }
