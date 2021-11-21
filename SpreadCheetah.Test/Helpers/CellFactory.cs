@@ -4,109 +4,74 @@ namespace SpreadCheetah.Test.Helpers;
 
 internal static class CellFactory
 {
-    public static object CreateWithoutValue(Type type)
+    public static object CreateWithoutValue(Type type) => type switch
     {
-        if (type == typeof(Cell))
-            return new Cell();
-        if (type == typeof(DataCell))
-            return new DataCell();
-        if (type == typeof(StyledCell))
-            return new StyledCell();
+        _ when type == typeof(Cell) => new Cell(),
+        _ when type == typeof(DataCell) => new DataCell(),
+        _ when type == typeof(StyledCell) => new StyledCell(),
+        _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+    };
 
-        throw new ArgumentOutOfRangeException(nameof(type), type, null);
-    }
-
-    public static object Create(Type type, string? value)
+    public static object Create(Type type, string? value) => type switch
     {
-        if (type == typeof(Cell))
-            return new Cell(value, null);
-        if (type == typeof(DataCell))
-            return new DataCell(value);
-        if (type == typeof(StyledCell))
-            return new StyledCell(value, null);
+        _ when type == typeof(Cell) => new Cell(value, null),
+        _ when type == typeof(DataCell) => new DataCell(value),
+        _ when type == typeof(StyledCell) => new StyledCell(value, null),
+        _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+    };
 
-        throw new ArgumentOutOfRangeException(nameof(type), type, null);
-    }
-
-    public static object Create(Type type, int? value)
+    public static object Create(Type type, int? value) => type switch
     {
-        if (type == typeof(Cell))
-            return new Cell(value, null);
-        if (type == typeof(DataCell))
-            return new DataCell(value);
-        if (type == typeof(StyledCell))
-            return new StyledCell(value, null);
+        _ when type == typeof(Cell) => new Cell(value, null),
+        _ when type == typeof(DataCell) => new DataCell(value),
+        _ when type == typeof(StyledCell) => new StyledCell(value, null),
+        _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+    };
 
-        throw new ArgumentOutOfRangeException(nameof(type), type, null);
-    }
-
-    public static object Create(Type type, long? value)
+    public static object Create(Type type, long? value) => type switch
     {
-        if (type == typeof(Cell))
-            return new Cell(value, null);
-        if (type == typeof(DataCell))
-            return new DataCell(value);
-        if (type == typeof(StyledCell))
-            return new StyledCell(value, null);
+        _ when type == typeof(Cell) => new Cell(value, null),
+        _ when type == typeof(DataCell) => new DataCell(value),
+        _ when type == typeof(StyledCell) => new StyledCell(value, null),
+        _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+    };
 
-        throw new ArgumentOutOfRangeException(nameof(type), type, null);
-    }
-
-    public static object Create(Type type, float? value)
+    public static object Create(Type type, float? value) => type switch
     {
-        if (type == typeof(Cell))
-            return new Cell(value, null);
-        if (type == typeof(DataCell))
-            return new DataCell(value);
-        if (type == typeof(StyledCell))
-            return new StyledCell(value, null);
+        _ when type == typeof(Cell) => new Cell(value, null),
+        _ when type == typeof(DataCell) => new DataCell(value),
+        _ when type == typeof(StyledCell) => new StyledCell(value, null),
+        _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+    };
 
-        throw new ArgumentOutOfRangeException(nameof(type), type, null);
-    }
-
-    public static object Create(Type type, double? value)
+    public static object Create(Type type, double? value) => type switch
     {
-        if (type == typeof(Cell))
-            return new Cell(value, null);
-        if (type == typeof(DataCell))
-            return new DataCell(value);
-        if (type == typeof(StyledCell))
-            return new StyledCell(value, null);
+        _ when type == typeof(Cell) => new Cell(value, null),
+        _ when type == typeof(DataCell) => new DataCell(value),
+        _ when type == typeof(StyledCell) => new StyledCell(value, null),
+        _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+    };
 
-        throw new ArgumentOutOfRangeException(nameof(type), type, null);
-    }
-
-    public static object Create(Type type, decimal? value)
+    public static object Create(Type type, decimal? value) => type switch
     {
-        if (type == typeof(Cell))
-            return new Cell(value, null);
-        if (type == typeof(DataCell))
-            return new DataCell(value);
-        if (type == typeof(StyledCell))
-            return new StyledCell(value, null);
+        _ when type == typeof(Cell) => new Cell(value, null),
+        _ when type == typeof(DataCell) => new DataCell(value),
+        _ when type == typeof(StyledCell) => new StyledCell(value, null),
+        _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+    };
 
-        throw new ArgumentOutOfRangeException(nameof(type), type, null);
-    }
-
-    public static object Create(Type type, bool? value)
+    public static object Create(Type type, bool? value) => type switch
     {
-        if (type == typeof(Cell))
-            return new Cell(value, null);
-        if (type == typeof(DataCell))
-            return new DataCell(value);
-        if (type == typeof(StyledCell))
-            return new StyledCell(value, null);
+        _ when type == typeof(Cell) => new Cell(value, null),
+        _ when type == typeof(DataCell) => new DataCell(value),
+        _ when type == typeof(StyledCell) => new StyledCell(value, null),
+        _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+    };
 
-        throw new ArgumentOutOfRangeException(nameof(type), type, null);
-    }
-
-    public static object Create(Type type, string? value, StyleId? styleId)
+    public static object Create(Type type, string? value, StyleId? styleId) => type switch
     {
-        if (type == typeof(Cell))
-            return new Cell(value, styleId);
-        if (type == typeof(StyledCell))
-            return new StyledCell(value, styleId);
-
-        throw new ArgumentOutOfRangeException(nameof(type), type, null);
-    }
+        _ when type == typeof(Cell) => new Cell(value, styleId),
+        _ when type == typeof(StyledCell) => new StyledCell(value, styleId),
+        _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+    };
 }
