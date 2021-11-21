@@ -7,7 +7,7 @@ public class ColumnOptions
 {
     /// <summary>
     /// The width of the column. The number represents how many characters can be displayed in the standard font.
-    /// Must be between 0 and 255.
+    /// Must be between 0 and 255. When not set Excel will default to 8.43.
     /// </summary>
     public double? Width
     {
