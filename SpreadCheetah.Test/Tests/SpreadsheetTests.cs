@@ -179,11 +179,15 @@ public class SpreadsheetTests
     [InlineData(10)]
     [InlineData(100)]
     [InlineData(255)]
-    public async Task Spreadsheet_StartWorksheet_ColumnWidth(double width)
+    [InlineData(null)]
+    public async Task Spreadsheet_StartWorksheet_ColumnWidth(double? width)
     {
         // Arrange
         var worksheetOptions = new WorksheetOptions();
         worksheetOptions.Column(1).Width = width;
+        const double defaultWidthInExcelUi = 8.43;
+        const double defaultWidthInXml = defaultWidthInExcelUi + 0.71062;
+        var expectedWidth = width ?? defaultWidthInXml;
 
         using var stream = new MemoryStream();
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
@@ -198,7 +202,7 @@ public class SpreadsheetTests
         using var package = new ExcelPackage(stream);
         var worksheet = package.Workbook.Worksheets.Single();
         var actualWidth = worksheet.Column(1).Width;
-        Assert.Equal(width, actualWidth, 5);
+        Assert.Equal(expectedWidth, actualWidth, 5);
     }
 
     [Theory]

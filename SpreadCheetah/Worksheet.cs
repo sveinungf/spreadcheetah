@@ -37,19 +37,25 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public async ValueTask WriteHeadAsync(WorksheetOptions? options, CancellationToken token)
     {
         _buffer.Advance(Utf8Helper.GetBytes(SheetHeader, _buffer.GetNextSpan()));
-        if (options == null)
+        if (options is null)
         {
             _buffer.Advance(Utf8Helper.GetBytes(SheetDataBegin, _buffer.GetNextSpan()));
             return;
         }
 
-        _buffer.Advance(Utf8Helper.GetBytes(ColsBegin, _buffer.GetNextSpan()));
-
+        var firstColumnWritten = false;
         var sb = new StringBuilder();
         foreach (var keyValuePair in options.ColumnOptions)
         {
             var column = keyValuePair.Value;
-            if (column.Width == null) continue;
+            if (column.Width is null)
+                continue;
+
+            if (!firstColumnWritten)
+            {
+                _buffer.Advance(Utf8Helper.GetBytes(ColsBegin, _buffer.GetNextSpan()));
+                firstColumnWritten = true;
+            }
 
             sb.Clear();
             sb.Append("<col min=\"");
@@ -61,6 +67,13 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
             sb.Append("\" customWidth=\"1\" />");
 
             await _buffer.WriteAsciiStringAsync(sb.ToString(), _stream, token).ConfigureAwait(false);
+        }
+
+        // If no columns have a real width set, the <cols> tag should not be written.
+        if (!firstColumnWritten)
+        {
+            _buffer.Advance(Utf8Helper.GetBytes(SheetDataBegin, _buffer.GetNextSpan()));
+            return;
         }
 
         await _buffer.WriteAsciiStringAsync(ColsEndSheetDataBegin, _stream, token).ConfigureAwait(false);
