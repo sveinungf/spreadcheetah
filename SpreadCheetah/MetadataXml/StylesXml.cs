@@ -194,10 +194,11 @@ internal static class StylesXml
 
         sb.Append("<sz val=\"").AppendDouble(font.Size).Append("\"/>");
 
-        if (font.Color != null)
+        if (font.Color is not null)
             sb.Append("<color rgb=\"").Append(HexString(font.Color.Value)).Append("\"/>");
 
-        sb.Append("<name val=\"Calibri\"/></font>");
+        var fontName = font.Name ?? "Calibri";
+        sb.Append("<name val=\"").Append(fontName).Append("\"/></font>");
     }
 
     private static void AppendFill(this StringBuilder sb, Fill fill)

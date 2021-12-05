@@ -270,12 +270,49 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(color, actualCell.Style.Fill.BackgroundColor.Color);
     }
 
+    public static IEnumerable<object?[]> FontNames() => TestData.CombineWithStyledCellTypes(
+        "Arial",
+        "SimSun-ExtB",
+        "Times New Roman",
+        null);
+
+    [Theory]
+    [MemberData(nameof(FontNames))]
+    public async Task Spreadsheet_AddRow_FontNameCellWithStringValue(string? fontName, Type type)
+    {
+        // Arrange
+        const string cellValue = "Font name test";
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var style = new Style();
+            style.Font.Name = fontName;
+            var styleId = spreadsheet.AddStyle(style);
+            var styledCell = CellFactory.Create(type, cellValue, styleId);
+
+            // Act
+            await spreadsheet.AddRowAsync(styledCell);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.Equal(cellValue, actualCell.Value);
+        Assert.Equal(fontName ?? "Calibri", actualCell.Style.Font.FontName);
+    }
+
     [Theory]
     [MemberData(nameof(TrueAndFalse))]
     public async Task Spreadsheet_AddRow_MultiFormatCellWithStringValue(bool formatting, Type type)
     {
         // Arrange
         const string cellValue = "Formatting test";
+        var fontName = formatting ? "Arial" : null;
         var fillColor = formatting ? Color.Green as Color? : null;
         var fontColor = formatting ? Color.Red as Color? : null;
         using var stream = new MemoryStream();
@@ -288,6 +325,7 @@ public class SpreadsheetStyledRowTests
             style.Font.Bold = formatting;
             style.Font.Color = fontColor;
             style.Font.Italic = formatting;
+            style.Font.Name = fontName;
             style.Font.Strikethrough = formatting;
             var styleId = spreadsheet.AddStyle(style);
             var styledCell = CellFactory.Create(type, cellValue, styleId);
@@ -306,6 +344,7 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(formatting, actualCell.Style.Fill.BackgroundColor.Color == fillColor);
         Assert.Equal(formatting, actualCell.Style.Font.Bold);
         Assert.Equal(formatting, actualCell.Style.Font.FontColor.Color == fontColor);
+        Assert.Equal(formatting, string.Equals(actualCell.Style.Font.FontName, fontName, StringComparison.Ordinal));
         Assert.Equal(formatting, actualCell.Style.Font.Italic);
         Assert.Equal(formatting, actualCell.Style.Font.Strikethrough);
     }

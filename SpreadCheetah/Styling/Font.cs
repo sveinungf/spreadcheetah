@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Net;
 
 namespace SpreadCheetah.Styling;
 
@@ -7,6 +8,15 @@ namespace SpreadCheetah.Styling;
 /// </summary>
 public sealed class Font : IEquatable<Font>
 {
+    private string? _name;
+
+    /// <summary>Font name. Defaults to Calibri.</summary>
+    public string? Name
+    {
+        get => _name;
+        set => _name = WebUtility.HtmlEncode(value);
+    }
+
     /// <summary>Bold font weight. Defaults to <c>false</c>.</summary>
     public bool Bold { get; set; }
 
@@ -24,6 +34,7 @@ public sealed class Font : IEquatable<Font>
 
     /// <inheritdoc/>
     public bool Equals(Font? other) => other != null
+        && string.Equals(Name, other.Name, StringComparison.Ordinal)
         && Bold == other.Bold && Italic == other.Italic && Strikethrough == other.Strikethrough
         && Size == other.Size
         && EqualityComparer<Color?>.Default.Equals(Color, other.Color);
@@ -32,5 +43,5 @@ public sealed class Font : IEquatable<Font>
     public override bool Equals(object? obj) => obj is Font other && Equals(other);
 
     /// <inheritdoc/>
-    public override int GetHashCode() => HashCode.Combine(Bold, Italic, Strikethrough, Size, Color);
+    public override int GetHashCode() => HashCode.Combine(Name, Bold, Italic, Strikethrough, Size, Color);
 }
