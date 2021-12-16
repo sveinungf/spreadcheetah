@@ -40,7 +40,28 @@ internal abstract class BaseCellWriter<T>
         return TryAddRowCells(cells, out currentListIndex);
     }
 
-    private bool TryAddRowCells(IList<T> cells, out int currentListIndex)
+    private bool TryAddRowCells(IList<T> cells, out int currentListIndex) => cells switch
+    {
+        T[] cellArray => TryAddRowCellsForSpan(cellArray, out currentListIndex),
+#if NET5_0_OR_GREATER
+        List<T> cellList => TryAddRowCellsForSpan(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(cellList), out currentListIndex),
+#endif
+        _ => TryAddRowCellsForList(cells, out currentListIndex)
+    };
+
+    private bool TryAddRowCellsForSpan(ReadOnlySpan<T> cells, out int currentListIndex)
+    {
+        for (currentListIndex = 0; currentListIndex < cells.Length; ++currentListIndex)
+        {
+            // Write cell if it fits in the buffer
+            if (!TryWriteCell(cells[currentListIndex], out _))
+                return false;
+        }
+
+        return WriteRowEnd();
+    }
+
+    private bool TryAddRowCellsForList(IList<T> cells, out int currentListIndex)
     {
         for (currentListIndex = 0; currentListIndex < cells.Count; ++currentListIndex)
         {
@@ -49,6 +70,11 @@ internal abstract class BaseCellWriter<T>
                 return false;
         }
 
+        return WriteRowEnd();
+    }
+
+    private bool WriteRowEnd()
+    {
         // Also ensuring space in the buffer for starting another basic row, so that we might not need to check space in the buffer twice.
         if (CellRowHelper.RowEnd.Length + CellRowHelper.BasicRowStartMaxByteCount > Buffer.GetRemainingBuffer())
             return false;
