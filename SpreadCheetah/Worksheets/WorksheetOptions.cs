@@ -7,8 +7,9 @@ namespace SpreadCheetah.Worksheets;
 /// </summary>
 public class WorksheetOptions
 {
-    private int? _frozenColumns;
-
+    /// <summary>
+    /// The number of left-most columns that should be frozen.
+    /// </summary>
     public int? FrozenColumns
     {
         get => _frozenColumns;
@@ -17,8 +18,11 @@ public class WorksheetOptions
             : value;
     }
 
-    private int? _frozenRows;
+    private int? _frozenColumns;
 
+    /// <summary>
+    /// The number of top-most rows that should be frozen.
+    /// </summary>
     public int? FrozenRows
     {
         get => _frozenRows;
@@ -26,6 +30,8 @@ public class WorksheetOptions
             ? throw new ArgumentOutOfRangeException(nameof(value), value, $"Number of frozen rows must be between 1 and {SpreadsheetConstants.MaxNumberOfRows}")
             : value;
     }
+
+    private int? _frozenRows;
 
     internal SortedDictionary<int, ColumnOptions> ColumnOptions { get; } = new SortedDictionary<int, ColumnOptions>();
 
