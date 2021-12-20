@@ -60,12 +60,12 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         sb.Append("<sheetViews><sheetView workbookViewId=\"0\"><pane ");
 
         if (options.FrozenColumns is not null)
-            sb.Append("xSplit=\"").Append(options.FrozenColumns.Value);
+            sb.Append("xSplit=\"").Append(options.FrozenColumns.Value).Append("\" ");
 
         if (options.FrozenRows is not null)
-            sb.Append("ySplit=\"").Append(options.FrozenRows.Value);
+            sb.Append("ySplit=\"").Append(options.FrozenRows.Value).Append("\" ");
 
-        sb.Append("\" topLeftCell=\"");
+        sb.Append("topLeftCell=\"");
         sb.AppendColumnName((options.FrozenColumns ?? 0) + 1);
         sb.Append((options.FrozenRows ?? 0) + 1);
         sb.Append("\" activePane=\"");
