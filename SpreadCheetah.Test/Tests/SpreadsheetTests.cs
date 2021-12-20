@@ -206,6 +206,71 @@ public class SpreadsheetTests
     }
 
     [Theory]
+    [InlineData(1, null)]
+    [InlineData(3, null)]
+    [InlineData(null, 1)]
+    [InlineData(null, 5)]
+    [InlineData(1, 2)]
+    [InlineData(5, 4)]
+    public async Task Spreadsheet_StartWorksheet_Freezing(int? columns, int? rows)
+    {
+        // Arrange
+        var worksheetOptions = new WorksheetOptions
+        {
+            FrozenColumns = columns,
+            FrozenRows = rows
+        };
+
+        var expectedColumnName = CellReferenceHelper.GetExcelColumnName((columns ?? 0) + 1);
+        var expectedCellReference = $"{expectedColumnName}{(rows ?? 0) + 1}";
+        var expectedActivePane = columns switch
+        {
+            not null when rows is not null => PaneValues.BottomRight,
+            not null => PaneValues.TopRight,
+            _ => PaneValues.BottomLeft
+        };
+
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            // Act
+            await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var actual = SpreadsheetDocument.Open(stream, true);
+        var worksheet = actual.WorkbookPart!.WorksheetParts.Select(x => x.Worksheet).Single();
+        var sheetView = worksheet.SheetViews.Cast<SheetView>().Single();
+        Assert.Equal(PaneStateValues.Frozen, sheetView.Pane!.State!.Value);
+        Assert.Equal(columns, (int?)sheetView.Pane.HorizontalSplit?.Value);
+        Assert.Equal(rows, (int?)sheetView.Pane.VerticalSplit?.Value);
+        Assert.Equal(expectedCellReference, sheetView.Pane.TopLeftCell?.Value);
+        Assert.Equal(expectedActivePane, sheetView.Pane.ActivePane?.Value);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_StartWorksheet_NoFreezing()
+    {
+        // Arrange
+        var worksheetOptions = new WorksheetOptions();
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            // Act
+            await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var actual = SpreadsheetDocument.Open(stream, true);
+        var worksheet = actual.WorkbookPart!.WorksheetParts.Select(x => x.Worksheet).Single();
+        Assert.Null(worksheet.SheetViews);
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task Spreadsheet_StartWorksheet_ThrowsWhenHasFinished(bool hasFinished)
