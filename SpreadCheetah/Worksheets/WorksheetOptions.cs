@@ -1,3 +1,5 @@
+using SpreadCheetah.Helpers;
+
 namespace SpreadCheetah.Worksheets;
 
 /// <summary>
@@ -5,6 +7,26 @@ namespace SpreadCheetah.Worksheets;
 /// </summary>
 public class WorksheetOptions
 {
+    private int? _frozenColumns;
+
+    public int? FrozenColumns
+    {
+        get => _frozenColumns;
+        set => _frozenColumns = value is < 1 or > SpreadsheetConstants.MaxNumberOfColumns
+            ? throw new ArgumentOutOfRangeException(nameof(value), value, $"Number of frozen columns must be between 1 and {SpreadsheetConstants.MaxNumberOfColumns}")
+            : value;
+    }
+
+    private int? _frozenRows;
+
+    public int? FrozenRows
+    {
+        get => _frozenRows;
+        set => _frozenRows = value is < 1 or > SpreadsheetConstants.MaxNumberOfRows
+            ? throw new ArgumentOutOfRangeException(nameof(value), value, $"Number of frozen rows must be between 1 and {SpreadsheetConstants.MaxNumberOfRows}")
+            : value;
+    }
+
     internal SortedDictionary<int, ColumnOptions> ColumnOptions { get; } = new SortedDictionary<int, ColumnOptions>();
 
     /// <summary>

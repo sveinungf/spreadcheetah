@@ -5,7 +5,13 @@ internal static class SpreadsheetConstants
     // We are not expecting more than 9,999 sheets in one file
     public const int SheetCountMaxDigits = 4;
 
-    // The maximum number of rows is limited to 1,048,576 in Excel
+    // Limitation set by the Excel specification
+    public const int MaxNumberOfColumns = 16384;
+
+    // Limitation set by the Excel specification
+    public const int MaxNumberOfRows = 1048576;
+
+    // Number of digits in 'MaxNumberOfRows'
     public const int RowIndexMaxDigits = 7;
 
     // The maximum number of unique cell styles is limited to 65,490 in Excel
