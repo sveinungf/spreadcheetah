@@ -242,7 +242,7 @@ public class SpreadsheetTests
         SpreadsheetAssert.Valid(stream);
         using var actual = SpreadsheetDocument.Open(stream, true);
         var worksheet = actual.WorkbookPart!.WorksheetParts.Select(x => x.Worksheet).Single();
-        var sheetView = worksheet.SheetViews.Cast<SheetView>().Single();
+        var sheetView = worksheet.SheetViews!.Cast<SheetView>().Single();
         Assert.Equal(PaneStateValues.Frozen, sheetView.Pane!.State!.Value);
         Assert.Equal(columns, (int?)sheetView.Pane.HorizontalSplit?.Value);
         Assert.Equal(rows, (int?)sheetView.Pane.VerticalSplit?.Value);
