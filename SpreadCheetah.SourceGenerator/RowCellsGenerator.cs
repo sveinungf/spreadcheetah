@@ -112,35 +112,38 @@ public class RowCellsGenerator : IIncrementalGenerator
         foreach (var info in infos)
         {
             WriteSummary(sb, indent);
-            sb.AppendLine(indent, $"public static ValueTask AddAsRowAsync(this Spreadsheet spreadsheet, {info.ClassType} obj, CancellationToken token = default)");
-            sb.AppendLine(indent, "{");
 
-            GenerateValidateMethodBody(sb, indent + 1, info);
-
-            sb.AppendLine(indent, "}");
+            if (info.PropertyNames.Count == 0)
+                GenerateEmptyArrayMethod(sb, indent, info);
+            else
+                GenerateMethod(sb, indent, info);
         }
     }
 
-    private static void GenerateValidateMethodBody(StringBuilder sb, int indent, ClassPropertiesInfo info)
+    private static void GenerateEmptyArrayMethod(StringBuilder sb, int indent, ClassPropertiesInfo info)
     {
-        if (info.PropertyNames.Count > 0)
+        sb.AppendLine(indent, $"public static ValueTask AddAsRowAsync(this Spreadsheet spreadsheet, {info.ClassType} obj, CancellationToken token = default)");
+        sb.AppendLine(indent, "{");
+        sb.AppendLine(indent, "    var cells = System.Array.Empty<DataCell>();");
+        sb.AppendLine(indent, "    return spreadsheet.AddRowAsync(cells, token);");
+        sb.AppendLine(indent, "}");
+    }
+
+    private static void GenerateMethod(StringBuilder sb, int indent, ClassPropertiesInfo info)
+    {
+        sb.AppendLine(indent, $"public static ValueTask AddAsRowAsync(this Spreadsheet spreadsheet, {info.ClassType} obj, CancellationToken token = default)");
+        sb.AppendLine(indent, "{");
+        sb.AppendLine(indent, "    var cells = new[]");
+        sb.AppendLine(indent, "    {");
+
+        foreach (var propertyName in info.PropertyNames)
         {
-            sb.AppendLine(indent, "var cells = new[]");
-            sb.AppendLine(indent, "{");
-
-            foreach (var propertyName in info.PropertyNames)
-            {
-                sb.AppendLine(indent + 1, $"new DataCell(obj.{propertyName}),");
-            }
-
-            sb.AppendLine(indent, "};");
-        }
-        else
-        {
-            sb.AppendLine(indent, "var cells = System.Array.Empty<DataCell>();");
+            sb.AppendLine(indent + 2, $"new DataCell(obj.{propertyName}),");
         }
 
-        sb.AppendLine(indent, "return spreadsheet.AddRowAsync(cells, token);");
+        sb.AppendLine(indent, "    };");
+        sb.AppendLine(indent, "    return spreadsheet.AddRowAsync(cells, token);");
+        sb.AppendLine(indent, "}");
     }
 
     private static ICollection<ClassPropertiesInfo> GetClassPropertiesInfo(Compilation compilation, IEnumerable<SyntaxNode?> argumentsToValidate, CancellationToken token)
