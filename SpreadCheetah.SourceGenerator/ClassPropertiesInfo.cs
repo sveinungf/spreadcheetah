@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis;
 
 namespace SpreadCheetah.SourceGenerator;
 
-internal class ClassPropertiesInfo
+internal sealed class ClassPropertiesInfo
 {
     public ITypeSymbol ClassType { get; }
     public List<string> PropertyNames { get; }
@@ -70,11 +70,11 @@ internal class ClassPropertiesInfo
 
     private static readonly SpecialType[] SupportedPrimitiveTypes =
     {
-            SpecialType.System_Boolean,
-            SpecialType.System_Decimal,
-            SpecialType.System_Double,
-            SpecialType.System_Int32,
-            SpecialType.System_Int64,
-            SpecialType.System_Single
-        };
+        SpecialType.System_Boolean,
+        SpecialType.System_Decimal,
+        SpecialType.System_Double,
+        SpecialType.System_Int32,
+        SpecialType.System_Int64,
+        SpecialType.System_Single
+    };
 }

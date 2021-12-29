@@ -2,10 +2,10 @@ using Microsoft.CodeAnalysis;
 
 namespace SpreadCheetah.SourceGenerator.Helpers;
 
-internal static class GeneratorExecutionContextExtensions
+internal static class SourceProductionContextExtensions
 {
     public static void ReportDiagnostics(
-        this GeneratorExecutionContext context,
+        this SourceProductionContext context,
         DiagnosticDescriptor descriptor,
         IEnumerable<Location> locations,
         params object?[]? messageArgs)

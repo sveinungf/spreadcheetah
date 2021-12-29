@@ -1,32 +1,61 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using SpreadCheetah.SourceGenerator.Helpers;
+using System.Collections.Immutable;
 using System.Text;
 
 namespace SpreadCheetah.SourceGenerator;
 
 [Generator]
-public class RowCellsGenerator : ISourceGenerator
+public class RowCellsGenerator : IIncrementalGenerator
 {
-    public void Initialize(GeneratorInitializationContext context)
+    public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
+        var filtered = context.SyntaxProvider
+            .CreateSyntaxProvider(
+                static (s, _) => IsSyntaxTargetForGeneration(s),
+                static (ctx, _) => GetSemanticTargetForGeneration(ctx))
+            .Where(static x => x is not null);
+
+        var source = context.CompilationProvider.Combine(filtered.Collect());
+
+        context.RegisterSourceOutput(source, static (spc, source) => Execute(source.Left, source.Right, spc));
     }
 
-    public void Execute(GeneratorExecutionContext context)
+    private static bool IsSyntaxTargetForGeneration(SyntaxNode syntaxNode) => syntaxNode is InvocationExpressionSyntax
     {
-        if (context.SyntaxReceiver is not SyntaxReceiver syntaxReceiver)
-            throw new InvalidOperationException("We were given the wrong syntax receiver.");
+        ArgumentList.Arguments.Count: <= 3,
+        Expression: MemberAccessExpressionSyntax { Name.Identifier.ValueText: "AddAsRowAsync" }
+    };
 
-        var classesToValidate = GetClassPropertiesInfo(context.Compilation, syntaxReceiver.ArgumentsToValidate);
-
-        var sb = new StringBuilder();
-        GenerateValidator(sb, classesToValidate);
-        context.AddSource("SpreadsheetExtensions.cs", sb.ToString());
-
-        ReportDiagnostics(context, classesToValidate);
+    private static ExpressionSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
+    {
+        return context.Node is not InvocationExpressionSyntax invocation
+            ? null
+            : invocation.ArgumentList.Arguments.FirstOrDefault()?.Expression;
     }
 
-    private static void ReportDiagnostics(GeneratorExecutionContext context, IEnumerable<ClassPropertiesInfo> infos)
+    private static void Execute(Compilation compilation, ImmutableArray<ExpressionSyntax?> classes, SourceProductionContext context)
+    {
+        if (classes.IsDefaultOrEmpty)
+            return;
+
+        var distinctClasses = classes.Distinct();
+
+        var classPropertiesInfos = GetClassPropertiesInfo(compilation, distinctClasses, context.CancellationToken);
+
+        if (classPropertiesInfos.Count > 0)
+        {
+            var sb = new StringBuilder();
+            GenerateValidator(sb, classPropertiesInfos);
+            context.AddSource("SpreadsheetExtensions.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
+
+            ReportDiagnostics(context, classPropertiesInfos);
+        }
+    }
+
+    private static void ReportDiagnostics(SourceProductionContext context, IEnumerable<ClassPropertiesInfo> infos)
     {
         foreach (var info in infos)
         {
@@ -49,7 +78,7 @@ public class RowCellsGenerator : ISourceGenerator
         sb.AppendLine("    public static class SpreadsheetExtensions");
         sb.AppendLine("    {");
 
-        var indent = 2;
+        const int indent = 2;
         if (infos.Count == 0)
             WriteStub(sb, indent);
         else
@@ -114,17 +143,20 @@ public class RowCellsGenerator : ISourceGenerator
         sb.AppendLine(indent, "return spreadsheet.AddRowAsync(cells, token);");
     }
 
-    private static ICollection<ClassPropertiesInfo> GetClassPropertiesInfo(Compilation compilation, List<SyntaxNode> argumentsToValidate)
+    private static ICollection<ClassPropertiesInfo> GetClassPropertiesInfo(Compilation compilation, IEnumerable<SyntaxNode?> argumentsToValidate, CancellationToken token)
     {
         var foundTypes = new Dictionary<ITypeSymbol, ClassPropertiesInfo>(SymbolEqualityComparer.Default);
 
         foreach (var argument in argumentsToValidate)
         {
+            token.ThrowIfCancellationRequested();
+
+            if (argument is null) continue;
+
             var semanticModel = compilation.GetSemanticModel(argument.SyntaxTree);
 
-            var classType = semanticModel.GetTypeInfo(argument).Type;
-            if (classType is null)
-                continue;
+            var classType = semanticModel.GetTypeInfo(argument, token).Type;
+            if (classType is null) continue;
 
             if (!foundTypes.TryGetValue(classType, out var info))
             {
