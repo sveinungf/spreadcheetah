@@ -25,6 +25,13 @@ internal abstract class BaseCellWriter<T>
         return TryAddRowCells(cells, out currentListIndex);
     }
 
+    public bool TryAddRow(IList<T> cells, int rowIndex, ref int currentListIndex, int count)
+    {
+        // Assuming previous actions on the worksheet ensured space in the buffer for row start
+        Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, Buffer.GetNextSpan()));
+        return TryAddRowCells(cells, ref currentListIndex, count);
+    }
+
     public bool TryAddRow(IList<T> cells, int rowIndex, RowOptions options, out bool rowStartWritten, out int currentListIndex)
     {
         rowStartWritten = false;
@@ -46,7 +53,16 @@ internal abstract class BaseCellWriter<T>
 #if NET5_0_OR_GREATER
         List<T> cellList => TryAddRowCellsForSpan(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(cellList), out currentListIndex),
 #endif
-        _ => TryAddRowCellsForList(cells, out currentListIndex)
+        _ => TryAddRowCellsForList(cells, 0, cells.Count, out currentListIndex)
+    };
+
+    private bool TryAddRowCells(IList<T> cells, ref int currentListIndex, int count) => cells switch
+    {
+        T[] cellArray => TryAddRowCellsForSpan(cellArray.AsSpan(currentListIndex, count), out currentListIndex),
+#if NET5_0_OR_GREATER
+        List<T> cellList => TryAddRowCellsForSpan(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(cellList).Slice(currentListIndex, count), out currentListIndex),
+#endif
+        _ => TryAddRowCellsForList(cells, currentListIndex, count, out currentListIndex)
     };
 
     private bool TryAddRowCellsForSpan(ReadOnlySpan<T> cells, out int currentListIndex)
@@ -61,9 +77,9 @@ internal abstract class BaseCellWriter<T>
         return WriteRowEnd();
     }
 
-    private bool TryAddRowCellsForList(IList<T> cells, out int currentListIndex)
+    private bool TryAddRowCellsForList(IList<T> cells, int offset, int count, out int currentListIndex)
     {
-        for (currentListIndex = 0; currentListIndex < cells.Count; ++currentListIndex)
+        for (currentListIndex = offset; currentListIndex < count; ++currentListIndex)
         {
             // Write cell if it fits in the buffer
             if (!TryWriteCell(cells[currentListIndex], out _))

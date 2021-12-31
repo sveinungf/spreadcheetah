@@ -120,6 +120,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             : _worksheet.AddRowAsync(cells, currentIndex, token);
     }
 
+    public ValueTask AddRowAsync(IList<Cell> cells, int offset, int count, CancellationToken token = default)
+    {
+        EnsureCanAddRows(cells);
+        return _worksheet!.TryAddRow(cells, ref offset, count)
+            ? default
+            : _worksheet.AddRowAsync(cells, offset, token); // TODO: Take count
+    }
+
     /// <summary>
     /// Adds a row of cells to the worksheet and increments the current row number by 1.
     /// </summary>
@@ -143,6 +151,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             : _worksheet.AddRowAsync(cells, currentIndex, token);
     }
 
+    public ValueTask AddRowAsync(IList<DataCell> cells, int offset, int count, CancellationToken token = default)
+    {
+        EnsureCanAddRows(cells);
+        return _worksheet!.TryAddRow(cells, ref offset, count)
+            ? default
+            : _worksheet.AddRowAsync(cells, offset, token); // TODO: Take count
+    }
+
     /// <summary>
     /// Adds a row of cells to the worksheet and increments the current row number by 1.
     /// </summary>
@@ -164,6 +180,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return _worksheet!.TryAddRow(cells, out var currentIndex)
             ? default
             : _worksheet.AddRowAsync(cells, currentIndex, token);
+    }
+
+    public ValueTask AddRowAsync(IList<StyledCell> cells, int offset, int count, CancellationToken token = default)
+    {
+        EnsureCanAddRows(cells);
+        return _worksheet!.TryAddRow(cells, ref offset, count)
+            ? default
+            : _worksheet.AddRowAsync(cells, offset, token); // TODO: Take count
     }
 
     /// <summary>

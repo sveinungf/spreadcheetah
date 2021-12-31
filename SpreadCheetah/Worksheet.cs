@@ -133,6 +133,12 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         => _dataCellWriter.TryAddRow(cells, _nextRowIndex++, options, out rowStartWritten, out currentIndex);
     public bool TryAddRow(IList<StyledCell> cells, RowOptions options, out bool rowStartWritten, out int currentIndex)
         => _styledCellWriter.TryAddRow(cells, _nextRowIndex++, options, out rowStartWritten, out currentIndex);
+    public bool TryAddRow(IList<Cell> cells, ref int currentIndex, int count)
+        => _cellWriter.TryAddRow(cells, _nextRowIndex++, ref currentIndex, count);
+    public bool TryAddRow(IList<DataCell> cells, ref int currentIndex, int count)
+        => _dataCellWriter.TryAddRow(cells, _nextRowIndex++, ref currentIndex, count);
+    public bool TryAddRow(IList<StyledCell> cells, ref int currentIndex, int count)
+        => _styledCellWriter.TryAddRow(cells, _nextRowIndex++, ref currentIndex, count);
     public ValueTask AddRowAsync(IList<Cell> cells, int startIndex, CancellationToken ct)
         => _cellWriter.AddRowAsync(cells, startIndex, _stream, ct);
     public ValueTask AddRowAsync(IList<DataCell> cells, int startIndex, CancellationToken ct)
@@ -159,7 +165,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         _stream.Dispose();
         return default;
 #else
-            return _stream.DisposeAsync();
+        return _stream.DisposeAsync();
 #endif
     }
 
