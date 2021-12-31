@@ -117,15 +117,16 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         EnsureCanAddRows(cells);
         return _worksheet!.TryAddRow(cells, out var currentIndex)
             ? default
-            : _worksheet.AddRowAsync(cells, currentIndex, token);
+            : _worksheet.AddRowAsync(cells, currentIndex, cells.Count, token);
     }
 
     public ValueTask AddRowAsync(IList<Cell> cells, int offset, int count, CancellationToken token = default)
     {
         EnsureCanAddRows(cells);
-        return _worksheet!.TryAddRow(cells, ref offset, count)
+        var currentIndex = offset;
+        return _worksheet!.TryAddRow(cells, ref currentIndex, count)
             ? default
-            : _worksheet.AddRowAsync(cells, offset, token); // TODO: Take count
+            : _worksheet.AddRowAsync(cells, currentIndex, offset + count, token);
     }
 
     /// <summary>
@@ -137,7 +138,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         EnsureCanAddRows(cells);
         return _worksheet!.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
             ? default
-            : _worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, token);
+            : _worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, cells.Count, token);
     }
 
     /// <summary>
@@ -148,15 +149,16 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         EnsureCanAddRows(cells);
         return _worksheet!.TryAddRow(cells, out var currentIndex)
             ? default
-            : _worksheet.AddRowAsync(cells, currentIndex, token);
+            : _worksheet.AddRowAsync(cells, currentIndex, cells.Count, token);
     }
 
     public ValueTask AddRowAsync(IList<DataCell> cells, int offset, int count, CancellationToken token = default)
     {
         EnsureCanAddRows(cells);
-        return _worksheet!.TryAddRow(cells, ref offset, count)
+        var currentIndex = offset;
+        return _worksheet!.TryAddRow(cells, ref currentIndex, count)
             ? default
-            : _worksheet.AddRowAsync(cells, offset, token); // TODO: Take count
+            : _worksheet.AddRowAsync(cells, currentIndex, offset + count, token);
     }
 
     /// <summary>
@@ -168,7 +170,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         EnsureCanAddRows(cells);
         return _worksheet!.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
             ? default
-            : _worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, token);
+            : _worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, cells.Count, token);
     }
 
     /// <summary>
@@ -179,15 +181,16 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         EnsureCanAddRows(cells);
         return _worksheet!.TryAddRow(cells, out var currentIndex)
             ? default
-            : _worksheet.AddRowAsync(cells, currentIndex, token);
+            : _worksheet.AddRowAsync(cells, currentIndex, cells.Count, token);
     }
 
     public ValueTask AddRowAsync(IList<StyledCell> cells, int offset, int count, CancellationToken token = default)
     {
         EnsureCanAddRows(cells);
-        return _worksheet!.TryAddRow(cells, ref offset, count)
+        var currentIndex = offset;
+        return _worksheet!.TryAddRow(cells, ref currentIndex, count)
             ? default
-            : _worksheet.AddRowAsync(cells, offset, token); // TODO: Take count
+            : _worksheet.AddRowAsync(cells, currentIndex, offset + count, token);
     }
 
     /// <summary>
@@ -199,7 +202,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         EnsureCanAddRows(cells);
         return _worksheet!.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
             ? default
-            : _worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, token);
+            : _worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, cells.Count, token);
     }
 
     private void EnsureCanAddRows<T>(IList<T> cells)

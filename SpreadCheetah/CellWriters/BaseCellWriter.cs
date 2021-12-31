@@ -79,7 +79,7 @@ internal abstract class BaseCellWriter<T>
 
     private bool TryAddRowCellsForList(IList<T> cells, int offset, int count, out int currentListIndex)
     {
-        for (currentListIndex = offset; currentListIndex < count; ++currentListIndex)
+        for (currentListIndex = offset; currentListIndex < offset + count; ++currentListIndex)
         {
             // Write cell if it fits in the buffer
             if (!TryWriteCell(cells[currentListIndex], out _))
@@ -99,14 +99,14 @@ internal abstract class BaseCellWriter<T>
         return true;
     }
 
-    public async ValueTask AddRowAsync(IList<T> cells, int currentIndex, Stream stream, CancellationToken token)
+    public async ValueTask AddRowAsync(IList<T> cells, int currentIndex, int endIndex, Stream stream, CancellationToken token)
     {
         // If we get here that means that the next cell didn't fit in the buffer, so just flush right away
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        await AddRowCellsAsync(cells, currentIndex, stream, token).ConfigureAwait(false);
+        await AddRowCellsAsync(cells, currentIndex, endIndex, stream, token).ConfigureAwait(false);
     }
 
-    public async ValueTask AddRowAsync(IList<T> cells, int rowIndex, RowOptions options, bool rowStartWritten, int currentCellIndex, Stream stream, CancellationToken token)
+    public async ValueTask AddRowAsync(IList<T> cells, int rowIndex, RowOptions options, bool rowStartWritten, int currentCellIndex, int endCellIndex, Stream stream, CancellationToken token)
     {
         // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
@@ -114,12 +114,12 @@ internal abstract class BaseCellWriter<T>
         if (!rowStartWritten)
             Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, options, Buffer.GetNextSpan()));
 
-        await AddRowCellsAsync(cells, currentCellIndex, stream, token).ConfigureAwait(false);
+        await AddRowCellsAsync(cells, currentCellIndex, endCellIndex, stream, token).ConfigureAwait(false);
     }
 
-    private async ValueTask AddRowCellsAsync(IList<T> cells, int currentIndex, Stream stream, CancellationToken token)
+    private async ValueTask AddRowCellsAsync(IList<T> cells, int currentIndex, int endIndex, Stream stream, CancellationToken token)
     {
-        for (var i = currentIndex; i < cells.Count; ++i)
+        for (var i = currentIndex; i < endIndex; ++i)
         {
             var cell = cells[i];
 
