@@ -6,9 +6,9 @@ internal sealed class DataCellWriter : BaseCellWriter<DataCell>
     {
     }
 
-    protected override bool TryWriteCell(in DataCell cell, out int bytesNeeded)
+    protected override bool TryWriteCell(in DataCell cell)
     {
-        return cell.Writer.TryWriteCell(cell, Buffer, out bytesNeeded);
+        return cell.Writer.TryWriteCell(cell, Buffer);
     }
 
     protected override bool GetBytes(in DataCell cell, bool assertSize)

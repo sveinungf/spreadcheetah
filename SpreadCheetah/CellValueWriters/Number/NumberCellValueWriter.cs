@@ -71,26 +71,24 @@ internal abstract class NumberCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer, out int bytesNeeded)
+    public override bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer)
     {
-        bytesNeeded = DataCellElementLength + MaxNumberLength;
         var remaining = buffer.GetRemainingBuffer();
-        return bytesNeeded <= remaining && GetBytes(cell, buffer);
+        return DataCellElementLength + MaxNumberLength <= remaining && GetBytes(cell, buffer);
     }
 
-    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer, out int bytesNeeded)
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
-        bytesNeeded = StyledCellElementLength + MaxNumberLength;
         var remaining = buffer.GetRemainingBuffer();
-        return bytesNeeded <= remaining && GetBytes(cell, styleId, buffer);
+        return StyledCellElementLength + MaxNumberLength <= remaining && GetBytes(cell, styleId, buffer);
     }
 
-    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer, out int bytesNeeded)
+    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer)
     {
         var remaining = buffer.GetRemainingBuffer();
 
         // Try with approximate formula text length
-        bytesNeeded = FormulaCellElementLength + MaxNumberLength + formulaText.Length * Utf8Helper.MaxBytePerChar;
+        var bytesNeeded = FormulaCellElementLength + MaxNumberLength + formulaText.Length * Utf8Helper.MaxBytePerChar;
         if (bytesNeeded <= remaining)
             return GetBytes(formulaText, cachedValue, styleId, buffer);
 

@@ -68,12 +68,12 @@ internal sealed class StringCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer, out int bytesNeeded)
+    public override bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer)
     {
         var remaining = buffer.GetRemainingBuffer();
 
         // Try with an approximate cell value length
-        bytesNeeded = DataCellElementLength + cell.StringValue!.Length * Utf8Helper.MaxBytePerChar;
+        var bytesNeeded = DataCellElementLength + cell.StringValue!.Length * Utf8Helper.MaxBytePerChar;
         if (bytesNeeded <= remaining)
             return GetBytes(cell, buffer);
 
@@ -82,12 +82,12 @@ internal sealed class StringCellValueWriter : CellValueWriter
         return bytesNeeded <= remaining && GetBytes(cell, buffer);
     }
 
-    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer, out int bytesNeeded)
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
         var remaining = buffer.GetRemainingBuffer();
 
         // Try with an approximate cell value length
-        bytesNeeded = StyledCellElementLength + cell.StringValue!.Length * Utf8Helper.MaxBytePerChar;
+        var bytesNeeded = StyledCellElementLength + cell.StringValue!.Length * Utf8Helper.MaxBytePerChar;
         if (bytesNeeded <= remaining)
             return GetBytes(cell, styleId, buffer);
 
@@ -96,12 +96,12 @@ internal sealed class StringCellValueWriter : CellValueWriter
         return bytesNeeded <= remaining && GetBytes(cell, styleId, buffer);
     }
 
-    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer, out int bytesNeeded)
+    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer)
     {
         var remaining = buffer.GetRemainingBuffer();
 
         // Try with an approximate cell value and formula text length
-        bytesNeeded = FormulaCellElementLength + (formulaText.Length + cachedValue.StringValue!.Length) * Utf8Helper.MaxBytePerChar;
+        var bytesNeeded = FormulaCellElementLength + (formulaText.Length + cachedValue.StringValue!.Length) * Utf8Helper.MaxBytePerChar;
         if (bytesNeeded <= remaining)
             return GetBytes(formulaText, cachedValue, styleId, buffer);
 

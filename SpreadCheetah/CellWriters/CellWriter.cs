@@ -8,11 +8,11 @@ internal sealed class CellWriter : BaseCellWriter<Cell>
     {
     }
 
-    protected override bool TryWriteCell(in Cell cell, out int bytesNeeded) => cell switch
+    protected override bool TryWriteCell(in Cell cell) => cell switch
     {
-        { Formula: not null } => cell.DataCell.Writer.TryWriteCell(cell.Formula.Value.FormulaText, cell.DataCell, cell.StyleId, Buffer, out bytesNeeded),
-        { StyleId: not null } => cell.DataCell.Writer.TryWriteCell(cell.DataCell, cell.StyleId, Buffer, out bytesNeeded),
-        _ => cell.DataCell.Writer.TryWriteCell(cell.DataCell, Buffer, out bytesNeeded)
+        { Formula: not null } => cell.DataCell.Writer.TryWriteCell(cell.Formula.Value.FormulaText, cell.DataCell, cell.StyleId, Buffer),
+        { StyleId: not null } => cell.DataCell.Writer.TryWriteCell(cell.DataCell, cell.StyleId, Buffer),
+        _ => cell.DataCell.Writer.TryWriteCell(cell.DataCell, Buffer)
     };
 
     protected override bool GetBytes(in Cell cell, bool assertSize) => cell switch

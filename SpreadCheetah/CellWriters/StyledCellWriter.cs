@@ -6,11 +6,11 @@ internal sealed class StyledCellWriter : BaseCellWriter<StyledCell>
     {
     }
 
-    protected override bool TryWriteCell(in StyledCell cell, out int bytesNeeded)
+    protected override bool TryWriteCell(in StyledCell cell)
     {
         return cell.StyleId is null
-            ? cell.DataCell.Writer.TryWriteCell(cell.DataCell, Buffer, out bytesNeeded)
-            : cell.DataCell.Writer.TryWriteCell(cell.DataCell, cell.StyleId, Buffer, out bytesNeeded);
+            ? cell.DataCell.Writer.TryWriteCell(cell.DataCell, Buffer)
+            : cell.DataCell.Writer.TryWriteCell(cell.DataCell, cell.StyleId, Buffer);
     }
 
     protected override bool GetBytes(in StyledCell cell, bool assertSize)

@@ -12,7 +12,7 @@ internal abstract class BaseCellWriter<T>
         Buffer = buffer;
     }
 
-    protected abstract bool TryWriteCell(in T cell, out int bytesNeeded);
+    protected abstract bool TryWriteCell(in T cell);
     protected abstract bool GetBytes(in T cell, bool assertSize);
     protected abstract bool WriteStartElement(in T cell);
     protected abstract bool TryWriteEndElement(in T cell);
@@ -70,7 +70,7 @@ internal abstract class BaseCellWriter<T>
         for (currentListIndex = 0; currentListIndex < cells.Length; ++currentListIndex)
         {
             // Write cell if it fits in the buffer
-            if (!TryWriteCell(cells[currentListIndex], out _))
+            if (!TryWriteCell(cells[currentListIndex]))
                 return false;
         }
 
@@ -82,7 +82,7 @@ internal abstract class BaseCellWriter<T>
         for (currentListIndex = offset; currentListIndex < cells.Count; ++currentListIndex)
         {
             // Write cell if it fits in the buffer
-            if (!TryWriteCell(cells[currentListIndex], out _))
+            if (!TryWriteCell(cells[currentListIndex]))
                 return false;
         }
 
