@@ -11,11 +11,6 @@ internal sealed class DataCellWriter : BaseCellWriter<DataCell>
         return cell.Writer.TryWriteCell(cell, Buffer);
     }
 
-    protected override bool GetBytes(in DataCell cell, bool assertSize)
-    {
-        return cell.Writer.GetBytes(cell, Buffer);
-    }
-
     protected override bool WriteStartElement(in DataCell cell)
     {
         return cell.Writer.WriteStartElement(Buffer);

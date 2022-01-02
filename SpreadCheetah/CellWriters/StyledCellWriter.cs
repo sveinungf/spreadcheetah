@@ -13,13 +13,6 @@ internal sealed class StyledCellWriter : BaseCellWriter<StyledCell>
             : cell.DataCell.Writer.TryWriteCell(cell.DataCell, cell.StyleId, Buffer);
     }
 
-    protected override bool GetBytes(in StyledCell cell, bool assertSize)
-    {
-        return cell.StyleId is null
-            ? cell.DataCell.Writer.GetBytes(cell.DataCell, Buffer)
-            : cell.DataCell.Writer.GetBytes(cell.DataCell, cell.StyleId, Buffer);
-    }
-
     protected override bool WriteStartElement(in StyledCell cell)
     {
         return cell.StyleId is null

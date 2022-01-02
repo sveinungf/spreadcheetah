@@ -13,7 +13,6 @@ internal abstract class BaseCellWriter<T>
     }
 
     protected abstract bool TryWriteCell(in T cell);
-    protected abstract bool GetBytes(in T cell, bool assertSize);
     protected abstract bool WriteStartElement(in T cell);
     protected abstract bool TryWriteEndElement(in T cell);
     protected abstract bool FinishWritingCellValue(in T cell, ref int cellValueIndex);

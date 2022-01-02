@@ -15,13 +15,6 @@ internal sealed class CellWriter : BaseCellWriter<Cell>
         _ => cell.DataCell.Writer.TryWriteCell(cell.DataCell, Buffer)
     };
 
-    protected override bool GetBytes(in Cell cell, bool assertSize) => cell switch
-    {
-        { Formula: not null } => cell.DataCell.Writer.GetBytes(cell.Formula.Value.FormulaText, cell.DataCell, cell.StyleId, Buffer),
-        { StyleId: not null } => cell.DataCell.Writer.GetBytes(cell.DataCell, cell.StyleId, Buffer),
-        _ => cell.DataCell.Writer.GetBytes(cell.DataCell, Buffer)
-    };
-
     protected override bool WriteStartElement(in Cell cell) => cell switch
     {
         { Formula: not null } => cell.DataCell.Writer.WriteFormulaStartElement(cell.StyleId, Buffer),
