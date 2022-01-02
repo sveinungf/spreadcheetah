@@ -109,6 +109,35 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _worksheetPaths.Add(path);
     }
 
+    // TODO: Handle null
+    public ValueTask AddRowAsync(Cell[] cells, CancellationToken token = default) => AddRowAsync(cells.AsMemory(), token);
+    public ValueTask AddRowAsync(DataCell[] cells, CancellationToken token = default) => AddRowAsync(cells.AsMemory(), token);
+    public ValueTask AddRowAsync(StyledCell[] cells, CancellationToken token = default) => AddRowAsync(cells.AsMemory(), token);
+
+    public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, CancellationToken token = default)
+    {
+        ThrowOnNoActiveWorksheet();
+        return _worksheet!.TryAddRow(cells.Span, out var currentIndex)
+            ? default
+            : _worksheet.AddRowAsync(cells.Slice(currentIndex), token);
+    }
+
+    public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, CancellationToken token = default)
+    {
+        ThrowOnNoActiveWorksheet();
+        return _worksheet!.TryAddRow(cells.Span, out var currentIndex)
+            ? default
+            : _worksheet.AddRowAsync(cells.Slice(currentIndex), token);
+    }
+
+    public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, CancellationToken token = default)
+    {
+        ThrowOnNoActiveWorksheet();
+        return _worksheet!.TryAddRow(cells.Span, out var currentIndex)
+            ? default
+            : _worksheet.AddRowAsync(cells.Slice(currentIndex), token);
+    }
+
     /// <summary>
     /// Adds a row of cells to the worksheet and increments the current row number by 1.
     /// </summary>
@@ -117,16 +146,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         EnsureCanAddRows(cells);
         return _worksheet!.TryAddRow(cells, out var currentIndex)
             ? default
-            : _worksheet.AddRowAsync(cells, currentIndex, cells.Count, token);
-    }
-
-    public ValueTask AddRowAsync(IList<Cell> cells, int offset, int count, CancellationToken token = default)
-    {
-        EnsureCanAddRows(cells);
-        var currentIndex = offset;
-        return _worksheet!.TryAddRow(cells, ref currentIndex, count)
-            ? default
-            : _worksheet.AddRowAsync(cells, currentIndex, offset + count, token);
+            : _worksheet.AddRowAsync(cells, currentIndex, token);
     }
 
     /// <summary>
@@ -149,16 +169,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         EnsureCanAddRows(cells);
         return _worksheet!.TryAddRow(cells, out var currentIndex)
             ? default
-            : _worksheet.AddRowAsync(cells, currentIndex, cells.Count, token);
-    }
-
-    public ValueTask AddRowAsync(IList<DataCell> cells, int offset, int count, CancellationToken token = default)
-    {
-        EnsureCanAddRows(cells);
-        var currentIndex = offset;
-        return _worksheet!.TryAddRow(cells, ref currentIndex, count)
-            ? default
-            : _worksheet.AddRowAsync(cells, currentIndex, offset + count, token);
+            : _worksheet.AddRowAsync(cells, currentIndex, token);
     }
 
     /// <summary>
@@ -181,16 +192,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         EnsureCanAddRows(cells);
         return _worksheet!.TryAddRow(cells, out var currentIndex)
             ? default
-            : _worksheet.AddRowAsync(cells, currentIndex, cells.Count, token);
-    }
-
-    public ValueTask AddRowAsync(IList<StyledCell> cells, int offset, int count, CancellationToken token = default)
-    {
-        EnsureCanAddRows(cells);
-        var currentIndex = offset;
-        return _worksheet!.TryAddRow(cells, ref currentIndex, count)
-            ? default
-            : _worksheet.AddRowAsync(cells, currentIndex, offset + count, token);
+            : _worksheet.AddRowAsync(cells, currentIndex, token);
     }
 
     /// <summary>
@@ -209,6 +211,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         if (cells is null)
             throw new ArgumentNullException(nameof(cells));
+
+        ThrowOnNoActiveWorksheet();
+    }
+
+    private void ThrowOnNoActiveWorksheet()
+    {
         if (_worksheet is null)
             throw new SpreadCheetahException("Can't add rows when there is not an active worksheet.");
     }

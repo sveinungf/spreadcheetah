@@ -25,11 +25,11 @@ internal abstract class BaseCellWriter<T>
         return TryAddRowCells(cells, out currentListIndex);
     }
 
-    public bool TryAddRow(IList<T> cells, int rowIndex, ref int currentListIndex, int count)
+    public bool TryAddRow(ReadOnlySpan<T> cells, int rowIndex, out int currentListIndex)
     {
         // Assuming previous actions on the worksheet ensured space in the buffer for row start
         Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, Buffer.GetNextSpan()));
-        return TryAddRowCells(cells, ref currentListIndex, count);
+        return TryAddRowCellsForSpan(cells, out currentListIndex);
     }
 
     public bool TryAddRow(IList<T> cells, int rowIndex, RowOptions options, out bool rowStartWritten, out int currentListIndex)
@@ -53,16 +53,16 @@ internal abstract class BaseCellWriter<T>
 #if NET5_0_OR_GREATER
         List<T> cellList => TryAddRowCellsForSpan(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(cellList), out currentListIndex),
 #endif
-        _ => TryAddRowCellsForList(cells, 0, cells.Count, out currentListIndex)
+        _ => TryAddRowCellsForList(cells, 0, out currentListIndex)
     };
 
-    private bool TryAddRowCells(IList<T> cells, ref int currentListIndex, int count) => cells switch
+    private bool TryAddRowCells(IList<T> cells, int offset, out int currentListIndex) => cells switch
     {
-        T[] cellArray => TryAddRowCellsForSpan(cellArray.AsSpan(currentListIndex, count), out currentListIndex),
+        T[] cellArray => TryAddRowCellsForSpan(cellArray.AsSpan(offset), out currentListIndex),
 #if NET5_0_OR_GREATER
-        List<T> cellList => TryAddRowCellsForSpan(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(cellList).Slice(currentListIndex, count), out currentListIndex),
+        List<T> cellList => TryAddRowCellsForSpan(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(cellList).Slice(offset), out currentListIndex),
 #endif
-        _ => TryAddRowCellsForList(cells, currentListIndex, count, out currentListIndex)
+        _ => TryAddRowCellsForList(cells, offset, out currentListIndex)
     };
 
     private bool TryAddRowCellsForSpan(ReadOnlySpan<T> cells, out int currentListIndex)
@@ -77,9 +77,9 @@ internal abstract class BaseCellWriter<T>
         return WriteRowEnd();
     }
 
-    private bool TryAddRowCellsForList(IList<T> cells, int offset, int count, out int currentListIndex)
+    private bool TryAddRowCellsForList(IList<T> cells, int offset, out int currentListIndex)
     {
-        for (currentListIndex = offset; currentListIndex < offset + count; ++currentListIndex)
+        for (currentListIndex = offset; currentListIndex < cells.Count; ++currentListIndex)
         {
             // Write cell if it fits in the buffer
             if (!TryWriteCell(cells[currentListIndex], out _))
@@ -89,61 +89,90 @@ internal abstract class BaseCellWriter<T>
         return WriteRowEnd();
     }
 
+    // Also ensuring space in the buffer for starting another basic row, so that we might not need to check space in the buffer twice.
+    private bool CanWriteRowEnd() => Buffer.GetRemainingBuffer() >= CellRowHelper.RowEnd.Length + CellRowHelper.BasicRowStartMaxByteCount;
+
+    private void DoWriteRowEnd() => Buffer.Advance(SpanHelper.GetBytes(CellRowHelper.RowEnd, Buffer.GetNextSpan()));
+
     private bool WriteRowEnd()
     {
-        // Also ensuring space in the buffer for starting another basic row, so that we might not need to check space in the buffer twice.
-        if (CellRowHelper.RowEnd.Length + CellRowHelper.BasicRowStartMaxByteCount > Buffer.GetRemainingBuffer())
+        if (!CanWriteRowEnd())
             return false;
 
-        Buffer.Advance(SpanHelper.GetBytes(CellRowHelper.RowEnd, Buffer.GetNextSpan()));
+        DoWriteRowEnd();
         return true;
     }
 
-    public async ValueTask AddRowAsync(IList<T> cells, int currentIndex, int endIndex, Stream stream, CancellationToken token)
+    private async ValueTask WriteRowEndAsync(Stream stream, CancellationToken token)
     {
-        // If we get here that means that the next cell didn't fit in the buffer, so just flush right away
-        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        await AddRowCellsAsync(cells, currentIndex, endIndex, stream, token).ConfigureAwait(false);
+        if (!CanWriteRowEnd())
+            await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+
+        DoWriteRowEnd();
+    }
+
+    public async ValueTask AddRowAsync(IList<T> cells, int currentIndex, Stream stream, CancellationToken token)
+    {
+        while (currentIndex < cells.Count)
+        {
+            // If we get here that means that the next cell didn't fit in the buffer, so just flush right away
+            await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+
+            // Attempt to add row cells again
+            var beforeIndex = currentIndex;
+            if (TryAddRowCells(cells, currentIndex, out currentIndex))
+                return;
+
+            // One or more cells were added, repeat
+            if (currentIndex != beforeIndex)
+                continue;
+
+            // No cells were added, which means the next cell is larger than the buffer
+            var cell = cells[currentIndex];
+            await WriteCellPieceByPieceAsync(cell, stream, token).ConfigureAwait(false);
+            ++currentIndex;
+        }
+
+        await WriteRowEndAsync(stream, token).ConfigureAwait(false);
+    }
+
+    public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, Stream stream, CancellationToken token)
+    {
+        var currentIndex = 0;
+
+        while (currentIndex < cells.Length)
+        {
+            // If we get here that means that the next cell didn't fit in the buffer, so just flush right away
+            await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+
+            // Attempt to add row cells again
+            var beforeIndex = currentIndex;
+            if (TryAddRowCellsForSpan(cells.Span.Slice(currentIndex), out currentIndex))
+                return;
+
+            // One or more cells were added, repeat
+            if (currentIndex != beforeIndex)
+                continue;
+
+            // No cells were added, which means the next cell is larger than the buffer
+            var cell = cells.Span[currentIndex];
+            await WriteCellPieceByPieceAsync(cell, stream, token).ConfigureAwait(false);
+            ++currentIndex;
+        }
+
+        await WriteRowEndAsync(stream, token).ConfigureAwait(false);
     }
 
     public async ValueTask AddRowAsync(IList<T> cells, int rowIndex, RowOptions options, bool rowStartWritten, int currentCellIndex, int endCellIndex, Stream stream, CancellationToken token)
     {
-        // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
-        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
         if (!rowStartWritten)
-            Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, options, Buffer.GetNextSpan()));
-
-        await AddRowCellsAsync(cells, currentCellIndex, endCellIndex, stream, token).ConfigureAwait(false);
-    }
-
-    private async ValueTask AddRowCellsAsync(IList<T> cells, int currentIndex, int endIndex, Stream stream, CancellationToken token)
-    {
-        for (var i = currentIndex; i < endIndex; ++i)
         {
-            var cell = cells[i];
-
-            // Write cell if it fits in the buffer
-            if (TryWriteCell(cell, out var bytesNeeded))
-                continue;
-
+            // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
             await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-            // Write cell if it fits in the buffer
-            if (bytesNeeded <= Buffer.GetRemainingBuffer())
-            {
-                GetBytes(cell, false);
-                continue;
-            }
-
-            await WriteCellPieceByPieceAsync(cell, stream, token).ConfigureAwait(false);
+            Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, options, Buffer.GetNextSpan()));
         }
 
-        // Also ensuring space in the buffer for the next row start, so that we don't need to check space in the buffer twice
-        if (CellRowHelper.RowEnd.Length + CellRowHelper.BasicRowStartMaxByteCount > Buffer.GetRemainingBuffer())
-            await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-        Buffer.Advance(SpanHelper.GetBytes(CellRowHelper.RowEnd, Buffer.GetNextSpan()));
+        await AddRowAsync(cells, currentCellIndex, stream, token).ConfigureAwait(false);
     }
 
     private async ValueTask WriteCellPieceByPieceAsync(T cell, Stream stream, CancellationToken token)
