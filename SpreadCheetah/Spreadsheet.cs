@@ -109,10 +109,23 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _worksheetPaths.Add(path);
     }
 
-    // TODO: Handle null
-    public ValueTask AddRowAsync(Cell[] cells, CancellationToken token = default) => AddRowAsync(cells.AsMemory(), token);
-    public ValueTask AddRowAsync(DataCell[] cells, CancellationToken token = default) => AddRowAsync(cells.AsMemory(), token);
-    public ValueTask AddRowAsync(StyledCell[] cells, CancellationToken token = default) => AddRowAsync(cells.AsMemory(), token);
+    public ValueTask AddRowAsync(Cell[] cells, CancellationToken token = default)
+    {
+        ThrowIfNull(cells, nameof(cells));
+        return AddRowAsync(cells.AsMemory(), token);
+    }
+
+    public ValueTask AddRowAsync(DataCell[] cells, CancellationToken token = default)
+    {
+        ThrowIfNull(cells, nameof(cells));
+        return AddRowAsync(cells.AsMemory(), token);
+    }
+
+    public ValueTask AddRowAsync(StyledCell[] cells, CancellationToken token = default)
+    {
+        ThrowIfNull(cells, nameof(cells));
+        return AddRowAsync(cells.AsMemory(), token);
+    }
 
     public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, CancellationToken token = default)
     {
@@ -209,10 +222,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
     private void EnsureCanAddRows<T>(IList<T> cells)
     {
-        if (cells is null)
-            throw new ArgumentNullException(nameof(cells));
-
+        ThrowIfNull(cells, nameof(cells));
         ThrowOnNoActiveWorksheet();
+    }
+
+    private static void ThrowIfNull<T>(T? obj, string paramName)
+    {
+        if (obj is null)
+            throw new ArgumentNullException(paramName);
     }
 
     private void ThrowOnNoActiveWorksheet()
@@ -226,8 +243,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public StyleId AddStyle(Style style)
     {
-        if (style is null)
-            throw new ArgumentNullException(nameof(style));
+        ThrowIfNull(style, nameof(style));
 
         if (_styles is null)
             _styles = new List<Style> { style };
