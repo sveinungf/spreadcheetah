@@ -137,26 +137,24 @@ internal abstract class BaseCellWriter<T>
 
     public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, Stream stream, CancellationToken token)
     {
-        var currentIndex = 0;
-
-        while (currentIndex < cells.Length)
+        while (!cells.IsEmpty)
         {
-            // If we get here that means that the next cell didn't fit in the buffer, so just flush right away
+            // If we get here that means that the next cell didn't fit in the buffer, so just flush right away.
             await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
             // Attempt to add row cells again
-            var beforeIndex = currentIndex;
-            if (TryAddRowCellsForSpan(cells.Span.Slice(currentIndex), out currentIndex))
+            if (TryAddRowCellsForSpan(cells.Span, out var currentIndex))
                 return;
 
-            // One or more cells were added, repeat
-            if (currentIndex != beforeIndex)
-                continue;
+            // If no cells were added, the next cell is larger than the buffer.
+            if (currentIndex == 0)
+            {
+                await WriteCellPieceByPieceAsync(cells.Span[0], stream, token).ConfigureAwait(false);
+                currentIndex = 1;
+            }
 
-            // No cells were added, which means the next cell is larger than the buffer
-            var cell = cells.Span[currentIndex];
-            await WriteCellPieceByPieceAsync(cell, stream, token).ConfigureAwait(false);
-            ++currentIndex;
+            // One or more cells were added, repeat.
+            cells = cells.Slice(currentIndex);
         }
 
         await WriteRowEndAsync(stream, token).ConfigureAwait(false);
