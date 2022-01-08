@@ -109,24 +109,36 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _worksheetPaths.Add(path);
     }
 
+    /// <summary>
+    /// Adds a row of cells to the worksheet and increments the current row number by 1.
+    /// </summary>
     public ValueTask AddRowAsync(Cell[] cells, CancellationToken token = default)
     {
         ThrowIfNull(cells, nameof(cells));
         return AddRowAsync(cells.AsMemory(), token);
     }
 
+    /// <summary>
+    /// Adds a row of cells to the worksheet and increments the current row number by 1.
+    /// </summary>
     public ValueTask AddRowAsync(DataCell[] cells, CancellationToken token = default)
     {
         ThrowIfNull(cells, nameof(cells));
         return AddRowAsync(cells.AsMemory(), token);
     }
 
+    /// <summary>
+    /// Adds a row of cells to the worksheet and increments the current row number by 1.
+    /// </summary>
     public ValueTask AddRowAsync(StyledCell[] cells, CancellationToken token = default)
     {
         ThrowIfNull(cells, nameof(cells));
         return AddRowAsync(cells.AsMemory(), token);
     }
 
+    /// <summary>
+    /// Adds a row of cells to the worksheet and increments the current row number by 1.
+    /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, CancellationToken token = default)
     {
         ThrowOnNoActiveWorksheet();
@@ -135,6 +147,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             : _worksheet.AddRowAsync(cells.Slice(currentIndex), token);
     }
 
+    /// <summary>
+    /// Adds a row of cells to the worksheet and increments the current row number by 1.
+    /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, CancellationToken token = default)
     {
         ThrowOnNoActiveWorksheet();
@@ -143,6 +158,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             : _worksheet.AddRowAsync(cells.Slice(currentIndex), token);
     }
 
+    /// <summary>
+    /// Adds a row of cells to the worksheet and increments the current row number by 1.
+    /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, CancellationToken token = default)
     {
         ThrowOnNoActiveWorksheet();
@@ -156,7 +174,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(IList<Cell> cells, CancellationToken token = default)
     {
-        EnsureCanAddRows(cells);
+        ThrowIfNull(cells, nameof(cells));
+        ThrowOnNoActiveWorksheet();
         return _worksheet!.TryAddRow(cells, out var currentIndex)
             ? default
             : _worksheet.AddRowAsync(cells, currentIndex, token);
@@ -168,7 +187,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public ValueTask AddRowAsync(IList<Cell> cells, RowOptions? options, CancellationToken token = default)
     {
         if (options is null) return AddRowAsync(cells, token);
-        EnsureCanAddRows(cells);
+        ThrowIfNull(cells, nameof(cells));
+        ThrowOnNoActiveWorksheet();
         return _worksheet!.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
             ? default
             : _worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, cells.Count, token);
@@ -179,7 +199,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(IList<DataCell> cells, CancellationToken token = default)
     {
-        EnsureCanAddRows(cells);
+        ThrowIfNull(cells, nameof(cells));
+        ThrowOnNoActiveWorksheet();
         return _worksheet!.TryAddRow(cells, out var currentIndex)
             ? default
             : _worksheet.AddRowAsync(cells, currentIndex, token);
@@ -191,7 +212,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public ValueTask AddRowAsync(IList<DataCell> cells, RowOptions? options, CancellationToken token = default)
     {
         if (options is null) return AddRowAsync(cells, token);
-        EnsureCanAddRows(cells);
+        ThrowIfNull(cells, nameof(cells));
+        ThrowOnNoActiveWorksheet();
         return _worksheet!.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
             ? default
             : _worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, cells.Count, token);
@@ -202,7 +224,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(IList<StyledCell> cells, CancellationToken token = default)
     {
-        EnsureCanAddRows(cells);
+        ThrowIfNull(cells, nameof(cells));
+        ThrowOnNoActiveWorksheet();
         return _worksheet!.TryAddRow(cells, out var currentIndex)
             ? default
             : _worksheet.AddRowAsync(cells, currentIndex, token);
@@ -214,16 +237,11 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public ValueTask AddRowAsync(IList<StyledCell> cells, RowOptions? options, CancellationToken token = default)
     {
         if (options is null) return AddRowAsync(cells, token);
-        EnsureCanAddRows(cells);
+        ThrowIfNull(cells, nameof(cells));
+        ThrowOnNoActiveWorksheet();
         return _worksheet!.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
             ? default
             : _worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, cells.Count, token);
-    }
-
-    private void EnsureCanAddRows<T>(IList<T> cells)
-    {
-        ThrowIfNull(cells, nameof(cells));
-        ThrowOnNoActiveWorksheet();
     }
 
     private static void ThrowIfNull<T>(T? obj, string paramName)
