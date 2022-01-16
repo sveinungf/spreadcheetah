@@ -1,3 +1,4 @@
+using SpreadCheetah.DataValidation;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Worksheets;
@@ -26,7 +27,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private bool _disposed;
     private bool _finished;
 
-    private Worksheet Worksheet => _worksheet ?? throw new SpreadCheetahException("Can't add rows when there is not an active worksheet.");
+    private Worksheet Worksheet => _worksheet ?? throw new SpreadCheetahException("There is no active worksheet.");
 
     private Spreadsheet(ZipArchive archive, CompressionLevel compressionLevel, int bufferSize)
     {
@@ -251,11 +252,16 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ThrowIfNull(style, nameof(style));
 
         if (_styles is null)
-            _styles = new List<Style> { style };
-        else
-            _styles.Add(style);
+            _styles = new List<Style>();
 
+        _styles.Add(style);
         return new StyleId(_styles.Count);
+    }
+
+    public void AddDataValidation(string reference, BaseValidation validation)
+    {
+        ThrowIfNull(validation, nameof(validation));
+        Worksheet.AddDataValidation(reference, validation);
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)

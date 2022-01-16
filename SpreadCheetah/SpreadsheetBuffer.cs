@@ -15,6 +15,7 @@ internal sealed class SpreadsheetBuffer
     public Span<byte> GetNextSpan() => _buffer.AsSpan(_index);
     public int GetRemainingBuffer() => _buffer.Length - _index;
     public void Advance(int bytes) => _index += bytes;
+    public bool Empty => _index == 0;
 
     public async ValueTask WriteAsciiStringAsync(string value, Stream stream, CancellationToken token)
     {
@@ -32,7 +33,7 @@ internal sealed class SpreadsheetBuffer
 #if NETSTANDARD2_0
         return new ValueTask(stream.WriteAsync(_buffer, 0, index, token));
 #else
-            return stream.WriteAsync(_buffer.AsMemory(0, index), token);
+        return stream.WriteAsync(_buffer.AsMemory(0, index), token);
 #endif
     }
 }
