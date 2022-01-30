@@ -193,15 +193,6 @@ internal abstract class BaseCellWriter<T>
         TryWriteEndElement(cell);
     }
 
-    protected bool FinishWritingCellValue(string cellValue, ref int cellValueIndex)
-    {
-        var remainingBuffer = Buffer.GetRemainingBuffer();
-        var maxCharCount = remainingBuffer / Utf8Helper.MaxBytePerChar;
-        var remainingLength = cellValue.Length - cellValueIndex;
-        var lastIteration = remainingLength <= maxCharCount;
-        var length = lastIteration ? remainingLength : maxCharCount;
-        Buffer.Advance(Utf8Helper.GetBytes(cellValue.AsSpan(cellValueIndex, length), Buffer.GetNextSpan()));
-        cellValueIndex += length;
-        return lastIteration;
-    }
+    // TODO: Remove this method?
+    protected bool FinishWritingCellValue(string cellValue, ref int cellValueIndex) => Buffer.WriteLongString(cellValue.AsSpan(), ref cellValueIndex);
 }

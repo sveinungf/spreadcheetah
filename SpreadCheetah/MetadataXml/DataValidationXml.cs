@@ -12,19 +12,12 @@ internal static class DataValidationXml
         Dictionary<string, BaseValidation> validations,
         CancellationToken token)
     {
-        if (!buffer.Empty)
-            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-        var sb = new StringBuilder();
-        sb.Append("<dataValidations count=\"");
+        var sb = new StringBuilder("<dataValidations count=\"");
         sb.Append(validations.Count);
         sb.Append("\">");
-        await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
-        sb.Clear();
 
         foreach (var keyValue in validations)
         {
-            // TODO: Is the longest possible here less than minimum buffer size?
             var validation = keyValue.Value;
             sb.Append("<dataValidation ");
             sb.AppendType(validation.Type);
@@ -42,16 +35,16 @@ internal static class DataValidationXml
 
             // TODO: Check if space in buffer, handle piece by piece
             if (!string.IsNullOrEmpty(validation.InputTitle))
-                sb.AppendTextAttribute("promptTitle", validation.InputTitle);
+                sb.AppendTextAttribute("promptTitle", validation.InputTitle!);
 
             if (!string.IsNullOrEmpty(validation.InputMessage))
-                sb.AppendTextAttribute("prompt", validation.InputMessage);
+                sb.AppendTextAttribute("prompt", validation.InputMessage!);
 
             if (!string.IsNullOrEmpty(validation.ErrorTitle))
-                sb.AppendTextAttribute("errorTitle", validation.ErrorTitle);
+                sb.AppendTextAttribute("errorTitle", validation.ErrorTitle!);
 
             if (!string.IsNullOrEmpty(validation.ErrorMessage))
-                sb.AppendTextAttribute("error", validation.ErrorMessage);
+                sb.AppendTextAttribute("error", validation.ErrorMessage!);
 
             // TODO: Can we write the reference directly?
             sb.AppendTextAttribute("sqref", keyValue.Key);
@@ -74,12 +67,10 @@ internal static class DataValidationXml
             }
 
             sb.Append("</dataValidation>");
-
-            // TODO: Handle non-ASCII
-            await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
         }
 
-        await buffer.WriteAsciiStringAsync("</dataValidations>", stream, token).ConfigureAwait(false);
+        sb.Append("</dataValidations>");
+        await buffer.WriteStringAsync(sb, stream, token).ConfigureAwait(false);
     }
 
     private static void AppendTextAttribute(this StringBuilder sb, string attribute, string value)
