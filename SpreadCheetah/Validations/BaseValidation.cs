@@ -3,7 +3,7 @@ using System.Text;
 
 namespace SpreadCheetah.Validations;
 
-public abstract class BaseValidation
+public abstract class DataValidation
 {
     internal bool HasValue1 { get; set; }
     internal bool HasValue2 { get; set; }

@@ -258,7 +258,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return new StyleId(_styles.Count);
     }
 
-    public void AddDataValidation(string reference, BaseValidation validation)
+    public void AddDataValidation(string reference, DataValidation validation)
     {
         ThrowIfNull(validation, nameof(validation));
         Worksheet.AddDataValidation(reference, validation);

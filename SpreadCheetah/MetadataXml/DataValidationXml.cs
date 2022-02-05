@@ -9,7 +9,7 @@ internal static class DataValidationXml
     public static async ValueTask WriteAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
-        Dictionary<string, BaseValidation> validations,
+        Dictionary<string, DataValidation> validations,
         CancellationToken token)
     {
         var sb = new StringBuilder("<dataValidations count=\"");

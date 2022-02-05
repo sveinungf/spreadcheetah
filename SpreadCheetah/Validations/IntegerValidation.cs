@@ -2,7 +2,7 @@ using System.Text;
 
 namespace SpreadCheetah.Validations;
 
-public sealed class IntegerValidation : BaseValidation
+public sealed class IntegerValidation : DataValidation
 {
     internal int Value1 { get; }
     internal int Value2 { get; }
