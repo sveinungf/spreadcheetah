@@ -49,20 +49,20 @@ internal static class DataValidationXml
             // TODO: Can we write the reference directly?
             sb.AppendTextAttribute("sqref", keyValue.Key);
 
-            if (!validation.HasValue1)
+            if (validation.Value1 is null)
             {
                 sb.Append("/>");
                 continue;
             }
 
             sb.Append("><formula1>");
-            validation.AppendValue1(sb);
+            sb.Append(validation.Value1);
             sb.Append("</formula1>");
 
-            if (validation.HasValue2)
+            if (validation.Value2 is not null)
             {
                 sb.Append("<formula2>");
-                validation.AppendValue2(sb);
+                sb.Append(validation.Value2);
                 sb.Append("</formula2>");
             }
 
