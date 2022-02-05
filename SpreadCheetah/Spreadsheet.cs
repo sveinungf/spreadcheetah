@@ -1,6 +1,6 @@
-using SpreadCheetah.DataValidation;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 using System.Buffers;
 using System.IO.Compression;

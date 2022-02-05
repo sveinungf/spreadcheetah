@@ -1,7 +1,7 @@
 using SpreadCheetah.Helpers;
 using System.Text;
 
-namespace SpreadCheetah.DataValidation;
+namespace SpreadCheetah.Validations;
 
 public abstract class BaseValidation
 {

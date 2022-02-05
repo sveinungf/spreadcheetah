@@ -1,7 +1,7 @@
 using SpreadCheetah.CellWriters;
-using SpreadCheetah.DataValidation;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.MetadataXml;
+using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 using System.Text;
 

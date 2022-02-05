@@ -1,4 +1,4 @@
-namespace SpreadCheetah.DataValidation;
+namespace SpreadCheetah.Validations;
 
 internal enum ValidationOperator
 {

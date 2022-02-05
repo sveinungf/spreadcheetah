@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace SpreadCheetah.DataValidation;
+namespace SpreadCheetah.Validations;
 
 public sealed class IntegerValidation : BaseValidation
 {

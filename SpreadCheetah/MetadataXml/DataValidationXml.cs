@@ -1,4 +1,4 @@
-using SpreadCheetah.DataValidation;
+using SpreadCheetah.Validations;
 using System.Net;
 using System.Text;
 
