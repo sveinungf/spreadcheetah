@@ -126,7 +126,7 @@ dotnet_diagnostic.CA1303.severity = none
 # CA1815: Override equals and operator equals on value types
 dotnet_diagnostic.CA1815.severity = warning
 
-[{*.Test,*.Benchmark}/**.cs]
+[{*Test,*.Benchmark}/**.cs]
 # CA1305: Specify IFormatProvider
 dotnet_diagnostic.CA1305.severity = none
 # CA1707: Identifiers should not contain underscores
@@ -161,7 +161,7 @@ dotnet_diagnostic.MA0003.severity = none
 # MA0007: Add comma after the last property
 dotnet_diagnostic.MA0007.severity = none
 
-[{*.Test,*.Benchmark}/**.cs]
+[{*Test,*.Benchmark}/**.cs]
 # MA0004: Use .ConfigureAwait(false)
 dotnet_diagnostic.MA0004.severity = none
 # MA0011: IFormatProvider is missing
@@ -176,6 +176,6 @@ dotnet_diagnostic.MA0075.severity = none
 ###############################
 # Threading.Analyzers Options #
 ###############################
-[{*.Test,*.Benchmark}/**.cs]
+[{*Test,*.Benchmark}/**.cs]
 # VSTHRD200: Use "Async" suffix for async methods
 dotnet_diagnostic.VSTHRD200.severity = none
