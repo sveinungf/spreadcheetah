@@ -4,5 +4,6 @@ internal enum ValidationType
 {
     Any,
     Integer,
-    Decimal
+    Decimal,
+    TextLength
 }

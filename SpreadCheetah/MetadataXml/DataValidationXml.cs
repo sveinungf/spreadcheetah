@@ -85,6 +85,7 @@ internal static class DataValidationXml
     {
         ValidationType.Decimal => sb.Append("type=\"decimal\" "),
         ValidationType.Integer => sb.Append("type=\"whole\" "),
+        ValidationType.TextLength => sb.Append("type=\"textLength\" "),
         _ => sb
     };
 

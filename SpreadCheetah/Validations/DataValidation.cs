@@ -85,4 +85,26 @@ public sealed class DataValidation
     public static DataValidation IntegerGreaterThanOrEqualTo(int value) => Integer(ValidationOperator.GreaterThanOrEqualTo, value);
     public static DataValidation IntegerLessThan(int value) => Integer(ValidationOperator.LessThan, value);
     public static DataValidation IntegerLessThanOrEqualTo(int value) => Integer(ValidationOperator.LessThanOrEqualTo, value);
+
+    private static DataValidation TextLength(ValidationOperator op, int value1, int? value2 = null)
+    {
+        return new DataValidation(ValidationType.TextLength, op,
+            value1.ToString(CultureInfo.InvariantCulture),
+            value2?.ToString(CultureInfo.InvariantCulture));
+    }
+
+    public static DataValidation TextLengthBetween(int min, int max) => max < min
+        ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
+        : TextLength(ValidationOperator.Between, min, max);
+
+    public static DataValidation TextLengthNotBetween(int min, int max) => max < min
+        ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
+        : TextLength(ValidationOperator.NotBetween, min, max);
+
+    public static DataValidation TextLengthEqualTo(int value) => TextLength(ValidationOperator.EqualTo, value);
+    public static DataValidation TextLengthNotEqualTo(int value) => TextLength(ValidationOperator.NotEqualTo, value);
+    public static DataValidation TextLengthGreaterThan(int value) => TextLength(ValidationOperator.GreaterThan, value);
+    public static DataValidation TextLengthGreaterThanOrEqualTo(int value) => TextLength(ValidationOperator.GreaterThanOrEqualTo, value);
+    public static DataValidation TextLengthLessThan(int value) => TextLength(ValidationOperator.LessThan, value);
+    public static DataValidation TextLengthLessThanOrEqualTo(int value) => TextLength(ValidationOperator.LessThanOrEqualTo, value);
 }
