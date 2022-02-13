@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 
 namespace SpreadCheetah.Helpers;
 
@@ -22,4 +23,6 @@ internal static class IntegerExtensions
         if (n < 1000000000) return 9;
         return 10;
     }
+
+    public static string ToStringInvariant(this int n) => n.ToString(CultureInfo.InvariantCulture);
 }

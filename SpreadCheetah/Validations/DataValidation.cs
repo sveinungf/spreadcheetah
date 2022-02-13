@@ -1,5 +1,4 @@
 using SpreadCheetah.Helpers;
-using System.Globalization;
 
 namespace SpreadCheetah.Validations;
 
@@ -42,21 +41,13 @@ public sealed class DataValidation
 
     private ValidationErrorType _errorType;
 
-    private static DataValidation Decimal(ValidationOperator op, double value1, double? value2 = null)
-    {
-        return new DataValidation(ValidationType.Decimal, op,
-            value1.ToString(CultureInfo.InvariantCulture),
-            value2?.ToString(CultureInfo.InvariantCulture));
-    }
-
-    public static DataValidation DecimalBetween(double min, double max) => max < min
+    private static DataValidation Decimal(ValidationOperator op, double min, double max) => max < min
         ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
-        : Decimal(ValidationOperator.Between, min, max);
+        : new DataValidation(ValidationType.Decimal, op, min.ToStringInvariant(), max.ToStringInvariant());
 
-    public static DataValidation DecimalNotBetween(double min, double max) => max < min
-        ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
-        : Decimal(ValidationOperator.NotBetween, min, max);
-
+    private static DataValidation Decimal(ValidationOperator op, double value) => new(ValidationType.Decimal, op, value.ToStringInvariant());
+    public static DataValidation DecimalBetween(double min, double max) => Decimal(ValidationOperator.Between, min, max);
+    public static DataValidation DecimalNotBetween(double min, double max) => Decimal(ValidationOperator.NotBetween, min, max);
     public static DataValidation DecimalEqualTo(double value) => Decimal(ValidationOperator.EqualTo, value);
     public static DataValidation DecimalNotEqualTo(double value) => Decimal(ValidationOperator.NotEqualTo, value);
     public static DataValidation DecimalGreaterThan(double value) => Decimal(ValidationOperator.GreaterThan, value);
@@ -64,21 +55,13 @@ public sealed class DataValidation
     public static DataValidation DecimalLessThan(double value) => Decimal(ValidationOperator.LessThan, value);
     public static DataValidation DecimalLessThanOrEqualTo(double value) => Decimal(ValidationOperator.LessThanOrEqualTo, value);
 
-    private static DataValidation Integer(ValidationOperator op, int value1, int? value2 = null)
-    {
-        return new DataValidation(ValidationType.Integer, op,
-            value1.ToString(CultureInfo.InvariantCulture),
-            value2?.ToString(CultureInfo.InvariantCulture));
-    }
-
-    public static DataValidation IntegerBetween(int min, int max) => max < min
+    private static DataValidation Integer(ValidationOperator op, int min, int max) => max < min
         ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
-        : Integer(ValidationOperator.Between, min, max);
+        : new DataValidation(ValidationType.Integer, op, min.ToStringInvariant(), max.ToStringInvariant());
 
-    public static DataValidation IntegerNotBetween(int min, int max) => max < min
-        ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
-        : Integer(ValidationOperator.NotBetween, min, max);
-
+    private static DataValidation Integer(ValidationOperator op, int value) => new(ValidationType.Integer, op, value.ToStringInvariant());
+    public static DataValidation IntegerBetween(int min, int max) => Integer(ValidationOperator.Between, min, max);
+    public static DataValidation IntegerNotBetween(int min, int max) => Integer(ValidationOperator.NotBetween, min, max);
     public static DataValidation IntegerEqualTo(int value) => Integer(ValidationOperator.EqualTo, value);
     public static DataValidation IntegerNotEqualTo(int value) => Integer(ValidationOperator.NotEqualTo, value);
     public static DataValidation IntegerGreaterThan(int value) => Integer(ValidationOperator.GreaterThan, value);
@@ -86,21 +69,13 @@ public sealed class DataValidation
     public static DataValidation IntegerLessThan(int value) => Integer(ValidationOperator.LessThan, value);
     public static DataValidation IntegerLessThanOrEqualTo(int value) => Integer(ValidationOperator.LessThanOrEqualTo, value);
 
-    private static DataValidation TextLength(ValidationOperator op, int value1, int? value2 = null)
-    {
-        return new DataValidation(ValidationType.TextLength, op,
-            value1.ToString(CultureInfo.InvariantCulture),
-            value2?.ToString(CultureInfo.InvariantCulture));
-    }
-
-    public static DataValidation TextLengthBetween(int min, int max) => max < min
+    private static DataValidation TextLength(ValidationOperator op, int min, int max) => max < min
         ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
-        : TextLength(ValidationOperator.Between, min, max);
+        : new DataValidation(ValidationType.TextLength, op, min.ToStringInvariant(), max.ToStringInvariant());
 
-    public static DataValidation TextLengthNotBetween(int min, int max) => max < min
-        ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
-        : TextLength(ValidationOperator.NotBetween, min, max);
-
+    private static DataValidation TextLength(ValidationOperator op, int value) => new(ValidationType.TextLength, op, value.ToStringInvariant());
+    public static DataValidation TextLengthBetween(int min, int max) => TextLength(ValidationOperator.Between, min, max);
+    public static DataValidation TextLengthNotBetween(int min, int max) => TextLength(ValidationOperator.NotBetween, min, max);
     public static DataValidation TextLengthEqualTo(int value) => TextLength(ValidationOperator.EqualTo, value);
     public static DataValidation TextLengthNotEqualTo(int value) => TextLength(ValidationOperator.NotEqualTo, value);
     public static DataValidation TextLengthGreaterThan(int value) => TextLength(ValidationOperator.GreaterThan, value);
