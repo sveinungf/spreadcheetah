@@ -42,6 +42,28 @@ public sealed class DataValidation
 
     private ValidationErrorType _errorType;
 
+    private static DataValidation Decimal(ValidationOperator op, double value1, double? value2 = null)
+    {
+        return new DataValidation(ValidationType.Decimal, op,
+            value1.ToString(CultureInfo.InvariantCulture),
+            value2?.ToString(CultureInfo.InvariantCulture));
+    }
+
+    public static DataValidation DecimalBetween(double min, double max) => max < min
+        ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
+        : Decimal(ValidationOperator.Between, min, max);
+
+    public static DataValidation DecimalNotBetween(double min, double max) => max < min
+        ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
+        : Decimal(ValidationOperator.NotBetween, min, max);
+
+    public static DataValidation DecimalEqualTo(double value) => Decimal(ValidationOperator.EqualTo, value);
+    public static DataValidation DecimalNotEqualTo(double value) => Decimal(ValidationOperator.NotEqualTo, value);
+    public static DataValidation DecimalGreaterThan(double value) => Decimal(ValidationOperator.GreaterThan, value);
+    public static DataValidation DecimalGreaterThanOrEqualTo(double value) => Decimal(ValidationOperator.GreaterThanOrEqualTo, value);
+    public static DataValidation DecimalLessThan(double value) => Decimal(ValidationOperator.LessThan, value);
+    public static DataValidation DecimalLessThanOrEqualTo(double value) => Decimal(ValidationOperator.LessThanOrEqualTo, value);
+
     private static DataValidation Integer(ValidationOperator op, int value1, int? value2 = null)
     {
         return new DataValidation(ValidationType.Integer, op,

@@ -83,6 +83,7 @@ internal static class DataValidationXml
 
     private static StringBuilder AppendType(this StringBuilder sb, ValidationType type) => type switch
     {
+        ValidationType.Decimal => sb.Append("type=\"decimal\" "),
         ValidationType.Integer => sb.Append("type=\"whole\" "),
         _ => sb
     };
