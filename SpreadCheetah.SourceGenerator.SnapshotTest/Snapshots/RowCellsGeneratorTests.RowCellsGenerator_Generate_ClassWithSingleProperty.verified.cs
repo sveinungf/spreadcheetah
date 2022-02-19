@@ -16,6 +16,8 @@ namespace SpreadCheetah
         /// </summary>
         public static async ValueTask AddAsRowAsync(this Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty obj, CancellationToken token = default)
         {
+            if (spreadsheet is null) throw new ArgumentNullException(nameof(spreadsheet));
+            if (obj is null) throw new ArgumentNullException(nameof(obj));
             var cells = ArrayPool<DataCell>.Shared.Rent(1);
             try
             {

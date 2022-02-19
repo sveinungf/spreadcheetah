@@ -126,6 +126,7 @@ public class RowCellsGenerator : IIncrementalGenerator
     {
         sb.AppendLine(indent, $"public static ValueTask AddAsRowAsync(this Spreadsheet spreadsheet, {info.ClassType} obj, CancellationToken token = default)");
         sb.AppendLine(indent, "{");
+        sb.AppendLine(indent, "    if (spreadsheet is null) throw new ArgumentNullException(nameof(spreadsheet));");
         sb.AppendLine(indent, "    return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);");
         sb.AppendLine(indent, "}");
     }
@@ -134,6 +135,11 @@ public class RowCellsGenerator : IIncrementalGenerator
     {
         sb.AppendLine(indent, $"public static async ValueTask AddAsRowAsync(this Spreadsheet spreadsheet, {info.ClassType} obj, CancellationToken token = default)");
         sb.AppendLine(indent, "{");
+        sb.AppendLine(indent, "    if (spreadsheet is null) throw new ArgumentNullException(nameof(spreadsheet));");
+
+        if (info.ClassType.IsReferenceType)
+            sb.AppendLine(indent, "    if (obj is null) throw new ArgumentNullException(nameof(obj));");
+
         sb.AppendLine(indent, $"    var cells = ArrayPool<DataCell>.Shared.Rent({info.PropertyNames.Count});");
         sb.AppendLine(indent, "    try");
         sb.AppendLine(indent, "    {");
