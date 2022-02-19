@@ -32,6 +32,96 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_EmptyArrayRow(Type type)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var addRowTask = type switch
+            {
+                _ when type == typeof(Cell) => spreadsheet.AddRowAsync(Array.Empty<Cell>()),
+                _ when type == typeof(DataCell) => spreadsheet.AddRowAsync(Array.Empty<DataCell>()),
+                _ when type == typeof(StyledCell) => spreadsheet.AddRowAsync(Array.Empty<StyledCell>()),
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            };
+
+            // Act
+            await addRowTask;
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var actual = SpreadsheetDocument.Open(stream, true);
+        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
+        Assert.Empty(sheetPart.Worksheet.Descendants<OpenXmlCell>());
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_EmptyListRow(Type type)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var addRowTask = type switch
+            {
+                _ when type == typeof(Cell) => spreadsheet.AddRowAsync(new List<Cell>()),
+                _ when type == typeof(DataCell) => spreadsheet.AddRowAsync(new List<DataCell>()),
+                _ when type == typeof(StyledCell) => spreadsheet.AddRowAsync(new List<StyledCell>()),
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            };
+
+            // Act
+            await addRowTask;
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var actual = SpreadsheetDocument.Open(stream, true);
+        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
+        Assert.Empty(sheetPart.Worksheet.Descendants<OpenXmlCell>());
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_EmptyMemoryRow(Type type)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var addRowTask = type switch
+            {
+                _ when type == typeof(Cell) => spreadsheet.AddRowAsync(ReadOnlyMemory<Cell>.Empty),
+                _ when type == typeof(DataCell) => spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty),
+                _ when type == typeof(StyledCell) => spreadsheet.AddRowAsync(ReadOnlyMemory<StyledCell>.Empty),
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            };
+
+            // Act
+            await addRowTask;
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var actual = SpreadsheetDocument.Open(stream, true);
+        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
+        Assert.Empty(sheetPart.Worksheet.Descendants<OpenXmlCell>());
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddRow_CellWithoutValue(Type type)
     {
         // Arrange
