@@ -1,4 +1,7 @@
 using ClosedXML.Excel;
+using OfficeOpenXml;
+using OfficeOpenXml.DataValidation;
+using OfficeOpenXml.DataValidation.Contracts;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Validations;
 using System.Globalization;
@@ -261,6 +264,67 @@ public class SpreadsheetDataValidationTests
         Assert.Equal(expectedOperator, actualValidation.Operator);
         Assert.Equal(min.ToString(), actualValidation.MinValue);
         Assert.Equal(max.ToString(), actualValidation.MaxValue);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddDataValidation_ListValues()
+    {
+        // Arrange
+        const string address = "A1";
+        var values = new[] { "One", "\"Two\"", "<Three>" };
+        var validation = DataValidation.ListValues(values);
+
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            // Act
+            spreadsheet.AddDataValidation(address, validation);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var package = new ExcelPackage(stream);
+        var worksheet = package.Workbook.Worksheets.Single();
+        var actualValidation = Assert.Single(worksheet.DataValidations);
+        Assert.Equal(address, actualValidation.Address.Address);
+        Assert.Equal(eDataValidationType.List, actualValidation.ValidationType.Type);
+        var actualListValidation = (IExcelDataValidationList)actualValidation;
+        Assert.Equal(values, actualListValidation.Formula.Values);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Spreadsheet_AddDataValidation_ListValuesDropdown(bool showDropdown)
+    {
+        // Arrange
+        var values = new[] { "One", "Two", "Three" };
+        var validation = DataValidation.ListValues(values, showDropdown);
+
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            // Act
+            spreadsheet.AddDataValidation("A1", validation);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualValidation = Assert.Single(worksheet.DataValidations);
+        var actualRange = Assert.Single(actualValidation.Ranges);
+        var cell = Assert.Single(actualRange.Cells());
+        Assert.Equal(1, cell.Address.ColumnNumber);
+        Assert.Equal(1, cell.Address.RowNumber);
+        Assert.Equal(XLAllowedValues.List, actualValidation.AllowedValues);
+        Assert.Equal(showDropdown, actualValidation.InCellDropdown);
     }
 
     // TODO: Test for error/input

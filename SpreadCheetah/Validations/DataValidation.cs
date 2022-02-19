@@ -1,4 +1,6 @@
 using SpreadCheetah.Helpers;
+using System.Net;
+using System.Text;
 
 namespace SpreadCheetah.Validations;
 
@@ -10,15 +12,18 @@ public sealed class DataValidation
     internal ValidationOperator Operator { get; }
     internal string? Value1 { get; }
     internal string? Value2 { get; }
+    internal bool ShowDropdown { get; }
 
     private DataValidation(
         ValidationType type,
         ValidationOperator op,
         string? value1,
-        string? value2 = null)
+        string? value2 = null,
+        bool showDropdown = true)
     {
         Type = type;
         Operator = op;
+        ShowDropdown = showDropdown;
         Value1 = value1;
         Value2 = value2;
     }
@@ -82,4 +87,30 @@ public sealed class DataValidation
     public static DataValidation TextLengthGreaterThanOrEqualTo(int value) => TextLength(ValidationOperator.GreaterThanOrEqualTo, value);
     public static DataValidation TextLengthLessThan(int value) => TextLength(ValidationOperator.LessThan, value);
     public static DataValidation TextLengthLessThanOrEqualTo(int value) => TextLength(ValidationOperator.LessThanOrEqualTo, value);
+
+    public static DataValidation ListValues(IEnumerable<string> values, bool showDropdown = true)
+    {
+        if (values is null)
+            throw new ArgumentNullException(nameof(values));
+
+        var sb = new StringBuilder();
+        sb.Append('"');
+        var first = true;
+
+        foreach (var value in values)
+        {
+            if (value.ContainsChar(','))
+                throw new ArgumentException($"Commas are not allowed in the list values. This value contains a comma: {value}", nameof(values));
+
+            if (!first)
+                sb.Append(',');
+
+            sb.Append(WebUtility.HtmlEncode(value));
+            first = false;
+        }
+
+        sb.Append('"');
+
+        return new DataValidation(ValidationType.List, ValidationOperator.None, sb.ToString(), null, showDropdown);
+    }
 }

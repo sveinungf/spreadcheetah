@@ -27,6 +27,9 @@ internal static class DataValidationXml
             if (validation.IgnoreBlank)
                 sb.Append("allowBlank=\"1\" ");
 
+            if (!validation.ShowDropdown)
+                sb.Append("showDropDown=\"1\" ");
+
             if (validation.ShowInputMessage)
                 sb.Append("showInputMessage=\"1\" ");
 
@@ -85,6 +88,7 @@ internal static class DataValidationXml
     {
         ValidationType.Decimal => sb.Append("type=\"decimal\" "),
         ValidationType.Integer => sb.Append("type=\"whole\" "),
+        ValidationType.List => sb.Append("type=\"list\" "),
         ValidationType.TextLength => sb.Append("type=\"textLength\" "),
         _ => sb
     };
