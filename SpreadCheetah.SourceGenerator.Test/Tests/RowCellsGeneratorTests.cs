@@ -106,4 +106,32 @@ public class RowCellsGeneratorTests
         var actualCell = Assert.Single(cells);
         Assert.Equal(value, actualCell.InnerText);
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Spreadsheet_AddAsRow_NullSpreadsheet(bool classWithProperties)
+    {
+        // Arrange
+        Spreadsheet? spreadsheet = null;
+        ValueTask AddAsRow() => classWithProperties
+            ? spreadsheet!.AddAsRowAsync(new ClassWithProperties("", "", 0))
+            : spreadsheet!.AddAsRowAsync(new ClassWithNoProperties());
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentNullException>(() => AddAsRow().AsTask());
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddAsRow_NullObject()
+    {
+        // Arrange
+        ClassWithProperties obj = null!;
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentNullException>(() => spreadsheet.AddAsRowAsync(obj).AsTask());
+    }
 }

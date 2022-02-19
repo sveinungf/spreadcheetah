@@ -5,10 +5,13 @@ root = true
 ###############################
 [*]
 indent_style = space
-
-[*.cs]
+tab_width = 4
 indent_size = 4
 charset = utf-8
+end_of_line = crlf
+
+[*.{csproj,props}]
+indent_size = 2
 
 ###############################
 # .NET Coding Conventions     #
@@ -43,6 +46,17 @@ dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_prefer_auto_properties = true:suggestion
 dotnet_style_prefer_conditional_expression_over_assignment = true:suggestion
 dotnet_style_prefer_conditional_expression_over_return = true:suggestion
+dotnet_style_prefer_conditional_expression_over_assignment = true:suggestion
+dotnet_style_prefer_conditional_expression_over_return = true:suggestion
+dotnet_style_prefer_auto_properties = true:suggestion
+dotnet_style_object_initializer = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
+dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
+# Operator preferences
+dotnet_style_operator_placement_when_wrapping = beginning_of_line
+dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_null_propagation = true:suggestion
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
 
 ###############################
 # Naming Conventions          #
@@ -85,6 +99,12 @@ csharp_style_deconstructed_variable_declaration = true:suggestion
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
 csharp_style_inlined_variable_declaration = true:suggestion
+# Other
+csharp_using_directive_placement = outside_namespace:warning
+csharp_prefer_simple_using_statement = true:warning
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_style_expression_bodied_lambdas = true:suggestion
+csharp_style_expression_bodied_local_functions = true:suggestion
 
 ###############################
 # C# Formatting Rules         #
@@ -151,6 +171,10 @@ dotnet_diagnostic.EPS05.severity = warning
 [*.cs]
 # S3925: "ISerializable" should be implemented correctly
 dotnet_diagnostic.S3925.severity = none
+
+[{*Test,*.Benchmark}/**.cs]
+# S927: Parameter names should match base declaration
+dotnet_diagnostic.S927.severity = none
 
 ###############################
 # Meziantou.Analyzers Options #
