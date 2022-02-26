@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -8,8 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SpreadCheetah.SourceGenerator\SpreadCheetah.SourceGenerator.csproj" />
     <ProjectReference Include="..\SpreadCheetah\SpreadCheetah.csproj" />
     <TrimmerRootAssembly Include="SpreadCheetah" />
+    <TrimmerRootAssembly Include="SpreadCheetah.SourceGenerator" />
   </ItemGroup>
 
 </Project>
