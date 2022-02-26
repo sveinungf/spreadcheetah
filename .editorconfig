@@ -146,7 +146,7 @@ dotnet_diagnostic.CA1303.severity = none
 # CA1815: Override equals and operator equals on value types
 dotnet_diagnostic.CA1815.severity = warning
 
-[{*Test,*.Benchmark}/**.cs]
+[{*Test,*.Benchmark,*.Cmd}/**.cs]
 # CA1305: Specify IFormatProvider
 dotnet_diagnostic.CA1305.severity = none
 # CA1707: Identifiers should not contain underscores
