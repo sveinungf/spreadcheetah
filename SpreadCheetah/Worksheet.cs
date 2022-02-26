@@ -21,7 +21,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly DataCellWriter _dataCellWriter;
     private readonly StyledCellWriter _styledCellWriter;
     private int _nextRowIndex;
-    private Dictionary<string, DataValidation>? _validations;
+    private Dictionary<CellAddress, DataValidation>? _validations;
 
     public Worksheet(Stream stream, SpreadsheetBuffer buffer)
     {
@@ -160,13 +160,12 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, CancellationToken ct)
         => _styledCellWriter.AddRowAsync(cells, _stream, ct);
 
-    public void AddDataValidation(string reference, DataValidation validation)
+    public void AddDataValidation(CellAddress address, DataValidation validation)
     {
-        // TODO: Validate reference
         if (_validations is null)
-            _validations = new Dictionary<string, DataValidation>(StringComparer.Ordinal);
+            _validations = new Dictionary<CellAddress, DataValidation>();
 
-        _validations.Add(reference, validation);
+        _validations.Add(address, validation);
     }
 
     public async ValueTask FinishAsync(CancellationToken token)

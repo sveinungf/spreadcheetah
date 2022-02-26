@@ -258,10 +258,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return new StyleId(_styles.Count);
     }
 
-    public void AddDataValidation(string reference, DataValidation validation)
+    public void AddDataValidation(string address, DataValidation validation)
     {
         ThrowIfNull(validation, nameof(validation));
-        Worksheet.AddDataValidation(reference, validation);
+
+        if (!CellAddress.TryCreate(address, out var cellAddress))
+            throw new ArgumentException("Invalid address for cell or cell range.", nameof(address));
+
+        Worksheet.AddDataValidation(cellAddress!.Value, validation); // TODO: Remove '!' when using NotNullWhen
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)

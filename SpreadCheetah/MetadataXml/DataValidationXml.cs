@@ -9,7 +9,7 @@ internal static class DataValidationXml
     public static async ValueTask WriteAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
-        Dictionary<string, DataValidation> validations,
+        Dictionary<CellAddress, DataValidation> validations,
         CancellationToken token)
     {
         var sb = new StringBuilder("<dataValidations count=\"");
@@ -48,8 +48,7 @@ internal static class DataValidationXml
             if (!string.IsNullOrEmpty(validation.ErrorMessage))
                 sb.AppendTextAttribute("error", validation.ErrorMessage!);
 
-            // TODO: Can we write the reference directly?
-            sb.AppendTextAttribute("sqref", keyValue.Key);
+            sb.AppendTextAttribute("sqref", keyValue.Key.Address);
 
             if (validation.Value1 is null)
             {
