@@ -36,7 +36,6 @@ internal static class DataValidationXml
             if (validation.ShowErrorAlert)
                 sb.Append("showErrorMessage=\"1\" ");
 
-            // TODO: Check if space in buffer, handle piece by piece
             if (!string.IsNullOrEmpty(validation.InputTitle))
                 sb.AppendTextAttribute("promptTitle", validation.InputTitle!);
 

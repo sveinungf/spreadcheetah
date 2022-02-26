@@ -31,10 +31,23 @@ public sealed class DataValidation
     public bool IgnoreBlank { get; set; } = true;
     public bool ShowErrorAlert { get; set; } = true;
     public bool ShowInputMessage { get; set; } = true;
-    public string? ErrorTitle { get; set; } // TODO: Validate length
-    public string? ErrorMessage { get; set; } // TODO: Validate length
-    public string? InputTitle { get; set; } // TODO: Validate length
-    public string? InputMessage { get; set; } // TODO: Validate length
+
+    public string? ErrorTitle { get => _errorTitle; set => _errorTitle = VerifyLength(value, 32); }
+    private string? _errorTitle;
+
+    public string? ErrorMessage { get => _errorMessage; set => _errorMessage = VerifyLength(value, 255); }
+    private string? _errorMessage;
+
+    public string? InputTitle { get => _inputTitle; set => _inputTitle = VerifyLength(value, 32); }
+    private string? _inputTitle;
+
+    public string? InputMessage { get => _inputMessage; set => _inputMessage = VerifyLength(value, 255); }
+    private string? _inputMessage;
+
+    private static string? VerifyLength(string? value, int maxLength) =>
+        value is not null && value.Length > maxLength
+            ? throw new ArgumentException($"The value can not exceed {maxLength} characters.", nameof(value))
+            : value;
 
     public ValidationErrorType ErrorType
     {
