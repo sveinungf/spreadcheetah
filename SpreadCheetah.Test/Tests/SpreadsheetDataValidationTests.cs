@@ -327,5 +327,37 @@ public class SpreadsheetDataValidationTests
         Assert.Equal(showDropdown, actualValidation.InCellDropdown);
     }
 
-    // TODO: Test for error/input
+    [Fact]
+    public async Task Spreadsheet_AddDataValidation_InputAndErrorMessages()
+    {
+        // Arrange
+        const string inputMessage = "This <is> the \"input\" message";
+        const string errorMessage = "This <is> the \"error\" message";
+        const string errorTitle = "This <is> the \"error\" title";
+        var validation = DataValidation.IntegerGreaterThan(0);
+        validation.InputMessage = inputMessage;
+        validation.ErrorMessage = errorMessage;
+        validation.ErrorTitle = errorTitle;
+        validation.ErrorType = ValidationErrorType.Warning;
+
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            // Act
+            spreadsheet.AddDataValidation("A1", validation);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualValidation = Assert.Single(worksheet.DataValidations);
+        Assert.Equal(inputMessage, actualValidation.InputMessage);
+        Assert.Equal(errorMessage, actualValidation.ErrorMessage);
+        Assert.Equal(errorTitle, actualValidation.ErrorTitle);
+        Assert.Equal(XLErrorStyle.Warning, actualValidation.ErrorStyle);
+    }
 }
