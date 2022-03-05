@@ -192,7 +192,4 @@ internal abstract class BaseCellWriter<T>
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         TryWriteEndElement(cell);
     }
-
-    // TODO: Remove this method?
-    protected bool FinishWritingCellValue(string cellValue, ref int cellValueIndex) => Buffer.WriteLongString(cellValue.AsSpan(), ref cellValueIndex);
 }
