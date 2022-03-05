@@ -360,4 +360,59 @@ public class SpreadsheetDataValidationTests
         Assert.Equal(errorTitle, actualValidation.ErrorTitle);
         Assert.Equal(XLErrorStyle.Warning, actualValidation.ErrorStyle);
     }
+
+    [Fact]
+    public async Task Spreadsheet_AddDataValidation_CellRange()
+    {
+        // Arrange
+        var validation = DataValidation.IntegerGreaterThan(0);
+
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            // Act
+            spreadsheet.AddDataValidation("A1:C10", validation);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualValidation = Assert.Single(worksheet.DataValidations);
+        var actualRange = Assert.Single(actualValidation.Ranges);
+        Assert.Equal(3, actualRange.ColumnCount());
+        Assert.Equal(10, actualRange.RowCount());
+
+        var firstCell = actualRange.Cells().First();
+        Assert.Equal(1, firstCell.Address.ColumnNumber);
+        Assert.Equal(1, firstCell.Address.RowNumber);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("A 1")]
+    [InlineData("A1 ")]
+    [InlineData(" A1")]
+    [InlineData("a1")]
+    [InlineData("Å1")]
+    [InlineData("AAAA1")]
+    [InlineData("A12345678")]
+    public async Task Spreadsheet_AddDataValidation_InvalidAddress(string? address)
+    {
+        // Arrange
+        var validation = DataValidation.IntegerGreaterThan(0);
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act & Assert
+        Assert.ThrowsAny<ArgumentException>(() => spreadsheet.AddDataValidation(address!, validation));
+    }
 }
