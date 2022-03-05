@@ -30,7 +30,7 @@ internal sealed class CellWriter : BaseCellWriter<Cell>
     protected override bool FinishWritingCellValue(in Cell cell, ref int cellValueIndex)
     {
         if (cell.Formula is null)
-            return FinishWritingCellValue(cell.DataCell.StringValue!, ref cellValueIndex);
+            return Buffer.WriteLongString(cell.DataCell.StringValue.AsSpan(), ref cellValueIndex);
 
         var formulaText = cell.Formula.Value.FormulaText;
 
@@ -38,7 +38,7 @@ internal sealed class CellWriter : BaseCellWriter<Cell>
         if (cellValueIndex < formulaText.Length)
         {
             // If there is a cached value, we need to write "[FORMULA]</f><v>[CACHEDVALUE]"
-            if (!FinishWritingCellValue(formulaText, ref cellValueIndex)) return false;
+            if (!Buffer.WriteLongString(formulaText.AsSpan(), ref cellValueIndex)) return false;
 
             // Otherwise, we only need to write the formula
             if (string.IsNullOrEmpty(cell.DataCell.StringValue)) return true;
@@ -57,7 +57,7 @@ internal sealed class CellWriter : BaseCellWriter<Cell>
 
         // Write the cached value
         var cachedValueIndex = cellValueIndex - cachedValueStartIndex;
-        var result = FinishWritingCellValue(cell.DataCell.StringValue!, ref cachedValueIndex);
+        var result = Buffer.WriteLongString(cell.DataCell.StringValue.AsSpan(), ref cachedValueIndex);
         cellValueIndex = cachedValueIndex + cachedValueStartIndex;
         return result;
     }

@@ -1,5 +1,6 @@
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 using System.Buffers;
 using System.IO.Compression;
@@ -26,7 +27,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private bool _disposed;
     private bool _finished;
 
-    private Worksheet Worksheet => _worksheet ?? throw new SpreadCheetahException("Can't add rows when there is not an active worksheet.");
+    private Worksheet Worksheet => _worksheet ?? throw new SpreadCheetahException("There is no active worksheet.");
 
     private Spreadsheet(ZipArchive archive, CompressionLevel compressionLevel, int bufferSize)
     {
@@ -251,11 +252,31 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ThrowIfNull(style, nameof(style));
 
         if (_styles is null)
-            _styles = new List<Style> { style };
-        else
-            _styles.Add(style);
+            _styles = new List<Style>();
 
+        _styles.Add(style);
         return new StyleId(_styles.Count);
+    }
+
+    /// <summary>
+    /// Adds data validation for a cell or a range of cells. The reference must be in the A1 reference style. Some examples:
+    /// <list type="bullet">
+    ///   <item><term><c>A1</c></term><description>References the top left cell.</description></item>
+    ///   <item><term><c>C4</c></term><description>References the cell in column C row 4.</description></item>
+    ///   <item><term><c>A1:E5</c></term><description>References the range from cell A1 to E5.</description></item>
+    ///   <item><term><c>A1:A1048576</c></term><description>References all cells in column A.</description></item>
+    ///   <item><term><c>A5:XFD5</c></term><description>References all cells in row 5.</description></item>
+    /// </list>
+    /// </summary>
+    public void AddDataValidation(string reference, DataValidation validation)
+    {
+        ThrowIfNull(validation, nameof(validation));
+        ThrowIfNull(reference, nameof(reference));
+
+        if (!CellReference.TryCreate(reference, out var cellReference))
+            throw new ArgumentException("Invalid reference for a cell or a range of cells.", nameof(reference));
+
+        Worksheet.AddDataValidation(cellReference.Value, validation);
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
