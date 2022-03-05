@@ -258,14 +258,25 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return new StyleId(_styles.Count);
     }
 
-    public void AddDataValidation(string address, DataValidation validation)
+    /// <summary>
+    /// Adds data validation for a cell or a range of cells. The reference must be in the A1 reference style. Some examples:
+    /// <list type="bullet">
+    ///   <item><term><c>A1</c></term><description>References the top left cell.</description></item>
+    ///   <item><term><c>C4</c></term><description>References the cell in column C row 4.</description></item>
+    ///   <item><term><c>A1:E5</c></term><description>References the range from cell A1 to E5.</description></item>
+    ///   <item><term><c>A1:A1048576</c></term><description>References all cells in column A.</description></item>
+    ///   <item><term><c>A5:XFD5</c></term><description>References all cells in row 5.</description></item>
+    /// </list>
+    /// </summary>
+    public void AddDataValidation(string reference, DataValidation validation)
     {
         ThrowIfNull(validation, nameof(validation));
+        ThrowIfNull(reference, nameof(reference));
 
-        if (!CellAddress.TryCreate(address, out var cellAddress))
-            throw new ArgumentException("Invalid address for cell or cell range.", nameof(address));
+        if (!CellReference.TryCreate(reference, out var cellReference))
+            throw new ArgumentException("Invalid reference for a cell or a range of cells.", nameof(reference));
 
-        Worksheet.AddDataValidation(cellAddress.Value, validation);
+        Worksheet.AddDataValidation(cellReference.Value, validation);
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)

@@ -9,7 +9,7 @@ internal static class DataValidationXml
     public static async ValueTask WriteAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
-        Dictionary<CellAddress, DataValidation> validations,
+        Dictionary<CellReference, DataValidation> validations,
         CancellationToken token)
     {
         var sb = new StringBuilder("<dataValidations count=\"");
@@ -48,7 +48,7 @@ internal static class DataValidationXml
             if (!string.IsNullOrEmpty(validation.ErrorMessage))
                 sb.AppendTextAttribute("error", validation.ErrorMessage!);
 
-            sb.AppendTextAttribute("sqref", keyValue.Key.Address);
+            sb.AppendTextAttribute("sqref", keyValue.Key.Reference);
 
             if (validation.Value1 is null)
             {

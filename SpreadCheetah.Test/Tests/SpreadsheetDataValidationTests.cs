@@ -270,7 +270,7 @@ public class SpreadsheetDataValidationTests
     public async Task Spreadsheet_AddDataValidation_ListValues()
     {
         // Arrange
-        const string address = "A1";
+        const string reference = "A1";
         var values = new[] { "One", "\"Two\"", "<Three>" };
         var validation = DataValidation.ListValues(values);
 
@@ -280,7 +280,7 @@ public class SpreadsheetDataValidationTests
             await spreadsheet.StartWorksheetAsync("Sheet");
 
             // Act
-            spreadsheet.AddDataValidation(address, validation);
+            spreadsheet.AddDataValidation(reference, validation);
             await spreadsheet.FinishAsync();
         }
 
@@ -289,7 +289,7 @@ public class SpreadsheetDataValidationTests
         using var package = new ExcelPackage(stream);
         var worksheet = package.Workbook.Worksheets.Single();
         var actualValidation = Assert.Single(worksheet.DataValidations);
-        Assert.Equal(address, actualValidation.Address.Address);
+        Assert.Equal(reference, actualValidation.Address.Address);
         Assert.Equal(eDataValidationType.List, actualValidation.ValidationType.Type);
         var actualListValidation = (IExcelDataValidationList)actualValidation;
         Assert.Equal(values, actualListValidation.Formula.Values);
@@ -402,7 +402,7 @@ public class SpreadsheetDataValidationTests
     [InlineData("Å1")]
     [InlineData("AAAA1")]
     [InlineData("A12345678")]
-    public async Task Spreadsheet_AddDataValidation_InvalidAddress(string? address)
+    public async Task Spreadsheet_AddDataValidation_InvalidReference(string? reference)
     {
         // Arrange
         var validation = DataValidation.IntegerGreaterThan(0);
@@ -413,6 +413,6 @@ public class SpreadsheetDataValidationTests
         await spreadsheet.StartWorksheetAsync("Sheet");
 
         // Act & Assert
-        Assert.ThrowsAny<ArgumentException>(() => spreadsheet.AddDataValidation(address!, validation));
+        Assert.ThrowsAny<ArgumentException>(() => spreadsheet.AddDataValidation(reference!, validation));
     }
 }
