@@ -56,16 +56,10 @@ internal static class DataValidationXml
                 continue;
             }
 
-            sb.Append("><formula1>");
-            sb.Append(validation.Value1);
-            sb.Append("</formula1>");
+            sb.Append("><formula1>").Append(validation.Value1).Append("</formula1>");
 
             if (validation.Value2 is not null)
-            {
-                sb.Append("<formula2>");
-                sb.Append(validation.Value2);
-                sb.Append("</formula2>");
-            }
+                sb.Append("<formula2>").Append(validation.Value2).Append("</formula2>");
 
             sb.Append("</dataValidation>");
         }
