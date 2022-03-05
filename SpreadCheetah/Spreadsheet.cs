@@ -265,7 +265,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (!CellAddress.TryCreate(address, out var cellAddress))
             throw new ArgumentException("Invalid address for cell or cell range.", nameof(address));
 
-        Worksheet.AddDataValidation(cellAddress!.Value, validation); // TODO: Remove '!' when using NotNullWhen
+        Worksheet.AddDataValidation(cellAddress.Value, validation);
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)

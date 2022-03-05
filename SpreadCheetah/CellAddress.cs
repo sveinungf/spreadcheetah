@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 namespace SpreadCheetah;
@@ -10,7 +11,7 @@ internal readonly struct CellAddress : IEquatable<CellAddress>
 
     private CellAddress(string address) => Address = address;
 
-    public static bool TryCreate(string? value, out CellAddress? address) // TODO: NotNullWhen
+    public static bool TryCreate(string? value, [NotNullWhen(true)] out CellAddress? address)
     {
         address = null;
 
