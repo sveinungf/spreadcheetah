@@ -36,7 +36,7 @@ internal static class WorkbookXml
             await using (stream.ConfigureAwait(false))
 #endif
         {
-            buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetNextSpan()));
+            buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetSpan()));
 
             for (var i = 0; i < worksheetNames.Count; ++i)
             {
@@ -44,10 +44,10 @@ internal static class WorkbookXml
                 var name = WebUtility.HtmlEncode(worksheetNames[i]);
                 var sheetElementLength = GetSheetElementByteCount(name, sheetId);
 
-                if (sheetElementLength > buffer.GetRemainingBuffer())
+                if (sheetElementLength > buffer.FreeCapacity)
                     await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-                buffer.Advance(GetSheetElementBytes(name, sheetId, buffer.GetNextSpan()));
+                buffer.Advance(GetSheetElementBytes(name, sheetId, buffer.GetSpan()));
             }
 
             await buffer.WriteAsciiStringAsync(Footer, stream, token).ConfigureAwait(false);

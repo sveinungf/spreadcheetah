@@ -28,13 +28,13 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
 
     private bool GetBytes(SpreadsheetBuffer buffer)
     {
-        buffer.Advance(SpanHelper.GetBytes(DataCellBytes(), buffer.GetNextSpan()));
+        buffer.Advance(SpanHelper.GetBytes(DataCellBytes(), buffer.GetSpan()));
         return true;
     }
 
     private bool GetBytes(StyleId styleId, SpreadsheetBuffer buffer)
     {
-        var bytes = buffer.GetNextSpan();
+        var bytes = buffer.GetSpan();
         var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledBooleanCell, bytes);
         bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
         bytesWritten += SpanHelper.GetBytes(EndStyleValueBytes(), bytes.Slice(bytesWritten));
@@ -44,7 +44,7 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
 
     public override bool GetBytes(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer)
     {
-        var bytes = buffer.GetNextSpan();
+        var bytes = buffer.GetSpan();
         int bytesWritten;
 
         if (styleId is null)
@@ -66,13 +66,13 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
 
     public override bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer)
     {
-        var remaining = buffer.GetRemainingBuffer();
+        var remaining = buffer.FreeCapacity;
         return DataCellElementLength <= remaining && GetBytes(cell, buffer);
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
-        var remaining = buffer.GetRemainingBuffer();
+        var remaining = buffer.FreeCapacity;
         return StyledCellElementLength <= remaining && GetBytes(cell, styleId, buffer);
     }
 
@@ -80,7 +80,7 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
     {
         // Try with approximate formula text length
         var bytesNeeded = FormulaCellElementLength + formulaText.Length * Utf8Helper.MaxBytePerChar;
-        var remaining = buffer.GetRemainingBuffer();
+        var remaining = buffer.FreeCapacity;
         if (bytesNeeded <= remaining)
             return GetBytes(formulaText, cachedValue, styleId, buffer);
 
@@ -97,10 +97,10 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
             return true;
 
         var cellEnd = EndFormulaValueBytes();
-        if (cellEnd.Length > buffer.GetRemainingBuffer())
+        if (cellEnd.Length > buffer.FreeCapacity)
             return false;
 
-        buffer.Advance(SpanHelper.GetBytes(cellEnd, buffer.GetNextSpan()));
+        buffer.Advance(SpanHelper.GetBytes(cellEnd, buffer.GetSpan()));
         return true;
     }
 
@@ -108,12 +108,12 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
     {
         if (styleId is null)
         {
-            buffer.Advance(SpanHelper.GetBytes(FormulaCellHelper.BeginBooleanFormulaCell, buffer.GetNextSpan()));
+            buffer.Advance(SpanHelper.GetBytes(FormulaCellHelper.BeginBooleanFormulaCell, buffer.GetSpan()));
             return true;
         }
 
-        var bytes = buffer.GetNextSpan();
-        var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledBooleanCell, buffer.GetNextSpan());
+        var bytes = buffer.GetSpan();
+        var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledBooleanCell, buffer.GetSpan());
         bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
         bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndStyleBeginFormula, bytes.Slice(bytesWritten));
         buffer.Advance(bytesWritten);

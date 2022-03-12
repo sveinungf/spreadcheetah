@@ -24,13 +24,13 @@ internal sealed class NullValueWriter : CellValueWriter
 
     private static bool GetBytes(SpreadsheetBuffer buffer)
     {
-        buffer.Advance(SpanHelper.GetBytes(DataCellHelper.NullCell, buffer.GetNextSpan()));
+        buffer.Advance(SpanHelper.GetBytes(DataCellHelper.NullCell, buffer.GetSpan()));
         return true;
     }
 
     private static bool GetBytes(StyleId styleId, SpreadsheetBuffer buffer)
     {
-        var bytes = buffer.GetNextSpan();
+        var bytes = buffer.GetSpan();
         var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledNumberCell, bytes);
         bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
         bytesWritten += SpanHelper.GetBytes(StyledCellHelper.EndStyleNullValue, bytes.Slice(bytesWritten));
@@ -40,7 +40,7 @@ internal sealed class NullValueWriter : CellValueWriter
 
     public override bool GetBytes(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer)
     {
-        var bytes = buffer.GetNextSpan();
+        var bytes = buffer.GetSpan();
         int bytesWritten;
 
         if (styleId is null)
@@ -62,13 +62,13 @@ internal sealed class NullValueWriter : CellValueWriter
 
     public override bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer)
     {
-        var remaining = buffer.GetRemainingBuffer();
+        var remaining = buffer.FreeCapacity;
         return DataCellElementLength <= remaining && GetBytes(cell, buffer);
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
-        var remaining = buffer.GetRemainingBuffer();
+        var remaining = buffer.FreeCapacity;
         return StyledCellElementLength <= remaining && GetBytes(cell, styleId, buffer);
     }
 
@@ -76,7 +76,7 @@ internal sealed class NullValueWriter : CellValueWriter
     {
         // Try with approximate formula text length
         var bytesNeeded = FormulaCellElementLength + formulaText.Length * Utf8Helper.MaxBytePerChar;
-        var remaining = buffer.GetRemainingBuffer();
+        var remaining = buffer.FreeCapacity;
         if (bytesNeeded <= remaining)
             return GetBytes(formulaText, cachedValue, styleId, buffer);
 
@@ -93,10 +93,10 @@ internal sealed class NullValueWriter : CellValueWriter
             return true;
 
         var cellEnd = FormulaCellHelper.EndFormulaEndCell;
-        if (cellEnd.Length > buffer.GetRemainingBuffer())
+        if (cellEnd.Length > buffer.FreeCapacity)
             return false;
 
-        buffer.Advance(SpanHelper.GetBytes(cellEnd, buffer.GetNextSpan()));
+        buffer.Advance(SpanHelper.GetBytes(cellEnd, buffer.GetSpan()));
         return true;
     }
 
@@ -104,11 +104,11 @@ internal sealed class NullValueWriter : CellValueWriter
     {
         if (styleId is null)
         {
-            buffer.Advance(SpanHelper.GetBytes(FormulaCellHelper.BeginNumberFormulaCell, buffer.GetNextSpan()));
+            buffer.Advance(SpanHelper.GetBytes(FormulaCellHelper.BeginNumberFormulaCell, buffer.GetSpan()));
             return true;
         }
 
-        var bytes = buffer.GetNextSpan();
+        var bytes = buffer.GetSpan();
         var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledNumberCell, bytes);
         bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
         bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndStyleBeginFormula, bytes.Slice(bytesWritten));

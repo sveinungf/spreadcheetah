@@ -20,14 +20,14 @@ internal abstract class BaseCellWriter<T>
     public bool TryAddRow(IList<T> cells, int rowIndex, out int currentListIndex)
     {
         // Assuming previous actions on the worksheet ensured space in the buffer for row start
-        Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, Buffer.GetNextSpan()));
+        Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, Buffer.GetSpan()));
         return TryAddRowCells(cells, out currentListIndex);
     }
 
     public bool TryAddRow(ReadOnlySpan<T> cells, int rowIndex, out int currentListIndex)
     {
         // Assuming previous actions on the worksheet ensured space in the buffer for row start
-        Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, Buffer.GetNextSpan()));
+        Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, Buffer.GetSpan()));
         return TryAddRowCellsForSpan(cells, out currentListIndex);
     }
 
@@ -37,10 +37,10 @@ internal abstract class BaseCellWriter<T>
         currentListIndex = 0;
 
         // Need to check if buffer has enough space. Previous actions only ensure space for a basic row (a row with no options set).
-        if (CellRowHelper.ConfiguredRowStartMaxByteCount > Buffer.GetRemainingBuffer())
+        if (CellRowHelper.ConfiguredRowStartMaxByteCount > Buffer.FreeCapacity)
             return false;
 
-        Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, options, Buffer.GetNextSpan()));
+        Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, options, Buffer.GetSpan()));
         rowStartWritten = true;
 
         return TryAddRowCells(cells, out currentListIndex);
@@ -89,9 +89,9 @@ internal abstract class BaseCellWriter<T>
     }
 
     // Also ensuring space in the buffer for starting another basic row, so that we might not need to check space in the buffer twice.
-    private bool CanWriteRowEnd() => Buffer.GetRemainingBuffer() >= CellRowHelper.RowEnd.Length + CellRowHelper.BasicRowStartMaxByteCount;
+    private bool CanWriteRowEnd() => Buffer.FreeCapacity>= CellRowHelper.RowEnd.Length + CellRowHelper.BasicRowStartMaxByteCount;
 
-    private void DoWriteRowEnd() => Buffer.Advance(SpanHelper.GetBytes(CellRowHelper.RowEnd, Buffer.GetNextSpan()));
+    private void DoWriteRowEnd() => Buffer.Advance(SpanHelper.GetBytes(CellRowHelper.RowEnd, Buffer.GetSpan()));
 
     private bool WriteRowEnd()
     {
@@ -166,7 +166,7 @@ internal abstract class BaseCellWriter<T>
         {
             // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
             await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, options, Buffer.GetNextSpan()));
+            Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, options, Buffer.GetSpan()));
         }
 
         await AddRowAsync(cells, currentCellIndex, stream, token).ConfigureAwait(false);

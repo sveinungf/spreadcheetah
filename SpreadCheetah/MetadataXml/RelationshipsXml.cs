@@ -24,7 +24,7 @@ internal static class RelationshipsXml
             await using (stream.ConfigureAwait(false))
 #endif
         {
-            buffer.Advance(Utf8Helper.GetBytes(Content, buffer.GetNextSpan()));
+            buffer.Advance(Utf8Helper.GetBytes(Content, buffer.GetSpan()));
             await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }
     }

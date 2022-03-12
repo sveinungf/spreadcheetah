@@ -35,10 +35,10 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public async ValueTask WriteHeadAsync(WorksheetOptions? options, CancellationToken token)
     {
-        _buffer.Advance(Utf8Helper.GetBytes(SheetHeader, _buffer.GetNextSpan()));
+        _buffer.Advance(Utf8Helper.GetBytes(SheetHeader, _buffer.GetSpan()));
         if (options is null)
         {
-            _buffer.Advance(Utf8Helper.GetBytes(SheetDataBegin, _buffer.GetNextSpan()));
+            _buffer.Advance(Utf8Helper.GetBytes(SheetDataBegin, _buffer.GetSpan()));
             return;
         }
 
@@ -54,7 +54,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
         await WriteColsXmlAsync(sb, options, token).ConfigureAwait(false);
 
-        _buffer.Advance(Utf8Helper.GetBytes(SheetDataBegin, _buffer.GetNextSpan()));
+        _buffer.Advance(Utf8Helper.GetBytes(SheetDataBegin, _buffer.GetSpan()));
     }
 
     private static void WriteSheetViewsXml(StringBuilder sb, WorksheetOptions options)
@@ -120,7 +120,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
         // The <cols> tag should only be written if there is a column with a real width set.
         if (firstColumnWritten)
-            _buffer.Advance(Utf8Helper.GetBytes("</cols>", _buffer.GetNextSpan()));
+            _buffer.Advance(Utf8Helper.GetBytes("</cols>", _buffer.GetSpan()));
     }
 
     public bool TryAddRow(IList<Cell> cells, out int currentIndex)

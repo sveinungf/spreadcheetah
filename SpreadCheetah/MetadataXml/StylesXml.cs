@@ -60,7 +60,7 @@ internal static class StylesXml
         List<Style> styles,
         CancellationToken token)
     {
-        buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetNextSpan()));
+        buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetSpan()));
 
         var fontLookup = await WriteFontsAsync(stream, buffer, styles, token).ConfigureAwait(false);
         var fillLookup = await WriteFillsAsync(stream, buffer, styles, token).ConfigureAwait(false);
@@ -68,7 +68,7 @@ internal static class StylesXml
         await buffer.WriteAsciiStringAsync(XmlPart1, stream, token).ConfigureAwait(false);
 
         var styleCount = styles.Count + 1;
-        if (styleCount.GetNumberOfDigits() > buffer.GetRemainingBuffer())
+        if (styleCount.GetNumberOfDigits() > buffer.FreeCapacity)
             await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
         var sb = new StringBuilder();

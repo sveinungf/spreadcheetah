@@ -35,7 +35,7 @@ internal static class WorkbookRelsXml
             await using (stream.ConfigureAwait(false))
 #endif
         {
-            buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetNextSpan()));
+            buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetSpan()));
 
             for (var i = 0; i < worksheetPaths.Count; ++i)
             {
@@ -43,20 +43,20 @@ internal static class WorkbookRelsXml
                 var sheetId = i + 1;
                 var sheetElementLength = GetSheetElementByteCount(path, sheetId);
 
-                if (sheetElementLength > buffer.GetRemainingBuffer())
+                if (sheetElementLength > buffer.FreeCapacity)
                     await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-                buffer.Advance(GetSheetElementBytes(path, sheetId, buffer.GetNextSpan()));
+                buffer.Advance(GetSheetElementBytes(path, sheetId, buffer.GetSpan()));
             }
 
             var bufferNeeded = Footer.Length + (hasStylesXml ? MaxStylesXmlElementByteCount : 0);
-            if (bufferNeeded > buffer.GetRemainingBuffer())
+            if (bufferNeeded > buffer.FreeCapacity)
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
             if (hasStylesXml)
-                buffer.Advance(GetStylesXmlElementBytes(worksheetPaths.Count + 1, buffer.GetNextSpan()));
+                buffer.Advance(GetStylesXmlElementBytes(worksheetPaths.Count + 1, buffer.GetSpan()));
 
-            buffer.Advance(Utf8Helper.GetBytes(Footer, buffer.GetNextSpan()));
+            buffer.Advance(Utf8Helper.GetBytes(Footer, buffer.GetSpan()));
             await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }
     }

@@ -50,8 +50,8 @@ internal sealed class CellWriter : BaseCellWriter<Cell>
         if (cellValueIndex < cachedValueStartIndex)
         {
             var separator = FormulaCellHelper.EndFormulaBeginCachedValue;
-            if (separator.Length > Buffer.GetRemainingBuffer()) return false;
-            Buffer.Advance(SpanHelper.GetBytes(separator, Buffer.GetNextSpan()));
+            if (separator.Length > Buffer.FreeCapacity) return false;
+            Buffer.Advance(SpanHelper.GetBytes(separator, Buffer.GetSpan()));
             cellValueIndex = cachedValueStartIndex;
         }
 

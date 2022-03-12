@@ -1,5 +1,4 @@
 using SpreadCheetah.Helpers;
-using System.Diagnostics;
 using System.Text;
 
 namespace SpreadCheetah;
@@ -14,22 +13,22 @@ internal sealed class SpreadsheetBuffer
         _buffer = buffer;
     }
 
-    public Span<byte> GetNextSpan() => _buffer.AsSpan(_index);
-    public int GetRemainingBuffer() => _buffer.Length - _index;
+    public Span<byte> GetSpan() => _buffer.AsSpan(_index);
+    public int FreeCapacity => _buffer.Length - _index;
     public void Advance(int bytes) => _index += bytes;
 
     public async ValueTask WriteAsciiStringAsync(string value, Stream stream, CancellationToken token)
     {
         // When value is ASCII, the number of bytes equals the length of the string
-        if (value.Length > GetRemainingBuffer())
+        if (value.Length > FreeCapacity)
             await FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-        _index += Utf8Helper.GetBytes(value, GetNextSpan());
+        _index += Utf8Helper.GetBytes(value, GetSpan());
     }
 
     public async ValueTask WriteStringAsync(StringBuilder sb, Stream stream, CancellationToken token)
     {
-        var remaining = GetRemainingBuffer();
+        var remaining = FreeCapacity;
         var value = sb.ToString();
 
         // Try with an approximate cell value length
@@ -46,7 +45,7 @@ internal sealed class SpreadsheetBuffer
         // Write whole value if it fits in the buffer
         if (bytesNeeded <= _buffer.Length)
         {
-            _index += Utf8Helper.GetBytes(value, GetNextSpan());
+            _index += Utf8Helper.GetBytes(value, GetSpan());
             return;
         }
 
@@ -60,12 +59,12 @@ internal sealed class SpreadsheetBuffer
 
     public bool WriteLongString(ReadOnlySpan<char> value, ref int valueIndex)
     {
-        var remainingBuffer = GetRemainingBuffer();
+        var remainingBuffer = FreeCapacity;
         var maxCharCount = remainingBuffer / Utf8Helper.MaxBytePerChar;
         var remainingLength = value.Length - valueIndex;
         var lastIteration = remainingLength <= maxCharCount;
         var length = Math.Min(remainingLength, maxCharCount);
-        _index += Utf8Helper.GetBytes(value.Slice(valueIndex, length), GetNextSpan());
+        _index += Utf8Helper.GetBytes(value.Slice(valueIndex, length), GetSpan());
         valueIndex += length;
         return lastIteration;
     }

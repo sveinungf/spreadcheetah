@@ -35,7 +35,7 @@ internal static class ContentTypesXml
             await using (stream.ConfigureAwait(false))
 #endif
         {
-            buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetNextSpan()));
+            buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetSpan()));
 
             if (hasStylesXml)
             {
@@ -47,10 +47,10 @@ internal static class ContentTypesXml
                 var path = worksheetPaths[i];
                 var sheetElementLength = GetSheetElementByteCount(path);
 
-                if (sheetElementLength > buffer.GetRemainingBuffer())
+                if (sheetElementLength > buffer.FreeCapacity)
                     await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-                buffer.Advance(GetSheetElementBytes(path, buffer.GetNextSpan()));
+                buffer.Advance(GetSheetElementBytes(path, buffer.GetSpan()));
             }
 
             await buffer.WriteAsciiStringAsync(Footer, stream, token).ConfigureAwait(false);
