@@ -1,5 +1,6 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
+using SpreadCheetah.Benchmark.Helpers;
 
 namespace SpreadCheetah.Benchmark.Benchmarks;
 
@@ -9,8 +10,7 @@ namespace SpreadCheetah.Benchmark.Benchmarks;
 [MemoryDiagnoser]
 public class MixedDataTypeCells
 {
-    private List<string> _stringValues1 = null!;
-    private List<string> _stringValues2 = null!;
+    private RowItem[] _rows = null!;
 
     [Params(100000)]
     public int NumberOfRows { get; set; }
@@ -18,14 +18,22 @@ public class MixedDataTypeCells
     [GlobalSetup]
     public void GlobalSetup()
     {
-        _stringValues1 = new List<string>(NumberOfRows);
-        _stringValues2 = new List<string>(NumberOfRows);
-
-        for (var row = 0; row < NumberOfRows; ++row)
-        {
-            _stringValues1.Add("Ola-" + row);
-            _stringValues2.Add(row + "-Nordmann");
-        }
+        _rows = Enumerable.Range(0, NumberOfRows)
+            .Select(row =>
+            {
+                var even = row % 2 == 0;
+                return new RowItem(
+                    row,
+                    "Ola-" + row,
+                    row + "-Nordmann",
+                    1950 + row / 1000,
+                    5.67 + row % 10,
+                    even,
+                    even ? "Norway" : "Sweden",
+                    !even,
+                    0.991f + row / 10000.0,
+                    even ? -23 : 23);
+            }).ToArray();
     }
 
     [Benchmark]
@@ -36,19 +44,19 @@ public class MixedDataTypeCells
 
         var cells = new DataCell[10];
 
-        for (var row = 0; row < NumberOfRows; ++row)
+        for (var row = 0; row < _rows.Length; ++row)
         {
-            var even = row % 2 == 0;
-            cells[0] = new DataCell(row);
-            cells[1] = new DataCell(_stringValues1[row]);
-            cells[2] = new DataCell(_stringValues2[row]);
-            cells[3] = new DataCell(1950 + row / 1000);
-            cells[4] = new DataCell(5.67 + row % 10);
-            cells[5] = new DataCell(even);
-            cells[6] = new DataCell(even ? "Norway" : "Sweden");
-            cells[7] = new DataCell(!even);
-            cells[8] = new DataCell(0.991f + row / 10000.0);
-            cells[9] = new DataCell(even ? -23 : 23);
+            var rowItem = _rows[row];
+            cells[0] = new DataCell(rowItem.A);
+            cells[1] = new DataCell(rowItem.B);
+            cells[2] = new DataCell(rowItem.C);
+            cells[3] = new DataCell(rowItem.D);
+            cells[4] = new DataCell(rowItem.E);
+            cells[5] = new DataCell(rowItem.F);
+            cells[6] = new DataCell(rowItem.G);
+            cells[7] = new DataCell(rowItem.H);
+            cells[8] = new DataCell(rowItem.I);
+            cells[9] = new DataCell(rowItem.J);
 
             await spreadsheet.AddRowAsync(cells);
         }
