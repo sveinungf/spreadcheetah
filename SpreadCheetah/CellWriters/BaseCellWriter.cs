@@ -160,7 +160,7 @@ internal abstract class BaseCellWriter<T>
         await WriteRowEndAsync(stream, token).ConfigureAwait(false);
     }
 
-    public async ValueTask AddRowAsync(IList<T> cells, int rowIndex, RowOptions options, bool rowStartWritten, int currentCellIndex, int endCellIndex, Stream stream, CancellationToken token)
+    public async ValueTask AddRowAsync(IList<T> cells, int rowIndex, RowOptions options, bool rowStartWritten, int currentCellIndex, Stream stream, CancellationToken token)
     {
         if (!rowStartWritten)
         {

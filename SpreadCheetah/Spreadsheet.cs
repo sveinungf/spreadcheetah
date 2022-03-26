@@ -190,7 +190,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ThrowIfNull(cells, nameof(cells));
         return Worksheet.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
             ? default
-            : Worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, cells.Count, token);
+            : Worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, token);
     }
 
     /// <summary>
@@ -213,7 +213,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ThrowIfNull(cells, nameof(cells));
         return Worksheet.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
             ? default
-            : Worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, cells.Count, token);
+            : Worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, token);
     }
 
     /// <summary>
@@ -236,7 +236,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ThrowIfNull(cells, nameof(cells));
         return Worksheet.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
             ? default
-            : Worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, cells.Count, token);
+            : Worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, token);
     }
 
     private static void ThrowIfNull<T>(T? obj, string paramName)
