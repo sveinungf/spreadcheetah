@@ -1,4 +1,5 @@
 using SpreadCheetah.MetadataXml;
+using SpreadCheetah.SourceGenerators;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
@@ -236,6 +237,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return Worksheet.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
             ? default
             : Worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, cells.Count, token);
+    }
+
+    public ValueTask AddAsRowAsync<T>(T obj, WorksheetRowTypeInfo<T> typeInfo, CancellationToken token = default)
+    {
+        ThrowIfNull(typeInfo, nameof(typeInfo));
+        return typeInfo.RowHandler(this, obj, token);
     }
 
     private static void ThrowIfNull<T>(T? obj, string paramName)
