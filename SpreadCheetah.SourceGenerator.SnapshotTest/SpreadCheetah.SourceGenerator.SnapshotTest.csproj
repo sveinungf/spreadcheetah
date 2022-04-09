@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SpreadCheetah.SourceGenerator\SpreadCheetah.SourceGenerator.csproj" />
+    <ProjectReference Include="..\SpreadCheetah\SpreadCheetah.csproj" />
   </ItemGroup>
 
 </Project>

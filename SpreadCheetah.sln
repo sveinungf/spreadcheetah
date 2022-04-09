@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpreadCheetah.SourceGenerat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpreadCheetah.SourceGenerator.SnapshotTest", "SpreadCheetah.SourceGenerator.SnapshotTest\SpreadCheetah.SourceGenerator.SnapshotTest.csproj", "{04309D97-0BFA-419F-99A0-FED6704680C7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpreadCheetah.TrimCheck.Cmd", "SpreadCheetah.TrimCheck.Cmd\SpreadCheetah.TrimCheck.Cmd.csproj", "{93D3C759-C47F-4039-8160-FB7A3DCE89E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpreadCheetah.TrimCheck.Cmd", "SpreadCheetah.TrimCheck.Cmd\SpreadCheetah.TrimCheck.Cmd.csproj", "{93D3C759-C47F-4039-8160-FB7A3DCE89E8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

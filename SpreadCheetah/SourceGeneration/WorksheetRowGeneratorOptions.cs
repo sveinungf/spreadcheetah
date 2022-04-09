@@ -1,4 +1,4 @@
-namespace SpreadCheetah.SourceGenerators;
+namespace SpreadCheetah.SourceGeneration;
 
 public sealed class WorksheetRowGeneratorOptions
 {

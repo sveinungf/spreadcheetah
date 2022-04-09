@@ -22,6 +22,6 @@ public static class TestClass
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify(source);
+        return TestHelper.CompileAndVerify<RowCellsGenerator>(source);
     }
 }

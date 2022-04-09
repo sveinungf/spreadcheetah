@@ -1,4 +1,4 @@
-namespace SpreadCheetah.SourceGenerators.Internal;
+namespace SpreadCheetah.SourceGeneration.Internal;
 
 internal sealed class WorksheetRowTypeInfoInternal<T> : WorksheetRowTypeInfo<T>
 {

@@ -1,6 +1,6 @@
-using SpreadCheetah.SourceGenerators.Internal;
+using SpreadCheetah.SourceGeneration.Internal;
 
-namespace SpreadCheetah.SourceGenerators;
+namespace SpreadCheetah.SourceGeneration;
 
 public static class WorksheetRowMetadataServices
 {
