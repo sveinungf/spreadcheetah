@@ -14,12 +14,12 @@ namespace MyNamespace
         private static MyGenRowContext? _default;
         public static MyGenRowContext Default => _default ??= new();
 
-        private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties>? _ClassWithMultipleProperties;
-        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties> ClassWithMultipleProperties => _ClassWithMultipleProperties ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties>(AddAsRowAsync);
-
         public MyGenRowContext() : base(null)
         {
         }
+
+        private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties>? _ClassWithMultipleProperties;
+        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties> ClassWithMultipleProperties => _ClassWithMultipleProperties ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties>(AddAsRowAsync);
 
         private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties? obj, CancellationToken token)
         {
