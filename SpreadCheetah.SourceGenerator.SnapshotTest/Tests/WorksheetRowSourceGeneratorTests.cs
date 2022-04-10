@@ -49,6 +49,27 @@ namespace MyNamespace
     }
 
     [Fact]
+    public Task WorksheetRowSourceGenerator_Generate_ClassWithNoProperties()
+    {
+        // Arrange
+        var source = @"
+using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+using System;
+
+namespace MyNamespace
+{
+    [WorksheetRow(typeof(ClassWithNoProperties))]
+    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    {
+    }
+}";
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+    }
+
+    [Fact]
     public Task WorksheetRowSourceGenerator_Generate_ContextWithMultipleWorksheetRowAttributes()
     {
         // Arrange
