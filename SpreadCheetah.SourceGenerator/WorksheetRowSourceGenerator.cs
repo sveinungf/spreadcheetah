@@ -169,8 +169,10 @@ public class WorksheetRowSourceGenerator : IIncrementalGenerator
         if (contextTypeNamespace is { IsGlobalNamespace: false })
             sb.AppendLine($"namespace {contextTypeNamespace}");
 
+        var accessibility = SyntaxFacts.GetText(contextType.DeclaredAccessibility);
+
         sb.AppendLine("{");
-        sb.AppendLine($"    public partial class {contextType.Name}");
+        sb.AppendLine($"    {accessibility} partial class {contextType.Name}");
         sb.AppendLine("    {");
         sb.AppendLine($"        private static {contextType.Name}? _default;");
         sb.AppendLine($"        public static {contextType.Name} Default => _default ??= new();");

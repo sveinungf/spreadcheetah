@@ -69,4 +69,46 @@ namespace MyNamespace
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
     }
+
+    [Fact]
+    public Task WorksheetRowSourceGenerator_Generate_ContextClassWithInternalAccessibility()
+    {
+        // Arrange
+        var source = @"
+using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+using System;
+
+namespace MyNamespace
+{
+    [WorksheetRow(typeof(ClassWithSingleProperty))]
+    internal partial class MyGenRowContext : WorksheetRowGeneratorContext
+    {
+    }
+}";
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+    }
+
+    [Fact]
+    public Task WorksheetRowSourceGenerator_Generate_ContextClassWithDefaultAccessibility()
+    {
+        // Arrange
+        var source = @"
+using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+using System;
+
+namespace MyNamespace
+{
+    [WorksheetRow(typeof(ClassWithSingleProperty))]
+    partial class MyGenRowContext : WorksheetRowGeneratorContext
+    {
+    }
+}";
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+    }
 }
