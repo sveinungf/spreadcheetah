@@ -16,7 +16,7 @@ public class WorksheetRowSourceGenerator : IIncrementalGenerator
         var filtered = context.SyntaxProvider
             .CreateSyntaxProvider(
                 static (s, _) => IsSyntaxTargetForGeneration(s),
-                static (ctx, _) => GetSemanticTargetForGeneration(ctx))
+                static (ctx, token) => GetSemanticTargetForGeneration(ctx, token))
             .Where(static x => x is not null)
             .Collect();
 
@@ -31,7 +31,7 @@ public class WorksheetRowSourceGenerator : IIncrementalGenerator
         BaseList.Types.Count: > 0
     };
 
-    private static ContextClass? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
+    private static ContextClass? GetSemanticTargetForGeneration(GeneratorSyntaxContext context, CancellationToken token)
     {
         if (context.Node is not ClassDeclarationSyntax classDeclaration)
             return null;
@@ -39,7 +39,7 @@ public class WorksheetRowSourceGenerator : IIncrementalGenerator
         if (!classDeclaration.Modifiers.Any(x => x.IsKind(SyntaxKind.PartialKeyword)))
             return null;
 
-        var classSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration);
+        var classSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration, token);
         if (classSymbol is null)
             return null;
 
@@ -72,7 +72,7 @@ public class WorksheetRowSourceGenerator : IIncrementalGenerator
             if (syntaxReference is null)
                 continue;
 
-            rowTypes[typeSymbol] = syntaxReference.GetSyntax().GetLocation();
+            rowTypes[typeSymbol] = syntaxReference.GetSyntax(token).GetLocation();
         }
 
         return rowTypes.Count > 0
