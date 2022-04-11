@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: SPCH1002,
+      Title: Unsupported type for cell value,
+      Severity: Warning,
+      WarningLevel: 1,
+      Location: : (7,5)-(7,55),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: The type '{0}' has a property of type '{1}' which is not supported as a cell value. The property will be ignored when creating the row.,
+      Message: The type 'ClassWithUnsupportedProperty' has a property of type 'Uri' which is not supported as a cell value. The property will be ignored when creating the row.,
+      Category: SpreadCheetah.SourceGenerator,
+      CustomTags: []
+    }
+  ]
+}

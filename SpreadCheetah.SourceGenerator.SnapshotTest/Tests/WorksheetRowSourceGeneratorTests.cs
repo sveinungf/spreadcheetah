@@ -92,6 +92,49 @@ namespace MyNamespace
     }
 
     [Fact]
+    public Task WorksheetRowSourceGenerator_Generate_ClassWithUnsupportedProperty()
+    {
+        // Arrange
+        var source = @"
+using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+using System;
+
+namespace MyNamespace
+{
+    [WorksheetRow(typeof(ClassWithUnsupportedProperty))]
+    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    {
+    }
+}";
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+    }
+
+    [Fact]
+    public Task WorksheetRowSourceGenerator_Generate_ClassWithUnsupportedPropertyAndWarningsSuppressed()
+    {
+        // Arrange
+        var source = @"
+using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+using System;
+
+namespace MyNamespace
+{
+    [WorksheetRow(typeof(ClassWithUnsupportedProperty))]
+    [WorksheetRowGenerationOptions(SuppressWarnings = true)]
+    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    {
+    }
+}";
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+    }
+
+    [Fact]
     public Task WorksheetRowSourceGenerator_Generate_ContextWithMultipleWorksheetRowAttributes()
     {
         // Arrange

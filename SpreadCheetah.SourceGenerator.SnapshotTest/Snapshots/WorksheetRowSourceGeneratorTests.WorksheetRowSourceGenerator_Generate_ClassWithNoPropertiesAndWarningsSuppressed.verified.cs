@@ -27,18 +27,5 @@ namespace MyNamespace
                 throw new ArgumentNullException(nameof(spreadsheet));
             return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
         }
-
-        private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties obj, CancellationToken token)
-        {
-            var cells = ArrayPool<DataCell>.Shared.Rent(0);
-            try
-            {
-                await spreadsheet.AddRowAsync(cells.AsMemory(0, 0), token).ConfigureAwait(false);
-            }
-            finally
-            {
-                ArrayPool<DataCell>.Shared.Return(cells, true);
-            }
-        }
     }
 }

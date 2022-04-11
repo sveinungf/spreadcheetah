@@ -252,8 +252,6 @@ public class WorksheetRowSourceGenerator : IIncrementalGenerator
         sb.AppendLine("        {");
         sb.AppendLine("        }");
 
-        var suppressWarnings = contextClass.Options?.SuppressWarnings ?? false;
-
         foreach (var keyValue in contextClass.RowTypes)
         {
             var rowType = keyValue.Key;
@@ -267,20 +265,30 @@ public class WorksheetRowSourceGenerator : IIncrementalGenerator
             sb.AppendLine();
 
             var info = AnalyzeTypeProperties(compilation, rowType);
+            ReportDiagnostics(info, rowType, location, contextClass.Options, context);
+
             GenerateAddAsRow(sb, 2, rowTypeFullName, info.PropertyNames);
 
-            if (!suppressWarnings && info.PropertyNames.Count == 0)
+            if (info.PropertyNames.Count > 0)
             {
-                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.NoPropertiesFound, location, rowType.Name));
-                continue;
+                sb.AppendLine();
+                GenerateAddAsRowInternal(sb, 2, rowTypeFullName, info.PropertyNames);
             }
-
-            sb.AppendLine();
-            GenerateAddAsRowInternal(sb, 2, rowTypeFullName, info.PropertyNames);
         }
 
         sb.AppendLine("    }");
         sb.AppendLine("}");
+    }
+
+    private static void ReportDiagnostics(TypePropertiesInfo info, INamedTypeSymbol rowType, Location location, GeneratorOptions? options, SourceProductionContext context)
+    {
+        if (options?.SuppressWarnings ?? false) return;
+
+        if (info.PropertyNames.Count == 0)
+            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.NoPropertiesFound, location, rowType.Name));
+
+        if (info.UnsupportedPropertyNames.FirstOrDefault() is { } unsupportedProperty)
+            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location, rowType.Name, unsupportedProperty));
     }
 
     private static void GenerateAddAsRow(StringBuilder sb, int indent, string rowTypeFullname, List<string> propertyNames)
