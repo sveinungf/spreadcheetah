@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SpreadCheetah.SourceGenerator;
 using SpreadCheetah.SourceGenerator.Helpers;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace SpreadCheetah.SourceGenerators;
@@ -31,6 +32,16 @@ public class WorksheetRowSourceGenerator : IIncrementalGenerator
         BaseList.Types.Count: > 0
     };
 
+    private static INamedTypeSymbol? GetWorksheetRowAttributeType(Compilation compilation)
+    {
+        return compilation.GetTypeByMetadataName("SpreadCheetah.SourceGeneration.WorksheetRowAttribute");
+    }
+
+    private static INamedTypeSymbol? GetGenerationOptionsAttributeType(Compilation compilation)
+    {
+        return compilation.GetTypeByMetadataName("SpreadCheetah.SourceGeneration.WorksheetRowGenerationOptionsAttribute");
+    }
+
     private static ContextClass? GetSemanticTargetForGeneration(GeneratorSyntaxContext context, CancellationToken token)
     {
         if (context.Node is not ClassDeclarationSyntax classDeclaration)
@@ -46,38 +57,90 @@ public class WorksheetRowSourceGenerator : IIncrementalGenerator
         if (classSymbol.IsStatic)
             return null;
 
-        const string expectedAttributeFullname = "SpreadCheetah.SourceGeneration.WorksheetRowAttribute";
-        var expectedAttributeType = context.SemanticModel.Compilation.GetTypeByMetadataName(expectedAttributeFullname);
-        if (expectedAttributeType is null)
+        var worksheetRowAttribute = GetWorksheetRowAttributeType(context.SemanticModel.Compilation);
+        if (worksheetRowAttribute is null)
+            return null;
+
+        var optionsAttribute = GetGenerationOptionsAttributeType(context.SemanticModel.Compilation);
+        if (optionsAttribute is null)
             return null;
 
         var rowTypes = new Dictionary<INamedTypeSymbol, Location>(SymbolEqualityComparer.Default);
+        GeneratorOptions? generatorOptions = null;
 
         foreach (var attribute in classSymbol.GetAttributes())
         {
-            if (!SymbolEqualityComparer.Default.Equals(expectedAttributeType, attribute.AttributeClass))
+            if (TryParseWorksheetRowAttribute(attribute, worksheetRowAttribute, token, out var typeSymbol, out var location)
+                && !rowTypes.ContainsKey(typeSymbol))
+            {
+                rowTypes[typeSymbol] = location;
                 continue;
+            }
 
-            var args = attribute.ConstructorArguments;
-            if (args.Length != 1)
-                continue;
-
-            if (args[0].Value is not INamedTypeSymbol typeSymbol)
-                continue;
-
-            if (rowTypes.ContainsKey(typeSymbol))
-                continue;
-
-            var syntaxReference = attribute.ApplicationSyntaxReference;
-            if (syntaxReference is null)
-                continue;
-
-            rowTypes[typeSymbol] = syntaxReference.GetSyntax(token).GetLocation();
+            if (TryParseOptionsAttribute(attribute, optionsAttribute, out var options))
+                generatorOptions = options;
         }
 
         return rowTypes.Count > 0
-            ? new ContextClass(classSymbol, rowTypes)
+            ? new ContextClass(classSymbol, rowTypes, generatorOptions)
             : null;
+    }
+
+    private static bool TryParseWorksheetRowAttribute(
+        AttributeData attribute,
+        INamedTypeSymbol expectedAttribute,
+        CancellationToken token,
+        [NotNullWhen(true)] out INamedTypeSymbol? typeSymbol,
+        [NotNullWhen(true)] out Location? location)
+    {
+        typeSymbol = null;
+        location = null;
+
+        if (!SymbolEqualityComparer.Default.Equals(expectedAttribute, attribute.AttributeClass))
+            return false;
+
+        var args = attribute.ConstructorArguments;
+        if (args.Length != 1)
+            return false;
+
+        if (args[0].Value is not INamedTypeSymbol symbol)
+            return false;
+
+        var syntaxReference = attribute.ApplicationSyntaxReference;
+        if (syntaxReference is null)
+            return false;
+
+        location = syntaxReference.GetSyntax(token).GetLocation();
+        typeSymbol = symbol;
+        return true;
+    }
+
+    private static bool TryParseOptionsAttribute(
+        AttributeData attribute,
+        INamedTypeSymbol expectedAttribute,
+        [NotNullWhen(true)] out GeneratorOptions? options)
+    {
+        options = null;
+
+        if (!SymbolEqualityComparer.Default.Equals(expectedAttribute, attribute.AttributeClass))
+            return false;
+
+        if (attribute.NamedArguments.IsDefaultOrEmpty)
+            return false;
+
+        foreach (var arg in attribute.NamedArguments)
+        {
+            if (!string.Equals(arg.Key, "SuppressWarnings", StringComparison.Ordinal))
+                continue;
+
+            if (arg.Value.Value is bool suppressWarnings)
+            {
+                options = new GeneratorOptions(suppressWarnings);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static TypePropertiesInfo AnalyzeTypeProperties(Compilation compilation, ITypeSymbol classType)
@@ -133,7 +196,7 @@ public class WorksheetRowSourceGenerator : IIncrementalGenerator
     }
 
     private static readonly SpecialType[] SupportedPrimitiveTypes =
-{
+    {
         SpecialType.System_Boolean,
         SpecialType.System_Decimal,
         SpecialType.System_Double,
@@ -189,6 +252,8 @@ public class WorksheetRowSourceGenerator : IIncrementalGenerator
         sb.AppendLine("        {");
         sb.AppendLine("        }");
 
+        var suppressWarnings = contextClass.Options?.SuppressWarnings ?? false;
+
         foreach (var keyValue in contextClass.RowTypes)
         {
             var rowType = keyValue.Key;
@@ -204,7 +269,7 @@ public class WorksheetRowSourceGenerator : IIncrementalGenerator
             var info = AnalyzeTypeProperties(compilation, rowType);
             GenerateAddAsRow(sb, 2, rowTypeFullName, info.PropertyNames);
 
-            if (info.PropertyNames.Count == 0)
+            if (!suppressWarnings && info.PropertyNames.Count == 0)
             {
                 context.ReportDiagnostic(Diagnostic.Create(Diagnostics.NoPropertiesFound, location, rowType.Name));
                 continue;
