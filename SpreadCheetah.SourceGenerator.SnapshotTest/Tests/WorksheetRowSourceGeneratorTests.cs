@@ -160,6 +160,111 @@ namespace MyNamespace
     }
 
     [Fact]
+    public Task WorksheetRowSourceGenerator_Generate_RecordClassWithSingleProperty()
+    {
+        // Arrange
+        var source = @"
+using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+using System;
+
+namespace MyNamespace
+{
+    [WorksheetRow(typeof(RecordClassWithSingleProperty))]
+    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    {
+    }
+}";
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+    }
+
+    [Fact]
+    public Task WorksheetRowSourceGenerator_Generate_StructWithSingleProperty()
+    {
+        // Arrange
+        var source = @"
+using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+using System;
+
+namespace MyNamespace
+{
+    [WorksheetRow(typeof(StructWithSingleProperty))]
+    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    {
+    }
+}";
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+    }
+
+    [Fact]
+    public Task WorksheetRowSourceGenerator_Generate_RecordStructWithSingleProperty()
+    {
+        // Arrange
+        var source = @"
+using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+using System;
+
+namespace MyNamespace
+{
+    [WorksheetRow(typeof(RecordStructWithSingleProperty))]
+    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    {
+    }
+}";
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+    }
+
+    [Fact]
+    public Task WorksheetRowSourceGenerator_Generate_ReadOnlyStructWithSingleProperty()
+    {
+        // Arrange
+        var source = @"
+using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+using System;
+
+namespace MyNamespace
+{
+    [WorksheetRow(typeof(ReadOnlyStructWithSingleProperty))]
+    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    {
+    }
+}";
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+    }
+
+    [Fact]
+    public Task WorksheetRowSourceGenerator_Generate_ReadOnlyRecordStructWithSingleProperty()
+    {
+        // Arrange
+        var source = @"
+using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+using System;
+
+namespace MyNamespace
+{
+    [WorksheetRow(typeof(ReadOnlyRecordStructWithSingleProperty))]
+    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    {
+    }
+}";
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+    }
+
+    [Fact]
     public Task WorksheetRowSourceGenerator_Generate_ContextWithTwoWorksheetRowAttributes()
     {
         // Arrange
