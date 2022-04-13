@@ -28,6 +28,31 @@ namespace MyNamespace
     }
 
     [Fact]
+    public Task WorksheetRowSourceGenerator_Generate_InternalClassWithSingleProperty()
+    {
+        // Arrange
+        var source = @"
+using SpreadCheetah.SourceGeneration;
+using System;
+
+namespace MyNamespace
+{
+    internal class InternalClassWithSingleProperty
+    {
+        public string? Name { get; set; }
+    }
+
+    [WorksheetRow(typeof(InternalClassWithSingleProperty))]
+    internal partial class MyGenRowContext : WorksheetRowContext
+    {
+    }
+}";
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+    }
+
+    [Fact]
     public Task WorksheetRowSourceGenerator_Generate_ClassWithMultipleProperties()
     {
         // Arrange
