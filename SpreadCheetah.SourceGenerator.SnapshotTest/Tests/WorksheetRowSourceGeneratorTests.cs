@@ -135,7 +135,7 @@ namespace MyNamespace
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_ContextWithMultipleWorksheetRowAttributes()
+    public Task WorksheetRowSourceGenerator_Generate_ContextWithTwoWorksheetRowAttributes()
     {
         // Arrange
         var source = @"
@@ -147,6 +147,27 @@ namespace MyNamespace
 {
     [WorksheetRow(typeof(ClassWithSingleProperty))]
     [WorksheetRow(typeof(ClassWithMultipleProperties))]
+    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    {
+    }
+}";
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+    }
+
+    [Fact]
+    public Task WorksheetRowSourceGenerator_Generate_ContextWithTwoSimilarWorksheetRowAttributes()
+    {
+        // Arrange
+        var source = @"
+using SpreadCheetah.SourceGeneration;
+using System;
+
+namespace MyNamespace
+{
+    [WorksheetRow(typeof(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty))]
+    [WorksheetRow(typeof(SpreadCheetah.SourceGenerator.SnapshotTest.AlternativeModels.ClassWithSingleProperty))]
     public partial class MyGenRowContext : WorksheetRowGeneratorContext
     {
     }
