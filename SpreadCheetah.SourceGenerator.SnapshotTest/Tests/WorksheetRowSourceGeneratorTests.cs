@@ -18,7 +18,7 @@ using System;
 namespace MyNamespace
 {
     [WorksheetRow(typeof(ClassWithSingleProperty))]
-    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    public partial class MyGenRowContext : WorksheetRowContext
     {
     }
 }";
@@ -64,7 +64,7 @@ using System;
 namespace MyNamespace
 {
     [WorksheetRow(typeof(ClassWithMultipleProperties))]
-    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    public partial class MyGenRowContext : WorksheetRowContext
     {
     }
 }";
@@ -85,7 +85,7 @@ using System;
 namespace MyNamespace
 {
     [WorksheetRow(typeof(ClassWithNoProperties))]
-    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    public partial class MyGenRowContext : WorksheetRowContext
     {
     }
 }";
@@ -107,7 +107,7 @@ namespace MyNamespace
 {
     [WorksheetRowGenerationOptions(SuppressWarnings = true)]
     [WorksheetRow(typeof(ClassWithNoProperties))]
-    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    public partial class MyGenRowContext : WorksheetRowContext
     {
     }
 }";
@@ -128,7 +128,7 @@ using System;
 namespace MyNamespace
 {
     [WorksheetRow(typeof(ClassWithUnsupportedProperty))]
-    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    public partial class MyGenRowContext : WorksheetRowContext
     {
     }
 }";
@@ -150,7 +150,7 @@ namespace MyNamespace
 {
     [WorksheetRow(typeof(ClassWithUnsupportedProperty))]
     [WorksheetRowGenerationOptions(SuppressWarnings = true)]
-    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    public partial class MyGenRowContext : WorksheetRowContext
     {
     }
 }";
@@ -171,7 +171,7 @@ using System;
 namespace MyNamespace
 {
     [WorksheetRow(typeof(RecordClassWithSingleProperty))]
-    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    public partial class MyGenRowContext : WorksheetRowContext
     {
     }
 }";
@@ -192,7 +192,7 @@ using System;
 namespace MyNamespace
 {
     [WorksheetRow(typeof(StructWithSingleProperty))]
-    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    public partial class MyGenRowContext : WorksheetRowContext
     {
     }
 }";
@@ -213,7 +213,7 @@ using System;
 namespace MyNamespace
 {
     [WorksheetRow(typeof(RecordStructWithSingleProperty))]
-    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    public partial class MyGenRowContext : WorksheetRowContext
     {
     }
 }";
@@ -234,7 +234,7 @@ using System;
 namespace MyNamespace
 {
     [WorksheetRow(typeof(ReadOnlyStructWithSingleProperty))]
-    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    public partial class MyGenRowContext : WorksheetRowContext
     {
     }
 }";
@@ -255,7 +255,7 @@ using System;
 namespace MyNamespace
 {
     [WorksheetRow(typeof(ReadOnlyRecordStructWithSingleProperty))]
-    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    public partial class MyGenRowContext : WorksheetRowContext
     {
     }
 }";
@@ -277,7 +277,7 @@ namespace MyNamespace
 {
     [WorksheetRow(typeof(ClassWithSingleProperty))]
     [WorksheetRow(typeof(ClassWithMultipleProperties))]
-    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    public partial class MyGenRowContext : WorksheetRowContext
     {
     }
 }";
@@ -298,7 +298,7 @@ namespace MyNamespace
 {
     [WorksheetRow(typeof(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty))]
     [WorksheetRow(typeof(SpreadCheetah.SourceGenerator.SnapshotTest.AlternativeModels.ClassWithSingleProperty))]
-    public partial class MyGenRowContext : WorksheetRowGeneratorContext
+    public partial class MyGenRowContext : WorksheetRowContext
     {
     }
 }";
@@ -319,7 +319,7 @@ using System;
 namespace MyNamespace
 {
     [WorksheetRow(typeof(ClassWithSingleProperty))]
-    internal partial class MyGenRowContext : WorksheetRowGeneratorContext
+    internal partial class MyGenRowContext : WorksheetRowContext
     {
     }
 }";
@@ -340,7 +340,7 @@ using System;
 namespace MyNamespace
 {
     [WorksheetRow(typeof(ClassWithSingleProperty))]
-    partial class MyGenRowContext : WorksheetRowGeneratorContext
+    partial class MyGenRowContext : WorksheetRowContext
     {
     }
 }";
@@ -361,12 +361,12 @@ using System;
 namespace MyNamespace;
 
 [WorksheetRow(typeof(ClassWithSingleProperty))]
-public partial class MyGenRowContext : WorksheetRowGeneratorContext
+public partial class MyGenRowContext : WorksheetRowContext
 {
 }
 
 [WorksheetRow(typeof(ClassWithMultipleProperties))]
-public partial class MyGenRowContext2 : WorksheetRowGeneratorContext
+public partial class MyGenRowContext2 : WorksheetRowContext
 {
 }
 ";

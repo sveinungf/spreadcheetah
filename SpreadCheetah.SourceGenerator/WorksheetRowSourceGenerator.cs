@@ -42,6 +42,11 @@ public class WorksheetRowSourceGenerator : IIncrementalGenerator
         return compilation.GetTypeByMetadataName("SpreadCheetah.SourceGeneration.WorksheetRowGenerationOptionsAttribute");
     }
 
+    private static INamedTypeSymbol? GetContextBaseType(Compilation compilation)
+    {
+        return compilation.GetTypeByMetadataName("SpreadCheetah.SourceGeneration.WorksheetRowContext");
+    }
+
     private static ContextClass? GetSemanticTargetForGeneration(GeneratorSyntaxContext context, CancellationToken token)
     {
         if (context.Node is not ClassDeclarationSyntax classDeclaration)
@@ -55,6 +60,17 @@ public class WorksheetRowSourceGenerator : IIncrementalGenerator
             return null;
 
         if (classSymbol.IsStatic)
+            return null;
+
+        var baseType = classSymbol.BaseType;
+        if (baseType is null)
+            return null;
+
+        var baseContext = GetContextBaseType(context.SemanticModel.Compilation);
+        if (baseContext is null)
+            return null;
+
+        if (!SymbolEqualityComparer.Default.Equals(baseContext, baseType))
             return null;
 
         var worksheetRowAttribute = GetWorksheetRowAttributeType(context.SemanticModel.Compilation);
