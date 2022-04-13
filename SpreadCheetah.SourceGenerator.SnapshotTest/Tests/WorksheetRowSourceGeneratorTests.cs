@@ -218,4 +218,30 @@ namespace MyNamespace
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
     }
+
+    [Fact]
+    public Task WorksheetRowSourceGenerator_Generate_TwoContextClasses()
+    {
+        // Arrange
+        var source = @"
+using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+using System;
+
+namespace MyNamespace;
+
+[WorksheetRow(typeof(ClassWithSingleProperty))]
+public partial class MyGenRowContext : WorksheetRowGeneratorContext
+{
+}
+
+[WorksheetRow(typeof(ClassWithMultipleProperties))]
+public partial class MyGenRowContext2 : WorksheetRowGeneratorContext
+{
+}
+";
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+    }
 }
