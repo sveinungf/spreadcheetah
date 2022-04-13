@@ -106,6 +106,9 @@ public class WorksheetRowSourceGenerator : IIncrementalGenerator
         if (args[0].Value is not INamedTypeSymbol symbol)
             return false;
 
+        if (symbol.Kind == SymbolKind.ErrorType)
+            return false;
+
         var syntaxReference = attribute.ApplicationSyntaxReference;
         if (syntaxReference is null)
             return false;
