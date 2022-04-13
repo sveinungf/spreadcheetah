@@ -256,7 +256,7 @@ public class WorksheetRowSourceGenerator : IIncrementalGenerator
         sb.AppendLine($"        private static {contextType.Name}? _default;");
         sb.AppendLine($"        public static {contextType.Name} Default => _default ??= new();");
         sb.AppendLine();
-        sb.AppendLine($"        public {contextType.Name}() : base(null)");
+        sb.AppendLine($"        public {contextType.Name}()");
         sb.AppendLine("        {");
         sb.AppendLine("        }");
 

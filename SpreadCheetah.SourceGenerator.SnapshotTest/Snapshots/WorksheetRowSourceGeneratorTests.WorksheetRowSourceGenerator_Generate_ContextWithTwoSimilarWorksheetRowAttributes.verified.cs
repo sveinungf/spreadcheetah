@@ -14,7 +14,7 @@ namespace MyNamespace
         private static MyGenRowContext? _default;
         public static MyGenRowContext Default => _default ??= new();
 
-        public MyGenRowContext() : base(null)
+        public MyGenRowContext()
         {
         }
 
