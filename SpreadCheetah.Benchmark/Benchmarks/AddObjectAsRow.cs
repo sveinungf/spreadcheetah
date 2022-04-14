@@ -4,7 +4,7 @@ using SpreadCheetah.Benchmark.Helpers;
 
 namespace SpreadCheetah.Benchmark.Benchmarks;
 
-[SimpleJob(RuntimeMoniker.Net50)]
+[SimpleJob(RuntimeMoniker.Net60)]
 [MemoryDiagnoser]
 public class AddObjectAsRow
 {
@@ -24,10 +24,12 @@ public class AddObjectAsRow
     {
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
         await spreadsheet.StartWorksheetAsync("Book1");
+        var ctx = StudentContext.Default.Student;
+        var students = Students;
 
-        for (var i = 0; i < Students.Count; ++i)
+        for (var i = 0; i < students.Count; ++i)
         {
-            await spreadsheet.AddAsRowAsync(Students[i]);
+            await spreadsheet.AddAsRowAsync(students[i], ctx);
         }
 
         await spreadsheet.FinishAsync();
