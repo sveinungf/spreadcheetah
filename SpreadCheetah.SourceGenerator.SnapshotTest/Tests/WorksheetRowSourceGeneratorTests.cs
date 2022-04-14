@@ -24,7 +24,7 @@ namespace MyNamespace
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ namespace MyNamespace
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
@@ -70,7 +70,7 @@ namespace MyNamespace
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
@@ -91,7 +91,7 @@ namespace MyNamespace
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
@@ -113,7 +113,7 @@ namespace MyNamespace
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
@@ -134,7 +134,7 @@ namespace MyNamespace
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
@@ -156,7 +156,7 @@ namespace MyNamespace
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
@@ -177,7 +177,7 @@ namespace MyNamespace
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
@@ -198,7 +198,7 @@ namespace MyNamespace
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
@@ -219,7 +219,7 @@ namespace MyNamespace
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
@@ -240,7 +240,7 @@ namespace MyNamespace
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
@@ -261,7 +261,7 @@ namespace MyNamespace
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
@@ -283,7 +283,7 @@ namespace MyNamespace
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
@@ -304,7 +304,7 @@ namespace MyNamespace
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
@@ -325,7 +325,7 @@ namespace MyNamespace
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
@@ -346,7 +346,7 @@ namespace MyNamespace
 }";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
@@ -372,6 +372,6 @@ public partial class MyGenRowContext2 : WorksheetRowContext
 ";
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowSourceGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 }

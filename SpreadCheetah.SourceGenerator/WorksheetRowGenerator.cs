@@ -10,7 +10,7 @@ using System.Text;
 namespace SpreadCheetah.SourceGenerators;
 
 [Generator]
-public class WorksheetRowSourceGenerator : IIncrementalGenerator
+public class WorksheetRowGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
