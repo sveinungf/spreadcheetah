@@ -5,7 +5,7 @@ using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
 namespace SpreadCheetah.SourceGenerator.Test.Tests;
 
-public class RowCellsGeneratorTests
+public class WorksheetRowGeneratorTests
 {
     [Theory]
     [InlineData(ObjectType.Class)]
@@ -18,6 +18,7 @@ public class RowCellsGeneratorTests
         const string firstName = "Ola";
         const string lastName = "Nordmann";
         const int age = 30;
+        var ctx = MultiplePropertiesContext.Default;
 
         using var stream = new MemoryStream();
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
@@ -26,13 +27,13 @@ public class RowCellsGeneratorTests
 
             // Act
             if (type == ObjectType.Class)
-                await spreadsheet.AddAsRowAsync(new ClassWithProperties(firstName, lastName, age));
+                await spreadsheet.AddAsRowAsync(new ClassWithProperties(firstName, lastName, age), ctx.ClassWithProperties);
             else if (type == ObjectType.Record)
-                await spreadsheet.AddAsRowAsync(new RecordWithProperties(firstName, lastName, age));
+                await spreadsheet.AddAsRowAsync(new RecordWithProperties(firstName, lastName, age), ctx.RecordWithProperties);
             else if (type == ObjectType.Struct)
-                await spreadsheet.AddAsRowAsync(new StructWithProperties(firstName, lastName, age));
+                await spreadsheet.AddAsRowAsync(new StructWithProperties(firstName, lastName, age), ctx.StructWithProperties);
             else if (type == ObjectType.ReadOnlyStruct)
-                await spreadsheet.AddAsRowAsync(new ReadOnlyStructWithProperties(firstName, lastName, age));
+                await spreadsheet.AddAsRowAsync(new ReadOnlyStructWithProperties(firstName, lastName, age), ctx.ReadOnlyStructWithProperties);
 
             await spreadsheet.FinishAsync();
         }
@@ -56,6 +57,7 @@ public class RowCellsGeneratorTests
     public async Task Spreadsheet_AddAsRow_ObjectWithNoProperties(ObjectType type)
     {
         // Arrange
+        var ctx = NoPropertiesContext.Default;
         using var stream = new MemoryStream();
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
         {
@@ -63,13 +65,13 @@ public class RowCellsGeneratorTests
 
             // Act
             if (type == ObjectType.Class)
-                await spreadsheet.AddAsRowAsync(new ClassWithNoProperties());
+                await spreadsheet.AddAsRowAsync(new ClassWithNoProperties(), ctx.ClassWithNoProperties);
             else if (type == ObjectType.Record)
-                await spreadsheet.AddAsRowAsync(new RecordWithNoProperties());
+                await spreadsheet.AddAsRowAsync(new RecordWithNoProperties(), ctx.RecordWithNoProperties);
             else if (type == ObjectType.Struct)
-                await spreadsheet.AddAsRowAsync(new StructWithNoProperties());
+                await spreadsheet.AddAsRowAsync(new StructWithNoProperties(), ctx.StructWithNoProperties);
             else if (type == ObjectType.ReadOnlyStruct)
-                await spreadsheet.AddAsRowAsync(new ReadOnlyStructWithNoProperties());
+                await spreadsheet.AddAsRowAsync(new ReadOnlyStructWithNoProperties(), ctx.ReadOnlyStructWithNoProperties);
 
             await spreadsheet.FinishAsync();
         }
@@ -87,13 +89,14 @@ public class RowCellsGeneratorTests
         // Arrange
         const string value = "value";
         var customType = new CustomType("The name");
+        var obj = new RecordWithCustomType(customType, value);
         using var stream = new MemoryStream();
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
         {
             await spreadsheet.StartWorksheetAsync("Sheet");
 
             // Act
-            await spreadsheet.AddAsRowAsync(new RecordWithCustomType(customType, value));
+            await spreadsheet.AddAsRowAsync(obj, CustomTypeContext.Default.RecordWithCustomType);
 
             await spreadsheet.FinishAsync();
         }
@@ -107,31 +110,40 @@ public class RowCellsGeneratorTests
         Assert.Equal(value, actualCell.InnerText);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Spreadsheet_AddAsRow_NullSpreadsheet(bool classWithProperties)
-    {
-        // Arrange
-        Spreadsheet? spreadsheet = null;
-        ValueTask AddAsRow() => classWithProperties
-            ? spreadsheet!.AddAsRowAsync(new ClassWithProperties("", "", 0))
-            : spreadsheet!.AddAsRowAsync(new ClassWithNoProperties());
-
-        // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => AddAsRow().AsTask());
-    }
-
     [Fact]
     public async Task Spreadsheet_AddAsRow_NullObject()
     {
         // Arrange
         ClassWithProperties obj = null!;
+        var typeInfo = MultiplePropertiesContext.Default.ClassWithProperties;
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            // Act
+            await spreadsheet.AddAsRowAsync(obj, typeInfo);
+
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        stream.Position = 0;
+        using var actual = SpreadsheetDocument.Open(stream, false);
+        var sheetPart = actual.WorkbookPart?.WorksheetParts.Single();
+        Assert.Empty(sheetPart?.Worksheet.Descendants<OpenXmlCell>());
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddAsRow_NullTypeInfo()
+    {
+        // Arrange
+        var obj = new ClassWithProperties("Ola", "Nordmann", 25);
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => spreadsheet.AddAsRowAsync(obj).AsTask());
+        await Assert.ThrowsAsync<ArgumentNullException>(() => spreadsheet.AddAsRowAsync(obj, null!).AsTask());
     }
 }

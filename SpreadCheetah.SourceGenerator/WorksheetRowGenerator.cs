@@ -297,7 +297,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             var info = AnalyzeTypeProperties(compilation, rowType);
             ReportDiagnostics(info, rowType, location, contextClass.Options, context);
 
-            GenerateAddAsRow(sb, 2, rowTypeFullName, info.PropertyNames);
+            GenerateAddAsRow(sb, 2, rowType, info.PropertyNames);
 
             if (info.PropertyNames.Count > 0)
             {
@@ -321,24 +321,35 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location, rowType.Name, unsupportedProperty));
     }
 
-    private static void GenerateAddAsRow(StringBuilder sb, int indent, string rowTypeFullname, List<string> propertyNames)
+    private static void GenerateAddAsRow(StringBuilder sb, int indent, INamedTypeSymbol rowType, List<string> propertyNames)
     {
-        sb.AppendLine(indent, $"private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, {rowTypeFullname}? obj, CancellationToken token)");
+        sb.AppendIndentation(indent)
+            .Append("private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, ")
+            .Append(rowType);
+
+        if (rowType.IsReferenceType)
+            sb.Append('?');
+
+        sb.Append(" obj, CancellationToken token)");
+
         sb.AppendLine(indent, "{");
         sb.AppendLine(indent, "    if (spreadsheet is null)");
         sb.AppendLine(indent, "        throw new ArgumentNullException(nameof(spreadsheet));");
 
         if (propertyNames.Count == 0)
         {
-            sb.AppendLine(indent + 1, "return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);");
+            sb.AppendLine(indent, "    return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);");
+            sb.AppendLine(indent, "}");
+            return;
         }
-        else
+
+        if (rowType.IsReferenceType)
         {
             sb.AppendLine(indent + 1, "if (obj is null)");
             sb.AppendLine(indent + 1, "    return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);");
-            sb.AppendLine(indent + 1, "return AddAsRowInternalAsync(spreadsheet, obj, token);");
         }
 
+        sb.AppendLine(indent, "    return AddAsRowInternalAsync(spreadsheet, obj, token);");
         sb.AppendLine(indent, "}");
     }
 
