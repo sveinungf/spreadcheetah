@@ -12,8 +12,8 @@ public sealed class WorksheetRowAttribute : Attribute
     /// </summary>
     /// <param name="type">The type to generate source code for.</param>
 #pragma warning disable CA1019 // Define accessors for attribute arguments
-    public WorksheetRowAttribute(Type type)
+#pragma warning disable RCS1163 // Unused parameter.
+    public WorksheetRowAttribute(Type type) { }
+#pragma warning restore RCS1163 // Unused parameter.
 #pragma warning restore CA1019 // Define accessors for attribute arguments
-    {
-    }
 }
