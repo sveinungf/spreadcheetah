@@ -40,5 +40,29 @@ namespace SpreadCheetah.SourceGenerator.CSharp8Test.Tests
             Assert.Equal(age.ToString(), cells[2].InnerText);
             Assert.Equal(3, cells.Count);
         }
+
+        [Fact]
+        public async Task Spreadsheet_AddAsRow_ClassWithNoProperties()
+        {
+            // Arrange
+            var obj = new ClassWithNoProperties();
+
+            using var stream = new MemoryStream();
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            {
+                await spreadsheet.StartWorksheetAsync("Sheet");
+
+                // Act
+                await spreadsheet.AddAsRowAsync(obj, ClassWithNoPropertiesContext.Default.ClassWithNoProperties);
+
+                await spreadsheet.FinishAsync();
+            }
+
+            // Assert
+            stream.Position = 0;
+            using var actual = SpreadsheetDocument.Open(stream, false);
+            var sheetPart = actual.WorkbookPart?.WorksheetParts.Single();
+            Assert.Empty(sheetPart?.Worksheet.Descendants<OpenXmlCell>());
+        }
     }
 }
