@@ -249,6 +249,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine("#nullable enable");
         sb.AppendLine("using SpreadCheetah;");
         sb.AppendLine("using SpreadCheetah.SourceGeneration;");
+        sb.AppendLine("using System;");
         sb.AppendLine("using System.Buffers;");
         sb.AppendLine("using System.Threading;");
         sb.AppendLine("using System.Threading.Tasks;");
@@ -270,7 +271,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine($"    {accessibility} partial class {contextType.Name}");
         sb.AppendLine("    {");
         sb.AppendLine($"        private static {contextType.Name}? _default;");
-        sb.AppendLine($"        public static {contextType.Name} Default => _default ??= new();");
+        sb.AppendLine($"        public static {contextType.Name} Default => _default ??= new {contextType.Name}();");
         sb.AppendLine();
         sb.AppendLine($"        public {contextType.Name}()");
         sb.AppendLine("        {");
