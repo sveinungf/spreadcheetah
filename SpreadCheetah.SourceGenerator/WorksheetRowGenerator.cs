@@ -165,7 +165,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     private static TypePropertiesInfo AnalyzeTypeProperties(Compilation compilation, ITypeSymbol classType)
     {
         var propertyNames = new List<string>();
-        var unsupportedPropertyNames = new List<string>();
+        var unsupportedPropertyNames = new List<IPropertySymbol>();
 
         foreach (var member in classType.GetMembers())
         {
@@ -187,7 +187,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             }
             else
             {
-                unsupportedPropertyNames.Add(p.Name);
+                unsupportedPropertyNames.Add(p);
             }
         }
 
@@ -317,8 +317,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         if (info.PropertyNames.Count == 0)
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.NoPropertiesFound, location, rowType.Name));
 
-        if (info.UnsupportedPropertyNames.FirstOrDefault() is { } unsupportedProperty)
-            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location, rowType.Name, unsupportedProperty));
+        if (info.UnsupportedProperties.FirstOrDefault() is { } unsupportedProperty)
+            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location, rowType.Name, unsupportedProperty.Type.Name));
     }
 
     private static void GenerateAddAsRow(StringBuilder sb, int indent, INamedTypeSymbol rowType, List<string> propertyNames)
