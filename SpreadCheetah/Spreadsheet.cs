@@ -1,3 +1,4 @@
+using SpreadCheetah.Helpers;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.Styling;
@@ -85,7 +86,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (name.Length > 31)
             throw new ArgumentException("The name can not be more than 31 characters.", nameof(name));
 
-        if (name.StartsWith("\'", StringComparison.Ordinal) || name.EndsWith("\'", StringComparison.Ordinal))
+        if (name.StartsWithChar('\'') || name.EndsWithChar('\''))
             throw new ArgumentException("The name can not start or end with a single quote.", nameof(name));
 
         if (name.IndexOfAny(InvalidSheetNameChars) != -1)
@@ -190,7 +191,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ThrowIfNull(cells, nameof(cells));
         return Worksheet.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
             ? default
-            : Worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, cells.Count, token);
+            : Worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, token);
     }
 
     /// <summary>
@@ -213,7 +214,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ThrowIfNull(cells, nameof(cells));
         return Worksheet.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
             ? default
-            : Worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, cells.Count, token);
+            : Worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, token);
     }
 
     /// <summary>
@@ -236,7 +237,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ThrowIfNull(cells, nameof(cells));
         return Worksheet.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
             ? default
-            : Worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, cells.Count, token);
+            : Worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, token);
     }
 
     /// <summary>

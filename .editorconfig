@@ -166,17 +166,6 @@ dotnet_diagnostic.CA5394.severity = none
 dotnet_diagnostic.EPS05.severity = warning
 
 ###############################
-# SonarAnalyzer Options       #
-###############################
-[*.cs]
-# S3925: "ISerializable" should be implemented correctly
-dotnet_diagnostic.S3925.severity = none
-
-[{*Test,*.Benchmark}/**.cs]
-# S927: Parameter names should match base declaration
-dotnet_diagnostic.S927.severity = none
-
-###############################
 # Meziantou.Analyzers Options #
 ###############################
 [*.cs]
@@ -196,6 +185,24 @@ dotnet_diagnostic.MA0025.severity = none
 dotnet_diagnostic.MA0047.severity = none
 # MA0075: Do not use implicit culture-sensitive ToString
 dotnet_diagnostic.MA0075.severity = none
+
+###############################
+# Roslynator Options          #
+###############################
+[*.cs]
+# RCS1163: Unused parameter
+dotnet_diagnostic.RCS1163.severity = warning
+
+###############################
+# SonarAnalyzer Options       #
+###############################
+[*.cs]
+# S3925: "ISerializable" should be implemented correctly
+dotnet_diagnostic.S3925.severity = none
+
+[{*Test,*.Benchmark}/**.cs]
+# S927: Parameter names should match base declaration
+dotnet_diagnostic.S927.severity = none
 
 ###############################
 # Threading.Analyzers Options #
