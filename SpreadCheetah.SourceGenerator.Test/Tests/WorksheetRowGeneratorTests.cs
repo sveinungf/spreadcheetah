@@ -157,4 +157,17 @@ public class WorksheetRowGeneratorTests
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(() => spreadsheet.AddAsRowAsync(obj, null!).AsTask());
     }
+
+    [Fact]
+    public async Task Spreadsheet_AddAsRow_ThrowsWhenNoWorksheet()
+    {
+        // Arrange
+        var obj = new ClassWithMultipleProperties("Ola", "Nordmann", 25);
+        var typeInfo = MultiplePropertiesContext.Default.ClassWithMultipleProperties;
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<SpreadCheetahException>(() => spreadsheet.AddAsRowAsync(obj, typeInfo).AsTask());
+    }
 }
