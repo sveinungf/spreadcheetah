@@ -22,12 +22,10 @@ namespace MyNamespace
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ReadOnlyStructWithSingleProperty>? _ReadOnlyStructWithSingleProperty;
         public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ReadOnlyStructWithSingleProperty> ReadOnlyStructWithSingleProperty => _ReadOnlyStructWithSingleProperty ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ReadOnlyStructWithSingleProperty>(AddAsRowAsync);
 
-        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ReadOnlyStructWithSingleProperty? obj, CancellationToken token)
+        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ReadOnlyStructWithSingleProperty obj, CancellationToken token)
         {
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
-            if (obj is null)
-                return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
             return AddAsRowInternalAsync(spreadsheet, obj, token);
         }
 

@@ -330,7 +330,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         if (rowType.IsReferenceType)
             sb.Append('?');
 
-        sb.Append(" obj, CancellationToken token)");
+        sb.AppendLine(" obj, CancellationToken token)");
 
         sb.AppendLine(indent, "{");
         sb.AppendLine(indent, "    if (spreadsheet is null)");
