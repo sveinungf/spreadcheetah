@@ -94,6 +94,44 @@ public class WorksheetRowGeneratorTests
         Assert.Empty(sheetPart?.Worksheet.Descendants<OpenXmlCell>());
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Spreadsheet_AddAsRow_InternalClassWithSingleProperty(bool explicitInternal)
+    {
+        // Arrange
+        const string name = "Nordmann";
+
+        using var stream = new MemoryStream();
+        await using (var s = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await s.StartWorksheetAsync("Sheet");
+
+            // Act
+            if (explicitInternal)
+            {
+                var obj = new InternalAccessibilityClassWithSingleProperty { Name = name };
+                var ctx = InternalAccessibilityContext.Default.InternalAccessibilityClassWithSingleProperty;
+                await s.AddAsRowAsync(obj, ctx);
+            }
+            else
+            {
+                var obj = new DefaultAccessibilityClassWithSingleProperty { Name = name };
+                var ctx = DefaultAccessibilityContext.Default.DefaultAccessibilityClassWithSingleProperty;
+                await s.AddAsRowAsync(obj, ctx);
+            }
+
+            await s.FinishAsync();
+        }
+
+        // Assert
+        stream.Position = 0;
+        using var actual = SpreadsheetDocument.Open(stream, false);
+        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
+        var cell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
+        Assert.Equal(name, cell.InnerText);
+    }
+
     [Fact]
     public async Task Spreadsheet_AddAsRow_ObjectWithCustomType()
     {
