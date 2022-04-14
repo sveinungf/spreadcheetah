@@ -10,9 +10,11 @@ public class WorksheetRowGeneratorTests
 {
     [Theory]
     [InlineData(ObjectType.Class)]
-    [InlineData(ObjectType.Record)]
+    [InlineData(ObjectType.RecordClass)]
     [InlineData(ObjectType.Struct)]
+    [InlineData(ObjectType.RecordStruct)]
     [InlineData(ObjectType.ReadOnlyStruct)]
+    [InlineData(ObjectType.ReadOnlyRecordStruct)]
     public async Task Spreadsheet_AddAsRow_ObjectWithMultipleProperties(ObjectType type)
     {
         // Arrange
@@ -22,21 +24,24 @@ public class WorksheetRowGeneratorTests
         var ctx = MultiplePropertiesContext.Default;
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var s = await Spreadsheet.CreateNewAsync(stream))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await s.StartWorksheetAsync("Sheet");
 
             // Act
-            if (type == ObjectType.Class)
-                await spreadsheet.AddAsRowAsync(new ClassWithMultipleProperties(firstName, lastName, age), ctx.ClassWithMultipleProperties);
-            else if (type == ObjectType.Record)
-                await spreadsheet.AddAsRowAsync(new RecordClassWithMultipleProperties(firstName, lastName, age), ctx.RecordClassWithMultipleProperties);
-            else if (type == ObjectType.Struct)
-                await spreadsheet.AddAsRowAsync(new StructWithMultipleProperties(firstName, lastName, age), ctx.StructWithMultipleProperties);
-            else if (type == ObjectType.ReadOnlyStruct)
-                await spreadsheet.AddAsRowAsync(new ReadOnlyStructWithMultipleProperties(firstName, lastName, age), ctx.ReadOnlyStructWithMultipleProperties);
+            var task = type switch
+            {
+                ObjectType.Class => s.AddAsRowAsync(new ClassWithMultipleProperties(firstName, lastName, age), ctx.ClassWithMultipleProperties),
+                ObjectType.RecordClass => s.AddAsRowAsync(new RecordClassWithMultipleProperties(firstName, lastName, age), ctx.RecordClassWithMultipleProperties),
+                ObjectType.Struct => s.AddAsRowAsync(new StructWithMultipleProperties(firstName, lastName, age), ctx.StructWithMultipleProperties),
+                ObjectType.RecordStruct => s.AddAsRowAsync(new RecordStructWithMultipleProperties(firstName, lastName, age), ctx.RecordStructWithMultipleProperties),
+                ObjectType.ReadOnlyStruct => s.AddAsRowAsync(new ReadOnlyStructWithMultipleProperties(firstName, lastName, age), ctx.ReadOnlyStructWithMultipleProperties),
+                ObjectType.ReadOnlyRecordStruct => s.AddAsRowAsync(new ReadOnlyRecordStructWithMultipleProperties(firstName, lastName, age), ctx.ReadOnlyRecordStructWithMultipleProperties),
+                _ => throw new NotImplementedException(),
+            };
 
-            await spreadsheet.FinishAsync();
+            await task;
+            await s.FinishAsync();
         }
 
         // Assert
@@ -52,29 +57,34 @@ public class WorksheetRowGeneratorTests
 
     [Theory]
     [InlineData(ObjectType.Class)]
-    [InlineData(ObjectType.Record)]
+    [InlineData(ObjectType.RecordClass)]
     [InlineData(ObjectType.Struct)]
+    [InlineData(ObjectType.RecordStruct)]
     [InlineData(ObjectType.ReadOnlyStruct)]
+    [InlineData(ObjectType.ReadOnlyRecordStruct)]
     public async Task Spreadsheet_AddAsRow_ObjectWithNoProperties(ObjectType type)
     {
         // Arrange
         var ctx = NoPropertiesContext.Default;
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var s = await Spreadsheet.CreateNewAsync(stream))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await s.StartWorksheetAsync("Sheet");
 
             // Act
-            if (type == ObjectType.Class)
-                await spreadsheet.AddAsRowAsync(new ClassWithNoProperties(), ctx.ClassWithNoProperties);
-            else if (type == ObjectType.Record)
-                await spreadsheet.AddAsRowAsync(new RecordClassWithNoProperties(), ctx.RecordClassWithNoProperties);
-            else if (type == ObjectType.Struct)
-                await spreadsheet.AddAsRowAsync(new StructWithNoProperties(), ctx.StructWithNoProperties);
-            else if (type == ObjectType.ReadOnlyStruct)
-                await spreadsheet.AddAsRowAsync(new ReadOnlyStructWithNoProperties(), ctx.ReadOnlyStructWithNoProperties);
+            var task = type switch
+            {
+                ObjectType.Class => s.AddAsRowAsync(new ClassWithNoProperties(), ctx.ClassWithNoProperties),
+                ObjectType.RecordClass => s.AddAsRowAsync(new RecordClassWithNoProperties(), ctx.RecordClassWithNoProperties),
+                ObjectType.Struct => s.AddAsRowAsync(new StructWithNoProperties(), ctx.StructWithNoProperties),
+                ObjectType.RecordStruct => s.AddAsRowAsync(new RecordStructWithNoProperties(), ctx.RecordStructWithNoProperties),
+                ObjectType.ReadOnlyStruct => s.AddAsRowAsync(new ReadOnlyStructWithNoProperties(), ctx.ReadOnlyStructWithNoProperties),
+                ObjectType.ReadOnlyRecordStruct => s.AddAsRowAsync(new ReadOnlyRecordStructWithNoProperties(), ctx.ReadOnlyRecordStructWithNoProperties),
+                _ => throw new NotImplementedException(),
+            };
 
-            await spreadsheet.FinishAsync();
+            await task;
+            await s.FinishAsync();
         }
 
         // Assert
