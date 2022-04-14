@@ -1,5 +1,6 @@
 using DocumentFormat.OpenXml.Packaging;
 using SpreadCheetah.SourceGenerator.Test.Models;
+using SpreadCheetah.SourceGenerator.Test.Models.Contexts;
 using Xunit;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
@@ -12,7 +13,7 @@ public class WorksheetRowGeneratorTests
     [InlineData(ObjectType.Record)]
     [InlineData(ObjectType.Struct)]
     [InlineData(ObjectType.ReadOnlyStruct)]
-    public async Task Spreadsheet_AddAsRow_ObjectWithProperties(ObjectType type)
+    public async Task Spreadsheet_AddAsRow_ObjectWithMultipleProperties(ObjectType type)
     {
         // Arrange
         const string firstName = "Ola";
@@ -27,13 +28,13 @@ public class WorksheetRowGeneratorTests
 
             // Act
             if (type == ObjectType.Class)
-                await spreadsheet.AddAsRowAsync(new ClassWithProperties(firstName, lastName, age), ctx.ClassWithProperties);
+                await spreadsheet.AddAsRowAsync(new ClassWithMultipleProperties(firstName, lastName, age), ctx.ClassWithMultipleProperties);
             else if (type == ObjectType.Record)
-                await spreadsheet.AddAsRowAsync(new RecordWithProperties(firstName, lastName, age), ctx.RecordWithProperties);
+                await spreadsheet.AddAsRowAsync(new RecordClassWithMultipleProperties(firstName, lastName, age), ctx.RecordClassWithMultipleProperties);
             else if (type == ObjectType.Struct)
-                await spreadsheet.AddAsRowAsync(new StructWithProperties(firstName, lastName, age), ctx.StructWithProperties);
+                await spreadsheet.AddAsRowAsync(new StructWithMultipleProperties(firstName, lastName, age), ctx.StructWithMultipleProperties);
             else if (type == ObjectType.ReadOnlyStruct)
-                await spreadsheet.AddAsRowAsync(new ReadOnlyStructWithProperties(firstName, lastName, age), ctx.ReadOnlyStructWithProperties);
+                await spreadsheet.AddAsRowAsync(new ReadOnlyStructWithMultipleProperties(firstName, lastName, age), ctx.ReadOnlyStructWithMultipleProperties);
 
             await spreadsheet.FinishAsync();
         }
@@ -67,7 +68,7 @@ public class WorksheetRowGeneratorTests
             if (type == ObjectType.Class)
                 await spreadsheet.AddAsRowAsync(new ClassWithNoProperties(), ctx.ClassWithNoProperties);
             else if (type == ObjectType.Record)
-                await spreadsheet.AddAsRowAsync(new RecordWithNoProperties(), ctx.RecordWithNoProperties);
+                await spreadsheet.AddAsRowAsync(new RecordClassWithNoProperties(), ctx.RecordClassWithNoProperties);
             else if (type == ObjectType.Struct)
                 await spreadsheet.AddAsRowAsync(new StructWithNoProperties(), ctx.StructWithNoProperties);
             else if (type == ObjectType.ReadOnlyStruct)
@@ -89,14 +90,14 @@ public class WorksheetRowGeneratorTests
         // Arrange
         const string value = "value";
         var customType = new CustomType("The name");
-        var obj = new RecordWithCustomType(customType, value);
+        var obj = new RecordClassWithCustomType(customType, value);
         using var stream = new MemoryStream();
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
         {
             await spreadsheet.StartWorksheetAsync("Sheet");
 
             // Act
-            await spreadsheet.AddAsRowAsync(obj, CustomTypeContext.Default.RecordWithCustomType);
+            await spreadsheet.AddAsRowAsync(obj, CustomTypeContext.Default.RecordClassWithCustomType);
 
             await spreadsheet.FinishAsync();
         }
@@ -114,8 +115,8 @@ public class WorksheetRowGeneratorTests
     public async Task Spreadsheet_AddAsRow_NullObject()
     {
         // Arrange
-        ClassWithProperties obj = null!;
-        var typeInfo = MultiplePropertiesContext.Default.ClassWithProperties;
+        ClassWithMultipleProperties obj = null!;
+        var typeInfo = MultiplePropertiesContext.Default.ClassWithMultipleProperties;
         using var stream = new MemoryStream();
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
         {
@@ -138,7 +139,7 @@ public class WorksheetRowGeneratorTests
     public async Task Spreadsheet_AddAsRow_NullTypeInfo()
     {
         // Arrange
-        var obj = new ClassWithProperties("Ola", "Nordmann", 25);
+        var obj = new ClassWithMultipleProperties("Ola", "Nordmann", 25);
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");

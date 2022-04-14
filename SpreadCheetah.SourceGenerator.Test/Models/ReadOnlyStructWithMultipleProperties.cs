@@ -1,12 +1,12 @@
 namespace SpreadCheetah.SourceGenerator.Test.Models;
 
-public struct StructWithProperties
+public readonly struct ReadOnlyStructWithMultipleProperties
 {
     public string FirstName { get; }
     public string LastName { get; }
     public int Age { get; }
 
-    public StructWithProperties(string firstName, string lastName, int age)
+    public ReadOnlyStructWithMultipleProperties(string firstName, string lastName, int age)
     {
         FirstName = firstName;
         LastName = lastName;
