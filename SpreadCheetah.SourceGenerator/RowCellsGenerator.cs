@@ -14,7 +14,7 @@ public class RowCellsGenerator : IIncrementalGenerator
     {
         var filtered = context.SyntaxProvider
             .CreateSyntaxProvider(
-                static (s, _) => IsSyntaxTargetForGeneration(s),
+                static (s, _) => false,
                 static (ctx, _) => GetSemanticTargetForGeneration(ctx))
             .Where(static x => x is not null);
 
