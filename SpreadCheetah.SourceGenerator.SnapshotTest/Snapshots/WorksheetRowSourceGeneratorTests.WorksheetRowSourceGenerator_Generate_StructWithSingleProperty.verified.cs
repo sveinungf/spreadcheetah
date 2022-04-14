@@ -3,6 +3,7 @@
 #nullable enable
 using SpreadCheetah;
 using SpreadCheetah.SourceGeneration;
+using System;
 using System.Buffers;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace MyNamespace
     public partial class MyGenRowContext
     {
         private static MyGenRowContext? _default;
-        public static MyGenRowContext Default => _default ??= new();
+        public static MyGenRowContext Default => _default ??= new MyGenRowContext();
 
         public MyGenRowContext()
         {
