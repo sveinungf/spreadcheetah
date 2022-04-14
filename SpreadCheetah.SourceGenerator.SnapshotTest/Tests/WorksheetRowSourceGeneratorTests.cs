@@ -10,7 +10,7 @@ public class WorksheetRowSourceGeneratorTests
     public Task WorksheetRowSourceGenerator_Generate_ClassWithSingleProperty()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
 using System;
@@ -31,7 +31,7 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_InternalClassWithSingleProperty()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using System;
 
@@ -56,7 +56,7 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ClassWithMultipleProperties()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
 using System;
@@ -77,7 +77,7 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ClassWithNoProperties()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
 using System;
@@ -98,7 +98,7 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ClassWithNoPropertiesAndWarningsSuppressed()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
 using System;
@@ -120,7 +120,7 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ClassWithUnsupportedProperty()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
 using System;
@@ -141,7 +141,7 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ClassWithUnsupportedPropertyAndWarningsSuppressed()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
 using System;
@@ -163,7 +163,7 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_RecordClassWithSingleProperty()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
 using System;
@@ -184,7 +184,7 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_StructWithSingleProperty()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
 using System;
@@ -205,7 +205,7 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_RecordStructWithSingleProperty()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
 using System;
@@ -226,7 +226,7 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ReadOnlyStructWithSingleProperty()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
 using System;
@@ -247,7 +247,7 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ReadOnlyRecordStructWithSingleProperty()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
 using System;
@@ -268,7 +268,7 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ContextWithTwoWorksheetRowAttributes()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
 using System;
@@ -290,7 +290,7 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ContextWithTwoSimilarWorksheetRowAttributes()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using System;
 
@@ -311,7 +311,7 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ContextClassWithInternalAccessibility()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
 using System;
@@ -332,7 +332,7 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ContextClassWithDefaultAccessibility()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
 using System;
@@ -353,7 +353,7 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_TwoContextClasses()
     {
         // Arrange
-        var source = @"
+        const string source = @"
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
 using System;
