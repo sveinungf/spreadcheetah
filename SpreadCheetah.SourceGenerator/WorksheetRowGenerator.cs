@@ -304,7 +304,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 sb.AppendLine();
                 GenerateAddAsRowInternal(sb, 2, rowTypeFullName, info.PropertyNames);
                 sb.AppendLine();
-                GenerateCreateCells(sb, 2, rowTypeFullName, info.PropertyNames);
+                GenerateAddCellsAsRow(sb, 2, rowType, info.PropertyNames);
             }
         }
 
@@ -362,8 +362,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, $"    var cells = ArrayPool<DataCell>.Shared.Rent({propertyNames.Count});");
         sb.AppendLine(indent, "    try");
         sb.AppendLine(indent, "    {");
-        sb.AppendLine(indent, "        CreateCells(cells, obj);");
-        sb.AppendLine(indent, $"        await spreadsheet.AddRowAsync(cells.AsMemory(0, {propertyNames.Count}), token).ConfigureAwait(false);");
+        sb.AppendLine(indent, "        await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);");
         sb.AppendLine(indent, "    }");
         sb.AppendLine(indent, "    finally");
         sb.AppendLine(indent, "    {");
@@ -372,10 +371,25 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "}");
     }
 
-    private static void GenerateCreateCells(StringBuilder sb, int indent, string rowTypeFullname, List<string> propertyNames)
+    private static void GenerateAddCellsAsRow(StringBuilder sb, int indent, INamedTypeSymbol rowType, List<string> propertyNames)
     {
-        sb.AppendLine(indent, $"private static void CreateCells(DataCell[] cells, {rowTypeFullname} obj)");
+        sb.AppendIndentation(indent)
+            .Append("private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, ")
+            .Append(rowType);
+
+        if (rowType.IsReferenceType)
+            sb.Append('?');
+
+        sb.AppendLine(" obj, DataCell[] cells, CancellationToken token)");
+
         sb.AppendLine(indent, "{");
+
+        if (rowType.IsReferenceType)
+        {
+            sb.AppendLine(indent, "    if (obj is null)");
+            sb.AppendLine(indent, "        return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);");
+            sb.AppendLine();
+        }
 
         for (var i = 0; i < propertyNames.Count; ++i)
         {
@@ -383,6 +397,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             sb.AppendLine(indent + 1, $"cells[{i}] = new DataCell(obj.{propertyName});");
         }
 
+        sb.AppendLine(indent, $"    return spreadsheet.AddRowAsync(cells.AsMemory(0, {propertyNames.Count}), token);");
         sb.AppendLine(indent, "}");
     }
 }
