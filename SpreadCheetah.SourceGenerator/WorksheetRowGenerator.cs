@@ -303,6 +303,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             {
                 sb.AppendLine();
                 GenerateAddAsRowInternal(sb, 2, rowTypeFullName, info.PropertyNames);
+                sb.AppendLine();
+                GenerateCreateCells(sb, 2, rowTypeFullName, info.PropertyNames);
             }
         }
 
@@ -360,19 +362,27 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, $"    var cells = ArrayPool<DataCell>.Shared.Rent({propertyNames.Count});");
         sb.AppendLine(indent, "    try");
         sb.AppendLine(indent, "    {");
-
-        for (var i = 0; i < propertyNames.Count; ++i)
-        {
-            var propertyName = propertyNames[i];
-            sb.AppendLine(indent + 2, $"cells[{i}] = new DataCell(obj.{propertyName});");
-        }
-
+        sb.AppendLine(indent, "        CreateCells(cells, obj);");
         sb.AppendLine(indent, $"        await spreadsheet.AddRowAsync(cells.AsMemory(0, {propertyNames.Count}), token).ConfigureAwait(false);");
         sb.AppendLine(indent, "    }");
         sb.AppendLine(indent, "    finally");
         sb.AppendLine(indent, "    {");
         sb.AppendLine(indent, "        ArrayPool<DataCell>.Shared.Return(cells, true);");
         sb.AppendLine(indent, "    }");
+        sb.AppendLine(indent, "}");
+    }
+
+    private static void GenerateCreateCells(StringBuilder sb, int indent, string rowTypeFullname, List<string> propertyNames)
+    {
+        sb.AppendLine(indent, $"private static void CreateCells(DataCell[] cells, {rowTypeFullname} obj)");
+        sb.AppendLine(indent, "{");
+
+        for (var i = 0; i < propertyNames.Count; ++i)
+        {
+            var propertyName = propertyNames[i];
+            sb.AppendLine(indent + 1, $"cells[{i}] = new DataCell(obj.{propertyName});");
+        }
+
         sb.AppendLine(indent, "}");
     }
 }
