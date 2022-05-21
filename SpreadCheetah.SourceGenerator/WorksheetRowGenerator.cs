@@ -251,6 +251,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine("using SpreadCheetah.SourceGeneration;");
         sb.AppendLine("using System;");
         sb.AppendLine("using System.Buffers;");
+        sb.AppendLine("using System.Collections.Generic;");
         sb.AppendLine("using System.Threading;");
         sb.AppendLine("using System.Threading.Tasks;");
         sb.AppendLine();
@@ -292,20 +293,23 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             sb.AppendLine();
             sb.AppendLine(2, $"private WorksheetRowTypeInfo<{rowTypeFullName}>? _{rowTypeName};");
             sb.AppendLine(2, $"public WorksheetRowTypeInfo<{rowTypeFullName}> {rowTypeName} => _{rowTypeName} ??= WorksheetRowMetadataServices.CreateObjectInfo<{rowTypeFullName}>(AddAsRowAsync);");
-            sb.AppendLine();
 
             var info = AnalyzeTypeProperties(compilation, rowType);
             ReportDiagnostics(info, rowType, location, contextClass.Options, context);
 
             GenerateAddAsRow(sb, 2, rowType, info.PropertyNames);
+            GenerateAddRangeAsRows(sb, 2, rowType, info.PropertyNames);
 
-            if (info.PropertyNames.Count > 0)
+            if (info.PropertyNames.Count == 0)
             {
-                sb.AppendLine();
-                GenerateAddAsRowInternal(sb, 2, rowTypeFullName, info.PropertyNames);
-                sb.AppendLine();
-                GenerateAddCellsAsRow(sb, 2, rowType, info.PropertyNames);
+                GenerateAddRangeAsEmptyRows(sb, 2, rowType);
+                continue;
             }
+
+            GenerateAddAsRowInternal(sb, 2, rowTypeFullName, info.PropertyNames);
+            GenerateAddRangeAsRowsInternal(sb, 2, rowType, info.PropertyNames);
+            GenerateAddEnumerableAsRows(sb, 2, rowType);
+            GenerateAddCellsAsRow(sb, 2, rowType, info.PropertyNames);
         }
 
         sb.AppendLine("    }");
@@ -325,7 +329,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
     private static void GenerateAddAsRow(StringBuilder sb, int indent, INamedTypeSymbol rowType, List<string> propertyNames)
     {
-        sb.AppendIndentation(indent)
+        sb.AppendLine()
+            .AppendIndentation(indent)
             .Append("private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, ")
             .Append(rowType);
 
@@ -357,6 +362,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
     private static void GenerateAddAsRowInternal(StringBuilder sb, int indent, string rowTypeFullname, List<string> propertyNames)
     {
+        sb.AppendLine();
         sb.AppendLine(indent, $"private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, {rowTypeFullname} obj, CancellationToken token)");
         sb.AppendLine(indent, "{");
         sb.AppendLine(indent, $"    var cells = ArrayPool<DataCell>.Shared.Rent({propertyNames.Count});");
@@ -371,9 +377,97 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "}");
     }
 
+    private static void GenerateAddRangeAsRows(StringBuilder sb, int indent, INamedTypeSymbol rowType, List<string> propertyNames)
+    {
+        sb.AppendLine()
+            .AppendIndentation(indent)
+            .Append("private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<")
+            .Append(rowType);
+
+        if (rowType.IsReferenceType)
+            sb.Append('?');
+
+        sb.AppendLine("> objs, CancellationToken token)");
+        sb.AppendLine(indent, "{");
+        sb.AppendLine(indent, "    if (spreadsheet is null)");
+        sb.AppendLine(indent, "        throw new ArgumentNullException(nameof(spreadsheet));");
+        sb.AppendLine(indent, "    if (objs is null)");
+        sb.AppendLine(indent, "        throw new ArgumentNullException(nameof(objs));");
+
+        if (propertyNames.Count == 0)
+            sb.AppendLine(indent, "    return AddRangeAsEmptyRowsAsync(spreadsheet, objs, token);");
+        else
+            sb.AppendLine(indent, "    return AddRangeAsRowsInternalAsync(spreadsheet, objs, token);");
+
+        sb.AppendLine(indent, "}");
+    }
+
+    private static void GenerateAddRangeAsEmptyRows(StringBuilder sb, int indent, INamedTypeSymbol rowType)
+    {
+        sb.AppendLine()
+            .AppendIndentation(indent)
+            .Append("private static async ValueTask AddRangeAsEmptyRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<")
+            .Append(rowType);
+
+        if (rowType.IsReferenceType)
+            sb.Append('?');
+
+        sb.AppendLine("> objs, CancellationToken token)");
+        sb.AppendLine(indent, "{");
+        sb.AppendLine(indent, "    foreach (var _ in objs)");
+        sb.AppendLine(indent, "    {");
+        sb.AppendLine(indent, "        await spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);");
+        sb.AppendLine(indent, "    }");
+        sb.AppendLine(indent, "}");
+    }
+
+    private static void GenerateAddRangeAsRowsInternal(StringBuilder sb, int indent, INamedTypeSymbol rowType, List<string> propertyNames)
+    {
+        sb.AppendLine()
+            .AppendIndentation(indent)
+            .Append("private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<")
+            .Append(rowType);
+
+        if (rowType.IsReferenceType)
+            sb.Append('?');
+
+        sb.AppendLine("> objs, CancellationToken token)");
+        sb.AppendLine(indent, "{");
+        sb.AppendLine(indent, $"    var cells = ArrayPool<DataCell>.Shared.Rent({propertyNames.Count});");
+        sb.AppendLine(indent, "    try");
+        sb.AppendLine(indent, "    {");
+        sb.AppendLine(indent, "        await AddEnumerableAsRowsAsync(spreadsheet, objs, cells, token).ConfigureAwait(false);");
+        sb.AppendLine(indent, "    }");
+        sb.AppendLine(indent, "    finally");
+        sb.AppendLine(indent, "    {");
+        sb.AppendLine(indent, "        ArrayPool<DataCell>.Shared.Return(cells, true);");
+        sb.AppendLine(indent, "    }");
+        sb.AppendLine(indent, "}");
+    }
+
+    private static void GenerateAddEnumerableAsRows(StringBuilder sb, int indent, INamedTypeSymbol rowType)
+    {
+        sb.AppendLine()
+            .AppendIndentation(indent)
+            .Append("private static async ValueTask AddEnumerableAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<")
+            .Append(rowType);
+
+        if (rowType.IsReferenceType)
+            sb.Append('?');
+
+        sb.AppendLine("> objs, DataCell[] cells, CancellationToken token)");
+        sb.AppendLine(indent, "{");
+        sb.AppendLine(indent, "    foreach (var obj in objs)");
+        sb.AppendLine(indent, "    {");
+        sb.AppendLine(indent, "        await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);");
+        sb.AppendLine(indent, "    }");
+        sb.AppendLine(indent, "}");
+    }
+
     private static void GenerateAddCellsAsRow(StringBuilder sb, int indent, INamedTypeSymbol rowType, List<string> propertyNames)
     {
-        sb.AppendIndentation(indent)
+        sb.AppendLine()
+            .AppendIndentation(indent)
             .Append("private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, ")
             .Append(rowType);
 
@@ -381,7 +475,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             sb.Append('?');
 
         sb.AppendLine(" obj, DataCell[] cells, CancellationToken token)");
-
         sb.AppendLine(indent, "{");
 
         if (rowType.IsReferenceType)
