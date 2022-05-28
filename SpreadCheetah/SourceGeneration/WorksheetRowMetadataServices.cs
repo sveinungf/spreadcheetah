@@ -10,6 +10,8 @@ public static class WorksheetRowMetadataServices
     /// <summary>
     /// Creates metadata for a row type.
     /// </summary>
-    public static WorksheetRowTypeInfo<T> CreateObjectInfo<T>(Func<Spreadsheet, T, CancellationToken, ValueTask> rowHandler)
-        => new WorksheetRowTypeInfoInternal<T>(rowHandler);
+    public static WorksheetRowTypeInfo<T> CreateObjectInfo<T>(
+        Func<Spreadsheet, T, CancellationToken, ValueTask> rowHandler,
+        Func<Spreadsheet, IEnumerable<T>, CancellationToken, ValueTask> rowRangeHandler)
+        => new WorksheetRowTypeInfoInternal<T>(rowHandler, rowRangeHandler);
 }

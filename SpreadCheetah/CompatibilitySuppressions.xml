@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Suppressions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:SpreadCheetah.SourceGeneration.WorksheetRowMetadataServices.CreateObjectInfo``1(System.Func{SpreadCheetah.Spreadsheet,``0,System.Threading.CancellationToken,System.Threading.Tasks.ValueTask})</Target>
+    <Left>lib/net5.0/SpreadCheetah.dll</Left>
+    <Right>lib/net5.0/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:SpreadCheetah.SourceGeneration.WorksheetRowMetadataServices.CreateObjectInfo``1(System.Func{SpreadCheetah.Spreadsheet,``0,System.Threading.CancellationToken,System.Threading.Tasks.ValueTask})</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/netstandard2.0/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:SpreadCheetah.SourceGeneration.WorksheetRowMetadataServices.CreateObjectInfo``1(System.Func{SpreadCheetah.Spreadsheet,``0,System.Threading.CancellationToken,System.Threading.Tasks.ValueTask})</Target>
+    <Left>lib/netstandard2.1/SpreadCheetah.dll</Left>
+    <Right>lib/netstandard2.1/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+</Suppressions>
