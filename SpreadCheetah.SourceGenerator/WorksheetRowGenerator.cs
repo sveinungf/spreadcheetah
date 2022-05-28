@@ -332,12 +332,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine()
             .AppendIndentation(indent)
             .Append("private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, ")
-            .Append(rowType);
-
-        if (rowType.IsReferenceType)
-            sb.Append('?');
-
-        sb.AppendLine(" obj, CancellationToken token)");
+            .AppendType(rowType)
+            .AppendLine(" obj, CancellationToken token)");
 
         sb.AppendLine(indent, "{");
         sb.AppendLine(indent, "    if (spreadsheet is null)");
@@ -382,12 +378,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine()
             .AppendIndentation(indent)
             .Append("private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<")
-            .Append(rowType);
+            .AppendType(rowType)
+            .AppendLine("> objs, CancellationToken token)");
 
-        if (rowType.IsReferenceType)
-            sb.Append('?');
-
-        sb.AppendLine("> objs, CancellationToken token)");
         sb.AppendLine(indent, "{");
         sb.AppendLine(indent, "    if (spreadsheet is null)");
         sb.AppendLine(indent, "        throw new ArgumentNullException(nameof(spreadsheet));");
@@ -407,12 +400,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine()
             .AppendIndentation(indent)
             .Append("private static async ValueTask AddRangeAsEmptyRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<")
-            .Append(rowType);
+            .AppendType(rowType)
+            .AppendLine("> objs, CancellationToken token)");
 
-        if (rowType.IsReferenceType)
-            sb.Append('?');
-
-        sb.AppendLine("> objs, CancellationToken token)");
         sb.AppendLine(indent, "{");
         sb.AppendLine(indent, "    foreach (var _ in objs)");
         sb.AppendLine(indent, "    {");
@@ -426,12 +416,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine()
             .AppendIndentation(indent)
             .Append("private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<")
-            .Append(rowType);
+            .AppendType(rowType)
+            .AppendLine("> objs, CancellationToken token)");
 
-        if (rowType.IsReferenceType)
-            sb.Append('?');
-
-        sb.AppendLine("> objs, CancellationToken token)");
         sb.AppendLine(indent, "{");
         sb.AppendLine(indent, $"    var cells = ArrayPool<DataCell>.Shared.Rent({propertyNames.Count});");
         sb.AppendLine(indent, "    try");
@@ -450,12 +437,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine()
             .AppendIndentation(indent)
             .Append("private static async ValueTask AddEnumerableAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<")
-            .Append(rowType);
+            .AppendType(rowType)
+            .AppendLine("> objs, DataCell[] cells, CancellationToken token)");
 
-        if (rowType.IsReferenceType)
-            sb.Append('?');
-
-        sb.AppendLine("> objs, DataCell[] cells, CancellationToken token)");
         sb.AppendLine(indent, "{");
         sb.AppendLine(indent, "    foreach (var obj in objs)");
         sb.AppendLine(indent, "    {");
@@ -469,12 +453,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine()
             .AppendIndentation(indent)
             .Append("private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, ")
-            .Append(rowType);
+            .AppendType(rowType)
+            .AppendLine(" obj, DataCell[] cells, CancellationToken token)");
 
-        if (rowType.IsReferenceType)
-            sb.Append('?');
-
-        sb.AppendLine(" obj, DataCell[] cells, CancellationToken token)");
         sb.AppendLine(indent, "{");
 
         if (rowType.IsReferenceType)
