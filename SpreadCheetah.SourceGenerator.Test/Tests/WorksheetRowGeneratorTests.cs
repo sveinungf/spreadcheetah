@@ -1,4 +1,5 @@
 using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 using SpreadCheetah.SourceGenerator.Test.Models;
 using SpreadCheetah.SourceGenerator.Test.Models.Contexts;
 using Xunit;
@@ -207,5 +208,72 @@ public class WorksheetRowGeneratorTests
 
         // Act & Assert
         await Assert.ThrowsAsync<SpreadCheetahException>(() => spreadsheet.AddAsRowAsync(obj, typeInfo).AsTask());
+    }
+
+    [Theory]
+    [InlineData(ObjectType.Class)]
+    [InlineData(ObjectType.RecordClass)]
+    [InlineData(ObjectType.Struct)]
+    [InlineData(ObjectType.RecordStruct)]
+    [InlineData(ObjectType.ReadOnlyStruct)]
+    [InlineData(ObjectType.ReadOnlyRecordStruct)]
+    public async Task Spreadsheet_AddRangeAsRows_ObjectWithMultipleProperties(ObjectType type)
+    {
+        // Arrange
+        var values = new (string FirstName, string LastName, int Age)[]
+        {
+            ("Ola", "Nordmann", 30),
+            ("Ingrid", "Hansen", 28),
+            ("Oskar", "Berg", 29)
+        };
+
+        var ctx = MultiplePropertiesContext.Default;
+
+        using var stream = new MemoryStream();
+        await using (var s = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await s.StartWorksheetAsync("Sheet");
+
+            // Act
+            var task = type switch
+            {
+                ObjectType.Class => s.AddRangeAsRowsAsync(values.Select(x => new ClassWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.ClassWithMultipleProperties),
+                ObjectType.RecordClass => s.AddRangeAsRowsAsync(values.Select(x => new RecordClassWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.RecordClassWithMultipleProperties),
+                ObjectType.Struct => s.AddRangeAsRowsAsync(values.Select(x => new StructWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.StructWithMultipleProperties),
+                ObjectType.RecordStruct => s.AddRangeAsRowsAsync(values.Select(x => new RecordStructWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.RecordStructWithMultipleProperties),
+                ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync(values.Select(x => new ReadOnlyStructWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.ReadOnlyStructWithMultipleProperties),
+                ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync(values.Select(x => new ReadOnlyRecordStructWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.ReadOnlyRecordStructWithMultipleProperties),
+                _ => throw new NotImplementedException(),
+            };
+
+            await task;
+            await s.FinishAsync();
+        }
+
+        // Assert
+        stream.Position = 0;
+        using var actual = SpreadsheetDocument.Open(stream, false);
+        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
+        var rows = sheetPart.Worksheet.Descendants<Row>().ToList();
+
+        var row1Cells = rows[0].Descendants<OpenXmlCell>().ToList();
+        Assert.Equal(values[0].FirstName, row1Cells[0].InnerText);
+        Assert.Equal(values[0].LastName, row1Cells[1].InnerText);
+        Assert.Equal(values[0].Age.ToString(), row1Cells[2].InnerText);
+        Assert.Equal(3, row1Cells.Count);
+
+        var row2Cells = rows[1].Descendants<OpenXmlCell>().ToList();
+        Assert.Equal(values[1].FirstName, row2Cells[0].InnerText);
+        Assert.Equal(values[1].LastName, row2Cells[1].InnerText);
+        Assert.Equal(values[1].Age.ToString(), row2Cells[2].InnerText);
+        Assert.Equal(3, row2Cells.Count);
+
+        var row3Cells = rows[2].Descendants<OpenXmlCell>().ToList();
+        Assert.Equal(values[2].FirstName, row3Cells[0].InnerText);
+        Assert.Equal(values[2].LastName, row3Cells[1].InnerText);
+        Assert.Equal(values[2].Age.ToString(), row3Cells[2].InnerText);
+        Assert.Equal(3, row3Cells.Count);
+
+        Assert.Equal(3, rows.Count);
     }
 }
