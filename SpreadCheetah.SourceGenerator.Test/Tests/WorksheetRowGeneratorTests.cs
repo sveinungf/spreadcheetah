@@ -276,4 +276,45 @@ public class WorksheetRowGeneratorTests
 
         Assert.Equal(3, rows.Count);
     }
+
+    [Theory]
+    [InlineData(ObjectType.Class)]
+    [InlineData(ObjectType.RecordClass)]
+    [InlineData(ObjectType.Struct)]
+    [InlineData(ObjectType.RecordStruct)]
+    [InlineData(ObjectType.ReadOnlyStruct)]
+    [InlineData(ObjectType.ReadOnlyRecordStruct)]
+    public async Task Spreadsheet_AddRangeAsRows_EmptyEnumerable(ObjectType type)
+    {
+        // Arrange
+        var ctx = MultiplePropertiesContext.Default;
+
+        using var stream = new MemoryStream();
+        await using (var s = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await s.StartWorksheetAsync("Sheet");
+
+            // Act
+            var task = type switch
+            {
+                ObjectType.Class => s.AddRangeAsRowsAsync(Enumerable.Empty<ClassWithMultipleProperties>(), ctx.ClassWithMultipleProperties),
+                ObjectType.RecordClass => s.AddRangeAsRowsAsync(Enumerable.Empty<RecordClassWithMultipleProperties>(), ctx.RecordClassWithMultipleProperties),
+                ObjectType.Struct => s.AddRangeAsRowsAsync(Enumerable.Empty<StructWithMultipleProperties>(), ctx.StructWithMultipleProperties),
+                ObjectType.RecordStruct => s.AddRangeAsRowsAsync(Enumerable.Empty<RecordStructWithMultipleProperties>(), ctx.RecordStructWithMultipleProperties),
+                ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync(Enumerable.Empty<ReadOnlyStructWithMultipleProperties>(), ctx.ReadOnlyStructWithMultipleProperties),
+                ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync(Enumerable.Empty<ReadOnlyRecordStructWithMultipleProperties>(), ctx.ReadOnlyRecordStructWithMultipleProperties),
+                _ => throw new NotImplementedException(),
+            };
+
+            await task;
+            await s.FinishAsync();
+        }
+
+        // Assert
+        stream.Position = 0;
+        using var actual = SpreadsheetDocument.Open(stream, false);
+        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
+        var rows = sheetPart.Worksheet.Descendants<Row>();
+        Assert.Empty(rows);
+    }
 }
