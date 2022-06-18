@@ -5,6 +5,7 @@ using SpreadCheetah;
 using SpreadCheetah.SourceGeneration;
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,13 +21,30 @@ namespace MyNamespace
         }
 
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties>? _ClassWithNoProperties;
-        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties> ClassWithNoProperties => _ClassWithNoProperties ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties>(AddAsRowAsync);
+        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties> ClassWithNoProperties => _ClassWithNoProperties ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties>(AddAsRowAsync, AddRangeAsRowsAsync);
 
         private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties? obj, CancellationToken token)
         {
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
             return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
+        }
+
+        private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties?> objs, CancellationToken token)
+        {
+            if (spreadsheet is null)
+                throw new ArgumentNullException(nameof(spreadsheet));
+            if (objs is null)
+                throw new ArgumentNullException(nameof(objs));
+            return AddRangeAsEmptyRowsAsync(spreadsheet, objs, token);
+        }
+
+        private static async ValueTask AddRangeAsEmptyRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties?> objs, CancellationToken token)
+        {
+            foreach (var _ in objs)
+            {
+                await spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
+            }
         }
     }
 }
