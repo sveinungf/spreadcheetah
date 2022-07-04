@@ -52,7 +52,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         if (context.Node is not ClassDeclarationSyntax classDeclaration)
             return null;
 
-        if (!classDeclaration.Modifiers.Any(x => x.IsKind(SyntaxKind.PartialKeyword)))
+        if (!classDeclaration.Modifiers.Any(static x => x.IsKind(SyntaxKind.PartialKeyword)))
             return null;
 
         var classSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration, token);
