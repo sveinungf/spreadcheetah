@@ -243,7 +243,7 @@ public class WorksheetRowGeneratorTests
                 ObjectType.RecordStruct => s.AddRangeAsRowsAsync(values.Select(x => new RecordStructWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.RecordStructWithMultipleProperties),
                 ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync(values.Select(x => new ReadOnlyStructWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.ReadOnlyStructWithMultipleProperties),
                 ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync(values.Select(x => new ReadOnlyRecordStructWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.ReadOnlyRecordStructWithMultipleProperties),
-                _ => throw new NotImplementedException(),
+                _ => throw new NotImplementedException()
             };
 
             await task;
@@ -275,6 +275,48 @@ public class WorksheetRowGeneratorTests
         Assert.Equal(3, row3Cells.Count);
 
         Assert.Equal(3, rows.Count);
+    }
+
+    [Theory]
+    [InlineData(ObjectType.Class)]
+    [InlineData(ObjectType.RecordClass)]
+    [InlineData(ObjectType.Struct)]
+    [InlineData(ObjectType.RecordStruct)]
+    [InlineData(ObjectType.ReadOnlyStruct)]
+    [InlineData(ObjectType.ReadOnlyRecordStruct)]
+    public async Task Spreadsheet_AddRangeAsRows_ObjectWithNoProperties(ObjectType type)
+    {
+        // Arrange
+        var ctx = NoPropertiesContext.Default;
+        var range = Enumerable.Range(0, 3).ToList();
+        using var stream = new MemoryStream();
+        await using (var s = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await s.StartWorksheetAsync("Sheet");
+
+            // Act
+            var task = type switch
+            {
+                ObjectType.Class => s.AddRangeAsRowsAsync(range.Select(_ => new ClassWithNoProperties()), ctx.ClassWithNoProperties),
+                ObjectType.RecordClass => s.AddRangeAsRowsAsync(range.Select(_ => new RecordClassWithNoProperties()), ctx.RecordClassWithNoProperties),
+                ObjectType.Struct => s.AddRangeAsRowsAsync(range.Select(_ => new StructWithNoProperties()), ctx.StructWithNoProperties),
+                ObjectType.RecordStruct => s.AddRangeAsRowsAsync(range.Select(_ => new RecordStructWithNoProperties()), ctx.RecordStructWithNoProperties),
+                ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync(range.Select(_ => new ReadOnlyStructWithNoProperties()), ctx.ReadOnlyStructWithNoProperties),
+                ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync(range.Select(_ => new ReadOnlyRecordStructWithNoProperties()), ctx.ReadOnlyRecordStructWithNoProperties),
+                _ => throw new NotImplementedException()
+            };
+
+            await task;
+            await s.FinishAsync();
+        }
+
+        // Assert
+        stream.Position = 0;
+        using var actual = SpreadsheetDocument.Open(stream, false);
+        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
+        var rows = sheetPart.Worksheet.Descendants<Row>().ToList();
+        Assert.Equal(3, rows.Count);
+        Assert.All(rows, row => Assert.Empty(row.Descendants<OpenXmlCell>()));
     }
 
     [Theory]
