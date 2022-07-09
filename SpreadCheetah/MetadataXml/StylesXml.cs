@@ -47,7 +47,7 @@ internal static class StylesXml
 #if NETSTANDARD2_0
         using (stream)
 #else
-            await using (stream.ConfigureAwait(false))
+        await using (stream.ConfigureAwait(false))
 #endif
         {
             await WriteAsync(stream, buffer, styles, token).ConfigureAwait(false);
@@ -77,19 +77,20 @@ internal static class StylesXml
         // The default style must be the first one (index 0)
         sb.Append("\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\"/>");
         await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
-        sb.Clear();
 
-        for (var i = 0; i < styles.Count; ++i)
+        foreach (var style in styles)
         {
-            var style = styles[i];
-            var fontIndex = fontLookup[style.Font];
-            var fillIndex = fillLookup[style.Fill];
-
             sb.Clear();
-            sb.Append("<xf numFmtId=\"0\"");
+
+            var numberFormatId = GetNumberFormatId(style.NumberFormat);
+            sb.Append("<xf numFmtId=\"").Append(numberFormatId).Append('"');
+            if (numberFormatId > 0) sb.Append(" applyNumberFormat=\"1\"");
+
+            var fontIndex = fontLookup[style.Font];
             sb.Append(" fontId=\"").Append(fontIndex).Append('"');
             if (fontIndex > 0) sb.Append(" applyFont=\"1\"");
 
+            var fillIndex = fillLookup[style.Fill];
             sb.Append(" fillId=\"").Append(fillIndex).Append('"');
             if (fillIndex > 1) sb.Append(" applyFill=\"1\"");
 
@@ -99,6 +100,15 @@ internal static class StylesXml
 
         await buffer.WriteAsciiStringAsync(XmlPart2, stream, token).ConfigureAwait(false);
         await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+    }
+
+    private static int GetNumberFormatId(string? numberFormat)
+    {
+        if (numberFormat is null) return 0;
+        // TODO: Handle custom formats
+        // TODO: Custom formats must be XML encoded
+        // TODO: Start with numFmtId = 165 for custom formats
+        return NumberFormats.GetBuiltInNumberFormatId(numberFormat) ?? 0;
     }
 
     private static async ValueTask<Dictionary<Font, int>> WriteFontsAsync(
