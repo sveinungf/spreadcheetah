@@ -128,7 +128,7 @@ internal static class StylesXml
         sb.Append("<numFmts count=\"").Append(dict.Count).Append("\">");
         await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
 
-        foreach (var numberFormat in dict.ToArray())
+        foreach (var numberFormat in dict)
         {
             sb.Clear();
             sb.AppendNumberFormat(numberFormat.Key, numberFormat.Value);
@@ -183,7 +183,11 @@ internal static class StylesXml
         await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
 
         var fontIndex = defaultCount;
+#if NET5_0_OR_GREATER // https://github.com/dotnet/runtime/issues/34606
+        foreach (var font in uniqueFonts.Keys)
+#else
         foreach (var font in uniqueFonts.Keys.ToArray())
+#endif
         {
             if (font.Equals(defaultFont)) continue;
 
@@ -225,7 +229,11 @@ internal static class StylesXml
         await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
 
         var fillIndex = defaultCount;
+#if NET5_0_OR_GREATER // https://github.com/dotnet/runtime/issues/34606
+        foreach (var fill in uniqueFills.Keys)
+#else
         foreach (var fill in uniqueFills.Keys.ToArray())
+#endif
         {
             if (fill.Equals(defaultFill)) continue;
 
