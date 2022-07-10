@@ -306,14 +306,14 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(fontName ?? "Calibri", actualCell.Style.Font.FontName);
     }
 
-    public static IEnumerable<object?[]> PredefinedNumberFormatNames() => TestData.CombineWithStyledCellTypes(
+    public static IEnumerable<object?[]> PredefinedNumberFormats() => TestData.CombineWithStyledCellTypes(
         NumberFormats.General,
         NumberFormats.NoDecimalPlaces,
         NumberFormats.PercentTwoDecimalPlaces,
         null);
 
     [Theory]
-    [MemberData(nameof(PredefinedNumberFormatNames))]
+    [MemberData(nameof(PredefinedNumberFormats))]
     public async Task Spreadsheet_AddRow_PredefinedNumberFormatCellWithStringValue(string? numberFormat, Type type)
     {
         // Arrange
@@ -341,6 +341,42 @@ public class SpreadsheetStyledRowTests
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(cellValue, actualCell.Value);
         Assert.Equal(expectedNumberFormatId, actualCell.Style.NumberFormat.NumberFormatId);
+    }
+
+    public static IEnumerable<object?[]> CustomNumberFormats() => TestData.CombineWithStyledCellTypes(
+        "0.0000",
+        @"0.0\ %",
+        "[<=9999]0000;General",
+        @"[<=99999999]##_ ##_ ##_ ##;\(\+##\)_ ##_ ##_ ##_ ##",
+        @"_-* #,##0.0_-;\-* #,##0.0_-;_-* ""-""??_-;_-@_-");
+
+    [Theory]
+    [MemberData(nameof(CustomNumberFormats))]
+    public async Task Spreadsheet_AddRow_CustomNumberFormatCellWithStringValue(string numberFormat, Type type)
+    {
+        // Arrange
+        const string cellValue = "Number format test";
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var style = new Style { NumberFormat = numberFormat };
+            var styleId = spreadsheet.AddStyle(style);
+            var styledCell = CellFactory.Create(type, cellValue, styleId);
+
+            // Act
+            await spreadsheet.AddRowAsync(styledCell);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.Equal(cellValue, actualCell.Value);
+        Assert.Equal(numberFormat, actualCell.Style.NumberFormat.Format);
     }
 
     [Theory]
