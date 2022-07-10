@@ -108,7 +108,7 @@ internal static class StylesXml
         // TODO: Handle custom formats
         // TODO: Custom formats must be XML encoded
         // TODO: Start with numFmtId = 165 for custom formats
-        return NumberFormats.GetBuiltInNumberFormatId(numberFormat) ?? 0;
+        return NumberFormats.GetPredefinedNumberFormatId(numberFormat) ?? 0;
     }
 
     private static async ValueTask<Dictionary<Font, int>> WriteFontsAsync(

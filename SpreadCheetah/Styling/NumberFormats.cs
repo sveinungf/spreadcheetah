@@ -8,7 +8,7 @@ public static class NumberFormats
     public const string PercentTwoDecimalPlaces = "0.00%";
     public const string TwoDecimalPlaces = "0.00";
 
-    internal static int? GetBuiltInNumberFormatId(string? format) => format switch
+    internal static int? GetPredefinedNumberFormatId(string? format) => format switch
     {
         General => 0,
         NoDecimalPlaces => 1,

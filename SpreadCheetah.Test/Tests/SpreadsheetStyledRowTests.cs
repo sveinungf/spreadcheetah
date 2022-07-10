@@ -306,6 +306,43 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(fontName ?? "Calibri", actualCell.Style.Font.FontName);
     }
 
+    public static IEnumerable<object?[]> PredefinedNumberFormatNames() => TestData.CombineWithStyledCellTypes(
+        NumberFormats.General,
+        NumberFormats.NoDecimalPlaces,
+        NumberFormats.PercentTwoDecimalPlaces,
+        null);
+
+    [Theory]
+    [MemberData(nameof(PredefinedNumberFormatNames))]
+    public async Task Spreadsheet_AddRow_PredefinedNumberFormatCellWithStringValue(string? numberFormat, Type type)
+    {
+        // Arrange
+        const string cellValue = "Number format test";
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var style = new Style { NumberFormat = numberFormat };
+            var styleId = spreadsheet.AddStyle(style);
+            var styledCell = CellFactory.Create(type, cellValue, styleId);
+
+            // Act
+            await spreadsheet.AddRowAsync(styledCell);
+            await spreadsheet.FinishAsync();
+        }
+
+        var expectedNumberFormatId = NumberFormats.GetPredefinedNumberFormatId(numberFormat) ?? 0;
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.Equal(cellValue, actualCell.Value);
+        Assert.Equal(expectedNumberFormatId, actualCell.Style.NumberFormat.NumberFormatId);
+    }
+
     [Theory]
     [MemberData(nameof(TrueAndFalse))]
     public async Task Spreadsheet_AddRow_MultiFormatCellWithStringValue(bool formatting, Type type)
@@ -327,6 +364,7 @@ public class SpreadsheetStyledRowTests
             style.Font.Italic = formatting;
             style.Font.Name = fontName;
             style.Font.Strikethrough = formatting;
+            style.NumberFormat = formatting ? NumberFormats.PercentInteger : null;
             var styleId = spreadsheet.AddStyle(style);
             var styledCell = CellFactory.Create(type, cellValue, styleId);
 
@@ -347,6 +385,7 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(formatting, string.Equals(actualCell.Style.Font.FontName, fontName, StringComparison.Ordinal));
         Assert.Equal(formatting, actualCell.Style.Font.Italic);
         Assert.Equal(formatting, actualCell.Style.Font.Strikethrough);
+        Assert.Equal(formatting, actualCell.Style.NumberFormat.NumberFormatId == 9);
     }
 
     [Theory]
