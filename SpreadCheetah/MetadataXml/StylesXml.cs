@@ -1,7 +1,10 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO.Compression;
+using System.Net;
 using System.Text;
 
 namespace SpreadCheetah.MetadataXml;
@@ -10,8 +13,7 @@ internal static class StylesXml
 {
     private const string Header =
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-        "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">" +
-        "<numFmts count=\"0\"/>";
+        "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">";
 
     private const string XmlPart1 =
         "<borders count=\"1\">" +
@@ -62,6 +64,7 @@ internal static class StylesXml
     {
         buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetSpan()));
 
+        var customNumberFormatLookup = await WriteNumberFormatsAsync(stream, buffer, styles, token).ConfigureAwait(false);
         var fontLookup = await WriteFontsAsync(stream, buffer, styles, token).ConfigureAwait(false);
         var fillLookup = await WriteFillsAsync(stream, buffer, styles, token).ConfigureAwait(false);
 
@@ -82,7 +85,7 @@ internal static class StylesXml
         {
             sb.Clear();
 
-            var numberFormatId = GetNumberFormatId(style.NumberFormat);
+            var numberFormatId = GetNumberFormatId(style.NumberFormat, customNumberFormatLookup);
             sb.Append("<xf numFmtId=\"").Append(numberFormatId).Append('"');
             if (numberFormatId > 0) sb.Append(" applyNumberFormat=\"1\"");
 
@@ -102,13 +105,57 @@ internal static class StylesXml
         await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
     }
 
-    private static int GetNumberFormatId(string? numberFormat)
+    private static int GetNumberFormatId(string? numberFormat, IReadOnlyDictionary<string, int> customNumberFormats)
     {
         if (numberFormat is null) return 0;
-        // TODO: Handle custom formats
-        // TODO: Custom formats must be XML encoded
-        // TODO: Start with numFmtId = 165 for custom formats
-        return NumberFormats.GetPredefinedNumberFormatId(numberFormat) ?? 0;
+        return NumberFormats.GetPredefinedNumberFormatId(numberFormat)
+            ?? customNumberFormats.GetValueOrDefault(numberFormat);
+    }
+
+    private static async ValueTask<IReadOnlyDictionary<string, int>> WriteNumberFormatsAsync(
+        Stream stream,
+        SpreadsheetBuffer buffer,
+        List<Style> styles,
+        CancellationToken token)
+    {
+        if (!TryCreateCustomNumberFormatDictionary(styles, out var dict))
+        {
+            await buffer.WriteAsciiStringAsync("<numFmts count=\"0\"/>", stream, token).ConfigureAwait(false);
+            return ImmutableDictionary<string, int>.Empty;
+        }
+
+        var sb = new StringBuilder();
+        sb.Append("<numFmts count=\"").Append(dict.Count).Append("\">");
+        await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
+
+        foreach (var numberFormat in dict.ToArray())
+        {
+            sb.Clear();
+            sb.AppendNumberFormat(numberFormat.Key, numberFormat.Value);
+            await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
+        }
+
+        await buffer.WriteAsciiStringAsync("</numFmts>", stream, token).ConfigureAwait(false);
+        return dict;
+    }
+
+    private static bool TryCreateCustomNumberFormatDictionary(List<Style> styles, [NotNullWhen(true)] out Dictionary<string, int>? dictionary)
+    {
+        dictionary = null;
+        var numberFormatId = 165; // Custom formats start sequentially from this ID
+
+        for (var i = 0; i < styles.Count; ++i)
+        {
+            var numberFormat = styles[i].NumberFormat;
+            if (numberFormat is null) continue;
+            if (NumberFormats.GetPredefinedNumberFormatId(numberFormat) is not null) continue;
+
+            dictionary ??= new Dictionary<string, int>(StringComparer.Ordinal);
+            dictionary.Add(numberFormat, numberFormatId);
+            ++numberFormatId;
+        }
+
+        return dictionary is not null;
     }
 
     private static async ValueTask<Dictionary<Font, int>> WriteFontsAsync(
@@ -192,6 +239,15 @@ internal static class StylesXml
 
         await buffer.WriteAsciiStringAsync("</fills>", stream, token).ConfigureAwait(false);
         return uniqueFills;
+    }
+
+    private static void AppendNumberFormat(this StringBuilder sb, string numberFormat, int id)
+    {
+        sb.Append("<numFmt numFmtId=\"")
+            .Append(id)
+            .Append("\" formatCode=\"")
+            .Append(WebUtility.HtmlEncode(numberFormat))
+            .Append("\"/>");
     }
 
     private static void AppendFont(this StringBuilder sb, Font font)
