@@ -432,6 +432,71 @@ public class SpreadsheetStyledRowTests
     }
 
     [Theory]
+    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_MultipleCellsWithDifferentStyles(Type type)
+    {
+        // Arrange
+        var elements = new (string Value, Color FillColor, Color FontColor, string FontName, bool FontOption, double FontSize, string NumberFormat)[]
+        {
+            ("Value 1", Color.Blue, Color.PaleGoldenrod, "Times New Roman", true, 12, NumberFormats.Fraction),
+            ("Value 2", Color.Snow, Color.Gainsboro, "Consolas", false, 20, "0.0000"),
+            ("Value 3", Color.Aquamarine, Color.YellowGreen, "Impact", false, 18, "0.00000")
+        };
+
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var cells = elements.Select(x =>
+            {
+                var style = new Style
+                {
+                    Fill = { Color = x.FillColor },
+                    Font =
+                    {
+                        Bold = x.FontOption,
+                        Color = x.FontColor,
+                        Italic = x.FontOption,
+                        Name = x.FontName,
+                        Size = x.FontSize,
+                        Strikethrough = x.FontOption
+                    },
+                    NumberFormat = x.NumberFormat
+                };
+
+                var styleId = spreadsheet.AddStyle(style);
+                return CellFactory.Create(type, x.Value, styleId);
+            }).ToList();
+
+            // Act
+            await spreadsheet.AddRowAsync(cells);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var actualCells = workbook.Worksheets.Single().CellsUsed();
+        Assert.All(actualCells, actualCell =>
+        {
+            var element = elements.Single(x => string.Equals(x.Value, actualCell.Value.ToString(), StringComparison.Ordinal));
+            Assert.Equal(element.FillColor, actualCell.Style.Fill.BackgroundColor.Color);
+            Assert.Equal(element.FontColor, actualCell.Style.Font.FontColor.Color);
+            Assert.Equal(element.FontName, actualCell.Style.Font.FontName);
+            Assert.Equal(element.FontOption, actualCell.Style.Font.Bold);
+            Assert.Equal(element.FontOption, actualCell.Style.Font.Italic);
+            Assert.Equal(element.FontOption, actualCell.Style.Font.Strikethrough);
+
+            var numberFormatId = NumberFormats.GetPredefinedNumberFormatId(element.NumberFormat);
+            if (numberFormatId is not null)
+                Assert.Equal(numberFormatId, actualCell.Style.NumberFormat.NumberFormatId);
+            else
+                Assert.Equal(element.NumberFormat, actualCell.Style.NumberFormat.Format);
+        });
+    }
+
+    [Theory]
     [MemberData(nameof(TrueAndFalse))]
     public async Task Spreadsheet_AddRow_MixedCellTypeRows(bool firstRowStyled, Type type)
     {
