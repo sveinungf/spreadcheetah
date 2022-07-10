@@ -307,9 +307,16 @@ public class SpreadsheetStyledRowTests
     }
 
     public static IEnumerable<object?[]> PredefinedNumberFormats() => TestData.CombineWithStyledCellTypes(
+        NumberFormats.Fraction,
+        NumberFormats.FractionTwoDenominatorPlaces,
         NumberFormats.General,
         NumberFormats.NoDecimalPlaces,
+        NumberFormats.Percent,
         NumberFormats.PercentTwoDecimalPlaces,
+        NumberFormats.Scientific,
+        NumberFormats.ThousandsSeparator,
+        NumberFormats.ThousandsSeparatorTwoDecimalPlaces,
+        NumberFormats.TwoDecimalPlaces,
         null);
 
     [Theory]
@@ -400,7 +407,7 @@ public class SpreadsheetStyledRowTests
             style.Font.Italic = formatting;
             style.Font.Name = fontName;
             style.Font.Strikethrough = formatting;
-            style.NumberFormat = formatting ? NumberFormats.PercentInteger : null;
+            style.NumberFormat = formatting ? NumberFormats.Percent : null;
             var styleId = spreadsheet.AddStyle(style);
             var styledCell = CellFactory.Create(type, cellValue, styleId);
 
