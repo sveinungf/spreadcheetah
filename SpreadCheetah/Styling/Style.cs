@@ -1,3 +1,5 @@
+using SpreadCheetah.Helpers;
+
 namespace SpreadCheetah.Styling;
 
 /// <summary>
@@ -11,7 +13,8 @@ public sealed class Style : IEquatable<Style>
     /// <summary>Font for the cell's value.</summary>
     public Font Font { get; set; } = new Font();
 
-    public string? NumberFormat { get; set; }
+    public string? NumberFormat { get => _numberFormat; set => _numberFormat = value.WithEnsuredMaxLength(255); }
+    private string? _numberFormat;
 
     /// <inheritdoc/>
     public bool Equals(Style? other) => other != null

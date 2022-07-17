@@ -39,25 +39,20 @@ public sealed class DataValidation
     public bool ShowInputMessage { get; set; } = true;
 
     /// <summary>Title for error alerts. Maximum 32 characters.</summary>
-    public string? ErrorTitle { get => _errorTitle; set => _errorTitle = VerifyLength(value, 32); }
+    public string? ErrorTitle { get => _errorTitle; set => _errorTitle = value.WithEnsuredMaxLength(32); }
     private string? _errorTitle;
 
     /// <summary>Message for error alerts. Maximum 255 characters.</summary>
-    public string? ErrorMessage { get => _errorMessage; set => _errorMessage = VerifyLength(value, 255); }
+    public string? ErrorMessage { get => _errorMessage; set => _errorMessage = value.WithEnsuredMaxLength(255); }
     private string? _errorMessage;
 
     /// <summary>Title for the input message box. Maximum 32 characters.</summary>
-    public string? InputTitle { get => _inputTitle; set => _inputTitle = VerifyLength(value, 32); }
+    public string? InputTitle { get => _inputTitle; set => _inputTitle = value.WithEnsuredMaxLength(32); }
     private string? _inputTitle;
 
     /// <summary>Message for the input message box. Maximum 255 characters.</summary>
-    public string? InputMessage { get => _inputMessage; set => _inputMessage = VerifyLength(value, 255); }
+    public string? InputMessage { get => _inputMessage; set => _inputMessage = value.WithEnsuredMaxLength(255); }
     private string? _inputMessage;
-
-    private static string? VerifyLength(string? value, int maxLength) =>
-        value is not null && value.Length > maxLength
-            ? throw new ArgumentException($"The value can not exceed {maxLength} characters.", nameof(value))
-            : value;
 
     /// <summary>
     /// Specify how the user is informed about cells with invalid data.
