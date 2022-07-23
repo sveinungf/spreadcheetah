@@ -13,6 +13,7 @@ public sealed class Style : IEquatable<Style>
     /// <summary>Font for the cell's value.</summary>
     public Font Font { get; set; } = new Font();
 
+    /// <summary>Format that defines how a number cell should be displayed.</summary>
     public string? NumberFormat { get => _numberFormat; set => _numberFormat = value.WithEnsuredMaxLength(255); }
     private string? _numberFormat;
 

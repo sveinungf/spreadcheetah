@@ -1,30 +1,55 @@
 namespace SpreadCheetah.Styling;
 
+/// <summary>
+/// Predefined number formats. Can be used in a style by setting <see cref="Style.NumberFormat"/>.
+/// </summary>
 public static class NumberFormats
 {
+    /// <summary>Format as integer with fraction using one digit denominator.</summary>
     public const string Fraction = "# ?/?";
+
+    /// <summary>Format as integer with fraction using two digit denominator.</summary>
     public const string FractionTwoDenominatorPlaces = "# ??/??";
+
+    /// <summary>The default format.</summary>
     public const string General = "General";
+
+    /// <summary>Format as integer.</summary>
     public const string NoDecimalPlaces = "0";
+
+    /// <summary>Format as integer with percent symbol.</summary>
     public const string Percent = "0%";
+
+    /// <summary>Format as number with two decimal places and percent symbol.</summary>
     public const string PercentTwoDecimalPlaces = "0.00%";
+
+    /// <summary>Format as a number between 1 and 10 multiplied by a power of 10.</summary>
     public const string Scientific = "0.00E+00";
+
+    /// <summary>Format as text.</summary>
+    public const string Text = "@";
+
+    /// <summary>Format as integer with thousands separator.</summary>
     public const string ThousandsSeparator = "#,##0";
+
+    /// <summary>Format as number with two decimal places and thousands separator.</summary>
     public const string ThousandsSeparatorTwoDecimalPlaces = "#,##0.00";
+
+    /// <summary>Format as number with two decimal places.</summary>
     public const string TwoDecimalPlaces = "0.00";
 
     internal static int? GetPredefinedNumberFormatId(string? format) => format switch
     {
-        Fraction => 12,
-        FractionTwoDenominatorPlaces => 13,
         General => 0,
         NoDecimalPlaces => 1,
+        TwoDecimalPlaces => 2,
+        ThousandsSeparator => 3,
+        ThousandsSeparatorTwoDecimalPlaces => 4,
         Percent => 9,
         PercentTwoDecimalPlaces => 10,
         Scientific => 11,
-        ThousandsSeparator => 3,
-        ThousandsSeparatorTwoDecimalPlaces => 4,
-        TwoDecimalPlaces => 2,
+        Fraction => 12,
+        FractionTwoDenominatorPlaces => 13,
         "mm-dd-yy" => 14,
         "d-mmm-yy" => 15,
         "d-mmm" => 16,
@@ -42,7 +67,7 @@ public static class NumberFormats
         "[h]:mm:ss" => 46,
         "mmss.0" => 47,
         "##0.0E+0" => 48,
-        "@" => 49,
+        Text => 49,
         _ => null
     };
 }
