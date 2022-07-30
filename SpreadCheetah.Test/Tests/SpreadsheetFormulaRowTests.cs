@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
+using System.Globalization;
 using Xunit;
 
 namespace SpreadCheetah.Test.Tests;
@@ -79,7 +80,7 @@ public class SpreadsheetFormulaRowTests
     [InlineData(513)]
     [InlineData(4100)]
     [InlineData(8192)]
-    public async Task Spreadsheet_AddRow_CellWithVeryLongFormulaAndCachedValue(int length)
+    public async Task Spreadsheet_AddRow_CellWithVeryLongFormulaAndCachedStringValue(int length)
     {
         // Arrange
         var formulaText = FormulaGenerator.Generate(length);
@@ -105,6 +106,41 @@ public class SpreadsheetFormulaRowTests
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(formulaText, actualCell.FormulaA1);
         Assert.Equal(cachedValue, actualCell.Value);
+    }
+
+    [Theory]
+    [InlineData(100)]
+    [InlineData(511)]
+    [InlineData(512)]
+    [InlineData(513)]
+    [InlineData(4100)]
+    [InlineData(8192)]
+    public async Task Spreadsheet_AddRow_CellWithVeryLongFormulaAndCachedDoubleValue(int length)
+    {
+        // Arrange
+        var formulaText = FormulaGenerator.Generate(length);
+        const double cachedValue = double.MaxValue;
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var formula = new Formula(formulaText);
+            var cell = new Cell(formula, cachedValue);
+
+            // Act
+            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.Equal(formulaText, actualCell.FormulaA1);
+        Assert.Equal(cachedValue.ToString(CultureInfo.InvariantCulture), actualCell.Value);
     }
 
     [Theory]
