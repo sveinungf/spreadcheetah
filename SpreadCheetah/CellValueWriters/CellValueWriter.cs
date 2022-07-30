@@ -20,6 +20,8 @@ internal abstract class CellValueWriter
     public abstract bool WriteStartElement(SpreadsheetBuffer buffer);
     public abstract bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer);
     public abstract bool WriteFormulaStartElement(StyleId? styleId, SpreadsheetBuffer buffer);
+    public abstract bool CanWriteValuePieceByPiece(in DataCell cell);
+    public abstract bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex);
     public abstract bool TryWriteEndElement(SpreadsheetBuffer buffer);
     public abstract bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer);
     public abstract bool Equals(in CellValue value, in CellValue other);

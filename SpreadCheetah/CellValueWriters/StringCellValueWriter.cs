@@ -166,6 +166,13 @@ internal sealed class StringCellValueWriter : CellValueWriter
         return true;
     }
 
+    public override bool CanWriteValuePieceByPiece(in DataCell cell) => true;
+
+    public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)
+    {
+        return buffer.WriteLongString(cell.StringValue.AsSpan(), ref valueIndex);
+    }
+
     public override bool Equals(in CellValue value, in CellValue other) => true;
     public override int GetHashCodeFor(in CellValue value) => 0;
 }

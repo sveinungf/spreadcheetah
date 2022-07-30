@@ -134,6 +134,15 @@ internal abstract class NumberCellValueWriter : CellValueWriter
         return true;
     }
 
+    public override bool CanWriteValuePieceByPiece(in DataCell cell) => true;
+
+    public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)
+    {
+        if (MaxNumberLength > buffer.FreeCapacity) return false;
+        buffer.Advance(GetValueBytes(cell, buffer.GetSpan()));
+        return true;
+    }
+
     public override bool TryWriteEndElement(SpreadsheetBuffer buffer)
     {
         var cellEnd = DataCellHelper.EndDefaultCell;

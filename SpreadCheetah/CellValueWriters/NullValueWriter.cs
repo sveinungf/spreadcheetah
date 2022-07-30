@@ -117,6 +117,12 @@ internal sealed class NullValueWriter : CellValueWriter
 
     public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => GetBytes(styleId, buffer);
 
+    /// <summary>
+    /// Returns false because there is no value to write for 'null'.
+    /// </summary>
+    public override bool CanWriteValuePieceByPiece(in DataCell cell) => false;
+    public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex) => true;
+
     public override bool Equals(in CellValue value, in CellValue other) => true;
     public override int GetHashCodeFor(in CellValue value) => 0;
 }
