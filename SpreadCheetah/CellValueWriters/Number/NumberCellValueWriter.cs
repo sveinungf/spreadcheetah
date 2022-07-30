@@ -25,7 +25,7 @@ internal abstract class NumberCellValueWriter : CellValueWriter
     protected abstract int MaxNumberLength { get; }
     protected abstract int GetValueBytes(in DataCell cell, Span<byte> destination);
 
-    public override bool GetBytes(in DataCell cell, SpreadsheetBuffer buffer)
+    private bool GetBytes(in DataCell cell, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
         var bytesWritten = SpanHelper.GetBytes(DataCellHelper.BeginNumberCell, bytes);
@@ -35,7 +35,7 @@ internal abstract class NumberCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool GetBytes(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    private bool GetBytes(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
         var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledNumberCell, bytes);
@@ -47,7 +47,7 @@ internal abstract class NumberCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool GetBytes(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer)
+    private bool GetBytes(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
         int bytesWritten;

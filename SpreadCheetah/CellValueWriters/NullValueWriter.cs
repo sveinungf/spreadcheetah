@@ -19,9 +19,6 @@ internal sealed class NullValueWriter : CellValueWriter
         FormulaCellHelper.EndStyleBeginFormula.Length +
         FormulaCellHelper.EndFormulaEndCell.Length;
 
-    public override bool GetBytes(in DataCell cell, SpreadsheetBuffer buffer) => GetBytes(buffer);
-    public override bool GetBytes(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer) => GetBytes(styleId, buffer);
-
     private static bool GetBytes(SpreadsheetBuffer buffer)
     {
         buffer.Advance(SpanHelper.GetBytes(DataCellHelper.NullCell, buffer.GetSpan()));
@@ -38,7 +35,7 @@ internal sealed class NullValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool GetBytes(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer)
+    private static bool GetBytes(string formulaText, StyleId? styleId, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
         int bytesWritten;
@@ -63,13 +60,13 @@ internal sealed class NullValueWriter : CellValueWriter
     public override bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer)
     {
         var remaining = buffer.FreeCapacity;
-        return DataCellElementLength <= remaining && GetBytes(cell, buffer);
+        return DataCellElementLength <= remaining && GetBytes(buffer);
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
         var remaining = buffer.FreeCapacity;
-        return StyledCellElementLength <= remaining && GetBytes(cell, styleId, buffer);
+        return StyledCellElementLength <= remaining && GetBytes(styleId, buffer);
     }
 
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer)
@@ -78,11 +75,11 @@ internal sealed class NullValueWriter : CellValueWriter
         var bytesNeeded = FormulaCellElementLength + formulaText.Length * Utf8Helper.MaxBytePerChar;
         var remaining = buffer.FreeCapacity;
         if (bytesNeeded <= remaining)
-            return GetBytes(formulaText, cachedValue, styleId, buffer);
+            return GetBytes(formulaText, styleId, buffer);
 
         // Try with more accurate length
         bytesNeeded = FormulaCellElementLength + Utf8Helper.GetByteCount(formulaText);
-        return bytesNeeded <= remaining && GetBytes(formulaText, cachedValue, styleId, buffer);
+        return bytesNeeded <= remaining && GetBytes(formulaText, styleId, buffer);
     }
 
     public override bool TryWriteEndElement(SpreadsheetBuffer buffer) => true;

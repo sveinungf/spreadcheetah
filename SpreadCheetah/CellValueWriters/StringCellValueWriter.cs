@@ -22,7 +22,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
         FormulaCellHelper.EndFormulaBeginCachedValue.Length +
         FormulaCellHelper.EndCachedValueEndCell.Length;
 
-    public override bool GetBytes(in DataCell cell, SpreadsheetBuffer buffer)
+    private static bool GetBytes(in DataCell cell, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
         var bytesWritten = SpanHelper.GetBytes(DataCellHelper.BeginStringCell, bytes);
@@ -32,7 +32,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool GetBytes(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    private static bool GetBytes(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
         var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledStringCell, bytes);
@@ -44,7 +44,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool GetBytes(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer)
+    private static bool GetBytes(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
         int bytesWritten;
