@@ -25,14 +25,13 @@ internal static class WorkbookRelsXml
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
         List<string> worksheetPaths,
-        bool hasStylesXml,
         CancellationToken token)
     {
         var stream = archive.CreateEntry("xl/_rels/workbook.xml.rels", compressionLevel).Open();
 #if NETSTANDARD2_0
         using (stream)
 #else
-            await using (stream.ConfigureAwait(false))
+        await using (stream.ConfigureAwait(false))
 #endif
         {
             buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetSpan()));
@@ -49,13 +48,11 @@ internal static class WorkbookRelsXml
                 buffer.Advance(GetSheetElementBytes(path, sheetId, buffer.GetSpan()));
             }
 
-            var bufferNeeded = Footer.Length + (hasStylesXml ? MaxStylesXmlElementByteCount : 0);
+            var bufferNeeded = Footer.Length + MaxStylesXmlElementByteCount;
             if (bufferNeeded > buffer.FreeCapacity)
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-            if (hasStylesXml)
-                buffer.Advance(GetStylesXmlElementBytes(worksheetPaths.Count + 1, buffer.GetSpan()));
-
+            buffer.Advance(GetStylesXmlElementBytes(worksheetPaths.Count + 1, buffer.GetSpan()));
             buffer.Advance(Utf8Helper.GetBytes(Footer, buffer.GetSpan()));
             await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }

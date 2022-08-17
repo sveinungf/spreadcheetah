@@ -276,11 +276,11 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         ThrowIfNull(style, nameof(style));
 
-        if (_styles is null)
-            _styles = new List<Style>();
+        // TODO: Avoid allocation if style is one of the default styles
 
+        _styles ??= new List<Style>();
         _styles.Add(style);
-        return new StyleId(_styles.Count);
+        return new StyleId(_styles.Count + StylesXml.DefaultStyleCount - 1);
     }
 
     /// <summary>
@@ -328,13 +328,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         await FinishAndDisposeWorksheetAsync(token).ConfigureAwait(false);
 
-        var hasStyles = _styles != null;
-        await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetPaths, hasStyles, token).ConfigureAwait(false);
-        await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetPaths, hasStyles, token).ConfigureAwait(false);
+        await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetPaths, token).ConfigureAwait(false);
+        await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetPaths, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetNames, token).ConfigureAwait(false);
 
-        if (_styles != null)
-            await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styles, token).ConfigureAwait(false);
+        IList<Style> styles = _styles is not null ? _styles : Array.Empty<Style>();
+        await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, styles, token).ConfigureAwait(false);
 
         _finished = true;
     }

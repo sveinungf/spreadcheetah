@@ -1,7 +1,6 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO.Compression;
 using System.Net;
@@ -11,6 +10,9 @@ namespace SpreadCheetah.MetadataXml;
 
 internal static class StylesXml
 {
+    // One built-in, and one for the default DateTime number format.
+    public const int DefaultStyleCount = 2;
+
     private const string Header =
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
         "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">";
@@ -42,7 +44,7 @@ internal static class StylesXml
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
-        List<Style> styles,
+        IList<Style> styles,
         CancellationToken token)
     {
         var stream = archive.CreateEntry("xl/styles.xml", compressionLevel).Open();
@@ -59,7 +61,7 @@ internal static class StylesXml
     private static async ValueTask WriteAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
-        List<Style> styles,
+        IList<Style> styles,
         CancellationToken token)
     {
         buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetSpan()));
@@ -70,15 +72,23 @@ internal static class StylesXml
 
         await buffer.WriteAsciiStringAsync(XmlPart1, stream, token).ConfigureAwait(false);
 
-        var styleCount = styles.Count + 1;
+        var styleCount = styles.Count + DefaultStyleCount;
         if (styleCount.GetNumberOfDigits() > buffer.FreeCapacity)
             await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
         var sb = new StringBuilder();
         sb.Append(styleCount);
 
-        // The default style must be the first one (index 0)
+        // The built-in default style must be the first one (index 0)
         sb.Append("\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\"/>");
+        await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
+        sb.Clear();
+
+        // The default style for DateTime
+        var dateTimeNumberFormatId = GetNumberFormatId(NumberFormats.DateTimeUniversalSortable, customNumberFormatLookup);
+        sb.Append("<xf numFmtId=\"")
+            .Append(dateTimeNumberFormatId)
+            .Append("\" applyNumberFormat=\"1\" fontId=\"0\" fillId=\"0\" xfId=\"0\"/>");
         await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
 
         foreach (var style in styles)
@@ -115,15 +125,10 @@ internal static class StylesXml
     private static async ValueTask<IReadOnlyDictionary<string, int>> WriteNumberFormatsAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
-        List<Style> styles,
+        IList<Style> styles,
         CancellationToken token)
     {
-        if (!TryCreateCustomNumberFormatDictionary(styles, out var dict))
-        {
-            await buffer.WriteAsciiStringAsync("<numFmts count=\"0\"/>", stream, token).ConfigureAwait(false);
-            return ImmutableDictionary<string, int>.Empty;
-        }
-
+        var dict = CreateCustomNumberFormatDictionary(styles);
         var sb = new StringBuilder();
         sb.Append("<numFmts count=\"").Append(dict.Count).Append("\">");
         await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
@@ -139,10 +144,14 @@ internal static class StylesXml
         return dict;
     }
 
-    private static bool TryCreateCustomNumberFormatDictionary(List<Style> styles, [NotNullWhen(true)] out Dictionary<string, int>? dictionary)
+    private static Dictionary<string, int> CreateCustomNumberFormatDictionary(IList<Style> styles)
     {
-        dictionary = null;
         var numberFormatId = 165; // Custom formats start sequentially from this ID
+
+        var dictionary = new Dictionary<string, int>(StringComparer.Ordinal)
+        {
+            { NumberFormats.DateTimeUniversalSortable, numberFormatId++ }
+        };
 
         for (var i = 0; i < styles.Count; ++i)
         {
@@ -150,18 +159,17 @@ internal static class StylesXml
             if (numberFormat is null) continue;
             if (NumberFormats.GetPredefinedNumberFormatId(numberFormat) is not null) continue;
 
-            dictionary ??= new Dictionary<string, int>(StringComparer.Ordinal);
             dictionary.Add(numberFormat, numberFormatId);
             ++numberFormatId;
         }
 
-        return dictionary is not null;
+        return dictionary;
     }
 
     private static async ValueTask<Dictionary<Font, int>> WriteFontsAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
-        List<Style> styles,
+        IList<Style> styles,
         CancellationToken token)
     {
         var defaultFont = new Font();
@@ -206,7 +214,7 @@ internal static class StylesXml
     private static async ValueTask<Dictionary<Fill, int>> WriteFillsAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
-        List<Style> styles,
+        IList<Style> styles,
         CancellationToken token)
     {
         var defaultFill = new Fill();

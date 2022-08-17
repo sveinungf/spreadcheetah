@@ -5,6 +5,8 @@ namespace SpreadCheetah.Styling;
 /// </summary>
 public static class NumberFormats
 {
+    public const string DateTimeUniversalSortable = @"yyyy\-mm\-dd\ hh:mm:ss";
+
     /// <summary>Format as integer with fraction using one digit denominator.</summary>
     public const string Fraction = "# ?/?";
 
