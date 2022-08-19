@@ -119,6 +119,12 @@ public readonly struct DataCell : IEquatable<DataCell>
     {
     }
 
+    public DataCell(DateTime value) : this()
+    {
+        NumberValue = new CellValue(value.ToOADate());
+        _writer = CellValueWriter.DateTime;
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a boolean value.
     /// </summary>

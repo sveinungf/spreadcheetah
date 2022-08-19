@@ -60,6 +60,14 @@ internal static class CellFactory
         _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
     };
 
+    public static object Create(Type type, DateTime value) => type switch
+    {
+        _ when type == typeof(Cell) => new Cell(value, null),
+        _ when type == typeof(DataCell) => new DataCell(value),
+        _ when type == typeof(StyledCell) => new StyledCell(value, null),
+        _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+    };
+
     public static object Create(Type type, bool? value) => type switch
     {
         _ when type == typeof(Cell) => new Cell(value, null),

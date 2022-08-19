@@ -123,6 +123,12 @@ public readonly struct StyledCell : IEquatable<StyledCell>
         StyleId = styleId;
     }
 
+    public StyledCell(DateTime value, StyleId? styleId)
+    {
+        DataCell = new DataCell(value);
+        StyleId = styleId;
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="StyledCell"/> struct with a boolean value and an optional style.
     /// </summary>

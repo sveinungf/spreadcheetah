@@ -106,6 +106,10 @@ public readonly struct Cell : IEquatable<Cell>
     {
     }
 
+    public Cell(DateTime value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
+    {
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Cell"/> struct with a boolean value and an optional style.
     /// </summary>

@@ -1,5 +1,6 @@
 using SpreadCheetah.CellValueWriters.Boolean;
 using SpreadCheetah.CellValueWriters.Number;
+using SpreadCheetah.CellValueWriters.Time;
 using SpreadCheetah.Styling;
 
 namespace SpreadCheetah.CellValueWriters;
@@ -10,6 +11,7 @@ internal abstract class CellValueWriter
     public static CellValueWriter Integer { get; } = new IntegerCellValueWriter();
     public static CellValueWriter Float { get; } = new FloatCellValueWriter();
     public static CellValueWriter Double { get; } = new DoubleCellValueWriter();
+    public static CellValueWriter DateTime { get; } = new DateTimeCellValueWriter();
     public static CellValueWriter TrueBoolean { get; } = new TrueBooleanCellValueWriter();
     public static CellValueWriter FalseBoolean { get; } = new FalseBooleanCellValueWriter();
     public static CellValueWriter String { get; } = new StringCellValueWriter();
