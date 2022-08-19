@@ -165,6 +165,9 @@ dotnet_diagnostic.CA5394.severity = none
 # EPS05: Use in-modifier for passing large readonly structs
 dotnet_diagnostic.EPS05.severity = warning
 
+# EPS09: Use in-modifier explicitly
+dotnet_diagnostic.EPS09.severity = none
+
 ###############################
 # Meziantou.Analyzers Options #
 ###############################

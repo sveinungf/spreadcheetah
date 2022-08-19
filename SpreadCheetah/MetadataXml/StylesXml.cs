@@ -77,18 +77,10 @@ internal static class StylesXml
             await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
         var sb = new StringBuilder();
-        sb.Append(styleCount);
+        sb.Append(styleCount).Append("\">");
 
-        // The built-in default style must be the first one (index 0)
-        sb.Append("\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\"/>");
-        await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
-        sb.Clear();
-
-        // The default style for DateTime
-        var dateTimeNumberFormatId = GetNumberFormatId(NumberFormats.DateTimeUniversalSortable, customNumberFormatLookup);
-        sb.Append("<xf numFmtId=\"")
-            .Append(dateTimeNumberFormatId)
-            .Append("\" applyNumberFormat=\"1\" fontId=\"0\" fillId=\"0\" xfId=\"0\"/>");
+        // The default styles must come before any other style.
+        sb.AppendDefaultStyles(customNumberFormatLookup);
         await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
 
         foreach (var style in styles)
@@ -113,6 +105,18 @@ internal static class StylesXml
 
         await buffer.WriteAsciiStringAsync(XmlPart2, stream, token).ConfigureAwait(false);
         await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+    }
+
+    private static void AppendDefaultStyles(this StringBuilder sb, IReadOnlyDictionary<string, int> customNumberFormats)
+    {
+        // Index 0: The built-in default style must be the first one (meaning the first <xf> element).
+        sb.Append("<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\"/>");
+
+        // Index 1: The default style for DateTime. Expected to be index 1 by the DateTime cell value writer.
+        var dateTimeNumberFormatId = GetNumberFormatId(NumberFormats.DateTimeUniversalSortable, customNumberFormats);
+        sb.Append("<xf numFmtId=\"")
+            .Append(dateTimeNumberFormatId)
+            .Append("\" applyNumberFormat=\"1\" fontId=\"0\" fillId=\"0\" xfId=\"0\"/>");
     }
 
     private static int GetNumberFormatId(string? numberFormat, IReadOnlyDictionary<string, int> customNumberFormats)

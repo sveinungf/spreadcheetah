@@ -2,12 +2,6 @@ namespace SpreadCheetah.Helpers;
 
 internal static class DataCellHelper
 {
-    // <c><v>
-    public static ReadOnlySpan<byte> BeginNumberCell => new[]
-    {
-        (byte)'<', (byte)'c', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
-    };
-
     // </v></c>
     public static ReadOnlySpan<byte> EndDefaultCell => new[]
     {
