@@ -1,5 +1,6 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Styling.Internal;
 using System.Collections.Immutable;
 using System.Drawing;
 using System.IO.Compression;
@@ -44,7 +45,7 @@ internal static class StylesXml
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
-        IList<Style> styles,
+        IList<ImmutableStyle> styles,
         CancellationToken token)
     {
         var stream = archive.CreateEntry("xl/styles.xml", compressionLevel).Open();
@@ -61,7 +62,7 @@ internal static class StylesXml
     private static async ValueTask WriteAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
-        IList<Style> styles,
+        IList<ImmutableStyle> styles,
         CancellationToken token)
     {
         buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetSpan()));
@@ -129,7 +130,7 @@ internal static class StylesXml
     private static async ValueTask<IReadOnlyDictionary<string, int>> WriteNumberFormatsAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
-        IList<Style> styles,
+        IList<ImmutableStyle> styles,
         CancellationToken token)
     {
         var dict = CreateCustomNumberFormatDictionary(styles);
@@ -148,7 +149,7 @@ internal static class StylesXml
         return dict;
     }
 
-    private static Dictionary<string, int> CreateCustomNumberFormatDictionary(IList<Style> styles)
+    private static Dictionary<string, int> CreateCustomNumberFormatDictionary(IList<ImmutableStyle> styles)
     {
         var numberFormatId = 165; // Custom formats start sequentially from this ID
 
@@ -170,16 +171,16 @@ internal static class StylesXml
         return dictionary;
     }
 
-    private static async ValueTask<Dictionary<Font, int>> WriteFontsAsync(
+    private static async ValueTask<Dictionary<ImmutableFont, int>> WriteFontsAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
-        IList<Style> styles,
+        IList<ImmutableStyle> styles,
         CancellationToken token)
     {
-        var defaultFont = new Font();
+        var defaultFont = new ImmutableFont();
         const int defaultCount = 1;
 
-        var uniqueFonts = new Dictionary<Font, int> { { defaultFont, 0 } };
+        var uniqueFonts = new Dictionary<ImmutableFont, int> { { defaultFont, 0 } };
         for (var i = 0; i < styles.Count; ++i)
         {
             var font = styles[i].Font;
@@ -215,16 +216,16 @@ internal static class StylesXml
         return uniqueFonts;
     }
 
-    private static async ValueTask<Dictionary<Fill, int>> WriteFillsAsync(
+    private static async ValueTask<Dictionary<ImmutableFill, int>> WriteFillsAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
-        IList<Style> styles,
+        IList<ImmutableStyle> styles,
         CancellationToken token)
     {
-        var defaultFill = new Fill();
+        var defaultFill = new ImmutableFill();
         const int defaultCount = 2;
 
-        var uniqueFills = new Dictionary<Fill, int> { { defaultFill, 0 } };
+        var uniqueFills = new Dictionary<ImmutableFill, int> { { defaultFill, 0 } };
         for (var i = 0; i < styles.Count; ++i)
         {
             var fill = styles[i].Fill;
@@ -270,7 +271,7 @@ internal static class StylesXml
             .Append("\"/>");
     }
 
-    private static void AppendFont(this StringBuilder sb, Font font)
+    private static void AppendFont(this StringBuilder sb, ImmutableFont font)
     {
         sb.Append("<font>");
 
@@ -287,7 +288,7 @@ internal static class StylesXml
         sb.Append("<name val=\"").Append(fontName).Append("\"/></font>");
     }
 
-    private static void AppendFill(this StringBuilder sb, Fill fill)
+    private static void AppendFill(this StringBuilder sb, ImmutableFill fill)
     {
         if (fill.Color is null) return;
         sb.Append("<fill><patternFill patternType=\"solid\"><fgColor rgb=\"");
