@@ -25,7 +25,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly CompressionLevel _compressionLevel;
     private readonly SpreadsheetBuffer _buffer;
     private readonly byte[] _arrayPoolBuffer;
-    private List<ImmutableStyle>? _styles;
+    private Dictionary<ImmutableStyle, int>? _styles;
     private Worksheet? _worksheet;
     private bool _disposed;
     private bool _finished;
@@ -279,10 +279,16 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         // TODO: Avoid allocation if style is one of the default styles
 
-        _styles ??= new List<ImmutableStyle>();
-        _styles.Add(ImmutableStyle.From(style));
+        _styles ??= new Dictionary<ImmutableStyle, int>();
 
-        return new StyleId(_styles.Count + StylesXml.DefaultStyleCount - 1);
+        var immutableStyle = ImmutableStyle.From(style);
+
+        if (_styles.TryGetValue(immutableStyle, out var id))
+            return new StyleId(id);
+
+        var newId = _styles.Count + StylesXml.DefaultStyleCount;
+        _styles[immutableStyle] = newId;
+        return new StyleId(newId);
     }
 
     /// <summary>
@@ -334,7 +340,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetPaths, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetNames, token).ConfigureAwait(false);
 
-        IList<ImmutableStyle> styles = _styles is not null ? _styles : Array.Empty<ImmutableStyle>();
+        // TODO: Does .Keys allocate?
+        ICollection<ImmutableStyle> styles = _styles is not null ? _styles.Keys : Array.Empty<ImmutableStyle>();
         await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, styles, token).ConfigureAwait(false);
 
         _finished = true;

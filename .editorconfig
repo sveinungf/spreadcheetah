@@ -200,6 +200,9 @@ dotnet_diagnostic.RCS1163.severity = warning
 # SonarAnalyzer Options       #
 ###############################
 [*.cs]
+# S3267: Loops should be simplified with "LINQ" expressions
+dotnet_diagnostic.S3267.severity = none
+
 # S3925: "ISerializable" should be implemented correctly
 dotnet_diagnostic.S3925.severity = none
 

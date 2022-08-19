@@ -45,7 +45,7 @@ internal static class StylesXml
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
-        IList<ImmutableStyle> styles,
+        ICollection<ImmutableStyle> styles,
         CancellationToken token)
     {
         var stream = archive.CreateEntry("xl/styles.xml", compressionLevel).Open();
@@ -62,7 +62,7 @@ internal static class StylesXml
     private static async ValueTask WriteAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
-        IList<ImmutableStyle> styles,
+        ICollection<ImmutableStyle> styles,
         CancellationToken token)
     {
         buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetSpan()));
@@ -130,7 +130,7 @@ internal static class StylesXml
     private static async ValueTask<IReadOnlyDictionary<string, int>> WriteNumberFormatsAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
-        IList<ImmutableStyle> styles,
+        ICollection<ImmutableStyle> styles,
         CancellationToken token)
     {
         var dict = CreateCustomNumberFormatDictionary(styles);
@@ -149,7 +149,7 @@ internal static class StylesXml
         return dict;
     }
 
-    private static Dictionary<string, int> CreateCustomNumberFormatDictionary(IList<ImmutableStyle> styles)
+    private static Dictionary<string, int> CreateCustomNumberFormatDictionary(ICollection<ImmutableStyle> styles)
     {
         var numberFormatId = 165; // Custom formats start sequentially from this ID
 
@@ -158,9 +158,9 @@ internal static class StylesXml
             { NumberFormats.DateTimeUniversalSortable, numberFormatId++ }
         };
 
-        for (var i = 0; i < styles.Count; ++i)
+        foreach (var style in styles)
         {
-            var numberFormat = styles[i].NumberFormat;
+            var numberFormat = style.NumberFormat;
             if (numberFormat is null) continue;
             if (NumberFormats.GetPredefinedNumberFormatId(numberFormat) is not null) continue;
 
@@ -174,16 +174,16 @@ internal static class StylesXml
     private static async ValueTask<Dictionary<ImmutableFont, int>> WriteFontsAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
-        IList<ImmutableStyle> styles,
+        ICollection<ImmutableStyle> styles,
         CancellationToken token)
     {
         var defaultFont = new ImmutableFont();
         const int defaultCount = 1;
 
         var uniqueFonts = new Dictionary<ImmutableFont, int> { { defaultFont, 0 } };
-        for (var i = 0; i < styles.Count; ++i)
+        foreach (var style in styles)
         {
-            var font = styles[i].Font;
+            var font = style.Font;
             uniqueFonts[font] = 0;
         }
 
@@ -219,16 +219,16 @@ internal static class StylesXml
     private static async ValueTask<Dictionary<ImmutableFill, int>> WriteFillsAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
-        IList<ImmutableStyle> styles,
+        ICollection<ImmutableStyle> styles,
         CancellationToken token)
     {
         var defaultFill = new ImmutableFill();
         const int defaultCount = 2;
 
         var uniqueFills = new Dictionary<ImmutableFill, int> { { defaultFill, 0 } };
-        for (var i = 0; i < styles.Count; ++i)
+        foreach (var style in styles)
         {
-            var fill = styles[i].Fill;
+            var fill = style.Fill;
             uniqueFills[fill] = 0;
         }
 
