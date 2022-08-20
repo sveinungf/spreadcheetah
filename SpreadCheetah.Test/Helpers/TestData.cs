@@ -4,6 +4,8 @@ internal static class TestData
 {
     private static readonly Type[] CellTypesArray = new[] { typeof(Cell), typeof(DataCell), typeof(StyledCell) };
     private static readonly Type[] StyledCellTypesArray = new[] { typeof(Cell), typeof(StyledCell) };
+    private static readonly CellType[] StyledCellTypesEnumArray = new[] { CellType.StyledCell, CellType.Cell };
+    private static readonly CellValueType[] CellValueTypesArray = Enum.GetValues(typeof(CellValueType)).Cast<CellValueType>().ToArray();
 
     public static IEnumerable<object?[]> CellTypes() => CellTypesArray.Select(x => new object[] { x });
     public static IEnumerable<object?[]> StyledCellTypes() => StyledCellTypesArray.Select(x => new object[] { x });
@@ -21,5 +23,17 @@ internal static class TestData
     public static IEnumerable<object?[]> CombineWithStyledCellTypes(params object?[] values)
     {
         return values.SelectMany(_ => StyledCellTypesArray, (value, type) => new object?[] { value, type });
+    }
+
+    public static IEnumerable<object?[]> StyledCellAndValueTypes()
+    {
+        foreach (var valueType in CellValueTypesArray)
+        {
+            foreach (var cellType in StyledCellTypesEnumArray)
+            {
+                yield return new object?[] { valueType, true, cellType };
+                yield return new object?[] { valueType, false, cellType };
+            }
+        }
     }
 }

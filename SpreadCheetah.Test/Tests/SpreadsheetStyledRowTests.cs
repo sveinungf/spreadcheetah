@@ -8,6 +8,36 @@ namespace SpreadCheetah.Test.Tests;
 
 public class SpreadsheetStyledRowTests
 {
+    [Theory]
+    [MemberData(nameof(TestData.StyledCellAndValueTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_StyledCellWithValue(CellValueType valueType, bool isNull, CellType cellType)
+    {
+        // Arrange
+        object? value;
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var style = new Style();
+            style.Font.Bold = true;
+            var styleId = spreadsheet.AddStyle(style);
+            var styledCell = CellFactory.Create(cellType, valueType, isNull, styleId, out value);
+
+            // Act
+            await spreadsheet.AddRowAsync(styledCell);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.Equal(value?.ToString() ?? "", actualCell.Value.ToString());
+        Assert.True(actualCell.Style.Font.Bold);
+    }
+
     public static IEnumerable<object?[]> TrueAndFalse => TestData.CombineWithStyledCellTypes(true, false);
 
     [Theory]

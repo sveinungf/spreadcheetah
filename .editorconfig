@@ -151,6 +151,8 @@ dotnet_diagnostic.CA1815.severity = warning
 dotnet_diagnostic.CA1305.severity = none
 # CA1707: Identifiers should not contain underscores
 dotnet_diagnostic.CA1707.severity = none
+# CA1720: Identifiers should not contain type names
+dotnet_diagnostic.CA1720.severity = none
 # CA1812: Avoid uninstantiated internal classes
 dotnet_diagnostic.CA1812.severity = none
 # CA2007: Do not directly await a Task

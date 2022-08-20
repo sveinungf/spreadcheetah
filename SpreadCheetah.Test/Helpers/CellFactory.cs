@@ -82,4 +82,129 @@ internal static class CellFactory
         _ when type == typeof(StyledCell) => new StyledCell(value, styleId),
         _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
     };
+
+    public static object Create(CellType cellType, CellValueType valueType, bool isNull, StyleId? styleId, out object? value) => valueType switch
+    {
+        CellValueType.Bool => CreateForBool(cellType, isNull, styleId, out value),
+        CellValueType.DateTime => CreateForDateTime(cellType, isNull, styleId, out value),
+        CellValueType.Decimal => CreateForDecimal(cellType, isNull, styleId, out value),
+        CellValueType.Double => CreateForDouble(cellType, isNull, styleId, out value),
+        CellValueType.Float => CreateForFloat(cellType, isNull, styleId, out value),
+        CellValueType.Int => CreateForInt(cellType, isNull, styleId, out value),
+        CellValueType.Long => CreateForLong(cellType, isNull, styleId, out value),
+        CellValueType.String => CreateForString(cellType, isNull, styleId, out value),
+        _ => throw new ArgumentOutOfRangeException(nameof(valueType), valueType, null)
+    };
+
+    private static object CreateForBool(CellType cellType, bool isNull, StyleId? styleId, out object? value)
+    {
+        bool? actualValue = isNull ? true : null;
+        value = actualValue;
+
+        return cellType switch
+        {
+            CellType.DataCell => new DataCell(actualValue),
+            CellType.StyledCell => new StyledCell(actualValue, styleId),
+            CellType.Cell => new Cell(actualValue, styleId),
+            _ => throw new ArgumentOutOfRangeException(nameof(cellType), cellType, null)
+        };
+    }
+
+    private static object CreateForDateTime(CellType cellType, bool isNull, StyleId? styleId, out object? value)
+    {
+        DateTime? actualValue = isNull ? new DateTime(2021, 2, 3) : null;
+        value = actualValue;
+
+        return cellType switch
+        {
+            CellType.DataCell => new DataCell(actualValue),
+            CellType.StyledCell => new StyledCell(actualValue, styleId),
+            CellType.Cell => new Cell(actualValue, styleId),
+            _ => throw new ArgumentOutOfRangeException(nameof(cellType), cellType, null)
+        };
+    }
+
+    private static object CreateForDecimal(CellType cellType, bool isNull, StyleId? styleId, out object? value)
+    {
+        decimal? actualValue = isNull ? 9.8m : null;
+        value = actualValue;
+
+        return cellType switch
+        {
+            CellType.DataCell => new DataCell(actualValue),
+            CellType.StyledCell => new StyledCell(actualValue, styleId),
+            CellType.Cell => new Cell(actualValue, styleId),
+            _ => throw new ArgumentOutOfRangeException(nameof(cellType), cellType, null)
+        };
+    }
+
+    private static object CreateForDouble(CellType cellType, bool isNull, StyleId? styleId, out object? value)
+    {
+        double? actualValue = isNull ? 8.7 : null;
+        value = actualValue;
+
+        return cellType switch
+        {
+            CellType.DataCell => new DataCell(actualValue),
+            CellType.StyledCell => new StyledCell(actualValue, styleId),
+            CellType.Cell => new Cell(actualValue, styleId),
+            _ => throw new ArgumentOutOfRangeException(nameof(cellType), cellType, null)
+        };
+    }
+
+    private static object CreateForFloat(CellType cellType, bool isNull, StyleId? styleId, out object? value)
+    {
+        float? actualValue = isNull ? 7.6f : null;
+        value = actualValue;
+
+        return cellType switch
+        {
+            CellType.DataCell => new DataCell(actualValue),
+            CellType.StyledCell => new StyledCell(actualValue, styleId),
+            CellType.Cell => new Cell(actualValue, styleId),
+            _ => throw new ArgumentOutOfRangeException(nameof(cellType), cellType, null)
+        };
+    }
+
+    private static object CreateForInt(CellType cellType, bool isNull, StyleId? styleId, out object? value)
+    {
+        int? actualValue = isNull ? 12 : null;
+        value = actualValue;
+
+        return cellType switch
+        {
+            CellType.DataCell => new DataCell(actualValue),
+            CellType.StyledCell => new StyledCell(actualValue, styleId),
+            CellType.Cell => new Cell(actualValue, styleId),
+            _ => throw new ArgumentOutOfRangeException(nameof(cellType), cellType, null)
+        };
+    }
+
+    private static object CreateForLong(CellType cellType, bool isNull, StyleId? styleId, out object? value)
+    {
+        long? actualValue = isNull ? 23L : null;
+        value = actualValue;
+
+        return cellType switch
+        {
+            CellType.DataCell => new DataCell(actualValue),
+            CellType.StyledCell => new StyledCell(actualValue, styleId),
+            CellType.Cell => new Cell(actualValue, styleId),
+            _ => throw new ArgumentOutOfRangeException(nameof(cellType), cellType, null)
+        };
+    }
+
+    private static object CreateForString(CellType cellType, bool isNull, StyleId? styleId, out object? value)
+    {
+        string? actualValue = isNull ? "abc" : null;
+        value = actualValue;
+
+        return cellType switch
+        {
+            CellType.DataCell => new DataCell(actualValue),
+            CellType.StyledCell => new StyledCell(actualValue, styleId),
+            CellType.Cell => new Cell(actualValue, styleId),
+            _ => throw new ArgumentOutOfRangeException(nameof(cellType), cellType, null)
+        };
+    }
 }
