@@ -7,10 +7,6 @@ namespace SpreadCheetah.CellValueWriters.Time;
 
 internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
 {
-    protected override int DataCellElementLength =>
-        BeginDataCell().Length +
-        DataCellHelper.EndDefaultCell.Length;
-
     protected override int GetStyleId(StyleId styleId) => styleId.DateTimeId;
 
     // <c s="1"><v>

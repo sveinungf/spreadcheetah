@@ -5,10 +5,6 @@ namespace SpreadCheetah.CellValueWriters.Number;
 
 internal abstract class NumberCellValueWriter : NumberCellValueWriterBase
 {
-    protected override int DataCellElementLength =>
-        BeginDataCell().Length +
-        DataCellHelper.EndDefaultCell.Length;
-
     protected override int GetStyleId(StyleId styleId) => styleId.Id;
 
     // <c><v>

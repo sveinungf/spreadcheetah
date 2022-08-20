@@ -18,7 +18,10 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         FormulaCellHelper.EndFormulaBeginCachedValue.Length +
         FormulaCellHelper.EndCachedValueEndCell.Length;
 
-    protected abstract int DataCellElementLength { get; }
+    private int DataCellElementLength =>
+        BeginDataCell().Length +
+        DataCellHelper.EndDefaultCell.Length;
+
     protected abstract int MaxNumberLength { get; }
     protected abstract int GetStyleId(StyleId styleId);
     protected abstract int GetValueBytes(in DataCell cell, Span<byte> destination);
