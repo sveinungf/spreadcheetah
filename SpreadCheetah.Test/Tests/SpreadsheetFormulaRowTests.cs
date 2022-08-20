@@ -77,6 +77,38 @@ public class SpreadsheetFormulaRowTests
     }
 
     [Theory]
+    [MemberData(nameof(TestData.ValueTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_CellWithFormulaAndCachedValue(CellValueType valueType, bool isNull)
+    {
+        // Arrange
+        const string formulaText = "SUM(A1,A2)";
+        object? cachedValue;
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+            var formula = new Formula(formulaText);
+            var cell = CellFactory.Create(formula, valueType, isNull, null, out cachedValue);
+
+            // Act
+            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.FinishAsync();
+        }
+
+        var expectedCachedValue = !isNull && cachedValue is DateTime dateTime
+            ? dateTime.ToOADate().ToString()
+            : Convert.ToString(cachedValue, CultureInfo.InvariantCulture);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.Equal(formulaText, actualCell.FormulaA1);
+        Assert.Equal(expectedCachedValue, Convert.ToString(actualCell.CachedValue, CultureInfo.InvariantCulture));
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task Spreadsheet_AddRow_CellWithFormulaAndStyleAndCachedValue(bool italic)
