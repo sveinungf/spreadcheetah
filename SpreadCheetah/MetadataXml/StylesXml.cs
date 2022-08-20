@@ -164,8 +164,8 @@ internal static class StylesXml
             if (numberFormat is null) continue;
             if (NumberFormats.GetPredefinedNumberFormatId(numberFormat) is not null) continue;
 
-            dictionary.Add(numberFormat, numberFormatId);
-            ++numberFormatId;
+            if (dictionary.TryAdd(numberFormat, numberFormatId))
+                ++numberFormatId;
         }
 
         return dictionary;

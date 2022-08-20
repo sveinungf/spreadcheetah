@@ -1,6 +1,6 @@
+#if NETSTANDARD2_0
 namespace System.Collections.Generic;
 
-#if NETSTANDARD2_0
 internal static class DictionaryExtensions
 {
     public static TValue? GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key)
@@ -14,6 +14,16 @@ internal static class DictionaryExtensions
             throw new ArgumentNullException(nameof(dictionary));
 
         return dictionary.TryGetValue(key, out TValue? value) ? value : defaultValue;
+    }
+
+    public static bool TryAdd<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key, TValue value)
+        where TKey : notnull
+    {
+        if (dict.ContainsKey(key))
+            return false;
+
+        dict.Add(key, value);
+        return true;
     }
 }
 #endif

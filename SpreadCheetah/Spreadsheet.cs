@@ -281,14 +281,29 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         _styles ??= new Dictionary<ImmutableStyle, int>();
 
-        var immutableStyle = ImmutableStyle.From(style);
+        var mainStyle = ImmutableStyle.From(style);
 
-        if (_styles.TryGetValue(immutableStyle, out var id))
-            return new StyleId(id);
+        // Use a default number format for DateTime when it has not been specified explicitly.
+        ImmutableStyle? dateTimeStyle = mainStyle.NumberFormat is null
+            ? mainStyle with { NumberFormat = NumberFormats.DateTimeUniversalSortable }
+            : null;
+
+        if (_styles.TryGetValue(mainStyle, out var id))
+        {
+            return dateTimeStyle is not null && _styles.TryGetValue(dateTimeStyle.Value, out var dateTimeId)
+                ? new StyleId(id, dateTimeId)
+                : new StyleId(id, id);
+        }
 
         var newId = _styles.Count + StylesXml.DefaultStyleCount;
-        _styles[immutableStyle] = newId;
-        return new StyleId(newId);
+        _styles[mainStyle] = newId;
+
+        if (dateTimeStyle is null)
+            return new StyleId(newId, newId);
+
+        var newDateTimeId = newId + 1;
+        _styles[dateTimeStyle.Value] = newDateTimeId;
+        return new StyleId(newId, newDateTimeId);
     }
 
     /// <summary>

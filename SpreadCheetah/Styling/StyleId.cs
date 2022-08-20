@@ -10,5 +10,11 @@ public sealed class StyleId
     /// </summary>
     public int Id { get; }
 
-    internal StyleId(int id) => Id = id;
+    internal int DateTimeId { get; }
+
+    internal StyleId(int id, int dateTimeId)
+    {
+        Id = id;
+        DateTimeId = dateTimeId;
+    }
 }
