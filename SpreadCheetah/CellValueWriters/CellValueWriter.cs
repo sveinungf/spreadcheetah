@@ -12,6 +12,7 @@ internal abstract class CellValueWriter
     public static CellValueWriter Float { get; } = new FloatCellValueWriter();
     public static CellValueWriter Double { get; } = new DoubleCellValueWriter();
     public static CellValueWriter DateTime { get; } = new DateTimeCellValueWriter();
+    public static CellValueWriter NullDateTime { get; } = new NullDateTimeCellValueWriter();
     public static CellValueWriter TrueBoolean { get; } = new TrueBooleanCellValueWriter();
     public static CellValueWriter FalseBoolean { get; } = new FalseBooleanCellValueWriter();
     public static CellValueWriter String { get; } = new StringCellValueWriter();

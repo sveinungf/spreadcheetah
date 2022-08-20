@@ -110,6 +110,10 @@ public readonly struct Cell : IEquatable<Cell>
     {
     }
 
+    public Cell(DateTime? value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
+    {
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Cell"/> struct with a boolean value and an optional style.
     /// </summary>
@@ -206,6 +210,14 @@ public readonly struct Cell : IEquatable<Cell>
     /// Initializes a new instance of the <see cref="Cell"/> struct with a number formula, a cached value for the formula, and an optional style.
     /// </summary>
     public Cell(Formula formula, decimal? cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
+    {
+    }
+
+    public Cell(Formula formula, DateTime cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
+    {
+    }
+
+    public Cell(Formula formula, DateTime? cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
     {
     }
 
