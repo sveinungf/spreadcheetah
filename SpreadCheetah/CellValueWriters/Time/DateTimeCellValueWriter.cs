@@ -17,13 +17,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
         (byte)'1', (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
     };
 
-    // <c s="1"><f>
-    // NOTE: Assumes the default style for DateTime has index 1 in styles.xml.
-    protected override ReadOnlySpan<byte> BeginFormulaCell() => new[]
-    {
-        (byte)'<', (byte)'c', (byte)' ', (byte)'s', (byte)'=', (byte)'"',
-        (byte)'1', (byte)'"', (byte)'>', (byte)'<', (byte)'f', (byte)'>'
-    };
+    protected override ReadOnlySpan<byte> BeginFormulaCell() => FormulaCellHelper.BeginDefaultDateTimeFormulaCell;
 
     // TODO: Possibly less characters needed?
     protected override int MaxNumberLength => ValueConstants.DoubleValueMaxCharacters;

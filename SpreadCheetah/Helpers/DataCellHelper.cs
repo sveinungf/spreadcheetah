@@ -21,12 +21,6 @@ internal static class DataCellHelper
         (byte)'<', (byte)'/', (byte)'t', (byte)'>', (byte)'<', (byte)'/', (byte)'i', (byte)'s', (byte)'>', (byte)'<', (byte)'/', (byte)'c', (byte)'>'
     };
 
-    // <c/>
-    public static ReadOnlySpan<byte> NullCell => new[]
-    {
-        (byte)'<', (byte)'c', (byte)'/', (byte)'>'
-    };
-
     // <c t="b"><v>0</v></c>
     public static ReadOnlySpan<byte> FalseBooleanCell => new[]
     {

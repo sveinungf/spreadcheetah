@@ -35,6 +35,14 @@ internal static class FormulaCellHelper
         (byte)'t', (byte)'r', (byte)'"', (byte)'>', (byte)'<', (byte)'f', (byte)'>'
     };
 
+    // <c s="1"><f>
+    // NOTE: Assumes the default style for DateTime has index 1 in styles.xml.
+    public static ReadOnlySpan<byte> BeginDefaultDateTimeFormulaCell => new[]
+    {
+        (byte)'<', (byte)'c', (byte)' ', (byte)'s', (byte)'=', (byte)'"',
+        (byte)'1', (byte)'"', (byte)'>', (byte)'<', (byte)'f', (byte)'>'
+    };
+
     // </f><v>
     public static ReadOnlySpan<byte> EndFormulaBeginCachedValue => new[]
     {
