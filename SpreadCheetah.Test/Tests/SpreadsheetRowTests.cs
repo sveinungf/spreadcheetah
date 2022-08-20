@@ -416,12 +416,13 @@ public class SpreadsheetRowTests
         new DateTime(2001, 2, 3, 4, 5, 6),
         new DateTime(2001, 2, 3, 4, 5, 6, 789),
         DateTime.MaxValue,
-        DateTime.MinValue
+        DateTime.MinValue,
+        null
     );
 
     [Theory]
     [MemberData(nameof(DateTimes))]
-    public async Task Spreadsheet_AddRow_CellWithDateTimeValue(DateTime value, Type type)
+    public async Task Spreadsheet_AddRow_CellWithDateTimeValue(DateTime? value, Type type)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -435,14 +436,14 @@ public class SpreadsheetRowTests
             await spreadsheet.FinishAsync();
         }
 
-        var expectedValue = DateTime.FromOADate(value.ToOADate());
+        DateTime? expectedValue = value is not null ? DateTime.FromOADate(value.Value.ToOADate()) : null;
 
         // Assert
         SpreadsheetAssert.Valid(stream);
         using var workbook = new XLWorkbook(stream);
         var worksheet = workbook.Worksheets.Single();
         var actualCell = worksheet.Cell(1, 1);
-        Assert.Equal(expectedValue, actualCell.GetDateTime());
+        Assert.Equal(expectedValue, actualCell.GetValue<DateTime?>());
         Assert.Equal(NumberFormats.DateTimeUniversalSortable, actualCell.Style.NumberFormat.Format);
     }
 
