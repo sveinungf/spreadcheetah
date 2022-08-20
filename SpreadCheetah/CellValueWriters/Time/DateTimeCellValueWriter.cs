@@ -5,16 +5,13 @@ using System.Buffers.Text;
 
 namespace SpreadCheetah.CellValueWriters.Time;
 
-internal class DateTimeCellValueWriter : NumberCellValueWriterBase
+internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
 {
     protected override int DataCellElementLength =>
         BeginDataCell().Length +
         DataCellHelper.EndDefaultCell.Length;
 
-    protected override int GetStyleId(StyleId styleId)
-    {
-        throw new NotImplementedException();
-    }
+    protected override int GetStyleId(StyleId styleId) => styleId.DateTimeId;
 
     // <c s="1"><v>
     // NOTE: Assumes the default style for DateTime has index 1 in styles.xml.
