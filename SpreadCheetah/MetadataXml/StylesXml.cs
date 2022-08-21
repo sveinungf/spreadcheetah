@@ -11,9 +11,6 @@ namespace SpreadCheetah.MetadataXml;
 
 internal static class StylesXml
 {
-    // One built-in, and one for the default DateTime number format.
-    public const int DefaultStyleCount = 2;
-
     private const string Header =
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
         "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">";
@@ -40,6 +37,19 @@ internal static class StylesXml
         "</cellStyles>" +
         "<dxfs count=\"0\"/>" +
         "</styleSheet>";
+
+    public static ImmutableList<ImmutableStyle> DefaultStyles { get; } = CreateDefaultStyles();
+    private static ImmutableList<ImmutableStyle> CreateDefaultStyles()
+    {
+        var builder = ImmutableList.CreateBuilder<ImmutableStyle>();
+
+        // Index 0: The built-in default style must be the first one (meaning the first <xf> element).
+        builder.Add(new ImmutableStyle());
+
+        // Index 1: The default style for DateTime. Expected to be index 1 by the DateTime cell value writer.
+        builder.Add(new ImmutableStyle { NumberFormat = NumberFormats.DateTimeUniversalSortable });
+        return builder.ToImmutable();
+    }
 
     private const int CustomNumberFormatStartId = 166;
     private static ImmutableDictionary<string, int> DefaultNumberFormatDictionary { get; } = CreateDefaultNumberFormatDictionary();
@@ -82,7 +92,7 @@ internal static class StylesXml
 
         await buffer.WriteAsciiStringAsync(XmlPart1, stream, token).ConfigureAwait(false);
 
-        var styleCount = styles.Count + DefaultStyleCount;
+        var styleCount = styles.Count + DefaultStyles.Count;
         if (styleCount.GetNumberOfDigits() > buffer.FreeCapacity)
             await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
@@ -90,26 +100,17 @@ internal static class StylesXml
         sb.Append(styleCount).Append("\">");
 
         // The default styles must come before any other style.
-        sb.AppendDefaultStyles(customNumberFormatLookup);
+        foreach (var style in DefaultStyles)
+        {
+            sb.AppendStyle(style, customNumberFormatLookup, fontLookup, fillLookup);
+        }
+
         await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
 
         foreach (var style in styles)
         {
             sb.Clear();
-
-            var numberFormatId = GetNumberFormatId(style.NumberFormat, customNumberFormatLookup);
-            sb.Append("<xf numFmtId=\"").Append(numberFormatId).Append('"');
-            if (numberFormatId > 0) sb.Append(" applyNumberFormat=\"1\"");
-
-            var fontIndex = fontLookup[style.Font];
-            sb.Append(" fontId=\"").Append(fontIndex).Append('"');
-            if (fontIndex > 0) sb.Append(" applyFont=\"1\"");
-
-            var fillIndex = fillLookup[style.Fill];
-            sb.Append(" fillId=\"").Append(fillIndex).Append('"');
-            if (fillIndex > 1) sb.Append(" applyFill=\"1\"");
-
-            sb.Append(" xfId=\"0\"/>");
+            sb.AppendStyle(style, customNumberFormatLookup, fontLookup, fillLookup);
             await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
         }
 
@@ -117,16 +118,25 @@ internal static class StylesXml
         await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
     }
 
-    private static void AppendDefaultStyles(this StringBuilder sb, IReadOnlyDictionary<string, int> customNumberFormats)
+    private static void AppendStyle(this StringBuilder sb,
+        in ImmutableStyle style,
+        IReadOnlyDictionary<string, int> customNumberFormats,
+        IReadOnlyDictionary<ImmutableFont, int> fonts,
+        IReadOnlyDictionary<ImmutableFill, int> fills)
     {
-        // Index 0: The built-in default style must be the first one (meaning the first <xf> element).
-        sb.Append("<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\"/>");
+        var numberFormatId = GetNumberFormatId(style.NumberFormat, customNumberFormats);
+        sb.Append("<xf numFmtId=\"").Append(numberFormatId).Append('"');
+        if (numberFormatId > 0) sb.Append(" applyNumberFormat=\"1\"");
 
-        // Index 1: The default style for DateTime. Expected to be index 1 by the DateTime cell value writer.
-        var dateTimeNumberFormatId = GetNumberFormatId(NumberFormats.DateTimeUniversalSortable, customNumberFormats);
-        sb.Append("<xf numFmtId=\"")
-            .Append(dateTimeNumberFormatId)
-            .Append("\" applyNumberFormat=\"1\" fontId=\"0\" fillId=\"0\" xfId=\"0\"/>");
+        var fontIndex = fonts[style.Font];
+        sb.Append(" fontId=\"").Append(fontIndex).Append('"');
+        if (fontIndex > 0) sb.Append(" applyFont=\"1\"");
+
+        var fillIndex = fills[style.Fill];
+        sb.Append(" fillId=\"").Append(fillIndex).Append('"');
+        if (fillIndex > 1) sb.Append(" applyFill=\"1\"");
+
+        sb.Append(" xfId=\"0\"/>");
     }
 
     private static int GetNumberFormatId(string? numberFormat, IReadOnlyDictionary<string, int> customNumberFormats)

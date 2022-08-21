@@ -292,7 +292,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
                 : new StyleId(id, id);
         }
 
-        var newId = _styles.Count + StylesXml.DefaultStyleCount;
+        var newId = _styles.Count + StylesXml.DefaultStyles.Count;
         _styles[mainStyle] = newId;
 
         if (dateTimeStyle is null)
