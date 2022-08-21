@@ -89,6 +89,7 @@ public class SpreadsheetTests
         SpreadsheetAssert.Valid(stream);
         using var actual = SpreadsheetDocument.Open(stream, true);
         var sheets = actual.WorkbookPart?.Workbook.Sheets?.Cast<Sheet>();
+        Assert.NotNull(sheets);
         var sheet = Assert.Single(sheets);
         Assert.Equal(name, sheet.Name?.Value);
     }

@@ -92,7 +92,9 @@ public class WorksheetRowGeneratorTests
         stream.Position = 0;
         using var actual = SpreadsheetDocument.Open(stream, false);
         var sheetPart = actual.WorkbookPart?.WorksheetParts.Single();
-        Assert.Empty(sheetPart?.Worksheet.Descendants<OpenXmlCell>());
+        var cells = sheetPart?.Worksheet.Descendants<OpenXmlCell>();
+        Assert.NotNull(cells);
+        Assert.Empty(cells);
     }
 
     [Theory]
@@ -181,7 +183,9 @@ public class WorksheetRowGeneratorTests
         stream.Position = 0;
         using var actual = SpreadsheetDocument.Open(stream, false);
         var sheetPart = actual.WorkbookPart?.WorksheetParts.Single();
-        Assert.Empty(sheetPart?.Worksheet.Descendants<OpenXmlCell>());
+        var cells = sheetPart?.Worksheet.Descendants<OpenXmlCell>();
+        Assert.NotNull(cells);
+        Assert.Empty(cells);
     }
 
     [Fact]
