@@ -162,9 +162,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public void AddDataValidation(CellReference reference, DataValidation validation)
     {
-        if (_validations is null)
-            _validations = new Dictionary<CellReference, DataValidation>();
-
+        _validations ??= new Dictionary<CellReference, DataValidation>();
         _validations.Add(reference, validation);
     }
 
@@ -180,15 +178,6 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         await _stream.FlushAsync(token).ConfigureAwait(false);
     }
 
-    public ValueTask DisposeAsync()
-    {
-#if NETSTANDARD2_0
-        _stream.Dispose();
-        return default;
-#else
-        return _stream.DisposeAsync();
-#endif
-    }
-
     public void Dispose() => _stream.Dispose();
+    public ValueTask DisposeAsync() => _stream.DisposeAsync();
 }
