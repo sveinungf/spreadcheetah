@@ -41,6 +41,15 @@ internal static class StylesXml
         "<dxfs count=\"0\"/>" +
         "</styleSheet>";
 
+    private const int CustomNumberFormatStartId = 166;
+    private static ImmutableDictionary<string, int> DefaultNumberFormatDictionary { get; } = CreateDefaultNumberFormatDictionary();
+    private static ImmutableDictionary<string, int> CreateDefaultNumberFormatDictionary()
+    {
+        var builder = ImmutableDictionary.CreateBuilder<string, int>(StringComparer.Ordinal);
+        builder.Add(NumberFormats.DateTimeUniversalSortable, 165);
+        return builder.ToImmutable();
+    }
+
     public static async ValueTask WriteAsync(
         ZipArchive archive,
         CompressionLevel compressionLevel,
@@ -149,14 +158,13 @@ internal static class StylesXml
         return dict;
     }
 
-    private static Dictionary<string, int> CreateCustomNumberFormatDictionary(ICollection<ImmutableStyle> styles)
+    private static IReadOnlyDictionary<string, int> CreateCustomNumberFormatDictionary(ICollection<ImmutableStyle> styles)
     {
-        var numberFormatId = 165; // Custom formats start sequentially from this ID
+        if (styles.Count == 0)
+            return DefaultNumberFormatDictionary;
 
-        var dictionary = new Dictionary<string, int>(StringComparer.Ordinal)
-        {
-            { NumberFormats.DateTimeUniversalSortable, numberFormatId++ }
-        };
+        var numberFormatId = CustomNumberFormatStartId;
+        var dictionary = new Dictionary<string, int>(DefaultNumberFormatDictionary, StringComparer.Ordinal);
 
         foreach (var style in styles)
         {
