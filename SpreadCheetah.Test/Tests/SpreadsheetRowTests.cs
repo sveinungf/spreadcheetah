@@ -253,10 +253,10 @@ public class SpreadsheetRowTests
     }
 
     public static IEnumerable<object?[]> Longs() => TestData.CombineWithCellTypes(
-        (1234, "1234"),
-        (0, "0"),
-        (-1234, "-1234"),
-        (314748364700000, "314748364700000"),
+        (1234L, "1234"),
+        (0L, "0"),
+        (-1234L, "-1234"),
+        (314748364700000L, "314748364700000"),
 #if NET472_OR_GREATER
         (long.MinValue, "-9.22337203685478E+18"),
         (long.MaxValue, "9.22337203685478E+18"),
@@ -328,7 +328,7 @@ public class SpreadsheetRowTests
     }
 
     public static IEnumerable<object?[]> Doubles() => TestData.CombineWithCellTypes(
-        (1234, "1234"),
+        (1234d, "1234"),
         (0.1, "0.1"),
         (0.0, "0"),
         (-0.1, "-0.1"),
@@ -533,9 +533,9 @@ public class SpreadsheetRowTests
 
     public static IEnumerable<object?[]> RowHeights() => TestData.CombineWithCellTypes(
         0.1,
-        10,
+        10d,
         123.456,
-        409,
+        409d,
         null);
 
     [Theory]

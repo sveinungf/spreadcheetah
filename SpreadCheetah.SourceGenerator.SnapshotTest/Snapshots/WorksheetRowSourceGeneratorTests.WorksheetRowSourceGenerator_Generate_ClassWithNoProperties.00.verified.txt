@@ -10,8 +10,7 @@
       HelpLink: ,
       MessageFormat: The type '{0}' has no properties with public getters. This will cause an empty row to be added.,
       Message: The type 'ClassWithNoProperties' has no properties with public getters. This will cause an empty row to be added.,
-      Category: SpreadCheetah.SourceGenerator,
-      CustomTags: []
+      Category: SpreadCheetah.SourceGenerator
     }
   ]
 }

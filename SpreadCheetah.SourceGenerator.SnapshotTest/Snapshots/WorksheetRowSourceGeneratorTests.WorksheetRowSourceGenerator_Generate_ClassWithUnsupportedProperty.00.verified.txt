@@ -10,8 +10,7 @@
       HelpLink: ,
       MessageFormat: The type '{0}' has a property of type '{1}' which is not supported as a cell value. The property will be ignored when creating the row.,
       Message: The type 'ClassWithUnsupportedProperty' has a property of type 'Uri' which is not supported as a cell value. The property will be ignored when creating the row.,
-      Category: SpreadCheetah.SourceGenerator,
-      CustomTags: []
+      Category: SpreadCheetah.SourceGenerator
     }
   ]
 }

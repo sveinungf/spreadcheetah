@@ -176,9 +176,9 @@ public class SpreadsheetTests
 
     [Theory]
     [InlineData(0.1)]
-    [InlineData(10)]
-    [InlineData(100)]
-    [InlineData(255)]
+    [InlineData(10d)]
+    [InlineData(100d)]
+    [InlineData(255d)]
     [InlineData(null)]
     public async Task Spreadsheet_StartWorksheet_ColumnWidth(double? width)
     {
