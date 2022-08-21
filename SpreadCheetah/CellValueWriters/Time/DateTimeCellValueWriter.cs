@@ -18,8 +18,6 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
     };
 
     protected override ReadOnlySpan<byte> BeginFormulaCell() => FormulaCellHelper.BeginDefaultDateTimeFormulaCell;
-
-    // TODO: Possibly less characters needed?
     protected override int MaxNumberLength => ValueConstants.DoubleValueMaxCharacters;
 
     protected override int GetValueBytes(in DataCell cell, Span<byte> destination)

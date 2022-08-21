@@ -277,10 +277,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         ThrowIfNull(style, nameof(style));
 
-        // TODO: Avoid allocation if style is one of the default styles
-
         _styles ??= new Dictionary<ImmutableStyle, int>();
-
         var mainStyle = ImmutableStyle.From(style);
 
         // Use a default number format for DateTime when it has not been specified explicitly.
@@ -355,7 +352,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetPaths, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetNames, token).ConfigureAwait(false);
 
-        // TODO: Does .Keys allocate?
         ICollection<ImmutableStyle> styles = _styles is not null ? _styles.Keys : Array.Empty<ImmutableStyle>();
         await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, styles, token).ConfigureAwait(false);
 
