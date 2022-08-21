@@ -147,7 +147,7 @@ public sealed class DataValidation
 
         foreach (var value in values)
         {
-            if (value.ContainsChar(','))
+            if (value.Contains(',', StringComparison.Ordinal))
                 throw new ArgumentException($"Commas are not allowed in the list values. This value contains a comma: {value}", nameof(values));
 
             if (!first)

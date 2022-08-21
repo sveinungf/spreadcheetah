@@ -87,7 +87,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (name.Length > 31)
             throw new ArgumentException("The name can not be more than 31 characters.", nameof(name));
 
-        if (name.StartsWithChar('\'') || name.EndsWithChar('\''))
+        if (name.StartsWith('\'') || name.EndsWith('\''))
             throw new ArgumentException("The name can not start or end with a single quote.", nameof(name));
 
         if (name.IndexOfAny(InvalidSheetNameChars) != -1)
