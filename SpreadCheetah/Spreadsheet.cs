@@ -277,7 +277,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         ThrowIfNull(style, nameof(style));
 
-        _styles ??= new Dictionary<ImmutableStyle, int>();
         var mainStyle = ImmutableStyle.From(style);
 
         // Use a default number format for DateTime when it has not been specified explicitly.
@@ -285,6 +284,17 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ? mainStyle with { NumberFormat = NumberFormats.DateTimeUniversalSortable }
             : null;
 
+        var defaultStyleIndex = StylesXml.DefaultStyles.IndexOf(mainStyle);
+        if (defaultStyleIndex != -1)
+        {
+            var defaultDateTimeStyleIndex = dateTimeStyle is not null
+                ? StylesXml.DefaultStyles.IndexOfOrDefault(dateTimeStyle.Value, defaultStyleIndex)
+                : defaultStyleIndex;
+
+            return new StyleId(defaultStyleIndex, defaultDateTimeStyleIndex);
+        }
+
+        _styles ??= new Dictionary<ImmutableStyle, int>();
         if (_styles.TryGetValue(mainStyle, out var id))
         {
             return dateTimeStyle is not null && _styles.TryGetValue(dateTimeStyle.Value, out var dateTimeId)
