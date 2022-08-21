@@ -418,6 +418,42 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TrueAndFalse))]
+    public async Task Spreadsheet_AddRow_DateTimeNumberFormat(bool withExplicitNumberFormat, Type type)
+    {
+        // Arrange
+        const string explicitNumberFormat = "yyyy";
+        var expectedNumberFormat = withExplicitNumberFormat ? explicitNumberFormat : NumberFormats.DateTimeUniversalSortable;
+        var value = new DateTime(2021, 2, 3, 4, 5, 6);
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var style = new Style();
+            style.Font.Italic = true;
+            if (withExplicitNumberFormat)
+                style.NumberFormat = explicitNumberFormat;
+
+            var styleId = spreadsheet.AddStyle(style);
+            var styledCell = CellFactory.Create(type, value, styleId);
+
+            // Act
+            await spreadsheet.AddRowAsync(styledCell);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.Equal(value, actualCell.GetDateTime());
+        Assert.Equal(expectedNumberFormat, actualCell.Style.NumberFormat.Format);
+        Assert.True(actualCell.Style.Font.Italic);
+    }
+
+    [Theory]
+    [MemberData(nameof(TrueAndFalse))]
     public async Task Spreadsheet_AddRow_MultiFormatCellWithStringValue(bool formatting, Type type)
     {
         // Arrange
