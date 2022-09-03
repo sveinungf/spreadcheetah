@@ -1,4 +1,3 @@
-using SpreadCheetah.Helpers;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.Styling;
@@ -25,6 +24,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly CompressionLevel _compressionLevel;
     private readonly SpreadsheetBuffer _buffer;
     private readonly byte[] _arrayPoolBuffer;
+    private readonly bool _hasDefaultDateTimeNumberFormat;
     private Dictionary<ImmutableStyle, int>? _styles;
     private Worksheet? _worksheet;
     private bool _disposed;
@@ -32,12 +32,13 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
     private Worksheet Worksheet => _worksheet ?? throw new SpreadCheetahException("There is no active worksheet.");
 
-    private Spreadsheet(ZipArchive archive, CompressionLevel compressionLevel, int bufferSize)
+    private Spreadsheet(ZipArchive archive, CompressionLevel compressionLevel, int bufferSize, bool hasDefaultDateTimeNumberFormat)
     {
         _archive = archive;
         _compressionLevel = compressionLevel;
         _arrayPoolBuffer = ArrayPool<byte>.Shared.Rent(bufferSize);
         _buffer = new SpreadsheetBuffer(_arrayPoolBuffer);
+        _hasDefaultDateTimeNumberFormat = hasDefaultDateTimeNumberFormat;
     }
 
     /// <summary>
@@ -52,8 +53,11 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var bufferSize = options?.BufferSize ?? SpreadCheetahOptions.DefaultBufferSize;
         var compressionLevel = GetCompressionLevel(options?.CompressionLevel ?? SpreadCheetahOptions.DefaultCompressionLevel);
 
-        var spreadsheet = new Spreadsheet(archive, compressionLevel, bufferSize);
+        var spreadsheet = new Spreadsheet(archive, compressionLevel, bufferSize, true);
         await spreadsheet.InitializeAsync(cancellationToken).ConfigureAwait(false);
+
+        // The built-in default style must be the first one (meaning the first <xf> element in styles.xml).
+        spreadsheet.AddStyle(new ImmutableStyle());
 
         return spreadsheet;
     }
@@ -279,34 +283,26 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public StyleId AddStyle(Style style)
     {
         ThrowIfNull(style, nameof(style));
+        return AddStyle(ImmutableStyle.From(style));
+    }
 
-        var mainStyle = ImmutableStyle.From(style);
-
+    private StyleId AddStyle(in ImmutableStyle style)
+    {
         // Use a default number format for DateTime when it has not been specified explicitly.
-        ImmutableStyle? dateTimeStyle = mainStyle.NumberFormat is null
-            ? mainStyle with { NumberFormat = NumberFormats.DateTimeUniversalSortable }
+        ImmutableStyle? dateTimeStyle = _hasDefaultDateTimeNumberFormat && style.NumberFormat is null
+            ? style with { NumberFormat = NumberFormats.DateTimeUniversalSortable }
             : null;
 
-        var defaultStyleIndex = StylesXml.DefaultStyles.IndexOf(mainStyle);
-        if (defaultStyleIndex != -1)
-        {
-            var defaultDateTimeStyleIndex = dateTimeStyle is not null
-                ? StylesXml.DefaultStyles.IndexOfOrDefault(dateTimeStyle.Value, defaultStyleIndex)
-                : defaultStyleIndex;
-
-            return new StyleId(defaultStyleIndex, defaultDateTimeStyleIndex);
-        }
-
         _styles ??= new Dictionary<ImmutableStyle, int>();
-        if (_styles.TryGetValue(mainStyle, out var id))
+        if (_styles.TryGetValue(style, out var id))
         {
             return dateTimeStyle is not null && _styles.TryGetValue(dateTimeStyle.Value, out var dateTimeId)
                 ? new StyleId(id, dateTimeId)
                 : new StyleId(id, id);
         }
 
-        var newId = _styles.Count + StylesXml.DefaultStyles.Count;
-        _styles[mainStyle] = newId;
+        var newId = _styles.Count;
+        _styles[style] = newId;
 
         if (dateTimeStyle is null)
             return new StyleId(newId, newId);
@@ -361,12 +357,11 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         await FinishAndDisposeWorksheetAsync(token).ConfigureAwait(false);
 
+        // TODO: Revert option to skip creating styles.xml
         await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetPaths, token).ConfigureAwait(false);
         await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetPaths, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetNames, token).ConfigureAwait(false);
-
-        ICollection<ImmutableStyle> styles = _styles is not null ? _styles.Keys : Array.Empty<ImmutableStyle>();
-        await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, styles, token).ConfigureAwait(false);
+        await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styles, token).ConfigureAwait(false);
 
         _finished = true;
     }
