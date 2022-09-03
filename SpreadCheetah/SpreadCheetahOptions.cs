@@ -4,17 +4,20 @@ namespace SpreadCheetah;
 /// Provides options to be used when creating a spreadsheet with <see cref="Spreadsheet"/>.
 /// </summary>
 public class SpreadCheetahOptions
-
 {
-    /// <summary>
-    /// The minimum allowed buffer size.
-    /// </summary>
+    /// <summary>The default buffer size.</summary>
+    public static readonly int DefaultBufferSize = 65536;
+
+    /// <summary>The minimum allowed buffer size.</summary>
     public static readonly int MinimumBufferSize = 512;
+
+    /// <summary>The default compression level.</summary>
+    public static readonly SpreadCheetahCompressionLevel DefaultCompressionLevel = SpreadCheetahCompressionLevel.Fastest;
 
     /// <summary>
     /// Compression level to use when generating the spreadsheet archive. Defaults to <see cref="SpreadCheetahCompressionLevel.Fastest"/>.
     /// </summary>
-    public SpreadCheetahCompressionLevel CompressionLevel { get; set; } = SpreadCheetahCompressionLevel.Fastest;
+    public SpreadCheetahCompressionLevel CompressionLevel { get; set; } = DefaultCompressionLevel;
 
     /// <summary>
     /// The buffer size in number of bytes. The default size is 65536. The minimum allowed size is 512.
@@ -27,5 +30,5 @@ public class SpreadCheetahOptions
             : value;
     }
 
-    private int _bufferSize = 65536;
+    private int _bufferSize = DefaultBufferSize;
 }

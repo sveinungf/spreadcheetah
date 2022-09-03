@@ -49,9 +49,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         CancellationToken cancellationToken = default)
     {
         var archive = new ZipArchive(stream, ZipArchiveMode.Create, true);
-        options ??= new SpreadCheetahOptions();
-        var spreadsheet = new Spreadsheet(archive, GetCompressionLevel(options.CompressionLevel), options.BufferSize);
+        var bufferSize = options?.BufferSize ?? SpreadCheetahOptions.DefaultBufferSize;
+        var compressionLevel = GetCompressionLevel(options?.CompressionLevel ?? SpreadCheetahOptions.DefaultCompressionLevel);
+
+        var spreadsheet = new Spreadsheet(archive, compressionLevel, bufferSize);
         await spreadsheet.InitializeAsync(cancellationToken).ConfigureAwait(false);
+
         return spreadsheet;
     }
 
