@@ -1,15 +1,18 @@
+using SpreadCheetah.Styling.Internal;
+
 namespace SpreadCheetah.CellWriters;
 
 internal sealed class StyledCellWriter : BaseCellWriter<StyledCell>
 {
-    public StyledCellWriter(SpreadsheetBuffer buffer) : base(buffer)
+    public StyledCellWriter(SpreadsheetBuffer buffer, DefaultStyling? defaultStyling)
+        : base(buffer, defaultStyling)
     {
     }
 
     protected override bool TryWriteCell(in StyledCell cell)
     {
         return cell.StyleId is null
-            ? cell.DataCell.Writer.TryWriteCell(cell.DataCell, Buffer)
+            ? cell.DataCell.Writer.TryWriteCell(cell.DataCell, DefaultStyling, Buffer)
             : cell.DataCell.Writer.TryWriteCell(cell.DataCell, cell.StyleId, Buffer);
     }
 

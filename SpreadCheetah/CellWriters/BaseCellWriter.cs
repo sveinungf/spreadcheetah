@@ -1,15 +1,18 @@
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Worksheets;
 
 namespace SpreadCheetah.CellWriters;
 
 internal abstract class BaseCellWriter<T>
 {
+    protected readonly DefaultStyling? DefaultStyling;
     protected readonly SpreadsheetBuffer Buffer;
 
-    protected BaseCellWriter(SpreadsheetBuffer buffer)
+    protected BaseCellWriter(SpreadsheetBuffer buffer, DefaultStyling? defaultStyling)
     {
         Buffer = buffer;
+        DefaultStyling = defaultStyling;
     }
 
     protected abstract bool TryWriteCell(in T cell);

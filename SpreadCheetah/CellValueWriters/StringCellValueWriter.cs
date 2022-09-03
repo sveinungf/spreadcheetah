@@ -1,5 +1,6 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.CellValueWriters;
 
@@ -68,7 +69,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
         var remaining = buffer.FreeCapacity;
 

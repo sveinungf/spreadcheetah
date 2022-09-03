@@ -1,5 +1,6 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.CellValueWriters.Number;
 
@@ -18,15 +19,19 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         FormulaCellHelper.EndFormulaBeginCachedValue.Length +
         FormulaCellHelper.EndCachedValueEndCell.Length;
 
-    private int DataCellElementLength =>
+    private static int DataCellElementLength =>
         BeginDataCell().Length +
         DataCellHelper.EndDefaultCell.Length;
 
     protected abstract int MaxNumberLength { get; }
     protected abstract int GetStyleId(StyleId styleId);
     protected abstract int GetValueBytes(in DataCell cell, Span<byte> destination);
-    protected abstract ReadOnlySpan<byte> BeginDataCell();
-    protected abstract ReadOnlySpan<byte> BeginFormulaCell();
+
+    // <c><v>
+    private static ReadOnlySpan<byte> BeginDataCell() => new[]
+    {
+        (byte)'<', (byte)'c', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
+    };
 
     private bool GetBytes(in DataCell cell, SpreadsheetBuffer buffer)
     {
@@ -38,11 +43,11 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         return true;
     }
 
-    protected bool GetBytes(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    protected bool GetBytes(in DataCell cell, int styleId, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
         var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledNumberCell, bytes);
-        bytesWritten += Utf8Helper.GetBytes(GetStyleId(styleId), bytes.Slice(bytesWritten));
+        bytesWritten += Utf8Helper.GetBytes(styleId, bytes.Slice(bytesWritten));
         bytesWritten += SpanHelper.GetBytes(StyledCellHelper.EndStyleBeginValue, bytes.Slice(bytesWritten));
         bytesWritten += GetValueBytes(cell, bytes.Slice(bytesWritten));
         bytesWritten += SpanHelper.GetBytes(DataCellHelper.EndDefaultCell, bytes.Slice(bytesWritten));
@@ -57,7 +62,7 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
 
         if (styleId is null)
         {
-            bytesWritten = SpanHelper.GetBytes(BeginFormulaCell(), bytes);
+            bytesWritten = SpanHelper.GetBytes(FormulaCellHelper.BeginNumberFormulaCell, bytes);
         }
         else
         {
@@ -74,16 +79,21 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         return true;
     }
 
-    public override bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer)
+    protected bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer)
     {
         var remaining = buffer.FreeCapacity;
         return DataCellElementLength + MaxNumberLength <= remaining && GetBytes(cell, buffer);
     }
 
-    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    protected bool TryWriteCell(in DataCell cell, int styleId, SpreadsheetBuffer buffer)
     {
         var remaining = buffer.FreeCapacity;
         return StyledCellElementLength + MaxNumberLength <= remaining && GetBytes(cell, styleId, buffer);
+    }
+
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    {
+        return TryWriteCell(cell, GetStyleId(styleId), buffer);
     }
 
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer)
@@ -120,7 +130,7 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
     {
         if (styleId is null)
         {
-            buffer.Advance(SpanHelper.GetBytes(BeginFormulaCell(), buffer.GetSpan()));
+            buffer.Advance(SpanHelper.GetBytes(FormulaCellHelper.BeginNumberFormulaCell, buffer.GetSpan()));
             return true;
         }
 

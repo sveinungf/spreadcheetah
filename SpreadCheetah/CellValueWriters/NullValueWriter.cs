@@ -1,5 +1,5 @@
-using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.CellValueWriters;
 
@@ -7,11 +7,8 @@ internal sealed class NullValueWriter : NullValueWriterBase
 {
     protected override int GetStyleId(StyleId styleId) => styleId.Id;
 
-    // <c/>
-    protected override ReadOnlySpan<byte> NullDataCell() => new[]
+    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
-        (byte)'<', (byte)'c', (byte)'/', (byte)'>'
-    };
-
-    protected override ReadOnlySpan<byte> BeginFormulaCell() => FormulaCellHelper.BeginNumberFormulaCell;
+        return TryWriteCell(buffer);
+    }
 }

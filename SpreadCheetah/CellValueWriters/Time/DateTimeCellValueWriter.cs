@@ -1,6 +1,7 @@
 using SpreadCheetah.CellValueWriters.Number;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Styling.Internal;
 using System.Buffers.Text;
 
 namespace SpreadCheetah.CellValueWriters.Time;
@@ -8,16 +9,6 @@ namespace SpreadCheetah.CellValueWriters.Time;
 internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
 {
     protected override int GetStyleId(StyleId styleId) => styleId.DateTimeId;
-
-    // <c s="1"><v>
-    // NOTE: Assumes the default style for DateTime has index 1 in styles.xml.
-    protected override ReadOnlySpan<byte> BeginDataCell() => new[]
-    {
-        (byte)'<', (byte)'c', (byte)' ', (byte)'s', (byte)'=', (byte)'"',
-        (byte)'1', (byte)'"', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
-    };
-
-    protected override ReadOnlySpan<byte> BeginFormulaCell() => FormulaCellHelper.BeginDefaultDateTimeFormulaCell;
     protected override int MaxNumberLength => ValueConstants.DoubleValueMaxCharacters;
 
     protected override int GetValueBytes(in DataCell cell, Span<byte> destination)
@@ -28,4 +19,12 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
 
     public override bool Equals(in CellValue value, in CellValue other) => value.DoubleValue == other.DoubleValue;
     public override int GetHashCodeFor(in CellValue value) => value.DoubleValue.GetHashCode();
+
+    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    {
+        var defaultStyleId = defaultStyling?.DateTimeStyleId;
+        return defaultStyleId is not null
+            ? TryWriteCell(cell, defaultStyleId.Value, buffer)
+            : TryWriteCell(cell, buffer);
+    }
 }

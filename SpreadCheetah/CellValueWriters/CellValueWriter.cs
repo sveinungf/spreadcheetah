@@ -2,6 +2,7 @@ using SpreadCheetah.CellValueWriters.Boolean;
 using SpreadCheetah.CellValueWriters.Number;
 using SpreadCheetah.CellValueWriters.Time;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.CellValueWriters;
 
@@ -17,7 +18,7 @@ internal abstract class CellValueWriter
     public static CellValueWriter FalseBoolean { get; } = new FalseBooleanCellValueWriter();
     public static CellValueWriter String { get; } = new StringCellValueWriter();
 
-    public abstract bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer);
+    public abstract bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer);
     public abstract bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer);
     public abstract bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer);
     public abstract bool WriteStartElement(SpreadsheetBuffer buffer);

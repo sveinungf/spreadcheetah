@@ -1,6 +1,7 @@
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.MetadataXml;
+using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 using System.Text;
@@ -23,13 +24,13 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private int _nextRowIndex;
     private Dictionary<CellReference, DataValidation>? _validations;
 
-    public Worksheet(Stream stream, SpreadsheetBuffer buffer)
+    public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
         _stream = stream;
         _buffer = buffer;
-        _cellWriter = new CellWriter(buffer);
-        _dataCellWriter = new DataCellWriter(buffer);
-        _styledCellWriter = new StyledCellWriter(buffer);
+        _cellWriter = new CellWriter(buffer, defaultStyling);
+        _dataCellWriter = new DataCellWriter(buffer, defaultStyling);
+        _styledCellWriter = new StyledCellWriter(buffer, defaultStyling);
         _nextRowIndex = 1;
     }
 
