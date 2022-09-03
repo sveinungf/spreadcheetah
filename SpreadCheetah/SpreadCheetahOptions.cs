@@ -1,3 +1,5 @@
+using SpreadCheetah.Styling;
+
 namespace SpreadCheetah;
 
 /// <summary>
@@ -31,4 +33,7 @@ public class SpreadCheetahOptions
     }
 
     private int _bufferSize = DefaultBufferSize;
+
+    // TODO: Make public when ready
+    internal string? DefaultDateTimeNumberFormat { get; set; } = NumberFormats.DateTimeUniversalSortable;
 }

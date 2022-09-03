@@ -24,7 +24,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly CompressionLevel _compressionLevel;
     private readonly SpreadsheetBuffer _buffer;
     private readonly byte[] _arrayPoolBuffer;
-    private readonly bool _hasDefaultDateTimeNumberFormat;
+    private readonly string? _defaultDateTimeNumberFormat;
     private Dictionary<ImmutableStyle, int>? _styles;
     private Worksheet? _worksheet;
     private bool _disposed;
@@ -32,13 +32,13 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
     private Worksheet Worksheet => _worksheet ?? throw new SpreadCheetahException("There is no active worksheet.");
 
-    private Spreadsheet(ZipArchive archive, CompressionLevel compressionLevel, int bufferSize, bool hasDefaultDateTimeNumberFormat)
+    private Spreadsheet(ZipArchive archive, CompressionLevel compressionLevel, int bufferSize, string? defaultDateTimeNumberFormat)
     {
         _archive = archive;
         _compressionLevel = compressionLevel;
         _arrayPoolBuffer = ArrayPool<byte>.Shared.Rent(bufferSize);
         _buffer = new SpreadsheetBuffer(_arrayPoolBuffer);
-        _hasDefaultDateTimeNumberFormat = hasDefaultDateTimeNumberFormat;
+        _defaultDateTimeNumberFormat = defaultDateTimeNumberFormat;
     }
 
     /// <summary>
@@ -52,12 +52,15 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var archive = new ZipArchive(stream, ZipArchiveMode.Create, true);
         var bufferSize = options?.BufferSize ?? SpreadCheetahOptions.DefaultBufferSize;
         var compressionLevel = GetCompressionLevel(options?.CompressionLevel ?? SpreadCheetahOptions.DefaultCompressionLevel);
+        var defaultDateTimeNumberFormat = options?.DefaultDateTimeNumberFormat ?? NumberFormats.DateTimeUniversalSortable;
 
-        var spreadsheet = new Spreadsheet(archive, compressionLevel, bufferSize, true);
+        var spreadsheet = new Spreadsheet(archive, compressionLevel, bufferSize, defaultDateTimeNumberFormat);
         await spreadsheet.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
-        // The built-in default style must be the first one (meaning the first <xf> element in styles.xml).
-        spreadsheet.AddStyle(new ImmutableStyle());
+        // If no style is ever added to the spreadsheet, then we can skip creating the styles.xml file.
+        // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
+        if (defaultDateTimeNumberFormat is not null)
+            spreadsheet.AddDefaultStyle();
 
         return spreadsheet;
     }
@@ -283,14 +286,21 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public StyleId AddStyle(Style style)
     {
         ThrowIfNull(style, nameof(style));
+
+        // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
+        if (_styles is null)
+            AddDefaultStyle();
+
         return AddStyle(ImmutableStyle.From(style));
     }
 
+    private void AddDefaultStyle() => AddStyle(new ImmutableStyle());
+
     private StyleId AddStyle(in ImmutableStyle style)
     {
-        // Use a default number format for DateTime when it has not been specified explicitly.
-        ImmutableStyle? dateTimeStyle = _hasDefaultDateTimeNumberFormat && style.NumberFormat is null
-            ? style with { NumberFormat = NumberFormats.DateTimeUniversalSortable }
+        // Optionally add another style for DateTime when there is no explicit number format in the new style.
+        ImmutableStyle? dateTimeStyle = _defaultDateTimeNumberFormat is not null && style.NumberFormat is null
+            ? style with { NumberFormat = _defaultDateTimeNumberFormat }
             : null;
 
         _styles ??= new Dictionary<ImmutableStyle, int>();
