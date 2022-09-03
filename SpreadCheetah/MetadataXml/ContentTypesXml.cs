@@ -25,6 +25,7 @@ internal static class ContentTypesXml
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
         List<string> worksheetPaths,
+        bool hasStylesXml,
         CancellationToken token)
     {
         var stream = archive.CreateEntry("[Content_Types].xml", compressionLevel).Open();
@@ -36,7 +37,8 @@ internal static class ContentTypesXml
         {
             buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetSpan()));
 
-            await buffer.WriteAsciiStringAsync(Styles, stream, token).ConfigureAwait(false);
+            if (hasStylesXml)
+                await buffer.WriteAsciiStringAsync(Styles, stream, token).ConfigureAwait(false);
 
             for (var i = 0; i < worksheetPaths.Count; ++i)
             {
