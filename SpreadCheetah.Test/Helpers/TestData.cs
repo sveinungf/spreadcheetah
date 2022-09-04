@@ -25,6 +25,11 @@ internal static class TestData
         return values.SelectMany(_ => StyledCellTypesArray, (value, type) => new object?[] { value, type });
     }
 
+    public static IEnumerable<object?[]> CombineWithValueTypes(params object?[] values)
+    {
+        return values.SelectMany(_ => ValueTypes(), (value, type) => new object?[] { value, type[0], type[1] });
+    }
+
     public static IEnumerable<object?[]> ValueTypes()
     {
         foreach (var valueType in CellValueTypesArray)

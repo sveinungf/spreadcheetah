@@ -95,17 +95,13 @@ public class SpreadsheetFormulaRowTests
             await spreadsheet.FinishAsync();
         }
 
-        var expectedCachedValue = !isNull && cachedValue is DateTime dateTime
-            ? dateTime.ToOADate().ToString()
-            : Convert.ToString(cachedValue, CultureInfo.InvariantCulture);
-
         // Assert
         SpreadsheetAssert.Valid(stream);
         using var workbook = new XLWorkbook(stream);
         var worksheet = workbook.Worksheets.Single();
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(formulaText, actualCell.FormulaA1);
-        Assert.Equal(expectedCachedValue, Convert.ToString(actualCell.CachedValue, CultureInfo.InvariantCulture));
+        Assert.Equal(cachedValue.GetExpectedCachedValueAsString(), Convert.ToString(actualCell.CachedValue, CultureInfo.InvariantCulture));
         Assert.Equal(valueType.GetExpectedDefaultNumberFormat() ?? "", actualCell.Style.NumberFormat.Format);
     }
 
@@ -248,26 +244,28 @@ public class SpreadsheetFormulaRowTests
         Assert.Equal(cachedValue, actualCell.CachedValue);
     }
 
+    public static IEnumerable<object?[]> FormulaLengthsWithValueTypes() => TestData.CombineWithValueTypes(
+        100,
+        511,
+        512,
+        513,
+        4100,
+        8192);
+
     [Theory]
-    [InlineData(100)]
-    [InlineData(511)]
-    [InlineData(512)]
-    [InlineData(513)]
-    [InlineData(4100)]
-    [InlineData(8192)]
-    public async Task Spreadsheet_AddRow_CellWithVeryLongFormulaAndCachedDoubleValue(int length)
+    [MemberData(nameof(FormulaLengthsWithValueTypes))]
+    public async Task Spreadsheet_AddRow_CellWithVeryLongFormulaAndCachedValue(int formulaLength, CellValueType cachedValueType, bool cachedValueIsNull)
     {
         // Arrange
-        var formulaText = FormulaGenerator.Generate(length);
-        const double cachedValue = double.MaxValue;
+        var formulaText = FormulaGenerator.Generate(formulaLength);
+        object? cachedValue;
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
         {
             await spreadsheet.StartWorksheetAsync("Sheet");
-
             var formula = new Formula(formulaText);
-            var cell = new Cell(formula, cachedValue);
+            var cell = CellFactory.Create(formula, cachedValueType, cachedValueIsNull, null, out cachedValue);
 
             // Act
             await spreadsheet.AddRowAsync(cell);
@@ -280,41 +278,8 @@ public class SpreadsheetFormulaRowTests
         var worksheet = workbook.Worksheets.Single();
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(formulaText, actualCell.FormulaA1);
-        Assert.Equal(cachedValue.ToString(CultureInfo.InvariantCulture), actualCell.CachedValue);
-    }
-
-    [Theory]
-    [InlineData(100, true)]
-    [InlineData(100, false)]
-    [InlineData(100, null)]
-    [InlineData(8192, true)]
-    [InlineData(8192, false)]
-    [InlineData(8192, null)]
-    public async Task Spreadsheet_AddRow_CellWithVeryLongFormulaAndCachedBooleanValue(int length, bool? cachedValue)
-    {
-        // Arrange
-        var formulaText = FormulaGenerator.Generate(length);
-        using var stream = new MemoryStream();
-        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet");
-
-            var formula = new Formula(formulaText);
-            var cell = new Cell(formula, cachedValue);
-
-            // Act
-            await spreadsheet.AddRowAsync(cell);
-            await spreadsheet.FinishAsync();
-        }
-
-        // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
-        Assert.Equal(formulaText, actualCell.FormulaA1);
-        Assert.Equal(cachedValue, actualCell.CachedValue);
+        Assert.Equal(cachedValue.GetExpectedCachedValueAsString(), Convert.ToString(actualCell.CachedValue, CultureInfo.InvariantCulture));
+        Assert.Equal(cachedValueType.GetExpectedDefaultNumberFormat() ?? "", actualCell.Style.NumberFormat.Format);
     }
 
     [Theory]
