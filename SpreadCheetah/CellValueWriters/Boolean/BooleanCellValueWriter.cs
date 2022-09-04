@@ -74,7 +74,7 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         return StyledCellElementLength <= remaining && GetBytes(styleId, buffer);
     }
 
-    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
         // Try with approximate formula text length
         var bytesNeeded = FormulaCellElementLength + formulaText.Length * Utf8Helper.MaxBytePerChar;

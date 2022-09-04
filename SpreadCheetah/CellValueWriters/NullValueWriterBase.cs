@@ -41,7 +41,7 @@ internal abstract class NullValueWriterBase : CellValueWriter
         return true;
     }
 
-    private bool GetBytes(string formulaText, StyleId? styleId, SpreadsheetBuffer buffer)
+    private static bool GetBytes(string formulaText, int? styleId, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
         int bytesWritten;
@@ -53,7 +53,7 @@ internal abstract class NullValueWriterBase : CellValueWriter
         else
         {
             bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledNumberCell, bytes);
-            bytesWritten += Utf8Helper.GetBytes(GetStyleId(styleId), bytes.Slice(bytesWritten));
+            bytesWritten += Utf8Helper.GetBytes(styleId.Value, bytes.Slice(bytesWritten));
             bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndStyleBeginFormula, bytes.Slice(bytesWritten));
         }
 
@@ -80,7 +80,7 @@ internal abstract class NullValueWriterBase : CellValueWriter
         return TryWriteCell(GetStyleId(styleId), buffer);
     }
 
-    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer)
+    protected static bool TryWriteCell(string formulaText, int? styleId, SpreadsheetBuffer buffer)
     {
         var remaining = buffer.FreeCapacity;
 

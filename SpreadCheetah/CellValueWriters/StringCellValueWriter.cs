@@ -97,7 +97,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
         return bytesNeeded <= remaining && GetBytes(cell, styleId, buffer);
     }
 
-    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
         var remaining = buffer.FreeCapacity;
 

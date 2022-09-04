@@ -11,4 +11,9 @@ internal sealed class NullValueWriter : NullValueWriterBase
     {
         return TryWriteCell(buffer);
     }
+
+    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    {
+        return TryWriteCell(formulaText, styleId?.Id, buffer);
+    }
 }

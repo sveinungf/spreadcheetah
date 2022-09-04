@@ -14,4 +14,10 @@ internal sealed class NullDateTimeCellValueWriter : NullValueWriterBase
             ? TryWriteCell(defaultStyleId.Value, buffer)
             : TryWriteCell(buffer);
     }
+
+    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    {
+        var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
+        return TryWriteCell(formulaText, actualStyleId, buffer);
+    }
 }
