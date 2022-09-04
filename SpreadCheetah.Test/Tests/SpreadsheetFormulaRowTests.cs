@@ -106,6 +106,7 @@ public class SpreadsheetFormulaRowTests
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(formulaText, actualCell.FormulaA1);
         Assert.Equal(expectedCachedValue, Convert.ToString(actualCell.CachedValue, CultureInfo.InvariantCulture));
+        Assert.Equal(valueType.GetExpectedDefaultNumberFormat() ?? "", actualCell.Style.NumberFormat.Format);
     }
 
     [Theory]
