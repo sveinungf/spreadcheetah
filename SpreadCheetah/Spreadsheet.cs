@@ -15,8 +15,7 @@ namespace SpreadCheetah;
 public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 {
     // Invalid worksheet name characters in Excel
-    private const string InvalidSheetNameCharString = "/\\*?[]";
-    private static readonly char[] InvalidSheetNameChars = InvalidSheetNameCharString.ToCharArray();
+    private const string InvalidSheetNameCharacters = @"/\*?[]";
 
     private readonly List<string> _worksheetNames = new();
     private readonly List<string> _worksheetPaths = new();
@@ -101,8 +100,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (name.StartsWith('\'') || name.EndsWith('\''))
             throw new ArgumentException("The name can not start or end with a single quote.", nameof(name));
 
-        if (name.IndexOfAny(InvalidSheetNameChars) != -1)
-            throw new ArgumentException("The name can not contain any of the following characters: " + InvalidSheetNameCharString, nameof(name));
+        if (name.AsSpan().IndexOfAny(InvalidSheetNameCharacters.AsSpan()) != -1)
+            throw new ArgumentException("The name can not contain any of the following characters: " + InvalidSheetNameCharacters, nameof(name));
 
         if (_worksheetNames.Contains(name, StringComparer.OrdinalIgnoreCase))
             throw new ArgumentException("A worksheet with the given name already exists.", nameof(name));
