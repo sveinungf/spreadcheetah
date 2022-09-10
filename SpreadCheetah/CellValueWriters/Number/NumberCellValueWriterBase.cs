@@ -1,6 +1,5 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
-using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.CellValueWriters.Number;
 
@@ -126,7 +125,7 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         return true;
     }
 
-    public override bool WriteFormulaStartElement(StyleId? styleId, SpreadsheetBuffer buffer)
+    protected static bool WriteFormulaStartElement(int? styleId, SpreadsheetBuffer buffer)
     {
         if (styleId is null)
         {
@@ -136,7 +135,7 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
 
         var bytes = buffer.GetSpan();
         var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledNumberCell, bytes);
-        bytesWritten += Utf8Helper.GetBytes(GetStyleId(styleId), bytes.Slice(bytesWritten));
+        bytesWritten += Utf8Helper.GetBytes(styleId.Value, bytes.Slice(bytesWritten));
         bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndStyleBeginFormula, bytes.Slice(bytesWritten));
         buffer.Advance(bytesWritten);
         return true;

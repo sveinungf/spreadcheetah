@@ -135,7 +135,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool WriteFormulaStartElement(StyleId? styleId, SpreadsheetBuffer buffer)
+    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
         if (styleId is null)
         {

@@ -19,7 +19,7 @@ internal sealed class CellWriter : BaseCellWriter<Cell>
 
     protected override bool WriteStartElement(in Cell cell) => cell switch
     {
-        { Formula: not null } => cell.DataCell.Writer.WriteFormulaStartElement(cell.StyleId, Buffer),
+        { Formula: not null } => cell.DataCell.Writer.WriteFormulaStartElement(cell.StyleId, DefaultStyling, Buffer),
         { StyleId: not null } => cell.DataCell.Writer.WriteStartElement(cell.StyleId, Buffer),
         _ => cell.DataCell.Writer.WriteStartElement(Buffer)
     };

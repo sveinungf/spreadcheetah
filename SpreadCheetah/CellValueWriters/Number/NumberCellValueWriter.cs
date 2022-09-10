@@ -16,4 +16,9 @@ internal abstract class NumberCellValueWriter : NumberCellValueWriterBase
     {
         return TryWriteCell(formulaText, cachedValue, styleId?.Id, buffer);
     }
+
+    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    {
+        return WriteFormulaStartElement(styleId?.Id, buffer);
+    }
 }
