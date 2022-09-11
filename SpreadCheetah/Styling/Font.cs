@@ -8,6 +8,8 @@ namespace SpreadCheetah.Styling;
 /// </summary>
 public sealed class Font : IEquatable<Font>
 {
+    internal const double DefaultSize = 11;
+
     private string? _name;
 
     /// <summary>Font name. Defaults to Calibri.</summary>
@@ -27,7 +29,7 @@ public sealed class Font : IEquatable<Font>
     public bool Strikethrough { get; set; }
 
     /// <summary>Font size. Defaults to 11.</summary>
-    public double Size { get; set; } = 11;
+    public double Size { get; set; } = DefaultSize;
 
     /// <summary>ARGB (alpha, red, green, blue) color of the font.</summary>
     public Color? Color { get; set; }

@@ -310,4 +310,24 @@ public class SpreadsheetTests
         // Assert
         Assert.Equal(style1Id.Id, style2Id.Id);
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Spreadsheet_AddStyle_DefaultStyleGettingTheExpectedStyleId(bool defaultStyle)
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Book 1");
+
+        var style = new Style();
+        if (!defaultStyle)
+            style.NumberFormat = NumberFormats.Fraction;
+
+        // Act
+        var styleId = spreadsheet.AddStyle(style);
+
+        // Assert
+        Assert.Equal(defaultStyle, styleId.Id == 0);
+    }
 }
