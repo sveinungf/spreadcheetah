@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using OfficeOpenXml;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
@@ -445,6 +446,43 @@ public class SpreadsheetRowTests
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(expectedValue, actualCell.GetValue<DateTime?>());
         Assert.Equal(NumberFormats.DateTimeUniversalSortable, actualCell.Style.NumberFormat.Format);
+    }
+
+    public static IEnumerable<object?[]> DateTimeNumberFormats() => TestData.CombineWithCellTypes(
+        NumberFormats.DateTimeUniversalSortable,
+        NumberFormats.General,
+        "mm-dd-yy",
+        "yyyy",
+        null
+    );
+
+    [Theory]
+    [MemberData(nameof(DateTimeNumberFormats))]
+    public async Task Spreadsheet_AddRow_CellWithDateTimeValueAndDefaultNumberFormat(string? defaultNumberFormat, Type type)
+    {
+        // Arrange
+        var value = new DateTime(2022, 9, 11, 14, 7, 13);
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { DefaultDateTimeNumberFormat = defaultNumberFormat };
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+            var cell = CellFactory.Create(type, value);
+
+            // Act
+            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.FinishAsync();
+        }
+
+        var expectedValue = DateTime.FromOADate(value.ToOADate());
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var package = new ExcelPackage(stream);
+        var worksheet = package.Workbook.Worksheets.Single();
+        var actualCell = worksheet.Cells.Single();
+        Assert.Equal(expectedValue, actualCell.GetValue<DateTime>());
+        Assert.Equal(defaultNumberFormat ?? NumberFormats.General, actualCell.Style.Numberformat.Format);
     }
 
     public static IEnumerable<object?[]> Booleans() => TestData.CombineWithCellTypes(
