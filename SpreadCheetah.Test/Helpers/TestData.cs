@@ -8,7 +8,7 @@ internal static class TestData
     private static readonly CellValueType[] CellValueTypesArray = Enum.GetValues(typeof(CellValueType)).Cast<CellValueType>().ToArray();
 
     public static IEnumerable<object?[]> CellTypes() => CellTypesArray.Select(x => new object[] { x });
-    public static IEnumerable<object?[]> StyledCellTypes() => StyledCellTypesArray.Select(x => new object[] { x });
+    public static IEnumerable<object?[]> StyledCellTypes() => StyledCellTypesEnumArray.Select(x => new object[] { x });
 
     public static IEnumerable<object?[]> CombineWithCellTypes(params object?[] values)
     {

@@ -90,6 +90,14 @@ internal static class CellFactory
         _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
     };
 
+    public static object Create(CellType type, string? value, StyleId? styleId) => type switch
+    {
+        CellType.Cell => new Cell(value, styleId),
+        CellType.StyledCell => new StyledCell(value, styleId),
+        CellType.DataCell => new DataCell(value),
+        _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+    };
+
     public static object Create(CellType cellType, CellValueType valueType, bool isNull, StyleId? styleId, out object? value) => valueType switch
     {
         CellValueType.Bool => CreateForBool(cellType, isNull, styleId, out value),

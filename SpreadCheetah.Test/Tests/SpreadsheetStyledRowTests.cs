@@ -240,7 +240,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_FontColorCellWithStringValue(Type type)
+    public async Task Spreadsheet_AddRow_FontColorCellWithStringValue(CellType type)
     {
         // Arrange
         const string cellValue = "Color test";
@@ -271,7 +271,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_FillColorCellWithStringValue(Type type)
+    public async Task Spreadsheet_AddRow_FillColorCellWithStringValue(CellType type)
     {
         // Arrange
         const string cellValue = "Color test";
@@ -499,7 +499,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_MultipleCellsWithDifferentStyles(Type type)
+    public async Task Spreadsheet_AddRow_MultipleCellsWithDifferentStyles(CellType type)
     {
         // Arrange
         var elements = new (string Value, Color FillColor, Color FontColor, string FontName, bool FontOption, double FontSize, string NumberFormat)[]
