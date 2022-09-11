@@ -1,9 +1,12 @@
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using OfficeOpenXml;
+using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
 using Xunit;
+using Color = System.Drawing.Color;
+using Fill = SpreadCheetah.Styling.Fill;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -288,5 +291,23 @@ public class SpreadsheetTests
 
         // Assert
         Assert.Equal(!hasFinished, exception is null);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddStyle_DuplicateStylesReturnTheSameStyleId()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Book 1");
+
+        var style1 = new Style { Fill = new Fill { Color = Color.Bisque } };
+        var style2 = new Style { Fill = new Fill { Color = Color.Bisque } };
+
+        // Act
+        var style1Id = spreadsheet.AddStyle(style1);
+        var style2Id = spreadsheet.AddStyle(style2);
+
+        // Assert
+        Assert.Equal(style1Id.Id, style2Id.Id);
     }
 }
