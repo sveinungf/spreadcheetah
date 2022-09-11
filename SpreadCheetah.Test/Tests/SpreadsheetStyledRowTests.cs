@@ -3,6 +3,7 @@ using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
 using System.Drawing;
 using Xunit;
+using Font = SpreadCheetah.Styling.Font;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -414,6 +415,42 @@ public class SpreadsheetStyledRowTests
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(cellValue, actualCell.Value);
         Assert.Equal(numberFormat, actualCell.Style.NumberFormat.Format);
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_MultipleStylesWithTheSameCustomNumberFormat(CellType type)
+    {
+        // Arrange
+        const string cellValue = "Number format test";
+        const string format = "0.0000";
+        var styles = new Style[]
+        {
+            new() { NumberFormat = format },
+            new() { NumberFormat = format, Fill = new Fill { Color = Color.Coral } },
+            new() { NumberFormat = format, Font = new Font { Bold = true } }
+        };
+
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var cells = styles.Select(x => CellFactory.Create(type, cellValue, spreadsheet.AddStyle(x))).ToList();
+
+            // Act
+            await spreadsheet.AddRowAsync(cells);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCells = worksheet.CellsUsed();
+        Assert.All(actualCells, x => Assert.Equal(cellValue, x.Value));
+        Assert.All(actualCells, x => Assert.Equal(format, x.Style.NumberFormat.Format));
+        Assert.Equal(styles.Length, actualCells.Count());
     }
 
     [Theory]
