@@ -1,6 +1,6 @@
 namespace SpreadCheetah.Styling.Internal;
 
-internal class DefaultStyling
+internal sealed class DefaultStyling
 {
     public int? DateTimeStyleId { get; }
 
