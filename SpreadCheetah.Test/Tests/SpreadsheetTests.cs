@@ -4,6 +4,7 @@ using OfficeOpenXml;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
+using System.IO.Compression;
 using Xunit;
 using Color = System.Drawing.Color;
 using Fill = SpreadCheetah.Styling.Fill;
@@ -65,6 +66,30 @@ public class SpreadsheetTests
 
         // Assert
         Assert.Equal(hasWorksheet, exception == null);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Spreadsheet_Finish_OnlyStylesXmlWhenThereIsStyling(bool hasStyle)
+    {
+        // Arrange
+        var options = new SpreadCheetahOptions();
+        if (!hasStyle)
+            options.DefaultDateTimeNumberFormat = null;
+
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
+        {
+            await spreadsheet.StartWorksheetAsync("Book 1");
+
+            // Act
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        using var zip = new ZipArchive(stream);
+        Assert.Equal(hasStyle, zip.GetEntry("xl/styles.xml") is not null);
     }
 
     [Theory]
