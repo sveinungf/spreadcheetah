@@ -123,12 +123,23 @@ public readonly struct StyledCell : IEquatable<StyledCell>
         StyleId = styleId;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StyledCell"/> struct with a <see cref="DateTime"/> value and an optional style.
+    /// Will be displayed in the number format from <see cref="Style.NumberFormat"/> if set,
+    /// otherwise <see cref="SpreadCheetahOptions.DefaultDateTimeNumberFormat"/> will be used instead.
+    /// </summary>
     public StyledCell(DateTime value, StyleId? styleId)
     {
         DataCell = new DataCell(value);
         StyleId = styleId;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StyledCell"/> struct with a <see cref="DateTime"/> value and an optional style.
+    /// Will be displayed in the number format from <see cref="Style.NumberFormat"/> if set,
+    /// otherwise <see cref="SpreadCheetahOptions.DefaultDateTimeNumberFormat"/> will be used instead.
+    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// </summary>
     public StyledCell(DateTime? value, StyleId? styleId)
     {
         DataCell = new DataCell(value);

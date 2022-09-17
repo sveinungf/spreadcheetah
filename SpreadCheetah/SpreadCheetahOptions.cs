@@ -34,6 +34,8 @@ public class SpreadCheetahOptions
 
     private int _bufferSize = DefaultBufferSize;
 
-    // TODO: Make public when ready
-    internal string? DefaultDateTimeNumberFormat { get; set; } = NumberFormats.DateTimeUniversalSortable;
+    /// <summary>
+    /// The default number format used for <see cref="DateTime"/> cells. Defaults to <see cref="NumberFormats.DateTimeUniversalSortable"/>.
+    /// </summary>
+    public string? DefaultDateTimeNumberFormat { get; set; } = NumberFormats.DateTimeUniversalSortable;
 }

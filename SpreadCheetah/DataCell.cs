@@ -119,12 +119,21 @@ public readonly struct DataCell : IEquatable<DataCell>
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DataCell"/> struct with a <see cref="DateTime"/> value.
+    /// Will be displayed in the number format from <see cref="SpreadCheetahOptions.DefaultDateTimeNumberFormat"/>.
+    /// </summary>
     public DataCell(DateTime value) : this()
     {
         NumberValue = new CellValue(value.ToOADate());
         _writer = CellValueWriter.DateTime;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DataCell"/> struct with a <see cref="DateTime"/> value.
+    /// Will be displayed in the number format from <see cref="SpreadCheetahOptions.DefaultDateTimeNumberFormat"/>.
+    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// </summary>
     public DataCell(DateTime? value) : this()
     {
         NumberValue = value is null ? new CellValue() : new CellValue(value.Value.ToOADate());
