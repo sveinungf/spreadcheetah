@@ -52,7 +52,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var archive = new ZipArchive(stream, ZipArchiveMode.Create, true);
         var bufferSize = options?.BufferSize ?? SpreadCheetahOptions.DefaultBufferSize;
         var compressionLevel = GetCompressionLevel(options?.CompressionLevel ?? SpreadCheetahOptions.DefaultCompressionLevel);
-        var defaultDateTimeNumberFormat = options is null ? NumberFormats.DateTimeUniversalSortable : options.DefaultDateTimeNumberFormat;
+        var defaultDateTimeNumberFormat = options is null ? NumberFormats.DateTimeSortable : options.DefaultDateTimeNumberFormat;
 
         var spreadsheet = new Spreadsheet(archive, compressionLevel, bufferSize, defaultDateTimeNumberFormat);
         await spreadsheet.InitializeAsync(cancellationToken).ConfigureAwait(false);

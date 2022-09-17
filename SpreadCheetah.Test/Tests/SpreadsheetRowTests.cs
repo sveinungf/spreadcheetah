@@ -445,11 +445,11 @@ public class SpreadsheetRowTests
         var worksheet = workbook.Worksheets.Single();
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(expectedValue, actualCell.GetValue<DateTime?>());
-        Assert.Equal(NumberFormats.DateTimeUniversalSortable, actualCell.Style.NumberFormat.Format);
+        Assert.Equal(NumberFormats.DateTimeSortable, actualCell.Style.NumberFormat.Format);
     }
 
     public static IEnumerable<object?[]> DateTimeNumberFormats() => TestData.CombineWithCellTypes(
-        NumberFormats.DateTimeUniversalSortable,
+        NumberFormats.DateTimeSortable,
         NumberFormats.General,
         "mm-dd-yy",
         "yyyy",

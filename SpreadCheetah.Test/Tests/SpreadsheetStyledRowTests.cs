@@ -459,7 +459,7 @@ public class SpreadsheetStyledRowTests
     {
         // Arrange
         const string explicitNumberFormat = "yyyy";
-        var expectedNumberFormat = withExplicitNumberFormat ? explicitNumberFormat : NumberFormats.DateTimeUniversalSortable;
+        var expectedNumberFormat = withExplicitNumberFormat ? explicitNumberFormat : NumberFormats.DateTimeSortable;
         var value = new DateTime(2021, 2, 3, 4, 5, 6);
         using var stream = new MemoryStream();
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))

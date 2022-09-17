@@ -6,7 +6,7 @@ internal static class CellValueTypeExtensions
 {
     public static string? GetExpectedDefaultNumberFormat(this CellValueType cellValueType) => cellValueType switch
     {
-        CellValueType.DateTime => NumberFormats.DateTimeUniversalSortable,
+        CellValueType.DateTime => NumberFormats.DateTimeSortable,
         _ => null
     };
 }
