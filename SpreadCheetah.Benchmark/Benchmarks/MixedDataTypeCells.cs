@@ -39,7 +39,8 @@ public class MixedDataTypeCells
     [Benchmark]
     public async Task SpreadCheetah()
     {
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        var options = new SpreadCheetahOptions { DefaultDateTimeNumberFormat = null };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, options);
         await spreadsheet.StartWorksheetAsync("Book1");
 
         var cells = new DataCell[10];
