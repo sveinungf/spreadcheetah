@@ -641,4 +641,38 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(firstRowStyled, actualFirstCell.Style.Font.Bold);
         Assert.Equal(!firstRowStyled, actualSecondCell.Style.Font.Bold);
     }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Spreadsheet_AddRow_StyleChangeAfterAddStyleNotApplied(bool changedBefore)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var style = new Style();
+            style.Font.Bold = true;
+
+            if (changedBefore) style.Font.Italic = true;
+            var styleId = spreadsheet.AddStyle(style);
+            if (!changedBefore) style.Font.Italic = true;
+
+            var styledCell = new StyledCell("value", styleId);
+
+            // Act
+            await spreadsheet.AddRowAsync(styledCell);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.True(actualCell.Style.Font.Bold);
+        Assert.Equal(changedBefore, actualCell.Style.Font.Italic);
+    }
 }
