@@ -34,4 +34,9 @@ internal static class Utf8Helper
 
     public static byte[] GetBytes(string s) => Utf8NoBom.GetBytes(s);
     public static int GetByteCount(string chars) => Utf8NoBom.GetByteCount(chars);
+
+    public static bool TryGetBytes(ReadOnlySpan<char> chars, Span<byte> bytes, out int bytesWritten)
+    {
+        return Utf8NoBom.TryGetBytes(chars, bytes, out bytesWritten);
+    }
 }

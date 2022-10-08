@@ -6,10 +6,6 @@ namespace SpreadCheetah.CellValueWriters;
 
 internal sealed class StringCellValueWriter : CellValueWriter
 {
-    private static readonly int DataCellElementLength =
-        DataCellHelper.BeginStringCell.Length +
-        DataCellHelper.EndStringCell.Length;
-
     private static readonly int StyledCellElementLength =
         StyledCellHelper.BeginStyledStringCell.Length +
         SpreadsheetConstants.StyleIdMaxDigits +
@@ -22,16 +18,6 @@ internal sealed class StringCellValueWriter : CellValueWriter
         FormulaCellHelper.EndStyleBeginFormula.Length +
         FormulaCellHelper.EndFormulaBeginCachedValue.Length +
         FormulaCellHelper.EndCachedValueEndCell.Length;
-
-    private static bool GetBytes(in DataCell cell, SpreadsheetBuffer buffer)
-    {
-        var bytes = buffer.GetSpan();
-        var bytesWritten = SpanHelper.GetBytes(DataCellHelper.BeginStringCell, bytes);
-        bytesWritten += Utf8Helper.GetBytes(cell.StringValue!, bytes.Slice(bytesWritten), false);
-        bytesWritten += SpanHelper.GetBytes(DataCellHelper.EndStringCell, bytes.Slice(bytesWritten));
-        buffer.Advance(bytesWritten);
-        return true;
-    }
 
     private static bool GetBytes(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
@@ -71,16 +57,17 @@ internal sealed class StringCellValueWriter : CellValueWriter
 
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
-        var remaining = buffer.FreeCapacity;
+        var bytes = buffer.GetSpan();
 
-        // Try with an approximate cell value length
-        var bytesNeeded = DataCellElementLength + cell.StringValue!.Length * Utf8Helper.MaxBytePerChar;
-        if (bytesNeeded <= remaining)
-            return GetBytes(cell, buffer);
+        if (DataCellHelper.BeginStringCell.TryCopyTo(bytes)
+            && Utf8Helper.TryGetBytes(cell.StringValue!.AsSpan(), bytes.Slice(DataCellHelper.BeginStringCell.Length), out var valueLength)
+            && DataCellHelper.EndStringCell.TryCopyTo(bytes.Slice(DataCellHelper.BeginStringCell.Length + valueLength)))
+        {
+            buffer.Advance(DataCellHelper.BeginStringCell.Length + DataCellHelper.EndStringCell.Length + valueLength);
+            return true;
+        }
 
-        // Try with a more accurate cell value length
-        bytesNeeded = DataCellElementLength + Utf8Helper.GetByteCount(cell.StringValue);
-        return bytesNeeded <= remaining && GetBytes(cell, buffer);
+        return false;
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
