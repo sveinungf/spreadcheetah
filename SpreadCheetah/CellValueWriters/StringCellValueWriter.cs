@@ -45,33 +45,11 @@ internal sealed class StringCellValueWriter : CellValueWriter
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
-        int part1;
-
-        if (styleId is null)
-        {
-            if (!FormulaCellHelper.BeginStringFormulaCell.TryCopyTo(bytes))
-                return false;
-
-            part1 = FormulaCellHelper.BeginStringFormulaCell.Length;
-        }
-        else
-        {
-            var begin1 = FormulaCellHelper.BeginStyledStringFormulaCell.Length;
-            var begin3 = FormulaCellHelper.EndStyleBeginFormula.Length;
-            if (!FormulaCellHelper.BeginStyledStringFormulaCell.TryCopyTo(bytes)
-                || !Utf8Formatter.TryFormat(styleId.Id, bytes.Slice(begin1), out var begin2)
-                || !FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes.Slice(begin1 + begin2)))
-            {
-                return false;
-            }
-
-            part1 = begin1 + begin2 + begin3;
-        }
-
         var part3 = FormulaCellHelper.EndFormulaBeginCachedValue.Length;
         var part5 = FormulaCellHelper.EndCachedValueEndCell.Length;
 
-        if (Utf8Helper.TryGetBytes(formulaText.AsSpan(), bytes.Slice(part1), out var part2)
+        if (TryWriteFormulaCellStart(styleId, bytes, out var part1)
+            && Utf8Helper.TryGetBytes(formulaText.AsSpan(), bytes.Slice(part1), out var part2)
             && FormulaCellHelper.EndFormulaBeginCachedValue.TryCopyTo(bytes.Slice(part1 + part2))
             && Utf8Helper.TryGetBytes(cachedValue.StringValue!.AsSpan(), bytes.Slice(part1 + part2 + part3), out var part4)
             && FormulaCellHelper.EndCachedValueEndCell.TryCopyTo(bytes.Slice(part1 + part2 + part3 + part4)))
@@ -80,6 +58,34 @@ internal sealed class StringCellValueWriter : CellValueWriter
             return true;
         }
 
+        return false;
+    }
+
+    private static bool TryWriteFormulaCellStart(StyleId? styleId, Span<byte> bytes, out int bytesWritten)
+    {
+        if (styleId is null)
+        {
+            if (FormulaCellHelper.BeginStringFormulaCell.TryCopyTo(bytes))
+            {
+                bytesWritten = FormulaCellHelper.BeginStringFormulaCell.Length;
+                return true;
+            }
+
+            bytesWritten = 0;
+            return false;
+        }
+
+        var part1 = FormulaCellHelper.BeginStyledStringFormulaCell.Length;
+        var part3 = FormulaCellHelper.EndStyleBeginFormula.Length;
+        if (FormulaCellHelper.BeginStyledStringFormulaCell.TryCopyTo(bytes)
+            && Utf8Formatter.TryFormat(styleId.Id, bytes.Slice(part1), out var part2)
+            && FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes.Slice(part1 + part2)))
+        {
+            bytesWritten = part1 + part2 + part3;
+            return true;
+        }
+
+        bytesWritten = 0;
         return false;
     }
 

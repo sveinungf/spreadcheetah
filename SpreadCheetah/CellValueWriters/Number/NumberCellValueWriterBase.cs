@@ -6,13 +6,6 @@ namespace SpreadCheetah.CellValueWriters.Number;
 
 internal abstract class NumberCellValueWriterBase : CellValueWriter
 {
-    private static readonly int FormulaCellElementLength =
-        StyledCellHelper.BeginStyledNumberCell.Length +
-        SpreadsheetConstants.StyleIdMaxDigits +
-        FormulaCellHelper.EndStyleBeginFormula.Length +
-        FormulaCellHelper.EndFormulaBeginCachedValue.Length +
-        FormulaCellHelper.EndCachedValueEndCell.Length;
-
     protected abstract int MaxNumberLength { get; }
     protected abstract int GetStyleId(StyleId styleId);
     protected abstract bool TryWriteValue(in DataCell cell, Span<byte> destination, out int bytesWritten);
@@ -28,30 +21,6 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
     {
         (byte)'<', (byte)'c', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
     };
-
-    private bool GetBytes(string formulaText, in DataCell cachedValue, int? styleId, SpreadsheetBuffer buffer)
-    {
-        var bytes = buffer.GetSpan();
-        int bytesWritten;
-
-        if (styleId is null)
-        {
-            bytesWritten = SpanHelper.GetBytes(FormulaCellHelper.BeginNumberFormulaCell, bytes);
-        }
-        else
-        {
-            bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledNumberCell, bytes);
-            bytesWritten += Utf8Helper.GetBytes(styleId.Value, bytes.Slice(bytesWritten));
-            bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndStyleBeginFormula, bytes.Slice(bytesWritten));
-        }
-
-        bytesWritten += Utf8Helper.GetBytes(formulaText, bytes.Slice(bytesWritten), false);
-        bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndFormulaBeginCachedValue, bytes.Slice(bytesWritten));
-        bytesWritten += GetValueBytes(cachedValue, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndCachedValueEndCell, bytes.Slice(bytesWritten));
-        buffer.Advance(bytesWritten);
-        return true;
-    }
 
     protected bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer)
     {
@@ -88,23 +57,56 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         return false;
     }
 
+    protected bool TryWriteCell(string formulaText, in DataCell cachedValue, int? styleId, SpreadsheetBuffer buffer)
+    {
+        var bytes = buffer.GetSpan();
+        var part3 = FormulaCellHelper.EndFormulaBeginCachedValue.Length;
+        var part5 = FormulaCellHelper.EndCachedValueEndCell.Length;
+
+        if (TryWriteFormulaCellStart(styleId, bytes, out var part1)
+            && Utf8Helper.TryGetBytes(formulaText.AsSpan(), bytes.Slice(part1), out var part2)
+            && FormulaCellHelper.EndFormulaBeginCachedValue.TryCopyTo(bytes.Slice(part1 + part2))
+            && TryWriteValue(cachedValue, bytes.Slice(part1 + part2 + part3), out var part4)
+            && FormulaCellHelper.EndCachedValueEndCell.TryCopyTo(bytes.Slice(part1 + part2 + part3 + part4)))
+        {
+            buffer.Advance(part1 + part2 + part3 + part4 + part5);
+            return true;
+        }
+
+        return false;
+    }
+
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
         return TryWriteCell(cell, GetStyleId(styleId), buffer);
     }
 
-    protected bool TryWriteCell(string formulaText, in DataCell cachedValue, int? styleId, SpreadsheetBuffer buffer)
+    private static bool TryWriteFormulaCellStart(int? styleId, Span<byte> bytes, out int bytesWritten)
     {
-        var remaining = buffer.FreeCapacity;
+        if (styleId is null)
+        {
+            if (FormulaCellHelper.BeginNumberFormulaCell.TryCopyTo(bytes))
+            {
+                bytesWritten = FormulaCellHelper.BeginNumberFormulaCell.Length;
+                return true;
+            }
 
-        // Try with approximate formula text length
-        var bytesNeeded = FormulaCellElementLength + MaxNumberLength + formulaText.Length * Utf8Helper.MaxBytePerChar;
-        if (bytesNeeded <= remaining)
-            return GetBytes(formulaText, cachedValue, styleId, buffer);
+            bytesWritten = 0;
+            return false;
+        }
 
-        // Try with more accurate length
-        bytesNeeded = FormulaCellElementLength + MaxNumberLength + Utf8Helper.GetByteCount(formulaText);
-        return bytesNeeded <= remaining && GetBytes(formulaText, cachedValue, styleId, buffer);
+        var part1 = StyledCellHelper.BeginStyledNumberCell.Length;
+        var part3 = FormulaCellHelper.EndStyleBeginFormula.Length;
+        if (StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes)
+            && Utf8Formatter.TryFormat(styleId.Value, bytes.Slice(part1), out var part2)
+            && FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes.Slice(part1 + part2)))
+        {
+            bytesWritten = part1 + part2 + part3;
+            return true;
+        }
+
+        bytesWritten = 0;
+        return false;
     }
 
     public override bool WriteStartElement(SpreadsheetBuffer buffer)
