@@ -1,35 +1,18 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
+using System.Buffers.Text;
 
 namespace SpreadCheetah.CellValueWriters;
 
 internal sealed class StringCellValueWriter : CellValueWriter
 {
-    private static readonly int StyledCellElementLength =
-        StyledCellHelper.BeginStyledStringCell.Length +
-        SpreadsheetConstants.StyleIdMaxDigits +
-        StyledCellHelper.EndStyleBeginInlineString.Length +
-        DataCellHelper.EndStringCell.Length;
-
     private static readonly int FormulaCellElementLength =
         FormulaCellHelper.BeginStyledStringFormulaCell.Length +
         SpreadsheetConstants.StyleIdMaxDigits +
         FormulaCellHelper.EndStyleBeginFormula.Length +
         FormulaCellHelper.EndFormulaBeginCachedValue.Length +
         FormulaCellHelper.EndCachedValueEndCell.Length;
-
-    private static bool GetBytes(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
-    {
-        var bytes = buffer.GetSpan();
-        var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledStringCell, bytes);
-        bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(StyledCellHelper.EndStyleBeginInlineString, bytes.Slice(bytesWritten));
-        bytesWritten += Utf8Helper.GetBytes(cell.StringValue!, bytes.Slice(bytesWritten), false);
-        bytesWritten += SpanHelper.GetBytes(DataCellHelper.EndStringCell, bytes.Slice(bytesWritten));
-        buffer.Advance(bytesWritten);
-        return true;
-    }
 
     private static bool GetBytes(string formulaText, in DataCell cachedValue, StyleId? styleId, SpreadsheetBuffer buffer)
     {
@@ -72,16 +55,22 @@ internal sealed class StringCellValueWriter : CellValueWriter
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
-        var remaining = buffer.FreeCapacity;
+        var bytes = buffer.GetSpan();
+        var part1 = StyledCellHelper.BeginStyledStringCell.Length;
+        var part3 = StyledCellHelper.EndStyleBeginInlineString.Length;
+        var part5 = DataCellHelper.EndStringCell.Length;
 
-        // Try with an approximate cell value length
-        var bytesNeeded = StyledCellElementLength + cell.StringValue!.Length * Utf8Helper.MaxBytePerChar;
-        if (bytesNeeded <= remaining)
-            return GetBytes(cell, styleId, buffer);
+        if (StyledCellHelper.BeginStyledStringCell.TryCopyTo(bytes)
+            && Utf8Formatter.TryFormat(styleId.Id, bytes.Slice(part1), out var part2)
+            && StyledCellHelper.EndStyleBeginInlineString.TryCopyTo(bytes.Slice(part1 + part2))
+            && Utf8Helper.TryGetBytes(cell.StringValue!.AsSpan(), bytes.Slice(part1 + part2 + part3), out var part4)
+            && DataCellHelper.EndStringCell.TryCopyTo(bytes.Slice(part1 + part2 + part3 + part4)))
+        {
+            buffer.Advance(part1 + part2 + part3 + part4 + part5);
+            return true;
+        }
 
-        // Try with a more accurate length
-        bytesNeeded = StyledCellElementLength + Utf8Helper.GetByteCount(cell.StringValue);
-        return bytesNeeded <= remaining && GetBytes(cell, styleId, buffer);
+        return false;
     }
 
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
