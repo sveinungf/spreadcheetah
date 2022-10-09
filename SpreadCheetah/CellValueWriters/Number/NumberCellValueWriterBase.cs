@@ -6,15 +6,8 @@ namespace SpreadCheetah.CellValueWriters.Number;
 
 internal abstract class NumberCellValueWriterBase : CellValueWriter
 {
-    protected abstract int MaxNumberLength { get; }
     protected abstract int GetStyleId(StyleId styleId);
     protected abstract bool TryWriteValue(in DataCell cell, Span<byte> destination, out int bytesWritten);
-
-    private int GetValueBytes(in DataCell cell, Span<byte> destination)
-    {
-        TryWriteValue(cell, destination, out var bytesWritten);
-        return bytesWritten;
-    }
 
     // <c><v>
     private static ReadOnlySpan<byte> BeginDataCell() => new[]
@@ -145,19 +138,21 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
 
     public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)
     {
-        if (MaxNumberLength > buffer.FreeCapacity) return false;
-        buffer.Advance(GetValueBytes(cell, buffer.GetSpan()));
+        var bytes = buffer.GetSpan();
+        if (!TryWriteValue(cell, bytes, out var bytesWritten))
+            return false;
+
+        buffer.Advance(bytesWritten);
         return true;
     }
 
     public override bool TryWriteEndElement(SpreadsheetBuffer buffer)
     {
-        var cellEnd = DataCellHelper.EndDefaultCell;
         var bytes = buffer.GetSpan();
-        if (cellEnd.Length >= bytes.Length)
+        if (!DataCellHelper.EndDefaultCell.TryCopyTo(bytes))
             return false;
 
-        buffer.Advance(SpanHelper.GetBytes(cellEnd, bytes));
+        buffer.Advance(DataCellHelper.EndDefaultCell.Length);
         return true;
     }
 
@@ -166,11 +161,11 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         if (cell.Formula is null)
             return TryWriteEndElement(buffer);
 
-        var cellEnd = FormulaCellHelper.EndCachedValueEndCell;
-        if (cellEnd.Length > buffer.FreeCapacity)
+        var bytes = buffer.GetSpan();
+        if (!FormulaCellHelper.EndCachedValueEndCell.TryCopyTo(bytes))
             return false;
 
-        buffer.Advance(SpanHelper.GetBytes(cellEnd, buffer.GetSpan()));
+        buffer.Advance(FormulaCellHelper.EndCachedValueEndCell.Length);
         return true;
     }
 }

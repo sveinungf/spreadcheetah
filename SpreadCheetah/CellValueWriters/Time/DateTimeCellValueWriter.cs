@@ -1,5 +1,4 @@
 using SpreadCheetah.CellValueWriters.Number;
-using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using System.Buffers.Text;
@@ -9,7 +8,6 @@ namespace SpreadCheetah.CellValueWriters.Time;
 internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
 {
     protected override int GetStyleId(StyleId styleId) => styleId.DateTimeId;
-    protected override int MaxNumberLength => ValueConstants.DoubleValueMaxCharacters;
 
     protected override bool TryWriteValue(in DataCell cell, Span<byte> destination, out int bytesWritten)
     {
