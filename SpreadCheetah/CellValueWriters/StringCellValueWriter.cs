@@ -85,12 +85,11 @@ internal sealed class StringCellValueWriter : CellValueWriter
 
     public override bool TryWriteEndElement(SpreadsheetBuffer buffer)
     {
-        var cellEnd = DataCellHelper.EndStringCell;
         var bytes = buffer.GetSpan();
-        if (cellEnd.Length >= bytes.Length)
+        if (!DataCellHelper.EndStringCell.TryCopyTo(bytes))
             return false;
 
-        buffer.Advance(SpanHelper.GetBytes(cellEnd, bytes));
+        buffer.Advance(DataCellHelper.EndStringCell.Length);
         return true;
     }
 
@@ -99,11 +98,11 @@ internal sealed class StringCellValueWriter : CellValueWriter
         if (cell.Formula is null)
             return TryWriteEndElement(buffer);
 
-        var cellEnd = FormulaCellHelper.EndCachedValueEndCell;
-        if (cellEnd.Length > buffer.FreeCapacity)
+        var bytes = buffer.GetSpan();
+        if (!FormulaCellHelper.EndCachedValueEndCell.TryCopyTo(bytes))
             return false;
 
-        buffer.Advance(SpanHelper.GetBytes(cellEnd, buffer.GetSpan()));
+        buffer.Advance(FormulaCellHelper.EndCachedValueEndCell.Length);
         return true;
     }
 
