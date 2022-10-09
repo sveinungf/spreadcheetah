@@ -1,22 +1,17 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
+using System.Buffers.Text;
 
 namespace SpreadCheetah.CellValueWriters;
 
 internal abstract class NullValueWriterBase : CellValueWriter
 {
-    private static readonly int StyledCellElementLength =
-        StyledCellHelper.BeginStyledNumberCell.Length +
-        SpreadsheetConstants.StyleIdMaxDigits +
-        StyledCellHelper.EndStyleNullValue.Length;
-
     private static readonly int FormulaCellElementLength =
         StyledCellHelper.BeginStyledNumberCell.Length +
         SpreadsheetConstants.StyleIdMaxDigits +
         FormulaCellHelper.EndStyleBeginFormula.Length +
         FormulaCellHelper.EndFormulaEndCell.Length;
 
-    private static int DataCellElementLength => NullDataCell().Length;
     protected abstract int GetStyleId(StyleId styleId);
 
     // <c/>
@@ -24,22 +19,6 @@ internal abstract class NullValueWriterBase : CellValueWriter
     {
         (byte)'<', (byte)'c', (byte)'/', (byte)'>'
     };
-
-    private static bool GetBytes(SpreadsheetBuffer buffer)
-    {
-        buffer.Advance(SpanHelper.GetBytes(NullDataCell(), buffer.GetSpan()));
-        return true;
-    }
-
-    private static bool GetBytes(int styleId, SpreadsheetBuffer buffer)
-    {
-        var bytes = buffer.GetSpan();
-        var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledNumberCell, bytes);
-        bytesWritten += Utf8Helper.GetBytes(styleId, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(StyledCellHelper.EndStyleNullValue, bytes.Slice(bytesWritten));
-        buffer.Advance(bytesWritten);
-        return true;
-    }
 
     private static bool GetBytes(string formulaText, int? styleId, SpreadsheetBuffer buffer)
     {
@@ -65,14 +44,27 @@ internal abstract class NullValueWriterBase : CellValueWriter
 
     protected static bool TryWriteCell(SpreadsheetBuffer buffer)
     {
-        var remaining = buffer.FreeCapacity;
-        return DataCellElementLength <= remaining && GetBytes(buffer);
+        var bytes = buffer.GetSpan();
+        if (!NullDataCell().TryCopyTo(bytes))
+            return false;
+
+        buffer.Advance(NullDataCell().Length);
+        return true;
     }
 
     protected static bool TryWriteCell(int styleId, SpreadsheetBuffer buffer)
     {
-        var remaining = buffer.FreeCapacity;
-        return StyledCellElementLength <= remaining && GetBytes(styleId, buffer);
+        var bytes = buffer.GetSpan();
+
+        if (StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes)
+            && Utf8Formatter.TryFormat(styleId, bytes.Slice(StyledCellHelper.BeginStyledNumberCell.Length), out var valueLength)
+            && StyledCellHelper.EndStyleNullValue.TryCopyTo(bytes.Slice(StyledCellHelper.BeginStyledNumberCell.Length + valueLength)))
+        {
+            buffer.Advance(StyledCellHelper.BeginStyledNumberCell.Length + StyledCellHelper.EndStyleNullValue.Length + valueLength);
+            return true;
+        }
+
+        return false;
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
@@ -125,9 +117,9 @@ internal abstract class NullValueWriterBase : CellValueWriter
         return true;
     }
 
-    public override bool WriteStartElement(SpreadsheetBuffer buffer) => GetBytes(buffer);
+    public override bool WriteStartElement(SpreadsheetBuffer buffer) => TryWriteCell(buffer);
 
-    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => GetBytes(GetStyleId(styleId), buffer);
+    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => TryWriteCell(GetStyleId(styleId), buffer);
 
     /// <summary>
     /// Returns false because there is no value to write for 'null'.
