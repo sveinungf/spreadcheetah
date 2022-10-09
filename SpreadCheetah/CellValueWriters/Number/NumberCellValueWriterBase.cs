@@ -18,29 +18,21 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         FormulaCellHelper.EndFormulaBeginCachedValue.Length +
         FormulaCellHelper.EndCachedValueEndCell.Length;
 
-    private static int DataCellElementLength =>
-        BeginDataCell().Length +
-        DataCellHelper.EndDefaultCell.Length;
-
     protected abstract int MaxNumberLength { get; }
     protected abstract int GetStyleId(StyleId styleId);
-    protected abstract int GetValueBytes(in DataCell cell, Span<byte> destination);
+    protected abstract bool TryWriteValue(in DataCell cell, Span<byte> destination, out int bytesWritten);
+
+    private int GetValueBytes(in DataCell cell, Span<byte> destination)
+    {
+        TryWriteValue(cell, destination, out var bytesWritten);
+        return bytesWritten;
+    }
 
     // <c><v>
     private static ReadOnlySpan<byte> BeginDataCell() => new[]
     {
         (byte)'<', (byte)'c', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
     };
-
-    private bool GetBytes(in DataCell cell, SpreadsheetBuffer buffer)
-    {
-        var bytes = buffer.GetSpan();
-        var bytesWritten = SpanHelper.GetBytes(BeginDataCell(), bytes);
-        bytesWritten += GetValueBytes(cell, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(DataCellHelper.EndDefaultCell, bytes.Slice(bytesWritten));
-        buffer.Advance(bytesWritten);
-        return true;
-    }
 
     protected bool GetBytes(in DataCell cell, int styleId, SpreadsheetBuffer buffer)
     {
@@ -80,8 +72,17 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
 
     protected bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer)
     {
-        var remaining = buffer.FreeCapacity;
-        return DataCellElementLength + MaxNumberLength <= remaining && GetBytes(cell, buffer);
+        var bytes = buffer.GetSpan();
+
+        if (BeginDataCell().TryCopyTo(bytes)
+            && TryWriteValue(cell, bytes.Slice(BeginDataCell().Length), out var valueLength)
+            && DataCellHelper.EndDefaultCell.TryCopyTo(bytes.Slice(BeginDataCell().Length + valueLength)))
+        {
+            buffer.Advance(BeginDataCell().Length + DataCellHelper.EndDefaultCell.Length + valueLength);
+            return true;
+        }
+
+        return false;
     }
 
     protected bool TryWriteCell(in DataCell cell, int styleId, SpreadsheetBuffer buffer)
