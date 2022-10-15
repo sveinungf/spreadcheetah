@@ -72,7 +72,7 @@ internal abstract class BaseCellWriter<T>
                 return false;
         }
 
-        return WriteRowEnd();
+        return TryWriteRowEnd();
     }
 
     private bool TryAddRowCellsForList(IList<T> cells, int offset, out int currentListIndex)
@@ -84,29 +84,27 @@ internal abstract class BaseCellWriter<T>
                 return false;
         }
 
-        return WriteRowEnd();
+        return TryWriteRowEnd();
     }
 
-    // Also ensuring space in the buffer for starting another basic row, so that we might not need to check space in the buffer twice.
-    private bool CanWriteRowEnd() => Buffer.FreeCapacity >= CellRowHelper.RowEnd.Length + CellRowHelper.BasicRowStartMaxByteCount;
-
-    private void DoWriteRowEnd() => Buffer.Advance(SpanHelper.GetBytes(CellRowHelper.RowEnd, Buffer.GetSpan()));
-
-    private bool WriteRowEnd()
+    private bool TryWriteRowEnd()
     {
-        if (!CanWriteRowEnd())
-            return false;
+        if (CellRowHelper.RowEnd.TryCopyTo(Buffer.GetSpan()))
+        {
+            Buffer.Advance(CellRowHelper.RowEnd.Length);
+            return true;
+        }
 
-        DoWriteRowEnd();
-        return true;
+        return false;
     }
 
     private async ValueTask WriteRowEndAsync(Stream stream, CancellationToken token)
     {
-        if (!CanWriteRowEnd())
-            await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        if (TryWriteRowEnd())
+            return;
 
-        DoWriteRowEnd();
+        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        TryWriteRowEnd();
     }
 
     public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, int rowIndex, int currentCellIndex, Stream stream, CancellationToken token)

@@ -10,10 +10,4 @@ internal static class SpreadsheetConstants
 
     // Limitation set by the Excel specification
     public const int MaxNumberOfRows = 1048576;
-
-    // Number of digits in 'MaxNumberOfRows'
-    public const int RowIndexMaxDigits = 7;
-
-    // The maximum number of unique cell styles is limited to 65,490 in Excel
-    public const int StyleIdMaxDigits = 5;
 }

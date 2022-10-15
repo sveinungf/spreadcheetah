@@ -5,11 +5,6 @@ namespace SpreadCheetah.Helpers;
 
 internal static class CellRowHelper
 {
-    public static int BasicRowStartMaxByteCount { get; } =
-        RowStart.Length +
-        SpreadsheetConstants.RowIndexMaxDigits +
-        RowStartEndTag.Length;
-
     public static bool TryWriteRowStart(int rowIndex, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
