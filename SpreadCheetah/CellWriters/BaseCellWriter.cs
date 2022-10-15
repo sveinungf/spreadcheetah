@@ -90,7 +90,7 @@ internal abstract class BaseCellWriter<T>
     }
 
     // Also ensuring space in the buffer for starting another basic row, so that we might not need to check space in the buffer twice.
-    private bool CanWriteRowEnd() => Buffer.FreeCapacity>= CellRowHelper.RowEnd.Length + CellRowHelper.BasicRowStartMaxByteCount;
+    private bool CanWriteRowEnd() => Buffer.FreeCapacity >= CellRowHelper.RowEnd.Length + CellRowHelper.BasicRowStartMaxByteCount;
 
     private void DoWriteRowEnd() => Buffer.Advance(SpanHelper.GetBytes(CellRowHelper.RowEnd, Buffer.GetSpan()));
 
@@ -113,27 +113,10 @@ internal abstract class BaseCellWriter<T>
 
     public async ValueTask AddRowAsync(IList<T> cells, int currentIndex, Stream stream, CancellationToken token)
     {
-        while (currentIndex < cells.Count)
-        {
-            // If we get here that means that the next cell didn't fit in the buffer, so just flush right away
-            await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        // If we get here that means that the next cell didn't fit in the buffer, so just flush right away.
+        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-            // Attempt to add row cells again
-            var beforeIndex = currentIndex;
-            if (TryAddRowCells(cells, currentIndex, out currentIndex))
-                return;
-
-            // One or more cells were added, repeat
-            if (currentIndex != beforeIndex)
-                continue;
-
-            // No cells were added, which means the next cell is larger than the buffer
-            var cell = cells[currentIndex];
-            await WriteCellPieceByPieceAsync(cell, stream, token).ConfigureAwait(false);
-            ++currentIndex;
-        }
-
-        await WriteRowEndAsync(stream, token).ConfigureAwait(false);
+        await AddRowCellsAsync(cells, currentIndex, stream, token).ConfigureAwait(false);
     }
 
     public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, Stream stream, CancellationToken token)
@@ -163,14 +146,40 @@ internal abstract class BaseCellWriter<T>
 
     public async ValueTask AddRowAsync(IList<T> cells, int rowIndex, RowOptions options, bool rowStartWritten, int currentCellIndex, Stream stream, CancellationToken token)
     {
+        // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
+        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+
         if (!rowStartWritten)
         {
-            // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
-            await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
             CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer);
         }
 
-        await AddRowAsync(cells, currentCellIndex, stream, token).ConfigureAwait(false);
+        await AddRowCellsAsync(cells, currentCellIndex, stream, token).ConfigureAwait(false);
+    }
+
+    private async ValueTask AddRowCellsAsync(IList<T> cells, int currentIndex, Stream stream, CancellationToken token)
+    {
+        while (currentIndex < cells.Count)
+        {
+            // Attempt to add row cells again
+            var beforeIndex = currentIndex;
+            if (TryAddRowCells(cells, currentIndex, out currentIndex))
+                return;
+
+            // One or more cells were added, repeat
+            if (currentIndex != beforeIndex)
+            {
+                await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+                continue;
+            }
+
+            // No cells were added, which means the next cell is larger than the buffer
+            var cell = cells[currentIndex];
+            await WriteCellPieceByPieceAsync(cell, stream, token).ConfigureAwait(false);
+            ++currentIndex;
+        }
+
+        await WriteRowEndAsync(stream, token).ConfigureAwait(false);
     }
 
     private async ValueTask WriteCellPieceByPieceAsync(T cell, Stream stream, CancellationToken token)
