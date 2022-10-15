@@ -17,7 +17,6 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         FormulaCellHelper.EndStyleBeginFormula.Length +
         FormulaCellHelper.EndFormulaTrueBooleanValue.Length;
 
-    protected abstract ReadOnlySpan<byte> DataCellBytes();
     protected abstract ReadOnlySpan<byte> EndFormulaValueBytes();
     protected abstract ReadOnlySpan<byte> EndStyleValueBytes();
     protected abstract bool TryWriteCell(SpreadsheetBuffer buffer);
