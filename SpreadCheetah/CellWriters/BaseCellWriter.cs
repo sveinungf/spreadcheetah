@@ -40,12 +40,10 @@ internal abstract class BaseCellWriter<T>
         currentListIndex = 0;
 
         // Need to check if buffer has enough space. Previous actions only ensure space for a basic row (a row with no options set).
-        if (CellRowHelper.ConfiguredRowStartMaxByteCount > Buffer.FreeCapacity)
+        if (!CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer))
             return false;
 
-        Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, options, Buffer.GetSpan()));
         rowStartWritten = true;
-
         return TryAddRowCells(cells, out currentListIndex);
     }
 
@@ -169,7 +167,7 @@ internal abstract class BaseCellWriter<T>
         {
             // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
             await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, options, Buffer.GetSpan()));
+            CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer);
         }
 
         await AddRowAsync(cells, currentCellIndex, stream, token).ConfigureAwait(false);

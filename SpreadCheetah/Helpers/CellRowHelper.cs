@@ -10,13 +10,6 @@ internal static class CellRowHelper
         SpreadsheetConstants.RowIndexMaxDigits +
         RowStartEndTag.Length;
 
-    public static int ConfiguredRowStartMaxByteCount { get; } =
-        RowStart.Length +
-        SpreadsheetConstants.RowIndexMaxDigits +
-        RowHeightStart.Length +
-        ValueConstants.DoubleValueMaxCharacters +
-        RowHeightEnd.Length;
-
     public static bool TryWriteRowStart(int rowIndex, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
@@ -32,25 +25,27 @@ internal static class CellRowHelper
         return false;
     }
 
-    public static int GetRowStartBytes(int rowIndex, Span<byte> bytes)
-    {
-        var bytesWritten = SpanHelper.GetBytes(RowStart, bytes);
-        bytesWritten += Utf8Helper.GetBytes(rowIndex, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(RowStartEndTag, bytes.Slice(bytesWritten));
-        return bytesWritten;
-    }
-
-    public static int GetRowStartBytes(int rowIndex, RowOptions options, Span<byte> bytes)
+    public static bool TryWriteRowStart(int rowIndex, RowOptions options, SpreadsheetBuffer buffer)
     {
         if (options.Height is null)
-            return GetRowStartBytes(rowIndex, bytes);
+            return TryWriteRowStart(rowIndex, buffer);
 
-        var bytesWritten = SpanHelper.GetBytes(RowStart, bytes);
-        bytesWritten += Utf8Helper.GetBytes(rowIndex, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(RowHeightStart, bytes.Slice(bytesWritten));
-        bytesWritten += Utf8Helper.GetBytes(options.Height.Value, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(RowHeightEnd, bytes.Slice(bytesWritten));
-        return bytesWritten;
+        var bytes = buffer.GetSpan();
+        var part1 = RowStart.Length;
+        var part3 = RowHeightStart.Length;
+        var part5 = RowHeightEnd.Length;
+
+        if (RowStart.TryCopyTo(bytes)
+            && Utf8Formatter.TryFormat(rowIndex, bytes.Slice(part1), out var part2)
+            && RowHeightStart.TryCopyTo(bytes.Slice(part1 + part2))
+            && Utf8Formatter.TryFormat(options.Height.Value, bytes.Slice(part1 + part2 + part3), out var part4)
+            && RowHeightEnd.TryCopyTo(bytes.Slice(part1 + part2 + part3 + part4)))
+        {
+            buffer.Advance(part1 + part2 + part3 + part4 + part5);
+            return true;
+        }
+
+        return false;
     }
 
     // <row r="

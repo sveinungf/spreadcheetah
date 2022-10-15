@@ -16,12 +16,6 @@ internal static class Utf8Helper
         return bytesWritten;
     }
 
-    public static int GetBytes(double number, Span<byte> destination)
-    {
-        Utf8Formatter.TryFormat(number, destination, out var bytesWritten);
-        return bytesWritten;
-    }
-
     public static int GetBytes(string chars, Span<byte> bytes, bool assertSize = true) => GetBytes(chars.AsSpan(), bytes, assertSize);
 
     public static int GetBytes(ReadOnlySpan<char> chars, Span<byte> bytes, bool assertSize = true)
