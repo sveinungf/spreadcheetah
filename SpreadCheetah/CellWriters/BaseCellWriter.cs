@@ -34,16 +34,14 @@ internal abstract class BaseCellWriter<T>
         return CellRowHelper.TryWriteRowStart(rowIndex, Buffer) && TryAddRowCellsForSpan(cells, out currentListIndex);
     }
 
-    public bool TryAddRow(IList<T> cells, int rowIndex, RowOptions options, out bool rowStartWritten, out int currentListIndex)
+    public bool TryAddRow(IList<T> cells, int rowIndex, RowOptions options, out int currentListIndex)
     {
-        rowStartWritten = false;
-        currentListIndex = 0;
+        currentListIndex = -1;
 
         // Need to check if buffer has enough space. Previous actions only ensure space for a basic row (a row with no options set).
         if (!CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer))
             return false;
 
-        rowStartWritten = true;
         return TryAddRowCells(cells, out currentListIndex);
     }
 
@@ -144,14 +142,15 @@ internal abstract class BaseCellWriter<T>
         await WriteRowEndAsync(stream, token).ConfigureAwait(false);
     }
 
-    public async ValueTask AddRowAsync(IList<T> cells, int rowIndex, RowOptions options, bool rowStartWritten, int currentCellIndex, Stream stream, CancellationToken token)
+    public async ValueTask AddRowAsync(IList<T> cells, int rowIndex, RowOptions options, int currentCellIndex, Stream stream, CancellationToken token)
     {
         // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-        if (!rowStartWritten)
+        if (currentCellIndex == -1)
         {
             CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer);
+            currentCellIndex = 0;
         }
 
         await AddRowCellsAsync(cells, currentCellIndex, stream, token).ConfigureAwait(false);

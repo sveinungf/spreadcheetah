@@ -130,12 +130,12 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         => _dataCellWriter.TryAddRow(cells, _nextRowIndex++, out currentIndex);
     public bool TryAddRow(IList<StyledCell> cells, out int currentIndex)
         => _styledCellWriter.TryAddRow(cells, _nextRowIndex++, out currentIndex);
-    public bool TryAddRow(IList<Cell> cells, RowOptions options, out bool rowStartWritten, out int currentIndex)
-        => _cellWriter.TryAddRow(cells, _nextRowIndex++, options, out rowStartWritten, out currentIndex);
-    public bool TryAddRow(IList<DataCell> cells, RowOptions options, out bool rowStartWritten, out int currentIndex)
-        => _dataCellWriter.TryAddRow(cells, _nextRowIndex++, options, out rowStartWritten, out currentIndex);
-    public bool TryAddRow(IList<StyledCell> cells, RowOptions options, out bool rowStartWritten, out int currentIndex)
-        => _styledCellWriter.TryAddRow(cells, _nextRowIndex++, options, out rowStartWritten, out currentIndex);
+    public bool TryAddRow(IList<Cell> cells, RowOptions options, out int currentIndex)
+        => _cellWriter.TryAddRow(cells, _nextRowIndex++, options, out currentIndex);
+    public bool TryAddRow(IList<DataCell> cells, RowOptions options, out int currentIndex)
+        => _dataCellWriter.TryAddRow(cells, _nextRowIndex++, options, out currentIndex);
+    public bool TryAddRow(IList<StyledCell> cells, RowOptions options, out int currentIndex)
+        => _styledCellWriter.TryAddRow(cells, _nextRowIndex++, options, out currentIndex);
     public bool TryAddRow(ReadOnlySpan<Cell> cells, out int currentIndex)
         => _cellWriter.TryAddRow(cells, _nextRowIndex++, out currentIndex);
     public bool TryAddRow(ReadOnlySpan<DataCell> cells, out int currentIndex)
@@ -148,12 +148,12 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         => _dataCellWriter.AddRowAsync(cells, currentIndex, _stream, ct);
     public ValueTask AddRowAsync(IList<StyledCell> cells, int currentIndex, CancellationToken ct)
         => _styledCellWriter.AddRowAsync(cells, currentIndex, _stream, ct);
-    public ValueTask AddRowAsync(IList<Cell> cells, RowOptions options, bool rowStartWritten, int currentIndex, CancellationToken ct)
-        => _cellWriter.AddRowAsync(cells, _nextRowIndex - 1, options, rowStartWritten, currentIndex, _stream, ct);
-    public ValueTask AddRowAsync(IList<DataCell> cells, RowOptions options, bool rowStartWritten, int currentIndex, CancellationToken ct)
-        => _dataCellWriter.AddRowAsync(cells, _nextRowIndex - 1, options, rowStartWritten, currentIndex, _stream, ct);
-    public ValueTask AddRowAsync(IList<StyledCell> cells, RowOptions options, bool rowStartWritten, int currentIndex, CancellationToken ct)
-        => _styledCellWriter.AddRowAsync(cells, _nextRowIndex - 1, options, rowStartWritten, currentIndex, _stream, ct);
+    public ValueTask AddRowAsync(IList<Cell> cells, RowOptions options, int currentIndex, CancellationToken ct)
+        => _cellWriter.AddRowAsync(cells, _nextRowIndex - 1, options, currentIndex, _stream, ct);
+    public ValueTask AddRowAsync(IList<DataCell> cells, RowOptions options, int currentIndex, CancellationToken ct)
+        => _dataCellWriter.AddRowAsync(cells, _nextRowIndex - 1, options, currentIndex, _stream, ct);
+    public ValueTask AddRowAsync(IList<StyledCell> cells, RowOptions options, int currentIndex, CancellationToken ct)
+        => _styledCellWriter.AddRowAsync(cells, _nextRowIndex - 1, options, currentIndex, _stream, ct);
     public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, CancellationToken ct)
         => _cellWriter.AddRowAsync(cells, _stream, ct);
     public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, CancellationToken ct)

@@ -200,9 +200,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         if (options is null) return AddRowAsync(cells, token);
         ThrowIfNull(cells, nameof(cells));
-        return Worksheet.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
+        return Worksheet.TryAddRow(cells, options, out var currentIndex)
             ? default
-            : Worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, token);
+            : Worksheet.AddRowAsync(cells, options, currentIndex, token);
     }
 
     /// <summary>
@@ -223,9 +223,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         if (options is null) return AddRowAsync(cells, token);
         ThrowIfNull(cells, nameof(cells));
-        return Worksheet.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
+        return Worksheet.TryAddRow(cells, options, out var currentIndex)
             ? default
-            : Worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, token);
+            : Worksheet.AddRowAsync(cells, options, currentIndex, token);
     }
 
     /// <summary>
@@ -246,9 +246,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         if (options is null) return AddRowAsync(cells, token);
         ThrowIfNull(cells, nameof(cells));
-        return Worksheet.TryAddRow(cells, options, out var rowStartWritten, out var currentIndex)
+        return Worksheet.TryAddRow(cells, options, out var currentIndex)
             ? default
-            : Worksheet.AddRowAsync(cells, options, rowStartWritten, currentIndex, token);
+            : Worksheet.AddRowAsync(cells, options, currentIndex, token);
     }
 
     /// <summary>
