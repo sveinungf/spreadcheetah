@@ -111,27 +111,10 @@ internal abstract class BaseCellWriter<T>
 
     public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, Stream stream, CancellationToken token)
     {
-        while (!cells.IsEmpty)
-        {
-            // If we get here that means that the next cell didn't fit in the buffer, so just flush right away.
-            await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        // If we get here that means that the next cell didn't fit in the buffer, so just flush right away.
+        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-            // Attempt to add row cells again
-            if (TryAddRowCellsForSpan(cells.Span, out var currentIndex))
-                return;
-
-            // If no cells were added, the next cell is larger than the buffer.
-            if (currentIndex == 0)
-            {
-                await WriteCellPieceByPieceAsync(cells.Span[0], stream, token).ConfigureAwait(false);
-                currentIndex = 1;
-            }
-
-            // One or more cells were added, repeat.
-            cells = cells.Slice(currentIndex);
-        }
-
-        await WriteRowEndAsync(stream, token).ConfigureAwait(false);
+        await AddRowCellsAsync(cells, stream, token).ConfigureAwait(false);
     }
 
     public async ValueTask AddRowAsync(IList<T> cells, int rowIndex, int currentCellIndex, Stream stream, CancellationToken token)
@@ -162,6 +145,29 @@ internal abstract class BaseCellWriter<T>
         await AddRowCellsAsync(cells, currentCellIndex, stream, token).ConfigureAwait(false);
     }
 
+    private async ValueTask AddRowCellsAsync(ReadOnlyMemory<T> cells, Stream stream, CancellationToken token)
+    {
+        while (!cells.IsEmpty)
+        {
+            // Attempt to add row cells again
+            if (TryAddRowCellsForSpan(cells.Span, out var currentIndex))
+                return;
+
+            // If no cells were added, the next cell is larger than the buffer.
+            if (currentIndex == 0)
+            {
+                await WriteCellPieceByPieceAsync(cells.Span[0], stream, token).ConfigureAwait(false);
+                currentIndex = 1;
+            }
+
+            // One or more cells were added, repeat.
+            cells = cells.Slice(currentIndex);
+            await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        }
+
+        await WriteRowEndAsync(stream, token).ConfigureAwait(false);
+    }
+
     private async ValueTask AddRowCellsAsync(IList<T> cells, int currentIndex, Stream stream, CancellationToken token)
     {
         while (currentIndex < cells.Count)
@@ -171,17 +177,16 @@ internal abstract class BaseCellWriter<T>
             if (TryAddRowCells(cells, currentIndex, out currentIndex))
                 return;
 
-            // One or more cells were added, repeat
-            if (currentIndex != beforeIndex)
+            // If no cells were added, the next cell is larger than the buffer.
+            if (currentIndex == beforeIndex)
             {
-                await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-                continue;
+                var cell = cells[currentIndex];
+                await WriteCellPieceByPieceAsync(cell, stream, token).ConfigureAwait(false);
+                ++currentIndex;
             }
 
-            // No cells were added, which means the next cell is larger than the buffer
-            var cell = cells[currentIndex];
-            await WriteCellPieceByPieceAsync(cell, stream, token).ConfigureAwait(false);
-            ++currentIndex;
+            // One or more cells were added, repeat
+            await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }
 
         await WriteRowEndAsync(stream, token).ConfigureAwait(false);
