@@ -1,16 +1,12 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
+using System.Buffers.Text;
 
 namespace SpreadCheetah.CellValueWriters.Boolean;
 
 internal abstract class BooleanCellValueWriter : CellValueWriter
 {
-    private static readonly int StyledCellElementLength =
-        StyledCellHelper.BeginStyledBooleanCell.Length +
-        SpreadsheetConstants.StyleIdMaxDigits +
-        StyledCellHelper.EndStyleTrueBooleanValue.Length;
-
     private static readonly int FormulaCellElementLength =
         StyledCellHelper.BeginStyledBooleanCell.Length +
         SpreadsheetConstants.StyleIdMaxDigits +
@@ -18,18 +14,8 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         FormulaCellHelper.EndFormulaTrueBooleanValue.Length;
 
     protected abstract ReadOnlySpan<byte> EndFormulaValueBytes();
-    protected abstract ReadOnlySpan<byte> EndStyleValueBytes();
     protected abstract bool TryWriteCell(SpreadsheetBuffer buffer);
-
-    private bool GetBytes(StyleId styleId, SpreadsheetBuffer buffer)
-    {
-        var bytes = buffer.GetSpan();
-        var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledBooleanCell, bytes);
-        bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(EndStyleValueBytes(), bytes.Slice(bytesWritten));
-        buffer.Advance(bytesWritten);
-        return true;
-    }
+    protected abstract bool TryWriteEndStyleValue(Span<byte> bytes, out int bytesWritten);
 
     private bool GetBytes(string formulaText, StyleId? styleId, SpreadsheetBuffer buffer)
     {
@@ -60,8 +46,23 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
-        var remaining = buffer.FreeCapacity;
-        return StyledCellElementLength <= remaining && GetBytes(styleId, buffer);
+        return TryWriteCell(styleId, buffer);
+    }
+
+    private bool TryWriteCell(StyleId styleId, SpreadsheetBuffer buffer)
+    {
+        var bytes = buffer.GetSpan();
+        var part1 = StyledCellHelper.BeginStyledBooleanCell.Length;
+
+        if (StyledCellHelper.BeginStyledBooleanCell.TryCopyTo(bytes)
+            && Utf8Formatter.TryFormat(styleId.Id, bytes.Slice(part1), out var part2)
+            && TryWriteEndStyleValue(bytes.Slice(part1 + part2), out var part3))
+        {
+            buffer.Advance(part1 + part2 + part3);
+            return true;
+        }
+
+        return false;
     }
 
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
@@ -110,7 +111,7 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
 
     public override bool WriteStartElement(SpreadsheetBuffer buffer) => TryWriteCell(buffer);
 
-    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => GetBytes(styleId, buffer);
+    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => TryWriteCell(styleId, buffer);
 
     /// <summary>
     /// Returns false because the value is written together with the end element in <see cref="TryWriteEndElement(in Cell, SpreadsheetBuffer)"/>.
