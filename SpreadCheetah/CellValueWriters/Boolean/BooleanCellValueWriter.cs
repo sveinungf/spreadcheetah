@@ -6,9 +6,6 @@ namespace SpreadCheetah.CellValueWriters.Boolean;
 
 internal abstract class BooleanCellValueWriter : CellValueWriter
 {
-    private static readonly int DataCellElementLength =
-        DataCellHelper.TrueBooleanCell.Length;
-
     private static readonly int StyledCellElementLength =
         StyledCellHelper.BeginStyledBooleanCell.Length +
         SpreadsheetConstants.StyleIdMaxDigits +
@@ -23,12 +20,7 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
     protected abstract ReadOnlySpan<byte> DataCellBytes();
     protected abstract ReadOnlySpan<byte> EndFormulaValueBytes();
     protected abstract ReadOnlySpan<byte> EndStyleValueBytes();
-
-    private bool GetBytes(SpreadsheetBuffer buffer)
-    {
-        buffer.Advance(SpanHelper.GetBytes(DataCellBytes(), buffer.GetSpan()));
-        return true;
-    }
+    protected abstract bool TryWriteCell(SpreadsheetBuffer buffer);
 
     private bool GetBytes(StyleId styleId, SpreadsheetBuffer buffer)
     {
@@ -64,8 +56,7 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
 
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
-        var remaining = buffer.FreeCapacity;
-        return DataCellElementLength <= remaining && GetBytes(buffer);
+        return TryWriteCell(buffer);
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
@@ -118,7 +109,7 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool WriteStartElement(SpreadsheetBuffer buffer) => GetBytes(buffer);
+    public override bool WriteStartElement(SpreadsheetBuffer buffer) => TryWriteCell(buffer);
 
     public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => GetBytes(styleId, buffer);
 
