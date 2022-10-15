@@ -7,37 +7,9 @@ namespace SpreadCheetah.CellValueWriters.Boolean;
 
 internal abstract class BooleanCellValueWriter : CellValueWriter
 {
-    private static readonly int FormulaCellElementLength =
-        StyledCellHelper.BeginStyledBooleanCell.Length +
-        SpreadsheetConstants.StyleIdMaxDigits +
-        FormulaCellHelper.EndStyleBeginFormula.Length +
-        FormulaCellHelper.EndFormulaTrueBooleanValue.Length;
-
-    protected abstract ReadOnlySpan<byte> EndFormulaValueBytes();
     protected abstract bool TryWriteCell(SpreadsheetBuffer buffer);
     protected abstract bool TryWriteEndStyleValue(Span<byte> bytes, out int bytesWritten);
-
-    private bool GetBytes(string formulaText, StyleId? styleId, SpreadsheetBuffer buffer)
-    {
-        var bytes = buffer.GetSpan();
-        int bytesWritten;
-
-        if (styleId is null)
-        {
-            bytesWritten = SpanHelper.GetBytes(FormulaCellHelper.BeginBooleanFormulaCell, bytes);
-        }
-        else
-        {
-            bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledBooleanCell, bytes);
-            bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
-            bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndStyleBeginFormula, bytes.Slice(bytesWritten));
-        }
-
-        bytesWritten += Utf8Helper.GetBytes(formulaText, bytes.Slice(bytesWritten), false);
-        bytesWritten += SpanHelper.GetBytes(EndFormulaValueBytes(), bytes.Slice(bytesWritten));
-        buffer.Advance(bytesWritten);
-        return true;
-    }
+    protected abstract bool TryWriteEndFormulaValue(Span<byte> bytes, out int bytesWritten);
 
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
@@ -67,15 +39,45 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
 
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
-        // Try with approximate formula text length
-        var bytesNeeded = FormulaCellElementLength + formulaText.Length * Utf8Helper.MaxBytePerChar;
-        var remaining = buffer.FreeCapacity;
-        if (bytesNeeded <= remaining)
-            return GetBytes(formulaText, styleId, buffer);
+        var bytes = buffer.GetSpan();
 
-        // Try with more accurate length
-        bytesNeeded = FormulaCellElementLength + Utf8Helper.GetByteCount(formulaText);
-        return bytesNeeded <= remaining && GetBytes(formulaText, styleId, buffer);
+        if (TryWriteFormulaCellStart(styleId, bytes, out var part1)
+            && Utf8Helper.TryGetBytes(formulaText.AsSpan(), bytes.Slice(part1), out var part2)
+            && TryWriteEndFormulaValue(bytes.Slice(part1 + part2), out var part3))
+        {
+            buffer.Advance(part1 + part2 + part3);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryWriteFormulaCellStart(StyleId? styleId, Span<byte> bytes, out int bytesWritten)
+    {
+        if (styleId is null)
+        {
+            if (FormulaCellHelper.BeginBooleanFormulaCell.TryCopyTo(bytes))
+            {
+                bytesWritten = FormulaCellHelper.BeginBooleanFormulaCell.Length;
+                return true;
+            }
+
+            bytesWritten = 0;
+            return false;
+        }
+
+        var part1 = StyledCellHelper.BeginStyledBooleanCell.Length;
+        var part3 = FormulaCellHelper.EndStyleBeginFormula.Length;
+        if (StyledCellHelper.BeginStyledBooleanCell.TryCopyTo(bytes)
+            && Utf8Formatter.TryFormat(styleId.Id, bytes.Slice(part1), out var part2)
+            && FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes.Slice(part1 + part2)))
+        {
+            bytesWritten = part1 + part2 + part3;
+            return true;
+        }
+
+        bytesWritten = 0;
+        return false;
     }
 
     public override bool TryWriteEndElement(SpreadsheetBuffer buffer) => true;
@@ -85,12 +87,14 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         if (cell.Formula is null)
             return true;
 
-        var cellEnd = EndFormulaValueBytes();
-        if (cellEnd.Length > buffer.FreeCapacity)
-            return false;
+        var bytes = buffer.GetSpan();
+        if (TryWriteEndFormulaValue(bytes, out var bytesWritten))
+        {
+            buffer.Advance(bytesWritten);
+            return true;
+        }
 
-        buffer.Advance(SpanHelper.GetBytes(cellEnd, buffer.GetSpan()));
-        return true;
+        return false;
     }
 
     public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
