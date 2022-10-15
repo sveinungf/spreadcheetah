@@ -74,7 +74,7 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         return TryWriteCell(cell, GetStyleId(styleId), buffer);
     }
 
-    private static bool TryWriteFormulaCellStart(int? styleId, Span<byte> bytes, out int bytesWritten)
+    public static bool TryWriteFormulaCellStart(int? styleId, Span<byte> bytes, out int bytesWritten)
     {
         if (styleId is null)
         {
