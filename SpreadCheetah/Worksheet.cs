@@ -143,11 +143,11 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public bool TryAddRow(ReadOnlySpan<StyledCell> cells, out int currentIndex)
         => _styledCellWriter.TryAddRow(cells, _nextRowIndex++, out currentIndex);
     public ValueTask AddRowAsync(IList<Cell> cells, int currentIndex, CancellationToken ct)
-        => _cellWriter.AddRowAsync(cells, currentIndex, _stream, ct);
+        => _cellWriter.AddRowAsync(cells, _nextRowIndex - 1, currentIndex, _stream, ct);
     public ValueTask AddRowAsync(IList<DataCell> cells, int currentIndex, CancellationToken ct)
-        => _dataCellWriter.AddRowAsync(cells, currentIndex, _stream, ct);
+        => _dataCellWriter.AddRowAsync(cells, _nextRowIndex - 1, currentIndex, _stream, ct);
     public ValueTask AddRowAsync(IList<StyledCell> cells, int currentIndex, CancellationToken ct)
-        => _styledCellWriter.AddRowAsync(cells, currentIndex, _stream, ct);
+        => _styledCellWriter.AddRowAsync(cells, _nextRowIndex - 1, currentIndex, _stream, ct);
     public ValueTask AddRowAsync(IList<Cell> cells, RowOptions options, int currentIndex, CancellationToken ct)
         => _cellWriter.AddRowAsync(cells, _nextRowIndex - 1, options, currentIndex, _stream, ct);
     public ValueTask AddRowAsync(IList<DataCell> cells, RowOptions options, int currentIndex, CancellationToken ct)
