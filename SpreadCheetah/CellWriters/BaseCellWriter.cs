@@ -23,15 +23,15 @@ internal abstract class BaseCellWriter<T>
     public bool TryAddRow(IList<T> cells, int rowIndex, out int currentListIndex)
     {
         // Assuming previous actions on the worksheet ensured space in the buffer for row start
-        Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, Buffer.GetSpan()));
-        return TryAddRowCells(cells, out currentListIndex);
+        currentListIndex = -1;
+        return CellRowHelper.TryWriteRowStart(rowIndex, Buffer) && TryAddRowCells(cells, out currentListIndex);
     }
 
     public bool TryAddRow(ReadOnlySpan<T> cells, int rowIndex, out int currentListIndex)
     {
         // Assuming previous actions on the worksheet ensured space in the buffer for row start
-        Buffer.Advance(CellRowHelper.GetRowStartBytes(rowIndex, Buffer.GetSpan()));
-        return TryAddRowCellsForSpan(cells, out currentListIndex);
+        currentListIndex = -1;
+        return CellRowHelper.TryWriteRowStart(rowIndex, Buffer) && TryAddRowCellsForSpan(cells, out currentListIndex);
     }
 
     public bool TryAddRow(IList<T> cells, int rowIndex, RowOptions options, out bool rowStartWritten, out int currentListIndex)

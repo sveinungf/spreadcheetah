@@ -1,4 +1,5 @@
 using SpreadCheetah.Worksheets;
+using System.Buffers.Text;
 
 namespace SpreadCheetah.Helpers;
 
@@ -15,6 +16,21 @@ internal static class CellRowHelper
         RowHeightStart.Length +
         ValueConstants.DoubleValueMaxCharacters +
         RowHeightEnd.Length;
+
+    public static bool TryWriteRowStart(int rowIndex, SpreadsheetBuffer buffer)
+    {
+        var bytes = buffer.GetSpan();
+
+        if (RowStart.TryCopyTo(bytes)
+            && Utf8Formatter.TryFormat(rowIndex, bytes.Slice(RowStart.Length), out var part2)
+            && RowStartEndTag.TryCopyTo(bytes.Slice(RowStart.Length + part2)))
+        {
+            buffer.Advance(RowStart.Length + RowStartEndTag.Length + part2);
+            return true;
+        }
+
+        return false;
+    }
 
     public static int GetRowStartBytes(int rowIndex, Span<byte> bytes)
     {
