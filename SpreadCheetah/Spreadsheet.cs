@@ -159,7 +159,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         return Worksheet.TryAddRow(cells.Span, out var currentIndex)
             ? default
-            : Worksheet.AddRowAsync(cells.Slice(currentIndex), token);
+            : Worksheet.AddRowAsync(cells, currentIndex, token);
     }
 
     /// <summary>
@@ -169,7 +169,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         return Worksheet.TryAddRow(cells.Span, out var currentIndex)
             ? default
-            : Worksheet.AddRowAsync(cells.Slice(currentIndex), token);
+            : Worksheet.AddRowAsync(cells, currentIndex, token);
     }
 
     /// <summary>
@@ -179,7 +179,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         return Worksheet.TryAddRow(cells.Span, out var currentIndex)
             ? default
-            : Worksheet.AddRowAsync(cells.Slice(currentIndex), token);
+            : Worksheet.AddRowAsync(cells, currentIndex, token);
     }
 
     /// <summary>

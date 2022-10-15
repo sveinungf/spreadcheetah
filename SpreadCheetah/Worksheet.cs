@@ -154,12 +154,12 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         => _dataCellWriter.AddRowAsync(cells, _nextRowIndex - 1, options, currentIndex, _stream, ct);
     public ValueTask AddRowAsync(IList<StyledCell> cells, RowOptions options, int currentIndex, CancellationToken ct)
         => _styledCellWriter.AddRowAsync(cells, _nextRowIndex - 1, options, currentIndex, _stream, ct);
-    public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, CancellationToken ct)
-        => _cellWriter.AddRowAsync(cells, _stream, ct);
-    public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, CancellationToken ct)
-        => _dataCellWriter.AddRowAsync(cells, _stream, ct);
-    public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, CancellationToken ct)
-        => _styledCellWriter.AddRowAsync(cells, _stream, ct);
+    public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, int currentIndex, CancellationToken ct)
+        => _cellWriter.AddRowAsync(cells, _nextRowIndex - 1, currentIndex, _stream, ct);
+    public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, int currentIndex, CancellationToken ct)
+        => _dataCellWriter.AddRowAsync(cells, _nextRowIndex - 1, currentIndex, _stream, ct);
+    public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, int currentIndex, CancellationToken ct)
+        => _styledCellWriter.AddRowAsync(cells, _nextRowIndex - 1, currentIndex, _stream, ct);
 
     public void AddDataValidation(CellReference reference, DataValidation validation)
     {
