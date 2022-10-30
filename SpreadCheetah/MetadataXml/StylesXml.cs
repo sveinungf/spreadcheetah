@@ -74,7 +74,7 @@ internal static class StylesXml
         // Assuming here that the built-in default style is part of 'styles'
         foreach (var style in styles.Keys)
         {
-            sb.AppendStyle(style, customNumberFormatLookup, fontLookup, fillLookup);
+            sb.AppendStyle(style, customNumberFormatLookup, fontLookup, fillLookup, borderLookup);
             await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
             sb.Clear();
         }
@@ -87,7 +87,8 @@ internal static class StylesXml
         in ImmutableStyle style,
         IReadOnlyDictionary<string, int> customNumberFormats,
         IReadOnlyDictionary<ImmutableFont, int> fonts,
-        IReadOnlyDictionary<ImmutableFill, int> fills)
+        IReadOnlyDictionary<ImmutableFill, int> fills,
+        IReadOnlyDictionary<ImmutableBorder, int> borders)
     {
         var numberFormatId = GetNumberFormatId(style.NumberFormat, customNumberFormats);
         sb.Append("<xf numFmtId=\"").Append(numberFormatId).Append('"');
@@ -100,6 +101,9 @@ internal static class StylesXml
         var fillIndex = fills[style.Fill];
         sb.Append(" fillId=\"").Append(fillIndex).Append('"');
         if (fillIndex > 1) sb.Append(" applyFill=\"1\"");
+
+        if (borders.TryGetValue(style.Border, out var borderIndex) && borderIndex > 0)
+            sb.Append(" borderId=\"").Append(borderIndex).Append("\" applyBorder=\"1\"");
 
         sb.Append(" xfId=\"0\"/>");
     }
