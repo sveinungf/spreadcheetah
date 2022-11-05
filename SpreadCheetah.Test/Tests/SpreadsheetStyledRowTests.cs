@@ -268,7 +268,7 @@ public class SpreadsheetStyledRowTests
         var worksheet = workbook.Worksheets.Single();
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(cellValue, actualCell.Value);
-        Assert.Equal(color, actualCell.Style.Font.FontColor.Color);
+        Assert.Equal(color.ToArgb(), actualCell.Style.Font.FontColor.Color.ToArgb());
     }
 
     [Theory]
@@ -299,7 +299,7 @@ public class SpreadsheetStyledRowTests
         var worksheet = workbook.Worksheets.Single();
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(cellValue, actualCell.Value);
-        Assert.Equal(color, actualCell.Style.Fill.BackgroundColor.Color);
+        Assert.Equal(color.ToArgb(), actualCell.Style.Fill.BackgroundColor.Color.ToArgb());
     }
 
     public static IEnumerable<object?[]> FontNames() => TestData.CombineWithStyledCellTypes(
@@ -670,9 +670,9 @@ public class SpreadsheetStyledRowTests
         var worksheet = workbook.Worksheets.Single();
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(cellValue, actualCell.Value);
-        Assert.Equal(formatting, actualCell.Style.Fill.BackgroundColor.Color == fillColor);
+        Assert.Equal(formatting, actualCell.Style.Fill.BackgroundColor.Color.ToArgb() == fillColor?.ToArgb());
         Assert.Equal(formatting, actualCell.Style.Font.Bold);
-        Assert.Equal(formatting, actualCell.Style.Font.FontColor.Color == fontColor);
+        Assert.Equal(formatting, actualCell.Style.Font.FontColor.Color.ToArgb() == fontColor?.ToArgb());
         Assert.Equal(formatting, string.Equals(actualCell.Style.Font.FontName, fontName, StringComparison.Ordinal));
         Assert.Equal(formatting, actualCell.Style.Font.Italic);
         Assert.Equal(formatting, actualCell.Style.Font.Strikethrough);
@@ -729,8 +729,8 @@ public class SpreadsheetStyledRowTests
         Assert.All(actualCells, actualCell =>
         {
             var element = elements.Single(x => string.Equals(x.Value, actualCell.Value.ToString(), StringComparison.Ordinal));
-            Assert.Equal(element.FillColor, actualCell.Style.Fill.BackgroundColor.Color);
-            Assert.Equal(element.FontColor, actualCell.Style.Font.FontColor.Color);
+            Assert.Equal(element.FillColor.ToArgb(), actualCell.Style.Fill.BackgroundColor.Color.ToArgb());
+            Assert.Equal(element.FontColor.ToArgb(), actualCell.Style.Font.FontColor.Color.ToArgb());
             Assert.Equal(element.FontName, actualCell.Style.Font.FontName);
             Assert.Equal(element.FontOption, actualCell.Style.Font.Bold);
             Assert.Equal(element.FontOption, actualCell.Style.Font.Italic);

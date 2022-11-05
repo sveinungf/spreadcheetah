@@ -318,7 +318,7 @@ public class SpreadsheetFormulaRowTests
         var worksheet = workbook.Worksheets.Single();
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(formulaText, actualCell.FormulaA1);
-        Assert.Equal(color, actualCell.Style.Fill.BackgroundColor.Color);
+        Assert.Equal(color.ToArgb(), actualCell.Style.Fill.BackgroundColor.Color.ToArgb());
         Assert.Null(actualCell.CachedValue);
     }
 
