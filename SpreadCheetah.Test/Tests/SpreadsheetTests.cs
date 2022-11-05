@@ -123,7 +123,6 @@ public class SpreadsheetTests
     }
 
     [Theory]
-    [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
     [InlineData("This name is over the 31 character limit in Excel")]
@@ -145,6 +144,19 @@ public class SpreadsheetTests
 
         // Assert
         Assert.NotNull(exception);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_StartWorksheet_NullName()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+
+        // Act
+        var exception = await Assert.ThrowsAsync<ArgumentNullException>(async () => await spreadsheet.StartWorksheetAsync(null!));
+
+        // Assert
+        Assert.Equal("name", exception.ParamName);
     }
 
     [Theory]
