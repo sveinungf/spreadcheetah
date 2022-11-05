@@ -139,11 +139,12 @@ public sealed class DataValidation
 
     /// <summary>
     /// Validate that cell values equal any of <paramref name="values"/>.
-    /// Note that:
+    /// Requirements:
     /// <list type="bullet">
-    ///   <item><description>Commas are not allowed in the list values.</description></item>
+    ///   <item><description>The values can't contain commas.</description></item>
     ///   <item><description>The combined length of the values (including required comma separators) can't exceed 255 characters.</description></item>
     /// </list>
+    /// An <see cref="ArgumentException"/> will be thrown if any of the requirements are not met.
     /// </summary>
     public static DataValidation ListValues(IEnumerable<string> values, bool showDropdown = true)
     {
@@ -157,6 +158,23 @@ public sealed class DataValidation
             throw new ArgumentException($"Commas are not allowed in the list values. This value contains a comma: {invalidValue}", nameof(values));
 
         throw new ArgumentException($"The combined length of the values (including required comma separators) can't exceed {MaxValueLength} characters.", nameof(values));
+    }
+
+    /// <summary>
+    /// Validate that cell values equal any of <paramref name="values"/>.
+    /// Requirements:
+    /// <list type="bullet">
+    ///   <item><description>The values can't contain commas.</description></item>
+    ///   <item><description>The combined length of the values (including required comma separators) can't exceed 255 characters.</description></item>
+    /// </list>
+    /// Returns <c>false</c> if any of the requirements are not met.
+    /// </summary>
+    public static bool TryCreateListValues(IEnumerable<string> values, bool showDropdown, [NotNullWhen(true)] out DataValidation? dataValidation)
+    {
+        if (values is null)
+            throw new ArgumentNullException(nameof(values));
+
+        return TryCreateListValuesInternal(values, showDropdown, out _, out dataValidation);
     }
 
     private static bool TryCreateListValuesInternal(
