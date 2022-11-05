@@ -519,8 +519,64 @@ public class SpreadsheetStyledRowTests
         using var workbook = new XLWorkbook(stream);
         var worksheet = workbook.Worksheets.Single();
         var actualCell = worksheet.Cell(1, 1);
+        var actualBorder = actualCell.Style.Border;
         Assert.Equal(cellValue, actualCell.Value);
-        Assert.Equal(expectedBorderStyle, actualCell.Style.Border.LeftBorder);
+        Assert.Equal(expectedBorderStyle, actualBorder.LeftBorder);
+        Assert.Equal(XLColor.Black, actualBorder.LeftBorderColor);
+        Assert.Equal(XLBorderStyleValues.None, actualBorder.RightBorder);
+        Assert.Equal(XLBorderStyleValues.None, actualBorder.TopBorder);
+        Assert.Equal(XLBorderStyleValues.None, actualBorder.BottomBorder);
+        Assert.Equal(XLBorderStyleValues.None, actualBorder.DiagonalBorder);
+    }
+
+    public static IEnumerable<object?[]> DiagonalBorderTypes() => TestData.CombineWithStyledCellTypes(EnumHelper.GetValues<DiagonalBorderType>());
+
+    [Theory]
+    [MemberData(nameof(DiagonalBorderTypes))]
+    public async Task Spreadsheet_AddRow_DiagonalBorder(DiagonalBorderType borderType, CellType type)
+    {
+        // Arrange
+        const string cellValue = "Border style test";
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var style = new Style
+            {
+                Border = new Border
+                {
+                    Diagonal = new DiagonalBorder
+                    {
+                        Color = Color.Green,
+                        BorderStyle = BorderStyle.Thin,
+                        Type = borderType
+                    }
+                }
+            };
+            var styleId = spreadsheet.AddStyle(style);
+            var styledCell = CellFactory.Create(type, cellValue, styleId);
+
+            // Act
+            await spreadsheet.AddRowAsync(styledCell);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        var actualBorder = actualCell.Style.Border;
+        Assert.Equal(cellValue, actualCell.Value);
+        Assert.Equal(XLBorderStyleValues.Thin, actualBorder.DiagonalBorder);
+        Assert.Equal(borderType.HasFlag(DiagonalBorderType.DiagonalUp), actualBorder.DiagonalUp);
+        Assert.Equal(borderType.HasFlag(DiagonalBorderType.DiagonalDown), actualBorder.DiagonalDown);
+        Assert.Equal(XLColor.Green, actualBorder.DiagonalBorderColor);
+        Assert.Equal(XLBorderStyleValues.None, actualBorder.LeftBorder);
+        Assert.Equal(XLBorderStyleValues.None, actualBorder.RightBorder);
+        Assert.Equal(XLBorderStyleValues.None, actualBorder.TopBorder);
+        Assert.Equal(XLBorderStyleValues.None, actualBorder.BottomBorder);
     }
 
     [Theory]

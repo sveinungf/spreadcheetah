@@ -1,7 +1,7 @@
 namespace SpreadCheetah.Styling;
 
 [Flags]
-internal enum DiagonalBorderType
+public enum DiagonalBorderType
 {
     None = 0,
     DiagonalUp = 1,
