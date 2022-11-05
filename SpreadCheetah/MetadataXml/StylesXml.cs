@@ -388,7 +388,7 @@ internal static class StylesXml
             BorderStyle.DashDotDot => "dashDotDot",
             BorderStyle.Dashed => "dashed",
             BorderStyle.Dotted => "dotted",
-            BorderStyle.Double => "double",
+            BorderStyle.DoubleLine => "double",
             BorderStyle.Hair => "hair",
             BorderStyle.Medium => "medium",
             BorderStyle.MediumDashDot => "mediumDashDot",
