@@ -580,6 +580,61 @@ public class SpreadsheetStyledRowTests
     }
 
     [Theory]
+    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_MultipleBorders(CellType type)
+    {
+        // Arrange
+        const string cellValue = "Border style test";
+
+        var styles = new[] { BorderStyle.Thin, BorderStyle.DoubleLine, BorderStyle.DashDotDot, BorderStyle.Medium };
+        var colors = new[] { Color.Firebrick, Color.ForestGreen, Color.Black, Color.Blue };
+
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var style = new Style
+            {
+                Border = new Border
+                {
+                    Left = new EdgeBorder { BorderStyle = styles[0], Color = colors[0] },
+                    Right = new EdgeBorder { BorderStyle = styles[1], Color = colors[1] },
+                    Top = new EdgeBorder { BorderStyle = styles[2], Color = colors[2] },
+                    Bottom = new EdgeBorder { BorderStyle = styles[3], Color = colors[3] }
+                }
+            };
+            var styleId = spreadsheet.AddStyle(style);
+            var styledCell = CellFactory.Create(type, cellValue, styleId);
+
+            // Act
+            await spreadsheet.AddRowAsync(styledCell);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        var actualBorder = actualCell.Style.Border;
+        Assert.Equal(cellValue, actualCell.Value);
+
+        Assert.Equal(styles[0].GetClosedXmlBorderStyle(), actualBorder.LeftBorder);
+        Assert.Equal(styles[1].GetClosedXmlBorderStyle(), actualBorder.RightBorder);
+        Assert.Equal(styles[2].GetClosedXmlBorderStyle(), actualBorder.TopBorder);
+        Assert.Equal(styles[3].GetClosedXmlBorderStyle(), actualBorder.BottomBorder);
+
+        Assert.Equal(XLColor.FromColor(colors[0]), actualBorder.LeftBorderColor);
+        Assert.Equal(XLColor.FromColor(colors[1]), actualBorder.RightBorderColor);
+        Assert.Equal(XLColor.FromColor(colors[2]), actualBorder.TopBorderColor);
+        Assert.Equal(XLColor.FromColor(colors[3]), actualBorder.BottomBorderColor);
+
+        Assert.Equal(XLBorderStyleValues.None, actualBorder.DiagonalBorder);
+        Assert.Equal(XLColor.Black, actualBorder.DiagonalBorderColor);
+    }
+
+    [Theory]
     [MemberData(nameof(TrueAndFalse))]
     public async Task Spreadsheet_AddRow_MultiFormatCellWithStringValue(bool formatting, CellType type)
     {
