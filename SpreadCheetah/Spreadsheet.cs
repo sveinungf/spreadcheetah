@@ -88,8 +88,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask StartWorksheetAsync(string name, WorksheetOptions? options = null, CancellationToken token = default)
     {
-        if (name is null)
-            throw new ArgumentNullException(nameof(name));
+        ArgumentNullException.ThrowIfNull(name);
 
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("The name can not be empty or consist only of whitespace.", nameof(name));
@@ -130,7 +129,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(Cell[] cells, CancellationToken token = default)
     {
-        ThrowIfNull(cells, nameof(cells));
+        ArgumentNullException.ThrowIfNull(cells);
         return AddRowAsync(cells.AsMemory(), token);
     }
 
@@ -139,7 +138,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(DataCell[] cells, CancellationToken token = default)
     {
-        ThrowIfNull(cells, nameof(cells));
+        ArgumentNullException.ThrowIfNull(cells);
         return AddRowAsync(cells.AsMemory(), token);
     }
 
@@ -148,7 +147,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(StyledCell[] cells, CancellationToken token = default)
     {
-        ThrowIfNull(cells, nameof(cells));
+        ArgumentNullException.ThrowIfNull(cells);
         return AddRowAsync(cells.AsMemory(), token);
     }
 
@@ -187,7 +186,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(IList<Cell> cells, CancellationToken token = default)
     {
-        ThrowIfNull(cells, nameof(cells));
+        ArgumentNullException.ThrowIfNull(cells);
         return Worksheet.TryAddRow(cells, out var currentIndex)
             ? default
             : Worksheet.AddRowAsync(cells, currentIndex, token);
@@ -199,7 +198,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public ValueTask AddRowAsync(IList<Cell> cells, RowOptions? options, CancellationToken token = default)
     {
         if (options is null) return AddRowAsync(cells, token);
-        ThrowIfNull(cells, nameof(cells));
+        ArgumentNullException.ThrowIfNull(cells);
         return Worksheet.TryAddRow(cells, options, out var currentIndex)
             ? default
             : Worksheet.AddRowAsync(cells, options, currentIndex, token);
@@ -210,7 +209,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(IList<DataCell> cells, CancellationToken token = default)
     {
-        ThrowIfNull(cells, nameof(cells));
+        ArgumentNullException.ThrowIfNull(cells);
         return Worksheet.TryAddRow(cells, out var currentIndex)
             ? default
             : Worksheet.AddRowAsync(cells, currentIndex, token);
@@ -222,7 +221,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public ValueTask AddRowAsync(IList<DataCell> cells, RowOptions? options, CancellationToken token = default)
     {
         if (options is null) return AddRowAsync(cells, token);
-        ThrowIfNull(cells, nameof(cells));
+        ArgumentNullException.ThrowIfNull(cells);
         return Worksheet.TryAddRow(cells, options, out var currentIndex)
             ? default
             : Worksheet.AddRowAsync(cells, options, currentIndex, token);
@@ -233,7 +232,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(IList<StyledCell> cells, CancellationToken token = default)
     {
-        ThrowIfNull(cells, nameof(cells));
+        ArgumentNullException.ThrowIfNull(cells);
         return Worksheet.TryAddRow(cells, out var currentIndex)
             ? default
             : Worksheet.AddRowAsync(cells, currentIndex, token);
@@ -245,7 +244,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public ValueTask AddRowAsync(IList<StyledCell> cells, RowOptions? options, CancellationToken token = default)
     {
         if (options is null) return AddRowAsync(cells, token);
-        ThrowIfNull(cells, nameof(cells));
+        ArgumentNullException.ThrowIfNull(cells);
         return Worksheet.TryAddRow(cells, options, out var currentIndex)
             ? default
             : Worksheet.AddRowAsync(cells, options, currentIndex, token);
@@ -258,7 +257,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddAsRowAsync<T>(T obj, WorksheetRowTypeInfo<T> typeInfo, CancellationToken token = default)
     {
-        ThrowIfNull(typeInfo, nameof(typeInfo));
+        ArgumentNullException.ThrowIfNull(typeInfo);
         return typeInfo.RowHandler(this, obj, token);
     }
 
@@ -269,15 +268,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRangeAsRowsAsync<T>(IEnumerable<T> objs, WorksheetRowTypeInfo<T> typeInfo, CancellationToken token = default)
     {
-        ThrowIfNull(objs, nameof(objs));
-        ThrowIfNull(typeInfo, nameof(typeInfo));
+        ArgumentNullException.ThrowIfNull(objs);
+        ArgumentNullException.ThrowIfNull(typeInfo);
         return typeInfo.RowRangeHandler(this, objs, token);
-    }
-
-    private static void ThrowIfNull<T>(T? obj, string paramName)
-    {
-        if (obj is null)
-            throw new ArgumentNullException(paramName);
     }
 
     /// <summary>
@@ -285,7 +278,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public StyleId AddStyle(Style style)
     {
-        ThrowIfNull(style, nameof(style));
+        ArgumentNullException.ThrowIfNull(style);
 
         // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
         if (_styles is null)
@@ -342,8 +335,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public void AddDataValidation(string reference, DataValidation validation)
     {
-        ThrowIfNull(validation, nameof(validation));
-        ThrowIfNull(reference, nameof(reference));
+        ArgumentNullException.ThrowIfNull(validation);
+        ArgumentNullException.ThrowIfNull(reference);
 
         if (!CellReference.TryCreate(reference, out var cellReference))
             throw new ArgumentException("Invalid reference for a cell or a range of cells.", nameof(reference));

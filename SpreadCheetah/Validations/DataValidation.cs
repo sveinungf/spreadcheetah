@@ -148,8 +148,7 @@ public sealed class DataValidation
     /// </summary>
     public static DataValidation ListValues(IEnumerable<string> values, bool showDropdown = true)
     {
-        if (values is null)
-            throw new ArgumentNullException(nameof(values));
+        ArgumentNullException.ThrowIfNull(values);
 
         if (TryCreateListValuesInternal(values, showDropdown, out var invalidValue, out var dataValidation))
             return dataValidation;
@@ -171,9 +170,7 @@ public sealed class DataValidation
     /// </summary>
     public static bool TryCreateListValues(IEnumerable<string> values, bool showDropdown, [NotNullWhen(true)] out DataValidation? dataValidation)
     {
-        if (values is null)
-            throw new ArgumentNullException(nameof(values));
-
+        ArgumentNullException.ThrowIfNull(values);
         return TryCreateListValuesInternal(values, showDropdown, out _, out dataValidation);
     }
 
