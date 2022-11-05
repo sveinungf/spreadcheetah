@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
+using SpreadCheetah.Test.Helpers.Backporting;
 using System.Drawing;
 using Xunit;
 using Font = SpreadCheetah.Styling.Font;
@@ -487,6 +488,39 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(value, actualCell.GetDateTime());
         Assert.Equal(expectedNumberFormat, actualCell.Style.NumberFormat.Format);
         Assert.True(actualCell.Style.Font.Italic);
+    }
+
+    public static IEnumerable<object?[]> BorderStyles() => TestData.CombineWithStyledCellTypes(EnumHelper.GetValues<BorderStyle>());
+
+    [Theory]
+    [MemberData(nameof(BorderStyles))]
+    public async Task Spreadsheet_AddRow_BorderStyle(BorderStyle borderStyle, Type type)
+    {
+        // Arrange
+        const string cellValue = "Border style test";
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var style = new Style { Border = new Border { Left = new EdgeBorder { BorderStyle = borderStyle } } };
+            var styleId = spreadsheet.AddStyle(style);
+            var styledCell = CellFactory.Create(type, cellValue, styleId);
+
+            // Act
+            await spreadsheet.AddRowAsync(styledCell);
+            await spreadsheet.FinishAsync();
+        }
+
+        var expectedBorderStyle = borderStyle.GetClosedXmlBorderStyle();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.Equal(cellValue, actualCell.Value);
+        Assert.Equal(expectedBorderStyle, actualCell.Style.Border.LeftBorder);
     }
 
     [Theory]
