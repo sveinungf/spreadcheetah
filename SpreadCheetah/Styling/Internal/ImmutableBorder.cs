@@ -1,5 +1,8 @@
+using System.Runtime.InteropServices;
+
 namespace SpreadCheetah.Styling.Internal;
 
+[StructLayout(LayoutKind.Auto)]
 internal readonly record struct ImmutableBorder(
     ImmutableEdgeBorder Left,
     ImmutableEdgeBorder Right,

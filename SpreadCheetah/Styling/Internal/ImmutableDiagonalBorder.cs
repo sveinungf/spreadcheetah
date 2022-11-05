@@ -1,7 +1,9 @@
-﻿using System.Drawing;
+using System.Drawing;
+using System.Runtime.InteropServices;
 
 namespace SpreadCheetah.Styling.Internal;
 
+[StructLayout(LayoutKind.Auto)]
 internal readonly record struct ImmutableDiagonalBorder(
     BorderStyle BorderStyle,
     Color? Color,
