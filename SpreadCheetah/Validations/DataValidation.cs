@@ -137,7 +137,14 @@ public sealed class DataValidation
     /// <summary>Validate that text lengths are less than or equal to <paramref name="value"/>.</summary>
     public static DataValidation TextLengthLessThanOrEqualTo(int value) => TextLength(ValidationOperator.LessThanOrEqualTo, value);
 
-    /// <summary>Validate that cell values equal any of <paramref name="values"/>.</summary>
+    /// <summary>
+    /// Validate that cell values equal any of <paramref name="values"/>.
+    /// Note that:
+    /// <list type="bullet">
+    ///   <item><description>Commas are not allowed in the list values.</description></item>
+    ///   <item><description>The combined length of the values (including required comma separators) can't exceed 255 characters.</description></item>
+    /// </list>
+    /// </summary>
     public static DataValidation ListValues(IEnumerable<string> values, bool showDropdown = true)
     {
         if (values is null)
