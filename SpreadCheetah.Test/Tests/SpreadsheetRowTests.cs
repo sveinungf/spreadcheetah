@@ -7,6 +7,7 @@ using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
 using System.Globalization;
 using Xunit;
+using CellType = SpreadCheetah.Test.Helpers.CellType;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
 namespace SpreadCheetah.Test.Tests;
@@ -34,7 +35,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_EmptyArrayRow(Type type)
+    public async Task Spreadsheet_AddRow_EmptyArrayRow(CellType type)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -44,9 +45,9 @@ public class SpreadsheetRowTests
 
             var addRowTask = type switch
             {
-                _ when type == typeof(Cell) => spreadsheet.AddRowAsync(Array.Empty<Cell>()),
-                _ when type == typeof(DataCell) => spreadsheet.AddRowAsync(Array.Empty<DataCell>()),
-                _ when type == typeof(StyledCell) => spreadsheet.AddRowAsync(Array.Empty<StyledCell>()),
+                CellType.Cell => spreadsheet.AddRowAsync(Array.Empty<Cell>()),
+                CellType.DataCell => spreadsheet.AddRowAsync(Array.Empty<DataCell>()),
+                CellType.StyledCell => spreadsheet.AddRowAsync(Array.Empty<StyledCell>()),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
 
@@ -64,7 +65,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_EmptyListRow(Type type)
+    public async Task Spreadsheet_AddRow_EmptyListRow(CellType type)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -74,9 +75,9 @@ public class SpreadsheetRowTests
 
             var addRowTask = type switch
             {
-                _ when type == typeof(Cell) => spreadsheet.AddRowAsync(new List<Cell>()),
-                _ when type == typeof(DataCell) => spreadsheet.AddRowAsync(new List<DataCell>()),
-                _ when type == typeof(StyledCell) => spreadsheet.AddRowAsync(new List<StyledCell>()),
+                CellType.Cell => spreadsheet.AddRowAsync(new List<Cell>()),
+                CellType.DataCell => spreadsheet.AddRowAsync(new List<DataCell>()),
+                CellType.StyledCell => spreadsheet.AddRowAsync(new List<StyledCell>()),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
 
@@ -94,7 +95,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_EmptyMemoryRow(Type type)
+    public async Task Spreadsheet_AddRow_EmptyMemoryRow(CellType type)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -104,9 +105,9 @@ public class SpreadsheetRowTests
 
             var addRowTask = type switch
             {
-                _ when type == typeof(Cell) => spreadsheet.AddRowAsync(ReadOnlyMemory<Cell>.Empty),
-                _ when type == typeof(DataCell) => spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty),
-                _ when type == typeof(StyledCell) => spreadsheet.AddRowAsync(ReadOnlyMemory<StyledCell>.Empty),
+                CellType.Cell => spreadsheet.AddRowAsync(ReadOnlyMemory<Cell>.Empty),
+                CellType.DataCell => spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty),
+                CellType.StyledCell => spreadsheet.AddRowAsync(ReadOnlyMemory<StyledCell>.Empty),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
 
@@ -124,7 +125,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_CellWithoutValue(Type type)
+    public async Task Spreadsheet_AddRow_CellWithoutValue(CellType type)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -161,7 +162,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(Strings))]
-    public async Task Spreadsheet_AddRow_CellWithStringValue(string? value, Type type)
+    public async Task Spreadsheet_AddRow_CellWithStringValue(string? value, CellType type)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -195,7 +196,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(StringLengths))]
-    public async Task Spreadsheet_AddRow_CellWithVeryLongStringValue(int length, Type type)
+    public async Task Spreadsheet_AddRow_CellWithVeryLongStringValue(int length, CellType type)
     {
         // Arrange
         var value = new string('a', length);
@@ -230,7 +231,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(Integers))]
-    public async Task Spreadsheet_AddRow_CellWithIntegerValue(int? value, Type type)
+    public async Task Spreadsheet_AddRow_CellWithIntegerValue(int? value, CellType type)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -269,7 +270,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(Longs))]
-    public async Task Spreadsheet_AddRow_CellWithLongValue(long? initialValue, string expectedValue, Type type)
+    public async Task Spreadsheet_AddRow_CellWithLongValue(long? initialValue, string expectedValue, CellType type)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -305,7 +306,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(Floats))]
-    public async Task Spreadsheet_AddRow_CellWithFloatValue(float? initialValue, string expectedValue, Type type)
+    public async Task Spreadsheet_AddRow_CellWithFloatValue(float? initialValue, string expectedValue, CellType type)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -346,7 +347,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(Doubles))]
-    public async Task Spreadsheet_AddRow_CellWithDoubleValue(double? initialValue, string expectedValue, Type type)
+    public async Task Spreadsheet_AddRow_CellWithDoubleValue(double? initialValue, string expectedValue, CellType type)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -388,7 +389,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(Decimals))]
-    public async Task Spreadsheet_AddRow_CellWithDecimalValue(string? initialValue, string expectedValue, Type type)
+    public async Task Spreadsheet_AddRow_CellWithDecimalValue(string? initialValue, string expectedValue, CellType type)
     {
         // Arrange
         var decimalValue = initialValue != null ? decimal.Parse(initialValue, CultureInfo.InvariantCulture) : null as decimal?;
@@ -423,7 +424,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(DateTimes))]
-    public async Task Spreadsheet_AddRow_CellWithDateTimeValue(DateTime? value, Type type)
+    public async Task Spreadsheet_AddRow_CellWithDateTimeValue(DateTime? value, CellType type)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -458,7 +459,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(DateTimeNumberFormats))]
-    public async Task Spreadsheet_AddRow_CellWithDateTimeValueAndDefaultNumberFormat(string? defaultNumberFormat, Type type)
+    public async Task Spreadsheet_AddRow_CellWithDateTimeValueAndDefaultNumberFormat(string? defaultNumberFormat, CellType type)
     {
         // Arrange
         var value = new DateTime(2022, 9, 11, 14, 7, 13);
@@ -492,7 +493,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(Booleans))]
-    public async Task Spreadsheet_AddRow_CellWithBooleanValue(bool? initialValue, string expectedValue, Type type)
+    public async Task Spreadsheet_AddRow_CellWithBooleanValue(bool? initialValue, string expectedValue, CellType type)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -518,7 +519,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_MultipleColumns(Type type)
+    public async Task Spreadsheet_AddRow_MultipleColumns(CellType type)
     {
         // Arrange
         var values = Enumerable.Range(1, 1000).Select(x => x.ToString()).ToList();
@@ -543,7 +544,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_MultipleRows(Type type)
+    public async Task Spreadsheet_AddRow_MultipleRows(CellType type)
     {
         // Arrange
         var values = Enumerable.Range(1, 1000).Select(x => x.ToString()).ToList();
@@ -578,7 +579,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(RowHeights))]
-    public async Task Spreadsheet_AddRow_RowHeight(double? height, Type type)
+    public async Task Spreadsheet_AddRow_RowHeight(double? height, CellType type)
     {
         // Arrange
         var rowOptions = new RowOptions { Height = height };

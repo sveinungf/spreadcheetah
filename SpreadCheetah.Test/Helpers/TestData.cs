@@ -4,12 +4,12 @@ namespace SpreadCheetah.Test.Helpers;
 
 internal static class TestData
 {
-    private static readonly Type[] CellTypesArray = new[] { typeof(Cell), typeof(DataCell), typeof(StyledCell) };
-    private static readonly CellType[] StyledCellTypesEnumArray = new[] { CellType.StyledCell, CellType.Cell };
+    private static readonly CellType[] CellTypesArray = EnumHelper.GetValues<CellType>();
+    private static readonly CellType[] StyledCellTypesArray = new[] { CellType.StyledCell, CellType.Cell };
     private static readonly CellValueType[] CellValueTypesArray = EnumHelper.GetValues<CellValueType>();
 
     public static IEnumerable<object?[]> CellTypes() => CellTypesArray.Select(x => new object[] { x });
-    public static IEnumerable<object?[]> StyledCellTypes() => StyledCellTypesEnumArray.Select(x => new object[] { x });
+    public static IEnumerable<object?[]> StyledCellTypes() => StyledCellTypesArray.Select(x => new object[] { x });
 
     public static IEnumerable<object?[]> CombineWithCellTypes(params object?[] values)
     {
@@ -23,7 +23,7 @@ internal static class TestData
 
     public static IEnumerable<object?[]> CombineWithStyledCellTypes<T>(params T?[] values)
     {
-        return values.SelectMany(_ => StyledCellTypesEnumArray, (value, type) => new object?[] { value, type });
+        return values.SelectMany(_ => StyledCellTypesArray, (value, type) => new object?[] { value, type });
     }
 
     public static IEnumerable<object?[]> CombineWithValueTypes(params object?[] values)
@@ -44,7 +44,7 @@ internal static class TestData
     {
         foreach (var valueType in CellValueTypesArray)
         {
-            foreach (var cellType in StyledCellTypesEnumArray)
+            foreach (var cellType in StyledCellTypesArray)
             {
                 yield return new object?[] { valueType, true, cellType };
                 yield return new object?[] { valueType, false, cellType };
