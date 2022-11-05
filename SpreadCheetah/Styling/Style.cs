@@ -7,13 +7,13 @@ namespace SpreadCheetah.Styling;
 /// </summary>
 public sealed class Style : IEquatable<Style>
 {
-    internal Border Border { get; set; } = new Border();
+    internal Border Border { get; set; } = new();
 
     /// <summary>Fill for the cell.</summary>
-    public Fill Fill { get; set; } = new Fill();
+    public Fill Fill { get; set; } = new();
 
     /// <summary>Font for the cell's value.</summary>
-    public Font Font { get; set; } = new Font();
+    public Font Font { get; set; } = new();
 
     /// <summary>Format that defines how a number or <see cref="DateTime"/> cell should be displayed.</summary>
     public string? NumberFormat { get => _numberFormat; set => _numberFormat = value.WithEnsuredMaxLength(255); }
@@ -21,6 +21,7 @@ public sealed class Style : IEquatable<Style>
 
     /// <inheritdoc/>
     public bool Equals(Style? other) => other != null
+        && EqualityComparer<Border>.Default.Equals(Border, other.Border)
         && EqualityComparer<Fill>.Default.Equals(Fill, other.Fill)
         && EqualityComparer<Font>.Default.Equals(Font, other.Font)
         && string.Equals(NumberFormat, other.NumberFormat, StringComparison.Ordinal);
@@ -29,5 +30,5 @@ public sealed class Style : IEquatable<Style>
     public override bool Equals(object? obj) => obj is Style other && Equals(other);
 
     /// <inheritdoc/>
-    public override int GetHashCode() => HashCode.Combine(Fill, Font, NumberFormat);
+    public override int GetHashCode() => HashCode.Combine(Border, Fill, Font, NumberFormat);
 }
