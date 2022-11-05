@@ -44,7 +44,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_BoldCellWithStringValue(bool bold, Type type)
+    public async Task Spreadsheet_AddRow_BoldCellWithStringValue(bool bold, CellType type)
     {
         // Arrange
         const string cellValue = "Bold test";
@@ -74,7 +74,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_SameBoldStyleCells(bool bold, Type type)
+    public async Task Spreadsheet_AddRow_SameBoldStyleCells(bool bold, CellType type)
     {
         // Arrange
         const string firstCellValue = "First";
@@ -110,7 +110,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_MixedBoldStyleCells(bool firstCellBold, Type type)
+    public async Task Spreadsheet_AddRow_MixedBoldStyleCells(bool firstCellBold, CellType type)
     {
         // Arrange
         const string firstCellValue = "First";
@@ -146,7 +146,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_ItalicCellWithStringValue(bool italic, Type type)
+    public async Task Spreadsheet_AddRow_ItalicCellWithStringValue(bool italic, CellType type)
     {
         // Arrange
         const string cellValue = "Italic test";
@@ -176,7 +176,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_StrikethroughCellWithStringValue(bool strikethrough, Type type)
+    public async Task Spreadsheet_AddRow_StrikethroughCellWithStringValue(bool strikethrough, CellType type)
     {
         // Arrange
         const string cellValue = "Italic test";
@@ -212,7 +212,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(FontSizes))]
-    public async Task Spreadsheet_AddRow_FontSizeCellWithStringValue(double size, Type type)
+    public async Task Spreadsheet_AddRow_FontSizeCellWithStringValue(double size, CellType type)
     {
         // Arrange
         const string cellValue = "Font size test";
@@ -310,7 +310,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(FontNames))]
-    public async Task Spreadsheet_AddRow_FontNameCellWithStringValue(string? fontName, Type type)
+    public async Task Spreadsheet_AddRow_FontNameCellWithStringValue(string? fontName, CellType type)
     {
         // Arrange
         const string cellValue = "Font name test";
@@ -353,7 +353,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(PredefinedNumberFormats))]
-    public async Task Spreadsheet_AddRow_PredefinedNumberFormatCellWithStringValue(string? numberFormat, Type type)
+    public async Task Spreadsheet_AddRow_PredefinedNumberFormatCellWithStringValue(string? numberFormat, CellType type)
     {
         // Arrange
         const string cellValue = "Number format test";
@@ -391,7 +391,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(CustomNumberFormats))]
-    public async Task Spreadsheet_AddRow_CustomNumberFormatCellWithStringValue(string numberFormat, Type type)
+    public async Task Spreadsheet_AddRow_CustomNumberFormatCellWithStringValue(string numberFormat, CellType type)
     {
         // Arrange
         const string cellValue = "Number format test";
@@ -456,7 +456,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_DateTimeNumberFormat(bool withExplicitNumberFormat, Type type)
+    public async Task Spreadsheet_AddRow_DateTimeNumberFormat(bool withExplicitNumberFormat, CellType type)
     {
         // Arrange
         const string explicitNumberFormat = "yyyy";
@@ -494,7 +494,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(BorderStyles))]
-    public async Task Spreadsheet_AddRow_BorderStyle(BorderStyle borderStyle, Type type)
+    public async Task Spreadsheet_AddRow_BorderStyle(BorderStyle borderStyle, CellType type)
     {
         // Arrange
         const string cellValue = "Border style test";
@@ -525,7 +525,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_MultiFormatCellWithStringValue(bool formatting, Type type)
+    public async Task Spreadsheet_AddRow_MultiFormatCellWithStringValue(bool formatting, CellType type)
     {
         // Arrange
         const string cellValue = "Formatting test";
@@ -635,7 +635,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_MixedCellTypeRows(bool firstRowStyled, Type type)
+    public async Task Spreadsheet_AddRow_MixedCellTypeRows(bool firstRowStyled, CellType type)
     {
         // Arrange
         const string firstCellValue = "First";

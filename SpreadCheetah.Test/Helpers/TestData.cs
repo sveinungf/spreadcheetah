@@ -5,7 +5,6 @@ namespace SpreadCheetah.Test.Helpers;
 internal static class TestData
 {
     private static readonly Type[] CellTypesArray = new[] { typeof(Cell), typeof(DataCell), typeof(StyledCell) };
-    private static readonly Type[] StyledCellTypesArray = new[] { typeof(Cell), typeof(StyledCell) };
     private static readonly CellType[] StyledCellTypesEnumArray = new[] { CellType.StyledCell, CellType.Cell };
     private static readonly CellValueType[] CellValueTypesArray = EnumHelper.GetValues<CellValueType>();
 
@@ -24,7 +23,7 @@ internal static class TestData
 
     public static IEnumerable<object?[]> CombineWithStyledCellTypes<T>(params T?[] values)
     {
-        return values.SelectMany(_ => StyledCellTypesArray, (value, type) => new object?[] { value, type });
+        return values.SelectMany(_ => StyledCellTypesEnumArray, (value, type) => new object?[] { value, type });
     }
 
     public static IEnumerable<object?[]> CombineWithValueTypes(params object?[] values)
