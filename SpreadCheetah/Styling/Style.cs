@@ -7,7 +7,8 @@ namespace SpreadCheetah.Styling;
 /// </summary>
 public sealed class Style : IEquatable<Style>
 {
-    internal Border Border { get; set; } = new();
+    /// <summary>Border for the cell.</summary>
+    public Border Border { get; set; } = new();
 
     /// <summary>Fill for the cell.</summary>
     public Fill Fill { get; set; } = new();
