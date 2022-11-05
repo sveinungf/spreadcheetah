@@ -384,19 +384,19 @@ internal static class StylesXml
     {
         var value = style switch
         {
-            BorderStyle.Solid => throw new NotImplementedException(),
-            BorderStyle.Medium => throw new NotImplementedException(),
+            BorderStyle.DashDot => "dashDot",
+            BorderStyle.DashDotDot => "dashDotDot",
             BorderStyle.Dashed => "dashed",
-            BorderStyle.Dotted => throw new NotImplementedException(),
-            BorderStyle.Thick => throw new NotImplementedException(),
-            BorderStyle.Double => throw new NotImplementedException(),
-            BorderStyle.Hair => throw new NotImplementedException(),
-            BorderStyle.MediumDashed => throw new NotImplementedException(),
-            BorderStyle.DashDot => throw new NotImplementedException(),
-            BorderStyle.MediumDashDot => throw new NotImplementedException(),
-            BorderStyle.DashDotDot => throw new NotImplementedException(),
-            BorderStyle.MediumDashDotDot => throw new NotImplementedException(),
-            BorderStyle.SlantDashDot => throw new NotImplementedException(),
+            BorderStyle.Dotted => "dotted",
+            BorderStyle.Double => "double",
+            BorderStyle.Hair => "hair",
+            BorderStyle.Medium => "medium",
+            BorderStyle.MediumDashDot => "mediumDashDot",
+            BorderStyle.MediumDashDotDot => "mediumDashDotDot",
+            BorderStyle.MediumDashed => "mediumDashed",
+            BorderStyle.SlantDashDot => "slantDashDot",
+            BorderStyle.Thick => "thick",
+            BorderStyle.Thin => "thin",
             _ => ""
         };
 

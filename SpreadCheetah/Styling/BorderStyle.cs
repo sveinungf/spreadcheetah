@@ -1,9 +1,9 @@
 namespace SpreadCheetah.Styling;
 
-internal enum BorderStyle
+public enum BorderStyle
 {
     None,
-    Solid, // AKA "Thin"
+    Thin,
     Medium,
     Dashed,
     Dotted,
