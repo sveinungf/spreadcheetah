@@ -1,4 +1,5 @@
 using SpreadCheetah.Helpers;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
 
@@ -9,6 +10,7 @@ namespace SpreadCheetah.Validations;
 /// </summary>
 public sealed class DataValidation
 {
+    private const int MaxValueLength = 255;
     private const string MinGreaterThanMaxMessage = "The min value must be less than or equal to the max value.";
 
     internal ValidationType Type { get; }
@@ -141,24 +143,54 @@ public sealed class DataValidation
         if (values is null)
             throw new ArgumentNullException(nameof(values));
 
+        if (TryCreateListValuesInternal(values, showDropdown, out var invalidValue, out var dataValidation))
+            return dataValidation;
+
+        if (invalidValue is not null)
+            throw new ArgumentException($"Commas are not allowed in the list values. This value contains a comma: {invalidValue}", nameof(values));
+
+        throw new ArgumentException($"The combined length of the values (including required comma separators) can't exceed {MaxValueLength} characters.", nameof(values));
+    }
+
+    private static bool TryCreateListValuesInternal(
+        IEnumerable<string> values,
+        bool showDropdown,
+        out string? invalidValue,
+        [NotNullWhen(true)] out DataValidation? dataValidation)
+    {
+        invalidValue = null;
+        dataValidation = null;
         var sb = new StringBuilder();
         sb.Append('"');
         var first = true;
+        int combinedLength = 0;
 
         foreach (var value in values)
         {
             if (value.Contains(',', StringComparison.Ordinal))
-                throw new ArgumentException($"Commas are not allowed in the list values. This value contains a comma: {value}", nameof(values));
+            {
+                invalidValue = value;
+                return false;
+            }
 
             if (!first)
+            {
                 sb.Append(',');
+                ++combinedLength;
+            }
 
             sb.Append(WebUtility.HtmlEncode(value));
             first = false;
+
+            // Character length (and not the encoded character length) is used to calculate the combined length.
+            combinedLength += value.Length;
+            if (combinedLength > MaxValueLength)
+                return false;
         }
 
         sb.Append('"');
 
-        return new DataValidation(ValidationType.List, ValidationOperator.None, sb.ToString(), null, showDropdown);
+        dataValidation = new DataValidation(ValidationType.List, ValidationOperator.None, sb.ToString(), null, showDropdown);
+        return true;
     }
 }
