@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace SpreadCheetah;
 
-internal readonly struct CellReference : IEquatable<CellReference>
+internal readonly record struct CellReference : IEquatable<CellReference>
 {
     private static Regex Regex { get; } = new Regex(@"^[A-Z]{1,3}\d{1,7}(?::[A-Z]{1,3}\d{1,7})?$", RegexOptions.None, TimeSpan.FromSeconds(1));
 
@@ -24,10 +24,4 @@ internal readonly struct CellReference : IEquatable<CellReference>
         reference = new CellReference(value!);
         return true;
     }
-
-    public bool Equals(CellReference other) => string.Equals(Reference, other.Reference, StringComparison.Ordinal);
-    public override bool Equals(object? obj) => obj is CellReference other && Equals(other);
-    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Reference);
-    public static bool operator ==(in CellReference left, in CellReference right) => left.Equals(right);
-    public static bool operator !=(in CellReference left, in CellReference right) => !left.Equals(right);
 }
