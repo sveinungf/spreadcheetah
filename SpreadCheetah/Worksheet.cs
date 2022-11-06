@@ -164,7 +164,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public void AddDataValidation(CellReference reference, DataValidation validation)
     {
         _validations ??= new Dictionary<CellReference, DataValidation>();
-        _validations.Add(reference, validation);
+        _validations[reference] = validation;
     }
 
     public async ValueTask FinishAsync(CancellationToken token)

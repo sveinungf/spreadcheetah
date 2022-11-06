@@ -415,4 +415,37 @@ public class SpreadsheetDataValidationTests
         // Act & Assert
         Assert.ThrowsAny<ArgumentException>(() => spreadsheet.AddDataValidation(reference!, validation));
     }
+
+    [Fact]
+    public async Task Spreadsheet_AddDataValidation_OverwritePrevious()
+    {
+        // Arrange
+        var previousValidation = DataValidation.TextLengthLessThan(10);
+        var validation = DataValidation.TextLengthLessThan(20);
+
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+            spreadsheet.AddDataValidation("A1", previousValidation);
+
+            // Act
+            spreadsheet.AddDataValidation("A1", validation);
+
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualValidation = Assert.Single(worksheet.DataValidations);
+        var actualRange = Assert.Single(actualValidation.Ranges);
+        var cell = Assert.Single(actualRange.Cells());
+        Assert.Equal(1, cell.Address.ColumnNumber);
+        Assert.Equal(1, cell.Address.RowNumber);
+        Assert.Equal(XLAllowedValues.TextLength, actualValidation.AllowedValues);
+        Assert.Equal(XLOperator.LessThan, actualValidation.Operator);
+        Assert.Equal("20", actualValidation.MinValue);
+    }
 }
