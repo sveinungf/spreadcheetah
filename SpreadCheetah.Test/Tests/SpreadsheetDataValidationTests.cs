@@ -400,6 +400,7 @@ public class SpreadsheetDataValidationTests
     [InlineData(" A1")]
     [InlineData("a1")]
     [InlineData("Å1")]
+    [InlineData("A１")]
     [InlineData("AAAA1")]
     [InlineData("A12345678")]
     public async Task Spreadsheet_AddDataValidation_InvalidReference(string? reference)
