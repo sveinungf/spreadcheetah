@@ -338,10 +338,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(validation);
         ArgumentNullException.ThrowIfNull(reference);
 
-        if (!CellReference.TryCreate(reference, out var cellReference))
-            throw new ArgumentException("Invalid reference for a cell or a range of cells.", nameof(reference));
-
-        Worksheet.AddDataValidation(cellReference.Value, validation);
+        var cellReference = CellReference.Create(reference);
+        Worksheet.AddDataValidation(cellReference, validation);
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
