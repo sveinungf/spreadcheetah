@@ -1,3 +1,4 @@
+using SpreadCheetah.Helpers;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
@@ -12,7 +13,7 @@ internal readonly record struct CellReference
 
     private CellReference(string reference) => Reference = reference;
 
-    private static bool TryCreate(string? value, [NotNullWhen(true)] out CellReference? reference)
+    private static bool TryCreate(string value, [NotNullWhen(true)] out CellReference? reference)
     {
         reference = null;
 
@@ -26,14 +27,11 @@ internal readonly record struct CellReference
         return true;
     }
 
-    public static CellReference Create(string? value, [CallerArgumentExpression("value")] string? paramName = null)
+    public static CellReference Create(string value, [CallerArgumentExpression("value")] string? paramName = null)
     {
         if (!TryCreate(value, out var reference))
-            ThrowInvalid(paramName);
+            ThrowHelper.CellReferenceInvalid(paramName);
 
         return reference.Value;
     }
-
-    [DoesNotReturn]
-    private static void ThrowInvalid(string? paramName) => throw new ArgumentException("Invalid reference for a cell or a range of cells.", paramName);
 }

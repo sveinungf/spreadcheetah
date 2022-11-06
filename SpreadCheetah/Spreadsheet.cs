@@ -1,3 +1,4 @@
+using SpreadCheetah.Helpers;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.Styling;
@@ -14,9 +15,6 @@ namespace SpreadCheetah;
 /// </summary>
 public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 {
-    // Invalid worksheet name characters in Excel
-    private const string InvalidSheetNameCharacters = @"/\*?[]";
-
     private readonly List<string> _worksheetNames = new();
     private readonly List<string> _worksheetPaths = new();
     private readonly ZipArchive _archive;
@@ -89,24 +87,13 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public ValueTask StartWorksheetAsync(string name, WorksheetOptions? options = null, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(name);
-
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("The name can not be empty or consist only of whitespace.", nameof(name));
-
-        if (name.Length > 31)
-            throw new ArgumentException("The name can not be more than 31 characters.", nameof(name));
-
-        if (name.StartsWith('\'') || name.EndsWith('\''))
-            throw new ArgumentException("The name can not start or end with a single quote.", nameof(name));
-
-        if (name.AsSpan().IndexOfAny(InvalidSheetNameCharacters.AsSpan()) != -1)
-            throw new ArgumentException("The name can not contain any of the following characters: " + InvalidSheetNameCharacters, nameof(name));
+        name.EnsureValidWorksheetName();
 
         if (_worksheetNames.Contains(name, StringComparer.OrdinalIgnoreCase))
-            throw new ArgumentException("A worksheet with the given name already exists.", nameof(name));
+            ThrowHelper.WorksheetNameAlreadyExists(nameof(name));
 
         if (_finished)
-            throw new SpreadCheetahException("Can't start another worksheet after " + nameof(FinishAsync) + " has been called.");
+            ThrowHelper.StartWorksheetNotAllowedAfterFinish();
 
         return StartWorksheetInternalAsync(name, options, token);
     }
