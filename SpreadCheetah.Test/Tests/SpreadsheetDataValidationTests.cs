@@ -328,6 +328,36 @@ public class SpreadsheetDataValidationTests
     }
 
     [Fact]
+    public async Task Spreadsheet_AddDataValidation_ListValuesFromCells()
+    {
+        // Arrange
+        const string reference = "A2";
+        const string cellRange = "A1:C1";
+        var validation = DataValidation.ListValuesFromCells(cellRange);
+
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.AddRowAsync(new DataCell[] { new("Apple"), new("Orange"), new("Pear") });
+
+            // Act
+            spreadsheet.AddDataValidation(reference, validation);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var package = new ExcelPackage(stream);
+        var worksheet = package.Workbook.Worksheets.Single();
+        var actualValidation = Assert.Single(worksheet.DataValidations);
+        Assert.Equal(reference, actualValidation.Address.Address);
+        Assert.Equal(eDataValidationType.List, actualValidation.ValidationType.Type);
+        var actualListValidation = (IExcelDataValidationList)actualValidation;
+        Assert.Equal(cellRange, actualListValidation.Formula.ExcelFormula);
+    }
+
+    [Fact]
     public async Task Spreadsheet_AddDataValidation_InputAndErrorMessages()
     {
         // Arrange
