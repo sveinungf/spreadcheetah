@@ -357,6 +357,44 @@ public class SpreadsheetDataValidationTests
         Assert.Equal(cellRange, actualListValidation.Formula.ExcelFormula);
     }
 
+    [Theory]
+    [InlineData("ValueSheet")]
+    [InlineData("Value sheet")]
+    [InlineData("Value'sheet")]
+    [InlineData("Value<sheet")]
+    public async Task Spreadsheet_AddDataValidation_ListValuesFromCellsInAnotherWorksheet(string valueSheetName)
+    {
+        // Arrange
+        const string reference = "A2";
+        const string cellRange = "A1:C1";
+        var validation = DataValidation.ListValuesFromCells(valueSheetName, cellRange);
+
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync(valueSheetName);
+            await spreadsheet.AddRowAsync(new DataCell[] { new("Apple"), new("Orange"), new("Pear") });
+            await spreadsheet.StartWorksheetAsync("Data validation sheet");
+
+            // Act
+            spreadsheet.AddDataValidation(reference, validation);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var package = new ExcelPackage(stream);
+        var worksheet = package.Workbook.Worksheets.Single(x => !string.Equals(x.Name, valueSheetName, StringComparison.Ordinal));
+        var actualValidation = Assert.Single(worksheet.DataValidations);
+        Assert.Equal(reference, actualValidation.Address.Address);
+        Assert.Equal(eDataValidationType.List, actualValidation.ValidationType.Type);
+        var actualListValidation = (IExcelDataValidationList)actualValidation;
+#pragma warning disable CA1307, MA0074 // Specify StringComparison for clarity
+        var expectedValueSheetName = valueSheetName?.Replace("'", "''");
+#pragma warning restore CA1307, MA0074 // Specify StringComparison for clarity
+        Assert.Equal($"'{expectedValueSheetName}'!{cellRange}", actualListValidation.Formula.ExcelFormula);
+    }
+
     [Fact]
     public async Task Spreadsheet_AddDataValidation_InputAndErrorMessages()
     {
