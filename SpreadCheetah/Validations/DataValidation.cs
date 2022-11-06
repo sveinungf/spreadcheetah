@@ -151,7 +151,7 @@ public sealed class DataValidation
     ///   <item><term><c>A5:XFD5</c></term><description>References all cells in row 5.</description></item>
     /// </list>
     /// </summary>
-    internal static DataValidation ListValuesFromCells(string cellRange, bool showDropdown = true)
+    public static DataValidation ListValuesFromCells(string cellRange, bool showDropdown = true)
     {
         ArgumentNullException.ThrowIfNull(cellRange);
         var cellReference = CellReference.Create(cellRange);
@@ -170,7 +170,7 @@ public sealed class DataValidation
     ///   <item><term><c>A5:XFD5</c></term><description>References all cells in row 5.</description></item>
     /// </list>
     /// </summary>
-    internal static DataValidation ListValuesFromCells(string worksheetName, string cellRange, bool showDropdown = true)
+    public static DataValidation ListValuesFromCells(string worksheetName, string cellRange, bool showDropdown = true)
     {
         ArgumentNullException.ThrowIfNull(worksheetName);
         ArgumentNullException.ThrowIfNull(cellRange);
