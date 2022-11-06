@@ -139,20 +139,44 @@ public sealed class DataValidation
 
     private static DataValidation ListValuesInternal(string value, bool showDropdown) => new(ValidationType.List, ValidationOperator.None, value, null, showDropdown);
 
-    internal static DataValidation ListValues(string reference, bool showDropdown = true)
+    /// <summary>
+    /// Validate that cell values equal any of the values from the specified cell range.
+    /// The cell range refers to cells within the same worksheet as the data validation.
+    /// To reference cells in another worksheet, use the overload with the worksheet name parameter.
+    /// The cell range must be in the A1 reference style. Some examples:
+    /// <list type="bullet">
+    ///   <item><term><c>A1:A4</c></term><description>References the range from cell A1 to A4.</description></item>
+    ///   <item><term><c>A1:E5</c></term><description>References the range from cell A1 to E5.</description></item>
+    ///   <item><term><c>A1:A1048576</c></term><description>References all cells in column A.</description></item>
+    ///   <item><term><c>A5:XFD5</c></term><description>References all cells in row 5.</description></item>
+    /// </list>
+    /// </summary>
+    internal static DataValidation ListValuesFromCells(string cellRange, bool showDropdown = true)
     {
-        ArgumentNullException.ThrowIfNull(reference);
-        var cellReference = CellReference.Create(reference);
+        ArgumentNullException.ThrowIfNull(cellRange);
+        var cellReference = CellReference.Create(cellRange);
         return ListValuesInternal(cellReference.Reference, showDropdown);
     }
 
-    internal static DataValidation ListValues(string worksheetName, string reference, bool showDropdown = true)
+    /// <summary>
+    /// Validate that cell values equal any of the values from the specified cell range.
+    /// The cell range refers to cells within the specified worksheet.
+    /// To reference cells in the same worksheet as the data validation, you can use the overload without the worksheet name parameter.
+    /// The cell range must be in the A1 reference style. Some examples:
+    /// <list type="bullet">
+    ///   <item><term><c>A1:A4</c></term><description>References the range from cell A1 to A4.</description></item>
+    ///   <item><term><c>A1:E5</c></term><description>References the range from cell A1 to E5.</description></item>
+    ///   <item><term><c>A1:A1048576</c></term><description>References all cells in column A.</description></item>
+    ///   <item><term><c>A5:XFD5</c></term><description>References all cells in row 5.</description></item>
+    /// </list>
+    /// </summary>
+    internal static DataValidation ListValuesFromCells(string worksheetName, string cellRange, bool showDropdown = true)
     {
         ArgumentNullException.ThrowIfNull(worksheetName);
-        ArgumentNullException.ThrowIfNull(reference);
+        ArgumentNullException.ThrowIfNull(cellRange);
         worksheetName.EnsureValidWorksheetName();
 
-        var cellReference = CellReference.Create(reference);
+        var cellReference = CellReference.Create(cellRange);
 
 #pragma warning disable CA1307, MA0074 // Specify StringComparison for clarity
         worksheetName = worksheetName.Replace("'", "''");
@@ -169,7 +193,7 @@ public sealed class DataValidation
     ///   <item><description>The values can't contain commas.</description></item>
     ///   <item><description>The combined length of the values (including required comma separators) can't exceed 255 characters.</description></item>
     /// </list>
-    /// An <see cref="ArgumentException"/> will be thrown if any of the requirements are not met.
+    /// An <see cref="ArgumentException"/> will be thrown if any of these requirements are not met.
     /// </summary>
     public static DataValidation ListValues(IEnumerable<string> values, bool showDropdown = true)
     {
@@ -191,7 +215,7 @@ public sealed class DataValidation
     ///   <item><description>The values can't contain commas.</description></item>
     ///   <item><description>The combined length of the values (including required comma separators) can't exceed 255 characters.</description></item>
     /// </list>
-    /// Returns <c>false</c> if any of the requirements are not met.
+    /// Returns <c>false</c> if any of these requirements are not met.
     /// </summary>
     public static bool TryCreateListValues(IEnumerable<string> values, bool showDropdown, [NotNullWhen(true)] out DataValidation? dataValidation)
     {
