@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace SpreadCheetah;
 
-internal readonly record struct CellReference : IEquatable<CellReference>
+internal readonly record struct CellReference
 {
     private static Regex Regex { get; } = new Regex(@"^[A-Z]{1,3}\d{1,7}(?::[A-Z]{1,3}\d{1,7})?$", RegexOptions.None, TimeSpan.FromSeconds(1));
 
