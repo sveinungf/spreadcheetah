@@ -137,6 +137,31 @@ public sealed class DataValidation
     /// <summary>Validate that text lengths are less than or equal to <paramref name="value"/>.</summary>
     public static DataValidation TextLengthLessThanOrEqualTo(int value) => TextLength(ValidationOperator.LessThanOrEqualTo, value);
 
+    private static DataValidation ListValuesInternal(string value, bool showDropdown) => new(ValidationType.List, ValidationOperator.None, value, null, showDropdown);
+
+    internal static DataValidation ListValues(string reference, bool showDropdown = true)
+    {
+        ArgumentNullException.ThrowIfNull(reference);
+        var cellReference = CellReference.Create(reference);
+        return ListValuesInternal(cellReference.Reference, showDropdown);
+    }
+
+    internal static DataValidation ListValues(string worksheetName, string reference, bool showDropdown = true)
+    {
+        ArgumentNullException.ThrowIfNull(worksheetName);
+        ArgumentNullException.ThrowIfNull(reference);
+        worksheetName.EnsureValidWorksheetName();
+
+        var cellReference = CellReference.Create(reference);
+
+#pragma warning disable CA1307, MA0074 // Specify StringComparison for clarity
+        worksheetName = worksheetName.Replace("'", "''");
+#pragma warning restore CA1307, MA0074 // Specify StringComparison for clarity
+
+        var value = $"&apos;{WebUtility.HtmlEncode(worksheetName)}&apos;!{cellReference.Reference}";
+        return ListValuesInternal(value, showDropdown);
+    }
+
     /// <summary>
     /// Validate that cell values equal any of <paramref name="values"/>.
     /// Requirements:
@@ -212,7 +237,7 @@ public sealed class DataValidation
 
         sb.Append('"');
 
-        dataValidation = new DataValidation(ValidationType.List, ValidationOperator.None, sb.ToString(), null, showDropdown);
+        dataValidation = ListValuesInternal(sb.ToString(), showDropdown);
         return true;
     }
 }
