@@ -4,8 +4,7 @@ using SpreadCheetah.Styling;
 
 namespace SpreadCheetah.Benchmark.Benchmarks;
 
-[SimpleJob(RuntimeMoniker.Net48)]
-[SimpleJob(RuntimeMoniker.NetCoreApp31)]
+[SimpleJob(RuntimeMoniker.Net70)]
 [MemoryDiagnoser]
 public class BoldStringCells
 {

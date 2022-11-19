@@ -115,13 +115,13 @@ The source generator can generate rows from classes, records, and structs. It ca
 The benchmark results here have been collected using [Benchmark.NET](https://github.com/dotnet/benchmarkdotnet) with the following system configuration:
 
 ``` ini
-BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1645 (21H1/May2021Update)
+BenchmarkDotNet=v0.13.2, OS=Windows 10 (10.0.19043.2251/21H1/May2021Update)
 Intel Core i5-8600K CPU 3.60GHz (Coffee Lake), 1 CPU, 6 logical and 6 physical cores
-.NET SDK=6.0.300-preview.22154.4
-  [Host]             : .NET 6.0.4 (6.0.422.16404), X64 RyuJIT
-  .NET 6.0           : .NET 6.0.4 (6.0.422.16404), X64 RyuJIT
-  .NET Core 3.1      : .NET Core 3.1.24 (CoreCLR 4.700.22.16002, CoreFX 4.700.22.17909), X64 RyuJIT
-  .NET Framework 4.8 : .NET Framework 4.8 (4.8.4470.0), X64 RyuJIT
+.NET SDK=7.0.100
+  [Host]             : .NET 7.0.0 (7.0.22.51805), X64 RyuJIT AVX2
+  .NET 6.0           : .NET 6.0.11 (6.0.1122.52304), X64 RyuJIT AVX2
+  .NET 7.0           : .NET 7.0.0 (7.0.22.51805), X64 RyuJIT AVX2
+  .NET Framework 4.8 : .NET Framework 4.8 (4.8.4515.0), X64 RyuJIT VectorSize=256
 
 InvocationCount=1  UnrollFactor=1
 ```
@@ -132,32 +132,32 @@ Some of these libraries have multiple ways of achieving the same result, but to 
 
 ### .NET Framework 4.8
 
-|                    Library |         Mean |        Error |       StdDev |  Allocated |
-|----------------------------|-------------:|-------------:|-------------:|-----------:|
-|          **SpreadCheetah** | **63.87 ms** | **0.220 ms** | **0.195 ms** | **160 KB** |
-|    Open XML (SAX approach) |    414.49 ms |     5.353 ms |     4.745 ms |  43 317 KB |
-|                  EPPlus v4 |    594.07 ms |     3.749 ms |     3.507 ms | 286 368 KB |
-|    Open XML (DOM approach) |    984.10 ms |    11.376 ms |    10.085 ms | 160 371 KB |
-|                  ClosedXML |  2,397.98 ms |    16.359 ms |    14.502 ms | 589 548 KB |
-
-
-### .NET Core 3.1
-
-|                    Library |         Mean |        Error |       StdDev |  Allocated |
-|----------------------------|-------------:|-------------:|-------------:|-----------:|
-|          **SpreadCheetah** | **32.28 ms** | **0.271 ms** | **0.253 ms** |  **51 KB** |
-|    Open XML (SAX approach) |    219.18 ms |     0.708 ms |     0.591 ms |  66 049 KB |
-|                  EPPlus v4 |    470.28 ms |     1.776 ms |     1.483 ms | 216 127 KB |
-|    Open XML (DOM approach) |    786.81 ms |    12.227 ms |    10.839 ms | 182 304 KB |
-|                  ClosedXML |  2,130.32 ms |     9.350 ms |     8.746 ms | 561 807 KB |
+|                    Library |         Mean |        Error |       StdDev |     Allocated |
+|----------------------------|-------------:|-------------:|-------------:|--------------:|
+|          **SpreadCheetah** | **70.09 ms** | **0.358 ms** | **0.317 ms** | **136.23 KB** |
+|    Open XML (SAX approach) |    434.19 ms |     0.803 ms |     0.712 ms |  43 317.13 KB |
+|                  EPPlus v4 |    601.37 ms |     9.679 ms |     9.054 ms | 286 133.84 KB |
+|    Open XML (DOM approach) |  1,090.95 ms |     8.225 ms |     7.694 ms | 161 067.05 KB |
+|                  ClosedXML |  2,430.80 ms |    15.604 ms |    14.596 ms | 526 178.19 KB |
 
 
 ### .NET 6
 
-|                    Library |         Mean |        Error |       StdDev |  Allocated |
-|----------------------------|-------------:|-------------:|-------------:|-----------:|
-|          **SpreadCheetah** | **28.75 ms** | **0.108 ms** | **0.101 ms** |   **6 KB** |
-|    Open XML (SAX approach) |    220.46 ms |     0.825 ms |     0.772 ms |  66 060 KB |
-|                  EPPlus v4 |    403.14 ms |     4.207 ms |     3.936 ms | 195 792 KB |
-|    Open XML (DOM approach) |    720.64 ms |    14.178 ms |    13.925 ms | 182 301 KB |
-|                  ClosedXML |  1,876.50 ms |    16.333 ms |    15.278 ms | 550 775 KB |
+|                    Library |         Mean |        Error |       StdDev |     Allocated |
+|----------------------------|-------------:|-------------:|-------------:|--------------:|
+|          **SpreadCheetah** | **29.05 ms** | **0.555 ms** | **0.594 ms** |   **6.30 KB** |
+|    Open XML (SAX approach) |    247.49 ms |     0.411 ms |     0.385 ms |  66 052.80 KB |
+|                  EPPlus v4 |    407.92 ms |     3.873 ms |     3.434 ms | 195 793.16 KB |
+|    Open XML (DOM approach) |    762.70 ms |    14.316 ms |    13.392 ms | 182 925.98 KB |
+|                  ClosedXML |  1,942.11 ms |    13.626 ms |    12.746 ms | 488 273.27 KB |
+
+
+### .NET 7
+
+|                    Library |         Mean |        Error |       StdDev |     Allocated |
+|----------------------------|-------------:|-------------:|-------------:|--------------:|
+|          **SpreadCheetah** | **24.71 ms** | **0.085 ms** | **0.079 ms** |   **6.34 KB** |
+|    Open XML (SAX approach) |    235.88 ms |     0.405 ms |     0.379 ms |  66 046.32 KB |
+|                  EPPlus v4 |    406.84 ms |     1.690 ms |     1.498 ms | 195 792.29 KB |
+|    Open XML (DOM approach) |    825.45 ms |     5.393 ms |     5.044 ms | 182 925.93 KB |
+|                  ClosedXML |  1,857.38 ms |    17.860 ms |    15.833 ms | 488 272.13 KB |

@@ -4,7 +4,7 @@ using SpreadCheetah.Benchmark.Helpers;
 
 namespace SpreadCheetah.Benchmark.Benchmarks;
 
-[SimpleJob(RuntimeMoniker.Net60)]
+[SimpleJob(RuntimeMoniker.Net70)]
 [MemoryDiagnoser]
 public class AddObjectAsRow
 {

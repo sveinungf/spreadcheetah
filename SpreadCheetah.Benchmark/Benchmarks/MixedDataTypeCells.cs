@@ -4,15 +4,13 @@ using SpreadCheetah.Benchmark.Helpers;
 
 namespace SpreadCheetah.Benchmark.Benchmarks;
 
-[SimpleJob(RuntimeMoniker.Net48)]
-[SimpleJob(RuntimeMoniker.NetCoreApp31)]
-[SimpleJob(RuntimeMoniker.Net60)]
+[SimpleJob(RuntimeMoniker.Net70)]
 [MemoryDiagnoser]
 public class MixedDataTypeCells
 {
     private RowItem[] _rows = null!;
 
-    [Params(100000)]
+    [Params(500000)]
     public int NumberOfRows { get; set; }
 
     [GlobalSetup]
