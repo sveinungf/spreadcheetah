@@ -9,6 +9,8 @@ internal sealed class StringCellValueWriter : CellValueWriter
 {
     private static ReadOnlySpan<byte> BeginStringCell => "<c t=\"inlineStr\"><is><t>"u8;
     private static ReadOnlySpan<byte> EndStringCell => "</t></is></c>"u8;
+    private static ReadOnlySpan<byte> BeginStyledStringFormulaCell => "<c t=\"str\" s=\""u8;
+    private static ReadOnlySpan<byte> BeginStringFormulaCell => "<c t=\"str\"><f>"u8;
 
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
@@ -68,9 +70,9 @@ internal sealed class StringCellValueWriter : CellValueWriter
     {
         if (styleId is null)
         {
-            if (FormulaCellHelper.BeginStringFormulaCell.TryCopyTo(bytes))
+            if (BeginStringFormulaCell.TryCopyTo(bytes))
             {
-                bytesWritten = FormulaCellHelper.BeginStringFormulaCell.Length;
+                bytesWritten = BeginStringFormulaCell.Length;
                 return true;
             }
 
@@ -78,9 +80,9 @@ internal sealed class StringCellValueWriter : CellValueWriter
             return false;
         }
 
-        var part1 = FormulaCellHelper.BeginStyledStringFormulaCell.Length;
+        var part1 = BeginStyledStringFormulaCell.Length;
         var part3 = FormulaCellHelper.EndStyleBeginFormula.Length;
-        if (FormulaCellHelper.BeginStyledStringFormulaCell.TryCopyTo(bytes)
+        if (BeginStyledStringFormulaCell.TryCopyTo(bytes)
             && Utf8Formatter.TryFormat(styleId.Id, bytes.Slice(part1), out var part2)
             && FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes.Slice(part1 + part2)))
         {
@@ -119,7 +121,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
     {
         if (styleId is null)
         {
-            buffer.Advance(SpanHelper.GetBytes(FormulaCellHelper.BeginStringFormulaCell, buffer.GetSpan()));
+            buffer.Advance(SpanHelper.GetBytes(BeginStringFormulaCell, buffer.GetSpan()));
             return true;
         }
 

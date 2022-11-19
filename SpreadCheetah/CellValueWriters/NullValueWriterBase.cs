@@ -10,6 +10,7 @@ internal abstract class NullValueWriterBase : CellValueWriter
     protected abstract int GetStyleId(StyleId styleId);
 
     private static ReadOnlySpan<byte> NullDataCell => "<c/>"u8;
+    private static ReadOnlySpan<byte> EndFormulaEndCell => "</f></c>"u8;
 
     protected static bool TryWriteCell(SpreadsheetBuffer buffer)
     {
@@ -39,11 +40,11 @@ internal abstract class NullValueWriterBase : CellValueWriter
     protected static bool TryWriteCell(string formulaText, int? styleId, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
-        var part3 = FormulaCellHelper.EndFormulaEndCell.Length;
+        var part3 = EndFormulaEndCell.Length;
 
         if (NumberCellValueWriterBase.TryWriteFormulaCellStart(styleId, bytes, out var part1)
             && Utf8Helper.TryGetBytes(formulaText.AsSpan(), bytes.Slice(part1), out var part2)
-            && FormulaCellHelper.EndFormulaEndCell.TryCopyTo(bytes.Slice(part1 + part2)))
+            && EndFormulaEndCell.TryCopyTo(bytes.Slice(part1 + part2)))
         {
             buffer.Advance(part1 + part2 + part3);
             return true;
@@ -65,9 +66,9 @@ internal abstract class NullValueWriterBase : CellValueWriter
             return true;
 
         var bytes = buffer.GetSpan();
-        if (FormulaCellHelper.EndFormulaEndCell.TryCopyTo(bytes))
+        if (EndFormulaEndCell.TryCopyTo(bytes))
         {
-            buffer.Advance(FormulaCellHelper.EndFormulaEndCell.Length);
+            buffer.Advance(EndFormulaEndCell.Length);
             return true;
         }
 

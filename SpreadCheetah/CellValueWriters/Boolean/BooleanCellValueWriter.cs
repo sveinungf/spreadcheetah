@@ -7,6 +7,8 @@ namespace SpreadCheetah.CellValueWriters.Boolean;
 
 internal abstract class BooleanCellValueWriter : CellValueWriter
 {
+    private static ReadOnlySpan<byte> BeginBooleanFormulaCell => "<c t=\"b\"><f>"u8;
+
     protected abstract bool TryWriteCell(SpreadsheetBuffer buffer);
     protected abstract bool TryWriteEndStyleValue(Span<byte> bytes, out int bytesWritten);
     protected abstract bool TryWriteEndFormulaValue(Span<byte> bytes, out int bytesWritten);
@@ -56,9 +58,9 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
     {
         if (styleId is null)
         {
-            if (FormulaCellHelper.BeginBooleanFormulaCell.TryCopyTo(bytes))
+            if (BeginBooleanFormulaCell.TryCopyTo(bytes))
             {
-                bytesWritten = FormulaCellHelper.BeginBooleanFormulaCell.Length;
+                bytesWritten = BeginBooleanFormulaCell.Length;
                 return true;
             }
 
@@ -101,7 +103,7 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
     {
         if (styleId is null)
         {
-            buffer.Advance(SpanHelper.GetBytes(FormulaCellHelper.BeginBooleanFormulaCell, buffer.GetSpan()));
+            buffer.Advance(SpanHelper.GetBytes(BeginBooleanFormulaCell, buffer.GetSpan()));
             return true;
         }
 
