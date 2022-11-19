@@ -1,10 +1,9 @@
-using SpreadCheetah.Helpers;
-
 namespace SpreadCheetah.CellValueWriters.Boolean;
 
 internal sealed class TrueBooleanCellValueWriter : BooleanCellValueWriter
 {
     private static ReadOnlySpan<byte> TrueBooleanCell => "<c t=\"b\"><v>1</v></c>"u8;
+    private static ReadOnlySpan<byte> EndStyleTrueBooleanValue => "\"><v>1</v></c>"u8;
     private static ReadOnlySpan<byte> EndFormulaTrueBooleanValue => "</f><v>1</v></c>"u8;
 
     protected override bool TryWriteCell(SpreadsheetBuffer buffer)
@@ -19,9 +18,9 @@ internal sealed class TrueBooleanCellValueWriter : BooleanCellValueWriter
 
     protected override bool TryWriteEndStyleValue(Span<byte> bytes, out int bytesWritten)
     {
-        if (StyledCellHelper.EndStyleTrueBooleanValue.TryCopyTo(bytes))
+        if (EndStyleTrueBooleanValue.TryCopyTo(bytes))
         {
-            bytesWritten = StyledCellHelper.EndStyleTrueBooleanValue.Length;
+            bytesWritten = EndStyleTrueBooleanValue.Length;
             return true;
         }
 

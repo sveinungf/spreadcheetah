@@ -8,9 +8,11 @@ namespace SpreadCheetah.CellValueWriters;
 internal sealed class StringCellValueWriter : CellValueWriter
 {
     private static ReadOnlySpan<byte> BeginStringCell => "<c t=\"inlineStr\"><is><t>"u8;
-    private static ReadOnlySpan<byte> EndStringCell => "</t></is></c>"u8;
-    private static ReadOnlySpan<byte> BeginStyledStringFormulaCell => "<c t=\"str\" s=\""u8;
+    private static ReadOnlySpan<byte> BeginStyledStringCell => "<c t=\"inlineStr\" s=\""u8;
     private static ReadOnlySpan<byte> BeginStringFormulaCell => "<c t=\"str\"><f>"u8;
+    private static ReadOnlySpan<byte> BeginStyledStringFormulaCell => "<c t=\"str\" s=\""u8;
+    private static ReadOnlySpan<byte> EndStyleBeginInlineString => "\"><is><t>"u8;
+    private static ReadOnlySpan<byte> EndStringCell => "</t></is></c>"u8;
 
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
@@ -30,13 +32,13 @@ internal sealed class StringCellValueWriter : CellValueWriter
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
-        var part1 = StyledCellHelper.BeginStyledStringCell.Length;
-        var part3 = StyledCellHelper.EndStyleBeginInlineString.Length;
+        var part1 = BeginStyledStringCell.Length;
+        var part3 = EndStyleBeginInlineString.Length;
         var part5 = EndStringCell.Length;
 
-        if (StyledCellHelper.BeginStyledStringCell.TryCopyTo(bytes)
+        if (BeginStyledStringCell.TryCopyTo(bytes)
             && Utf8Formatter.TryFormat(styleId.Id, bytes.Slice(part1), out var part2)
-            && StyledCellHelper.EndStyleBeginInlineString.TryCopyTo(bytes.Slice(part1 + part2))
+            && EndStyleBeginInlineString.TryCopyTo(bytes.Slice(part1 + part2))
             && Utf8Helper.TryGetBytes(cell.StringValue!.AsSpan(), bytes.Slice(part1 + part2 + part3), out var part4)
             && EndStringCell.TryCopyTo(bytes.Slice(part1 + part2 + part3 + part4)))
         {
@@ -126,7 +128,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
         }
 
         var bytes = buffer.GetSpan();
-        var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledStringCell, bytes);
+        var bytesWritten = SpanHelper.GetBytes(BeginStyledStringCell, bytes);
         bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
         bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndStyleBeginFormula, bytes.Slice(bytesWritten));
         buffer.Advance(bytesWritten);
@@ -142,9 +144,9 @@ internal sealed class StringCellValueWriter : CellValueWriter
     public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
-        var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledStringCell, bytes);
+        var bytesWritten = SpanHelper.GetBytes(BeginStyledStringCell, bytes);
         bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(StyledCellHelper.EndStyleBeginInlineString, bytes.Slice(bytesWritten));
+        bytesWritten += SpanHelper.GetBytes(EndStyleBeginInlineString, bytes.Slice(bytesWritten));
         buffer.Advance(bytesWritten);
         return true;
     }

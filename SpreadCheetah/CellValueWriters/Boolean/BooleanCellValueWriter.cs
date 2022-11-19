@@ -7,6 +7,7 @@ namespace SpreadCheetah.CellValueWriters.Boolean;
 
 internal abstract class BooleanCellValueWriter : CellValueWriter
 {
+    private static ReadOnlySpan<byte> BeginStyledBooleanCell => "<c t=\"b\" s=\""u8;
     private static ReadOnlySpan<byte> BeginBooleanFormulaCell => "<c t=\"b\"><f>"u8;
 
     protected abstract bool TryWriteCell(SpreadsheetBuffer buffer);
@@ -26,9 +27,9 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
     private bool TryWriteCell(StyleId styleId, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
-        var part1 = StyledCellHelper.BeginStyledBooleanCell.Length;
+        var part1 = BeginStyledBooleanCell.Length;
 
-        if (StyledCellHelper.BeginStyledBooleanCell.TryCopyTo(bytes)
+        if (BeginStyledBooleanCell.TryCopyTo(bytes)
             && Utf8Formatter.TryFormat(styleId.Id, bytes.Slice(part1), out var part2)
             && TryWriteEndStyleValue(bytes.Slice(part1 + part2), out var part3))
         {
@@ -68,9 +69,9 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
             return false;
         }
 
-        var part1 = StyledCellHelper.BeginStyledBooleanCell.Length;
+        var part1 = BeginStyledBooleanCell.Length;
         var part3 = FormulaCellHelper.EndStyleBeginFormula.Length;
-        if (StyledCellHelper.BeginStyledBooleanCell.TryCopyTo(bytes)
+        if (BeginStyledBooleanCell.TryCopyTo(bytes)
             && Utf8Formatter.TryFormat(styleId.Id, bytes.Slice(part1), out var part2)
             && FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes.Slice(part1 + part2)))
         {
@@ -108,7 +109,7 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         }
 
         var bytes = buffer.GetSpan();
-        var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledBooleanCell, buffer.GetSpan());
+        var bytesWritten = SpanHelper.GetBytes(BeginStyledBooleanCell, buffer.GetSpan());
         bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
         bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndStyleBeginFormula, bytes.Slice(bytesWritten));
         buffer.Advance(bytesWritten);

@@ -10,6 +10,7 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
     protected abstract bool TryWriteValue(in DataCell cell, Span<byte> destination, out int bytesWritten);
 
     private static ReadOnlySpan<byte> BeginDataCell => "<c><v>"u8;
+    private static ReadOnlySpan<byte> EndStyleBeginValue => "\"><v>"u8;
     private static ReadOnlySpan<byte> EndDefaultCell => "</v></c>"u8;
 
     protected bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer)
@@ -31,12 +32,12 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
     {
         var bytes = buffer.GetSpan();
         var part1 = StyledCellHelper.BeginStyledNumberCell.Length;
-        var part3 = StyledCellHelper.EndStyleBeginValue.Length;
+        var part3 = EndStyleBeginValue.Length;
         var part5 = EndDefaultCell.Length;
 
         if (StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes)
             && Utf8Formatter.TryFormat(styleId, bytes.Slice(part1), out var part2)
-            && StyledCellHelper.EndStyleBeginValue.TryCopyTo(bytes.Slice(part1 + part2))
+            && EndStyleBeginValue.TryCopyTo(bytes.Slice(part1 + part2))
             && TryWriteValue(cell, bytes.Slice(part1 + part2 + part3), out var part4)
             && EndDefaultCell.TryCopyTo(bytes.Slice(part1 + part2 + part3 + part4)))
         {
@@ -110,7 +111,7 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         var bytes = buffer.GetSpan();
         var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledNumberCell, bytes);
         bytesWritten += Utf8Helper.GetBytes(GetStyleId(styleId), bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(StyledCellHelper.EndStyleBeginValue, bytes.Slice(bytesWritten));
+        bytesWritten += SpanHelper.GetBytes(EndStyleBeginValue, bytes.Slice(bytesWritten));
         buffer.Advance(bytesWritten);
         return true;
     }

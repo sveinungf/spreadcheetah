@@ -10,6 +10,7 @@ internal abstract class NullValueWriterBase : CellValueWriter
     protected abstract int GetStyleId(StyleId styleId);
 
     private static ReadOnlySpan<byte> NullDataCell => "<c/>"u8;
+    private static ReadOnlySpan<byte> EndStyleNullValue => "\"/>"u8;
     private static ReadOnlySpan<byte> EndFormulaEndCell => "</f></c>"u8;
 
     protected static bool TryWriteCell(SpreadsheetBuffer buffer)
@@ -28,9 +29,9 @@ internal abstract class NullValueWriterBase : CellValueWriter
 
         if (StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes)
             && Utf8Formatter.TryFormat(styleId, bytes.Slice(StyledCellHelper.BeginStyledNumberCell.Length), out var valueLength)
-            && StyledCellHelper.EndStyleNullValue.TryCopyTo(bytes.Slice(StyledCellHelper.BeginStyledNumberCell.Length + valueLength)))
+            && EndStyleNullValue.TryCopyTo(bytes.Slice(StyledCellHelper.BeginStyledNumberCell.Length + valueLength)))
         {
-            buffer.Advance(StyledCellHelper.BeginStyledNumberCell.Length + StyledCellHelper.EndStyleNullValue.Length + valueLength);
+            buffer.Advance(StyledCellHelper.BeginStyledNumberCell.Length + EndStyleNullValue.Length + valueLength);
             return true;
         }
 
