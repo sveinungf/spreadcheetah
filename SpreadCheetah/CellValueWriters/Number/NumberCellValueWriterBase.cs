@@ -9,21 +9,18 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
     protected abstract int GetStyleId(StyleId styleId);
     protected abstract bool TryWriteValue(in DataCell cell, Span<byte> destination, out int bytesWritten);
 
-    // <c><v>
-    private static ReadOnlySpan<byte> BeginDataCell() => new[]
-    {
-        (byte)'<', (byte)'c', (byte)'>', (byte)'<', (byte)'v', (byte)'>'
-    };
+    private static ReadOnlySpan<byte> BeginDataCell => "<c><v>"u8;
+    private static ReadOnlySpan<byte> EndDefaultCell => "</v></c>"u8;
 
     protected bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
 
-        if (BeginDataCell().TryCopyTo(bytes)
-            && TryWriteValue(cell, bytes.Slice(BeginDataCell().Length), out var valueLength)
-            && DataCellHelper.EndDefaultCell.TryCopyTo(bytes.Slice(BeginDataCell().Length + valueLength)))
+        if (BeginDataCell.TryCopyTo(bytes)
+            && TryWriteValue(cell, bytes.Slice(BeginDataCell.Length), out var valueLength)
+            && EndDefaultCell.TryCopyTo(bytes.Slice(BeginDataCell.Length + valueLength)))
         {
-            buffer.Advance(BeginDataCell().Length + DataCellHelper.EndDefaultCell.Length + valueLength);
+            buffer.Advance(BeginDataCell.Length + EndDefaultCell.Length + valueLength);
             return true;
         }
 
@@ -35,13 +32,13 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         var bytes = buffer.GetSpan();
         var part1 = StyledCellHelper.BeginStyledNumberCell.Length;
         var part3 = StyledCellHelper.EndStyleBeginValue.Length;
-        var part5 = DataCellHelper.EndDefaultCell.Length;
+        var part5 = EndDefaultCell.Length;
 
         if (StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes)
             && Utf8Formatter.TryFormat(styleId, bytes.Slice(part1), out var part2)
             && StyledCellHelper.EndStyleBeginValue.TryCopyTo(bytes.Slice(part1 + part2))
             && TryWriteValue(cell, bytes.Slice(part1 + part2 + part3), out var part4)
-            && DataCellHelper.EndDefaultCell.TryCopyTo(bytes.Slice(part1 + part2 + part3 + part4)))
+            && EndDefaultCell.TryCopyTo(bytes.Slice(part1 + part2 + part3 + part4)))
         {
             buffer.Advance(part1 + part2 + part3 + part4 + part5);
             return true;
@@ -104,7 +101,7 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
 
     public override bool WriteStartElement(SpreadsheetBuffer buffer)
     {
-        buffer.Advance(SpanHelper.GetBytes(BeginDataCell(), buffer.GetSpan()));
+        buffer.Advance(SpanHelper.GetBytes(BeginDataCell, buffer.GetSpan()));
         return true;
     }
 
@@ -149,10 +146,10 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
     public override bool TryWriteEndElement(SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
-        if (!DataCellHelper.EndDefaultCell.TryCopyTo(bytes))
+        if (!EndDefaultCell.TryCopyTo(bytes))
             return false;
 
-        buffer.Advance(DataCellHelper.EndDefaultCell.Length);
+        buffer.Advance(EndDefaultCell.Length);
         return true;
     }
 

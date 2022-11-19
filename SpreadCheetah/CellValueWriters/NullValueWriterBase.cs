@@ -9,19 +9,15 @@ internal abstract class NullValueWriterBase : CellValueWriter
 {
     protected abstract int GetStyleId(StyleId styleId);
 
-    // <c/>
-    private static ReadOnlySpan<byte> NullDataCell() => new[]
-    {
-        (byte)'<', (byte)'c', (byte)'/', (byte)'>'
-    };
+    private static ReadOnlySpan<byte> NullDataCell => "<c/>"u8;
 
     protected static bool TryWriteCell(SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
-        if (!NullDataCell().TryCopyTo(bytes))
+        if (!NullDataCell.TryCopyTo(bytes))
             return false;
 
-        buffer.Advance(NullDataCell().Length);
+        buffer.Advance(NullDataCell.Length);
         return true;
     }
 

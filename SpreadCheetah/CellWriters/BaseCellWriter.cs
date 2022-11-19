@@ -89,9 +89,10 @@ internal abstract class BaseCellWriter<T>
 
     private bool TryWriteRowEnd()
     {
-        if (CellRowHelper.RowEnd.TryCopyTo(Buffer.GetSpan()))
+        var rowEnd = "</row>"u8;
+        if (rowEnd.TryCopyTo(Buffer.GetSpan()))
         {
-            Buffer.Advance(CellRowHelper.RowEnd.Length);
+            Buffer.Advance(rowEnd.Length);
             return true;
         }
 

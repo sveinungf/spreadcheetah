@@ -7,15 +7,18 @@ namespace SpreadCheetah.CellValueWriters;
 
 internal sealed class StringCellValueWriter : CellValueWriter
 {
+    private static ReadOnlySpan<byte> BeginStringCell => "<c t=\"inlineStr\"><is><t>"u8;
+    private static ReadOnlySpan<byte> EndStringCell => "</t></is></c>"u8;
+
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
 
-        if (DataCellHelper.BeginStringCell.TryCopyTo(bytes)
-            && Utf8Helper.TryGetBytes(cell.StringValue!.AsSpan(), bytes.Slice(DataCellHelper.BeginStringCell.Length), out var valueLength)
-            && DataCellHelper.EndStringCell.TryCopyTo(bytes.Slice(DataCellHelper.BeginStringCell.Length + valueLength)))
+        if (BeginStringCell.TryCopyTo(bytes)
+            && Utf8Helper.TryGetBytes(cell.StringValue!.AsSpan(), bytes.Slice(BeginStringCell.Length), out var valueLength)
+            && EndStringCell.TryCopyTo(bytes.Slice(BeginStringCell.Length + valueLength)))
         {
-            buffer.Advance(DataCellHelper.BeginStringCell.Length + DataCellHelper.EndStringCell.Length + valueLength);
+            buffer.Advance(BeginStringCell.Length + EndStringCell.Length + valueLength);
             return true;
         }
 
@@ -27,13 +30,13 @@ internal sealed class StringCellValueWriter : CellValueWriter
         var bytes = buffer.GetSpan();
         var part1 = StyledCellHelper.BeginStyledStringCell.Length;
         var part3 = StyledCellHelper.EndStyleBeginInlineString.Length;
-        var part5 = DataCellHelper.EndStringCell.Length;
+        var part5 = EndStringCell.Length;
 
         if (StyledCellHelper.BeginStyledStringCell.TryCopyTo(bytes)
             && Utf8Formatter.TryFormat(styleId.Id, bytes.Slice(part1), out var part2)
             && StyledCellHelper.EndStyleBeginInlineString.TryCopyTo(bytes.Slice(part1 + part2))
             && Utf8Helper.TryGetBytes(cell.StringValue!.AsSpan(), bytes.Slice(part1 + part2 + part3), out var part4)
-            && DataCellHelper.EndStringCell.TryCopyTo(bytes.Slice(part1 + part2 + part3 + part4)))
+            && EndStringCell.TryCopyTo(bytes.Slice(part1 + part2 + part3 + part4)))
         {
             buffer.Advance(part1 + part2 + part3 + part4 + part5);
             return true;
@@ -92,10 +95,10 @@ internal sealed class StringCellValueWriter : CellValueWriter
     public override bool TryWriteEndElement(SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
-        if (!DataCellHelper.EndStringCell.TryCopyTo(bytes))
+        if (!EndStringCell.TryCopyTo(bytes))
             return false;
 
-        buffer.Advance(DataCellHelper.EndStringCell.Length);
+        buffer.Advance(EndStringCell.Length);
         return true;
     }
 
@@ -130,7 +133,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
 
     public override bool WriteStartElement(SpreadsheetBuffer buffer)
     {
-        buffer.Advance(SpanHelper.GetBytes(DataCellHelper.BeginStringCell, buffer.GetSpan()));
+        buffer.Advance(SpanHelper.GetBytes(BeginStringCell, buffer.GetSpan()));
         return true;
     }
 

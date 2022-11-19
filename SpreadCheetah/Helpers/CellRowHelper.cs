@@ -43,34 +43,8 @@ internal static class CellRowHelper
         return false;
     }
 
-    // <row r="
-    private static ReadOnlySpan<byte> RowStart => new[]
-    {
-        (byte)'<', (byte)'r', (byte)'o', (byte)'w', (byte)' ', (byte)'r', (byte)'=', (byte)'"'
-    };
-
-    // ">
-    private static ReadOnlySpan<byte> RowStartEndTag => new[]
-    {
-        (byte)'"', (byte)'>'
-    };
-
-    // " ht="
-    public static ReadOnlySpan<byte> RowHeightStart => new[]
-    {
-        (byte)'"', (byte)' ', (byte)'h', (byte)'t', (byte)'=', (byte)'"'
-    };
-
-    // " customHeight="1">
-    public static ReadOnlySpan<byte> RowHeightEnd => new[]
-    {
-        (byte)'"', (byte)' ', (byte)'c', (byte)'u', (byte)'s', (byte)'t', (byte)'o', (byte)'m', (byte)'H', (byte)'e',
-        (byte)'i', (byte)'g', (byte)'h', (byte)'t', (byte)'=', (byte)'"', (byte)'1', (byte)'"', (byte)'>'
-    };
-
-    // </row>
-    public static ReadOnlySpan<byte> RowEnd => new[]
-    {
-        (byte)'<', (byte)'/', (byte)'r', (byte)'o', (byte)'w', (byte)'>'
-    };
+    private static ReadOnlySpan<byte> RowStart => "<row r=\""u8;
+    private static ReadOnlySpan<byte> RowStartEndTag => "\">"u8;
+    private static ReadOnlySpan<byte> RowHeightStart => "\" ht=\""u8;
+    private static ReadOnlySpan<byte> RowHeightEnd => "\" customHeight=\"1\">"u8;
 }
