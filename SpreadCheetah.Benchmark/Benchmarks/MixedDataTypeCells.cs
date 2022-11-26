@@ -42,10 +42,11 @@ public class MixedDataTypeCells
         await spreadsheet.StartWorksheetAsync("Book1");
 
         var cells = new DataCell[10];
+        var rows = _rows;
 
-        for (var row = 0; row < _rows.Length; ++row)
+        for (var row = 0; row < rows.Length; ++row)
         {
-            var rowItem = _rows[row];
+            var rowItem = rows[row];
             cells[0] = new DataCell(rowItem.A);
             cells[1] = new DataCell(rowItem.B);
             cells[2] = new DataCell(rowItem.C);
