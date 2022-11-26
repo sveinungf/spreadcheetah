@@ -21,7 +21,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly CellWriter _cellWriter;
     private readonly DataCellWriter _dataCellWriter;
     private readonly StyledCellWriter _styledCellWriter;
-    private int _nextRowIndex;
+    private uint _nextRowIndex;
     private Dictionary<CellReference, DataValidation>? _validations;
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)

@@ -5,7 +5,7 @@ namespace SpreadCheetah.Helpers;
 
 internal static class CellRowHelper
 {
-    public static bool TryWriteRowStart(int rowIndex, SpreadsheetBuffer buffer)
+    public static bool TryWriteRowStart(uint rowIndex, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
 
@@ -20,7 +20,7 @@ internal static class CellRowHelper
         return false;
     }
 
-    public static bool TryWriteRowStart(int rowIndex, RowOptions options, SpreadsheetBuffer buffer)
+    public static bool TryWriteRowStart(uint rowIndex, RowOptions options, SpreadsheetBuffer buffer)
     {
         if (options.Height is null)
             return TryWriteRowStart(rowIndex, buffer);

@@ -20,21 +20,21 @@ internal abstract class BaseCellWriter<T>
     protected abstract bool TryWriteEndElement(in T cell);
     protected abstract bool FinishWritingCellValue(in T cell, ref int cellValueIndex);
 
-    public bool TryAddRow(IList<T> cells, int rowIndex, out int currentListIndex)
+    public bool TryAddRow(IList<T> cells, uint rowIndex, out int currentListIndex)
     {
         // Assuming previous actions on the worksheet ensured space in the buffer for row start
         currentListIndex = -1;
         return CellRowHelper.TryWriteRowStart(rowIndex, Buffer) && TryAddRowCells(cells, out currentListIndex);
     }
 
-    public bool TryAddRow(ReadOnlySpan<T> cells, int rowIndex, out int currentListIndex)
+    public bool TryAddRow(ReadOnlySpan<T> cells, uint rowIndex, out int currentListIndex)
     {
         // Assuming previous actions on the worksheet ensured space in the buffer for row start
         currentListIndex = -1;
         return CellRowHelper.TryWriteRowStart(rowIndex, Buffer) && TryAddRowCellsForSpan(cells, out currentListIndex);
     }
 
-    public bool TryAddRow(IList<T> cells, int rowIndex, RowOptions options, out int currentListIndex)
+    public bool TryAddRow(IList<T> cells, uint rowIndex, RowOptions options, out int currentListIndex)
     {
         currentListIndex = -1;
 
@@ -108,7 +108,7 @@ internal abstract class BaseCellWriter<T>
         TryWriteRowEnd();
     }
 
-    public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, int rowIndex, int currentCellIndex, Stream stream, CancellationToken token)
+    public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, uint rowIndex, int currentCellIndex, Stream stream, CancellationToken token)
     {
         // If we get here that means that the next cell didn't fit in the buffer, so just flush right away.
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
@@ -122,7 +122,7 @@ internal abstract class BaseCellWriter<T>
         await AddRowCellsAsync(cells.Slice(currentCellIndex), stream, token).ConfigureAwait(false);
     }
 
-    public async ValueTask AddRowAsync(IList<T> cells, int rowIndex, int currentCellIndex, Stream stream, CancellationToken token)
+    public async ValueTask AddRowAsync(IList<T> cells, uint rowIndex, int currentCellIndex, Stream stream, CancellationToken token)
     {
         // If we get here that means that the next cell didn't fit in the buffer, so just flush right away.
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
@@ -136,7 +136,7 @@ internal abstract class BaseCellWriter<T>
         await AddRowCellsAsync(cells, currentCellIndex, stream, token).ConfigureAwait(false);
     }
 
-    public async ValueTask AddRowAsync(IList<T> cells, int rowIndex, RowOptions options, int currentCellIndex, Stream stream, CancellationToken token)
+    public async ValueTask AddRowAsync(IList<T> cells, uint rowIndex, RowOptions options, int currentCellIndex, Stream stream, CancellationToken token)
     {
         // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
