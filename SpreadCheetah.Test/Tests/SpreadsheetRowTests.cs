@@ -102,7 +102,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(Strings))]
-    public async Task Spreadsheet_AddRow_CellWithStringValue(string? value, CellType type)
+    public async Task Spreadsheet_AddRow_CellWithStringValue(string? value, CellType type, RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -112,7 +112,7 @@ public class SpreadsheetRowTests
             var cell = CellFactory.Create(type, value);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync(cell, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -136,7 +136,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(StringLengths))]
-    public async Task Spreadsheet_AddRow_CellWithVeryLongStringValue(int length, CellType type)
+    public async Task Spreadsheet_AddRow_CellWithVeryLongStringValue(int length, CellType type, RowCollectionType rowType)
     {
         // Arrange
         var value = new string('a', length);
@@ -148,7 +148,7 @@ public class SpreadsheetRowTests
             var cell = CellFactory.Create(type, value);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync(cell, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -161,7 +161,7 @@ public class SpreadsheetRowTests
         Assert.Equal(value, actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> Integers() => TestData.CombineWithCellTypes(
+    public static IEnumerable<object?[]> Integers() => TestData.CombineWithCellTypes<int?>(
         1234,
         0,
         -1234,
@@ -171,7 +171,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(Integers))]
-    public async Task Spreadsheet_AddRow_CellWithIntegerValue(int? value, CellType type)
+    public async Task Spreadsheet_AddRow_CellWithIntegerValue(int? value, CellType type, RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -181,7 +181,7 @@ public class SpreadsheetRowTests
             var cell = CellFactory.Create(type, value);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync(cell, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -194,7 +194,7 @@ public class SpreadsheetRowTests
         Assert.Equal(value?.ToString() ?? string.Empty, actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> Longs() => TestData.CombineWithCellTypes(
+    public static IEnumerable<object?[]> Longs() => TestData.CombineWithCellTypes<long?, string>(
         (1234L, "1234"),
         (0L, "0"),
         (-1234L, "-1234"),
@@ -210,7 +210,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(Longs))]
-    public async Task Spreadsheet_AddRow_CellWithLongValue(long? initialValue, string expectedValue, CellType type)
+    public async Task Spreadsheet_AddRow_CellWithLongValue(long? initialValue, string expectedValue, CellType type, RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -220,7 +220,7 @@ public class SpreadsheetRowTests
             var cell = CellFactory.Create(type, initialValue);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync(cell, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -233,7 +233,7 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedValue, actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> Floats() => TestData.CombineWithCellTypes(
+    public static IEnumerable<object?[]> Floats() => TestData.CombineWithCellTypes<float?, string>(
         (1234f, "1234"),
         (0.1f, "0.1"),
         (0.0f, "0"),
@@ -246,7 +246,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(Floats))]
-    public async Task Spreadsheet_AddRow_CellWithFloatValue(float? initialValue, string expectedValue, CellType type)
+    public async Task Spreadsheet_AddRow_CellWithFloatValue(float? initialValue, string expectedValue, CellType type, RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -256,7 +256,7 @@ public class SpreadsheetRowTests
             var cell = CellFactory.Create(type, initialValue);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync(cell, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -269,7 +269,7 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedValue, actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> Doubles() => TestData.CombineWithCellTypes(
+    public static IEnumerable<object?[]> Doubles() => TestData.CombineWithCellTypes<double?, string>(
         (1234d, "1234"),
         (0.1, "0.1"),
         (0.0, "0"),
@@ -287,7 +287,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(Doubles))]
-    public async Task Spreadsheet_AddRow_CellWithDoubleValue(double? initialValue, string expectedValue, CellType type)
+    public async Task Spreadsheet_AddRow_CellWithDoubleValue(double? initialValue, string expectedValue, CellType type, RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -297,7 +297,7 @@ public class SpreadsheetRowTests
             var cell = CellFactory.Create(type, initialValue);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync(cell, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -329,7 +329,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(Decimals))]
-    public async Task Spreadsheet_AddRow_CellWithDecimalValue(string? initialValue, string expectedValue, CellType type)
+    public async Task Spreadsheet_AddRow_CellWithDecimalValue(string? initialValue, string expectedValue, CellType type, RowCollectionType rowType)
     {
         // Arrange
         var decimalValue = initialValue != null ? decimal.Parse(initialValue, CultureInfo.InvariantCulture) : null as decimal?;
@@ -340,7 +340,7 @@ public class SpreadsheetRowTests
             var cell = CellFactory.Create(type, decimalValue);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync(cell, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -353,7 +353,7 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedValue, actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> DateTimes() => TestData.CombineWithCellTypes(
+    public static IEnumerable<object?[]> DateTimes() => TestData.CombineWithCellTypes<DateTime?>(
         new DateTime(2000, 1, 1),
         new DateTime(2001, 2, 3, 4, 5, 6),
         new DateTime(2001, 2, 3, 4, 5, 6, 789),
@@ -364,7 +364,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(DateTimes))]
-    public async Task Spreadsheet_AddRow_CellWithDateTimeValue(DateTime? value, CellType type)
+    public async Task Spreadsheet_AddRow_CellWithDateTimeValue(DateTime? value, CellType type, RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -374,7 +374,7 @@ public class SpreadsheetRowTests
             var cell = CellFactory.Create(type, value);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync(cell, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -399,7 +399,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(DateTimeNumberFormats))]
-    public async Task Spreadsheet_AddRow_CellWithDateTimeValueAndDefaultNumberFormat(string? defaultNumberFormat, CellType type)
+    public async Task Spreadsheet_AddRow_CellWithDateTimeValueAndDefaultNumberFormat(string? defaultNumberFormat, CellType type, RowCollectionType rowType)
     {
         // Arrange
         var value = new DateTime(2022, 9, 11, 14, 7, 13);
@@ -411,7 +411,7 @@ public class SpreadsheetRowTests
             var cell = CellFactory.Create(type, value);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync(cell, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -426,14 +426,14 @@ public class SpreadsheetRowTests
         Assert.Equal(defaultNumberFormat ?? NumberFormats.General, actualCell.Style.Numberformat.Format);
     }
 
-    public static IEnumerable<object?[]> Booleans() => TestData.CombineWithCellTypes(
+    public static IEnumerable<object?[]> Booleans() => TestData.CombineWithCellTypes<bool?, string>(
         (true, "1"),
         (false, "0"),
         (null, ""));
 
     [Theory]
     [MemberData(nameof(Booleans))]
-    public async Task Spreadsheet_AddRow_CellWithBooleanValue(bool? initialValue, string expectedValue, CellType type)
+    public async Task Spreadsheet_AddRow_CellWithBooleanValue(bool? initialValue, string expectedValue, CellType type, RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -443,7 +443,7 @@ public class SpreadsheetRowTests
             var cell = CellFactory.Create(type, initialValue);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync(cell, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -510,7 +510,7 @@ public class SpreadsheetRowTests
         Assert.Equal(values, actualValues);
     }
 
-    public static IEnumerable<object?[]> RowHeights() => TestData.CombineWithCellTypes(
+    public static IEnumerable<object?[]> RowHeights() => TestData.CombineWithCellTypes<double?>(
         0.1,
         10d,
         123.456,
@@ -519,7 +519,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(RowHeights))]
-    public async Task Spreadsheet_AddRow_RowHeight(double? height, CellType type)
+    public async Task Spreadsheet_AddRow_RowHeight(double? height, CellType type, RowCollectionType rowType)
     {
         // Arrange
         var rowOptions = new RowOptions { Height = height };
@@ -529,7 +529,7 @@ public class SpreadsheetRowTests
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
         {
             await spreadsheet.StartWorksheetAsync("Sheet");
-            await spreadsheet.AddRowAsync(CellFactory.Create(type, "My value"), rowOptions);
+            await spreadsheet.AddRowAsync(CellFactory.Create(type, "My value"), rowType, rowOptions);
             await spreadsheet.FinishAsync();
         }
 

@@ -15,16 +15,14 @@ internal static class TestData
     public static IEnumerable<object?[]> CellTypes() => CellTypesValues.Select(x => new object?[] { x.CellType, x.RowType });
     public static IEnumerable<object?[]> StyledCellTypes() => StyledCellTypesValues.Select(x => new object?[] { x.CellType, x.RowType });
 
-    // TODO: Replace
-    public static IEnumerable<object?[]> CombineWithCellTypes(params object?[] values)
+    public static IEnumerable<object?[]> CombineWithCellTypes<T>(params T?[] values)
     {
-        return values.SelectMany(_ => CellTypeEnum, (value, type) => new object?[] { value, type });
+        return values.SelectMany(_ => CellTypesValues, (value, element) => new object?[] { value, element.CellType, element.RowType });
     }
 
-    // TODO: Replace
-    public static IEnumerable<object?[]> CombineWithCellTypes(params (object?, object?)[] values)
+    public static IEnumerable<object?[]> CombineWithCellTypes<TFirst, TSecond>(params (TFirst?, TSecond?)[] values)
     {
-        return values.SelectMany(_ => CellTypeEnum, (value, type) => new object?[] { value.Item1, value.Item2, type });
+        return values.SelectMany(_ => CellTypesValues, (value, element) => new object?[] { value.Item1, value.Item2, element.CellType, element.RowType });
     }
 
     // TODO: Replace
