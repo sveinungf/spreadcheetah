@@ -142,6 +142,12 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         => _dataCellWriter.TryAddRow(cells, _nextRowIndex++, out currentIndex);
     public bool TryAddRow(ReadOnlySpan<StyledCell> cells, out int currentIndex)
         => _styledCellWriter.TryAddRow(cells, _nextRowIndex++, out currentIndex);
+    public bool TryAddRow(ReadOnlySpan<Cell> cells, RowOptions options, out int currentIndex)
+        => _cellWriter.TryAddRow(cells, _nextRowIndex++, options, out currentIndex);
+    public bool TryAddRow(ReadOnlySpan<DataCell> cells, RowOptions options, out int currentIndex)
+        => _dataCellWriter.TryAddRow(cells, _nextRowIndex++, options, out currentIndex);
+    public bool TryAddRow(ReadOnlySpan<StyledCell> cells, RowOptions options, out int currentIndex)
+        => _styledCellWriter.TryAddRow(cells, _nextRowIndex++, options, out currentIndex);
     public ValueTask AddRowAsync(IList<Cell> cells, int currentIndex, CancellationToken ct)
         => _cellWriter.AddRowAsync(cells, _nextRowIndex - 1, currentIndex, _stream, ct);
     public ValueTask AddRowAsync(IList<DataCell> cells, int currentIndex, CancellationToken ct)
@@ -160,6 +166,12 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         => _dataCellWriter.AddRowAsync(cells, _nextRowIndex - 1, currentIndex, _stream, ct);
     public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, int currentIndex, CancellationToken ct)
         => _styledCellWriter.AddRowAsync(cells, _nextRowIndex - 1, currentIndex, _stream, ct);
+    public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, RowOptions options, int currentIndex, CancellationToken ct)
+        => _cellWriter.AddRowAsync(cells, _nextRowIndex - 1, options, currentIndex, _stream, ct);
+    public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, RowOptions options, int currentIndex, CancellationToken ct)
+        => _dataCellWriter.AddRowAsync(cells, _nextRowIndex - 1, options, currentIndex, _stream, ct);
+    public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, RowOptions options, int currentIndex, CancellationToken ct)
+        => _styledCellWriter.AddRowAsync(cells, _nextRowIndex - 1, options, currentIndex, _stream, ct);
 
     public void AddDataValidation(CellReference reference, DataValidation validation)
     {

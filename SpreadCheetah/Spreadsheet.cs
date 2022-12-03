@@ -123,6 +123,15 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Adds a row of cells to the worksheet and increments the current row number by 1.
     /// </summary>
+    public ValueTask AddRowAsync(Cell[] cells, RowOptions? options, CancellationToken token = default)
+    {
+        ArgumentNullException.ThrowIfNull(cells);
+        return AddRowAsync(cells.AsMemory(), options, token);
+    }
+
+    /// <summary>
+    /// Adds a row of cells to the worksheet and increments the current row number by 1.
+    /// </summary>
     public ValueTask AddRowAsync(DataCell[] cells, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(cells);
@@ -132,10 +141,28 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Adds a row of cells to the worksheet and increments the current row number by 1.
     /// </summary>
+    public ValueTask AddRowAsync(DataCell[] cells, RowOptions? options, CancellationToken token = default)
+    {
+        ArgumentNullException.ThrowIfNull(cells);
+        return AddRowAsync(cells.AsMemory(), options, token);
+    }
+
+    /// <summary>
+    /// Adds a row of cells to the worksheet and increments the current row number by 1.
+    /// </summary>
     public ValueTask AddRowAsync(StyledCell[] cells, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(cells);
         return AddRowAsync(cells.AsMemory(), token);
+    }
+
+    /// <summary>
+    /// Adds a row of cells to the worksheet and increments the current row number by 1.
+    /// </summary>
+    public ValueTask AddRowAsync(StyledCell[] cells, RowOptions? options, CancellationToken token = default)
+    {
+        ArgumentNullException.ThrowIfNull(cells);
+        return AddRowAsync(cells.AsMemory(), options, token);
     }
 
     /// <summary>
@@ -151,6 +178,17 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Adds a row of cells to the worksheet and increments the current row number by 1.
     /// </summary>
+    public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, RowOptions? options, CancellationToken token = default)
+    {
+        if (options is null) return AddRowAsync(cells, token);
+        return Worksheet.TryAddRow(cells.Span, options, out var currentIndex)
+            ? default
+            : Worksheet.AddRowAsync(cells, options, currentIndex, token);
+    }
+
+    /// <summary>
+    /// Adds a row of cells to the worksheet and increments the current row number by 1.
+    /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, CancellationToken token = default)
     {
         return Worksheet.TryAddRow(cells.Span, out var currentIndex)
@@ -161,11 +199,33 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Adds a row of cells to the worksheet and increments the current row number by 1.
     /// </summary>
+    public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, RowOptions? options, CancellationToken token = default)
+    {
+        if (options is null) return AddRowAsync(cells, token);
+        return Worksheet.TryAddRow(cells.Span, options, out var currentIndex)
+            ? default
+            : Worksheet.AddRowAsync(cells, options, currentIndex, token);
+    }
+
+    /// <summary>
+    /// Adds a row of cells to the worksheet and increments the current row number by 1.
+    /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, CancellationToken token = default)
     {
         return Worksheet.TryAddRow(cells.Span, out var currentIndex)
             ? default
             : Worksheet.AddRowAsync(cells, currentIndex, token);
+    }
+
+    /// <summary>
+    /// Adds a row of cells to the worksheet and increments the current row number by 1.
+    /// </summary>
+    public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, RowOptions? options, CancellationToken token = default)
+    {
+        if (options is null) return AddRowAsync(cells, token);
+        return Worksheet.TryAddRow(cells.Span, options, out var currentIndex)
+            ? default
+            : Worksheet.AddRowAsync(cells, options, currentIndex, token);
     }
 
     /// <summary>
