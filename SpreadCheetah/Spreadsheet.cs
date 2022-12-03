@@ -362,6 +362,11 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styles, token).ConfigureAwait(false);
 
         _finished = true;
+
+        // The XLSX can become corrupt if the archive is not flushed before the resulting stream is being used.
+        // ZipArchive.Dispose() is currently (up to .NET 7) the only way to flush the archive to the resulting stream.
+        // In case the user would use the resulting stream before Spreadsheet.Dispose(), the flush must happen here to prevent a corrupt XLSX.
+        _archive.Dispose();
     }
 
     /// <inheritdoc/>
@@ -374,7 +379,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             await _worksheet.DisposeAsync().ConfigureAwait(false);
 
         ArrayPool<byte>.Shared.Return(_arrayPoolBuffer, true);
-        _archive?.Dispose();
     }
 
     /// <inheritdoc/>
@@ -384,6 +388,5 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _disposed = true;
         _worksheet?.Dispose();
         ArrayPool<byte>.Shared.Return(_arrayPoolBuffer, true);
-        _archive?.Dispose();
     }
 }

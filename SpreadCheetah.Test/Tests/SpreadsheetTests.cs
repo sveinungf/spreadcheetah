@@ -92,6 +92,21 @@ public class SpreadsheetTests
         Assert.Equal(hasStyle, zip.GetEntry("xl/styles.xml") is not null);
     }
 
+    [Fact]
+    public async Task Spreadsheet_Finish_ValidSpreadsheetBeforeDispose()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+
+        // Act
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Name");
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+    }
+
     [Theory]
     [InlineData("OneWord")]
     [InlineData("With whitespace")]
