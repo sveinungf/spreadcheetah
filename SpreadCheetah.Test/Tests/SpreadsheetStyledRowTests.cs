@@ -242,7 +242,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_FontColorCellWithStringValue(CellType type)
+    public async Task Spreadsheet_AddRow_FontColorCellWithStringValue(CellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Color test";
@@ -258,7 +258,7 @@ public class SpreadsheetStyledRowTests
             var styledCell = CellFactory.Create(type, cellValue, styleId);
 
             // Act
-            await spreadsheet.AddRowAsync(styledCell);
+            await spreadsheet.AddRowAsync(styledCell, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -273,7 +273,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_FillColorCellWithStringValue(CellType type)
+    public async Task Spreadsheet_AddRow_FillColorCellWithStringValue(CellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Color test";
@@ -289,7 +289,7 @@ public class SpreadsheetStyledRowTests
             var styledCell = CellFactory.Create(type, cellValue, styleId);
 
             // Act
-            await spreadsheet.AddRowAsync(styledCell);
+            await spreadsheet.AddRowAsync(styledCell, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -420,7 +420,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_MultipleStylesWithTheSameCustomNumberFormat(CellType type)
+    public async Task Spreadsheet_AddRow_MultipleStylesWithTheSameCustomNumberFormat(CellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Number format test";
@@ -440,7 +440,7 @@ public class SpreadsheetStyledRowTests
             var cells = styles.Select(x => CellFactory.Create(type, cellValue, spreadsheet.AddStyle(x))).ToList();
 
             // Act
-            await spreadsheet.AddRowAsync(cells);
+            await spreadsheet.AddRowAsync(cells, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -581,7 +581,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_MultipleBorders(CellType type)
+    public async Task Spreadsheet_AddRow_MultipleBorders(CellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Border style test";
@@ -608,7 +608,7 @@ public class SpreadsheetStyledRowTests
             var styledCell = CellFactory.Create(type, cellValue, styleId);
 
             // Act
-            await spreadsheet.AddRowAsync(styledCell);
+            await spreadsheet.AddRowAsync(styledCell, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -681,7 +681,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_MultipleCellsWithDifferentStyles(CellType type)
+    public async Task Spreadsheet_AddRow_MultipleCellsWithDifferentStyles(CellType type, RowCollectionType rowType)
     {
         // Arrange
         var elements = new (string Value, Color FillColor, Color FontColor, string FontName, bool FontOption, double FontSize, string NumberFormat)[]
@@ -718,7 +718,7 @@ public class SpreadsheetStyledRowTests
             }).ToList();
 
             // Act
-            await spreadsheet.AddRowAsync(cells);
+            await spreadsheet.AddRowAsync(cells, rowType);
             await spreadsheet.FinishAsync();
         }
 

@@ -35,7 +35,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_EmptyArrayRow(CellType type)
+    public async Task Spreadsheet_AddRow_EmptyRow(CellType type, RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -45,9 +45,9 @@ public class SpreadsheetRowTests
 
             var addRowTask = type switch
             {
-                CellType.Cell => spreadsheet.AddRowAsync(Array.Empty<Cell>()),
-                CellType.DataCell => spreadsheet.AddRowAsync(Array.Empty<DataCell>()),
-                CellType.StyledCell => spreadsheet.AddRowAsync(Array.Empty<StyledCell>()),
+                CellType.Cell => spreadsheet.AddRowAsync(Enumerable.Empty<Cell>(), rowType),
+                CellType.DataCell => spreadsheet.AddRowAsync(Enumerable.Empty<DataCell>(), rowType),
+                CellType.StyledCell => spreadsheet.AddRowAsync(Enumerable.Empty<StyledCell>(), rowType),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
 
@@ -65,67 +65,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_EmptyListRow(CellType type)
-    {
-        // Arrange
-        using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet");
-
-            var addRowTask = type switch
-            {
-                CellType.Cell => spreadsheet.AddRowAsync(new List<Cell>()),
-                CellType.DataCell => spreadsheet.AddRowAsync(new List<DataCell>()),
-                CellType.StyledCell => spreadsheet.AddRowAsync(new List<StyledCell>()),
-                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
-            };
-
-            // Act
-            await addRowTask;
-            await spreadsheet.FinishAsync();
-        }
-
-        // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var actual = SpreadsheetDocument.Open(stream, true);
-        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
-        Assert.Empty(sheetPart.Worksheet.Descendants<OpenXmlCell>());
-    }
-
-    [Theory]
-    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_EmptyMemoryRow(CellType type)
-    {
-        // Arrange
-        using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet");
-
-            var addRowTask = type switch
-            {
-                CellType.Cell => spreadsheet.AddRowAsync(ReadOnlyMemory<Cell>.Empty),
-                CellType.DataCell => spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty),
-                CellType.StyledCell => spreadsheet.AddRowAsync(ReadOnlyMemory<StyledCell>.Empty),
-                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
-            };
-
-            // Act
-            await addRowTask;
-            await spreadsheet.FinishAsync();
-        }
-
-        // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var actual = SpreadsheetDocument.Open(stream, true);
-        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
-        Assert.Empty(sheetPart.Worksheet.Descendants<OpenXmlCell>());
-    }
-
-    [Theory]
-    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_CellWithoutValue(CellType type)
+    public async Task Spreadsheet_AddRow_CellWithoutValue(CellType type, RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -135,7 +75,7 @@ public class SpreadsheetRowTests
             var cell = CellFactory.CreateWithoutValue(type);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync(cell, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -519,7 +459,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_MultipleColumns(CellType type)
+    public async Task Spreadsheet_AddRow_MultipleColumns(CellType type, RowCollectionType rowType)
     {
         // Arrange
         var values = Enumerable.Range(1, 1000).Select(x => x.ToString()).ToList();
@@ -530,7 +470,7 @@ public class SpreadsheetRowTests
             var cells = values.Select(x => CellFactory.Create(type, x)).ToList();
 
             // Act
-            await spreadsheet.AddRowAsync(cells);
+            await spreadsheet.AddRowAsync(cells, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -544,7 +484,7 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_MultipleRows(CellType type)
+    public async Task Spreadsheet_AddRow_MultipleRows(CellType type, RowCollectionType rowType)
     {
         // Arrange
         var values = Enumerable.Range(1, 1000).Select(x => x.ToString()).ToList();
@@ -556,7 +496,7 @@ public class SpreadsheetRowTests
             // Act
             foreach (var value in values)
             {
-                await spreadsheet.AddRowAsync(CellFactory.Create(type, value));
+                await spreadsheet.AddRowAsync(CellFactory.Create(type, value), rowType);
             }
 
             await spreadsheet.FinishAsync();

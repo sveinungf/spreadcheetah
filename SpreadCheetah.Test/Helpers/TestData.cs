@@ -4,47 +4,57 @@ namespace SpreadCheetah.Test.Helpers;
 
 internal static class TestData
 {
-    private static readonly CellType[] CellTypesArray = EnumHelper.GetValues<CellType>();
-    private static readonly CellType[] StyledCellTypesArray = new[] { CellType.StyledCell, CellType.Cell };
-    private static readonly CellValueType[] CellValueTypesArray = EnumHelper.GetValues<CellValueType>();
+    private static readonly CellType[] CellTypeEnum = EnumHelper.GetValues<CellType>();
+    private static readonly CellType[] StyledCellTypeEnum = new[] { CellType.StyledCell, CellType.Cell };
+    private static readonly CellValueType[] CellValueTypeEnum = EnumHelper.GetValues<CellValueType>();
+    private static readonly RowCollectionType[] RowCollectionTypeEnum = EnumHelper.GetValues<RowCollectionType>();
 
-    public static IEnumerable<object?[]> CellTypes() => CellTypesArray.Select(x => new object[] { x });
-    public static IEnumerable<object?[]> StyledCellTypes() => StyledCellTypesArray.Select(x => new object[] { x });
+    private static readonly (CellType CellType, RowCollectionType RowType)[] CellTypesValues = CellTypeEnum.SelectMany(_ => RowCollectionTypeEnum, (c, r) => (c, r)).ToArray();
+    private static readonly (CellType CellType, RowCollectionType RowType)[] StyledCellTypesValues = StyledCellTypeEnum.SelectMany(_ => RowCollectionTypeEnum, (c, r) => (c, r)).ToArray();
 
+    public static IEnumerable<object?[]> CellTypes() => CellTypesValues.Select(x => new object?[] { x.CellType, x.RowType });
+    public static IEnumerable<object?[]> StyledCellTypes() => StyledCellTypesValues.Select(x => new object?[] { x.CellType, x.RowType });
+
+    // TODO: Replace
     public static IEnumerable<object?[]> CombineWithCellTypes(params object?[] values)
     {
-        return values.SelectMany(_ => CellTypesArray, (value, type) => new object?[] { value, type });
+        return values.SelectMany(_ => CellTypeEnum, (value, type) => new object?[] { value, type });
     }
 
+    // TODO: Replace
     public static IEnumerable<object?[]> CombineWithCellTypes(params (object?, object?)[] values)
     {
-        return values.SelectMany(_ => CellTypesArray, (value, type) => new object?[] { value.Item1, value.Item2, type });
+        return values.SelectMany(_ => CellTypeEnum, (value, type) => new object?[] { value.Item1, value.Item2, type });
     }
 
+    // TODO: Replace
     public static IEnumerable<object?[]> CombineWithStyledCellTypes<T>(params T?[] values)
     {
-        return values.SelectMany(_ => StyledCellTypesArray, (value, type) => new object?[] { value, type });
+        return values.SelectMany(_ => StyledCellTypeEnum, (value, type) => new object?[] { value, type });
     }
 
+    // TODO: Replace
     public static IEnumerable<object?[]> CombineWithValueTypes(params object?[] values)
     {
         return values.SelectMany(_ => ValueTypes(), (value, type) => new object?[] { value, type[0], type[1] });
     }
 
+    // TODO: Replace
     public static IEnumerable<object?[]> ValueTypes()
     {
-        foreach (var valueType in CellValueTypesArray)
+        foreach (var valueType in CellValueTypeEnum)
         {
             yield return new object?[] { valueType, true };
             yield return new object?[] { valueType, false };
         }
     }
 
+    // TODO: Replace
     public static IEnumerable<object?[]> StyledCellAndValueTypes()
     {
-        foreach (var valueType in CellValueTypesArray)
+        foreach (var valueType in CellValueTypeEnum)
         {
-            foreach (var cellType in StyledCellTypesArray)
+            foreach (var cellType in StyledCellTypeEnum)
             {
                 yield return new object?[] { valueType, true, cellType };
                 yield return new object?[] { valueType, false, cellType };
