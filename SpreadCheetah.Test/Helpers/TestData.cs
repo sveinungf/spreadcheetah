@@ -4,58 +4,113 @@ namespace SpreadCheetah.Test.Helpers;
 
 internal static class TestData
 {
-    private static readonly CellType[] CellTypeEnum = EnumHelper.GetValues<CellType>();
-    private static readonly CellType[] StyledCellTypeEnum = new[] { CellType.StyledCell, CellType.Cell };
-    private static readonly CellValueType[] CellValueTypeEnum = EnumHelper.GetValues<CellValueType>();
-    private static readonly RowCollectionType[] RowCollectionTypeEnum = EnumHelper.GetValues<RowCollectionType>();
+    private static readonly CellType[] CellTypeArray = EnumHelper.GetValues<CellType>();
+    private static readonly CellType[] StyledCellTypeArray = new[] { CellType.StyledCell, CellType.Cell };
+    private static readonly CellValueType[] CellValueTypeArray = EnumHelper.GetValues<CellValueType>();
+    private static readonly RowCollectionType[] RowCollectionTypeArray = EnumHelper.GetValues<RowCollectionType>();
 
-    private static readonly (CellType CellType, RowCollectionType RowType)[] CellTypesValues = CellTypeEnum.SelectMany(_ => RowCollectionTypeEnum, (c, r) => (c, r)).ToArray();
-    private static readonly (CellType CellType, RowCollectionType RowType)[] StyledCellTypesValues = StyledCellTypeEnum.SelectMany(_ => RowCollectionTypeEnum, (c, r) => (c, r)).ToArray();
+    public static IEnumerable<object?[]> CellTypes()
+    {
+        foreach (var cellType in CellTypeArray)
+        {
+            foreach (var rowType in RowCollectionTypeArray)
+            {
+                yield return new object?[] { cellType, rowType };
+            }
+        }
+    }
 
-    public static IEnumerable<object?[]> CellTypes() => CellTypesValues.Select(x => new object?[] { x.CellType, x.RowType });
-    public static IEnumerable<object?[]> StyledCellTypes() => StyledCellTypesValues.Select(x => new object?[] { x.CellType, x.RowType });
+    public static IEnumerable<object?[]> StyledCellTypes()
+    {
+        foreach (var cellType in StyledCellTypeArray)
+        {
+            foreach (var rowType in RowCollectionTypeArray)
+            {
+                yield return new object?[] { cellType, rowType };
+            }
+        }
+    }
 
     public static IEnumerable<object?[]> CombineWithCellTypes<T>(params T?[] values)
     {
-        return values.SelectMany(_ => CellTypesValues, (value, element) => new object?[] { value, element.CellType, element.RowType });
+        foreach (var value in values)
+        {
+            foreach (var cellType in CellTypeArray)
+            {
+                foreach (var rowType in RowCollectionTypeArray)
+                {
+                    yield return new object?[] { value, cellType, rowType };
+                }
+            }
+        }
     }
 
     public static IEnumerable<object?[]> CombineWithCellTypes<TFirst, TSecond>(params (TFirst?, TSecond?)[] values)
     {
-        return values.SelectMany(_ => CellTypesValues, (value, element) => new object?[] { value.Item1, value.Item2, element.CellType, element.RowType });
-    }
-
-    // TODO: Replace
-    public static IEnumerable<object?[]> CombineWithStyledCellTypes<T>(params T?[] values)
-    {
-        return values.SelectMany(_ => StyledCellTypeEnum, (value, type) => new object?[] { value, type });
-    }
-
-    // TODO: Replace
-    public static IEnumerable<object?[]> CombineWithValueTypes(params object?[] values)
-    {
-        return values.SelectMany(_ => ValueTypes(), (value, type) => new object?[] { value, type[0], type[1] });
-    }
-
-    // TODO: Replace
-    public static IEnumerable<object?[]> ValueTypes()
-    {
-        foreach (var valueType in CellValueTypeEnum)
+        foreach (var (firstValue, secondValue) in values)
         {
-            yield return new object?[] { valueType, true };
-            yield return new object?[] { valueType, false };
+            foreach (var cellType in CellTypeArray)
+            {
+                foreach (var rowType in RowCollectionTypeArray)
+                {
+                    yield return new object?[] { firstValue, secondValue, cellType, rowType };
+                }
+            }
         }
     }
 
-    // TODO: Replace
+    public static IEnumerable<object?[]> CombineWithStyledCellTypes<T>(params T?[] values)
+    {
+        foreach (var value in values)
+        {
+            foreach (var cellType in StyledCellTypeArray)
+            {
+                foreach (var rowType in RowCollectionTypeArray)
+                {
+                    yield return new object?[] { value, cellType, rowType };
+                }
+            }
+        }
+    }
+
+    public static IEnumerable<object?[]> ValueTypes()
+    {
+        foreach (var valueType in CellValueTypeArray)
+        {
+            foreach (var rowType in RowCollectionTypeArray)
+            {
+                yield return new object?[] { valueType, rowType, true };
+                yield return new object?[] { valueType, rowType, false };
+            }
+        }
+    }
+
+    public static IEnumerable<object?[]> CombineWithValueTypes<T>(params T?[] values)
+    {
+        foreach (var value in values)
+        {
+            foreach (var valueType in CellValueTypeArray)
+            {
+                foreach (var rowType in RowCollectionTypeArray)
+                {
+                    yield return new object?[] { value, valueType, rowType, true };
+                    yield return new object?[] { value, valueType, rowType, false };
+                }
+            }
+        }
+    }
+
     public static IEnumerable<object?[]> StyledCellAndValueTypes()
     {
-        foreach (var valueType in CellValueTypeEnum)
+        foreach (var valueType in CellValueTypeArray)
         {
-            foreach (var cellType in StyledCellTypeEnum)
+            foreach (var cellType in StyledCellTypeArray)
             {
-                yield return new object?[] { valueType, true, cellType };
-                yield return new object?[] { valueType, false, cellType };
+                foreach (var rowType in RowCollectionTypeArray)
+                {
+                    yield return new object?[] { valueType, true, cellType, rowType };
+                    yield return new object?[] { valueType, false, cellType, rowType };
+                }
             }
         }
     }

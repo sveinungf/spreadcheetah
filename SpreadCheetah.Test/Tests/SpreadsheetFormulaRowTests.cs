@@ -78,7 +78,7 @@ public class SpreadsheetFormulaRowTests
 
     [Theory]
     [MemberData(nameof(TestData.ValueTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_CellWithFormulaAndCachedValue(CellValueType valueType, bool isNull)
+    public async Task Spreadsheet_AddRow_CellWithFormulaAndCachedValue(CellValueType valueType, RowCollectionType rowType, bool isNull)
     {
         // Arrange
         const string formulaText = "SUM(A1,A2)";
@@ -91,7 +91,7 @@ public class SpreadsheetFormulaRowTests
             var cell = CellFactory.Create(formula, valueType, isNull, null, out cachedValue);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync(cell, rowType);
             await spreadsheet.FinishAsync();
         }
 
@@ -254,7 +254,7 @@ public class SpreadsheetFormulaRowTests
 
     [Theory]
     [MemberData(nameof(FormulaLengthsWithValueTypes))]
-    public async Task Spreadsheet_AddRow_CellWithVeryLongFormulaAndCachedValue(int formulaLength, CellValueType cachedValueType, bool cachedValueIsNull)
+    public async Task Spreadsheet_AddRow_CellWithVeryLongFormulaAndCachedValue(int formulaLength, CellValueType cachedValueType, RowCollectionType rowType, bool cachedValueIsNull)
     {
         // Arrange
         var formulaText = FormulaGenerator.Generate(formulaLength);
@@ -268,7 +268,7 @@ public class SpreadsheetFormulaRowTests
             var cell = CellFactory.Create(formula, cachedValueType, cachedValueIsNull, null, out cachedValue);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync(cell, rowType);
             await spreadsheet.FinishAsync();
         }
 
