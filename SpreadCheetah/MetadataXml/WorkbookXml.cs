@@ -1,4 +1,5 @@
 using SpreadCheetah.Helpers;
+using System.Buffers.Text;
 using System.IO.Compression;
 using System.Net;
 
@@ -6,21 +7,16 @@ namespace SpreadCheetah.MetadataXml;
 
 internal static class WorkbookXml
 {
-    private const string Header =
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-        "<workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\">" +
-        "<sheets>";
+    private static ReadOnlySpan<byte> Header =>
+        """<?xml version="1.0" encoding="utf-8"?>"""u8 +
+        """<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">"""u8 +
+        """<sheets>"""u8;
 
-    private const string SheetStartString = "<sheet name=\"";
-    private const string BetweenNameAndSheetIdString = "\" sheetId=\"";
-    private const string BetweenSheetIdAndRelationIdString = "\" r:id=\"";
-    private const string SheetEndString = "\" />";
-    private const string Footer = "</sheets></workbook>";
-
-    private static readonly byte[] SheetStart = Utf8Helper.GetBytes(SheetStartString);
-    private static readonly byte[] BetweenNameAndSheetId = Utf8Helper.GetBytes(BetweenNameAndSheetIdString);
-    private static readonly byte[] BetweenSheetIdAndRelationId = Utf8Helper.GetBytes(BetweenSheetIdAndRelationIdString);
-    private static readonly byte[] SheetEnd = Utf8Helper.GetBytes(SheetEndString);
+    private static ReadOnlySpan<byte> SheetStart => "<sheet name=\""u8;
+    private static ReadOnlySpan<byte> BetweenNameAndSheetId => "\" sheetId=\""u8;
+    private static ReadOnlySpan<byte> BetweenSheetIdAndRelationId => "\" r:id=\"rId"u8;
+    private static ReadOnlySpan<byte> SheetEnd => "\" />"u8;
+    private static ReadOnlySpan<byte> Footer => "</sheets></workbook>"u8;
 
     public static async ValueTask WriteAsync(
         ZipArchive archive,
@@ -33,51 +29,91 @@ internal static class WorkbookXml
 #if NETSTANDARD2_0
         using (stream)
 #else
-            await using (stream.ConfigureAwait(false))
+        await using (stream.ConfigureAwait(false))
 #endif
         {
-            buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetSpan()));
+            var indexA = 0;
+            var indexB = 0;
 
-            for (var i = 0; i < worksheetNames.Count; ++i)
-            {
-                var sheetId = i + 1;
-                var name = WebUtility.HtmlEncode(worksheetNames[i]);
-                var sheetElementLength = GetSheetElementByteCount(name, sheetId);
+            while (!TryWrite(ref indexA, ref indexB, buffer, worksheetNames))
+                await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-                if (sheetElementLength > buffer.FreeCapacity)
-                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-                buffer.Advance(GetSheetElementBytes(name, sheetId, buffer.GetSpan()));
-            }
-
-            await buffer.WriteAsciiStringAsync(Footer, stream, token).ConfigureAwait(false);
             await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }
     }
 
-    private static int GetSheetElementByteCount(string name, int sheetId)
+    private static bool TryWrite(ref int indexA, ref int indexB, SpreadsheetBuffer buffer, List<string> worksheetNames)
     {
-        var sheetIdDigits = sheetId.GetNumberOfDigits();
-        return SheetStart.Length
-            + Utf8Helper.GetByteCount(name)
-            + BetweenNameAndSheetId.Length
-            + sheetIdDigits
-            + BetweenSheetIdAndRelationId.Length
-            + SharedMetadata.RelationIdPrefix.Length
-            + sheetIdDigits
-            + SheetEnd.Length;
+        if (indexA == 0)
+        {
+            if (!TryWriteSpan(Header, buffer)) return false;
+            ++indexA;
+        }
+
+        if (indexA == 1)
+        {
+            for (; indexB < worksheetNames.Count; ++indexB)
+            {
+                var sheetId = indexB + 1;
+                var name = WebUtility.HtmlEncode(worksheetNames[indexB]);
+                if (!TryGetSheetElementBytes(name, sheetId, buffer)) return false;
+            }
+
+            ++indexA;
+            indexB = 0;
+        }
+
+        if (indexA == 2)
+        {
+            if (!TryWriteSpan(Footer, buffer)) return false;
+            ++indexA;
+        }
+
+        return true;
     }
 
-    private static int GetSheetElementBytes(string name, int sheetId, Span<byte> bytes)
+    private static bool TryWriteSpan(ReadOnlySpan<byte> span, SpreadsheetBuffer buffer)
     {
-        var bytesWritten = SpanHelper.GetBytes(SheetStart, bytes);
-        bytesWritten += Utf8Helper.GetBytes(name, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(BetweenNameAndSheetId, bytes.Slice(bytesWritten));
-        bytesWritten += Utf8Helper.GetBytes(sheetId, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(BetweenSheetIdAndRelationId, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(SharedMetadata.RelationIdPrefix, bytes.Slice(bytesWritten));
-        bytesWritten += Utf8Helper.GetBytes(sheetId, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(SheetEnd, bytes.Slice(bytesWritten));
-        return bytesWritten;
+        if (!span.TryCopyTo(buffer.GetSpan())) return false;
+        buffer.Advance(span.Length);
+        return true;
+    }
+
+    private static bool TryWriteSpan(ReadOnlySpan<byte> span, Span<byte> bytes, ref int bytesWritten)
+    {
+        if (!span.TryCopyTo(bytes)) return false;
+        bytesWritten += span.Length;
+        return true;
+    }
+
+    private static bool TryWriteString(string value, Span<byte> bytes, ref int bytesWritten)
+    {
+        if (!Utf8Helper.TryGetBytes(value.AsSpan(), bytes, out var valueLength)) return false;
+        bytesWritten += valueLength;
+        return true;
+    }
+
+    private static bool TryWriteInteger(int value, Span<byte> bytes, ref int bytesWritten)
+    {
+        if (!Utf8Formatter.TryFormat(value, bytes, out var valueLength)) return false;
+        bytesWritten += valueLength;
+        return true;
+    }
+
+    private static bool TryGetSheetElementBytes(string name, int sheetId, SpreadsheetBuffer buffer)
+    {
+        var bytes = buffer.GetSpan();
+        var bytesWritten = 0;
+
+        if (!TryWriteSpan(SheetStart, bytes, ref bytesWritten)) return false;
+        if (!TryWriteString(name, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
+        if (!TryWriteSpan(BetweenNameAndSheetId, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
+        if (!TryWriteInteger(sheetId, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
+        if (!TryWriteSpan(BetweenSheetIdAndRelationId, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
+        if (!TryWriteInteger(sheetId, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
+        if (!TryWriteSpan(SheetEnd, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
+
+        buffer.Advance(bytesWritten);
+        return true;
     }
 }

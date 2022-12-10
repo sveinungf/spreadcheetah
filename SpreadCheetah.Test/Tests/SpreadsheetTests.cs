@@ -202,6 +202,7 @@ public class SpreadsheetTests
     [InlineData(2)]
     [InlineData(10)]
     [InlineData(1000)]
+    [InlineData(2000)]
     public async Task Spreadsheet_StartWorksheet_MultipleWorksheets(int count)
     {
         // Arrange
