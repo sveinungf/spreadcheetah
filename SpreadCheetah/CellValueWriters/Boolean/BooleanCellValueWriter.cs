@@ -45,7 +45,7 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         var bytes = buffer.GetSpan();
 
         if (TryWriteFormulaCellStart(styleId, bytes, out var part1)
-            && Utf8Helper.TryGetBytes(formulaText.AsSpan(), bytes.Slice(part1), out var part2)
+            && Utf8Helper.TryGetBytes(formulaText, bytes.Slice(part1), out var part2)
             && TryWriteEndFormulaValue(bytes.Slice(part1 + part2), out var part3))
         {
             buffer.Advance(part1 + part2 + part3);

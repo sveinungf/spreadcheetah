@@ -19,7 +19,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
         var bytes = buffer.GetSpan();
 
         if (BeginStringCell.TryCopyTo(bytes)
-            && Utf8Helper.TryGetBytes(cell.StringValue!.AsSpan(), bytes.Slice(BeginStringCell.Length), out var valueLength)
+            && Utf8Helper.TryGetBytes(cell.StringValue, bytes.Slice(BeginStringCell.Length), out var valueLength)
             && EndStringCell.TryCopyTo(bytes.Slice(BeginStringCell.Length + valueLength)))
         {
             buffer.Advance(BeginStringCell.Length + EndStringCell.Length + valueLength);
@@ -39,7 +39,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
         if (BeginStyledStringCell.TryCopyTo(bytes)
             && Utf8Formatter.TryFormat(styleId.Id, bytes.Slice(part1), out var part2)
             && EndStyleBeginInlineString.TryCopyTo(bytes.Slice(part1 + part2))
-            && Utf8Helper.TryGetBytes(cell.StringValue!.AsSpan(), bytes.Slice(part1 + part2 + part3), out var part4)
+            && Utf8Helper.TryGetBytes(cell.StringValue, bytes.Slice(part1 + part2 + part3), out var part4)
             && EndStringCell.TryCopyTo(bytes.Slice(part1 + part2 + part3 + part4)))
         {
             buffer.Advance(part1 + part2 + part3 + part4 + part5);
@@ -56,9 +56,9 @@ internal sealed class StringCellValueWriter : CellValueWriter
         var part5 = FormulaCellHelper.EndCachedValueEndCell.Length;
 
         if (TryWriteFormulaCellStart(styleId, bytes, out var part1)
-            && Utf8Helper.TryGetBytes(formulaText.AsSpan(), bytes.Slice(part1), out var part2)
+            && Utf8Helper.TryGetBytes(formulaText, bytes.Slice(part1), out var part2)
             && FormulaCellHelper.EndFormulaBeginCachedValue.TryCopyTo(bytes.Slice(part1 + part2))
-            && Utf8Helper.TryGetBytes(cachedValue.StringValue!.AsSpan(), bytes.Slice(part1 + part2 + part3), out var part4)
+            && Utf8Helper.TryGetBytes(cachedValue.StringValue, bytes.Slice(part1 + part2 + part3), out var part4)
             && FormulaCellHelper.EndCachedValueEndCell.TryCopyTo(bytes.Slice(part1 + part2 + part3 + part4)))
         {
             buffer.Advance(part1 + part2 + part3 + part4 + part5);
@@ -155,7 +155,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
 
     public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)
     {
-        return buffer.WriteLongString(cell.StringValue.AsSpan(), ref valueIndex);
+        return buffer.WriteLongString(cell.StringValue, ref valueIndex);
     }
 
     public override bool Equals(in CellValue value, in CellValue other) => true;

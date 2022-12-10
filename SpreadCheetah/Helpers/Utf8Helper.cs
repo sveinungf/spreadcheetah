@@ -1,5 +1,4 @@
 using System.Buffers.Text;
-using System.Diagnostics;
 using System.Text;
 
 namespace SpreadCheetah.Helpers;
@@ -10,27 +9,21 @@ internal static class Utf8Helper
 
     private static readonly UTF8Encoding Utf8NoBom = new(false);
 
+    public static int GetByteCount(string chars) => Utf8NoBom.GetByteCount(chars);
+    public static byte[] GetBytes(string s) => Utf8NoBom.GetBytes(s);
+
     public static int GetBytes(int number, Span<byte> destination)
     {
         Utf8Formatter.TryFormat(number, destination, out var bytesWritten);
         return bytesWritten;
     }
 
-    public static int GetBytes(string chars, Span<byte> bytes, bool assertSize = true) => GetBytes(chars.AsSpan(), bytes, assertSize);
+    public static int GetBytes(ReadOnlySpan<char> chars, Span<byte> bytes) => Utf8NoBom.GetBytes(chars, bytes);
 
-    public static int GetBytes(ReadOnlySpan<char> chars, Span<byte> bytes, bool assertSize = true)
-    {
-        if (assertSize)
-            Debug.Assert(Utf8NoBom.GetByteCount(chars) <= SpreadCheetahOptions.MinimumBufferSize);
+#if NETSTANDARD2_0
+    public static int GetBytes(string chars, Span<byte> bytes) => GetBytes(chars.AsSpan(), bytes);
+    public static bool TryGetBytes(string? chars, Span<byte> bytes, out int bytesWritten) => TryGetBytes(chars.AsSpan(), bytes, out bytesWritten);
+#endif
 
-        return Utf8NoBom.GetBytes(chars, bytes);
-    }
-
-    public static byte[] GetBytes(string s) => Utf8NoBom.GetBytes(s);
-    public static int GetByteCount(string chars) => Utf8NoBom.GetByteCount(chars);
-
-    public static bool TryGetBytes(ReadOnlySpan<char> chars, Span<byte> bytes, out int bytesWritten)
-    {
-        return Utf8NoBom.TryGetBytes(chars, bytes, out bytesWritten);
-    }
+    public static bool TryGetBytes(ReadOnlySpan<char> chars, Span<byte> bytes, out int bytesWritten) => Utf8NoBom.TryGetBytes(chars, bytes, out bytesWritten);
 }

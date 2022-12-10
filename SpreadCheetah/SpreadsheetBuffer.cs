@@ -51,7 +51,7 @@ internal sealed class SpreadsheetBuffer
 
         // Otherwise, write value piece by piece
         var valueIndex = 0;
-        while (!WriteLongString(value.AsSpan(), ref valueIndex))
+        while (!WriteLongString(value, ref valueIndex))
         {
             await FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }
@@ -70,6 +70,10 @@ internal sealed class SpreadsheetBuffer
         valueIndex += length;
         return lastIteration;
     }
+
+#if NETSTANDARD2_0
+    public bool WriteLongString(string? value, ref int valueIndex) => WriteLongString(value.AsSpan(), ref valueIndex);
+#endif
 
     public ValueTask FlushToStreamAsync(Stream stream, CancellationToken token)
     {

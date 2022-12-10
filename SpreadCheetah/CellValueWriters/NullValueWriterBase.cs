@@ -44,7 +44,7 @@ internal abstract class NullValueWriterBase : CellValueWriter
         var part3 = EndFormulaEndCell.Length;
 
         if (NumberCellValueWriterBase.TryWriteFormulaCellStart(styleId, bytes, out var part1)
-            && Utf8Helper.TryGetBytes(formulaText.AsSpan(), bytes.Slice(part1), out var part2)
+            && Utf8Helper.TryGetBytes(formulaText, bytes.Slice(part1), out var part2)
             && EndFormulaEndCell.TryCopyTo(bytes.Slice(part1 + part2)))
         {
             buffer.Advance(part1 + part2 + part3);

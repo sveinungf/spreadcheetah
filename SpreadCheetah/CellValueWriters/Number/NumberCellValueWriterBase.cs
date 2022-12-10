@@ -55,7 +55,7 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         var part5 = FormulaCellHelper.EndCachedValueEndCell.Length;
 
         if (TryWriteFormulaCellStart(styleId, bytes, out var part1)
-            && Utf8Helper.TryGetBytes(formulaText.AsSpan(), bytes.Slice(part1), out var part2)
+            && Utf8Helper.TryGetBytes(formulaText, bytes.Slice(part1), out var part2)
             && FormulaCellHelper.EndFormulaBeginCachedValue.TryCopyTo(bytes.Slice(part1 + part2))
             && TryWriteValue(cachedValue, bytes.Slice(part1 + part2 + part3), out var part4)
             && FormulaCellHelper.EndCachedValueEndCell.TryCopyTo(bytes.Slice(part1 + part2 + part3 + part4)))

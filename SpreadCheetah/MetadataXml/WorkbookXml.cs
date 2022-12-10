@@ -88,7 +88,7 @@ internal static class WorkbookXml
 
     private static bool TryWriteString(string value, Span<byte> bytes, ref int bytesWritten)
     {
-        if (!Utf8Helper.TryGetBytes(value.AsSpan(), bytes, out var valueLength)) return false;
+        if (!Utf8Helper.TryGetBytes(value, bytes, out var valueLength)) return false;
         bytesWritten += valueLength;
         return true;
     }

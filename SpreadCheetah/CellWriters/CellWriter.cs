@@ -39,7 +39,7 @@ internal sealed class CellWriter : BaseCellWriter<Cell>
         // Write the formula
         if (cellValueIndex < formulaText.Length)
         {
-            if (!Buffer.WriteLongString(formulaText.AsSpan(), ref cellValueIndex)) return false;
+            if (!Buffer.WriteLongString(formulaText, ref cellValueIndex)) return false;
 
             // Finish if there is no cached value to write piece by piece
             if (!cell.DataCell.Writer.CanWriteValuePieceByPiece(cell.DataCell)) return true;

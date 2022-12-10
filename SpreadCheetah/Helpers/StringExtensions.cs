@@ -23,7 +23,7 @@ internal static class StringExtensions
         if (name.StartsWith('\'') || name.EndsWith('\''))
             ThrowHelper.WorksheetNameStartsOrEndsWithSingleQuote(paramName);
 
-        if (name.AsSpan().IndexOfAny(InvalidSheetNameCharacters.AsSpan()) != -1)
+        if (name.AsSpan().IndexOfAny(InvalidSheetNameCharacters) != -1)
             ThrowHelper.WorksheetNameInvalidCharacters(paramName, InvalidSheetNameCharacters);
     }
 }
