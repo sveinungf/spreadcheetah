@@ -703,6 +703,46 @@ public class SpreadsheetStyledRowTests
     }
 
     [Theory]
+    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_MixedAlignment(CellType type, RowCollectionType rowType)
+    {
+        // Arrange
+        const string cellValue = "Alignment test";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var style = new Style
+        {
+            Alignment = new Alignment
+            {
+                Horizontal = HorizontalAlignment.Right,
+                Indent = 2,
+                Vertical = VerticalAlignment.Center,
+                WrapText = true
+            }
+        };
+
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = CellFactory.Create(type, cellValue, styleId);
+
+        // Act
+        await spreadsheet.AddRowAsync(styledCell, rowType);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        var actualAlignment = actualCell.Style.Alignment;
+        Assert.Equal(cellValue, actualCell.Value);
+        Assert.Equal(XLAlignmentHorizontalValues.Right, actualAlignment.Horizontal);
+        Assert.Equal(XLAlignmentVerticalValues.Center, actualAlignment.Vertical);
+        Assert.Equal(2, actualAlignment.Indent);
+        Assert.True(actualAlignment.WrapText);
+    }
+
+    [Theory]
     [MemberData(nameof(TrueAndFalse))]
     public async Task Spreadsheet_AddRow_MultiFormatCellWithStringValue(bool formatting, CellType type, RowCollectionType rowType)
     {
