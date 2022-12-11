@@ -6,7 +6,7 @@ namespace SpreadCheetah.Styling;
 /// <summary>
 /// Represents the font part of a <see cref="Style"/>.
 /// </summary>
-public sealed class Font : IEquatable<Font>
+public sealed record Font
 {
     internal const double DefaultSize = 11;
 
@@ -33,17 +33,4 @@ public sealed class Font : IEquatable<Font>
 
     /// <summary>ARGB (alpha, red, green, blue) color of the font.</summary>
     public Color? Color { get; set; }
-
-    /// <inheritdoc/>
-    public bool Equals(Font? other) => other != null
-        && string.Equals(Name, other.Name, StringComparison.Ordinal)
-        && Bold == other.Bold && Italic == other.Italic && Strikethrough == other.Strikethrough
-        && Size == other.Size
-        && EqualityComparer<Color?>.Default.Equals(Color, other.Color);
-
-    /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is Font other && Equals(other);
-
-    /// <inheritdoc/>
-    public override int GetHashCode() => HashCode.Combine(Name, Bold, Italic, Strikethrough, Size, Color);
 }

@@ -5,7 +5,7 @@ namespace SpreadCheetah.Styling;
 /// <summary>
 /// Represents the diagonal border part of a <see cref="Style"/>.
 /// </summary>
-public sealed class DiagonalBorder : IEquatable<DiagonalBorder>
+public sealed record DiagonalBorder
 {
     /// <summary>Border style. Defaults to None.</summary>
     public BorderStyle BorderStyle { get; set; } = BorderStyle.None;
@@ -15,16 +15,4 @@ public sealed class DiagonalBorder : IEquatable<DiagonalBorder>
 
     /// <summary>Diagonal up, diagonal down, or both. Defaults to None.</summary>
     public DiagonalBorderType Type { get; set; } = DiagonalBorderType.None;
-
-    /// <inheritdoc/>
-    public bool Equals(DiagonalBorder? other) => other != null
-        && BorderStyle == other.BorderStyle
-        && Type == other.Type
-        && EqualityComparer<Color?>.Default.Equals(Color, other.Color);
-
-    /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is DiagonalBorder other && Equals(other);
-
-    /// <inheritdoc/>
-    public override int GetHashCode() => HashCode.Combine(BorderStyle, Color, Type);
 }
