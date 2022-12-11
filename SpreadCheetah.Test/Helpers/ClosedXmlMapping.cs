@@ -38,4 +38,15 @@ internal static class ClosedXmlMapping
             _ => throw new NotImplementedException()
         };
     }
+
+    public static XLAlignmentVerticalValues GetClosedXmlVerticalAlignment(this VerticalAlignment alignment)
+    {
+        return alignment switch
+        {
+            VerticalAlignment.Bottom => XLAlignmentVerticalValues.Bottom,
+            VerticalAlignment.Center => XLAlignmentVerticalValues.Center,
+            VerticalAlignment.Top => XLAlignmentVerticalValues.Top,
+            _ => throw new NotImplementedException()
+        };
+    }
 }

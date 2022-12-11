@@ -1,6 +1,6 @@
 namespace SpreadCheetah.Styling;
 
-internal enum VerticalAlignment
+public enum VerticalAlignment
 {
     Bottom,
     Center,
