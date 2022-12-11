@@ -634,6 +634,40 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(XLColor.Black, actualBorder.DiagonalBorderColor);
     }
 
+    public static IEnumerable<object?[]> HorizontalAlignments() => TestData.CombineWithStyledCellTypes(EnumHelper.GetValues<HorizontalAlignment>());
+
+    [Theory]
+    [MemberData(nameof(HorizontalAlignments))]
+    public async Task Spreadsheet_AddRow_HorizontalAlignment(HorizontalAlignment alignment, CellType type, RowCollectionType rowType)
+    {
+        // Arrange
+        const string cellValue = "Alignment test";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var style = new Style();
+        style.Alignment.Horizontal = alignment;
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = CellFactory.Create(type, cellValue, styleId);
+        var expectedAlignment = alignment.GetClosedXmlHorizontalAlignment();
+
+        // Act
+        await spreadsheet.AddRowAsync(styledCell, rowType);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        var actualAlignment = actualCell.Style.Alignment;
+        Assert.Equal(cellValue, actualCell.Value);
+        Assert.Equal(expectedAlignment, actualAlignment.Horizontal);
+        Assert.Equal(XLAlignmentVerticalValues.Bottom, actualAlignment.Vertical);
+        Assert.Equal(0, actualAlignment.Indent);
+        Assert.False(actualAlignment.WrapText);
+    }
+
     [Theory]
     [MemberData(nameof(TrueAndFalse))]
     public async Task Spreadsheet_AddRow_MultiFormatCellWithStringValue(bool formatting, CellType type, RowCollectionType rowType)

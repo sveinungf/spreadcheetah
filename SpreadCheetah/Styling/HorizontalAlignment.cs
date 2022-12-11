@@ -1,6 +1,6 @@
 namespace SpreadCheetah.Styling;
 
-internal enum HorizontalAlignment
+public enum HorizontalAlignment
 {
     None,
     Left,

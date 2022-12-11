@@ -3,7 +3,7 @@ using SpreadCheetah.Styling;
 
 namespace SpreadCheetah.Test.Helpers;
 
-internal static class BorderHelper
+internal static class ClosedXmlMapping
 {
     public static XLBorderStyleValues GetClosedXmlBorderStyle(this BorderStyle borderStyle)
     {
@@ -23,7 +23,19 @@ internal static class BorderHelper
             BorderStyle.DashDotDot => XLBorderStyleValues.DashDotDot,
             BorderStyle.MediumDashDotDot => XLBorderStyleValues.MediumDashDotDot,
             BorderStyle.SlantDashDot => XLBorderStyleValues.SlantDashDot,
-            _ => throw new NotImplementedException(),
+            _ => throw new NotImplementedException()
+        };
+    }
+
+    public static XLAlignmentHorizontalValues GetClosedXmlHorizontalAlignment(this HorizontalAlignment alignment)
+    {
+        return alignment switch
+        {
+            HorizontalAlignment.None => XLAlignmentHorizontalValues.General,
+            HorizontalAlignment.Left => XLAlignmentHorizontalValues.Left,
+            HorizontalAlignment.Center => XLAlignmentHorizontalValues.Center,
+            HorizontalAlignment.Right => XLAlignmentHorizontalValues.Right,
+            _ => throw new NotImplementedException()
         };
     }
 }
