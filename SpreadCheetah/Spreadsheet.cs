@@ -337,7 +337,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private void AddDefaultStyle()
     {
         var defaultFont = new ImmutableFont(null, false, false, false, Font.DefaultSize, null);
-        var defaultStyle = new ImmutableStyle(new ImmutableBorder(), new ImmutableFill(), defaultFont, null);
+        var defaultStyle = new ImmutableStyle(new ImmutableAlignment(), new ImmutableBorder(), new ImmutableFill(), defaultFont, null);
         var styleId = AddStyle(defaultStyle);
 
         if (styleId.Id != styleId.DateTimeId)

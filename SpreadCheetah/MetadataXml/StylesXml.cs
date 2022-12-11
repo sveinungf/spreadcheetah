@@ -105,7 +105,13 @@ internal static class StylesXml
         if (borders.TryGetValue(style.Border, out var borderIndex) && borderIndex > 0)
             sb.Append(" borderId=\"").Append(borderIndex).Append("\" applyBorder=\"1\"");
 
-        sb.Append(" xfId=\"0\"/>");
+        sb.Append(" xfId=\"0\"");
+
+        var defaultAlignment = new ImmutableAlignment();
+        if (style.Alignment == defaultAlignment)
+            sb.Append("/>");
+        else
+            sb.Append(" applyAlignment=\"1\">").AppendAlignment(style.Alignment).Append("</xf>");
     }
 
     private static int GetNumberFormatId(string? numberFormat, IReadOnlyDictionary<string, int> customNumberFormats)
@@ -402,6 +408,36 @@ internal static class StylesXml
 
         sb.Append(value);
     }
+
+    private static StringBuilder AppendAlignment(this StringBuilder sb, ImmutableAlignment alignment)
+    {
+        sb.Append("<alignment")
+            .AppendHorizontalAlignment(alignment.Horizontal)
+            .AppendVerticalAlignment(alignment.Vertical);
+
+        if (alignment.WrapText)
+            sb.Append(" wrapText=\"1\"");
+
+        if (alignment.Indent > 0)
+            sb.Append(" indent=\"").Append(alignment.Indent).Append('"');
+
+        return sb.Append("/>");
+    }
+
+    private static StringBuilder AppendHorizontalAlignment(this StringBuilder sb, HorizontalAlignment alignment) => alignment switch
+    {
+        HorizontalAlignment.Left => sb.Append(" horizontal=\"left\""),
+        HorizontalAlignment.Center => sb.Append(" horizontal=\"center\""),
+        HorizontalAlignment.Right => sb.Append(" horizontal=\"right\""),
+        _ => sb
+    };
+
+    private static StringBuilder AppendVerticalAlignment(this StringBuilder sb, VerticalAlignment alignment) => alignment switch
+    {
+        VerticalAlignment.Center => sb.Append(" vertical=\"center\""),
+        VerticalAlignment.Top => sb.Append(" vertical=\"top\""),
+        _ => sb
+    };
 
     private static string HexString(Color c) => $"{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
 }
