@@ -8,7 +8,13 @@ internal static class ThrowHelper
     public static void CellReferenceInvalid(string? paramName) => throw new ArgumentException("Invalid reference for a cell or a range of cells.", paramName);
 
     [DoesNotReturn]
+    public static void EnumValueInvalid<T>(string? paramName, T value) => throw new ArgumentOutOfRangeException(paramName, value, "The value is not a valid enum value.");
+
+    [DoesNotReturn]
     public static void StartWorksheetNotAllowedAfterFinish() => throw new SpreadCheetahException("Can't start another worksheet after " + nameof(Spreadsheet.FinishAsync) + " has been called.");
+
+    [DoesNotReturn]
+    public static void ValueIsNegative<T>(string? paramName, T value) => throw new ArgumentOutOfRangeException(paramName, value, "The value can not be negative.");
 
     [DoesNotReturn]
     public static void WorksheetNameAlreadyExists(string? paramName) => throw new ArgumentException("A worksheet with the given name already exists.", paramName);
