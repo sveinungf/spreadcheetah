@@ -307,7 +307,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             }
 
             GenerateAddAsRowInternal(sb, 2, rowTypeFullName, info.PropertyNames);
-            GenerateAddRangeAsRowsInternal(sb, 2, rowType, info.PropertyNames);
+            GenerateAddRangeAsRowsInternal(sb, rowType, info.PropertyNames);
             GenerateAddEnumerableAsRows(sb, 2, rowType);
             GenerateAddCellsAsRow(sb, 2, rowType, info.PropertyNames);
         }
@@ -411,25 +411,25 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "}");
     }
 
-    private static void GenerateAddRangeAsRowsInternal(StringBuilder sb, int indent, INamedTypeSymbol rowType, List<string> propertyNames)
+    private static void GenerateAddRangeAsRowsInternal(StringBuilder sb, INamedTypeSymbol rowType, List<string> propertyNames)
     {
-        sb.AppendLine()
-            .AppendIndentation(indent)
-            .Append("private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<")
-            .AppendType(rowType)
-            .AppendLine("> objs, CancellationToken token)");
+        var typeString = rowType.ToTypeString();
+        sb.Append($$"""
 
-        sb.AppendLine(indent, "{");
-        sb.AppendLine(indent, $"    var cells = ArrayPool<DataCell>.Shared.Rent({propertyNames.Count});");
-        sb.AppendLine(indent, "    try");
-        sb.AppendLine(indent, "    {");
-        sb.AppendLine(indent, "        await AddEnumerableAsRowsAsync(spreadsheet, objs, cells, token).ConfigureAwait(false);");
-        sb.AppendLine(indent, "    }");
-        sb.AppendLine(indent, "    finally");
-        sb.AppendLine(indent, "    {");
-        sb.AppendLine(indent, "        ArrayPool<DataCell>.Shared.Return(cells, true);");
-        sb.AppendLine(indent, "    }");
-        sb.AppendLine(indent, "}");
+                private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<{{typeString}}> objs, CancellationToken token)
+                {
+                    var cells = ArrayPool<DataCell>.Shared.Rent({{propertyNames.Count}});
+                    try
+                    {
+                        await AddEnumerableAsRowsAsync(spreadsheet, objs, cells, token).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        ArrayPool<DataCell>.Shared.Return(cells, true);
+                    }
+                }
+
+        """);
     }
 
     private static void GenerateAddEnumerableAsRows(StringBuilder sb, int indent, INamedTypeSymbol rowType)
