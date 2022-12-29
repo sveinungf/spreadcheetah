@@ -7,7 +7,8 @@ namespace SpreadCheetah.Styling;
 /// </summary>
 public sealed record Style
 {
-    internal Alignment Alignment { get; set; } = new();
+    /// <summary>Alignment for the cell.</summary>
+    public Alignment Alignment { get; set; } = new();
 
     /// <summary>Border for the cell.</summary>
     public Border Border { get; set; } = new();
