@@ -1,6 +1,6 @@
 namespace SpreadCheetah.SourceGenerator.Helpers;
 
-internal class GeneratorOptions
+internal sealed class GeneratorOptions
 {
     public bool SuppressWarnings { get; }
 
