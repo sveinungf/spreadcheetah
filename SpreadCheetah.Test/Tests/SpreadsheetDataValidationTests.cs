@@ -327,12 +327,15 @@ public class SpreadsheetDataValidationTests
         Assert.Equal(showDropdown, actualValidation.InCellDropdown);
     }
 
-    [Fact]
-    public async Task Spreadsheet_AddDataValidation_ListValuesFromCells()
+    [Theory]
+    [InlineData("A1:C1")]
+    [InlineData("$A1:$C1")]
+    [InlineData("A$1:C$1")]
+    [InlineData("$A$1:$C$1")]
+    public async Task Spreadsheet_AddDataValidation_ListValuesFromCells(string cellRange)
     {
         // Arrange
         const string reference = "A2";
-        const string cellRange = "A1:C1";
         var validation = DataValidation.ListValuesFromCells(cellRange);
 
         using var stream = new MemoryStream();

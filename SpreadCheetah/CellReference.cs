@@ -7,7 +7,7 @@ namespace SpreadCheetah;
 
 internal readonly record struct CellReference
 {
-    private static Regex Regex { get; } = new Regex("^[A-Z]{1,3}[0-9]{1,7}(?::[A-Z]{1,3}[0-9]{1,7})?$", RegexOptions.None, TimeSpan.FromSeconds(1));
+    private static Regex Regex { get; } = new Regex(@"^\$?[A-Z]{1,3}\$?[0-9]{1,7}(?::\$?[A-Z]{1,3}\$?[0-9]{1,7})?$", RegexOptions.None, TimeSpan.FromSeconds(1));
 
     public string Reference { get; }
 
