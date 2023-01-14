@@ -34,6 +34,8 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         _nextRowIndex = 1;
     }
 
+    public int NextRowNumber => (int)_nextRowIndex;
+
     public async ValueTask WriteHeadAsync(WorksheetOptions? options, CancellationToken token)
     {
         _buffer.Advance(Utf8Helper.GetBytes(SheetHeader, _buffer.GetSpan()));

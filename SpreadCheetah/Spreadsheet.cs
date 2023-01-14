@@ -74,6 +74,11 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
+    /// The next row number for the active worksheet. The first row in a worksheet has row number 1.
+    /// </summary>
+    public int NextRowNumber => Worksheet.NextRowNumber;
+
+    /// <summary>
     /// Starts a new worksheet in the spreadsheet. Every spreadsheet must have at least one worksheet.
     /// The name must satisfy these requirements:
     /// <list type="bullet">

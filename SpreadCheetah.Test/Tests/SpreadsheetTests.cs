@@ -108,6 +108,59 @@ public class SpreadsheetTests
     }
 
     [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(10)]
+    public async Task Spreadsheet_NextRowNumber_SingleWorksheet(int rowsAdded)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+
+        foreach (var row in Enumerable.Range(1, rowsAdded).Select(_ => new DataCell("Value")))
+        {
+            await spreadsheet.AddRowAsync(row);
+        }
+
+        // Act
+        var result = spreadsheet.NextRowNumber;
+
+        // Assert
+        Assert.Equal(rowsAdded + 1, result);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(10)]
+    public async Task Spreadsheet_NextRowNumber_MultipleWorksheets(int rowsAdded)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+
+        foreach (var row in Enumerable.Range(1, 5).Select(_ => new DataCell("Value")))
+        {
+            await spreadsheet.AddRowAsync(row);
+        }
+
+        await spreadsheet.StartWorksheetAsync("Sheet 2");
+
+        foreach (var row in Enumerable.Range(1, rowsAdded).Select(_ => new DataCell("Value")))
+        {
+            await spreadsheet.AddRowAsync(row);
+        }
+
+        // Act
+        var result = spreadsheet.NextRowNumber;
+
+        // Assert
+        Assert.Equal(rowsAdded + 1, result);
+    }
+
+    [Theory]
     [InlineData("OneWord")]
     [InlineData("With whitespace")]
     [InlineData("With trailing whitespace ")]
