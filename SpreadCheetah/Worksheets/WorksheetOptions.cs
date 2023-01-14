@@ -33,6 +33,23 @@ public class WorksheetOptions
 
     private int? _frozenRows;
 
+    /// <summary>
+    /// Option to hide a worksheet.
+    /// </summary>
+    public WorksheetVisibility Visibility
+    {
+        get => _visibility;
+        set
+        {
+            if (!EnumHelper.IsDefined(value))
+                ThrowHelper.EnumValueInvalid(nameof(value), value);
+            else
+                _visibility = value;
+        }
+    }
+
+    private WorksheetVisibility _visibility;
+
     internal SortedDictionary<int, ColumnOptions> ColumnOptions { get; } = new SortedDictionary<int, ColumnOptions>();
 
     /// <summary>

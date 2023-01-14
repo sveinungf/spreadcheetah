@@ -1,4 +1,5 @@
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Worksheets;
 using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
@@ -24,7 +25,7 @@ internal static class WorkbookRelsXml
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
-        List<string> worksheetPaths,
+        List<WorksheetMetadata> worksheets,
         bool hasStylesXml,
         CancellationToken token)
     {
@@ -37,9 +38,9 @@ internal static class WorkbookRelsXml
         {
             buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetSpan()));
 
-            for (var i = 0; i < worksheetPaths.Count; ++i)
+            for (var i = 0; i < worksheets.Count; ++i)
             {
-                var path = worksheetPaths[i];
+                var path = worksheets[i].Path;
                 var sheetId = i + 1;
                 var sheetElementLength = GetSheetElementByteCount(path, sheetId);
 
@@ -54,7 +55,7 @@ internal static class WorkbookRelsXml
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
             if (hasStylesXml)
-                buffer.Advance(GetStylesXmlElementBytes(worksheetPaths.Count + 1, buffer.GetSpan()));
+                buffer.Advance(GetStylesXmlElementBytes(worksheets.Count + 1, buffer.GetSpan()));
 
             buffer.Advance(Utf8Helper.GetBytes(Footer, buffer.GetSpan()));
             await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);

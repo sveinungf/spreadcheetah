@@ -285,6 +285,39 @@ public class SpreadsheetTests
     }
 
     [Theory]
+    [InlineData(false, WorksheetVisibility.Hidden)]
+    [InlineData(false, WorksheetVisibility.VeryHidden)]
+    [InlineData(true, WorksheetVisibility.Hidden)]
+    [InlineData(true, WorksheetVisibility.VeryHidden)]
+    public async Task Spreadsheet_StartWorksheet_Hidden(bool firstHidden, WorksheetVisibility visibility)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("Sheet 1", new WorksheetOptions { Visibility = firstHidden ? visibility : WorksheetVisibility.Visible });
+        await spreadsheet.StartWorksheetAsync("Sheet 2", new WorksheetOptions { Visibility = !firstHidden ? visibility : WorksheetVisibility.Visible });
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        var openXmlVisibility = visibility.GetOpenXmlWorksheetVisibility();
+        using var actual = SpreadsheetDocument.Open(stream, true);
+        var workbook = actual.WorkbookPart!.Workbook;
+        var sheets = workbook.Sheets!.Cast<Sheet>().ToList();
+        Assert.Equal(firstHidden ? openXmlVisibility : null, sheets[0].State?.Value);
+        Assert.Equal(!firstHidden ? openXmlVisibility : null, sheets[1].State?.Value);
+
+        if (firstHidden)
+        {
+            var workbookView = workbook.BookViews!.GetFirstChild<WorkbookView>();
+            Assert.Equal(1u, workbookView?.ActiveTab?.Value);
+            Assert.Equal(1u, workbookView?.FirstSheet?.Value);
+        }
+    }
+
+    [Theory]
     [InlineData(0.1)]
     [InlineData(10d)]
     [InlineData(100d)]

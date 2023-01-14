@@ -1,4 +1,5 @@
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Worksheets;
 using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
@@ -24,7 +25,7 @@ internal static class ContentTypesXml
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
-        List<string> worksheetPaths,
+        List<WorksheetMetadata> worksheets,
         bool hasStylesXml,
         CancellationToken token)
     {
@@ -40,9 +41,9 @@ internal static class ContentTypesXml
             if (hasStylesXml)
                 await buffer.WriteAsciiStringAsync(Styles, stream, token).ConfigureAwait(false);
 
-            for (var i = 0; i < worksheetPaths.Count; ++i)
+            for (var i = 0; i < worksheets.Count; ++i)
             {
-                var path = worksheetPaths[i];
+                var path = worksheets[i].Path;
                 var sheetElementLength = GetSheetElementByteCount(path);
 
                 if (sheetElementLength > buffer.FreeCapacity)

@@ -1,4 +1,5 @@
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Worksheets;
 using System.Buffers.Text;
 using System.IO.Compression;
 using System.Net;
@@ -9,20 +10,13 @@ internal static class WorkbookXml
 {
     private static ReadOnlySpan<byte> Header =>
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
-        """<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">"""u8 +
-        """<sheets>"""u8;
-
-    private static ReadOnlySpan<byte> SheetStart => "<sheet name=\""u8;
-    private static ReadOnlySpan<byte> BetweenNameAndSheetId => "\" sheetId=\""u8;
-    private static ReadOnlySpan<byte> BetweenSheetIdAndRelationId => "\" r:id=\"rId"u8;
-    private static ReadOnlySpan<byte> SheetEnd => "\" />"u8;
-    private static ReadOnlySpan<byte> Footer => "</sheets></workbook>"u8;
+        """<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">"""u8;
 
     public static async ValueTask WriteAsync(
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
-        List<string> worksheetNames,
+        List<WorksheetMetadata> worksheets,
         CancellationToken token)
     {
         var stream = archive.CreateEntry("xl/workbook.xml", compressionLevel).Open();
@@ -35,14 +29,14 @@ internal static class WorkbookXml
             var indexA = 0;
             var indexB = 0;
 
-            while (!TryWrite(ref indexA, ref indexB, buffer, worksheetNames))
+            while (!TryWrite(ref indexA, ref indexB, buffer, worksheets))
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
             await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }
     }
 
-    private static bool TryWrite(ref int indexA, ref int indexB, SpreadsheetBuffer buffer, List<string> worksheetNames)
+    private static bool TryWrite(ref int indexA, ref int indexB, SpreadsheetBuffer buffer, List<WorksheetMetadata> worksheets)
     {
         if (indexA == 0)
         {
@@ -52,20 +46,34 @@ internal static class WorkbookXml
 
         if (indexA == 1)
         {
-            for (; indexB < worksheetNames.Count; ++indexB)
+            var firstVisibleWorksheetId = worksheets.FindIndex(x => x.Visibility == WorksheetVisibility.Visible);
+            if (firstVisibleWorksheetId > 0 && !TryGetWorkbookViewBytes(firstVisibleWorksheetId, buffer))
+                return false;
+
+            ++indexA;
+        }
+
+        if (indexA == 2)
+        {
+            if (!TryWriteSpan("<sheets>"u8, buffer)) return false;
+            ++indexA;
+        }
+
+        if (indexA == 3)
+        {
+            for (; indexB < worksheets.Count; ++indexB)
             {
                 var sheetId = indexB + 1;
-                var name = WebUtility.HtmlEncode(worksheetNames[indexB]);
-                if (!TryGetSheetElementBytes(name, sheetId, buffer)) return false;
+                if (!TryGetSheetElementBytes(worksheets[indexB], sheetId, buffer)) return false;
             }
 
             ++indexA;
             indexB = 0;
         }
 
-        if (indexA == 2)
+        if (indexA == 4)
         {
-            if (!TryWriteSpan(Footer, buffer)) return false;
+            if (!TryWriteSpan("</sheets></workbook>"u8, buffer)) return false;
             ++indexA;
         }
 
@@ -100,18 +108,48 @@ internal static class WorkbookXml
         return true;
     }
 
-    private static bool TryGetSheetElementBytes(string name, int sheetId, SpreadsheetBuffer buffer)
+    private static bool TryGetSheetElementBytes(WorksheetMetadata worksheet, int sheetId, SpreadsheetBuffer buffer)
     {
         var bytes = buffer.GetSpan();
         var bytesWritten = 0;
 
-        if (!TryWriteSpan(SheetStart, bytes, ref bytesWritten)) return false;
+        if (!TryWriteSpan("<sheet name=\""u8, bytes, ref bytesWritten)) return false;
+
+        var name = WebUtility.HtmlEncode(worksheet.Name);
         if (!TryWriteString(name, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
-        if (!TryWriteSpan(BetweenNameAndSheetId, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
+        if (!TryWriteSpan("\" sheetId=\""u8, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
         if (!TryWriteInteger(sheetId, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
-        if (!TryWriteSpan(BetweenSheetIdAndRelationId, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
+
+        if (worksheet.Visibility == WorksheetVisibility.Hidden
+            && !TryWriteSpan("\" state=\"hidden"u8, bytes.Slice(bytesWritten), ref bytesWritten))
+        {
+            return false;
+        }
+
+        if (worksheet.Visibility == WorksheetVisibility.VeryHidden
+            && !TryWriteSpan("\" state=\"veryHidden"u8, bytes.Slice(bytesWritten), ref bytesWritten))
+        {
+            return false;
+        }
+
+        if (!TryWriteSpan("\" r:id=\"rId"u8, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
         if (!TryWriteInteger(sheetId, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
-        if (!TryWriteSpan(SheetEnd, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
+        if (!TryWriteSpan("\" />"u8, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
+
+        buffer.Advance(bytesWritten);
+        return true;
+    }
+
+    private static bool TryGetWorkbookViewBytes(int firstVisibleSheetId, SpreadsheetBuffer buffer)
+    {
+        var bytes = buffer.GetSpan();
+        var bytesWritten = 0;
+
+        if (!TryWriteSpan("<bookViews><workbookView firstSheet=\""u8, bytes, ref bytesWritten)) return false;
+        if (!TryWriteInteger(firstVisibleSheetId, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
+        if (!TryWriteSpan("\" activeTab=\""u8, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
+        if (!TryWriteInteger(firstVisibleSheetId, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
+        if (!TryWriteSpan("\"/></bookViews>"u8, bytes.Slice(bytesWritten), ref bytesWritten)) return false;
 
         buffer.Advance(bytesWritten);
         return true;

@@ -15,8 +15,7 @@ namespace SpreadCheetah;
 /// </summary>
 public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 {
-    private readonly List<string> _worksheetNames = new();
-    private readonly List<string> _worksheetPaths = new();
+    private readonly List<WorksheetMetadata> _worksheets = new();
     private readonly ZipArchive _archive;
     private readonly CompressionLevel _compressionLevel;
     private readonly SpreadsheetBuffer _buffer;
@@ -94,7 +93,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(name);
         name.EnsureValidWorksheetName();
 
-        if (_worksheetNames.Contains(name, StringComparer.OrdinalIgnoreCase))
+        if (_worksheets.Exists(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase)))
             ThrowHelper.WorksheetNameAlreadyExists(nameof(name));
 
         if (_finished)
@@ -107,13 +106,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         await FinishAndDisposeWorksheetAsync(token).ConfigureAwait(false);
 
-        var path = $"xl/worksheets/sheet{_worksheetNames.Count + 1}.xml";
+        var path = $"xl/worksheets/sheet{_worksheets.Count + 1}.xml";
         var entry = _archive.CreateEntry(path, _compressionLevel);
         var entryStream = entry.Open();
         _worksheet = new Worksheet(entryStream, _defaultStyling, _buffer);
         await _worksheet.WriteHeadAsync(options, token).ConfigureAwait(false);
-        _worksheetNames.Add(name);
-        _worksheetPaths.Add(path);
+        _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
     }
 
     /// <summary>
@@ -408,7 +406,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask FinishAsync(CancellationToken token = default)
     {
-        if (_worksheetNames.Count == 0)
+        if (_worksheets.Count == 0)
             throw new SpreadCheetahException("Spreadsheet must contain at least one worksheet.");
 
         return FinishInternalAsync(token);
@@ -419,9 +417,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         await FinishAndDisposeWorksheetAsync(token).ConfigureAwait(false);
 
         var hasStyles = _styles != null;
-        await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetPaths, hasStyles, token).ConfigureAwait(false);
-        await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetPaths, hasStyles, token).ConfigureAwait(false);
-        await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheetNames, token).ConfigureAwait(false);
+        await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
+        await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
+        await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, token).ConfigureAwait(false);
 
         if (_styles is not null)
             await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styles, token).ConfigureAwait(false);
