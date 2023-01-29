@@ -203,7 +203,7 @@ public class StringCells : IDisposable
     [Benchmark]
     public void ClosedXml()
     {
-        using var workbook = new XLWorkbook(XLEventTracking.Disabled);
+        using var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add(SheetName);
 
         for (var row = 0; row < Values.Count; ++row)

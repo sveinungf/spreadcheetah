@@ -119,7 +119,7 @@ internal static class CellFactory
 
     private static object CreateForBool(CellType cellType, bool isNull, StyleId? styleId, out object? value)
     {
-        bool? actualValue = !isNull ? null : true;
+        bool? actualValue = isNull ? null : true;
         value = actualValue;
 
         return cellType switch

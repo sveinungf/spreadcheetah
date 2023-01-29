@@ -378,14 +378,12 @@ public class SpreadsheetRowTests
             await spreadsheet.FinishAsync();
         }
 
-        DateTime? expectedValue = value is not null ? DateTime.FromOADate(value.Value.ToOADate()) : null;
-
         // Assert
         SpreadsheetAssert.Valid(stream);
         using var workbook = new XLWorkbook(stream);
         var worksheet = workbook.Worksheets.Single();
         var actualCell = worksheet.Cell(1, 1);
-        Assert.Equal(expectedValue, actualCell.GetValue<DateTime?>());
+        Assert.Equal(value?.ToOADate() ?? 0, actualCell.GetValue<double?>() ?? 0, 0.0001);
         Assert.Equal(NumberFormats.DateTimeSortable, actualCell.Style.NumberFormat.Format);
     }
 
@@ -478,7 +476,7 @@ public class SpreadsheetRowTests
         SpreadsheetAssert.Valid(stream);
         using var workbook = new XLWorkbook(stream);
         var worksheet = workbook.Worksheets.Single();
-        var actualValues = worksheet.Cells(true).Select(x => x.Value).ToList();
+        var actualValues = worksheet.Cells(true).Select(x => x.Value.GetText()).ToList();
         Assert.Equal(values, actualValues);
     }
 
@@ -506,7 +504,7 @@ public class SpreadsheetRowTests
         SpreadsheetAssert.Valid(stream);
         using var workbook = new XLWorkbook(stream);
         var worksheet = workbook.Worksheets.Single();
-        var actualValues = worksheet.Cells(true).Select(x => x.Value).ToList();
+        var actualValues = worksheet.Cells(true).Select(x => x.Value.GetText()).ToList();
         Assert.Equal(values, actualValues);
     }
 

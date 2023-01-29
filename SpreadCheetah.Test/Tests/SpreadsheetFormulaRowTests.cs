@@ -39,7 +39,7 @@ public class SpreadsheetFormulaRowTests
         var worksheet = workbook.Worksheets.Single();
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(formulaText, actualCell.FormulaA1);
-        Assert.Null(actualCell.CachedValue);
+        Assert.True(actualCell.CachedValue.IsBlank);
     }
 
     [Theory]
@@ -73,7 +73,7 @@ public class SpreadsheetFormulaRowTests
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(formulaText, actualCell.FormulaA1);
         Assert.Equal(bold, actualCell.Style.Font.Bold);
-        Assert.Null(actualCell.CachedValue);
+        Assert.True(actualCell.CachedValue.IsBlank);
     }
 
     [Theory]
@@ -101,7 +101,7 @@ public class SpreadsheetFormulaRowTests
         var worksheet = workbook.Worksheets.Single();
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(formulaText, actualCell.FormulaA1);
-        Assert.Equal(cachedValue.GetExpectedCachedValueAsString(), Convert.ToString(actualCell.CachedValue, CultureInfo.InvariantCulture));
+        Assert.Equal(cachedValue.GetExpectedCachedValueAsString(), actualCell.CachedValue.ToString(CultureInfo.InvariantCulture));
         Assert.Equal(valueType.GetExpectedDefaultNumberFormat() ?? "", actualCell.Style.NumberFormat.Format);
     }
 
@@ -137,7 +137,7 @@ public class SpreadsheetFormulaRowTests
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(formulaText, actualCell.FormulaA1);
         Assert.Equal(italic, actualCell.Style.Font.Italic);
-        Assert.Equal(cachedValue.ToString(), actualCell.CachedValue);
+        Assert.Equal(cachedValue, actualCell.CachedValue.GetNumber());
     }
 
     [Theory]
@@ -171,7 +171,7 @@ public class SpreadsheetFormulaRowTests
         var worksheet = workbook.Worksheets.Single();
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(formulaText, actualCell.FormulaA1);
-        Assert.Null(actualCell.CachedValue);
+        Assert.True(actualCell.CachedValue.IsBlank);
     }
 
     [Theory]
@@ -278,7 +278,7 @@ public class SpreadsheetFormulaRowTests
         var worksheet = workbook.Worksheets.Single();
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(formulaText, actualCell.FormulaA1);
-        Assert.Equal(cachedValue.GetExpectedCachedValueAsString(), Convert.ToString(actualCell.CachedValue, CultureInfo.InvariantCulture));
+        Assert.Equal(cachedValue.GetExpectedCachedValueAsString(), actualCell.CachedValue.ToString(CultureInfo.InvariantCulture));
         Assert.Equal(cachedValueType.GetExpectedDefaultNumberFormat() ?? "", actualCell.Style.NumberFormat.Format);
     }
 
@@ -319,7 +319,7 @@ public class SpreadsheetFormulaRowTests
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(formulaText, actualCell.FormulaA1);
         Assert.Equal(color.ToArgb(), actualCell.Style.Fill.BackgroundColor.Color.ToArgb());
-        Assert.Null(actualCell.CachedValue);
+        Assert.True(actualCell.CachedValue.IsBlank);
     }
 
     [Theory]
@@ -361,6 +361,6 @@ public class SpreadsheetFormulaRowTests
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(formulaText, actualCell.FormulaA1);
         Assert.Equal(expectedNumberFormatId, actualCell.Style.NumberFormat.NumberFormatId);
-        Assert.Equal(cachedValue.ToString(CultureInfo.InvariantCulture), actualCell.CachedValue);
+        Assert.Equal(cachedValue, actualCell.CachedValue.GetNumber(), 0.01);
     }
 }

@@ -3,6 +3,7 @@ using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Test.Helpers.Backporting;
 using System.Drawing;
+using System.Globalization;
 using Xunit;
 using Font = SpreadCheetah.Styling.Font;
 
@@ -36,7 +37,8 @@ public class SpreadsheetStyledRowTests
         using var workbook = new XLWorkbook(stream);
         var worksheet = workbook.Worksheets.Single();
         var actualCell = worksheet.Cell(1, 1);
-        Assert.Equal(value?.ToString() ?? "", actualCell.Value.ToString());
+        Assert.Equal(isNull, actualCell.Value.IsBlank);
+        Assert.Equal(value?.ToString() ?? "", actualCell.Value.ToString(CultureInfo.CurrentCulture), ignoreCase: true);
         Assert.True(actualCell.Style.Font.Bold);
     }
 
@@ -836,7 +838,7 @@ public class SpreadsheetStyledRowTests
         var actualCells = workbook.Worksheets.Single().CellsUsed();
         Assert.All(actualCells, actualCell =>
         {
-            var element = elements.Single(x => string.Equals(x.Value, actualCell.Value.ToString(), StringComparison.Ordinal));
+            var element = elements.Single(x => string.Equals(x.Value, actualCell.Value.GetText(), StringComparison.Ordinal));
             Assert.Equal(element.FillColor.ToArgb(), actualCell.Style.Fill.BackgroundColor.Color.ToArgb());
             Assert.Equal(element.FontColor.ToArgb(), actualCell.Style.Font.FontColor.Color.ToArgb());
             Assert.Equal(element.FontName, actualCell.Style.Font.FontName);

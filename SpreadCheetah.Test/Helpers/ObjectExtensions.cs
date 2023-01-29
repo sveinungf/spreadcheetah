@@ -6,7 +6,7 @@ internal static class ObjectExtensions
 {
     public static string? GetExpectedCachedValueAsString(this object? cachedValue) => cachedValue switch
     {
-        DateTime dateTime => dateTime.ToOADate().ToString(),
+        bool boolean => boolean.ToString().ToUpperInvariant(),
         _ => Convert.ToString(cachedValue, CultureInfo.InvariantCulture)
     };
 }
