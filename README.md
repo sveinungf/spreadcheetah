@@ -134,30 +134,30 @@ Some of these libraries have multiple ways of achieving the same result, but to 
 
 |                    Library |         Mean |        Error |       StdDev |     Allocated |
 |----------------------------|-------------:|-------------:|-------------:|--------------:|
-|          **SpreadCheetah** | **70.09 ms** | **0.358 ms** | **0.317 ms** | **136.23 KB** |
-|    Open XML (SAX approach) |    434.19 ms |     0.803 ms |     0.712 ms |  43 317.13 KB |
-|                  EPPlus v4 |    601.37 ms |     9.679 ms |     9.054 ms | 286 133.84 KB |
-|    Open XML (DOM approach) |  1,090.95 ms |     8.225 ms |     7.694 ms | 161 067.05 KB |
-|                  ClosedXML |  2,430.80 ms |    15.604 ms |    14.596 ms | 526 178.19 KB |
+|          **SpreadCheetah** | **68.67 ms** | **0.283 ms** | **0.251 ms** | **152.23 KB** |
+|    Open XML (SAX approach) |    438.22 ms |     1.161 ms |     1.086 ms |  43 317.24 KB |
+|                  EPPlus v4 |    609.98 ms |     6.626 ms |     5.874 ms | 286 142.58 KB |
+|    Open XML (DOM approach) |  1,098.52 ms |     9.419 ms |     8.811 ms | 161 123.16 KB |
+|                  ClosedXML |  1,618.57 ms |     7.088 ms |     6.630 ms | 565 074.91 KB |
 
 
 ### .NET 6
 
 |                    Library |         Mean |        Error |       StdDev |     Allocated |
 |----------------------------|-------------:|-------------:|-------------:|--------------:|
-|          **SpreadCheetah** | **29.05 ms** | **0.555 ms** | **0.594 ms** |   **6.30 KB** |
-|    Open XML (SAX approach) |    247.49 ms |     0.411 ms |     0.385 ms |  66 052.80 KB |
-|                  EPPlus v4 |    407.92 ms |     3.873 ms |     3.434 ms | 195 793.16 KB |
-|    Open XML (DOM approach) |    762.70 ms |    14.316 ms |    13.392 ms | 182 925.98 KB |
-|                  ClosedXML |  1,942.11 ms |    13.626 ms |    12.746 ms | 488 273.27 KB |
+|          **SpreadCheetah** | **28.53 ms** | **0.079 ms** | **0.070 ms** |   **6.48 KB** |
+|    Open XML (SAX approach) |    250.65 ms |     0.541 ms |     0.480 ms |  66 049.91 KB |
+|                  EPPlus v4 |    405.90 ms |     1.782 ms |     1.579 ms | 195 790.25 KB |
+|    Open XML (DOM approach) |    775.74 ms |    14.404 ms |    14.147 ms | 182 926.06 KB |
+|                  ClosedXML |  1,262.92 ms |    19.825 ms |    18.544 ms | 524 913.50 KB |
 
 
 ### .NET 7
 
 |                    Library |         Mean |        Error |       StdDev |     Allocated |
 |----------------------------|-------------:|-------------:|-------------:|--------------:|
-|          **SpreadCheetah** | **24.71 ms** | **0.085 ms** | **0.079 ms** |   **6.34 KB** |
-|    Open XML (SAX approach) |    235.88 ms |     0.405 ms |     0.379 ms |  66 046.32 KB |
-|                  EPPlus v4 |    406.84 ms |     1.690 ms |     1.498 ms | 195 792.29 KB |
-|    Open XML (DOM approach) |    825.45 ms |     5.393 ms |     5.044 ms | 182 925.93 KB |
-|                  ClosedXML |  1,857.38 ms |    17.860 ms |    15.833 ms | 488 272.13 KB |
+|          **SpreadCheetah** | **25.14 ms** | **0.148 ms** | **0.138 ms** |   **6.48 KB** |
+|    Open XML (SAX approach) |    239.72 ms |     0.231 ms |     0.216 ms |  66 046.48 KB |
+|                  EPPlus v4 |    406.69 ms |     1.852 ms |     1.642 ms | 195 792.41 KB |
+|    Open XML (DOM approach) |    831.68 ms |    10.446 ms |     9.771 ms | 182 926.04 KB |
+|                  ClosedXML |  1,171.07 ms |     8.106 ms |     7.186 ms | 524 846.85 KB |
