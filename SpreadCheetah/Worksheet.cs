@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.MetadataXml;
@@ -5,14 +8,18 @@ using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SpreadCheetah;
 
 internal sealed class Worksheet : IDisposable, IAsyncDisposable
 {
-    private const string SheetHeader =
+    private string SheetHeader =
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-        "<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">";
+        "<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" " + 
+        "xr:uid=\"{uid}\"" +
+        ">";
 
     private const string SheetDataBegin = "<sheetData>";
 
@@ -23,6 +30,9 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly StyledCellWriter _styledCellWriter;
     private uint _nextRowIndex;
     private Dictionary<CellReference, DataValidation>? _validations;
+    private bool? _autoFilterEnabled;
+    private string? _autoFilterRange;
+    private Guid _worksheetGuid;
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
@@ -38,6 +48,8 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public async ValueTask WriteHeadAsync(WorksheetOptions? options, CancellationToken token)
     {
+        _worksheetGuid = Guid.NewGuid();
+        SheetHeader = SheetHeader.Replace("uid", _worksheetGuid.ToString());
         _buffer.Advance(Utf8Helper.GetBytes(SheetHeader, _buffer.GetSpan()));
         if (options is null)
         {
@@ -58,6 +70,12 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         await WriteColsXmlAsync(sb, options, token).ConfigureAwait(false);
 
         _buffer.Advance(Utf8Helper.GetBytes(SheetDataBegin, _buffer.GetSpan()));
+
+        if (options.AutoFilter is not null)
+        {
+            _autoFilterEnabled = options.AutoFilter.Enabled;
+            _autoFilterRange = options.AutoFilter.Range;
+        }
     }
 
     private static void WriteSheetViewsXml(StringBuilder sb, WorksheetOptions options)
@@ -188,6 +206,9 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         if (_validations is not null)
             await DataValidationXml.WriteAsync(_stream, _buffer, _validations, token).ConfigureAwait(false);
 
+        if (_autoFilterEnabled is not null)
+            await AutoFilterXml.WriteAsync(_stream, _buffer, _autoFilterRange, _worksheetGuid, token);
+        
         await _buffer.WriteAsciiStringAsync("</worksheet>", _stream, token).ConfigureAwait(false);
         await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);
         await _stream.FlushAsync(token).ConfigureAwait(false);
