@@ -49,6 +49,17 @@ public class WorksheetOptions
     }
 
     private WorksheetVisibility _visibility;
+    
+    /// <summary>
+    /// Auto filtering options
+    /// </summary>
+    public AutoFilterOptions? AutoFilter
+    {
+        get => _autoFilter;
+        set => _autoFilter = value;
+    }
+
+    private bool? _autoFilter;
 
     internal SortedDictionary<int, ColumnOptions> ColumnOptions { get; } = new SortedDictionary<int, ColumnOptions>();
 
