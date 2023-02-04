@@ -1,3 +1,4 @@
+using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using OfficeOpenXml;
@@ -411,6 +412,26 @@ public class SpreadsheetTests
         using var actual = SpreadsheetDocument.Open(stream, true);
         var worksheet = actual.WorkbookPart!.WorksheetParts.Select(x => x.Worksheet).Single();
         Assert.Null(worksheet.SheetViews);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_StartWorksheet_AutoFilter()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        var autoFilter = new AutoFilterOptions();
+        autoFilter.SetRangeWithHelper(1, 1, 2, 10);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("Sheet 1", new WorksheetOptions { AutoFilter = autoFilter });
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        Assert.Equal("A1:B10", worksheet.AutoFilter.Range.RangeAddress.ToString());
     }
 
     [Theory]
