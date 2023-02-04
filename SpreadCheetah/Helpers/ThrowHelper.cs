@@ -5,6 +5,9 @@ namespace SpreadCheetah.Helpers;
 internal static class ThrowHelper
 {
     [DoesNotReturn]
+    public static void ColumnNumberInvalid(string? paramName) => throw new ArgumentOutOfRangeException("The column number must be greater than 0 and can't be larger than 16384.", paramName);
+
+    [DoesNotReturn]
     public static void CellReferenceInvalid(string? paramName) => throw new ArgumentException("Invalid reference for a cell or a range of cells.", paramName);
 
     [DoesNotReturn]

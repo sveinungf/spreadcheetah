@@ -1,36 +1,19 @@
-using System.Text;
+using SpreadCheetah.Helpers;
 
-namespace SpreadCheetah.Helpers;
-internal static class RangeHelper
+namespace SpreadCheetah;
+
+/// <summary>
+/// Provides convenience methods related to working with spreadsheets.
+/// </summary>
+public static class SpreadsheetUtility
 {
-    public static string GetRange(int? rowStart, int columnStart, int? columnEnd, int? rowEnd)
+    /// <summary>
+    /// Get the column name from a column number. E.g. column number 1 will return column name 'A'.
+    /// </summary>
+    public static string GetColumnName(int columnNumber)
     {
-        var sb = new StringBuilder();
-
-        sb.Append(GetColumnName(columnStart));
-
-        if (rowStart is not null && rowEnd is not null)
-            sb.Append(rowStart);
-
-        if (columnEnd is not null)
-        {
-            sb.Append(':');
-            sb.Append(GetColumnName(columnEnd.Value));
-        }
-
-        if (rowStart is not null && rowEnd is not null)
-            sb.Append(rowEnd);
-
-        if (columnEnd is null)
-            sb.Append(GetColumnName(1));
-
-        return sb.ToString();
-    }
-
-    private static string GetColumnName(int columnNumber)
-    {
-        if (columnNumber < 1 || columnNumber > 16384) //Excel columns are one-based (one = 'A')
-            ThrowHelper.CellReferenceInvalid(nameof(columnNumber));
+        if (columnNumber < 1 || columnNumber > SpreadsheetConstants.MaxNumberOfColumns) //Excel columns are one-based (one = 'A')
+            ThrowHelper.ColumnNumberInvalid(nameof(columnNumber));
 
         if (columnNumber <= 26) //one character
             return ((char)(columnNumber + 'A' - 1)).ToString();
@@ -45,7 +28,6 @@ internal static class RangeHelper
 
             return string.Format("{0}{1}", firstChar, secondChar);
         }
-
         else //three characters
         {
             char firstChar = (char)((columnNumber - 1) / 702 + 'A' - 1);
