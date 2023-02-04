@@ -1,6 +1,5 @@
-using System;
-using System.Text.RegularExpressions;
 using SpreadCheetah.Helpers;
+using System.Text.RegularExpressions;
 
 namespace SpreadCheetah.Worksheets;
 
@@ -9,32 +8,28 @@ namespace SpreadCheetah.Worksheets;
 /// </summary>
 public class AutoFilterOptions
 {
-    private static Regex Regex { get; } = new Regex(@"^([A-Z]+)(\d+):(\1\d+|[A-Z]+\2)$", RegexOptions.None, TimeSpan.FromSeconds(1));
-    
+    private static Regex Regex { get; } = new Regex("^[A-Z]{1,3}[0-9]{1,7}(?::[A-Z]{1,3}[0-9]{1,7})?$", RegexOptions.None, TimeSpan.FromSeconds(1));
+
     /// <summary>
-    /// The range of columns and rows to filter
+    /// The cell range to filter.
     /// </summary>
-    public string Range
-    {
-        get => _range;
-        set => _range = Regex.Matches(value).Count == 0
-            ? throw new ArgumentException("Range must match Excel format of A1:Z26")
-            : value;
-    }
+    public string CellRange { get; }
 
-    public void SetRangeWithHelper(int? rowStart, int columnStart, int? columnEnd, int? rowEnd) =>
-        _range = RangeHelper.GetRange(rowStart, columnStart, columnEnd, rowEnd);
-
-    private string _range;
-
-    ///<summary>
-    /// Enable auto filtering
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AutoFilterOptions"/> class for a range of cells.
+    /// The cell range must be in the A1 reference style. Some examples:
+    /// <list type="bullet">
+    ///   <item><term><c>A1:A4</c></term><description>References the range from cell A1 to A4.</description></item>
+    ///   <item><term><c>A1:E5</c></term><description>References the range from cell A1 to E5.</description></item>
+    ///   <item><term><c>A1:A1048576</c></term><description>References all cells in column A.</description></item>
+    ///   <item><term><c>A5:XFD5</c></term><description>References all cells in row 5.</description></item>
+    /// </list>
     /// </summary>
-    public bool Enabled
+    public AutoFilterOptions(string cellRange)
     {
-        get => _enabled;
-        set => _enabled = value;
-    }
+        if (!Regex.IsMatch(cellRange))
+            ThrowHelper.CellReferenceInvalid(nameof(cellRange));
 
-    private bool _enabled;
+        CellRange = cellRange;
+    }
 }

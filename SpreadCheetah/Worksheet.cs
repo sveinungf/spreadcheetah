@@ -62,7 +62,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
         if (options.AutoFilter is not null)
         {
-            _autoFilterRange = options.AutoFilter.Range;
+            _autoFilterRange = options.AutoFilter.CellRange;
         }
     }
 
