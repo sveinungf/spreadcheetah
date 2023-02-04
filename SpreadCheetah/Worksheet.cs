@@ -10,11 +10,9 @@ namespace SpreadCheetah;
 
 internal sealed class Worksheet : IDisposable, IAsyncDisposable
 {
-    private string SheetHeader =
+    private const string SheetHeader =
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-        "<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" " +
-        "xr:uid=\"{uid}\"" +
-        ">";
+        "<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">";
 
     private const string SheetDataBegin = "<sheetData>";
 
@@ -25,9 +23,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly StyledCellWriter _styledCellWriter;
     private uint _nextRowIndex;
     private Dictionary<CellReference, DataValidation>? _validations;
-    private bool? _autoFilterEnabled;
     private string? _autoFilterRange;
-    private Guid _worksheetGuid;
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
@@ -43,8 +39,6 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public async ValueTask WriteHeadAsync(WorksheetOptions? options, CancellationToken token)
     {
-        _worksheetGuid = Guid.NewGuid();
-        SheetHeader = SheetHeader.Replace("uid", _worksheetGuid.ToString());
         _buffer.Advance(Utf8Helper.GetBytes(SheetHeader, _buffer.GetSpan()));
         if (options is null)
         {
@@ -68,7 +62,6 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
         if (options.AutoFilter is not null)
         {
-            _autoFilterEnabled = options.AutoFilter.Enabled;
             _autoFilterRange = options.AutoFilter.Range;
         }
     }
@@ -201,8 +194,8 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         if (_validations is not null)
             await DataValidationXml.WriteAsync(_stream, _buffer, _validations, token).ConfigureAwait(false);
 
-        if (_autoFilterEnabled is not null)
-            await AutoFilterXml.WriteAsync(_stream, _buffer, _autoFilterRange, _worksheetGuid, token);
+        if (_autoFilterRange is not null)
+            await AutoFilterXml.WriteAsync(_stream, _buffer, _autoFilterRange, token).ConfigureAwait(false);
 
         await _buffer.WriteAsciiStringAsync("</worksheet>", _stream, token).ConfigureAwait(false);
         await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);

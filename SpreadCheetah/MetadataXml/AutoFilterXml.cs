@@ -9,13 +9,11 @@ internal static class AutoFilterXml
         Stream stream,
         SpreadsheetBuffer buffer,
         string filterRange,
-        Guid worksheetUid,
         CancellationToken token)
     {
-        var sb = new StringBuilder("<autoFilter");
+        var sb = new StringBuilder("<autoFilter ");
 
         sb.AppendTextAttribute("ref", filterRange);
-        sb.AppendTextAttribute("xr:uid", "{" + worksheetUid.ToString() + "}");
 
         sb.Append("/>");
         await buffer.WriteStringAsync(sb, stream, token).ConfigureAwait(false);
