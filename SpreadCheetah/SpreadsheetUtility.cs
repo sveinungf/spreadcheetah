@@ -12,31 +12,29 @@ public static class SpreadsheetUtility
     /// </summary>
     public static string GetColumnName(int columnNumber)
     {
-        if (columnNumber < 1 || columnNumber > SpreadsheetConstants.MaxNumberOfColumns) //Excel columns are one-based (one = 'A')
+        if (columnNumber < 1 || columnNumber > SpreadsheetConstants.MaxNumberOfColumns)
             ThrowHelper.ColumnNumberInvalid(nameof(columnNumber));
 
-        if (columnNumber <= 26) //one character
+        if (columnNumber <= 26)
             return ((char)(columnNumber + 'A' - 1)).ToString();
 
-        if (columnNumber <= 702) //two characters
+        if (columnNumber <= 702)
         {
-            char firstChar = (char)((columnNumber - 1) / 26 + 'A' - 1);
-            char secondChar = (char)(columnNumber % 26 + 'A' - 1);
-
-            if (secondChar == '@') //Excel is one-based, but modulo operations are zero-based
-                secondChar = 'Z'; //convert one-based to zero-based
-
+            var quotient = (columnNumber - 1) / 26;
+            var remainder = (columnNumber - 1) % 26;
+            char firstChar = (char)('A' - 1 + quotient);
+            char secondChar = (char)('A' + remainder);
             return string.Format("{0}{1}", firstChar, secondChar);
         }
-        else //three characters
+        else
         {
-            char firstChar = (char)((columnNumber - 1) / 702 + 'A' - 1);
-            char secondChar = (char)((columnNumber - 1) / 26 % 26 + 'A' - 1);
-            char thirdChar = (char)(columnNumber % 26 + 'A' - 1);
-
-            if (thirdChar == '@') //Excel is one-based, but modulo operations are zero-based
-                thirdChar = 'Z'; //convert one-based to zero-based
-
+            var quotient1 = (columnNumber - 1) / 26;
+            var remainder1 = (columnNumber - 1) % 26;
+            var quotient2 = (quotient1 - 1) / 26;
+            var remainder2 = (quotient1 - 1) % 26;
+            char firstChar = (char)('A' - 1 + quotient2);
+            char secondChar = (char)('A' + remainder2);
+            char thirdChar = (char)('A' + remainder1);
             return string.Format("{0}{1}{2}", firstChar, secondChar, thirdChar);
         }
     }
