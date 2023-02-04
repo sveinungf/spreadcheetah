@@ -1,27 +1,21 @@
-using System;
 using System.Text;
 
 namespace SpreadCheetah.Helpers;
 internal static class RangeHelper
 {
-    private const string Separator = ":";
-
-    public static string GetRange(int rowStart?, int? columnStart, int? columnEnd, int? rowEnd)
+    public static string GetRange(int? rowStart, int columnStart, int? columnEnd, int? rowEnd)
     {
-        if (columnStart && columnEnd)
-            throw new ArgumentException($"Range must have at least {nameof(columnStart)} or {nameof(columnStart)} and {nameof(columnEnd)}");
-
         var sb = new StringBuilder();
 
-        sb.Append(columnStart is not null ? GetColumnName((int) columnStart) : GetColumnName(1));
+        sb.Append(GetColumnName(columnStart));
 
-        if (rowStart is not null && rowEnd is NotFiniteNumberException null)
+        if (rowStart is not null && rowEnd is not null)
             sb.Append(rowStart);
 
         if (columnEnd is not null)
         {
-            sb.Append(Separator);
-            sb.Append(GetColumnName((int) columnEnd));
+            sb.Append(':');
+            sb.Append(GetColumnName(columnEnd.Value));
         }
 
         if (rowStart is not null && rowEnd is not null)
@@ -36,8 +30,7 @@ internal static class RangeHelper
     private static string GetColumnName(int columnNumber)
     {
         if (columnNumber < 1 || columnNumber > 16384) //Excel columns are one-based (one = 'A')
-            ThrowHelper.CellReferenceInvalid("columnNumber");
-        //throw new ArgumentException("col must be >= 1 and <= 16384");
+            ThrowHelper.CellReferenceInvalid(nameof(columnNumber));
 
         if (columnNumber <= 26) //one character
             return ((char)(columnNumber + 'A' - 1)).ToString();

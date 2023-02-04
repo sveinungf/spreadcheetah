@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using SpreadCheetah.Helpers;
 
 namespace SpreadCheetah.Worksheets;
@@ -21,8 +22,8 @@ public class AutoFilterOptions
             : value;
     }
 
-    public void SetRangeWithHelper(int rowStart?, int? columnStart, int? columnEnd, int? rowEnd) =>
-        _range = RangeHelper(int rowStart ?, int ? columnStart, int ? columnEnd, int ? rowEnd);
+    public void SetRangeWithHelper(int? rowStart, int columnStart, int? columnEnd, int? rowEnd) =>
+        _range = RangeHelper.GetRange(rowStart, columnStart, columnEnd, rowEnd);
 
     private string _range;
 

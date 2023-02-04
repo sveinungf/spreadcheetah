@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.MetadataXml;
@@ -8,8 +5,6 @@ using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SpreadCheetah;
 
@@ -17,7 +12,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 {
     private string SheetHeader =
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-        "<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" " + 
+        "<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" " +
         "xr:uid=\"{uid}\"" +
         ">";
 
@@ -208,7 +203,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
         if (_autoFilterEnabled is not null)
             await AutoFilterXml.WriteAsync(_stream, _buffer, _autoFilterRange, _worksheetGuid, token);
-        
+
         await _buffer.WriteAsciiStringAsync("</worksheet>", _stream, token).ConfigureAwait(false);
         await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);
         await _stream.FlushAsync(token).ConfigureAwait(false);
