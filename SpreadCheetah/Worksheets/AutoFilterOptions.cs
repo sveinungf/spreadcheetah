@@ -11,9 +11,9 @@ public class AutoFilterOptions
     private static Regex Regex { get; } = new Regex("^[A-Z]{1,3}[0-9]{1,7}:[A-Z]{1,3}[0-9]{1,7}$", RegexOptions.None, TimeSpan.FromSeconds(1));
 
     /// <summary>
-    /// The cell range to filter.
+    /// The cell range to filter. Not exposed publicly in case there will be a more dynamic way to set the range in the future.
     /// </summary>
-    public string CellRange { get; }
+    internal string CellRange { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AutoFilterOptions"/> class for a range of cells.
