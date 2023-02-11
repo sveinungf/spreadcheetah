@@ -410,6 +410,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return Worksheet.TryAddDataValidation(cellReference, validation);
     }
 
+    public void MergeCells(string cellRange)
+    {
+        ArgumentNullException.ThrowIfNull(cellRange);
+
+        var cellReference = CellReference.Create(cellRange, false, CellReferenceType.Relative);
+        Worksheet.MergeCells(cellReference);
+    }
+
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
     {
         if (_worksheet is null) return;

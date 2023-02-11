@@ -23,6 +23,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly StyledCellWriter _styledCellWriter;
     private uint _nextRowIndex;
     private Dictionary<CellReference, DataValidation>? _validations;
+    private HashSet<CellReference>? _cellMerges;
     private string? _autoFilterRange;
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
@@ -192,9 +193,18 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         return true;
     }
 
+    public void MergeCells(CellReference cellRange)
+    {
+        _cellMerges ??= new HashSet<CellReference>();
+        _cellMerges.Add(cellRange);
+    }
+
     public async ValueTask FinishAsync(CancellationToken token)
     {
         await _buffer.WriteAsciiStringAsync("</sheetData>", _stream, token).ConfigureAwait(false);
+
+        if (_cellMerges is not null)
+            await CellMergeXml.WriteAsync(_stream, _buffer, _cellMerges, token).ConfigureAwait(false);
 
         if (_validations is not null)
             await DataValidationXml.WriteAsync(_stream, _buffer, _validations, token).ConfigureAwait(false);
