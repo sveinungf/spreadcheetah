@@ -520,4 +520,54 @@ public class SpreadsheetDataValidationTests
         Assert.Equal(XLOperator.LessThan, actualValidation.Operator);
         Assert.Equal("20", actualValidation.MinValue);
     }
+
+    [Fact]
+    public async Task Spreadsheet_AddDataValidation_ThrowAfterMaxNumberOfValidations()
+    {
+        // Arrange
+        var validation = DataValidation.IntegerBetween(0, 9);
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        for (var i = 1; i <= 65534; ++i)
+        {
+            var reference = "A" + i;
+            spreadsheet.AddDataValidation(reference, validation);
+        }
+
+        // Act & Assert
+        Assert.ThrowsAny<SpreadCheetahException>(() => spreadsheet.AddDataValidation("B1", validation));
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(stream);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddDataValidation_TwoWorksheetsCanHaveMaxNumberOfValidations()
+    {
+        // Arrange
+        static void AddMaxNumberOfDataValidations(string column, Spreadsheet spreadsheet)
+        {
+            var validation = DataValidation.IntegerBetween(0, 9);
+            for (var i = 1; i <= 65534; ++i)
+            {
+                var reference = column + i;
+                spreadsheet.AddDataValidation(reference, validation);
+            }
+        }
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        AddMaxNumberOfDataValidations("A", spreadsheet);
+        await spreadsheet.StartWorksheetAsync("Sheet 2");
+        AddMaxNumberOfDataValidations("B", spreadsheet);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+    }
 }

@@ -184,6 +184,10 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public void AddDataValidation(CellReference reference, DataValidation validation)
     {
         _validations ??= new Dictionary<CellReference, DataValidation>();
+
+        if (_validations.Count >= SpreadsheetConstants.MaxNumberOfDataValidations)
+            ThrowHelper.MaxNumberOfDataValidations();
+
         _validations[reference] = validation;
     }
 
