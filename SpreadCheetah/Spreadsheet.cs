@@ -406,7 +406,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(validation);
         ArgumentNullException.ThrowIfNull(reference);
 
-        var cellReference = CellReference.Create(reference);
+        var cellReference = CellReference.Create(reference, true, CellReferenceType.RelativeOrAbsolute);
         return Worksheet.TryAddDataValidation(cellReference, validation);
     }
 

@@ -154,7 +154,7 @@ public sealed class DataValidation
     public static DataValidation ListValuesFromCells(string cellRange, bool showDropdown = true)
     {
         ArgumentNullException.ThrowIfNull(cellRange);
-        var cellReference = CellReference.Create(cellRange);
+        var cellReference = CellReference.Create(cellRange, true, CellReferenceType.RelativeOrAbsolute);
         return ListValuesInternal(cellReference.Reference, showDropdown);
     }
 
@@ -176,7 +176,7 @@ public sealed class DataValidation
         ArgumentNullException.ThrowIfNull(cellRange);
         worksheetName.EnsureValidWorksheetName();
 
-        var cellReference = CellReference.Create(cellRange);
+        var cellReference = CellReference.Create(cellRange, true, CellReferenceType.RelativeOrAbsolute);
 
 #pragma warning disable CA1307, MA0074 // Specify StringComparison for clarity
         worksheetName = worksheetName.Replace("'", "''");

@@ -8,7 +8,10 @@ internal static class ThrowHelper
     public static void ColumnNumberInvalid(string? paramName, int number) => throw new ArgumentOutOfRangeException(paramName, number, "The column number must be greater than 0 and can't be larger than 16384.");
 
     [DoesNotReturn]
-    public static void CellReferenceInvalid(string? paramName) => throw new ArgumentException("Invalid reference for a cell or a range of cells.", paramName);
+    public static void CellOrCellRangeReferenceInvalid(string? paramName) => throw new ArgumentException("Invalid reference for a cell or a range of cells.", paramName);
+
+    [DoesNotReturn]
+    public static void CellRangeReferenceInvalid(string? paramName) => throw new ArgumentException("Invalid reference for a cell range.", paramName);
 
     [DoesNotReturn]
     public static void EnumValueInvalid<T>(string? paramName, T value) => throw new ArgumentOutOfRangeException(paramName, value, "The value is not a valid enum value.");
