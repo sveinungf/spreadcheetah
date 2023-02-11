@@ -15,7 +15,7 @@ internal static class AutoFilterXml
 
         sb.AppendTextAttribute("ref", filterRange);
 
-        sb.Append("/>");
+        sb.Append("></autoFilter>");
         await buffer.WriteStringAsync(sb, stream, token).ConfigureAwait(false);
     }
 
@@ -24,6 +24,6 @@ internal static class AutoFilterXml
         sb.Append(attribute);
         sb.Append("=\"");
         sb.Append(WebUtility.HtmlEncode(value));
-        sb.Append("\" ");
+        sb.Append('"');
     }
 }
