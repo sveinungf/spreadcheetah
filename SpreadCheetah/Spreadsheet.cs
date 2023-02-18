@@ -27,7 +27,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private bool _disposed;
     private bool _finished;
 
-    private Worksheet Worksheet => _worksheet ?? throw new SpreadCheetahException("There is no active worksheet.");
+    private Worksheet Worksheet
+    {
+        get
+        {
+            if (_worksheet is null) ThrowHelper.NoActiveWorksheet();
+            return _worksheet;
+        }
+    }
 
     private Spreadsheet(ZipArchive archive, CompressionLevel compressionLevel, int bufferSize, string? defaultDateTimeNumberFormat)
     {

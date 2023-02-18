@@ -20,6 +20,9 @@ internal static class ThrowHelper
     public static void MaxNumberOfDataValidations() => throw new SpreadCheetahException("Can't add more than " + SpreadsheetConstants.MaxNumberOfDataValidations + " data validations to a worksheet.");
 
     [DoesNotReturn]
+    public static void NoActiveWorksheet() => throw new SpreadCheetahException("There is no active worksheet.");
+
+    [DoesNotReturn]
     public static void StartWorksheetNotAllowedAfterFinish() => throw new SpreadCheetahException("Can't start another worksheet after " + nameof(Spreadsheet.FinishAsync) + " has been called.");
 
     [DoesNotReturn]
