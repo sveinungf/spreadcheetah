@@ -410,6 +410,16 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return Worksheet.TryAddDataValidation(cellReference, validation);
     }
 
+    /// <summary>
+    /// Merge a range of cells together. Note that only the content of the upper-left cell in the range will appear in the merged cell.
+    /// The cell range must be in the A1 reference style. Some examples:
+    /// <list type="bullet">
+    ///   <item><term><c>A1:E5</c></term><description>References the range from cell A1 to E5.</description></item>
+    ///   <item><term><c>A1:A1048576</c></term><description>References all cells in column A.</description></item>
+    ///   <item><term><c>A5:XFD5</c></term><description>References all cells in row 5.</description></item>
+    /// </list>
+    /// </summary>
+    /// <param name="cellRange"></param>
     public void MergeCells(string cellRange)
     {
         ArgumentNullException.ThrowIfNull(cellRange);
