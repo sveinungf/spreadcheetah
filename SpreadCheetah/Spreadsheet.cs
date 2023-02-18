@@ -449,9 +449,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask FinishAsync(CancellationToken token = default)
     {
-        if (_worksheets.Count == 0)
-            throw new SpreadCheetahException("Spreadsheet must contain at least one worksheet.");
-
+        if (_worksheets.Count == 0) ThrowHelper.SpreadsheetMustContainWorksheet();
         return FinishInternalAsync(token);
     }
 

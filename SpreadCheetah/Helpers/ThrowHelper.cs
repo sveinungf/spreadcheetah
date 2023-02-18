@@ -23,6 +23,9 @@ internal static class ThrowHelper
     public static void NoActiveWorksheet() => throw new SpreadCheetahException("There is no active worksheet.");
 
     [DoesNotReturn]
+    public static void SpreadsheetMustContainWorksheet() => throw new SpreadCheetahException("Spreadsheet must contain at least one worksheet.");
+
+    [DoesNotReturn]
     public static void StartWorksheetNotAllowedAfterFinish() => throw new SpreadCheetahException("Can't start another worksheet after " + nameof(Spreadsheet.FinishAsync) + " has been called.");
 
     [DoesNotReturn]
