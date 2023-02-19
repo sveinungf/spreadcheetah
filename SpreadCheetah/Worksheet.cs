@@ -182,14 +182,15 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, RowOptions options, int currentIndex, CancellationToken ct)
         => _styledCellWriter.AddRowAsync(cells, _nextRowIndex - 1, options, currentIndex, _stream, ct);
 
-    public bool TryAddDataValidation(CellReference reference, DataValidation validation)
+    public bool TryAddDataValidation(string reference, DataValidation validation)
     {
         _validations ??= new Dictionary<CellReference, DataValidation>();
 
         if (_validations.Count >= SpreadsheetConstants.MaxNumberOfDataValidations)
             return false;
 
-        _validations[reference] = validation;
+        var cellReference = CellReference.Create(reference, true, CellReferenceType.RelativeOrAbsolute);
+        _validations[cellReference] = validation;
         return true;
     }
 
