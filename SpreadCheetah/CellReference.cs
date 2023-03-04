@@ -5,10 +5,19 @@ using System.Text.RegularExpressions;
 
 namespace SpreadCheetah;
 
-internal readonly record struct CellReference
+internal readonly partial record struct CellReference
 {
     /// <summary>Example: A1:B10</summary>
-    private static Regex RelativeCellRangeRegex { get; } = new("^[A-Z]{1,3}[0-9]{1,7}:[A-Z]{1,3}[0-9]{1,7}$", RegexOptions.None, TimeSpan.FromSeconds(1));
+#if !NET7_0_OR_GREATER
+    private static Regex RelativeCellRangeRegexInstance { get; } = new(RelativeCellRangePattern, RegexOptions.None, TimeSpan.FromSeconds(1));
+    private static Regex RelativeCellRangeRegex() => RelativeCellRangeRegexInstance;
+#else
+    [GeneratedRegex(RelativeCellRangePattern, RegexOptions.None, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex RelativeCellRangeRegex();
+
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+#endif
+    private const string RelativeCellRangePattern = "^[A-Z]{1,3}[0-9]{1,7}:[A-Z]{1,3}[0-9]{1,7}$";
 
     /// <summary>
     /// Examples:
@@ -35,7 +44,7 @@ internal readonly record struct CellReference
 
         var match = type switch
         {
-            CellReferenceType.Relative when !allowSingleCell => RelativeCellRangeRegex.IsMatch(value),
+            CellReferenceType.Relative when !allowSingleCell => RelativeCellRangeRegex().IsMatch(value),
             CellReferenceType.RelativeOrAbsolute when allowSingleCell => RelativeOrAbsoluteCellOrCellRangeRegex.IsMatch(value),
             _ => false
         };
@@ -46,7 +55,7 @@ internal readonly record struct CellReference
         return match;
     }
 
-    public static CellReference Create(string value, bool allowSingleCell, CellReferenceType type, [CallerArgumentExpression("value")] string? paramName = null)
+    public static CellReference Create(string value, bool allowSingleCell, CellReferenceType type, [CallerArgumentExpression(nameof(value))] string? paramName = null)
     {
         if (!TryCreate(value, allowSingleCell, type, out var reference))
         {
