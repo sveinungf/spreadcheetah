@@ -281,7 +281,7 @@ public class SpreadsheetTests
         var worksheets = actual.WorkbookPart.WorksheetParts.Select(x => x.Worksheet);
         var cells = worksheets.Select(x => x.Descendants<DocumentFormat.OpenXml.Spreadsheet.Cell>().Single());
         Assert.Equal(count, sheets.Count);
-        Assert.Equal(sheetNames, sheets.Select(x => x.Name.Value));
+        Assert.Equal(sheetNames, sheets.Select(x => x.Name?.Value));
         Assert.Equal(sheetNames, cells.Select(x => x.InnerText));
     }
 
