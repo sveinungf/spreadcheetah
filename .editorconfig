@@ -214,6 +214,9 @@ dotnet_diagnostic.S3925.severity = none
 # S927: Parameter names should match base declaration
 dotnet_diagnostic.S927.severity = none
 
+# S2094: Classes should not be empty
+dotnet_diagnostic.S2094.severity = none
+
 ###############################
 # Threading.Analyzers Options #
 ###############################
