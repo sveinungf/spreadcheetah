@@ -8,16 +8,16 @@ namespace SpreadCheetah;
 internal readonly partial record struct CellReference
 {
     /// <summary>Example: A1:B10</summary>
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    private const string RelativeCellRangePattern = "^[A-Z]{1,3}[0-9]{1,7}:[A-Z]{1,3}[0-9]{1,7}$";
+
 #if !NET7_0_OR_GREATER
     private static Regex RelativeCellRangeRegexInstance { get; } = new(RelativeCellRangePattern, RegexOptions.None, TimeSpan.FromSeconds(1));
     private static Regex RelativeCellRangeRegex() => RelativeCellRangeRegexInstance;
 #else
     [GeneratedRegex(RelativeCellRangePattern, RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex RelativeCellRangeRegex();
-
-    [StringSyntax(StringSyntaxAttribute.Regex)]
 #endif
-    private const string RelativeCellRangePattern = "^[A-Z]{1,3}[0-9]{1,7}:[A-Z]{1,3}[0-9]{1,7}$";
 
     /// <summary>
     /// Examples:
