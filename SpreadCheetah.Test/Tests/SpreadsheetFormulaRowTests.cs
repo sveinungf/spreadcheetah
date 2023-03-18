@@ -352,7 +352,7 @@ public class SpreadsheetFormulaRowTests
             await spreadsheet.FinishAsync();
         }
 
-        var expectedNumberFormatId = NumberFormats.GetPredefinedNumberFormatId(numberFormat) ?? 0;
+        var expectedNumberFormatId = NumberFormatHelper.GetPredefinedNumberFormatId(numberFormat) ?? 0;
 
         // Assert
         SpreadsheetAssert.Valid(stream);

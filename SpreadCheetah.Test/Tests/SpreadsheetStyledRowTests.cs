@@ -373,7 +373,7 @@ public class SpreadsheetStyledRowTests
             await spreadsheet.FinishAsync();
         }
 
-        var expectedNumberFormatId = NumberFormats.GetPredefinedNumberFormatId(numberFormat) ?? 0;
+        var expectedNumberFormatId = NumberFormatHelper.GetPredefinedNumberFormatId(numberFormat) ?? 0;
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -846,7 +846,7 @@ public class SpreadsheetStyledRowTests
             Assert.Equal(element.FontOption, actualCell.Style.Font.Italic);
             Assert.Equal(element.FontOption, actualCell.Style.Font.Strikethrough);
 
-            var numberFormatId = NumberFormats.GetPredefinedNumberFormatId(element.NumberFormat);
+            var numberFormatId = NumberFormatHelper.GetPredefinedNumberFormatId(element.NumberFormat);
             if (numberFormatId is not null)
                 Assert.Equal(numberFormatId, actualCell.Style.NumberFormat.NumberFormatId);
             else
