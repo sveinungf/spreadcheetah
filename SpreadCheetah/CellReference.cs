@@ -7,17 +7,11 @@ namespace SpreadCheetah;
 
 internal readonly partial record struct CellReference
 {
+    private const int MatchTimeoutMilliseconds = 1000;
+
     /// <summary>Example: A1:B10</summary>
     [StringSyntax(StringSyntaxAttribute.Regex)]
     private const string RelativeCellRangePattern = "^[A-Z]{1,3}[0-9]{1,7}:[A-Z]{1,3}[0-9]{1,7}$";
-
-#if !NET7_0_OR_GREATER
-    private static Regex RelativeCellRangeRegexInstance { get; } = new(RelativeCellRangePattern, RegexOptions.None, TimeSpan.FromSeconds(1));
-    private static Regex RelativeCellRangeRegex() => RelativeCellRangeRegexInstance;
-#else
-    [GeneratedRegex(RelativeCellRangePattern, RegexOptions.None, matchTimeoutMilliseconds: 1000)]
-    private static partial Regex RelativeCellRangeRegex();
-#endif
 
     /// <summary>
     /// Examples:
@@ -29,7 +23,22 @@ internal readonly partial record struct CellReference
     ///   <item><term><c>$C$4:$H$10</c></term><description>Cell range C4 to H10, absolute references.</description></item>
     /// </list>
     /// </summary>
-    private static Regex RelativeOrAbsoluteCellOrCellRangeRegex { get; } = new(@"^\$?[A-Z]{1,3}\$?[0-9]{1,7}(?::\$?[A-Z]{1,3}\$?[0-9]{1,7})?$", RegexOptions.None, TimeSpan.FromSeconds(1));
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    private const string RelativeOrAbsoluteCellOrCellRangePattern = @"^\$?[A-Z]{1,3}\$?[0-9]{1,7}(?::\$?[A-Z]{1,3}\$?[0-9]{1,7})?$";
+
+#if !NET7_0_OR_GREATER
+    private static Regex RelativeCellRangeRegexInstance { get; } = new(RelativeCellRangePattern, RegexOptions.None, TimeSpan.FromMilliseconds(MatchTimeoutMilliseconds));
+    private static Regex RelativeCellRangeRegex() => RelativeCellRangeRegexInstance;
+
+    private static Regex RelativeOrAbsoluteCellOrCellRangeRegexInstance { get; } = new(RelativeOrAbsoluteCellOrCellRangePattern, RegexOptions.None, TimeSpan.FromMilliseconds(MatchTimeoutMilliseconds));
+    private static Regex RelativeOrAbsoluteCellOrCellRangeRegex() => RelativeOrAbsoluteCellOrCellRangeRegexInstance;
+#else
+    [GeneratedRegex(RelativeCellRangePattern, RegexOptions.None, MatchTimeoutMilliseconds)]
+    private static partial Regex RelativeCellRangeRegex();
+
+    [GeneratedRegex(RelativeOrAbsoluteCellOrCellRangePattern, RegexOptions.None, MatchTimeoutMilliseconds)]
+    private static partial Regex RelativeOrAbsoluteCellOrCellRangeRegex();
+#endif
 
     public string Reference { get; }
 
@@ -45,7 +54,7 @@ internal readonly partial record struct CellReference
         var match = type switch
         {
             CellReferenceType.Relative when !allowSingleCell => RelativeCellRangeRegex().IsMatch(value),
-            CellReferenceType.RelativeOrAbsolute when allowSingleCell => RelativeOrAbsoluteCellOrCellRangeRegex.IsMatch(value),
+            CellReferenceType.RelativeOrAbsolute when allowSingleCell => RelativeOrAbsoluteCellOrCellRangeRegex().IsMatch(value),
             _ => false
         };
 
