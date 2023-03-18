@@ -40,6 +40,8 @@ public class SpreadsheetMergeCellsTests
     [InlineData("A1:A")]
     [InlineData("A1:AAAA2")]
     [InlineData("$A$1:$A$2")]
+    [InlineData("A0:A0")]
+    [InlineData("A0:A10")]
     public async Task Spreadsheet_MergeCells_InvalidRange(string cellRange)
     {
         // Arrange
