@@ -26,18 +26,18 @@ internal readonly partial record struct CellReference
     [StringSyntax(StringSyntaxAttribute.Regex)]
     private const string RelativeOrAbsoluteCellOrCellRangePattern = @"^\$?[A-Z]{1,3}\$?[0-9]{1,7}(?::\$?[A-Z]{1,3}\$?[0-9]{1,7})?$";
 
-#if !NET7_0_OR_GREATER
-    private static Regex RelativeCellRangeRegexInstance { get; } = new(RelativeCellRangePattern, RegexOptions.None, TimeSpan.FromMilliseconds(MatchTimeoutMilliseconds));
-    private static Regex RelativeCellRangeRegex() => RelativeCellRangeRegexInstance;
-
-    private static Regex RelativeOrAbsoluteCellOrCellRangeRegexInstance { get; } = new(RelativeOrAbsoluteCellOrCellRangePattern, RegexOptions.None, TimeSpan.FromMilliseconds(MatchTimeoutMilliseconds));
-    private static Regex RelativeOrAbsoluteCellOrCellRangeRegex() => RelativeOrAbsoluteCellOrCellRangeRegexInstance;
-#else
+#if NET7_0_OR_GREATER
     [GeneratedRegex(RelativeCellRangePattern, RegexOptions.None, MatchTimeoutMilliseconds)]
     private static partial Regex RelativeCellRangeRegex();
 
     [GeneratedRegex(RelativeOrAbsoluteCellOrCellRangePattern, RegexOptions.None, MatchTimeoutMilliseconds)]
     private static partial Regex RelativeOrAbsoluteCellOrCellRangeRegex();
+#else
+    private static Regex RelativeCellRangeRegexInstance { get; } = new(RelativeCellRangePattern, RegexOptions.None, TimeSpan.FromMilliseconds(MatchTimeoutMilliseconds));
+    private static Regex RelativeCellRangeRegex() => RelativeCellRangeRegexInstance;
+
+    private static Regex RelativeOrAbsoluteCellOrCellRangeRegexInstance { get; } = new(RelativeOrAbsoluteCellOrCellRangePattern, RegexOptions.None, TimeSpan.FromMilliseconds(MatchTimeoutMilliseconds));
+    private static Regex RelativeOrAbsoluteCellOrCellRangeRegex() => RelativeOrAbsoluteCellOrCellRangeRegexInstance;
 #endif
 
     public string Reference { get; }
