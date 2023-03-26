@@ -1,6 +1,7 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Worksheets;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah.MetadataXml;
 
@@ -32,27 +33,35 @@ internal struct ContentTypesXmlWriter
     {
         bytesWritten = 0;
 
-        if (_nextElement == Element.Header && !TryWriteHeader(bytes, ref bytesWritten)) return false;
-        if (_nextElement == Element.Styles && !TryWriteStyles(bytes, ref bytesWritten)) return false;
-        if (_nextElement == Element.Worksheets && !TryWriteWorksheets(bytes, ref bytesWritten)) return false;
-        if (_nextElement == Element.Footer && !TryWriteFooter(bytes, ref bytesWritten)) return false;
+        if (_nextElement == Element.Header && !Advance(TryWriteSpan(Header, bytes, ref bytesWritten))) return false;
+        if (_nextElement == Element.Styles && !Advance(TryWriteSpan(Styles, bytes, ref bytesWritten))) return false;
+        if (_nextElement == Element.Worksheets && !Advance(TryWriteWorksheets(bytes, ref bytesWritten))) return false;
+        if (_nextElement == Element.Footer && !Advance(TryWriteSpan(Footer, bytes, ref bytesWritten))) return false;
 
         return true;
     }
 
-    private bool TryWriteHeader(Span<byte> bytes, ref int bytesWritten)
+    private bool Advance(bool success)
     {
-        if (!Header.TryCopyTo(bytes.Slice(bytesWritten))) return false;
-        bytesWritten += Header.Length;
-        _nextElement = _hasStylesXml ? Element.Styles : Element.Worksheets;
-        return true;
+        if (success)
+        {
+            _nextElement = _nextElement switch
+            {
+                Element.Header => _hasStylesXml ? Element.Styles : Element.Worksheets,
+                Element.Styles => Element.Worksheets,
+                Element.Worksheets => Element.Footer,
+                _ => Element.Done
+            };
+        }
+
+        return success;
     }
 
-    private bool TryWriteStyles(Span<byte> bytes, ref int bytesWritten)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryWriteSpan(ReadOnlySpan<byte> source, Span<byte> bytes, ref int bytesWritten)
     {
-        if (!Styles.TryCopyTo(bytes.Slice(bytesWritten))) return false;
-        bytesWritten += Styles.Length;
-        _nextElement = Element.Worksheets;
+        if (!source.TryCopyTo(bytes.Slice(bytesWritten))) return false;
+        bytesWritten += source.Length;
         return true;
     }
 
@@ -76,15 +85,6 @@ internal struct ContentTypesXmlWriter
             bytesWritten += SheetStart.Length + pathBytes + SheetEnd.Length;
         }
 
-        _nextElement = Element.Footer;
-        return true;
-    }
-
-    private bool TryWriteFooter(Span<byte> bytes, ref int bytesWritten)
-    {
-        if (!Footer.TryCopyTo(bytes.Slice(bytesWritten))) return false;
-        bytesWritten += Footer.Length;
-        _nextElement = Element.Done;
         return true;
     }
 
