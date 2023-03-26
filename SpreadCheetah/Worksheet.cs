@@ -78,7 +78,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
             sb.Append("ySplit=\"").Append(options.FrozenRows.Value).Append("\" ");
 
         sb.Append("topLeftCell=\"");
-        sb.AppendColumnName((options.FrozenColumns ?? 0) + 1);
+        sb.Append(SpreadsheetUtility.GetColumnName((options.FrozenColumns ?? 0) + 1));
         sb.Append((options.FrozenRows ?? 0) + 1);
         sb.Append("\" activePane=\"");
 
