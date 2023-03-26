@@ -144,16 +144,14 @@ internal static class ContentTypesXml
 #endif
         {
             var writer = new ContentTypesXmlWriter(worksheets, hasStylesXml);
+            var done = false;
 
-            int bytesWritten;
-            while (!writer.TryWrite(buffer.GetSpan(), out bytesWritten))
+            do
             {
+                done = writer.TryWrite(buffer.GetSpan(), out var bytesWritten);
                 buffer.Advance(bytesWritten);
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            }
-
-            buffer.Advance(bytesWritten);
-            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            } while (!done);
         }
     }
 
