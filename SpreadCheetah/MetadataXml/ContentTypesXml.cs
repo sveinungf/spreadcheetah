@@ -30,47 +30,33 @@ internal struct ContentTypesXmlWriter
 
     public bool TryWrite(Span<byte> bytes, out int bytesWritten)
     {
-        var initialLength = bytes.Length;
+        bytesWritten = 0;
 
-        while (_nextElement != Element.Done)
-        {
-            var ok = _nextElement switch
-            {
-                Element.Header => TryWriteHeader(ref bytes),
-                Element.Styles => TryWriteStyles(ref bytes),
-                Element.Worksheets => TryWriteWorksheets(ref bytes),
-                Element.Footer => TryWriteFooter(ref bytes),
-                _ => true
-            };
+        if (_nextElement == Element.Header && !TryWriteHeader(bytes, ref bytesWritten)) return false;
+        if (_nextElement == Element.Styles && !TryWriteStyles(bytes, ref bytesWritten)) return false;
+        if (_nextElement == Element.Worksheets && !TryWriteWorksheets(bytes, ref bytesWritten)) return false;
+        if (_nextElement == Element.Footer && !TryWriteFooter(bytes, ref bytesWritten)) return false;
 
-            if (!ok)
-            {
-                bytesWritten = initialLength - bytes.Length;
-                return false;
-            }
-        }
-
-        bytesWritten = initialLength - bytes.Length;
         return true;
     }
 
-    private bool TryWriteHeader(ref Span<byte> bytes)
+    private bool TryWriteHeader(Span<byte> bytes, ref int bytesWritten)
     {
-        if (!Header.TryCopyTo(bytes)) return false;
-        bytes = bytes.Slice(Header.Length);
+        if (!Header.TryCopyTo(bytes.Slice(bytesWritten))) return false;
+        bytesWritten += Header.Length;
         _nextElement = _hasStylesXml ? Element.Styles : Element.Worksheets;
         return true;
     }
 
-    private bool TryWriteStyles(ref Span<byte> bytes)
+    private bool TryWriteStyles(Span<byte> bytes, ref int bytesWritten)
     {
-        if (!Styles.TryCopyTo(bytes)) return false;
-        bytes = bytes.Slice(Styles.Length);
+        if (!Styles.TryCopyTo(bytes.Slice(bytesWritten))) return false;
+        bytesWritten += Styles.Length;
         _nextElement = Element.Worksheets;
         return true;
     }
 
-    private bool TryWriteWorksheets(ref Span<byte> bytes)
+    private bool TryWriteWorksheets(Span<byte> bytes, ref int bytesWritten)
     {
         var worksheets = _worksheets;
 
@@ -78,25 +64,26 @@ internal struct ContentTypesXmlWriter
         {
             var path = worksheets[_nextWorksheetIndex].Path;
 
-            if (!SheetStart.TryCopyTo(bytes)) return false;
+            var span = bytes.Slice(bytesWritten);
+            if (!SheetStart.TryCopyTo(span)) return false;
 
-            var span = bytes.Slice(SheetStart.Length);
-            if (!Utf8Helper.TryGetBytes(path, span, out var bytesWritten)) return false;
+            span = span.Slice(SheetStart.Length);
+            if (!Utf8Helper.TryGetBytes(path, span, out var pathBytes)) return false;
 
-            span = span.Slice(bytesWritten);
+            span = span.Slice(pathBytes);
             if (!SheetEnd.TryCopyTo(span)) return false;
 
-            bytes = span.Slice(SheetEnd.Length);
+            bytesWritten += SheetStart.Length + pathBytes + SheetEnd.Length;
         }
 
         _nextElement = Element.Footer;
         return true;
     }
 
-    private bool TryWriteFooter(ref Span<byte> bytes)
+    private bool TryWriteFooter(Span<byte> bytes, ref int bytesWritten)
     {
-        if (!Footer.TryCopyTo(bytes)) return false;
-        bytes = bytes.Slice(Footer.Length);
+        if (!Footer.TryCopyTo(bytes.Slice(bytesWritten))) return false;
+        bytesWritten += Footer.Length;
         _nextElement = Element.Done;
         return true;
     }
