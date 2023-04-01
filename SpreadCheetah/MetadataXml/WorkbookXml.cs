@@ -42,15 +42,10 @@ internal struct WorkbookXml
     private static ReadOnlySpan<byte> SheetsEnd => "</sheets></workbook>"u8;
 
     private readonly List<WorksheetMetadata> _worksheets;
-    private readonly int _firstVisibleWorksheetId;
     private Element _next;
     private int _nextWorksheetIndex;
 
-    public WorkbookXml(List<WorksheetMetadata> worksheets)
-    {
-        _worksheets = worksheets;
-        _firstVisibleWorksheetId = worksheets.FindIndex(x => x.Visibility == WorksheetVisibility.Visible);
-    }
+    public WorkbookXml(List<WorksheetMetadata> worksheets) => _worksheets = worksheets;
 
     public bool TryWrite(Span<byte> bytes, out int bytesWritten)
     {
@@ -68,30 +63,23 @@ internal struct WorkbookXml
     public bool Advance(bool success)
     {
         if (success)
-        {
-            _next = _next switch
-            {
-                Element.Header => _firstVisibleWorksheetId > 0 ? Element.BookViews : Element.SheetsStart,
-                Element.BookViews => Element.SheetsStart,
-                Element.SheetsStart => Element.Sheets,
-                Element.Sheets => Element.SheetsEnd,
-                _ => Element.Done
-            };
-        }
+            ++_next;
 
         return success;
     }
 
     private readonly bool TryWriteBookViews(Span<byte> bytes, ref int bytesWritten)
     {
+        var firstVisibleWorksheetId = _worksheets.FindIndex(static x => x.Visibility == WorksheetVisibility.Visible);
+        if (firstVisibleWorksheetId <= 0) return true;
+
         var written = 0;
         var span = bytes.Slice(bytesWritten);
-        var worksheetId = _firstVisibleWorksheetId;
 
         if (!"<bookViews><workbookView firstSheet=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(worksheetId, span, ref written)) return false;
+        if (!SpanHelper.TryWrite(firstVisibleWorksheetId, span, ref written)) return false;
         if (!"\" activeTab=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(worksheetId, span, ref written)) return false;
+        if (!SpanHelper.TryWrite(firstVisibleWorksheetId, span, ref written)) return false;
         if (!"\"/></bookViews>"u8.TryCopyTo(span, ref written)) return false;
 
         bytesWritten += written;
