@@ -33,16 +33,15 @@ internal struct ContentTypesXml
         }
     }
 
-    // TODO: Raw string
     private static ReadOnlySpan<byte> Header =>
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?>"u8 +
-        "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">"u8 +
-        "<Default Extension=\"xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\" />"u8 +
-        "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\" />"u8;
+        """<?xml version="1.0" encoding="utf-8"?>"""u8 +
+        """<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">"""u8 +
+        """<Default Extension="xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" />"""u8 +
+        """<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />"""u8;
 
-    private static ReadOnlySpan<byte> Styles => "<Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\" />"u8;
-    private static ReadOnlySpan<byte> SheetStart => "<Override PartName=\"/"u8;
-    private static ReadOnlySpan<byte> SheetEnd => "\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\" />"u8;
+    private static ReadOnlySpan<byte> Styles => """<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml" />"""u8;
+    private static ReadOnlySpan<byte> SheetStart => """<Override PartName="/"""u8;
+    private static ReadOnlySpan<byte> SheetEnd => "\" "u8 + """ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" />"""u8;
     private static ReadOnlySpan<byte> Footer => "</Types>"u8;
 
     private readonly List<WorksheetMetadata> _worksheets;
