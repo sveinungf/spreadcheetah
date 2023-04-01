@@ -33,6 +33,7 @@ internal struct ContentTypesXml
         }
     }
 
+    // TODO: Raw string
     private static ReadOnlySpan<byte> Header =>
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>"u8 +
         "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">"u8 +
@@ -91,6 +92,7 @@ internal struct ContentTypesXml
         {
             var path = worksheets[_nextWorksheetIndex].Path;
 
+            // TODO: Reuse extension method?
             var span = bytes.Slice(bytesWritten);
             if (!SheetStart.TryCopyTo(span)) return false;
 
