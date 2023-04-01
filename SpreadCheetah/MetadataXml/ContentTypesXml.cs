@@ -1,7 +1,6 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Worksheets;
 using System.IO.Compression;
-using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah.MetadataXml;
 
@@ -60,10 +59,10 @@ internal struct ContentTypesXml
     {
         bytesWritten = 0;
 
-        if (_nextElement == Element.Header && !Advance(TryWriteSpan(Header, bytes, ref bytesWritten))) return false;
-        if (_nextElement == Element.Styles && !Advance(TryWriteSpan(Styles, bytes, ref bytesWritten))) return false;
+        if (_nextElement == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
+        if (_nextElement == Element.Styles && !Advance(Styles.TryCopyTo(bytes, ref bytesWritten))) return false;
         if (_nextElement == Element.Worksheets && !Advance(TryWriteWorksheets(bytes, ref bytesWritten))) return false;
-        if (_nextElement == Element.Footer && !Advance(TryWriteSpan(Footer, bytes, ref bytesWritten))) return false;
+        if (_nextElement == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
 
         return true;
     }
@@ -82,14 +81,6 @@ internal struct ContentTypesXml
         }
 
         return success;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool TryWriteSpan(ReadOnlySpan<byte> source, Span<byte> bytes, ref int bytesWritten)
-    {
-        if (!source.TryCopyTo(bytes.Slice(bytesWritten))) return false;
-        bytesWritten += source.Length;
-        return true;
     }
 
     private bool TryWriteWorksheets(Span<byte> bytes, ref int bytesWritten)
