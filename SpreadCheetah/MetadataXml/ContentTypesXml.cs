@@ -90,18 +90,14 @@ internal struct ContentTypesXml
         for (; _nextWorksheetIndex < worksheets.Count; ++_nextWorksheetIndex)
         {
             var path = worksheets[_nextWorksheetIndex].Path;
-
-            // TODO: Reuse extension method?
             var span = bytes.Slice(bytesWritten);
-            if (!SheetStart.TryCopyTo(span)) return false;
+            var written = 0;
 
-            span = span.Slice(SheetStart.Length);
-            if (!Utf8Helper.TryGetBytes(path, span, out var pathBytes)) return false;
+            if (!SheetStart.TryCopyTo(span, ref written)) return false;
+            if (!SpanHelper.TryWrite(path, span, ref written)) return false;
+            if (!SheetEnd.TryCopyTo(span, ref written)) return false;
 
-            span = span.Slice(pathBytes);
-            if (!SheetEnd.TryCopyTo(span)) return false;
-
-            bytesWritten += SheetStart.Length + pathBytes + SheetEnd.Length;
+            bytesWritten += written;
         }
 
         return true;
