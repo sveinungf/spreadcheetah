@@ -46,7 +46,7 @@ internal struct ContentTypesXml
 
     private readonly List<WorksheetMetadata> _worksheets;
     private readonly bool _hasStylesXml;
-    private Element _nextElement;
+    private Element _next;
     private int _nextWorksheetIndex;
 
     public ContentTypesXml(List<WorksheetMetadata> worksheets, bool hasStylesXml)
@@ -59,10 +59,10 @@ internal struct ContentTypesXml
     {
         bytesWritten = 0;
 
-        if (_nextElement == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
-        if (_nextElement == Element.Styles && !Advance(Styles.TryCopyTo(bytes, ref bytesWritten))) return false;
-        if (_nextElement == Element.Worksheets && !Advance(TryWriteWorksheets(bytes, ref bytesWritten))) return false;
-        if (_nextElement == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Styles && !Advance(TryWriteStyles(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Worksheets && !Advance(TryWriteWorksheets(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
 
         return true;
     }
@@ -70,18 +70,13 @@ internal struct ContentTypesXml
     private bool Advance(bool success)
     {
         if (success)
-        {
-            _nextElement = _nextElement switch
-            {
-                Element.Header => _hasStylesXml ? Element.Styles : Element.Worksheets,
-                Element.Styles => Element.Worksheets,
-                Element.Worksheets => Element.Footer,
-                _ => Element.Done
-            };
-        }
+            ++_next;
 
         return success;
     }
+
+    private readonly bool TryWriteStyles(Span<byte> bytes, ref int bytesWritten)
+        => !_hasStylesXml || Styles.TryCopyTo(bytes, ref bytesWritten);
 
     private bool TryWriteWorksheets(Span<byte> bytes, ref int bytesWritten)
     {
