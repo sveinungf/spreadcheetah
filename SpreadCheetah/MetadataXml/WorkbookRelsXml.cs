@@ -4,23 +4,8 @@ using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal static class WorkbookRelsXml
+internal struct WorkbookRelsXml
 {
-    private const string Header =
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-        "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">";
-
-    private const string StylesStartString = "<Relationship Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\" Id=\"";
-    private const string SheetStartString = "<Relationship Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"/";
-    private const string BetweenPathAndRelationIdString = "\" Id=\"";
-    private const string RelationEndString = "\" />";
-    private const string Footer = "</Relationships>";
-
-    private static readonly byte[] StylesStart = Utf8Helper.GetBytes(StylesStartString);
-    private static readonly byte[] SheetStart = Utf8Helper.GetBytes(SheetStartString);
-    private static readonly byte[] BetweenPathAndRelationId = Utf8Helper.GetBytes(BetweenPathAndRelationIdString);
-    private static readonly byte[] RelationEnd = Utf8Helper.GetBytes(RelationEndString);
-
     public static async ValueTask WriteAsync(
         ZipArchive archive,
         CompressionLevel compressionLevel,
@@ -36,65 +21,101 @@ internal static class WorkbookRelsXml
         await using (stream.ConfigureAwait(false))
 #endif
         {
-            buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetSpan()));
+            var writer = new WorkbookRelsXml(worksheets, hasStylesXml);
+            var done = false;
 
-            for (var i = 0; i < worksheets.Count; ++i)
+            do
             {
-                var path = worksheets[i].Path;
-                var sheetId = i + 1;
-                var sheetElementLength = GetSheetElementByteCount(path, sheetId);
-
-                if (sheetElementLength > buffer.FreeCapacity)
-                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-                buffer.Advance(GetSheetElementBytes(path, sheetId, buffer.GetSpan()));
-            }
-
-            var bufferNeeded = Footer.Length + (hasStylesXml ? MaxStylesXmlElementByteCount : 0);
-            if (bufferNeeded > buffer.FreeCapacity)
+                done = writer.TryWrite(buffer.GetSpan(), out var bytesWritten);
+                buffer.Advance(bytesWritten);
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-            if (hasStylesXml)
-                buffer.Advance(GetStylesXmlElementBytes(worksheets.Count + 1, buffer.GetSpan()));
-
-            buffer.Advance(Utf8Helper.GetBytes(Footer, buffer.GetSpan()));
-            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            } while (!done);
         }
     }
 
-    private static int GetSheetElementByteCount(string path, int sheetId)
+    private static ReadOnlySpan<byte> Header =>
+        """<?xml version="1.0" encoding="utf-8"?>"""u8 +
+        """<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">"""u8;
+
+    private static ReadOnlySpan<byte> SheetStart => """<Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="/"""u8;
+    private static ReadOnlySpan<byte> StylesStart => """<Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml" Id="rId"""u8;
+    private static ReadOnlySpan<byte> Footer => "</Relationships>"u8;
+
+    private readonly List<WorksheetMetadata> _worksheets;
+    private readonly bool _hasStylesXml;
+    private Element _next;
+    private int _nextWorksheetIndex;
+
+    private WorkbookRelsXml(List<WorksheetMetadata> worksheets, bool hasStylesXml)
     {
-        var sheetIdDigits = sheetId.GetNumberOfDigits();
-        return SheetStart.Length
-            + Utf8Helper.GetByteCount(path)
-            + BetweenPathAndRelationId.Length
-            + SharedMetadata.RelationIdPrefix.Length
-            + sheetIdDigits
-            + RelationEnd.Length;
+        _worksheets = worksheets;
+        _hasStylesXml = hasStylesXml;
     }
 
-    private static int GetSheetElementBytes(string path, int sheetId, Span<byte> bytes)
+    public bool TryWrite(Span<byte> bytes, out int bytesWritten)
     {
-        var bytesWritten = SpanHelper.GetBytes(SheetStart, bytes);
-        bytesWritten += Utf8Helper.GetBytes(path, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(BetweenPathAndRelationId, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(SharedMetadata.RelationIdPrefix, bytes.Slice(bytesWritten));
-        bytesWritten += Utf8Helper.GetBytes(sheetId, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(RelationEnd, bytes.Slice(bytesWritten));
-        return bytesWritten;
+        bytesWritten = 0;
+
+        if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Worksheets && !Advance(TryWriteWorksheets(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Styles && !Advance(TryWriteStyles(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
+
+        return true;
     }
 
-    private static readonly int MaxStylesXmlElementByteCount = StylesStartString.Length
-        + SharedMetadata.RelationIdPrefix.Length
-        + SpreadsheetConstants.SheetCountMaxDigits
-        + RelationEnd.Length;
-
-    private static int GetStylesXmlElementBytes(int relationId, Span<byte> bytes)
+    private bool Advance(bool success)
     {
-        var bytesWritten = SpanHelper.GetBytes(StylesStart, bytes);
-        bytesWritten += SpanHelper.GetBytes(SharedMetadata.RelationIdPrefix, bytes.Slice(bytesWritten));
-        bytesWritten += Utf8Helper.GetBytes(relationId, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(RelationEnd, bytes.Slice(bytesWritten));
-        return bytesWritten;
+        if (success)
+            ++_next;
+
+        return success;
+    }
+
+    private bool TryWriteWorksheets(Span<byte> bytes, ref int bytesWritten)
+    {
+        var worksheets = _worksheets;
+
+        for (; _nextWorksheetIndex < worksheets.Count; ++_nextWorksheetIndex)
+        {
+            var index = _nextWorksheetIndex;
+            var path = worksheets[index].Path;
+            var span = bytes.Slice(bytesWritten);
+            var written = 0;
+
+            if (!SheetStart.TryCopyTo(span, ref written)) return false;
+            if (!SpanHelper.TryWrite(path, span, ref written)) return false;
+            if (!"\" Id=\"rId"u8.TryCopyTo(span, ref written)) return false;
+            if (!SpanHelper.TryWrite(index + 1, span, ref written)) return false;
+            if (!"\" />"u8.TryCopyTo(span, ref written)) return false;
+
+            bytesWritten += written;
+        }
+
+        return true;
+    }
+
+    private readonly bool TryWriteStyles(Span<byte> bytes, ref int bytesWritten)
+    {
+        if (!_hasStylesXml) return true;
+
+        var span = bytes.Slice(bytesWritten);
+        var written = 0;
+
+        if (!StylesStart.TryCopyTo(span, ref written)) return false;
+        if (!SpanHelper.TryWrite(_worksheets.Count + 1, span, ref written)) return false;
+        if (!"\" />"u8.TryCopyTo(span, ref written)) return false;
+
+        bytesWritten += written;
+        return true;
+    }
+
+    private enum Element
+    {
+        Header,
+        Worksheets,
+        Styles,
+        Footer,
+        Done
     }
 }
