@@ -8,7 +8,7 @@ internal struct WorksheetEndXml
     private readonly List<CellReference>? _cellMerges;
     private readonly List<KeyValuePair<CellReference, DataValidation>>? _validations;
     private readonly string? _autoFilterRange;
-    private DataValidationXml2? _validationXmlWriter;
+    private DataValidationXml? _validationXmlWriter;
     private Element _next;
     private int _nextIndex;
 
@@ -124,7 +124,7 @@ internal struct WorksheetEndXml
         {
             var pair = validations[_nextIndex];
 
-            var writer = _validationXmlWriter ?? new DataValidationXml2(pair.Key, pair.Value);
+            var writer = _validationXmlWriter ?? new DataValidationXml(pair.Key, pair.Value);
             if (!writer.TryWrite(bytes, ref bytesWritten))
             {
                 _validationXmlWriter = writer;

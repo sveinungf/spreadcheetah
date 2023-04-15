@@ -1,5 +1,4 @@
 using SpreadCheetah.Helpers;
-using System.Text;
 
 namespace SpreadCheetah;
 
@@ -24,37 +23,6 @@ internal sealed class SpreadsheetBuffer
             await FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
         _index += Utf8Helper.GetBytes(value, GetSpan());
-    }
-
-    public async ValueTask WriteStringAsync(StringBuilder sb, Stream stream, CancellationToken token)
-    {
-        var remaining = FreeCapacity;
-        var value = sb.ToString();
-
-        // Try with an approximate cell value length
-        var bytesNeeded = value.Length * Utf8Helper.MaxBytePerChar;
-        if (bytesNeeded > remaining)
-        {
-            // Try with a more accurate cell value length
-            bytesNeeded = Utf8Helper.GetByteCount(value);
-        }
-
-        if (bytesNeeded > remaining)
-            await FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-        // Write whole value if it fits in the buffer
-        if (bytesNeeded <= _buffer.Length)
-        {
-            _index += Utf8Helper.GetBytes(value, GetSpan());
-            return;
-        }
-
-        // Otherwise, write value piece by piece
-        var valueIndex = 0;
-        while (!WriteLongString(value, ref valueIndex))
-        {
-            await FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        }
     }
 
     public bool WriteLongString(ReadOnlySpan<char> value, ref int valueIndex)
