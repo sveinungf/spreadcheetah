@@ -202,19 +202,31 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public async ValueTask FinishAsync(CancellationToken token)
     {
-        await _buffer.WriteAsciiStringAsync("</sheetData>", _stream, token).ConfigureAwait(false);
+        var writer = new WorksheetEndXml(_cellMerges?.ToList(), _validations?.ToList(), _autoFilterRange);
+        bool done;
+        var buffer = _buffer;
+        var stream = _stream;
 
-        if (_autoFilterRange is not null)
-            await AutoFilterXml.WriteAsync(_stream, _buffer, _autoFilterRange, token).ConfigureAwait(false);
+        do
+        {
+            done = writer.TryWrite(buffer.GetSpan(), out var bytesWritten);
+            buffer.Advance(bytesWritten);
+            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        } while (!done);
 
-        if (_cellMerges is not null)
-            await CellMergeXml.WriteAsync(_stream, _buffer, _cellMerges, token).ConfigureAwait(false);
+        //await _buffer.WriteAsciiStringAsync("</sheetData>", _stream, token).ConfigureAwait(false);
 
-        if (_validations is not null)
-            await DataValidationXml.WriteAsync(_stream, _buffer, _validations, token).ConfigureAwait(false);
+        //if (_autoFilterRange is not null)
+        //    await AutoFilterXml.WriteAsync(_stream, _buffer, _autoFilterRange, token).ConfigureAwait(false);
 
-        await _buffer.WriteAsciiStringAsync("</worksheet>", _stream, token).ConfigureAwait(false);
-        await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);
+        //if (_cellMerges is not null)
+        //    await CellMergeXml.WriteAsync(_stream, _buffer, _cellMerges, token).ConfigureAwait(false);
+
+        //if (_validations is not null)
+        //    await DataValidationXml.WriteAsync(_stream, _buffer, _validations, token).ConfigureAwait(false);
+
+        //await _buffer.WriteAsciiStringAsync("</worksheet>", _stream, token).ConfigureAwait(false);
+        //await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);
         await _stream.FlushAsync(token).ConfigureAwait(false);
     }
 
