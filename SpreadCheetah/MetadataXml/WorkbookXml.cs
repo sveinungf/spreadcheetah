@@ -45,7 +45,7 @@ internal struct WorkbookXml
     private Element _next;
     private int _nextWorksheetIndex;
 
-    public WorkbookXml(List<WorksheetMetadata> worksheets) => _worksheets = worksheets;
+    private WorkbookXml(List<WorksheetMetadata> worksheets) => _worksheets = worksheets;
 
     public bool TryWrite(Span<byte> bytes, out int bytesWritten)
     {

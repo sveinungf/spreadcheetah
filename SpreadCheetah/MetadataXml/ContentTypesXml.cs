@@ -49,7 +49,7 @@ internal struct ContentTypesXml
     private Element _next;
     private int _nextWorksheetIndex;
 
-    public ContentTypesXml(List<WorksheetMetadata> worksheets, bool hasStylesXml)
+    private ContentTypesXml(List<WorksheetMetadata> worksheets, bool hasStylesXml)
     {
         _worksheets = worksheets;
         _hasStylesXml = hasStylesXml;
