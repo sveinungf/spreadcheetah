@@ -10,7 +10,6 @@ internal static class Utf8Helper
     private static readonly UTF8Encoding Utf8NoBom = new(false);
 
     public static int GetByteCount(string chars) => Utf8NoBom.GetByteCount(chars);
-    public static byte[] GetBytes(string s) => Utf8NoBom.GetBytes(s);
 
     public static int GetBytes(int number, Span<byte> destination)
     {
