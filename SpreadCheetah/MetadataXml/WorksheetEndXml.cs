@@ -8,6 +8,7 @@ internal struct WorksheetEndXml
     private readonly List<CellReference>? _cellMerges;
     private readonly List<KeyValuePair<CellReference, DataValidation>>? _validations;
     private readonly string? _autoFilterRange;
+    private DataValidationXml2? _validationXmlWriter;
     private Element _next;
     private int _nextIndex;
 
@@ -30,9 +31,9 @@ internal struct WorksheetEndXml
         if (_next == Element.CellMergesStart && !Advance(TryWriteCellMergesStart(bytes, ref bytesWritten))) return false;
         if (_next == Element.CellMerges && !Advance(TryWriteCellMerges(bytes, ref bytesWritten))) return false;
         if (_next == Element.CellMergesEnd && !Advance(TryWriteCellMergesEnd(bytes, ref bytesWritten))) return false;
-
-        // TODO: Data validations
-
+        if (_next == Element.ValidationsStart && !Advance(TryWriteValidationsStart(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Validations && !Advance(TryWriteValidations(bytes, ref bytesWritten))) return false;
+        if (_next == Element.ValidationsEnd && !Advance(TryWriteValidationsEnd(bytes, ref bytesWritten))) return false;
         if (_next == Element.Footer && !Advance("</worksheet>"u8.TryCopyTo(bytes, ref bytesWritten))) return false;
 
         return true;
@@ -93,11 +94,52 @@ internal struct WorksheetEndXml
             bytesWritten += written;
         }
 
+        _nextIndex = 0;
         return true;
     }
 
     private readonly bool TryWriteCellMergesEnd(Span<byte> bytes, ref int bytesWritten)
         => _cellMerges is null || "</mergeCells>"u8.TryCopyTo(bytes, ref bytesWritten);
+
+    private readonly bool TryWriteValidationsStart(Span<byte> bytes, ref int bytesWritten)
+    {
+        if (_validations is not { } validations) return true;
+
+        var span = bytes.Slice(bytesWritten);
+        var written = 0;
+
+        if (!"<dataValidations count=\""u8.TryCopyTo(span, ref written)) return false;
+        if (!SpanHelper.TryWrite(validations.Count, span, ref written)) return false;
+        if (!"\">"u8.TryCopyTo(span, ref written)) return false;
+
+        bytesWritten += written;
+        return true;
+    }
+
+    private bool TryWriteValidations(Span<byte> bytes, ref int bytesWritten)
+    {
+        if (_validations is not { } validations) return true;
+
+        for (; _nextIndex < validations.Count; ++_nextIndex)
+        {
+            var pair = validations[_nextIndex];
+
+            var writer = _validationXmlWriter ?? new DataValidationXml2(pair.Key, pair.Value);
+            if (!writer.TryWrite(bytes, ref bytesWritten))
+            {
+                _validationXmlWriter = writer;
+                return false;
+            }
+
+            _validationXmlWriter = null;
+        }
+
+        _nextIndex = 0;
+        return true;
+    }
+
+    private readonly bool TryWriteValidationsEnd(Span<byte> bytes, ref int bytesWritten)
+        => _validations is null || "</dataValidations>"u8.TryCopyTo(bytes, ref bytesWritten);
 
     private enum Element
     {
@@ -106,9 +148,9 @@ internal struct WorksheetEndXml
         CellMergesStart,
         CellMerges,
         CellMergesEnd,
-        //ValidationsStart,
-        //Validations,
-        //ValidationsEnd,
+        ValidationsStart,
+        Validations,
+        ValidationsEnd,
         Footer,
         Done
     }

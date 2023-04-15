@@ -59,16 +59,10 @@ internal sealed class SpreadsheetBuffer
 
     public bool WriteLongString(ReadOnlySpan<char> value, ref int valueIndex)
     {
-        if (value.IsEmpty) return true;
-
-        var remainingBuffer = FreeCapacity;
-        var maxCharCount = remainingBuffer / Utf8Helper.MaxBytePerChar;
-        var remainingLength = value.Length - valueIndex;
-        var lastIteration = remainingLength <= maxCharCount;
-        var length = Math.Min(remainingLength, maxCharCount);
-        _index += Utf8Helper.GetBytes(value.Slice(valueIndex, length), GetSpan());
-        valueIndex += length;
-        return lastIteration;
+        var bytesWritten = 0;
+        var result = SpanHelper.TryWriteLongString(value, ref valueIndex, GetSpan(), ref bytesWritten);
+        _index += bytesWritten;
+        return result;
     }
 
 #if NETSTANDARD2_0
