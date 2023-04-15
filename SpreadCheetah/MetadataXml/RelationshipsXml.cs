@@ -1,15 +1,15 @@
-using SpreadCheetah.Helpers;
+using System.Diagnostics;
 using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
 internal static class RelationshipsXml
 {
-    private const string Content =
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-        "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" +
-            "<Relationship Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"/xl/workbook.xml\" Id=\"rId1\" />" +
-        "</Relationships>";
+    private static ReadOnlySpan<byte> Content =>
+        """<?xml version="1.0" encoding="utf-8"?>"""u8 +
+        """<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">"""u8 +
+        """<Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="/xl/workbook.xml" Id="rId1" />"""u8 +
+        """</Relationships>"""u8;
 
     public static async ValueTask WriteAsync(
         ZipArchive archive,
@@ -21,10 +21,12 @@ internal static class RelationshipsXml
 #if NETSTANDARD2_0
         using (stream)
 #else
-            await using (stream.ConfigureAwait(false))
+        await using (stream.ConfigureAwait(false))
 #endif
         {
-            buffer.Advance(Utf8Helper.GetBytes(Content, buffer.GetSpan()));
+            Debug.Assert(Content.Length <= buffer.FreeCapacity);
+            Content.TryCopyTo(buffer.GetSpan());
+            buffer.Advance(Content.Length);
             await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }
     }
