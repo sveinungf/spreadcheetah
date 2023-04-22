@@ -10,7 +10,7 @@ using System.Text;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal static class StylesXml
+internal struct StylesXml
 {
     private const string Header =
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
@@ -74,7 +74,7 @@ internal static class StylesXml
         // Assuming here that the built-in default style is part of 'styles'
         foreach (var style in styles.Keys)
         {
-            sb.AppendStyle(style, customNumberFormatLookup, fontLookup, fillLookup, borderLookup);
+            AppendStyle(sb, style, customNumberFormatLookup, fontLookup, fillLookup, borderLookup);
             await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
             sb.Clear();
         }
@@ -83,7 +83,7 @@ internal static class StylesXml
         await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
     }
 
-    private static void AppendStyle(this StringBuilder sb,
+    private static void AppendStyle(StringBuilder sb,
         in ImmutableStyle style,
         IReadOnlyDictionary<string, int> customNumberFormats,
         IReadOnlyDictionary<ImmutableFont, int> fonts,
@@ -111,7 +111,11 @@ internal static class StylesXml
         if (style.Alignment == defaultAlignment)
             sb.Append("/>");
         else
-            sb.Append(" applyAlignment=\"1\">").AppendAlignment(style.Alignment).Append("</xf>");
+        {
+            sb.Append(" applyAlignment=\"1\">");
+            AppendAlignment(sb, style.Alignment);
+            sb.Append("</xf>");
+        }
     }
 
     private static int GetNumberFormatId(string? numberFormat, IReadOnlyDictionary<string, int> customNumberFormats)
@@ -140,7 +144,7 @@ internal static class StylesXml
         foreach (var numberFormat in dict)
         {
             sb.Clear();
-            sb.AppendNumberFormat(numberFormat.Key, numberFormat.Value);
+            AppendNumberFormat(sb, numberFormat.Key, numberFormat.Value);
             await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
         }
 
@@ -203,7 +207,7 @@ internal static class StylesXml
             if (font.Equals(defaultFont)) continue;
 
             sb.Clear();
-            sb.AppendFont(font);
+            AppendFont(sb, font);
             await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
 
             uniqueFonts[font] = fontIndex;
@@ -249,7 +253,7 @@ internal static class StylesXml
             if (fill.Equals(defaultFill)) continue;
 
             sb.Clear();
-            sb.AppendFill(fill);
+            AppendFill(sb, fill);
             await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
 
             uniqueFills[fill] = fillIndex;
@@ -294,7 +298,7 @@ internal static class StylesXml
             if (border.Equals(defaultBorder)) continue;
 
             sb.Clear();
-            sb.AppendBorder(border);
+            AppendBorder(sb, border);
             await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
 
             uniqueBorders[border] = borderIndex;
@@ -305,7 +309,7 @@ internal static class StylesXml
         return uniqueBorders;
     }
 
-    private static void AppendNumberFormat(this StringBuilder sb, string numberFormat, int id)
+    private static void AppendNumberFormat(StringBuilder sb, string numberFormat, int id)
     {
         sb.Append("<numFmt numFmtId=\"")
             .Append(id)
@@ -314,7 +318,7 @@ internal static class StylesXml
             .Append("\"/>");
     }
 
-    private static void AppendFont(this StringBuilder sb, ImmutableFont font)
+    private static void AppendFont(StringBuilder sb, ImmutableFont font)
     {
         sb.Append("<font>");
 
@@ -331,7 +335,7 @@ internal static class StylesXml
         sb.Append("<name val=\"").Append(fontName).Append("\"/></font>");
     }
 
-    private static void AppendFill(this StringBuilder sb, ImmutableFill fill)
+    private static void AppendFill(StringBuilder sb, ImmutableFill fill)
     {
         if (fill.Color is null) return;
         sb.Append("<fill><patternFill patternType=\"solid\"><fgColor rgb=\"");
@@ -339,7 +343,7 @@ internal static class StylesXml
         sb.Append("\"/></patternFill></fill>");
     }
 
-    private static void AppendBorder(this StringBuilder sb, in ImmutableBorder border)
+    private static void AppendBorder(StringBuilder sb, in ImmutableBorder border)
     {
         sb.Append("<border");
 
@@ -349,19 +353,19 @@ internal static class StylesXml
             sb.Append(" diagonalDown=\"true\"");
 
         sb.Append('>');
-        sb.AppendEdgeBorder("left", border.Left);
-        sb.AppendEdgeBorder("right", border.Right);
-        sb.AppendEdgeBorder("top", border.Top);
-        sb.AppendEdgeBorder("bottom", border.Bottom);
-        sb.AppendBorderPart("diagonal", border.Diagonal.BorderStyle, border.Diagonal.Color);
+        AppendEdgeBorder(sb, "left", border.Left);
+        AppendEdgeBorder(sb, "right", border.Right);
+        AppendEdgeBorder(sb, "top", border.Top);
+        AppendEdgeBorder(sb, "bottom", border.Bottom);
+        AppendBorderPart(sb, "diagonal", border.Diagonal.BorderStyle, border.Diagonal.Color);
 
         sb.Append("</border>");
     }
 
-    private static void AppendEdgeBorder(this StringBuilder sb, string borderName, ImmutableEdgeBorder border)
-        => sb.AppendBorderPart(borderName, border.BorderStyle, border.Color);
+    private static void AppendEdgeBorder(StringBuilder sb, string borderName, ImmutableEdgeBorder border)
+        => AppendBorderPart(sb, borderName, border.BorderStyle, border.Color);
 
-    private static void AppendBorderPart(this StringBuilder sb, string borderName, BorderStyle style, Color? color)
+    private static void AppendBorderPart(StringBuilder sb, string borderName, BorderStyle style, Color? color)
     {
         sb.Append('<').Append(borderName);
 
@@ -371,7 +375,8 @@ internal static class StylesXml
             return;
         }
 
-        sb.Append(" style=\"").AppendStyleAttributeValue(style);
+        sb.Append(" style=\"");
+        AppendStyleAttributeValue(sb, style);
 
         if (color is null)
         {
@@ -386,7 +391,7 @@ internal static class StylesXml
             .Append('>');
     }
 
-    private static void AppendStyleAttributeValue(this StringBuilder sb, BorderStyle style)
+    private static void AppendStyleAttributeValue(StringBuilder sb, BorderStyle style)
     {
         var value = style switch
         {
@@ -409,11 +414,11 @@ internal static class StylesXml
         sb.Append(value);
     }
 
-    private static StringBuilder AppendAlignment(this StringBuilder sb, ImmutableAlignment alignment)
+    private static StringBuilder AppendAlignment(StringBuilder sb, ImmutableAlignment alignment)
     {
-        sb.Append("<alignment")
-            .AppendHorizontalAlignment(alignment.Horizontal)
-            .AppendVerticalAlignment(alignment.Vertical);
+        sb.Append("<alignment");
+        AppendHorizontalAlignment(sb, alignment.Horizontal);
+        AppendVerticalAlignment(sb, alignment.Vertical);
 
         if (alignment.WrapText)
             sb.Append(" wrapText=\"1\"");
@@ -424,7 +429,7 @@ internal static class StylesXml
         return sb.Append("/>");
     }
 
-    private static StringBuilder AppendHorizontalAlignment(this StringBuilder sb, HorizontalAlignment alignment) => alignment switch
+    private static StringBuilder AppendHorizontalAlignment(StringBuilder sb, HorizontalAlignment alignment) => alignment switch
     {
         HorizontalAlignment.Left => sb.Append(" horizontal=\"left\""),
         HorizontalAlignment.Center => sb.Append(" horizontal=\"center\""),
@@ -432,7 +437,7 @@ internal static class StylesXml
         _ => sb
     };
 
-    private static StringBuilder AppendVerticalAlignment(this StringBuilder sb, VerticalAlignment alignment) => alignment switch
+    private static StringBuilder AppendVerticalAlignment(StringBuilder sb, VerticalAlignment alignment) => alignment switch
     {
         VerticalAlignment.Center => sb.Append(" vertical=\"center\""),
         VerticalAlignment.Top => sb.Append(" vertical=\"top\""),
