@@ -53,6 +53,34 @@ public class SpreadsheetMergeCellsTests
         Assert.ThrowsAny<ArgumentException>(() => spreadsheet.MergeCells(cellRange));
     }
 
+    [Theory]
+    [InlineData(2)]
+    [InlineData(10)]
+    [InlineData(100)]
+    [InlineData(10000)]
+    public async Task Spreadsheet_MergeCells_MultipleMergeRanges(int count)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act
+        for (var i = 0; i < count; ++i)
+        {
+            var range = $"A{i + 1}:B{i + 1}";
+            spreadsheet.MergeCells(range);
+        }
+
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        Assert.Equal(count, worksheet.MergedRanges.Count);
+    }
+
     [Fact]
     public async Task Spreadsheet_MergeCells_WorksheetWithAutoFilterAndDataValidation()
     {
