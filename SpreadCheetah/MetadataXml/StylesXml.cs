@@ -12,10 +12,6 @@ namespace SpreadCheetah.MetadataXml;
 
 internal struct StylesXml
 {
-    private const string Header =
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-        "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">";
-
     private const string XmlPart1 =
         "<cellStyleXfs count=\"1\">" +
         "<xf numFmtId=\"0\" fontId=\"0\"/>" +
@@ -44,8 +40,41 @@ internal struct StylesXml
         await using (stream.ConfigureAwait(false))
 #endif
         {
+            var writer = new StylesXml();
+            var done = false;
+
+            do
+            {
+                done = writer.TryWrite(buffer.GetSpan(), out var bytesWritten);
+                buffer.Advance(bytesWritten);
+                await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            } while (!done);
+
             await WriteAsync(stream, buffer, styles, token).ConfigureAwait(false);
         }
+    }
+
+    private static ReadOnlySpan<byte> Header =>
+        """<?xml version="1.0" encoding="utf-8"?>"""u8 +
+        """<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">"""u8;
+
+    private Element _next;
+
+    public bool TryWrite(Span<byte> bytes, out int bytesWritten)
+    {
+        bytesWritten = 0;
+
+        if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
+
+        return true;
+    }
+
+    private bool Advance(bool success)
+    {
+        if (success)
+            ++_next;
+
+        return success;
     }
 
     private static async ValueTask WriteAsync(
@@ -54,8 +83,6 @@ internal struct StylesXml
         Dictionary<ImmutableStyle, int> styles,
         CancellationToken token)
     {
-        buffer.Advance(Utf8Helper.GetBytes(Header, buffer.GetSpan()));
-
         var customNumberFormatLookup = await WriteNumberFormatsAsync(stream, buffer, styles, token).ConfigureAwait(false);
         var fontLookup = await WriteFontsAsync(stream, buffer, styles, token).ConfigureAwait(false);
         var fillLookup = await WriteFillsAsync(stream, buffer, styles, token).ConfigureAwait(false);
@@ -445,4 +472,10 @@ internal struct StylesXml
     };
 
     private static string HexString(Color c) => $"{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+
+    private enum Element
+    {
+        Header,
+        Done
+    }
 }
