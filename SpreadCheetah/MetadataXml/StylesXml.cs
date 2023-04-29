@@ -2,10 +2,8 @@ using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO.Compression;
-using System.Net;
 using System.Text;
 
 namespace SpreadCheetah.MetadataXml;
@@ -40,7 +38,7 @@ internal struct StylesXml
         await using (stream.ConfigureAwait(false))
 #endif
         {
-            var writer = new StylesXml();
+            var writer = new StylesXml(styles);
             var done = false;
 
             do
@@ -50,7 +48,7 @@ internal struct StylesXml
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
             } while (!done);
 
-            await WriteAsync(stream, buffer, styles, token).ConfigureAwait(false);
+            await WriteAsync(stream, buffer, styles, writer.CustomNumberFormats, writer.Fonts, token).ConfigureAwait(false);
         }
     }
 
@@ -58,13 +56,68 @@ internal struct StylesXml
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">"""u8;
 
+    private readonly StyleNumberFormatsXml _numberFormatsXml;
+    private readonly StyleFontsXml _fontsXml;
     private Element _next;
+
+    public Dictionary<string, int>? CustomNumberFormats { get; }
+    public Dictionary<ImmutableFont, int> Fonts { get; }
+
+    private StylesXml(Dictionary<ImmutableStyle, int> styles)
+    {
+        CustomNumberFormats = CreateCustomNumberFormatDictionary(styles);
+        Fonts = CreateFontDictionary(styles);
+        _numberFormatsXml = new StyleNumberFormatsXml(CustomNumberFormats?.ToList());
+        _fontsXml = new StyleFontsXml(Fonts.Keys.ToList());
+    }
+
+    private static Dictionary<string, int>? CreateCustomNumberFormatDictionary(Dictionary<ImmutableStyle, int> styles)
+    {
+        Dictionary<string, int>? dictionary = null;
+        var numberFormatId = 165; // Custom formats start sequentially from this ID
+
+        foreach (var style in styles.Keys)
+        {
+            var numberFormat = style.NumberFormat;
+            if (numberFormat is null) continue;
+            if (NumberFormats.GetPredefinedNumberFormatId(numberFormat) is not null) continue;
+
+            dictionary ??= new Dictionary<string, int>(StringComparer.Ordinal);
+            if (dictionary.TryAdd(numberFormat, numberFormatId))
+                ++numberFormatId;
+        }
+
+        return dictionary;
+    }
+
+    private static Dictionary<ImmutableFont, int> CreateFontDictionary(Dictionary<ImmutableStyle, int> styles)
+    {
+        var defaultFont = new ImmutableFont { Size = Font.DefaultSize };
+        const int defaultCount = 1;
+
+        var uniqueFonts = new Dictionary<ImmutableFont, int> { { defaultFont, 0 } };
+        var fontIndex = defaultCount;
+
+        foreach (var style in styles.Keys)
+        {
+            var font = style.Font;
+            if (!uniqueFonts.ContainsKey(font)) // TODO: Use CollectionsMarshal
+            {
+                uniqueFonts[font] = fontIndex;
+                ++fontIndex;
+            }
+        }
+
+        return uniqueFonts;
+    }
 
     public bool TryWrite(Span<byte> bytes, out int bytesWritten)
     {
         bytesWritten = 0;
 
         if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
+        if (_next == Element.NumberFormats && !Advance(_numberFormatsXml.TryWrite(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Fonts && !Advance(_fontsXml.TryWrite(bytes, ref bytesWritten))) return false;
 
         return true;
     }
@@ -81,10 +134,10 @@ internal struct StylesXml
         Stream stream,
         SpreadsheetBuffer buffer,
         Dictionary<ImmutableStyle, int> styles,
+        Dictionary<string, int>? customNumberFormatLookup,
+        Dictionary<ImmutableFont, int> fontLookup,
         CancellationToken token)
     {
-        var customNumberFormatLookup = await WriteNumberFormatsAsync(stream, buffer, styles, token).ConfigureAwait(false);
-        var fontLookup = await WriteFontsAsync(stream, buffer, styles, token).ConfigureAwait(false);
         var fillLookup = await WriteFillsAsync(stream, buffer, styles, token).ConfigureAwait(false);
         var borderLookup = await WriteBordersAsync(stream, buffer, styles, token).ConfigureAwait(false);
 
@@ -112,7 +165,7 @@ internal struct StylesXml
 
     private static void AppendStyle(StringBuilder sb,
         in ImmutableStyle style,
-        IReadOnlyDictionary<string, int> customNumberFormats,
+        IReadOnlyDictionary<string, int>? customNumberFormats,
         IReadOnlyDictionary<ImmutableFont, int> fonts,
         IReadOnlyDictionary<ImmutableFill, int> fills,
         IReadOnlyDictionary<ImmutableBorder, int> borders)
@@ -145,104 +198,12 @@ internal struct StylesXml
         }
     }
 
-    private static int GetNumberFormatId(string? numberFormat, IReadOnlyDictionary<string, int> customNumberFormats)
+    private static int GetNumberFormatId(string? numberFormat, IReadOnlyDictionary<string, int>? customNumberFormats)
     {
         if (numberFormat is null) return 0;
         return NumberFormats.GetPredefinedNumberFormatId(numberFormat)
-            ?? customNumberFormats.GetValueOrDefault(numberFormat);
-    }
-
-    private static async ValueTask<IReadOnlyDictionary<string, int>> WriteNumberFormatsAsync(
-        Stream stream,
-        SpreadsheetBuffer buffer,
-        Dictionary<ImmutableStyle, int> styles,
-        CancellationToken token)
-    {
-        if (!TryCreateCustomNumberFormatDictionary(styles, out var dict))
-        {
-            await buffer.WriteAsciiStringAsync("<numFmts count=\"0\"/>", stream, token).ConfigureAwait(false);
-            return ImmutableDictionary<string, int>.Empty;
-        }
-
-        var sb = new StringBuilder();
-        sb.Append("<numFmts count=\"").Append(dict.Count).Append("\">");
-        await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
-
-        foreach (var numberFormat in dict)
-        {
-            sb.Clear();
-            AppendNumberFormat(sb, numberFormat.Key, numberFormat.Value);
-            await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
-        }
-
-        await buffer.WriteAsciiStringAsync("</numFmts>", stream, token).ConfigureAwait(false);
-        return dict;
-    }
-
-    private static bool TryCreateCustomNumberFormatDictionary(
-        Dictionary<ImmutableStyle, int> styles,
-        [NotNullWhen(true)] out Dictionary<string, int>? dictionary)
-    {
-        dictionary = null;
-        var numberFormatId = 165; // Custom formats start sequentially from this ID
-
-        foreach (var style in styles.Keys)
-        {
-            var numberFormat = style.NumberFormat;
-            if (numberFormat is null) continue;
-            if (NumberFormats.GetPredefinedNumberFormatId(numberFormat) is not null) continue;
-
-            dictionary ??= new Dictionary<string, int>(StringComparer.Ordinal);
-            if (dictionary.TryAdd(numberFormat, numberFormatId))
-                ++numberFormatId;
-        }
-
-        return dictionary is not null;
-    }
-
-    private static async ValueTask<Dictionary<ImmutableFont, int>> WriteFontsAsync(
-        Stream stream,
-        SpreadsheetBuffer buffer,
-        Dictionary<ImmutableStyle, int> styles,
-        CancellationToken token)
-    {
-        var defaultFont = new ImmutableFont();
-        const int defaultCount = 1;
-
-        var uniqueFonts = new Dictionary<ImmutableFont, int> { { defaultFont, 0 } };
-        foreach (var style in styles.Keys)
-        {
-            var font = style.Font;
-            uniqueFonts[font] = 0;
-        }
-
-        var sb = new StringBuilder();
-        var totalCount = uniqueFonts.Count + defaultCount - 1;
-        sb.Append("<fonts count=\"").Append(totalCount).Append("\">");
-
-        // The default font must be the first one (index 0)
-        sb.Append("<font><sz val=\"11\"/><name val=\"Calibri\"/></font>");
-        await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
-
-        var fontIndex = defaultCount;
-#if NET5_0_OR_GREATER // https://github.com/dotnet/runtime/issues/34606
-        foreach (var font in uniqueFonts.Keys)
-#else
-        foreach (var font in uniqueFonts.Keys.ToArray())
-#endif
-        {
-            if (font.Equals(defaultFont)) continue;
-
-            sb.Clear();
-            AppendFont(sb, font);
-            await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
-
-            uniqueFonts[font] = fontIndex;
-            ++fontIndex;
-        }
-
-        await buffer.WriteAsciiStringAsync("</fonts>", stream, token).ConfigureAwait(false);
-        return uniqueFonts;
+            ?? customNumberFormats?.GetValueOrDefault(numberFormat)
+            ?? 0;
     }
 
     private static async ValueTask<Dictionary<ImmutableFill, int>> WriteFillsAsync(
@@ -334,32 +295,6 @@ internal struct StylesXml
 
         await buffer.WriteAsciiStringAsync("</borders>", stream, token).ConfigureAwait(false);
         return uniqueBorders;
-    }
-
-    private static void AppendNumberFormat(StringBuilder sb, string numberFormat, int id)
-    {
-        sb.Append("<numFmt numFmtId=\"")
-            .Append(id)
-            .Append("\" formatCode=\"")
-            .Append(WebUtility.HtmlEncode(numberFormat))
-            .Append("\"/>");
-    }
-
-    private static void AppendFont(StringBuilder sb, ImmutableFont font)
-    {
-        sb.Append("<font>");
-
-        if (font.Bold) sb.Append("<b/>");
-        if (font.Italic) sb.Append("<i/>");
-        if (font.Strikethrough) sb.Append("<strike/>");
-
-        sb.Append("<sz val=\"").AppendDouble(font.Size).Append("\"/>");
-
-        if (font.Color is not null)
-            sb.Append("<color rgb=\"").Append(HexString(font.Color.Value)).Append("\"/>");
-
-        var fontName = font.Name ?? "Calibri";
-        sb.Append("<name val=\"").Append(fontName).Append("\"/></font>");
     }
 
     private static void AppendFill(StringBuilder sb, ImmutableFill fill)
@@ -476,6 +411,8 @@ internal struct StylesXml
     private enum Element
     {
         Header,
+        NumberFormats,
+        Fonts,
         Done
     }
 }
