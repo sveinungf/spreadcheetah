@@ -52,9 +52,6 @@ internal static class SpanHelper
         return true;
     }
 
-    private static bool TryWriteColorChannel(int value, Span<byte> span, ref int written)
-        => TryWrite(value, span, ref written, new StandardFormat('X', 2));
-
 #if NETSTANDARD2_0
     public static bool TryWrite(string value, Span<byte> bytes, ref int bytesWritten)
         => TryWrite(value.AsSpan(), bytes, ref bytesWritten);
@@ -87,4 +84,7 @@ internal static class SpanHelper
         valueIndex += length;
         return lastIteration;
     }
+
+    private static bool TryWriteColorChannel(int value, Span<byte> span, ref int written)
+        => TryWrite(value, span, ref written, new StandardFormat('X', 2));
 }

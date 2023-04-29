@@ -2,7 +2,6 @@ using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using System.Collections.Immutable;
-using System.Drawing;
 using System.IO.Compression;
 using System.Text;
 
@@ -48,7 +47,7 @@ internal struct StylesXml
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
             } while (!done);
 
-            await WriteAsync(stream, buffer, styles, writer.CustomNumberFormats, writer.Fills, writer.Fonts, token).ConfigureAwait(false);
+            await WriteAsync(stream, buffer, styles, writer.CustomNumberFormats, writer.Borders, writer.Fills, writer.Fonts, token).ConfigureAwait(false);
         }
     }
 
@@ -57,20 +56,24 @@ internal struct StylesXml
         """<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">"""u8;
 
     private readonly StyleNumberFormatsXml _numberFormatsXml;
+    private readonly StyleBordersXml _bordersXml;
     private readonly StyleFillsXml _fillsXml;
     private readonly StyleFontsXml _fontsXml;
     private Element _next;
 
     public Dictionary<string, int>? CustomNumberFormats { get; }
+    public Dictionary<ImmutableBorder, int> Borders { get; }
     public Dictionary<ImmutableFill, int> Fills { get; }
     public Dictionary<ImmutableFont, int> Fonts { get; }
 
     private StylesXml(Dictionary<ImmutableStyle, int> styles)
     {
         CustomNumberFormats = CreateCustomNumberFormatDictionary(styles);
+        Borders = CreateBorderDictionary(styles);
         Fills = CreateFillDictionary(styles);
         Fonts = CreateFontDictionary(styles);
         _numberFormatsXml = new StyleNumberFormatsXml(CustomNumberFormats?.ToList());
+        _bordersXml = new StyleBordersXml(Borders.Keys.ToList());
         _fillsXml = new StyleFillsXml(Fills.Keys.ToList());
         _fontsXml = new StyleFontsXml(Fonts.Keys.ToList());
     }
@@ -92,6 +95,27 @@ internal struct StylesXml
         }
 
         return dictionary;
+    }
+
+    private static Dictionary<ImmutableBorder, int> CreateBorderDictionary(Dictionary<ImmutableStyle, int> styles)
+    {
+        var defaultBorder = new ImmutableBorder();
+        const int defaultCount = 1;
+
+        var uniqueBorders = new Dictionary<ImmutableBorder, int> { { defaultBorder, 0 } };
+        var borderIndex = defaultCount;
+
+        foreach (var style in styles.Keys)
+        {
+            var border = style.Border;
+            if (!uniqueBorders.ContainsKey(border)) // TODO: Use CollectionsMarshal
+            {
+                uniqueBorders[border] = borderIndex;
+                ++borderIndex;
+            }
+        }
+
+        return uniqueBorders;
     }
 
     private static Dictionary<ImmutableFill, int> CreateFillDictionary(Dictionary<ImmutableStyle, int> styles)
@@ -144,6 +168,7 @@ internal struct StylesXml
         if (_next == Element.NumberFormats && !Advance(_numberFormatsXml.TryWrite(bytes, ref bytesWritten))) return false;
         if (_next == Element.Fonts && !Advance(_fontsXml.TryWrite(bytes, ref bytesWritten))) return false;
         if (_next == Element.Fills && !Advance(_fillsXml.TryWrite(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Borders && !Advance(_bordersXml.TryWrite(bytes, ref bytesWritten))) return false;
 
         return true;
     }
@@ -161,12 +186,11 @@ internal struct StylesXml
         SpreadsheetBuffer buffer,
         Dictionary<ImmutableStyle, int> styles,
         Dictionary<string, int>? customNumberFormatLookup,
+        Dictionary<ImmutableBorder, int> borderLookup,
         Dictionary<ImmutableFill, int> fillLookup,
         Dictionary<ImmutableFont, int> fontLookup,
         CancellationToken token)
     {
-        var borderLookup = await WriteBordersAsync(stream, buffer, styles, token).ConfigureAwait(false);
-
         await buffer.WriteAsciiStringAsync(XmlPart1, stream, token).ConfigureAwait(false);
 
         // Must at least have the built-in default style
@@ -232,122 +256,6 @@ internal struct StylesXml
             ?? 0;
     }
 
-    private static async ValueTask<Dictionary<ImmutableBorder, int>> WriteBordersAsync(
-        Stream stream,
-        SpreadsheetBuffer buffer,
-        Dictionary<ImmutableStyle, int> styles,
-        CancellationToken token)
-    {
-        var defaultBorder = new ImmutableBorder();
-        const int defaultCount = 1;
-
-        var uniqueBorders = new Dictionary<ImmutableBorder, int> { { defaultBorder, 0 } };
-        foreach (var style in styles.Keys)
-        {
-            var border = style.Border;
-            uniqueBorders[border] = 0;
-        }
-
-        var sb = new StringBuilder();
-        var totalCount = uniqueBorders.Count + defaultCount - 1;
-        sb.Append("<borders count=\"").Append(totalCount).Append("\">");
-
-        // The default border must be the first one (index 0)
-        sb.Append("<border><left/><right/><top/><bottom/><diagonal/></border>");
-        await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
-
-        var borderIndex = defaultCount;
-#if NET5_0_OR_GREATER // https://github.com/dotnet/runtime/issues/34606
-        foreach (var border in uniqueBorders.Keys)
-#else
-        foreach (var border in uniqueBorders.Keys.ToArray())
-#endif
-        {
-            if (border.Equals(defaultBorder)) continue;
-
-            sb.Clear();
-            AppendBorder(sb, border);
-            await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
-
-            uniqueBorders[border] = borderIndex;
-            ++borderIndex;
-        }
-
-        await buffer.WriteAsciiStringAsync("</borders>", stream, token).ConfigureAwait(false);
-        return uniqueBorders;
-    }
-
-    private static void AppendBorder(StringBuilder sb, in ImmutableBorder border)
-    {
-        sb.Append("<border");
-
-        if (border.Diagonal.Type.HasFlag(DiagonalBorderType.DiagonalUp))
-            sb.Append(" diagonalUp=\"true\"");
-        if (border.Diagonal.Type.HasFlag(DiagonalBorderType.DiagonalDown))
-            sb.Append(" diagonalDown=\"true\"");
-
-        sb.Append('>');
-        AppendEdgeBorder(sb, "left", border.Left);
-        AppendEdgeBorder(sb, "right", border.Right);
-        AppendEdgeBorder(sb, "top", border.Top);
-        AppendEdgeBorder(sb, "bottom", border.Bottom);
-        AppendBorderPart(sb, "diagonal", border.Diagonal.BorderStyle, border.Diagonal.Color);
-
-        sb.Append("</border>");
-    }
-
-    private static void AppendEdgeBorder(StringBuilder sb, string borderName, ImmutableEdgeBorder border)
-        => AppendBorderPart(sb, borderName, border.BorderStyle, border.Color);
-
-    private static void AppendBorderPart(StringBuilder sb, string borderName, BorderStyle style, Color? color)
-    {
-        sb.Append('<').Append(borderName);
-
-        if (style == BorderStyle.None)
-        {
-            sb.Append("/>");
-            return;
-        }
-
-        sb.Append(" style=\"");
-        AppendStyleAttributeValue(sb, style);
-
-        if (color is null)
-        {
-            sb.Append("\"/>");
-            return;
-        }
-
-        sb.Append("\"><color rgb=\"")
-            .Append(HexString(color.Value))
-            .Append("\"/></")
-            .Append(borderName)
-            .Append('>');
-    }
-
-    private static void AppendStyleAttributeValue(StringBuilder sb, BorderStyle style)
-    {
-        var value = style switch
-        {
-            BorderStyle.DashDot => "dashDot",
-            BorderStyle.DashDotDot => "dashDotDot",
-            BorderStyle.Dashed => "dashed",
-            BorderStyle.Dotted => "dotted",
-            BorderStyle.DoubleLine => "double",
-            BorderStyle.Hair => "hair",
-            BorderStyle.Medium => "medium",
-            BorderStyle.MediumDashDot => "mediumDashDot",
-            BorderStyle.MediumDashDotDot => "mediumDashDotDot",
-            BorderStyle.MediumDashed => "mediumDashed",
-            BorderStyle.SlantDashDot => "slantDashDot",
-            BorderStyle.Thick => "thick",
-            BorderStyle.Thin => "thin",
-            _ => ""
-        };
-
-        sb.Append(value);
-    }
-
     private static StringBuilder AppendAlignment(StringBuilder sb, ImmutableAlignment alignment)
     {
         sb.Append("<alignment");
@@ -378,14 +286,13 @@ internal struct StylesXml
         _ => sb
     };
 
-    private static string HexString(Color c) => $"{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
-
     private enum Element
     {
         Header,
         NumberFormats,
         Fonts,
         Fills,
+        Borders,
         Done
     }
 }
