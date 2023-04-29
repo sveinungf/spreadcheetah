@@ -45,7 +45,9 @@ internal struct StyleFontsXml
         if (!SpanHelper.TryWrite(totalCount, span, ref written)) return false;
 
         // The default font must be the first one (index 0)
-        if (!"\"><font><sz val=\"11\"/><name val=\"Calibri\"/></font>"u8.TryCopyTo(span, ref written)) return false;
+        ReadOnlySpan<byte> defaultFont = "\">"u8 +
+            """<font><sz val="11"/><name val="Calibri"/></font>"""u8;
+        if (!defaultFont.TryCopyTo(span, ref written)) return false;
 
         bytesWritten += written;
         return true;
@@ -75,10 +77,7 @@ internal struct StyleFontsXml
             if (font.Color is { } color)
             {
                 if (!"<color rgb=\""u8.TryCopyTo(span, ref written)) return false;
-                if (!TryWriteColorChannel(color.A, span, ref written)) return false;
-                if (!TryWriteColorChannel(color.R, span, ref written)) return false;
-                if (!TryWriteColorChannel(color.G, span, ref written)) return false;
-                if (!TryWriteColorChannel(color.B, span, ref written)) return false;
+                if (!SpanHelper.TryWrite(color, span, ref written)) return false;
                 if (!"\"/>"u8.TryCopyTo(span, ref written)) return false;
             }
 
@@ -92,8 +91,6 @@ internal struct StyleFontsXml
 
         return true;
     }
-
-    private static bool TryWriteColorChannel(int value, Span<byte> span, ref int written) => SpanHelper.TryWrite(value, span, ref written, new StandardFormat('X', 2));
 
     private enum Element
     {

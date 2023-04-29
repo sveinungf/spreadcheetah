@@ -48,7 +48,7 @@ internal struct StylesXml
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
             } while (!done);
 
-            await WriteAsync(stream, buffer, styles, writer.CustomNumberFormats, writer.Fonts, token).ConfigureAwait(false);
+            await WriteAsync(stream, buffer, styles, writer.CustomNumberFormats, writer.Fills, writer.Fonts, token).ConfigureAwait(false);
         }
     }
 
@@ -57,17 +57,21 @@ internal struct StylesXml
         """<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">"""u8;
 
     private readonly StyleNumberFormatsXml _numberFormatsXml;
+    private readonly StyleFillsXml _fillsXml;
     private readonly StyleFontsXml _fontsXml;
     private Element _next;
 
     public Dictionary<string, int>? CustomNumberFormats { get; }
+    public Dictionary<ImmutableFill, int> Fills { get; }
     public Dictionary<ImmutableFont, int> Fonts { get; }
 
     private StylesXml(Dictionary<ImmutableStyle, int> styles)
     {
         CustomNumberFormats = CreateCustomNumberFormatDictionary(styles);
+        Fills = CreateFillDictionary(styles);
         Fonts = CreateFontDictionary(styles);
         _numberFormatsXml = new StyleNumberFormatsXml(CustomNumberFormats?.ToList());
+        _fillsXml = new StyleFillsXml(Fills.Keys.ToList());
         _fontsXml = new StyleFontsXml(Fonts.Keys.ToList());
     }
 
@@ -88,6 +92,27 @@ internal struct StylesXml
         }
 
         return dictionary;
+    }
+
+    private static Dictionary<ImmutableFill, int> CreateFillDictionary(Dictionary<ImmutableStyle, int> styles)
+    {
+        var defaultFill = new ImmutableFill();
+        const int defaultCount = 2;
+
+        var uniqueFills = new Dictionary<ImmutableFill, int> { { defaultFill, 0 } };
+        var fillIndex = defaultCount;
+
+        foreach (var style in styles.Keys)
+        {
+            var fill = style.Fill;
+            if (!uniqueFills.ContainsKey(fill)) // TODO: Use CollectionsMarshal
+            {
+                uniqueFills[fill] = fillIndex;
+                ++fillIndex;
+            }
+        }
+
+        return uniqueFills;
     }
 
     private static Dictionary<ImmutableFont, int> CreateFontDictionary(Dictionary<ImmutableStyle, int> styles)
@@ -118,6 +143,7 @@ internal struct StylesXml
         if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
         if (_next == Element.NumberFormats && !Advance(_numberFormatsXml.TryWrite(bytes, ref bytesWritten))) return false;
         if (_next == Element.Fonts && !Advance(_fontsXml.TryWrite(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Fills && !Advance(_fillsXml.TryWrite(bytes, ref bytesWritten))) return false;
 
         return true;
     }
@@ -135,10 +161,10 @@ internal struct StylesXml
         SpreadsheetBuffer buffer,
         Dictionary<ImmutableStyle, int> styles,
         Dictionary<string, int>? customNumberFormatLookup,
+        Dictionary<ImmutableFill, int> fillLookup,
         Dictionary<ImmutableFont, int> fontLookup,
         CancellationToken token)
     {
-        var fillLookup = await WriteFillsAsync(stream, buffer, styles, token).ConfigureAwait(false);
         var borderLookup = await WriteBordersAsync(stream, buffer, styles, token).ConfigureAwait(false);
 
         await buffer.WriteAsciiStringAsync(XmlPart1, stream, token).ConfigureAwait(false);
@@ -206,52 +232,6 @@ internal struct StylesXml
             ?? 0;
     }
 
-    private static async ValueTask<Dictionary<ImmutableFill, int>> WriteFillsAsync(
-        Stream stream,
-        SpreadsheetBuffer buffer,
-        Dictionary<ImmutableStyle, int> styles,
-        CancellationToken token)
-    {
-        var defaultFill = new ImmutableFill();
-        const int defaultCount = 2;
-
-        var uniqueFills = new Dictionary<ImmutableFill, int> { { defaultFill, 0 } };
-        foreach (var style in styles.Keys)
-        {
-            var fill = style.Fill;
-            uniqueFills[fill] = 0;
-        }
-
-        var sb = new StringBuilder();
-        var totalCount = uniqueFills.Count + defaultCount - 1;
-        sb.Append("<fills count=\"").Append(totalCount).Append("\">");
-
-        // The 2 default fills must come first
-        sb.Append("<fill><patternFill patternType=\"none\"/></fill>");
-        sb.Append("<fill><patternFill patternType=\"gray125\"/></fill>");
-        await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
-
-        var fillIndex = defaultCount;
-#if NET5_0_OR_GREATER // https://github.com/dotnet/runtime/issues/34606
-        foreach (var fill in uniqueFills.Keys)
-#else
-        foreach (var fill in uniqueFills.Keys.ToArray())
-#endif
-        {
-            if (fill.Equals(defaultFill)) continue;
-
-            sb.Clear();
-            AppendFill(sb, fill);
-            await buffer.WriteAsciiStringAsync(sb.ToString(), stream, token).ConfigureAwait(false);
-
-            uniqueFills[fill] = fillIndex;
-            ++fillIndex;
-        }
-
-        await buffer.WriteAsciiStringAsync("</fills>", stream, token).ConfigureAwait(false);
-        return uniqueFills;
-    }
-
     private static async ValueTask<Dictionary<ImmutableBorder, int>> WriteBordersAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
@@ -295,14 +275,6 @@ internal struct StylesXml
 
         await buffer.WriteAsciiStringAsync("</borders>", stream, token).ConfigureAwait(false);
         return uniqueBorders;
-    }
-
-    private static void AppendFill(StringBuilder sb, ImmutableFill fill)
-    {
-        if (fill.Color is null) return;
-        sb.Append("<fill><patternFill patternType=\"solid\"><fgColor rgb=\"");
-        sb.Append(HexString(fill.Color.Value));
-        sb.Append("\"/></patternFill></fill>");
     }
 
     private static void AppendBorder(StringBuilder sb, in ImmutableBorder border)
@@ -413,6 +385,7 @@ internal struct StylesXml
         Header,
         NumberFormats,
         Fonts,
+        Fills,
         Done
     }
 }
