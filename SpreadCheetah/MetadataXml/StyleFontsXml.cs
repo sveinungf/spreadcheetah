@@ -1,7 +1,6 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
-using System.Buffers;
 
 namespace SpreadCheetah.MetadataXml;
 
@@ -83,7 +82,7 @@ internal struct StyleFontsXml
 
             var fontName = font.Name ?? "Calibri";
             if (!"<name val=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(fontName, span, ref written)) return false; // TODO: Handle very long font names, or limit font name length
+            if (!SpanHelper.TryWrite(fontName, span, ref written)) return false;
             if (!"\"/></font>"u8.TryCopyTo(span, ref written)) return false;
 
             bytesWritten += written;
