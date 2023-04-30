@@ -308,6 +308,9 @@ public class SpreadsheetStyledRowTests
         "Arial",
         "SimSun-ExtB",
         "Times New Roman",
+        "Name<With>Special&Chars",
+        "NameThatIsExactly31CharsLong...",
+        "<&><&><&><&><&><&><&><&><&><&>!",
         null);
 
     [Theory]
@@ -338,6 +341,17 @@ public class SpreadsheetStyledRowTests
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(cellValue, actualCell.Value);
         Assert.Equal(fontName ?? "Calibri", actualCell.Style.Font.FontName);
+    }
+
+    [Fact]
+    public void Spreadsheet_AddRow_FontNameTooLong()
+    {
+        // Arrange
+        const string fontName = "FontNameThatIsExactly32CharsLong";
+        var style = new Style();
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => style.Font.Name = fontName);
     }
 
     public static IEnumerable<object?[]> PredefinedNumberFormats() => TestData.CombineWithStyledCellTypes(
