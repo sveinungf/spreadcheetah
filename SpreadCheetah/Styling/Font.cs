@@ -1,3 +1,4 @@
+using SpreadCheetah.Helpers;
 using System.Drawing;
 using System.Net;
 
@@ -16,7 +17,7 @@ public sealed record Font
     public string? Name
     {
         get => _name;
-        set => _name = WebUtility.HtmlEncode(value);
+        set => _name = WebUtility.HtmlEncode(value.WithEnsuredMaxLength(31));
     }
 
     /// <summary>Bold font weight. Defaults to <c>false</c>.</summary>
