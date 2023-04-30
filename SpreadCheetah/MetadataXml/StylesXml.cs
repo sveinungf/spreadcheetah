@@ -8,14 +8,6 @@ namespace SpreadCheetah.MetadataXml;
 
 internal struct StylesXml
 {
-    private const string XmlPart2 =
-        "</cellXfs>" +
-        "<cellStyles count=\"1\">" +
-        "<cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\"/>" +
-        "</cellStyles>" +
-        "<dxfs count=\"0\"/>" +
-        "</styleSheet>";
-
     public static async ValueTask WriteAsync(
         ZipArchive archive,
         CompressionLevel compressionLevel,
@@ -39,14 +31,20 @@ internal struct StylesXml
                 buffer.Advance(bytesWritten);
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
             } while (!done);
-
-            await WriteAsync(stream, buffer, token).ConfigureAwait(false);
         }
     }
 
     private static ReadOnlySpan<byte> Header =>
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">"""u8;
+
+    private static ReadOnlySpan<byte> Footer =>
+        """</cellXfs>"""u8 +
+        """<cellStyles count="1">"""u8 +
+        """<cellStyle name="Normal" xfId="0" builtinId="0"/>"""u8 +
+        """</cellStyles>"""u8 +
+        """<dxfs count="0"/>"""u8 +
+        """</styleSheet>"""u8;
 
     private readonly List<ImmutableStyle> _styles;
     private readonly Dictionary<string, int>? _customNumberFormats;
@@ -166,6 +164,7 @@ internal struct StylesXml
         if (_next == Element.Borders && !Advance(_bordersXml.TryWrite(bytes, ref bytesWritten))) return false;
         if (_next == Element.CellXfsStart && !Advance(TryWriteCellXfsStart(bytes, ref bytesWritten))) return false;
         if (_next == Element.Styles && !Advance(TryWriteStyles(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
 
         return true;
     }
@@ -251,15 +250,6 @@ internal struct StylesXml
         return true;
     }
 
-    private static async ValueTask WriteAsync(
-        Stream stream,
-        SpreadsheetBuffer buffer,
-        CancellationToken token)
-    {
-        await buffer.WriteAsciiStringAsync(XmlPart2, stream, token).ConfigureAwait(false);
-        await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-    }
-
     private static int GetNumberFormatId(string? numberFormat, IReadOnlyDictionary<string, int>? customNumberFormats)
     {
         if (numberFormat is null) return 0;
@@ -315,6 +305,7 @@ internal struct StylesXml
         Borders,
         CellXfsStart,
         Styles,
+        Footer,
         Done
     }
 }
