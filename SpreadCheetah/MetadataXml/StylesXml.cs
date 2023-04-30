@@ -9,12 +9,6 @@ namespace SpreadCheetah.MetadataXml;
 
 internal struct StylesXml
 {
-    private const string XmlPart1 =
-        "<cellStyleXfs count=\"1\">" +
-        "<xf numFmtId=\"0\" fontId=\"0\"/>" +
-        "</cellStyleXfs>" +
-        "<cellXfs count=\"";
-
     private const string XmlPart2 =
         "</cellXfs>" +
         "<cellStyles count=\"1\">" +
@@ -55,6 +49,7 @@ internal struct StylesXml
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">"""u8;
 
+    private readonly Dictionary<ImmutableStyle, int> _styles;
     private readonly StyleNumberFormatsXml _numberFormatsXml;
     private readonly StyleBordersXml _bordersXml;
     private readonly StyleFillsXml _fillsXml;
@@ -76,6 +71,7 @@ internal struct StylesXml
         _bordersXml = new StyleBordersXml(Borders.Keys.ToList());
         _fillsXml = new StyleFillsXml(Fills.Keys.ToList());
         _fontsXml = new StyleFontsXml(Fonts.Keys.ToList());
+        _styles = styles;
     }
 
     private static Dictionary<string, int>? CreateCustomNumberFormatDictionary(Dictionary<ImmutableStyle, int> styles)
@@ -169,6 +165,7 @@ internal struct StylesXml
         if (_next == Element.Fonts && !Advance(_fontsXml.TryWrite(bytes, ref bytesWritten))) return false;
         if (_next == Element.Fills && !Advance(_fillsXml.TryWrite(bytes, ref bytesWritten))) return false;
         if (_next == Element.Borders && !Advance(_bordersXml.TryWrite(bytes, ref bytesWritten))) return false;
+        if (_next == Element.CellXfsStart && !Advance(TryWriteCellXfsStart(bytes, ref bytesWritten))) return false;
 
         return true;
     }
@@ -181,6 +178,23 @@ internal struct StylesXml
         return success;
     }
 
+    private readonly bool TryWriteCellXfsStart(Span<byte> bytes, ref int bytesWritten)
+    {
+        var span = bytes.Slice(bytesWritten);
+        var written = 0;
+
+        ReadOnlySpan<byte> xml =
+            """<cellStyleXfs count="1"><xf numFmtId="0" fontId="0"/></cellStyleXfs>"""u8 +
+            "<cellXfs count=\""u8;
+
+        if (!xml.TryCopyTo(span, ref written)) return false;
+        if (!SpanHelper.TryWrite(_styles.Count, span, ref written)) return false;
+        if (!"\">"u8.TryCopyTo(span, ref written)) return false;
+
+        bytesWritten += written;
+        return true;
+    }
+
     private static async ValueTask WriteAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
@@ -191,15 +205,7 @@ internal struct StylesXml
         Dictionary<ImmutableFont, int> fontLookup,
         CancellationToken token)
     {
-        await buffer.WriteAsciiStringAsync(XmlPart1, stream, token).ConfigureAwait(false);
-
-        // Must at least have the built-in default style
-        var styleCount = styles.Count;
-        if (styleCount.GetNumberOfDigits() > buffer.FreeCapacity)
-            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
         var sb = new StringBuilder();
-        sb.Append(styleCount).Append("\">");
 
         // Assuming here that the built-in default style is part of 'styles'
         foreach (var style in styles.Keys)
@@ -293,6 +299,7 @@ internal struct StylesXml
         Fonts,
         Fills,
         Borders,
+        CellXfsStart,
         Done
     }
 }
