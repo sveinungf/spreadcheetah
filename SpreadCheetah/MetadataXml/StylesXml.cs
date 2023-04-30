@@ -100,12 +100,8 @@ internal struct StylesXml
 
         foreach (var style in styles)
         {
-            var border = style.Border;
-            if (!uniqueBorders.ContainsKey(border)) // TODO: Use CollectionsMarshal
-            {
-                uniqueBorders[border] = borderIndex;
+            if (uniqueBorders.TryAdd(style.Border, borderIndex))
                 ++borderIndex;
-            }
         }
 
         return uniqueBorders;
@@ -121,12 +117,8 @@ internal struct StylesXml
 
         foreach (var style in styles)
         {
-            var fill = style.Fill;
-            if (!uniqueFills.ContainsKey(fill)) // TODO: Use CollectionsMarshal
-            {
-                uniqueFills[fill] = fillIndex;
+            if (uniqueFills.TryAdd(style.Fill, fillIndex))
                 ++fillIndex;
-            }
         }
 
         return uniqueFills;
@@ -142,12 +134,8 @@ internal struct StylesXml
 
         foreach (var style in styles)
         {
-            var font = style.Font;
-            if (!uniqueFonts.ContainsKey(font)) // TODO: Use CollectionsMarshal
-            {
-                uniqueFonts[font] = fontIndex;
+            if (uniqueFonts.TryAdd(style.Font, fontIndex))
                 ++fontIndex;
-            }
         }
 
         return uniqueFonts;
