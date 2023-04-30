@@ -40,7 +40,7 @@ internal struct StylesXml
                 await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
             } while (!done);
 
-            await WriteAsync(stream, buffer, styles, writer.CustomNumberFormats, writer.Borders, writer.Fills, writer.Fonts, token).ConfigureAwait(false);
+            await WriteAsync(stream, buffer, token).ConfigureAwait(false);
         }
     }
 
@@ -49,6 +49,10 @@ internal struct StylesXml
         """<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">"""u8;
 
     private readonly List<ImmutableStyle> _styles;
+    private readonly Dictionary<string, int>? _customNumberFormats;
+    private readonly Dictionary<ImmutableBorder, int> _borders;
+    private readonly Dictionary<ImmutableFill, int> _fills;
+    private readonly Dictionary<ImmutableFont, int> _fonts;
     private readonly StyleNumberFormatsXml _numberFormatsXml;
     private readonly StyleBordersXml _bordersXml;
     private readonly StyleFillsXml _fillsXml;
@@ -56,22 +60,16 @@ internal struct StylesXml
     private Element _next;
     private int _nextIndex;
 
-    // TODO: Make these fields
-    public Dictionary<string, int>? CustomNumberFormats { get; }
-    public Dictionary<ImmutableBorder, int> Borders { get; }
-    public Dictionary<ImmutableFill, int> Fills { get; }
-    public Dictionary<ImmutableFont, int> Fonts { get; }
-
     private StylesXml(List<ImmutableStyle> styles)
     {
-        CustomNumberFormats = CreateCustomNumberFormatDictionary(styles);
-        Borders = CreateBorderDictionary(styles);
-        Fills = CreateFillDictionary(styles);
-        Fonts = CreateFontDictionary(styles);
-        _numberFormatsXml = new StyleNumberFormatsXml(CustomNumberFormats?.ToList());
-        _bordersXml = new StyleBordersXml(Borders.Keys.ToList());
-        _fillsXml = new StyleFillsXml(Fills.Keys.ToList());
-        _fontsXml = new StyleFontsXml(Fonts.Keys.ToList());
+        _customNumberFormats = CreateCustomNumberFormatDictionary(styles);
+        _borders = CreateBorderDictionary(styles);
+        _fills = CreateFillDictionary(styles);
+        _fonts = CreateFontDictionary(styles);
+        _numberFormatsXml = new StyleNumberFormatsXml(_customNumberFormats?.ToList());
+        _bordersXml = new StyleBordersXml(_borders.Keys.ToList());
+        _fillsXml = new StyleFillsXml(_fills.Keys.ToList());
+        _fontsXml = new StyleFontsXml(_fonts.Keys.ToList());
         _styles = styles;
     }
 
@@ -207,26 +205,26 @@ internal struct StylesXml
             var span = bytes.Slice(bytesWritten);
             var written = 0;
 
-            var numberFormatId = GetNumberFormatId(style.NumberFormat, CustomNumberFormats);
+            var numberFormatId = GetNumberFormatId(style.NumberFormat, _customNumberFormats);
 
             if (!"<xf numFmtId=\""u8.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(numberFormatId, span, ref written)) return false;
             if (!"\""u8.TryCopyTo(span, ref written)) return false;
             if (numberFormatId > 0 && !" applyNumberFormat=\"1\""u8.TryCopyTo(span, ref written)) return false;
 
-            var fontIndex = Fonts.GetValueOrDefault(style.Font);
+            var fontIndex = _fonts.GetValueOrDefault(style.Font);
             if (!" fontId=\""u8.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(fontIndex, span, ref written)) return false;
             if (!"\""u8.TryCopyTo(span, ref written)) return false;
             if (fontIndex > 0 && !" applyFont=\"1\""u8.TryCopyTo(span, ref written)) return false;
 
-            var fillIndex = Fills.GetValueOrDefault(style.Fill);
+            var fillIndex = _fills.GetValueOrDefault(style.Fill);
             if (!" fillId=\""u8.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(fillIndex, span, ref written)) return false;
             if (!"\""u8.TryCopyTo(span, ref written)) return false;
             if (fillIndex > 0 && !" applyFill=\"1\""u8.TryCopyTo(span, ref written)) return false;
 
-            if (Borders.TryGetValue(style.Border, out var borderIndex) && borderIndex > 0)
+            if (_borders.TryGetValue(style.Border, out var borderIndex) && borderIndex > 0)
             {
                 if (!" borderId=\""u8.TryCopyTo(span, ref written)) return false;
                 if (!SpanHelper.TryWrite(borderIndex, span, ref written)) return false;
@@ -256,11 +254,6 @@ internal struct StylesXml
     private static async ValueTask WriteAsync(
         Stream stream,
         SpreadsheetBuffer buffer,
-        Dictionary<ImmutableStyle, int> styles,
-        Dictionary<string, int>? customNumberFormatLookup,
-        Dictionary<ImmutableBorder, int> borderLookup,
-        Dictionary<ImmutableFill, int> fillLookup,
-        Dictionary<ImmutableFont, int> fontLookup,
         CancellationToken token)
     {
         await buffer.WriteAsciiStringAsync(XmlPart2, stream, token).ConfigureAwait(false);
