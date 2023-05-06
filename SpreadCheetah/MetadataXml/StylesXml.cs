@@ -1,7 +1,6 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
-using System.Collections.Immutable;
 using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
