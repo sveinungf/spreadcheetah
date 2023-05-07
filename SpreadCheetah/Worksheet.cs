@@ -10,10 +10,6 @@ namespace SpreadCheetah;
 
 internal sealed class Worksheet : IDisposable, IAsyncDisposable
 {
-    private const string SheetHeader =
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-        "<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">";
-
     private const string SheetDataBegin = "<sheetData>";
 
     private readonly Stream _stream;
@@ -40,23 +36,22 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public async ValueTask WriteHeadAsync(WorksheetOptions? options, CancellationToken token)
     {
-        _buffer.Advance(Utf8Helper.GetBytes(SheetHeader, _buffer.GetSpan()));
-        if (options is null)
+        var writer = new WorksheetStartXml(options);
+        bool done;
+        var buffer = _buffer;
+        var stream = _stream;
+
+        do
         {
-            _buffer.Advance(Utf8Helper.GetBytes(SheetDataBegin, _buffer.GetSpan()));
+            done = writer.TryWrite(buffer.GetSpan(), out var bytesWritten);
+            buffer.Advance(bytesWritten);
+            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        } while (!done);
+
+        if (options is null)
             return;
-        }
 
         var sb = new StringBuilder();
-
-        if (options.FrozenColumns is not null || options.FrozenRows is not null)
-        {
-            await _buffer.FlushToStreamAsync(_stream, token).ConfigureAwait(false);
-            WriteSheetViewsXml(sb, options);
-            await _buffer.WriteAsciiStringAsync(sb.ToString(), _stream, token).ConfigureAwait(false);
-            sb.Clear();
-        }
-
         await WriteColsXmlAsync(sb, options, token).ConfigureAwait(false);
 
         _buffer.Advance(Utf8Helper.GetBytes(SheetDataBegin, _buffer.GetSpan()));
@@ -65,40 +60,6 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         {
             _autoFilterRange = options.AutoFilter.CellRange.Reference;
         }
-    }
-
-    private static void WriteSheetViewsXml(StringBuilder sb, WorksheetOptions options)
-    {
-        sb.Append("<sheetViews><sheetView workbookViewId=\"0\"><pane ");
-
-        if (options.FrozenColumns is not null)
-            sb.Append("xSplit=\"").Append(options.FrozenColumns.Value).Append("\" ");
-
-        if (options.FrozenRows is not null)
-            sb.Append("ySplit=\"").Append(options.FrozenRows.Value).Append("\" ");
-
-        sb.Append("topLeftCell=\"");
-        sb.Append(SpreadsheetUtility.GetColumnName((options.FrozenColumns ?? 0) + 1));
-        sb.Append((options.FrozenRows ?? 0) + 1);
-        sb.Append("\" activePane=\"");
-
-        if (options.FrozenColumns is not null && options.FrozenRows is not null)
-            sb.Append("bottomRight");
-        else if (options.FrozenColumns is not null)
-            sb.Append("topRight");
-        else
-            sb.Append("bottomLeft");
-
-        sb.Append("\" state=\"frozen\"/>");
-
-        if (options.FrozenColumns is not null && options.FrozenRows is not null)
-            sb.Append("<selection pane=\"bottomRight\"/>");
-        if (options.FrozenRows is not null)
-            sb.Append("<selection pane=\"bottomLeft\"/>");
-        if (options.FrozenColumns is not null)
-            sb.Append("<selection pane=\"topRight\"/>");
-
-        sb.Append("</sheetView></sheetViews>");
     }
 
     private async ValueTask WriteColsXmlAsync(StringBuilder sb, WorksheetOptions options, CancellationToken token)
