@@ -18,7 +18,6 @@ internal static class Utf8Helper
     public static int GetBytes(ReadOnlySpan<char> chars, Span<byte> bytes) => Utf8NoBom.GetBytes(chars, bytes);
 
 #if NETSTANDARD2_0
-    public static int GetBytes(string chars, Span<byte> bytes) => GetBytes(chars.AsSpan(), bytes);
     public static bool TryGetBytes(string? chars, Span<byte> bytes, out int bytesWritten) => TryGetBytes(chars.AsSpan(), bytes, out bytesWritten);
 #endif
 

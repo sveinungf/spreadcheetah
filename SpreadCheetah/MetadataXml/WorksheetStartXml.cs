@@ -12,11 +12,15 @@ internal struct WorksheetStartXml
     private static ReadOnlySpan<byte> SheetDataBegin => "<sheetData>"u8;
 
     private readonly WorksheetOptions? _options;
+    private readonly List<KeyValuePair<int, ColumnOptions>>? _columns;
     private Element _next;
+    private int _nextIndex;
+    private bool _anyColumnWritten;
 
     public WorksheetStartXml(WorksheetOptions? options)
     {
         _options = options;
+        _columns = options?.ColumnOptions.ToList();
     }
 
     public bool TryWrite(Span<byte> bytes, out int bytesWritten)
@@ -25,12 +29,8 @@ internal struct WorksheetStartXml
 
         if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
         if (_next == Element.SheetViews && !Advance(TryWriteSheetViews(bytes, ref bytesWritten))) return false;
-
-        // TODO
-        if (_options is null)
-        {
-            if (_next == Element.SheetDataBegin && !Advance(SheetDataBegin.TryCopyTo(bytes, ref bytesWritten))) return false;
-        }
+        if (_next == Element.Columns && !Advance(TryWriteColumns(bytes, ref bytesWritten))) return false;
+        if (_next == Element.SheetDataBegin && !Advance(SheetDataBegin.TryCopyTo(bytes, ref bytesWritten))) return false;
 
         return true;
     }
@@ -104,10 +104,47 @@ internal struct WorksheetStartXml
         return true;
     }
 
+    private bool TryWriteColumns(Span<byte> bytes, ref int bytesWritten)
+    {
+        if (_columns is not { } columns) return true;
+
+        var anyColumnWritten = _anyColumnWritten;
+
+        for (; _nextIndex < columns.Count; ++_nextIndex)
+        {
+            var (columnIndex, options) = columns[_nextIndex];
+            if (options.Width is null)
+                continue;
+
+            var span = bytes.Slice(bytesWritten);
+            var written = 0;
+
+            if (!anyColumnWritten)
+            {
+                if (!"<cols>"u8.TryCopyTo(span, ref written)) return false;
+                anyColumnWritten = true;
+            }
+
+            if (!"<col min=\""u8.TryCopyTo(span, ref written)) return false;
+            if (!SpanHelper.TryWrite(columnIndex, span, ref written)) return false;
+            if (!"\" max=\""u8.TryCopyTo(span, ref written)) return false;
+            if (!SpanHelper.TryWrite(columnIndex, span, ref written)) return false;
+            if (!"\" width=\""u8.TryCopyTo(span, ref written)) return false;
+            if (!SpanHelper.TryWrite(options.Width.Value, span, ref written)) return false;
+            if (!"\" customWidth=\"1\" />"u8.TryCopyTo(span, ref written)) return false;
+
+            _anyColumnWritten = anyColumnWritten;
+            bytesWritten += written;
+        }
+
+        return !anyColumnWritten || "</cols>"u8.TryCopyTo(bytes, ref bytesWritten);
+    }
+
     private enum Element
     {
         Header,
         SheetViews,
+        Columns,
         SheetDataBegin,
         Done
     }

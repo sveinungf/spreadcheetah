@@ -16,15 +16,6 @@ internal sealed class SpreadsheetBuffer
     public int FreeCapacity => _buffer.Length - _index;
     public void Advance(int bytes) => _index += bytes;
 
-    public async ValueTask WriteAsciiStringAsync(string value, Stream stream, CancellationToken token)
-    {
-        // When value is ASCII, the number of bytes equals the length of the string
-        if (value.Length > FreeCapacity)
-            await FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-        _index += Utf8Helper.GetBytes(value, GetSpan());
-    }
-
     public bool WriteLongString(ReadOnlySpan<char> value, ref int valueIndex)
     {
         var bytesWritten = 0;
