@@ -599,7 +599,6 @@ public class SpreadsheetDataValidationTests
         SpreadsheetAssert.Valid(stream);
         using var workbook = new XLWorkbook(stream);
         var worksheet = workbook.Worksheets.Single();
-        var without = worksheet.Cells().Count(x => x.HasDataValidation);
         var actualValidations = worksheet.Cells().Select(x => x.GetDataValidation()).ToList();
         Assert.All(dataValidations.Zip(actualValidations), x => SpreadsheetAssert.EquivalentDataValidation(x.First, x.Second));
     }
