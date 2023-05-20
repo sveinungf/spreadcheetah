@@ -50,10 +50,10 @@ internal struct StylesXml
     private readonly Dictionary<ImmutableBorder, int> _borders;
     private readonly Dictionary<ImmutableFill, int> _fills;
     private readonly Dictionary<ImmutableFont, int> _fonts;
-    private readonly StyleNumberFormatsXml _numberFormatsXml;
-    private readonly StyleBordersXml _bordersXml;
-    private readonly StyleFillsXml _fillsXml;
-    private readonly StyleFontsXml _fontsXml;
+    private StyleNumberFormatsXml _numberFormatsXml;
+    private StyleBordersXml _bordersXml;
+    private StyleFillsXml _fillsXml;
+    private StyleFontsXml _fontsXml;
     private Element _next;
     private int _nextIndex;
 
