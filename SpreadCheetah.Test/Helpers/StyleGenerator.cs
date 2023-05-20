@@ -45,7 +45,7 @@ internal static class StyleGenerator
             .RuleFor(x => x.Color, f => f.Random.Color().OrNull(f, .1f))
             .RuleFor(x => x.Italic, f => f.Random.Bool())
             .RuleFor(x => x.Name, f => f.Commerce.ProductName().OrNull(f, .1f))
-            .RuleFor(x => x.Size, f => f.Random.Double(1, 72))
+            .RuleFor(x => x.Size, f => f.Random.Number(10000, 72000) / 1000.0)
             .RuleFor(x => x.Strikethrough, f => f.Random.Bool());
 
         var styles = new Faker<Style>()
@@ -54,7 +54,7 @@ internal static class StyleGenerator
             .RuleFor(x => x.Border, _ => testBorders.Generate())
             .RuleFor(x => x.Fill, _ => testFills.Generate())
             .RuleFor(x => x.Font, _ => testFonts.Generate())
-            .RuleFor(x => x.NumberFormat, f => f.Random.String2(2, 255, "dhmsy0.,;-#%?/[] ").OrNull(f, .1f));
+            .RuleFor(x => x.NumberFormat, f => f.Random.NumberFormat().OrNull(f, .1f));
 
         return styles.Generate(count);
     }
