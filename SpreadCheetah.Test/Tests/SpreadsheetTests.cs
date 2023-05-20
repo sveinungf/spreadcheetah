@@ -262,7 +262,7 @@ public class SpreadsheetTests
         // Arrange
         var sheetNames = Enumerable.Range(1, count).Select(x => "Sheet " + x).ToList();
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize }))
         {
             // Act
             foreach (var name in sheetNames)
