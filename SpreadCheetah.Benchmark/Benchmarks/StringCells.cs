@@ -154,7 +154,6 @@ public class StringCells : IDisposable
         oxw.WriteEndElement();
         oxw.WriteEndElement();
         oxw.Close();
-        xl.Close();
     }
 
     [Benchmark]
@@ -197,7 +196,6 @@ public class StringCells : IDisposable
 
         sheets.AppendChild(sheet);
         workbookpart.Workbook.Save();
-        xl.Close();
     }
 
     [Benchmark]
