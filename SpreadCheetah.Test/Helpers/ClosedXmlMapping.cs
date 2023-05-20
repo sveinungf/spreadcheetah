@@ -1,5 +1,6 @@
 using ClosedXML.Excel;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Validations;
 
 namespace SpreadCheetah.Test.Helpers;
 
@@ -47,6 +48,17 @@ internal static class ClosedXmlMapping
             VerticalAlignment.Center => XLAlignmentVerticalValues.Center,
             VerticalAlignment.Top => XLAlignmentVerticalValues.Top,
             _ => throw new NotImplementedException()
+        };
+    }
+
+    public static XLErrorStyle GetClosedXmlErrorStyle(this ValidationErrorType type)
+    {
+        return type switch
+        {
+            ValidationErrorType.Blocking => XLErrorStyle.Stop,
+            ValidationErrorType.Warning => XLErrorStyle.Warning,
+            ValidationErrorType.Information => XLErrorStyle.Information,
+            _ => throw new NotImplementedException(),
         };
     }
 }

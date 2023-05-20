@@ -573,4 +573,34 @@ public class SpreadsheetDataValidationTests
         // Assert
         SpreadsheetAssert.Valid(stream);
     }
+
+    [Fact]
+    public async Task Spreadsheet_AddDataValidation_Multiple()
+    {
+        // Arrange
+        const int count = 1000;
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var dataValidations = DataValidationGenerator.Generate(count);
+
+        for (var i = 0; i < dataValidations.Count; ++i)
+        {
+            var reference = "A" + (i + 1);
+
+            // Act
+            spreadsheet.AddDataValidation(reference, dataValidations[i]);
+        }
+
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var without = worksheet.Cells().Count(x => x.HasDataValidation);
+        var actualValidations = worksheet.Cells().Select(x => x.GetDataValidation()).ToList();
+        Assert.All(dataValidations.Zip(actualValidations), x => SpreadsheetAssert.EquivalentDataValidation(x.First, x.Second));
+    }
 }

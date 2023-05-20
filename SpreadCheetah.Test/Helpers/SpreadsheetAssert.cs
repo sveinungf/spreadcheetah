@@ -2,6 +2,7 @@ using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Validations;
 using System.Drawing;
 using Xunit;
 
@@ -19,6 +20,21 @@ internal static class SpreadsheetAssert
         Assert.Empty(errors);
 
         stream.Position = 0;
+    }
+
+    public static void EquivalentDataValidation(DataValidation validation, IXLDataValidation closedXmlValidation)
+    {
+        Assert.Equal(validation.ErrorMessage ?? "", closedXmlValidation.ErrorMessage);
+        Assert.Equal(validation.ErrorTitle ?? "", closedXmlValidation.ErrorTitle);
+        Assert.Equal(validation.ErrorType.GetClosedXmlErrorStyle(), closedXmlValidation.ErrorStyle);
+        Assert.Equal(validation.InputMessage ?? "", closedXmlValidation.InputMessage);
+        Assert.Equal(validation.InputTitle ?? "", closedXmlValidation.InputTitle);
+
+        // ClosedXml seems to ignore the boolean attributes when reading, and they always become true.
+        // If this were to change, then these should be compared against the equivalent on DataValidation.
+        Assert.True(closedXmlValidation.IgnoreBlanks);
+        Assert.True(closedXmlValidation.ShowErrorMessage);
+        Assert.True(closedXmlValidation.ShowInputMessage);
     }
 
     public static void EquivalentStyle(Style style, IXLStyle closedXmlStyle)
@@ -45,7 +61,6 @@ internal static class SpreadsheetAssert
 
         Assert.Equal(style.NumberFormat ?? "", closedXmlStyle.NumberFormat.Format);
     }
-
 
     private static void AssertEdgeBorder(EdgeBorder border, XLBorderStyleValues style, XLColor color)
     {
