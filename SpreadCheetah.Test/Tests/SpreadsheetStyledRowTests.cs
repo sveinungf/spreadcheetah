@@ -944,4 +944,36 @@ public class SpreadsheetStyledRowTests
         Assert.True(actualCell.Style.Font.Bold);
         Assert.Equal(changedBefore, actualCell.Style.Font.Italic);
     }
+
+    [Fact]
+    public async Task Spreadsheet_AddRow_MultipleStyles()
+    {
+        // Arrange
+        const int count = 1000;
+        const string cellValue = "Fill test";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize });
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var styles = StyleGenerator.Generate(count);
+        var uniqueStyleIds = new HashSet<int>();
+
+        foreach (var style in styles)
+        {
+            var styleId = spreadsheet.AddStyle(style);
+            uniqueStyleIds.Add(styleId.Id);
+
+            // Act
+            await spreadsheet.AddRowAsync(new StyledCell(cellValue, styleId));
+        }
+
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        Assert.True(uniqueStyleIds.Count > count * .8f);
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualStyles = worksheet.Cells().Select(x => x.Style).ToList();
+        Assert.All(styles.Zip(actualStyles), x => SpreadsheetAssert.EquivalentStyle(x.First, x.Second));
+    }
 }
