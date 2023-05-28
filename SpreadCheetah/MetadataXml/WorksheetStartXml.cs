@@ -69,10 +69,7 @@ internal struct WorksheetStartXml
         }
 
         if (!"topLeftCell=\""u8.TryCopyTo(span, ref written)) return false;
-
-        // TODO: Make overload of GetColumnName that writes into span
-        var columnName = SpreadsheetUtility.GetColumnName((options.FrozenColumns ?? 0) + 1);
-        if (!SpanHelper.TryWrite(columnName, span, ref written)) return false;
+        if (!SpanHelper.TryWriteColumnName((options.FrozenColumns ?? 0) + 1, span, ref written)) return false;
         if (!SpanHelper.TryWrite((options.FrozenRows ?? 0) + 1, span, ref written)) return false;
         if (!"\" activePane=\""u8.TryCopyTo(span, ref written)) return false;
 

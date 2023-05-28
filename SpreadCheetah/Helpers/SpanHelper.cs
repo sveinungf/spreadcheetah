@@ -87,4 +87,13 @@ internal static class SpanHelper
 
     private static bool TryWriteColorChannel(int value, Span<byte> span, ref int written)
         => TryWrite(value, span, ref written, new StandardFormat('X', 2));
+
+    public static bool TryWriteColumnName(int columnNumber, Span<byte> destination, ref int bytesWritten)
+    {
+        if (!SpreadsheetUtility.TryGetColumnNameUtf8(columnNumber, destination.Slice(bytesWritten), out var bytes))
+            return false;
+
+        bytesWritten += bytes;
+        return true;
+    }
 }
