@@ -38,7 +38,7 @@ internal static class RandomizerExtensions
         do
         {
             value = randomizer.String2(2, 255, "dhmsy0.,;-#%?/[] ");
-        } while (value == "0%");
+        } while (string.Equals(value, "0%", StringComparison.Ordinal));
 
         return value;
     }
