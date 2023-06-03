@@ -8,11 +8,13 @@ internal abstract class BaseCellWriter<T>
 {
     protected readonly DefaultStyling? DefaultStyling;
     protected readonly SpreadsheetBuffer Buffer;
+    protected readonly CellWriterState State;
 
-    protected BaseCellWriter(SpreadsheetBuffer buffer, DefaultStyling? defaultStyling)
+    protected BaseCellWriter(CellWriterState state, DefaultStyling? defaultStyling)
     {
-        Buffer = buffer;
+        Buffer = state.Buffer;
         DefaultStyling = defaultStyling;
+        State = state;
     }
 
     protected abstract bool TryWriteCell(in T cell);

@@ -1,4 +1,5 @@
 using SpreadCheetah.CellValueWriters.Number;
+using SpreadCheetah.CellWriters;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using System.Buffers.Text;
@@ -17,12 +18,12 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
     public override bool Equals(in CellValue value, in CellValue other) => value.DoubleValue == other.DoubleValue;
     public override int GetHashCodeFor(in CellValue value) => value.DoubleValue.GetHashCode();
 
-    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
     {
         var defaultStyleId = defaultStyling?.DateTimeStyleId;
         return defaultStyleId is not null
-            ? TryWriteCell(cell, defaultStyleId.Value, buffer)
-            : TryWriteCell(cell, buffer);
+            ? TryWriteCell(cell, defaultStyleId.Value, state.Buffer)
+            : TryWriteCell(cell, state.Buffer);
     }
 
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)

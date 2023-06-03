@@ -1,3 +1,4 @@
+using SpreadCheetah.CellWriters;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 
@@ -7,12 +8,12 @@ internal sealed class NullDateTimeCellValueWriter : NullValueWriterBase
 {
     protected override int GetStyleId(StyleId styleId) => styleId.DateTimeId;
 
-    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
     {
         var defaultStyleId = defaultStyling?.DateTimeStyleId;
         return defaultStyleId is not null
-            ? TryWriteCell(defaultStyleId.Value, buffer)
-            : TryWriteCell(buffer);
+            ? TryWriteCell(defaultStyleId.Value, state.Buffer)
+            : TryWriteCell(state.Buffer);
     }
 
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)

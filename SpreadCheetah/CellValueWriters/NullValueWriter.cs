@@ -1,3 +1,4 @@
+using SpreadCheetah.CellWriters;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 
@@ -7,9 +8,9 @@ internal sealed class NullValueWriter : NullValueWriterBase
 {
     protected override int GetStyleId(StyleId styleId) => styleId.Id;
 
-    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
     {
-        return TryWriteCell(buffer);
+        return TryWriteCell(state.Buffer);
     }
 
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)

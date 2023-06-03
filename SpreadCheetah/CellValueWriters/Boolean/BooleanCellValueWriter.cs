@@ -1,3 +1,4 @@
+using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
@@ -14,9 +15,9 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
     protected abstract bool TryWriteEndStyleValue(Span<byte> bytes, out int bytesWritten);
     protected abstract bool TryWriteEndFormulaValue(Span<byte> bytes, out int bytesWritten);
 
-    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
     {
-        return TryWriteCell(buffer);
+        return TryWriteCell(state.Buffer);
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)

@@ -1,3 +1,4 @@
+using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
@@ -14,8 +15,9 @@ internal sealed class StringCellValueWriter : CellValueWriter
     private static ReadOnlySpan<byte> EndStyleBeginInlineString => "\"><is><t>"u8;
     private static ReadOnlySpan<byte> EndStringCell => "</t></is></c>"u8;
 
-    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
     {
+        var buffer = state.Buffer;
         var bytes = buffer.GetSpan();
 
         if (BeginStringCell.TryCopyTo(bytes)

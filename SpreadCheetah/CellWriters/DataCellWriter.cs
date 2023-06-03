@@ -4,14 +4,14 @@ namespace SpreadCheetah.CellWriters;
 
 internal sealed class DataCellWriter : BaseCellWriter<DataCell>
 {
-    public DataCellWriter(SpreadsheetBuffer buffer, DefaultStyling? defaultStyling)
-        : base(buffer, defaultStyling)
+    public DataCellWriter(CellWriterState state, DefaultStyling? defaultStyling)
+        : base(state, defaultStyling)
     {
     }
 
     protected override bool TryWriteCell(in DataCell cell)
     {
-        return cell.Writer.TryWriteCell(cell, DefaultStyling, Buffer);
+        return cell.Writer.TryWriteCell(cell, DefaultStyling, State);
     }
 
     protected override bool WriteStartElement(in DataCell cell)
