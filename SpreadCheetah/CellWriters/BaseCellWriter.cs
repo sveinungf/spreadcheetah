@@ -44,30 +44,51 @@ internal abstract class BaseCellWriter<T>
         return CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer) && TryAddRowCellsForSpan(cells, out currentListIndex);
     }
 
-    private bool TryAddRowCells(IList<T> cells, out int currentListIndex) => cells switch
+    private bool TryAddRowCells(IList<T> cells, out int currentListIndex)
     {
-        T[] cellArray => TryAddRowCellsForSpan(cellArray, out currentListIndex),
-#if NET5_0_OR_GREATER
-        List<T> cellList => TryAddRowCellsForSpan(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(cellList), out currentListIndex),
-#endif
-        _ => TryAddRowCellsForList(cells, 0, out currentListIndex)
-    };
+        return TryGetSpan(cells, out var span)
+            ? TryAddRowCellsForSpan(span, out currentListIndex)
+            : TryAddRowCellsForList(cells, 0, out currentListIndex);
+    }
 
-    private bool TryAddRowCells(IList<T> cells, int offset, out int currentListIndex) => cells switch
+    private bool TryAddRowCells(IList<T> cells, int offset, out int currentListIndex)
     {
-        T[] cellArray => TryAddRowCellsForSpan(cellArray.AsSpan(offset), out currentListIndex),
-#if NET5_0_OR_GREATER
-        List<T> cellList => TryAddRowCellsForSpan(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(cellList).Slice(offset), out currentListIndex),
-#endif
-        _ => TryAddRowCellsForList(cells, offset, out currentListIndex)
-    };
+        if (TryGetSpan(cells, out var span))
+        {
+            var result = TryAddRowCellsForSpan(span.Slice(offset), out var spanIndex);
+            currentListIndex = offset + spanIndex;
+            return result;
+        }
 
-    private bool TryAddRowCellsForSpan(ReadOnlySpan<T> cells, out int currentListIndex)
+        return TryAddRowCellsForList(cells, offset, out currentListIndex);
+    }
+
+    private static bool TryGetSpan(IList<T> cells, out ReadOnlySpan<T> span)
     {
-        for (currentListIndex = 0; currentListIndex < cells.Length; ++currentListIndex)
+        if (cells is T[] cellArray)
+        {
+            span = cellArray.AsSpan();
+            return true;
+        }
+
+#if NET5_0_OR_GREATER
+        if (cells is List<T> cellList)
+        {
+            span = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(cellList);
+            return true;
+        }
+#endif
+
+        span = ReadOnlySpan<T>.Empty;
+        return false;
+    }
+
+    private bool TryAddRowCellsForSpan(ReadOnlySpan<T> cells, out int spanIndex)
+    {
+        for (spanIndex = 0; spanIndex < cells.Length; ++spanIndex)
         {
             // Write cell if it fits in the buffer
-            if (!TryWriteCell(cells[currentListIndex]))
+            if (!TryWriteCell(cells[spanIndex]))
                 return false;
         }
 
