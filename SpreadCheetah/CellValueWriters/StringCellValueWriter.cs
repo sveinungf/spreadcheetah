@@ -19,16 +19,14 @@ internal sealed class StringCellValueWriter : CellValueWriter
     {
         var buffer = state.Buffer;
         var bytes = buffer.GetSpan();
+        var written = 0;
 
-        if (BeginStringCell.TryCopyTo(bytes)
-            && Utf8Helper.TryGetBytes(cell.StringValue, bytes.Slice(BeginStringCell.Length), out var valueLength)
-            && EndStringCell.TryCopyTo(bytes.Slice(BeginStringCell.Length + valueLength)))
-        {
-            buffer.Advance(BeginStringCell.Length + EndStringCell.Length + valueLength);
-            return true;
-        }
+        if (!BeginStringCell.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(cell.StringValue, bytes, ref written)) return false;
+        if (!EndStringCell.TryCopyTo(bytes, ref written)) return false;
 
-        return false;
+        buffer.Advance(written);
+        return true;
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)

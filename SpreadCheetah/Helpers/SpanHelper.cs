@@ -53,14 +53,13 @@ internal static class SpanHelper
     }
 
 #if NETSTANDARD2_0
-    public static bool TryWrite(string value, Span<byte> bytes, ref int bytesWritten)
+    public static bool TryWrite(string? value, Span<byte> bytes, ref int bytesWritten)
         => TryWrite(value.AsSpan(), bytes, ref bytesWritten);
 #endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryWrite(ReadOnlySpan<char> value, Span<byte> bytes, ref int bytesWritten)
     {
-        Debug.Assert(value.Length <= SpreadCheetahOptions.MinimumBufferSize);
         if (!Utf8Helper.TryGetBytes(value, bytes.Slice(bytesWritten), out var length)) return false;
         bytesWritten += length;
         return true;
