@@ -28,8 +28,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
         else
         {
             if (!"<c r=\""u8.TryCopyTo(bytes, ref written)) return false;
-            if (!SpanHelper.TryWriteColumnName(state.Column + 1, bytes, ref written)) return false;
-            if (!SpanHelper.TryWrite(state.NextRowIndex - 1, bytes, ref written)) return false;
+            if (!SpanHelper.TryWriteCellReference(state.Column + 1, state.NextRowIndex - 1, bytes, ref written)) return false;
             if (!"\" t=\"inlineStr\"><is><t>"u8.TryCopyTo(bytes, ref written)) return false;
         }
 

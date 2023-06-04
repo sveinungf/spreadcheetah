@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Buffers.Text;
-using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 
@@ -95,12 +94,14 @@ internal static class SpanHelper
     private static bool TryWriteColorChannel(int value, Span<byte> span, ref int written)
         => TryWrite(value, span, ref written, new StandardFormat('X', 2));
 
-    public static bool TryWriteColumnName(int columnNumber, Span<byte> destination, ref int bytesWritten)
+    public static bool TryWriteCellReference(int column, uint row, Span<byte> destination, ref int bytesWritten)
     {
-        if (!SpreadsheetUtility.TryGetColumnNameUtf8(columnNumber, destination.Slice(bytesWritten), out var bytes))
-            return false;
+        var span = destination.Slice(bytesWritten);
 
-        bytesWritten += bytes;
+        if (!SpreadsheetUtility.TryGetColumnNameUtf8(column, span, out var written)) return false;
+        if (!TryWrite(row, span, ref written)) return false;
+
+        bytesWritten += written;
         return true;
     }
 }

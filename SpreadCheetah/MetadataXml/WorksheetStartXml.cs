@@ -69,8 +69,11 @@ internal struct WorksheetStartXml
         }
 
         if (!"topLeftCell=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWriteColumnName((options.FrozenColumns ?? 0) + 1, span, ref written)) return false;
-        if (!SpanHelper.TryWrite((options.FrozenRows ?? 0) + 1, span, ref written)) return false;
+
+        var column = (options.FrozenColumns ?? 0) + 1;
+        var row = (options.FrozenRows ?? 0) + 1;
+        if (!SpanHelper.TryWriteCellReference(column, (uint)row, span, ref written)) return false;
+
         if (!"\" activePane=\""u8.TryCopyTo(span, ref written)) return false;
 
         var activePane = options switch
