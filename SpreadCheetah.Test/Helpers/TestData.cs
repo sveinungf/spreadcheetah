@@ -100,6 +100,21 @@ internal static class TestData
         }
     }
 
+    public static IEnumerable<object?[]> CellAndValueTypes()
+    {
+        foreach (var valueType in CellValueTypeArray)
+        {
+            foreach (var cellType in CellTypeArray)
+            {
+                foreach (var rowType in RowCollectionTypeArray)
+                {
+                    yield return new object?[] { valueType, true, cellType, rowType };
+                    yield return new object?[] { valueType, false, cellType, rowType };
+                }
+            }
+        }
+    }
+
     public static IEnumerable<object?[]> StyledCellAndValueTypes()
     {
         foreach (var valueType in CellValueTypeArray)

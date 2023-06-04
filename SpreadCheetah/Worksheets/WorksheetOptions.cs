@@ -7,7 +7,7 @@ namespace SpreadCheetah.Worksheets;
 /// </summary>
 public class WorksheetOptions
 {
-    public bool WriteCellReferenceAttributes { get; set; }
+    public bool WriteCellReferenceAttributes { get; set; } // TODO: Move to SpreadsheetOptions?
 
     /// <summary>
     /// The number of left-most columns that should be frozen.

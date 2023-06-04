@@ -531,6 +531,46 @@ public class SpreadsheetRowTests
         Assert.Equal(values, actualValues);
     }
 
+    // TODO: Add similar tests for styled cells, formula cells, and cells with very long string values
+    [Theory]
+    [MemberData(nameof(TestData.CellAndValueTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_ExplicitCellReferences(CellValueType valueType, bool isNull, CellType cellType, RowCollectionType rowType)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet", new WorksheetOptions { WriteCellReferenceAttributes = true });
+
+        var row1 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(cellType, valueType, isNull, null, out var value)).ToList();
+        var row2 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(cellType, valueType, isNull, null, out var value)).ToList();
+        var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(cellType, valueType, isNull, null, out var value)).ToList();
+
+        var expectedRow1Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "1").OfType<string?>();
+        var expectedRow2Refs = Enumerable.Range(1, 10).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
+        var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
+
+        // Act
+        await spreadsheet.AddRowAsync(row1, rowType);
+        await spreadsheet.AddRowAsync(row2, rowType);
+        await spreadsheet.AddRowAsync(row3, rowType);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var actual = SpreadsheetDocument.Open(stream, true);
+        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
+        var rows = sheetPart.Worksheet.Descendants<Row>().ToList();
+        Assert.Equal(3, rows.Count);
+
+        var actualRow1Refs = rows[0].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
+        var actualRow2Refs = rows[1].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
+        var actualRow3Refs = rows[2].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
+
+        Assert.Equal(expectedRow1Refs, actualRow1Refs);
+        Assert.Equal(expectedRow2Refs, actualRow2Refs);
+        Assert.Equal(expectedRow3Refs, actualRow3Refs);
+    }
+
     public static IEnumerable<object?[]> RowHeights() => TestData.CombineWithCellTypes<double?>(
         0.1,
         10d,
