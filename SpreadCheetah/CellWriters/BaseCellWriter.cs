@@ -24,7 +24,14 @@ internal abstract class BaseCellWriter<T>
 
     public bool TryAddRow(IList<T> cells, uint rowIndex)
     {
-        return CellRowHelper.TryWriteRowStart(rowIndex, Buffer) && TryAddRowCells(cells);
+        if (!CellRowHelper.TryWriteRowStart(rowIndex, Buffer))
+        {
+            State.Column = -1;
+            return false;
+        }
+
+        State.Column = 0;
+        return TryAddRowCells(cells);
     }
 
     public bool TryAddRow(ReadOnlySpan<T> cells, uint rowIndex)
@@ -41,7 +48,14 @@ internal abstract class BaseCellWriter<T>
 
     public bool TryAddRow(IList<T> cells, uint rowIndex, RowOptions options)
     {
-        return CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer) && TryAddRowCells(cells);
+        if (!CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer))
+        {
+            State.Column = -1;
+            return false;
+        }
+
+        State.Column = 0;
+        return TryAddRowCells(cells);
     }
 
     public bool TryAddRow(ReadOnlySpan<T> cells, uint rowIndex, RowOptions options)
@@ -58,20 +72,9 @@ internal abstract class BaseCellWriter<T>
 
     private bool TryAddRowCells(IList<T> cells)
     {
-        State.Column = 0;
         return TryGetSpan(cells, out var span)
             ? TryAddRowCellsForSpan(span)
             : TryAddRowCellsForList(cells);
-    }
-
-    private bool TryAddRowCellsWithOffset(IList<T> cells)
-    {
-        if (TryGetSpan(cells, out var span))
-        {
-            return TryAddRowCellsForSpan(span);
-        }
-
-        return TryAddRowCellsForList(cells);
     }
 
     private static bool TryGetSpan(IList<T> cells, out ReadOnlySpan<T> span)
@@ -224,7 +227,7 @@ internal abstract class BaseCellWriter<T>
         {
             // Attempt to add row cells again
             var beforeIndex = State.Column;
-            if (TryAddRowCellsWithOffset(cells))
+            if (TryAddRowCells(cells))
                 return;
 
             // If no cells were added, the next cell is larger than the buffer.
