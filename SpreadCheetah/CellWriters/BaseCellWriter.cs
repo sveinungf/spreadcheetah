@@ -22,47 +22,67 @@ internal abstract class BaseCellWriter<T>
     protected abstract bool TryWriteEndElement(in T cell);
     protected abstract bool FinishWritingCellValue(in T cell, ref int cellValueIndex);
 
-    public bool TryAddRow(IList<T> cells, uint rowIndex, out int currentListIndex)
+    public bool TryAddRow(IList<T> cells, uint rowIndex)
     {
-        currentListIndex = -1;
-        return CellRowHelper.TryWriteRowStart(rowIndex, Buffer) && TryAddRowCells(cells, out currentListIndex);
+        return CellRowHelper.TryWriteRowStart(rowIndex, Buffer) && TryAddRowCells(cells);
     }
 
-    public bool TryAddRow(ReadOnlySpan<T> cells, uint rowIndex, out int currentListIndex)
+    public bool TryAddRow(ReadOnlySpan<T> cells, uint rowIndex)
     {
-        currentListIndex = -1;
-        return CellRowHelper.TryWriteRowStart(rowIndex, Buffer) && TryAddRowCellsForSpan(cells, out currentListIndex);
+        if (!CellRowHelper.TryWriteRowStart(rowIndex, Buffer))
+        {
+            State.Column = -1;
+            return false;
+        }
+
+        var result = TryAddRowCellsForSpan(cells, out var spanIndex);
+        State.Column = spanIndex;
+        return result;
     }
 
-    public bool TryAddRow(IList<T> cells, uint rowIndex, RowOptions options, out int currentListIndex)
+    public bool TryAddRow(IList<T> cells, uint rowIndex, RowOptions options)
     {
-        currentListIndex = -1;
-        return CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer) && TryAddRowCells(cells, out currentListIndex);
+        return CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer) && TryAddRowCells(cells);
     }
 
-    public bool TryAddRow(ReadOnlySpan<T> cells, uint rowIndex, RowOptions options, out int currentListIndex)
+    public bool TryAddRow(ReadOnlySpan<T> cells, uint rowIndex, RowOptions options)
     {
-        currentListIndex = -1;
-        return CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer) && TryAddRowCellsForSpan(cells, out currentListIndex);
+        if (!CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer))
+        {
+            State.Column = -1;
+            return false;
+        }
+
+        var result = TryAddRowCellsForSpan(cells, out var spanIndex);
+        State.Column = spanIndex;
+        return result;
     }
 
-    private bool TryAddRowCells(IList<T> cells, out int currentListIndex)
+    private bool TryAddRowCells(IList<T> cells)
     {
-        return TryGetSpan(cells, out var span)
-            ? TryAddRowCellsForSpan(span, out currentListIndex)
-            : TryAddRowCellsForList(cells, 0, out currentListIndex);
+        int listIndex = 0;
+        var result = TryGetSpan(cells, out var span)
+            ? TryAddRowCellsForSpan(span, out listIndex)
+            : TryAddRowCellsForList(cells, ref listIndex);
+
+        State.Column = listIndex;
+        return result;
     }
 
-    private bool TryAddRowCells(IList<T> cells, int offset, out int currentListIndex)
+    private bool TryAddRowCellsWithOffset(IList<T> cells)
     {
+        var listIndex = State.Column;
+
         if (TryGetSpan(cells, out var span))
         {
-            var result = TryAddRowCellsForSpan(span.Slice(offset), out var spanIndex);
-            currentListIndex = offset + spanIndex;
+            var result = TryAddRowCellsForSpan(span.Slice(listIndex), out var spanIndex);
+            State.Column += spanIndex;
             return result;
         }
 
-        return TryAddRowCellsForList(cells, offset, out currentListIndex);
+        var res = TryAddRowCellsForList(cells, ref listIndex);
+        State.Column = listIndex;
+        return res;
     }
 
     private static bool TryGetSpan(IList<T> cells, out ReadOnlySpan<T> span)
@@ -97,9 +117,9 @@ internal abstract class BaseCellWriter<T>
         return TryWriteRowEnd();
     }
 
-    private bool TryAddRowCellsForList(IList<T> cells, int offset, out int currentListIndex)
+    private bool TryAddRowCellsForList(IList<T> cells, ref int currentListIndex)
     {
-        for (currentListIndex = offset; currentListIndex < cells.Count; ++currentListIndex)
+        for (; currentListIndex < cells.Count; ++currentListIndex)
         {
             // Write cell if it fits in the buffer
             if (!TryWriteCell(cells[currentListIndex]))
@@ -130,60 +150,60 @@ internal abstract class BaseCellWriter<T>
         TryWriteRowEnd();
     }
 
-    public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, uint rowIndex, int currentCellIndex, Stream stream, CancellationToken token)
+    public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, uint rowIndex, Stream stream, CancellationToken token)
     {
         // If we get here that means that the next cell didn't fit in the buffer, so just flush right away.
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-        if (currentCellIndex == -1)
+        if (State.Column == -1)
         {
             CellRowHelper.TryWriteRowStart(rowIndex, Buffer);
-            currentCellIndex = 0;
+            State.Column = 0;
         }
 
-        await AddRowCellsAsync(cells.Slice(currentCellIndex), stream, token).ConfigureAwait(false);
+        await AddRowCellsAsync(cells.Slice(State.Column), stream, token).ConfigureAwait(false);
     }
 
-    public async ValueTask AddRowAsync(IList<T> cells, uint rowIndex, int currentCellIndex, Stream stream, CancellationToken token)
+    public async ValueTask AddRowAsync(IList<T> cells, uint rowIndex, Stream stream, CancellationToken token)
     {
         // If we get here that means that the next cell didn't fit in the buffer, so just flush right away.
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-        if (currentCellIndex == -1)
+        if (State.Column == -1)
         {
             CellRowHelper.TryWriteRowStart(rowIndex, Buffer);
-            currentCellIndex = 0;
+            State.Column = 0;
         }
 
-        await AddRowCellsAsync(cells, currentCellIndex, stream, token).ConfigureAwait(false);
+        await AddRowCellsAsync(cells, stream, token).ConfigureAwait(false);
     }
 
-    public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, uint rowIndex, RowOptions options, int currentCellIndex, Stream stream, CancellationToken token)
+    public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, uint rowIndex, RowOptions options, Stream stream, CancellationToken token)
     {
         // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-        if (currentCellIndex == -1)
+        if (State.Column == -1)
         {
             CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer);
-            currentCellIndex = 0;
+            State.Column = 0;
         }
 
-        await AddRowCellsAsync(cells.Slice(currentCellIndex), stream, token).ConfigureAwait(false);
+        await AddRowCellsAsync(cells.Slice(State.Column), stream, token).ConfigureAwait(false);
     }
 
-    public async ValueTask AddRowAsync(IList<T> cells, uint rowIndex, RowOptions options, int currentCellIndex, Stream stream, CancellationToken token)
+    public async ValueTask AddRowAsync(IList<T> cells, uint rowIndex, RowOptions options, Stream stream, CancellationToken token)
     {
         // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-        if (currentCellIndex == -1)
+        if (State.Column == -1)
         {
             CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer);
-            currentCellIndex = 0;
+            State.Column = 0;
         }
 
-        await AddRowCellsAsync(cells, currentCellIndex, stream, token).ConfigureAwait(false);
+        await AddRowCellsAsync(cells, stream, token).ConfigureAwait(false);
     }
 
     private async ValueTask AddRowCellsAsync(ReadOnlyMemory<T> cells, Stream stream, CancellationToken token)
@@ -209,21 +229,21 @@ internal abstract class BaseCellWriter<T>
         await WriteRowEndAsync(stream, token).ConfigureAwait(false);
     }
 
-    private async ValueTask AddRowCellsAsync(IList<T> cells, int currentIndex, Stream stream, CancellationToken token)
+    private async ValueTask AddRowCellsAsync(IList<T> cells, Stream stream, CancellationToken token)
     {
-        while (currentIndex < cells.Count)
+        while (State.Column < cells.Count)
         {
             // Attempt to add row cells again
-            var beforeIndex = currentIndex;
-            if (TryAddRowCells(cells, currentIndex, out currentIndex))
+            var beforeIndex = State.Column;
+            if (TryAddRowCellsWithOffset(cells))
                 return;
 
             // If no cells were added, the next cell is larger than the buffer.
-            if (currentIndex == beforeIndex)
+            if (State.Column == beforeIndex)
             {
-                var cell = cells[currentIndex];
+                var cell = cells[State.Column];
                 await WriteCellPieceByPieceAsync(cell, stream, token).ConfigureAwait(false);
-                ++currentIndex;
+                ++State.Column;
             }
 
             // One or more cells were added, repeat
