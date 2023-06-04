@@ -13,7 +13,7 @@ internal sealed class NullDateTimeCellValueWriter : NullValueWriterBase
         var defaultStyleId = defaultStyling?.DateTimeStyleId;
         return defaultStyleId is not null
             ? TryWriteCell(defaultStyleId.Value, state.Buffer)
-            : TryWriteCell(state.Buffer);
+            : TryWriteCell(state);
     }
 
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)

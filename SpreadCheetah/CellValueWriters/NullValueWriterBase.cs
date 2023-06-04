@@ -1,4 +1,5 @@
 using SpreadCheetah.CellValueWriters.Number;
+using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using System.Buffers.Text;
@@ -13,13 +14,24 @@ internal abstract class NullValueWriterBase : CellValueWriter
     private static ReadOnlySpan<byte> EndStyleNullValue => "\"/>"u8;
     private static ReadOnlySpan<byte> EndFormulaEndCell => "</f></c>"u8;
 
-    protected static bool TryWriteCell(SpreadsheetBuffer buffer)
+    protected static bool TryWriteCell(CellWriterState state)
     {
+        var buffer = state.Buffer;
         var bytes = buffer.GetSpan();
-        if (!NullDataCell.TryCopyTo(bytes))
-            return false;
+        var written = 0;
 
-        buffer.Advance(NullDataCell.Length);
+        if (!state.WriteCellReferenceAttributes)
+        {
+            if (!NullDataCell.TryCopyTo(bytes, ref written)) return false;
+        }
+        else
+        {
+            if (!"<c r=\""u8.TryCopyTo(bytes, ref written)) return false;
+            if (!SpanHelper.TryWriteCellReference(state.Column + 1, state.NextRowIndex - 1, bytes, ref written)) return false;
+            if (!"\"/>"u8.TryCopyTo(bytes, ref written)) return false;
+        }
+
+        buffer.Advance(written);
         return true;
     }
 
@@ -92,7 +104,8 @@ internal abstract class NullValueWriterBase : CellValueWriter
         return true;
     }
 
-    public override bool WriteStartElement(SpreadsheetBuffer buffer) => TryWriteCell(buffer);
+    public override bool WriteStartElement(SpreadsheetBuffer buffer)
+        => TryWriteCell(new CellWriterState(buffer, false)); // TODO: Temporary workaround
 
     public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => TryWriteCell(GetStyleId(styleId), buffer);
 
