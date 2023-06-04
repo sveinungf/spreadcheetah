@@ -482,6 +482,29 @@ public class SpreadsheetRowTests
 
     [Theory]
     [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_MultipleColumnsWithVeryLongStringValues(CellType type, RowCollectionType rowType)
+    {
+        // Arrange
+        var values = Enumerable.Range(1, 1000).Select(x => new string((char)('A' + (x % 26)), 1000)).ToList();
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize });
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var cells = values.Select(x => CellFactory.Create(type, x)).ToList();
+
+        // Act
+        await spreadsheet.AddRowAsync(cells, rowType);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualValues = worksheet.Cells(true).Select(x => x.Value.GetText()).ToList();
+        Assert.Equal(values, actualValues);
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddRow_MultipleRows(CellType type, RowCollectionType rowType)
     {
         // Arrange
