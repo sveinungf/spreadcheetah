@@ -19,11 +19,11 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private HashSet<CellReference>? _cellMerges;
     private string? _autoFilterRange;
 
-    public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer, bool writeCellReferenceAttributes)
     {
         _stream = stream;
         _buffer = buffer;
-        _state = new CellWriterState(buffer, false);
+        _state = new CellWriterState(buffer, writeCellReferenceAttributes);
         _cellWriter = new CellWriter(_state, defaultStyling);
         _dataCellWriter = new DataCellWriter(_state, defaultStyling);
         _styledCellWriter = new StyledCellWriter(_state, defaultStyling);

@@ -116,7 +116,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var path = $"xl/worksheets/sheet{_worksheets.Count + 1}.xml";
         var entry = _archive.CreateEntry(path, _compressionLevel);
         var entryStream = entry.Open();
-        _worksheet = new Worksheet(entryStream, _defaultStyling, _buffer);
+        _worksheet = new Worksheet(entryStream, _defaultStyling, _buffer, options?.WriteCellReferenceAttributes ?? false);
         await _worksheet.WriteHeadAsync(options, token).ConfigureAwait(false);
         _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
     }
