@@ -21,7 +21,18 @@ internal sealed class StringCellValueWriter : CellValueWriter
         var bytes = buffer.GetSpan();
         var written = 0;
 
-        if (!BeginStringCell.TryCopyTo(bytes, ref written)) return false;
+        if (!state.WriteCellReferenceAttributes)
+        {
+            if (!BeginStringCell.TryCopyTo(bytes, ref written)) return false;
+        }
+        else
+        {
+            if (!"<c r=\""u8.TryCopyTo(bytes, ref written)) return false;
+            if (!SpanHelper.TryWriteColumnName(state.Column + 1, bytes, ref written)) return false; // Should be plus 1, since we are using it when indexing into row list
+            if (!SpanHelper.TryWrite(state.NextRowIndex - 1, bytes, ref written)) return false; // TODO: Should be minus 1?
+            if (!"\" t=\"inlineStr\"><is><t>"u8.TryCopyTo(bytes, ref written)) return false;
+        }
+
         if (!SpanHelper.TryWrite(cell.StringValue, bytes, ref written)) return false;
         if (!EndStringCell.TryCopyTo(bytes, ref written)) return false;
 

@@ -35,9 +35,8 @@ internal abstract class BaseCellWriter<T>
             return false;
         }
 
-        var result = TryAddRowCellsForSpan(cells, out var spanIndex);
-        State.Column = spanIndex;
-        return result;
+        State.Column = 0;
+        return TryAddRowCellsForSpan(cells);
     }
 
     public bool TryAddRow(IList<T> cells, uint rowIndex, RowOptions options)
@@ -53,36 +52,26 @@ internal abstract class BaseCellWriter<T>
             return false;
         }
 
-        var result = TryAddRowCellsForSpan(cells, out var spanIndex);
-        State.Column = spanIndex;
-        return result;
+        State.Column = 0;
+        return TryAddRowCellsForSpan(cells);
     }
 
     private bool TryAddRowCells(IList<T> cells)
     {
-        int listIndex = 0;
-        var result = TryGetSpan(cells, out var span)
-            ? TryAddRowCellsForSpan(span, out listIndex)
-            : TryAddRowCellsForList(cells, ref listIndex);
-
-        State.Column = listIndex;
-        return result;
+        State.Column = 0;
+        return TryGetSpan(cells, out var span)
+            ? TryAddRowCellsForSpan(span)
+            : TryAddRowCellsForList(cells);
     }
 
     private bool TryAddRowCellsWithOffset(IList<T> cells)
     {
-        var listIndex = State.Column;
-
         if (TryGetSpan(cells, out var span))
         {
-            var result = TryAddRowCellsForSpan(span.Slice(listIndex), out var spanIndex);
-            State.Column += spanIndex;
-            return result;
+            return TryAddRowCellsForSpan(span);
         }
 
-        var res = TryAddRowCellsForList(cells, ref listIndex);
-        State.Column = listIndex;
-        return res;
+        return TryAddRowCellsForList(cells);
     }
 
     private static bool TryGetSpan(IList<T> cells, out ReadOnlySpan<T> span)
@@ -105,24 +94,24 @@ internal abstract class BaseCellWriter<T>
         return false;
     }
 
-    private bool TryAddRowCellsForSpan(ReadOnlySpan<T> cells, out int spanIndex)
+    private bool TryAddRowCellsForSpan(ReadOnlySpan<T> cells)
     {
-        for (spanIndex = 0; spanIndex < cells.Length; ++spanIndex)
+        for (; State.Column < cells.Length; ++State.Column)
         {
             // Write cell if it fits in the buffer
-            if (!TryWriteCell(cells[spanIndex]))
+            if (!TryWriteCell(cells[State.Column]))
                 return false;
         }
 
         return TryWriteRowEnd();
     }
 
-    private bool TryAddRowCellsForList(IList<T> cells, ref int currentListIndex)
+    private bool TryAddRowCellsForList(IList<T> cells)
     {
-        for (; currentListIndex < cells.Count; ++currentListIndex)
+        for (; State.Column < cells.Count; ++State.Column)
         {
             // Write cell if it fits in the buffer
-            if (!TryWriteCell(cells[currentListIndex]))
+            if (!TryWriteCell(cells[State.Column]))
                 return false;
         }
 
@@ -161,7 +150,7 @@ internal abstract class BaseCellWriter<T>
             State.Column = 0;
         }
 
-        await AddRowCellsAsync(cells.Slice(State.Column), stream, token).ConfigureAwait(false);
+        await AddRowCellsAsync(cells, stream, token).ConfigureAwait(false);
     }
 
     public async ValueTask AddRowAsync(IList<T> cells, uint rowIndex, Stream stream, CancellationToken token)
@@ -189,7 +178,7 @@ internal abstract class BaseCellWriter<T>
             State.Column = 0;
         }
 
-        await AddRowCellsAsync(cells.Slice(State.Column), stream, token).ConfigureAwait(false);
+        await AddRowCellsAsync(cells, stream, token).ConfigureAwait(false);
     }
 
     public async ValueTask AddRowAsync(IList<T> cells, uint rowIndex, RowOptions options, Stream stream, CancellationToken token)
@@ -208,21 +197,21 @@ internal abstract class BaseCellWriter<T>
 
     private async ValueTask AddRowCellsAsync(ReadOnlyMemory<T> cells, Stream stream, CancellationToken token)
     {
-        while (!cells.IsEmpty)
+        while (State.Column < cells.Length)
         {
             // Attempt to add row cells again
-            if (TryAddRowCellsForSpan(cells.Span, out var currentIndex))
+            var beforeIndex = State.Column;
+            if (TryAddRowCellsForSpan(cells.Span))
                 return;
 
             // If no cells were added, the next cell is larger than the buffer.
-            if (currentIndex == 0)
+            if (State.Column == beforeIndex)
             {
-                await WriteCellPieceByPieceAsync(cells.Span[0], stream, token).ConfigureAwait(false);
-                currentIndex = 1;
+                await WriteCellPieceByPieceAsync(cells.Span[State.Column], stream, token).ConfigureAwait(false);
+                ++State.Column;
             }
 
             // One or more cells were added, repeat.
-            cells = cells.Slice(currentIndex);
             await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }
 
