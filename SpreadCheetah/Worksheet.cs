@@ -23,7 +23,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     {
         _stream = stream;
         _buffer = buffer;
-        _state = new CellWriterState(buffer);
+        _state = new CellWriterState(buffer, false);
         _cellWriter = new CellWriter(_state, defaultStyling);
         _dataCellWriter = new DataCellWriter(_state, defaultStyling);
         _styledCellWriter = new StyledCellWriter(_state, defaultStyling);
