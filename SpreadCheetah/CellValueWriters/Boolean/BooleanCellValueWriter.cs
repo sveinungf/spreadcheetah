@@ -11,13 +11,13 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
     private static ReadOnlySpan<byte> BeginStyledBooleanCell => "<c t=\"b\" s=\""u8;
     private static ReadOnlySpan<byte> BeginBooleanFormulaCell => "<c t=\"b\"><f>"u8;
 
-    protected abstract bool TryWriteCell(SpreadsheetBuffer buffer);
+    protected abstract bool TryWriteCell(CellWriterState state);
     protected abstract bool TryWriteEndStyleValue(Span<byte> bytes, out int bytesWritten);
     protected abstract bool TryWriteEndFormulaValue(Span<byte> bytes, out int bytesWritten);
 
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
     {
-        return TryWriteCell(state.Buffer);
+        return TryWriteCell(state);
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
@@ -117,7 +117,8 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool WriteStartElement(SpreadsheetBuffer buffer) => TryWriteCell(buffer);
+    public override bool WriteStartElement(SpreadsheetBuffer buffer)
+        => TryWriteCell(new CellWriterState(buffer, false)); // TODO: Temporary workaround
 
     public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => TryWriteCell(styleId, buffer);
 

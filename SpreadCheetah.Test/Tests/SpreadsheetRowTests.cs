@@ -536,9 +536,6 @@ public class SpreadsheetRowTests
     [MemberData(nameof(TestData.CellAndValueTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddRow_ExplicitCellReferences(CellValueType valueType, bool isNull, CellType cellType, RowCollectionType rowType)
     {
-        if (valueType != CellValueType.String || isNull) // TODO: Temporary
-            return;
-
         // Arrange
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
