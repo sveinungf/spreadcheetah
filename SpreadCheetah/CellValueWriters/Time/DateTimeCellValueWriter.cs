@@ -22,7 +22,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
     {
         var defaultStyleId = defaultStyling?.DateTimeStyleId;
         return defaultStyleId is not null
-            ? TryWriteCell(cell, defaultStyleId.Value, state.Buffer)
+            ? TryWriteCell(cell, defaultStyleId.Value, state)
             : TryWriteCell(cell, state);
     }
 

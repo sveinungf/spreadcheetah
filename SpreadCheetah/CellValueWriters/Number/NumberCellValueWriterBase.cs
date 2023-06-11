@@ -39,24 +39,32 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         return true;
     }
 
-    protected bool TryWriteCell(in DataCell cell, int styleId, SpreadsheetBuffer buffer)
+    protected bool TryWriteCell(in DataCell cell, int styleId, CellWriterState state)
     {
+        var buffer = state.Buffer;
         var bytes = buffer.GetSpan();
-        var part1 = StyledCellHelper.BeginStyledNumberCell.Length;
-        var part3 = EndStyleBeginValue.Length;
-        var part5 = EndDefaultCell.Length;
+        var written = 0;
 
-        if (StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes)
-            && Utf8Formatter.TryFormat(styleId, bytes.Slice(part1), out var part2)
-            && EndStyleBeginValue.TryCopyTo(bytes.Slice(part1 + part2))
-            && TryWriteValue(cell, bytes.Slice(part1 + part2 + part3), out var part4)
-            && EndDefaultCell.TryCopyTo(bytes.Slice(part1 + part2 + part3 + part4)))
+        if (!state.WriteCellReferenceAttributes)
         {
-            buffer.Advance(part1 + part2 + part3 + part4 + part5);
-            return true;
+            if (!StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes, ref written)) return false;
+        }
+        else
+        {
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!StyledCellHelper.EndReferenceBeginStyleId.TryCopyTo(bytes, ref written)) return false;
         }
 
-        return false;
+        if (!SpanHelper.TryWrite(styleId, bytes, ref written)) return false;
+        if (!EndStyleBeginValue.TryCopyTo(bytes, ref written)) return false;
+
+        if (!TryWriteValue(cell, bytes.Slice(written), out var valueLength)) return false;
+        written += valueLength;
+
+        if (!EndDefaultCell.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
     }
 
     protected bool TryWriteCell(string formulaText, in DataCell cachedValue, int? styleId, SpreadsheetBuffer buffer)
@@ -80,7 +88,7 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
-        return TryWriteCell(cell, GetStyleId(styleId), buffer);
+        return TryWriteCell(cell, GetStyleId(styleId), new CellWriterState(buffer, false)); // TODO: Temporary workaround
     }
 
     public static bool TryWriteFormulaCellStart(int? styleId, Span<byte> bytes, out int bytesWritten)
