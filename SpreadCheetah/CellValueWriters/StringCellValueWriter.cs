@@ -170,13 +170,26 @@ internal sealed class StringCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer)
+    public override bool WriteStartElement(StyleId styleId, CellWriterState state)
     {
+        var buffer = state.Buffer;
         var bytes = buffer.GetSpan();
-        var bytesWritten = SpanHelper.GetBytes(BeginStyledStringCell, bytes);
-        bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(EndStyleBeginInlineString, bytes.Slice(bytesWritten));
-        buffer.Advance(bytesWritten);
+        var written = 0;
+
+        if (!state.WriteCellReferenceAttributes)
+        {
+            if (!BeginStyledStringCell.TryCopyTo(bytes, ref written)) return false;
+        }
+        else
+        {
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!"\" t=\"inlineStr\" s=\""u8.TryCopyTo(bytes, ref written)) return false;
+        }
+
+        if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+        if (!EndStyleBeginInlineString.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
         return true;
     }
 

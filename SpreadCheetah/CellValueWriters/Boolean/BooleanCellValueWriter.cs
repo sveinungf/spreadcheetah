@@ -130,8 +130,7 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
 
     public override bool WriteStartElement(CellWriterState state) => TryWriteCell(state);
 
-    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer)
-        => TryWriteCell(styleId, new CellWriterState(buffer, false)); // TODO: Temporary workaround
+    public override bool WriteStartElement(StyleId styleId, CellWriterState state) => TryWriteCell(styleId, state);
 
     /// <summary>
     /// Returns false because the value is written together with the end element in <see cref="TryWriteEndElement(in Cell, SpreadsheetBuffer)"/>.

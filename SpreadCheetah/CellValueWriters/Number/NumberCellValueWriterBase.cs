@@ -142,13 +142,26 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         return true;
     }
 
-    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer)
+    public override bool WriteStartElement(StyleId styleId, CellWriterState state)
     {
+        var buffer = state.Buffer;
         var bytes = buffer.GetSpan();
-        var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledNumberCell, bytes);
-        bytesWritten += Utf8Helper.GetBytes(GetStyleId(styleId), bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(EndStyleBeginValue, bytes.Slice(bytesWritten));
-        buffer.Advance(bytesWritten);
+        var written = 0;
+
+        if (!state.WriteCellReferenceAttributes)
+        {
+            if (!StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes, ref written)) return false;
+        }
+        else
+        {
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!StyledCellHelper.EndReferenceBeginStyleId.TryCopyTo(bytes, ref written)) return false;
+        }
+
+        if (!SpanHelper.TryWrite(GetStyleId(styleId), bytes, ref written)) return false;
+        if (!EndStyleBeginValue.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
         return true;
     }
 

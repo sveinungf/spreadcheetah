@@ -20,7 +20,7 @@ internal sealed class StyledCellWriter : BaseCellWriter<StyledCell>
     {
         return cell.StyleId is null
             ? cell.DataCell.Writer.WriteStartElement(State)
-            : cell.DataCell.Writer.WriteStartElement(cell.StyleId, Buffer);
+            : cell.DataCell.Writer.WriteStartElement(cell.StyleId, State);
     }
 
     protected override bool TryWriteEndElement(in StyledCell cell)
