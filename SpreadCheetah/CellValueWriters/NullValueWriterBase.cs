@@ -26,8 +26,7 @@ internal abstract class NullValueWriterBase : CellValueWriter
         }
         else
         {
-            if (!"<c r=\""u8.TryCopyTo(bytes, ref written)) return false;
-            if (!SpanHelper.TryWriteCellReference(state.Column + 1, state.NextRowIndex - 1, bytes, ref written)) return false;
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
             if (!"\"/>"u8.TryCopyTo(bytes, ref written)) return false;
         }
 

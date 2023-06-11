@@ -2,6 +2,7 @@ using SpreadCheetah.CellValueWriters.Boolean;
 using SpreadCheetah.CellValueWriters.Number;
 using SpreadCheetah.CellValueWriters.Time;
 using SpreadCheetah.CellWriters;
+using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 
@@ -31,4 +32,15 @@ internal abstract class CellValueWriter
     public abstract bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer);
     public abstract bool Equals(in CellValue value, in CellValue other);
     public abstract int GetHashCodeFor(in CellValue value);
+
+    protected static bool TryWriteCellStartWithReference(CellWriterState state, Span<byte> bytes, ref int bytesWritten)
+    {
+        var written = 0;
+
+        if (!"<c r=\""u8.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWriteCellReference(state.Column + 1, state.NextRowIndex - 1, bytes, ref written)) return false;
+
+        bytesWritten += written;
+        return true;
+    }
 }

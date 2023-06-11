@@ -21,8 +21,7 @@ internal sealed class TrueBooleanCellValueWriter : BooleanCellValueWriter
         }
         else
         {
-            if (!"<c r=\""u8.TryCopyTo(bytes, ref written)) return false;
-            if (!SpanHelper.TryWriteCellReference(state.Column + 1, state.NextRowIndex - 1, bytes, ref written)) return false;
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
             if (!"\" t=\"b\"><v>1</v></c>"u8.TryCopyTo(bytes, ref written)) return false;
         }
 
