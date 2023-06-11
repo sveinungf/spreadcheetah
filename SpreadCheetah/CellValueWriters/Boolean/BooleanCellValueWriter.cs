@@ -49,33 +49,34 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
     {
+        var buffer = state.Buffer;
         var bytes = buffer.GetSpan();
 
-        if (TryWriteFormulaCellStart(styleId, bytes, out var part1)
-            && Utf8Helper.TryGetBytes(formulaText, bytes.Slice(part1), out var part2)
-            && TryWriteEndFormulaValue(bytes.Slice(part1 + part2), out var part3))
-        {
-            buffer.Advance(part1 + part2 + part3);
-            return true;
-        }
+        if (!TryWriteFormulaCellStart(styleId, state, bytes, out var written)) return false;
+        if (!SpanHelper.TryWrite(formulaText, bytes, ref written)) return false;
+        if (!TryWriteEndFormulaValue(bytes.Slice(written), out var endLength)) return false;
 
-        return false;
+        buffer.Advance(written + endLength);
+        return true;
     }
 
-    private static bool TryWriteFormulaCellStart(StyleId? styleId, Span<byte> bytes, out int bytesWritten)
+    private static bool TryWriteFormulaCellStart(StyleId? styleId, CellWriterState state, Span<byte> bytes, out int bytesWritten)
     {
+        bytesWritten = 0;
+
         if (styleId is null)
         {
-            if (BeginBooleanFormulaCell.TryCopyTo(bytes))
-            {
-                bytesWritten = BeginBooleanFormulaCell.Length;
-                return true;
-            }
+            if (!state.WriteCellReferenceAttributes)
+                return BeginBooleanFormulaCell.TryCopyTo(bytes, ref bytesWritten);
 
-            bytesWritten = 0;
-            return false;
+            var written = 0;
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!"<c t=\"b\"><f>"u8.TryCopyTo(bytes, ref written)) return false;
+
+            bytesWritten = written;
+            return true;
         }
 
         var part1 = BeginStyledBooleanCell.Length;

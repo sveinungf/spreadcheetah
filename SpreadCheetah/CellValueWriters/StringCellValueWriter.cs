@@ -63,9 +63,12 @@ internal sealed class StringCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
     {
+        var buffer = state.Buffer;
         var bytes = buffer.GetSpan();
+
+        // TODO: Handle explicit cell reference
         var part3 = FormulaCellHelper.EndFormulaBeginCachedValue.Length;
         var part5 = FormulaCellHelper.EndCachedValueEndCell.Length;
 

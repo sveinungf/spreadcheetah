@@ -2,7 +2,6 @@ using SpreadCheetah.CellValueWriters.Number;
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
-using System.Buffers.Text;
 
 namespace SpreadCheetah.CellValueWriters;
 
@@ -57,20 +56,17 @@ internal abstract class NullValueWriterBase : CellValueWriter
         return true;
     }
 
-    protected static bool TryWriteCell(string formulaText, int? styleId, SpreadsheetBuffer buffer)
+    protected static bool TryWriteCell(string formulaText, int? styleId, CellWriterState state)
     {
+        var buffer = state.Buffer;
         var bytes = buffer.GetSpan();
-        var part3 = EndFormulaEndCell.Length;
 
-        if (NumberCellValueWriterBase.TryWriteFormulaCellStart(styleId, bytes, out var part1)
-            && Utf8Helper.TryGetBytes(formulaText, bytes.Slice(part1), out var part2)
-            && EndFormulaEndCell.TryCopyTo(bytes.Slice(part1 + part2)))
-        {
-            buffer.Advance(part1 + part2 + part3);
-            return true;
-        }
+        if (!NumberCellValueWriterBase.TryWriteFormulaCellStart(styleId, state, bytes, out var written)) return false;
+        if (!SpanHelper.TryWrite(formulaText, bytes, ref written)) return false;
+        if (!EndFormulaEndCell.TryCopyTo(bytes, ref written)) return false;
 
-        return false;
+        buffer.Advance(written);
+        return true;
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state)

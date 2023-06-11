@@ -12,7 +12,7 @@ internal sealed class CellWriter : BaseCellWriter<Cell>
 
     protected override bool TryWriteCell(in Cell cell) => cell switch
     {
-        { Formula: not null } => cell.DataCell.Writer.TryWriteCell(cell.Formula.Value.FormulaText, cell.DataCell, cell.StyleId, DefaultStyling, Buffer),
+        { Formula: not null } => cell.DataCell.Writer.TryWriteCell(cell.Formula.Value.FormulaText, cell.DataCell, cell.StyleId, DefaultStyling, State),
         { StyleId: not null } => cell.DataCell.Writer.TryWriteCell(cell.DataCell, cell.StyleId, State),
         _ => cell.DataCell.Writer.TryWriteCell(cell.DataCell, DefaultStyling, State)
     };

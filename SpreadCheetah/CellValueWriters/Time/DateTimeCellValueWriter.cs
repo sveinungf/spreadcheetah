@@ -26,10 +26,10 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
             : TryWriteCell(cell, state);
     }
 
-    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
     {
         var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
-        return TryWriteCell(formulaText, cachedValue, actualStyleId, buffer);
+        return TryWriteCell(formulaText, cachedValue, actualStyleId, state);
     }
 
     public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
