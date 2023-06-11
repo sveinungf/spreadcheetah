@@ -12,7 +12,7 @@ internal sealed class NullDateTimeCellValueWriter : NullValueWriterBase
     {
         var defaultStyleId = defaultStyling?.DateTimeStyleId;
         return defaultStyleId is not null
-            ? TryWriteCell(defaultStyleId.Value, state.Buffer)
+            ? TryWriteCell(defaultStyleId.Value, state)
             : TryWriteCell(state);
     }
 

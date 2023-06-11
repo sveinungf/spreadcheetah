@@ -34,19 +34,27 @@ internal abstract class NullValueWriterBase : CellValueWriter
         return true;
     }
 
-    protected static bool TryWriteCell(int styleId, SpreadsheetBuffer buffer)
+    protected static bool TryWriteCell(int styleId, CellWriterState state)
     {
+        var buffer = state.Buffer;
         var bytes = buffer.GetSpan();
+        var written = 0;
 
-        if (StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes)
-            && Utf8Formatter.TryFormat(styleId, bytes.Slice(StyledCellHelper.BeginStyledNumberCell.Length), out var valueLength)
-            && EndStyleNullValue.TryCopyTo(bytes.Slice(StyledCellHelper.BeginStyledNumberCell.Length + valueLength)))
+        if (!state.WriteCellReferenceAttributes)
         {
-            buffer.Advance(StyledCellHelper.BeginStyledNumberCell.Length + EndStyleNullValue.Length + valueLength);
-            return true;
+            if (!StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes, ref written)) return false;
+        }
+        else
+        {
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!"\" s=\""u8.TryCopyTo(bytes, ref written)) return false;
         }
 
-        return false;
+        if (!SpanHelper.TryWrite(styleId, bytes, ref written)) return false;
+        if (!EndStyleNullValue.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
     }
 
     protected static bool TryWriteCell(string formulaText, int? styleId, SpreadsheetBuffer buffer)
@@ -67,7 +75,7 @@ internal abstract class NullValueWriterBase : CellValueWriter
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
-        return TryWriteCell(GetStyleId(styleId), buffer);
+        return TryWriteCell(GetStyleId(styleId), new CellWriterState(buffer, false)); // TODO: Temporary workaround
     }
 
     public override bool TryWriteEndElement(SpreadsheetBuffer buffer) => true;
@@ -106,7 +114,8 @@ internal abstract class NullValueWriterBase : CellValueWriter
     public override bool WriteStartElement(SpreadsheetBuffer buffer)
         => TryWriteCell(new CellWriterState(buffer, false)); // TODO: Temporary workaround
 
-    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => TryWriteCell(GetStyleId(styleId), buffer);
+    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer)
+        => TryWriteCell(GetStyleId(styleId), new CellWriterState(buffer, false)); // TODO: Temporary workaround
 
     /// <summary>
     /// Returns false because there is no value to write for 'null'.
