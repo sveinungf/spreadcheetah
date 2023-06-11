@@ -21,7 +21,7 @@ internal sealed class CellWriter : BaseCellWriter<Cell>
     {
         { Formula: not null } => cell.DataCell.Writer.WriteFormulaStartElement(cell.StyleId, DefaultStyling, Buffer),
         { StyleId: not null } => cell.DataCell.Writer.WriteStartElement(cell.StyleId, Buffer),
-        _ => cell.DataCell.Writer.WriteStartElement(Buffer)
+        _ => cell.DataCell.Writer.WriteStartElement(State)
     };
 
     protected override bool TryWriteEndElement(in Cell cell)

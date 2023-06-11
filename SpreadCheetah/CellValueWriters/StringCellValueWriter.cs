@@ -150,9 +150,23 @@ internal sealed class StringCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool WriteStartElement(SpreadsheetBuffer buffer)
+    public override bool WriteStartElement(CellWriterState state)
     {
-        buffer.Advance(SpanHelper.GetBytes(BeginStringCell, buffer.GetSpan()));
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!state.WriteCellReferenceAttributes)
+        {
+            if (!BeginStringCell.TryCopyTo(bytes, ref written)) return false;
+        }
+        else
+        {
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!"\" t=\"inlineStr\"><is><t>"u8.TryCopyTo(bytes, ref written)) return false;
+        }
+
+        buffer.Advance(written);
         return true;
     }
 

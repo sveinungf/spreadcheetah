@@ -1,7 +1,6 @@
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
-using System.Buffers.Text;
 
 namespace SpreadCheetah.CellValueWriters.Number;
 
@@ -123,9 +122,23 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         return true;
     }
 
-    public override bool WriteStartElement(SpreadsheetBuffer buffer)
+    public override bool WriteStartElement(CellWriterState state)
     {
-        buffer.Advance(SpanHelper.GetBytes(BeginDataCell, buffer.GetSpan()));
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!state.WriteCellReferenceAttributes)
+        {
+            if (!BeginDataCell.TryCopyTo(bytes, ref written)) return false;
+        }
+        else
+        {
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!"\"><v>"u8.TryCopyTo(bytes, ref written)) return false;
+        }
+
+        buffer.Advance(written);
         return true;
     }
 

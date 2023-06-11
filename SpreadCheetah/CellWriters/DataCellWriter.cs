@@ -16,7 +16,7 @@ internal sealed class DataCellWriter : BaseCellWriter<DataCell>
 
     protected override bool WriteStartElement(in DataCell cell)
     {
-        return cell.Writer.WriteStartElement(Buffer);
+        return cell.Writer.WriteStartElement(State);
     }
 
     protected override bool TryWriteEndElement(in DataCell cell)
