@@ -538,7 +538,8 @@ public class SpreadsheetRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        var options = new SpreadCheetahOptions { DefaultDateTimeNumberFormat = null };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
 
         var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(cellType, valueType, isNull, null, out var value)).ToList();
         var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(cellType, valueType, isNull, null, out var value)).ToList();
@@ -548,15 +549,15 @@ public class SpreadsheetRowTests
         var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
         var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
 
-        var options = new WorksheetOptions { WriteCellReferenceAttributes = true };
+        var worksheetOptions = new WorksheetOptions { WriteCellReferenceAttributes = true };
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1", options);
+        await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions);
         await spreadsheet.AddRowAsync(row1, rowType);
         await spreadsheet.AddRowAsync(row2, rowType);
         await spreadsheet.AddRowAsync(row3, rowType);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2", options);
+        await spreadsheet.StartWorksheetAsync("Sheet2", worksheetOptions);
         await spreadsheet.AddRowAsync(row1, rowType);
 
         await spreadsheet.FinishAsync();
