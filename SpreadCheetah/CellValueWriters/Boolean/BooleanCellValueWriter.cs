@@ -73,7 +73,7 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
 
             var written = 0;
             if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
-            if (!"<c t=\"b\"><f>"u8.TryCopyTo(bytes, ref written)) return false;
+            if (!"\" t=\"b\"><f>"u8.TryCopyTo(bytes, ref written)) return false;
 
             bytesWritten = written;
             return true;
