@@ -23,7 +23,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
         var defaultStyleId = defaultStyling?.DateTimeStyleId;
         return defaultStyleId is not null
             ? TryWriteCell(cell, defaultStyleId.Value, state.Buffer)
-            : TryWriteCell(cell, state.Buffer);
+            : TryWriteCell(cell, state);
     }
 
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)

@@ -10,7 +10,7 @@ internal abstract class NumberCellValueWriter : NumberCellValueWriterBase
 
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
     {
-        return TryWriteCell(cell, state.Buffer);
+        return TryWriteCell(cell, state);
     }
 
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)

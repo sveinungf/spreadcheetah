@@ -1,3 +1,4 @@
+using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using System.Buffers.Text;
@@ -13,19 +14,29 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
     private static ReadOnlySpan<byte> EndStyleBeginValue => "\"><v>"u8;
     private static ReadOnlySpan<byte> EndDefaultCell => "</v></c>"u8;
 
-    protected bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer)
+    protected bool TryWriteCell(in DataCell cell, CellWriterState state)
     {
+        var buffer = state.Buffer;
         var bytes = buffer.GetSpan();
+        var written = 0;
 
-        if (BeginDataCell.TryCopyTo(bytes)
-            && TryWriteValue(cell, bytes.Slice(BeginDataCell.Length), out var valueLength)
-            && EndDefaultCell.TryCopyTo(bytes.Slice(BeginDataCell.Length + valueLength)))
+        if (!state.WriteCellReferenceAttributes)
         {
-            buffer.Advance(BeginDataCell.Length + EndDefaultCell.Length + valueLength);
-            return true;
+            if (!BeginDataCell.TryCopyTo(bytes, ref written)) return false;
+        }
+        else
+        {
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!"\"><v>"u8.TryCopyTo(bytes, ref written)) return false;
         }
 
-        return false;
+        if (!TryWriteValue(cell, bytes.Slice(written), out var valueLength)) return false;
+        written += valueLength;
+
+        if (!EndDefaultCell.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
     }
 
     protected bool TryWriteCell(in DataCell cell, int styleId, SpreadsheetBuffer buffer)
