@@ -38,24 +38,29 @@ internal sealed class StringCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state)
     {
+        var buffer = state.Buffer;
         var bytes = buffer.GetSpan();
-        var part1 = BeginStyledStringCell.Length;
-        var part3 = EndStyleBeginInlineString.Length;
-        var part5 = EndStringCell.Length;
+        var written = 0;
 
-        if (BeginStyledStringCell.TryCopyTo(bytes)
-            && Utf8Formatter.TryFormat(styleId.Id, bytes.Slice(part1), out var part2)
-            && EndStyleBeginInlineString.TryCopyTo(bytes.Slice(part1 + part2))
-            && Utf8Helper.TryGetBytes(cell.StringValue, bytes.Slice(part1 + part2 + part3), out var part4)
-            && EndStringCell.TryCopyTo(bytes.Slice(part1 + part2 + part3 + part4)))
+        if (!state.WriteCellReferenceAttributes)
         {
-            buffer.Advance(part1 + part2 + part3 + part4 + part5);
-            return true;
+            if (!BeginStyledStringCell.TryCopyTo(bytes, ref written)) return false;
+        }
+        else
+        {
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!"\" t=\"inlineStr\" s=\""u8.TryCopyTo(bytes, ref written)) return false;
         }
 
-        return false;
+        if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+        if (!EndStyleBeginInlineString.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(cell.StringValue, bytes, ref written)) return false;
+        if (!EndStringCell.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
     }
 
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)

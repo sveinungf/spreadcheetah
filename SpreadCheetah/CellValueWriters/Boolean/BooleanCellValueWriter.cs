@@ -20,25 +20,33 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         return TryWriteCell(state);
     }
 
-    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state)
     {
-        return TryWriteCell(styleId, buffer);
+        return TryWriteCell(styleId, state);
     }
 
-    private bool TryWriteCell(StyleId styleId, SpreadsheetBuffer buffer)
+    private bool TryWriteCell(StyleId styleId, CellWriterState state)
     {
+        var buffer = state.Buffer;
         var bytes = buffer.GetSpan();
-        var part1 = BeginStyledBooleanCell.Length;
+        var written = 0;
 
-        if (BeginStyledBooleanCell.TryCopyTo(bytes)
-            && Utf8Formatter.TryFormat(styleId.Id, bytes.Slice(part1), out var part2)
-            && TryWriteEndStyleValue(bytes.Slice(part1 + part2), out var part3))
+        if (!state.WriteCellReferenceAttributes)
         {
-            buffer.Advance(part1 + part2 + part3);
-            return true;
+            if (!BeginStyledBooleanCell.TryCopyTo(bytes, ref written)) return false;
+        }
+        else
+        {
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!"\" t=\"b\" s=\""u8.TryCopyTo(bytes, ref written)) return false;
         }
 
-        return false;
+        if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+        if (!TryWriteEndStyleValue(bytes.Slice(written), out var endLength)) return false;
+        written += endLength;
+
+        buffer.Advance(written);
+        return true;
     }
 
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
@@ -120,7 +128,8 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
     public override bool WriteStartElement(SpreadsheetBuffer buffer)
         => TryWriteCell(new CellWriterState(buffer, false)); // TODO: Temporary workaround
 
-    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => TryWriteCell(styleId, buffer);
+    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer)
+        => TryWriteCell(styleId, new CellWriterState(buffer, false)); // TODO: Temporary workaround
 
     /// <summary>
     /// Returns false because the value is written together with the end element in <see cref="TryWriteEndElement(in Cell, SpreadsheetBuffer)"/>.

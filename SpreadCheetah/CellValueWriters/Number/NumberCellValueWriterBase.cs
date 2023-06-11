@@ -86,9 +86,9 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         return false;
     }
 
-    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state)
     {
-        return TryWriteCell(cell, GetStyleId(styleId), new CellWriterState(buffer, false)); // TODO: Temporary workaround
+        return TryWriteCell(cell, GetStyleId(styleId), state);
     }
 
     public static bool TryWriteFormulaCellStart(int? styleId, Span<byte> bytes, out int bytesWritten)

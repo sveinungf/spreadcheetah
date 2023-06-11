@@ -73,9 +73,9 @@ internal abstract class NullValueWriterBase : CellValueWriter
         return false;
     }
 
-    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state)
     {
-        return TryWriteCell(GetStyleId(styleId), new CellWriterState(buffer, false)); // TODO: Temporary workaround
+        return TryWriteCell(GetStyleId(styleId), state);
     }
 
     public override bool TryWriteEndElement(SpreadsheetBuffer buffer) => true;
