@@ -2,7 +2,6 @@ using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
-using System.Buffers.Text;
 
 namespace SpreadCheetah.CellValueWriters;
 
@@ -81,13 +80,13 @@ internal sealed class StringCellValueWriter : CellValueWriter
     private static bool TryWriteFormulaCellStart(StyleId? styleId, CellWriterState state, Span<byte> bytes, out int bytesWritten)
     {
         bytesWritten = 0;
+        var written = 0;
 
         if (styleId is null)
         {
             if (!state.WriteCellReferenceAttributes)
                 return BeginStringFormulaCell.TryCopyTo(bytes, ref bytesWritten);
 
-            var written = 0;
             if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
             if (!"\" t=\"str\"><f>"u8.TryCopyTo(bytes, ref written)) return false;
 
@@ -95,18 +94,21 @@ internal sealed class StringCellValueWriter : CellValueWriter
             return true;
         }
 
-        var part1 = BeginStyledStringFormulaCell.Length;
-        var part3 = FormulaCellHelper.EndStyleBeginFormula.Length;
-        if (BeginStyledStringFormulaCell.TryCopyTo(bytes)
-            && Utf8Formatter.TryFormat(styleId.Id, bytes.Slice(part1), out var part2)
-            && FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes.Slice(part1 + part2)))
+        if (!state.WriteCellReferenceAttributes)
         {
-            bytesWritten = part1 + part2 + part3;
-            return true;
+            if (!BeginStyledStringFormulaCell.TryCopyTo(bytes, ref written)) return false;
+        }
+        else
+        {
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!"\" t=\"str\" s=\""u8.TryCopyTo(bytes, ref written)) return false;
         }
 
-        bytesWritten = 0;
-        return false;
+        if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+        if (!FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes, ref written)) return false;
+
+        bytesWritten = written;
+        return true;
     }
 
     public override bool TryWriteEndElement(SpreadsheetBuffer buffer)
