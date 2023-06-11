@@ -531,7 +531,7 @@ public class SpreadsheetRowTests
         Assert.Equal(values, actualValues);
     }
 
-    // TODO: Add similar tests for styled cells, formula cells, and cells with very long string values
+    // TODO: Add similar tests for formula cells, and cells with very long string values
     [Theory]
     [MemberData(nameof(TestData.CellAndValueTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddRow_ExplicitCellReferences(CellValueType valueType, bool isNull, CellType cellType, RowCollectionType rowType)

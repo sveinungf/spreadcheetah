@@ -1,11 +1,20 @@
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Test.Helpers.Backporting;
-using System.Drawing;
+using SpreadCheetah.Worksheets;
 using System.Globalization;
 using Xunit;
+using Alignment = SpreadCheetah.Styling.Alignment;
+using Border = SpreadCheetah.Styling.Border;
+using CellType = SpreadCheetah.Test.Helpers.CellType;
+using Color = System.Drawing.Color;
+using DiagonalBorder = SpreadCheetah.Styling.DiagonalBorder;
+using Fill = SpreadCheetah.Styling.Fill;
 using Font = SpreadCheetah.Styling.Font;
+using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -975,5 +984,59 @@ public class SpreadsheetStyledRowTests
         var worksheet = workbook.Worksheets.Single();
         var actualStyles = worksheet.Cells().Select(x => x.Style).ToList();
         Assert.All(styles.Zip(actualStyles), x => SpreadsheetAssert.EquivalentStyle(x.First, x.Second));
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData.StyledCellAndValueTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_ExplicitCellReferencesForStyledCells(CellValueType valueType, bool isNull, CellType cellType, RowCollectionType rowType)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        var style = new Style();
+        style.Fill.Color = Color.LightSeaGreen;
+        var styleId = spreadsheet.AddStyle(style);
+
+        var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(cellType, valueType, isNull, styleId, out var value)).ToList();
+        var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(cellType, valueType, isNull, styleId, out var value)).ToList();
+        var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(cellType, valueType, isNull, styleId, out var value)).ToList();
+
+        var expectedRow1Refs = Enumerable.Range(1, 10).Select(x => SpreadsheetUtility.GetColumnName(x) + "1").OfType<string?>();
+        var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
+        var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
+
+        var options = new WorksheetOptions { WriteCellReferenceAttributes = true };
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("Sheet1", options);
+        await spreadsheet.AddRowAsync(row1, rowType);
+        await spreadsheet.AddRowAsync(row2, rowType);
+        await spreadsheet.AddRowAsync(row3, rowType);
+
+        await spreadsheet.StartWorksheetAsync("Sheet2", options);
+        await spreadsheet.AddRowAsync(row1, rowType);
+
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var actual = SpreadsheetDocument.Open(stream, true);
+        var sheetParts = actual.WorkbookPart!.WorksheetParts.ToList();
+        Assert.Equal(2, sheetParts.Count);
+
+        var sheet1Rows = sheetParts[0].Worksheet.Descendants<Row>().ToList();
+        Assert.Equal(3, sheet1Rows.Count);
+
+        var actualRow1Refs = sheet1Rows[0].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
+        var actualRow2Refs = sheet1Rows[1].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
+        var actualRow3Refs = sheet1Rows[2].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
+
+        Assert.Equal(expectedRow1Refs, actualRow1Refs);
+        Assert.Equal(expectedRow2Refs, actualRow2Refs);
+        Assert.Equal(expectedRow3Refs, actualRow3Refs);
+
+        var sheet2Row = sheetParts[1].Worksheet.Descendants<Row>().Single();
+        var actualSheet2Refs = sheet2Row.Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
+        Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
 }
