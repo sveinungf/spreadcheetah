@@ -32,9 +32,9 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
         return TryWriteCell(formulaText, cachedValue, actualStyleId, state);
     }
 
-    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
     {
         var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
-        return WriteFormulaStartElement(actualStyleId, buffer);
+        return WriteFormulaStartElement(actualStyleId, state);
     }
 }

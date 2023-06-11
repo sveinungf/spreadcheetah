@@ -18,8 +18,8 @@ internal sealed class NullValueWriter : NullValueWriterBase
         return TryWriteCell(formulaText, styleId?.Id, state);
     }
 
-    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
     {
-        return WriteFormulaStartElement(styleId?.Id, buffer);
+        return WriteFormulaStartElement(styleId?.Id, state);
     }
 }

@@ -1,4 +1,3 @@
-using System.Buffers.Text;
 using System.Text;
 
 namespace SpreadCheetah.Helpers;
@@ -8,12 +7,6 @@ internal static class Utf8Helper
     public const int MaxBytePerChar = 6;
 
     private static readonly UTF8Encoding Utf8NoBom = new(false);
-
-    public static int GetBytes(int number, Span<byte> destination)
-    {
-        Utf8Formatter.TryFormat(number, destination, out var bytesWritten);
-        return bytesWritten;
-    }
 
     public static int GetBytes(ReadOnlySpan<char> chars, Span<byte> bytes) => Utf8NoBom.GetBytes(chars, bytes);
 

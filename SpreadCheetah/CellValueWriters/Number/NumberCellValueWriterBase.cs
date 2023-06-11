@@ -165,19 +165,38 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         return true;
     }
 
-    protected static bool WriteFormulaStartElement(int? styleId, SpreadsheetBuffer buffer)
+    protected static bool WriteFormulaStartElement(int? styleId, CellWriterState state)
     {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
         if (styleId is null)
         {
-            buffer.Advance(SpanHelper.GetBytes(FormulaCellHelper.BeginNumberFormulaCell, buffer.GetSpan()));
+            if (!state.WriteCellReferenceAttributes)
+                return FormulaCellHelper.BeginNumberFormulaCell.TryCopyTo(bytes, ref written);
+
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!"\"><f>"u8.TryCopyTo(bytes, ref written)) return false;
+
+            buffer.Advance(written);
             return true;
         }
 
-        var bytes = buffer.GetSpan();
-        var bytesWritten = SpanHelper.GetBytes(StyledCellHelper.BeginStyledNumberCell, bytes);
-        bytesWritten += Utf8Helper.GetBytes(styleId.Value, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndStyleBeginFormula, bytes.Slice(bytesWritten));
-        buffer.Advance(bytesWritten);
+        if (!state.WriteCellReferenceAttributes)
+        {
+            if (!StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes, ref written)) return false;
+        }
+        else
+        {
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!StyledCellHelper.EndReferenceBeginStyleId.TryCopyTo(bytes, ref written)) return false;
+        }
+
+        if (!SpanHelper.TryWrite(styleId.Value, bytes, ref written)) return false;
+        if (!FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
         return true;
     }
 

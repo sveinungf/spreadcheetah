@@ -22,9 +22,9 @@ internal sealed class NullDateTimeCellValueWriter : NullValueWriterBase
         return TryWriteCell(formulaText, actualStyleId, state);
     }
 
-    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
     {
         var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
-        return WriteFormulaStartElement(actualStyleId, buffer);
+        return WriteFormulaStartElement(actualStyleId, state);
     }
 }

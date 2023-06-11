@@ -112,19 +112,38 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         return false;
     }
 
-    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
     {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
         if (styleId is null)
         {
-            buffer.Advance(SpanHelper.GetBytes(BeginBooleanFormulaCell, buffer.GetSpan()));
+            if (!state.WriteCellReferenceAttributes)
+                return BeginBooleanFormulaCell.TryCopyTo(bytes, ref written);
+
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!"\" t=\"b\"><f>"u8.TryCopyTo(bytes, ref written)) return false;
+
+            buffer.Advance(written);
             return true;
         }
 
-        var bytes = buffer.GetSpan();
-        var bytesWritten = SpanHelper.GetBytes(BeginStyledBooleanCell, buffer.GetSpan());
-        bytesWritten += Utf8Helper.GetBytes(styleId.Id, bytes.Slice(bytesWritten));
-        bytesWritten += SpanHelper.GetBytes(FormulaCellHelper.EndStyleBeginFormula, bytes.Slice(bytesWritten));
-        buffer.Advance(bytesWritten);
+        if (!state.WriteCellReferenceAttributes)
+        {
+            if (!BeginStyledBooleanCell.TryCopyTo(bytes, ref written)) return false;
+        }
+        else
+        {
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!"\" t=\"b\" s=\""u8.TryCopyTo(bytes, ref written)) return false;
+        }
+
+        if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+        if (!FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
         return true;
     }
 

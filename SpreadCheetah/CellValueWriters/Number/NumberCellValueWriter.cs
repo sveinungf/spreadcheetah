@@ -18,8 +18,8 @@ internal abstract class NumberCellValueWriter : NumberCellValueWriterBase
         return TryWriteCell(formulaText, cachedValue, styleId?.Id, state);
     }
 
-    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
     {
-        return WriteFormulaStartElement(styleId?.Id, buffer);
+        return WriteFormulaStartElement(styleId?.Id, state);
     }
 }
