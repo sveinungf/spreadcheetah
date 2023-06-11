@@ -1039,4 +1039,60 @@ public class SpreadsheetStyledRowTests
         var actualSheet2Refs = sheet2Row.Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
+
+    [Theory]
+    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_ExplicitCellReferencesForLongStringValueStyledCells(CellType cellType, RowCollectionType rowType)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        var value = new string('a', options.BufferSize * 2);
+        var style = new Style();
+        style.Fill.Color = Color.Thistle;
+        var styleId = spreadsheet.AddStyle(style);
+
+        var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(cellType, value, styleId)).ToList();
+        var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(cellType, value, styleId)).ToList();
+        var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(cellType, value, styleId)).ToList();
+
+        var expectedRow1Refs = Enumerable.Range(1, 10).Select(x => SpreadsheetUtility.GetColumnName(x) + "1").OfType<string?>();
+        var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
+        var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
+
+        var worksheetOptions = new WorksheetOptions { WriteCellReferenceAttributes = true };
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions);
+        await spreadsheet.AddRowAsync(row1, rowType);
+        await spreadsheet.AddRowAsync(row2, rowType);
+        await spreadsheet.AddRowAsync(row3, rowType);
+
+        await spreadsheet.StartWorksheetAsync("Sheet2", worksheetOptions);
+        await spreadsheet.AddRowAsync(row1, rowType);
+
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var actual = SpreadsheetDocument.Open(stream, true);
+        var sheetParts = actual.WorkbookPart!.WorksheetParts.ToList();
+        Assert.Equal(2, sheetParts.Count);
+
+        var sheet1Rows = sheetParts[0].Worksheet.Descendants<Row>().ToList();
+        Assert.Equal(3, sheet1Rows.Count);
+
+        var actualRow1Refs = sheet1Rows[0].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
+        var actualRow2Refs = sheet1Rows[1].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
+        var actualRow3Refs = sheet1Rows[2].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
+
+        Assert.Equal(expectedRow1Refs, actualRow1Refs);
+        Assert.Equal(expectedRow2Refs, actualRow2Refs);
+        Assert.Equal(expectedRow3Refs, actualRow3Refs);
+
+        var sheet2Row = sheetParts[1].Worksheet.Descendants<Row>().Single();
+        var actualSheet2Refs = sheet2Row.Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
+        Assert.Equal(expectedRow1Refs, actualSheet2Refs);
+    }
 }

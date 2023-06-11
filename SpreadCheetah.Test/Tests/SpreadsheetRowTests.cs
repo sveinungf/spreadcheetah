@@ -531,7 +531,6 @@ public class SpreadsheetRowTests
         Assert.Equal(values, actualValues);
     }
 
-    // TODO: Add similar tests for formula cells, and cells with very long string values
     [Theory]
     [MemberData(nameof(TestData.CellAndValueTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddRow_ExplicitCellReferences(CellValueType valueType, bool isNull, CellType cellType, RowCollectionType rowType)
@@ -544,6 +543,59 @@ public class SpreadsheetRowTests
         var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(cellType, valueType, isNull, null, out var value)).ToList();
         var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(cellType, valueType, isNull, null, out var value)).ToList();
         var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(cellType, valueType, isNull, null, out var value)).ToList();
+
+        var expectedRow1Refs = Enumerable.Range(1, 10).Select(x => SpreadsheetUtility.GetColumnName(x) + "1").OfType<string?>();
+        var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
+        var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
+
+        var worksheetOptions = new WorksheetOptions { WriteCellReferenceAttributes = true };
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions);
+        await spreadsheet.AddRowAsync(row1, rowType);
+        await spreadsheet.AddRowAsync(row2, rowType);
+        await spreadsheet.AddRowAsync(row3, rowType);
+
+        await spreadsheet.StartWorksheetAsync("Sheet2", worksheetOptions);
+        await spreadsheet.AddRowAsync(row1, rowType);
+
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var actual = SpreadsheetDocument.Open(stream, true);
+        var sheetParts = actual.WorkbookPart!.WorksheetParts.ToList();
+        Assert.Equal(2, sheetParts.Count);
+
+        var sheet1Rows = sheetParts[0].Worksheet.Descendants<Row>().ToList();
+        Assert.Equal(3, sheet1Rows.Count);
+
+        var actualRow1Refs = sheet1Rows[0].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
+        var actualRow2Refs = sheet1Rows[1].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
+        var actualRow3Refs = sheet1Rows[2].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
+
+        Assert.Equal(expectedRow1Refs, actualRow1Refs);
+        Assert.Equal(expectedRow2Refs, actualRow2Refs);
+        Assert.Equal(expectedRow3Refs, actualRow3Refs);
+
+        var sheet2Row = sheetParts[1].Worksheet.Descendants<Row>().Single();
+        var actualSheet2Refs = sheet2Row.Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
+        Assert.Equal(expectedRow1Refs, actualSheet2Refs);
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_ExplicitCellReferencesForLongStringValueCells(CellType cellType, RowCollectionType rowType)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        var value = new string('a', options.BufferSize * 2);
+
+        var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(cellType, value)).ToList();
+        var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(cellType, value)).ToList();
+        var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(cellType, value)).ToList();
 
         var expectedRow1Refs = Enumerable.Range(1, 10).Select(x => SpreadsheetUtility.GetColumnName(x) + "1").OfType<string?>();
         var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
