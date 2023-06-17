@@ -121,7 +121,11 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         if (styleId is null)
         {
             if (!state.WriteCellReferenceAttributes)
-                return BeginBooleanFormulaCell.TryCopyTo(bytes, ref written);
+            {
+                if (!BeginBooleanFormulaCell.TryCopyTo(bytes, ref written)) return false;
+                buffer.Advance(written);
+                return true;
+            }
 
             if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
             if (!"\" t=\"b\"><f>"u8.TryCopyTo(bytes, ref written)) return false;

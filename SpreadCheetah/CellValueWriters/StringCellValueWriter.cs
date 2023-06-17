@@ -143,7 +143,11 @@ internal sealed class StringCellValueWriter : CellValueWriter
         if (styleId is null)
         {
             if (!state.WriteCellReferenceAttributes)
-                return BeginStringFormulaCell.TryCopyTo(bytes, ref written);
+            {
+                if (!BeginStringFormulaCell.TryCopyTo(bytes, ref written)) return false;
+                buffer.Advance(written);
+                return true;
+            }
 
             if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
             if (!"\" t=\"str\"><f>"u8.TryCopyTo(bytes, ref written)) return false;

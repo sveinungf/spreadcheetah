@@ -100,7 +100,11 @@ internal abstract class NullValueWriterBase : CellValueWriter
         if (styleId is null)
         {
             if (!state.WriteCellReferenceAttributes)
-                return FormulaCellHelper.BeginNumberFormulaCell.TryCopyTo(bytes, ref written);
+            {
+                if (!FormulaCellHelper.BeginNumberFormulaCell.TryCopyTo(bytes, ref written)) return false;
+                buffer.Advance(written);
+                return true;
+            }
 
             if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
             if (!"\"><f>"u8.TryCopyTo(bytes, ref written)) return false;
