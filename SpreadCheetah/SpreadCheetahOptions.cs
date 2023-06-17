@@ -38,4 +38,6 @@ public class SpreadCheetahOptions
     /// The default number format used for <see cref="DateTime"/> cells. Defaults to <see cref="NumberFormats.DateTimeSortable"/>.
     /// </summary>
     public string? DefaultDateTimeNumberFormat { get; set; } = NumberFormats.DateTimeSortable;
+
+    public bool WriteCellReferenceAttributes { get; set; }
 }

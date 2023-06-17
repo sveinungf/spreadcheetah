@@ -4,7 +4,6 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Test.Helpers.Backporting;
-using SpreadCheetah.Worksheets;
 using System.Globalization;
 using Xunit;
 using Alignment = SpreadCheetah.Styling.Alignment;
@@ -992,7 +991,8 @@ public class SpreadsheetStyledRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize, WriteCellReferenceAttributes = true };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
         var style = new Style();
         style.Fill.Color = Color.LightSeaGreen;
         var styleId = spreadsheet.AddStyle(style);
@@ -1005,15 +1005,13 @@ public class SpreadsheetStyledRowTests
         var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
         var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
 
-        var options = new WorksheetOptions { WriteCellReferenceAttributes = true };
-
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1", options);
+        await spreadsheet.StartWorksheetAsync("Sheet1");
         await spreadsheet.AddRowAsync(row1, rowType);
         await spreadsheet.AddRowAsync(row2, rowType);
         await spreadsheet.AddRowAsync(row3, rowType);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2", options);
+        await spreadsheet.StartWorksheetAsync("Sheet2");
         await spreadsheet.AddRowAsync(row1, rowType);
 
         await spreadsheet.FinishAsync();
@@ -1046,7 +1044,7 @@ public class SpreadsheetStyledRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize, WriteCellReferenceAttributes = true };
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
         var value = new string('a', options.BufferSize * 2);
         var style = new Style();
@@ -1061,15 +1059,13 @@ public class SpreadsheetStyledRowTests
         var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
         var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
 
-        var worksheetOptions = new WorksheetOptions { WriteCellReferenceAttributes = true };
-
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions);
+        await spreadsheet.StartWorksheetAsync("Sheet1");
         await spreadsheet.AddRowAsync(row1, rowType);
         await spreadsheet.AddRowAsync(row2, rowType);
         await spreadsheet.AddRowAsync(row3, rowType);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2", worksheetOptions);
+        await spreadsheet.StartWorksheetAsync("Sheet2");
         await spreadsheet.AddRowAsync(row1, rowType);
 
         await spreadsheet.FinishAsync();

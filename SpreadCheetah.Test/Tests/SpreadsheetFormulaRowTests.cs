@@ -3,7 +3,6 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
-using SpreadCheetah.Worksheets;
 using System.Globalization;
 using Xunit;
 using Color = System.Drawing.Color;
@@ -374,7 +373,7 @@ public class SpreadsheetFormulaRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        var options = new SpreadCheetahOptions { DefaultDateTimeNumberFormat = null };
+        var options = new SpreadCheetahOptions { DefaultDateTimeNumberFormat = null, WriteCellReferenceAttributes = true };
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
         var formula = new Formula("SUM(A1,A2)");
 
@@ -386,15 +385,13 @@ public class SpreadsheetFormulaRowTests
         var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
         var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
 
-        var worksheetOptions = new WorksheetOptions { WriteCellReferenceAttributes = true };
-
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions);
+        await spreadsheet.StartWorksheetAsync("Sheet1");
         await spreadsheet.AddRowAsync(row1, rowType);
         await spreadsheet.AddRowAsync(row2, rowType);
         await spreadsheet.AddRowAsync(row3, rowType);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2", worksheetOptions);
+        await spreadsheet.StartWorksheetAsync("Sheet2");
         await spreadsheet.AddRowAsync(row1, rowType);
 
         await spreadsheet.FinishAsync();
@@ -427,7 +424,8 @@ public class SpreadsheetFormulaRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        var options = new SpreadCheetahOptions { WriteCellReferenceAttributes = true };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
         var formula = new Formula("SUM(A1,A2)");
         var style = new Style();
         style.Fill.Color = Color.SaddleBrown;
@@ -441,15 +439,13 @@ public class SpreadsheetFormulaRowTests
         var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
         var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
 
-        var worksheetOptions = new WorksheetOptions { WriteCellReferenceAttributes = true };
-
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions);
+        await spreadsheet.StartWorksheetAsync("Sheet1");
         await spreadsheet.AddRowAsync(row1, rowType);
         await spreadsheet.AddRowAsync(row2, rowType);
         await spreadsheet.AddRowAsync(row3, rowType);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2", worksheetOptions);
+        await spreadsheet.StartWorksheetAsync("Sheet2");
         await spreadsheet.AddRowAsync(row1, rowType);
 
         await spreadsheet.FinishAsync();
@@ -482,7 +478,7 @@ public class SpreadsheetFormulaRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize, WriteCellReferenceAttributes = true };
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
         var formula = new Formula(FormulaGenerator.Generate(options.BufferSize * 2));
 
@@ -494,15 +490,13 @@ public class SpreadsheetFormulaRowTests
         var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
         var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
 
-        var worksheetOptions = new WorksheetOptions { WriteCellReferenceAttributes = true };
-
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions);
+        await spreadsheet.StartWorksheetAsync("Sheet1");
         await spreadsheet.AddRowAsync(row1, rowType);
         await spreadsheet.AddRowAsync(row2, rowType);
         await spreadsheet.AddRowAsync(row3, rowType);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2", worksheetOptions);
+        await spreadsheet.StartWorksheetAsync("Sheet2");
         await spreadsheet.AddRowAsync(row1, rowType);
 
         await spreadsheet.FinishAsync();
@@ -535,7 +529,7 @@ public class SpreadsheetFormulaRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize, WriteCellReferenceAttributes = true };
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
         var formula = new Formula(FormulaGenerator.Generate(options.BufferSize * 2));
         var style = new Style();
@@ -550,15 +544,13 @@ public class SpreadsheetFormulaRowTests
         var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
         var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
 
-        var worksheetOptions = new WorksheetOptions { WriteCellReferenceAttributes = true };
-
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions);
+        await spreadsheet.StartWorksheetAsync("Sheet1");
         await spreadsheet.AddRowAsync(row1, rowType);
         await spreadsheet.AddRowAsync(row2, rowType);
         await spreadsheet.AddRowAsync(row3, rowType);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2", worksheetOptions);
+        await spreadsheet.StartWorksheetAsync("Sheet2");
         await spreadsheet.AddRowAsync(row1, rowType);
 
         await spreadsheet.FinishAsync();

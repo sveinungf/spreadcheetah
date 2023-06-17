@@ -19,6 +19,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly ZipArchive _archive;
     private readonly CompressionLevel _compressionLevel;
     private readonly SpreadsheetBuffer _buffer;
+    private readonly bool _writeCellReferenceAttributes;
     private readonly byte[] _arrayPoolBuffer;
     private readonly string? _defaultDateTimeNumberFormat;
     private DefaultStyling? _defaultStyling;
@@ -36,13 +37,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         }
     }
 
-    private Spreadsheet(ZipArchive archive, CompressionLevel compressionLevel, int bufferSize, string? defaultDateTimeNumberFormat)
+    private Spreadsheet(ZipArchive archive, CompressionLevel compressionLevel, int bufferSize, string? defaultDateTimeNumberFormat, bool writeCellReferenceAttributes)
     {
         _archive = archive;
         _compressionLevel = compressionLevel;
         _arrayPoolBuffer = ArrayPool<byte>.Shared.Rent(bufferSize);
         _buffer = new SpreadsheetBuffer(_arrayPoolBuffer);
         _defaultDateTimeNumberFormat = defaultDateTimeNumberFormat;
+        _writeCellReferenceAttributes = writeCellReferenceAttributes;
     }
 
     /// <summary>
@@ -57,8 +59,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var bufferSize = options?.BufferSize ?? SpreadCheetahOptions.DefaultBufferSize;
         var compressionLevel = GetCompressionLevel(options?.CompressionLevel ?? SpreadCheetahOptions.DefaultCompressionLevel);
         var defaultDateTimeNumberFormat = options is null ? NumberFormats.DateTimeSortable : options.DefaultDateTimeNumberFormat;
+        var writeCellReferenceAttributes = options?.WriteCellReferenceAttributes ?? false;
 
-        var spreadsheet = new Spreadsheet(archive, compressionLevel, bufferSize, defaultDateTimeNumberFormat);
+        var spreadsheet = new Spreadsheet(archive, compressionLevel, bufferSize, defaultDateTimeNumberFormat, writeCellReferenceAttributes);
         await spreadsheet.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
         // If no style is ever added to the spreadsheet, then we can skip creating the styles.xml file.
@@ -116,7 +119,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var path = $"xl/worksheets/sheet{_worksheets.Count + 1}.xml";
         var entry = _archive.CreateEntry(path, _compressionLevel);
         var entryStream = entry.Open();
-        _worksheet = new Worksheet(entryStream, _defaultStyling, _buffer, options?.WriteCellReferenceAttributes ?? false);
+        _worksheet = new Worksheet(entryStream, _defaultStyling, _buffer, _writeCellReferenceAttributes);
         await _worksheet.WriteHeadAsync(options, token).ConfigureAwait(false);
         _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
     }
