@@ -39,5 +39,11 @@ public class SpreadCheetahOptions
     /// </summary>
     public string? DefaultDateTimeNumberFormat { get; set; } = NumberFormats.DateTimeSortable;
 
+    /// <summary>
+    /// Write the explicit cell reference attribute for each cell in the resulting spreadsheet.
+    /// The attribute is optional according to the Open XML specification, but it is required for Microsoft's Spreadsheet Compare tool to do a comparison.
+    /// Writing the attribute will slightly affect the performance of writing cells, and will also increase the resulting file size.
+    /// Defaults to <c>false</c>.
+    /// </summary>
     public bool WriteCellReferenceAttributes { get; set; }
 }
