@@ -39,9 +39,7 @@ internal struct ContentTypesXml
         """<Default Extension="xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" />"""u8 +
         """<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />"""u8;
 
-    // TODO: After "rels" if there are notes
     private static ReadOnlySpan<byte> Vml => "<Default Extension=\"vml\" ContentType=\"application/vnd.openxmlformats-officedocument.vmlDrawing\"/>"u8;
-
     private static ReadOnlySpan<byte> Styles => """<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml" />"""u8;
     private static ReadOnlySpan<byte> SheetStart => """<Override PartName="/"""u8;
     private static ReadOnlySpan<byte> SheetEnd => "\" "u8 + """ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" />"""u8;
@@ -66,6 +64,7 @@ internal struct ContentTypesXml
         bytesWritten = 0;
 
         if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Vml && !Advance(TryWriteVml(bytes, ref bytesWritten))) return false;
         if (_next == Element.Styles && !Advance(TryWriteStyles(bytes, ref bytesWritten))) return false;
         if (_next == Element.Worksheets && !Advance(TryWriteWorksheets(bytes, ref bytesWritten))) return false;
         if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
@@ -83,6 +82,12 @@ internal struct ContentTypesXml
 
     private readonly bool TryWriteStyles(Span<byte> bytes, ref int bytesWritten)
         => !_hasStylesXml || Styles.TryCopyTo(bytes, ref bytesWritten);
+
+    private readonly bool TryWriteVml(Span<byte> bytes, ref int bytesWritten)
+    {
+        var hasNotes = _worksheets.Exists(x => x.NotesFileIndex is not null);
+        return !hasNotes || Vml.TryCopyTo(bytes, ref bytesWritten);
+    }
 
     private bool TryWriteWorksheets(Span<byte> bytes, ref int bytesWritten)
     {
@@ -107,6 +112,7 @@ internal struct ContentTypesXml
     private enum Element
     {
         Header,
+        Vml,
         Styles,
         Worksheets,
         Footer,
