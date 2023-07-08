@@ -476,7 +476,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         var hasStyles = _styles != null;
 
-        // TODO: Changes to ContentTypes if there are any notes
         await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
         await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, token).ConfigureAwait(false);

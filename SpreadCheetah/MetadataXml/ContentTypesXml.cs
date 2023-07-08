@@ -43,9 +43,8 @@ internal struct ContentTypesXml
     private static ReadOnlySpan<byte> Styles => """<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml" />"""u8;
     private static ReadOnlySpan<byte> SheetStart => """<Override PartName="/"""u8;
     private static ReadOnlySpan<byte> SheetEnd => "\" "u8 + """ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" />"""u8;
-
-    // TODO: Before closing Types tag if there are notes. 1 per sheet with notes.
-    private static ReadOnlySpan<byte> Comment => "<Override PartName=\"/xl/comments1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml\"/>"u8;
+    private static ReadOnlySpan<byte> CommentStart => """<Override PartName="/xl/comments"""u8;
+    private static ReadOnlySpan<byte> CommentEnd => """.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml"/>"""u8;
     private static ReadOnlySpan<byte> Footer => "</Types>"u8;
 
     private readonly List<WorksheetMetadata> _worksheets;
@@ -95,13 +94,20 @@ internal struct ContentTypesXml
 
         for (; _nextWorksheetIndex < worksheets.Count; ++_nextWorksheetIndex)
         {
-            var path = worksheets[_nextWorksheetIndex].Path;
+            var worksheet = worksheets[_nextWorksheetIndex];
             var span = bytes.Slice(bytesWritten);
             var written = 0;
 
             if (!SheetStart.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(path, span, ref written)) return false;
+            if (!SpanHelper.TryWrite(worksheet.Path, span, ref written)) return false;
             if (!SheetEnd.TryCopyTo(span, ref written)) return false;
+
+            if (worksheet.NotesFileIndex is { } notesFileIndex)
+            {
+                if (!CommentStart.TryCopyTo(span, ref written)) return false;
+                if (!SpanHelper.TryWrite(notesFileIndex, span, ref written)) return false;
+                if (!CommentEnd.TryCopyTo(span, ref written)) return false;
+            }
 
             bytesWritten += written;
         }
