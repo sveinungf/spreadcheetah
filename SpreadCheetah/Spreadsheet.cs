@@ -121,7 +121,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var entryStream = entry.Open();
         _worksheet = new Worksheet(entryStream, _defaultStyling, _buffer, _writeCellReferenceAttributes);
         await _worksheet.WriteHeadAsync(options, token).ConfigureAwait(false);
-        _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
+        _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible, false));
     }
 
     /// <summary>
@@ -416,6 +416,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(validation);
         ArgumentNullException.ThrowIfNull(reference);
         return Worksheet.TryAddDataValidation(reference, validation);
+    }
+
+    internal void AddNote(string cellReference, string note)
+    {
+        Worksheet.AddNote(cellReference, note);
+        var metadata = _worksheets[_worksheets.Count - 1]; // TODO: ref?
+        if (!metadata.HasNotes)
+            _worksheets[_worksheets.Count - 1] = metadata with { HasNotes = true };
     }
 
     /// <summary>
