@@ -25,6 +25,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private DefaultStyling? _defaultStyling;
     private Dictionary<ImmutableStyle, int>? _styles;
     private Worksheet? _worksheet;
+    private int _notesFileIndex;
     private bool _disposed;
     private bool _finished;
 
@@ -121,7 +122,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var entryStream = entry.Open();
         _worksheet = new Worksheet(entryStream, _defaultStyling, _buffer, _writeCellReferenceAttributes);
         await _worksheet.WriteHeadAsync(options, token).ConfigureAwait(false);
-        _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible, false));
+        _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible, null));
     }
 
     /// <summary>
@@ -422,8 +423,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         Worksheet.AddNote(cellReference, note);
         var metadata = _worksheets[_worksheets.Count - 1]; // TODO: ref?
-        if (!metadata.HasNotes)
-            _worksheets[_worksheets.Count - 1] = metadata with { HasNotes = true };
+        if (metadata.NotesFileIndex is null)
+            _worksheets[_worksheets.Count - 1] = metadata with { NotesFileIndex = ++_notesFileIndex };
     }
 
     /// <summary>
