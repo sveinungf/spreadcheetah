@@ -447,17 +447,21 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
     {
-        if (_worksheet is null) return;
+        if (_worksheet is not { } worksheet) return;
 
-        var notes = _worksheet.Notes;
+        await worksheet.FinishAsync(token).ConfigureAwait(false);
+        await worksheet.DisposeAsync().ConfigureAwait(false);
 
-        await _worksheet.FinishAsync(token).ConfigureAwait(false);
-        await _worksheet.DisposeAsync().ConfigureAwait(false);
+        if (worksheet.Notes is { })
+        {
+            var worksheetIndex = _worksheets.Count;
+            await WorksheetRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, worksheetIndex, _notesFileIndex, token).ConfigureAwait(false);
+        }
+
         _worksheet = null;
 
         // TODO: Write xl/commentsX.xml file
         // TODO: Write xl/drawings/vmlDrawingX.vml
-        // TODO: Write xl/worksheets/_rels/sheetX.xml.rels
     }
 
     /// <summary>
