@@ -4,9 +4,9 @@ using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct WorkbookRelsXml
+internal struct WorkbookRelsXml : IXmlWriter
 {
-    public static async ValueTask WriteAsync(
+    public static ValueTask WriteAsync(
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
@@ -14,23 +14,9 @@ internal struct WorkbookRelsXml
         bool hasStylesXml,
         CancellationToken token)
     {
-        var stream = archive.CreateEntry("xl/_rels/workbook.xml.rels", compressionLevel).Open();
-#if NETSTANDARD2_0
-        using (stream)
-#else
-        await using (stream.ConfigureAwait(false))
-#endif
-        {
-            var writer = new WorkbookRelsXml(worksheets, hasStylesXml);
-            var done = false;
-
-            do
-            {
-                done = writer.TryWrite(buffer.GetSpan(), out var bytesWritten);
-                buffer.Advance(bytesWritten);
-                await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            } while (!done);
-        }
+        var entry = archive.CreateEntry("xl/_rels/workbook.xml.rels", compressionLevel);
+        var writer = new WorkbookRelsXml(worksheets, hasStylesXml);
+        return writer.WriteAsync(entry, buffer, token);
     }
 
     private static ReadOnlySpan<byte> Header =>

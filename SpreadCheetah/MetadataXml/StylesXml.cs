@@ -5,32 +5,18 @@ using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct StylesXml
+internal struct StylesXml : IXmlWriter
 {
-    public static async ValueTask WriteAsync(
+    public static ValueTask WriteAsync(
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
         Dictionary<ImmutableStyle, int> styles,
         CancellationToken token)
     {
-        var stream = archive.CreateEntry("xl/styles.xml", compressionLevel).Open();
-#if NETSTANDARD2_0
-        using (stream)
-#else
-        await using (stream.ConfigureAwait(false))
-#endif
-        {
-            var writer = new StylesXml(styles.Keys.ToList());
-            var done = false;
-
-            do
-            {
-                done = writer.TryWrite(buffer.GetSpan(), out var bytesWritten);
-                buffer.Advance(bytesWritten);
-                await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            } while (!done);
-        }
+        var entry = archive.CreateEntry("xl/styles.xml", compressionLevel);
+        var writer = new StylesXml(styles.Keys.ToList());
+        return writer.WriteAsync(entry, buffer, token);
     }
 
     private static ReadOnlySpan<byte> Header =>
