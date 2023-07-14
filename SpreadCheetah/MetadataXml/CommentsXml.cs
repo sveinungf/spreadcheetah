@@ -5,9 +5,9 @@ using System.Net;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct CommentsXml
+internal struct CommentsXml : IXmlWriter
 {
-    public static async ValueTask WriteAsync(
+    public static ValueTask WriteAsync(
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
@@ -22,23 +22,9 @@ internal struct CommentsXml
         var entryName = string.Create(CultureInfo.InvariantCulture, $"xl/comments{notesFilesIndex}.xml");
 #endif
 
-        var stream = archive.CreateEntry(entryName, compressionLevel).Open();
-#if NETSTANDARD2_0
-        using (stream)
-#else
-        await using (stream.ConfigureAwait(false))
-#endif
-        {
-            var writer = new CommentsXml(notes.ToList());
-            var done = false;
-
-            do
-            {
-                done = writer.TryWrite(buffer.GetSpan(), out var bytesWritten);
-                buffer.Advance(bytesWritten);
-                await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            } while (!done);
-        }
+        var entry = archive.CreateEntry(entryName, compressionLevel);
+        var writer = new CommentsXml(notes.ToList());
+        return writer.WriteAsync(entry, buffer, token);
     }
 
     // TODO: Can author be skipped?

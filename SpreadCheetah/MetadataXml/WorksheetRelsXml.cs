@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 namespace SpreadCheetah.MetadataXml;
 
 [StructLayout(LayoutKind.Auto)]
-internal struct WorksheetRelsXml
+internal struct WorksheetRelsXml : IXmlWriter
 {
-    public static async ValueTask WriteAsync(
+    public static ValueTask WriteAsync(
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
@@ -23,23 +23,9 @@ internal struct WorksheetRelsXml
         var entryName = string.Create(CultureInfo.InvariantCulture, $"xl/worksheets/_rels/sheet{worksheetIndex}.xml.rels");
 #endif
 
-        var stream = archive.CreateEntry(entryName, compressionLevel).Open();
-#if NETSTANDARD2_0
-        using (stream)
-#else
-        await using (stream.ConfigureAwait(false))
-#endif
-        {
-            var writer = new WorksheetRelsXml(notesFilesIndex);
-            var done = false;
-
-            do
-            {
-                done = writer.TryWrite(buffer.GetSpan(), out var bytesWritten);
-                buffer.Advance(bytesWritten);
-                await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            } while (!done);
-        }
+        var entry = archive.CreateEntry(entryName, compressionLevel);
+        var writer = new WorksheetRelsXml(notesFilesIndex);
+        return writer.WriteAsync(entry, buffer, token);
     }
 
     private static ReadOnlySpan<byte> Header =>
