@@ -79,7 +79,7 @@ internal struct WorksheetRelsXml
         return success;
     }
 
-    private bool TryWriteVmlDrawing(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteVmlDrawing(Span<byte> bytes, ref int bytesWritten)
     {
         var notesFilesIndex = _notesFilesIndex;
         var span = bytes.Slice(bytesWritten);
@@ -96,7 +96,7 @@ internal struct WorksheetRelsXml
         return true;
     }
 
-    private bool TryWriteComments(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteComments(Span<byte> bytes, ref int bytesWritten)
     {
         var notesFilesIndex = _notesFilesIndex;
         var span = bytes.Slice(bytesWritten);
