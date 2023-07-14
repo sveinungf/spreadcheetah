@@ -30,4 +30,12 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+
+  <ItemGroup Condition="'$(MSBuildProjectName)' != 'SpreadCheetah.SourceGenerator.CSharp8Test'">
+    <PackageReference Include="Polyfill" Version="1.23.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <NoWarn>MA0048</NoWarn>
+    </PackageReference>
+  </ItemGroup>
 </Project>

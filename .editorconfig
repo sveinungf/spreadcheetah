@@ -145,6 +145,8 @@ csharp_preserve_single_line_blocks = true
 dotnet_diagnostic.CA1303.severity = none
 # CA1815: Override equals and operator equals on value types
 dotnet_diagnostic.CA1815.severity = warning
+# CA2201: Do not raise reserved exception types
+dotnet_diagnostic.CA2201.severity = warning
 
 [{*Test,*.Benchmark,*.Cmd}/**.cs]
 # CA1305: Specify IFormatProvider
@@ -168,7 +170,6 @@ dotnet_diagnostic.CA5394.severity = none
 [*.cs]
 # EPS05: Use in-modifier for passing large readonly structs
 dotnet_diagnostic.EPS05.severity = warning
-
 # EPS09: Use in-modifier explicitly
 dotnet_diagnostic.EPS09.severity = none
 
@@ -178,8 +179,16 @@ dotnet_diagnostic.EPS09.severity = none
 [*.cs]
 # MA0003: Name parameter
 dotnet_diagnostic.MA0003.severity = none
+# MA0006: Use String.Equals instead of equality operator
+dotnet_diagnostic.MA0006.severity = warning
 # MA0007: Add comma after the last property
 dotnet_diagnostic.MA0007.severity = none
+# MA0015: File name must match type name
+dotnet_diagnostic.MA0015.severity = warning
+# MA0047: Declare types in namespaces
+dotnet_diagnostic.MA0047.severity = warning
+# MA0048: File name must match type name
+dotnet_diagnostic.MA0048.severity = warning
 
 [{*Test,*.Benchmark}/**.cs]
 # MA0004: Use .ConfigureAwait(false)
@@ -204,16 +213,18 @@ dotnet_diagnostic.RCS1163.severity = warning
 # SonarAnalyzer Options       #
 ###############################
 [*.cs]
-# S3267: Loops should be simplified with "LINQ" expressions
-dotnet_diagnostic.S3267.severity = none
-
+# S1125: Boolean literals should not be redundant
+dotnet_diagnostic.S1125.severity = warning
+# S3903: Types should be defined in named namespaces
+dotnet_diagnostic.S3903.severity = warning
 # S3925: "ISerializable" should be implemented correctly
 dotnet_diagnostic.S3925.severity = none
+# S4136: Method overloads should be grouped together
+dotnet_diagnostic.S4136.severity = warning
 
 [{*Test,*.Benchmark}/**.cs]
 # S927: Parameter names should match base declaration
 dotnet_diagnostic.S927.severity = none
-
 # S2094: Classes should not be empty
 dotnet_diagnostic.S2094.severity = none
 
