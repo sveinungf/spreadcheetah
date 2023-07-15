@@ -452,15 +452,15 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         await worksheet.FinishAsync(token).ConfigureAwait(false);
         await worksheet.DisposeAsync().ConfigureAwait(false);
 
-        if (worksheet.Notes is { })
+        if (worksheet.Notes is { } notes)
         {
             var worksheetIndex = _worksheets.Count;
+            await CommentsXml.WriteAsync(_archive, _compressionLevel, _buffer, _notesFileIndex, notes, token).ConfigureAwait(false);
             await WorksheetRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, worksheetIndex, _notesFileIndex, token).ConfigureAwait(false);
         }
 
         _worksheet = null;
 
-        // TODO: Write xl/commentsX.xml file
         // TODO: Write xl/drawings/vmlDrawingX.vml
     }
 
