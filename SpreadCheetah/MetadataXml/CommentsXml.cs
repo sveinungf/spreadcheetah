@@ -27,16 +27,14 @@ internal struct CommentsXml : IXmlWriter
         return writer.WriteAsync(entry, buffer, token);
     }
 
-    // TODO: Can author be skipped?
     private static ReadOnlySpan<byte> Header =>
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">"""u8 +
-        """<authors><author>SpreadCheetah</author></authors>"""u8 +
+        """<authors><author></author></authors>"""u8 +
         """<commentList>"""u8;
 
     private static ReadOnlySpan<byte> CommentStart => "<comment ref=\""u8;
-    // TODO: Can author and shapeId be skipped?
-    private static ReadOnlySpan<byte> CommentAfterRef => "\""u8 + """authorId="0" shapeId="0"><text><t>"""u8;
+    private static ReadOnlySpan<byte> CommentAfterRef => "\""u8 + """authorId="0"><text><t>"""u8;
     private static ReadOnlySpan<byte> CommentEnd => "</t></text></comment>"u8;
     private static ReadOnlySpan<byte> Footer => "</commentList></comments>"u8;
 
