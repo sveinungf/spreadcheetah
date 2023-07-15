@@ -189,6 +189,8 @@ dotnet_diagnostic.MA0015.severity = warning
 dotnet_diagnostic.MA0047.severity = warning
 # MA0048: File name must match type name
 dotnet_diagnostic.MA0048.severity = warning
+# MA0076: Do not use implicit culture-sensitive ToString in interpolated strings
+dotnet_diagnostic.MA0076.severity = warning
 
 [{*Test,*.Benchmark}/**.cs]
 # MA0004: Use .ConfigureAwait(false)
@@ -201,6 +203,8 @@ dotnet_diagnostic.MA0025.severity = none
 dotnet_diagnostic.MA0047.severity = none
 # MA0075: Do not use implicit culture-sensitive ToString
 dotnet_diagnostic.MA0075.severity = none
+# MA0076: Do not use implicit culture-sensitive ToString in interpolated strings
+dotnet_diagnostic.MA0076.severity = none
 
 ###############################
 # Roslynator Options          #
