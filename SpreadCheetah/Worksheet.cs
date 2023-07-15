@@ -36,16 +36,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public async ValueTask WriteHeadAsync(WorksheetOptions? options, CancellationToken token)
     {
         var writer = new WorksheetStartXml(options);
-        bool done;
-        var buffer = _buffer;
-        var stream = _stream;
-
-        do
-        {
-            done = writer.TryWrite(buffer.GetSpan(), out var bytesWritten);
-            buffer.Advance(bytesWritten);
-            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        } while (!done);
+        await writer.WriteAsync(_stream, _buffer, token).ConfigureAwait(false);
 
         if (options?.AutoFilter is not null)
         {
@@ -132,17 +123,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public async ValueTask FinishAsync(CancellationToken token)
     {
         var writer = new WorksheetEndXml(_cellMerges?.ToList(), _validations?.ToList(), _autoFilterRange);
-        bool done;
-        var buffer = _buffer;
-        var stream = _stream;
-
-        do
-        {
-            done = writer.TryWrite(buffer.GetSpan(), out var bytesWritten);
-            buffer.Advance(bytesWritten);
-            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        } while (!done);
-
+        await writer.WriteAsync(_stream, _buffer, token).ConfigureAwait(false);
         await _stream.FlushAsync(token).ConfigureAwait(false);
     }
 

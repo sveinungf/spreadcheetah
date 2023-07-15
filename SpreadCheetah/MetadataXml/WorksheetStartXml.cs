@@ -3,7 +3,7 @@ using SpreadCheetah.Worksheets;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct WorksheetStartXml
+internal struct WorksheetStartXml : IXmlWriter
 {
     private static ReadOnlySpan<byte> Header =>
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +

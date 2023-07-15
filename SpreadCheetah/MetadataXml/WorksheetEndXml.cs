@@ -3,7 +3,7 @@ using SpreadCheetah.Validations;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct WorksheetEndXml
+internal struct WorksheetEndXml : IXmlWriter
 {
     private readonly List<CellReference>? _cellMerges;
     private readonly List<KeyValuePair<CellReference, DataValidation>>? _validations;

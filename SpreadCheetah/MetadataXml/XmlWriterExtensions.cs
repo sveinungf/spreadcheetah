@@ -18,14 +18,24 @@ internal static class XmlWriterExtensions
         await using (stream.ConfigureAwait(false))
 #endif
         {
-            var done = false;
-
-            do
-            {
-                done = writer.TryWrite(buffer.GetSpan(), out var bytesWritten);
-                buffer.Advance(bytesWritten);
-                await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            } while (!done);
+            await writer.WriteAsync(stream, buffer, token).ConfigureAwait(false);
         }
+    }
+
+    public static async ValueTask WriteAsync<TXmlWriter>(
+        this TXmlWriter writer,
+        Stream stream,
+        SpreadsheetBuffer buffer,
+        CancellationToken token)
+        where TXmlWriter : IXmlWriter
+    {
+        bool done;
+
+        do
+        {
+            done = writer.TryWrite(buffer.GetSpan(), out var bytesWritten);
+            buffer.Advance(bytesWritten);
+            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        } while (!done);
     }
 }
