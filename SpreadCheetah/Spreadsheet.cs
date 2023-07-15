@@ -117,7 +117,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         await FinishAndDisposeWorksheetAsync(token).ConfigureAwait(false);
 
-        var path = $"xl/worksheets/sheet{_worksheets.Count + 1}.xml";
+        var path = StringHelper.Invariant($"xl/worksheets/sheet{_worksheets.Count + 1}.xml");
         var entry = _archive.CreateEntry(path, _compressionLevel);
         var entryStream = entry.Open();
         _worksheet = new Worksheet(entryStream, _defaultStyling, _buffer, _writeCellReferenceAttributes);
