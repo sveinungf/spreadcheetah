@@ -1,5 +1,4 @@
 using SpreadCheetah.Helpers;
-using System.Globalization;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
 
@@ -16,13 +15,7 @@ internal struct WorksheetRelsXml : IXmlWriter
         int notesFilesIndex,
         CancellationToken token)
     {
-        // TODO: Polyfill
-#if NETSTANDARD2_0 || NETSTANDARD2_1
-        var entryName = FormattableString.Invariant($"xl/worksheets/_rels/sheet{worksheetIndex}.xml.rels");
-#else
-        var entryName = string.Create(CultureInfo.InvariantCulture, $"xl/worksheets/_rels/sheet{worksheetIndex}.xml.rels");
-#endif
-
+        var entryName = StringHelper.Invariant($"xl/worksheets/_rels/sheet{worksheetIndex}.xml.rels");
         var entry = archive.CreateEntry(entryName, compressionLevel);
         var writer = new WorksheetRelsXml(notesFilesIndex);
         return writer.WriteAsync(entry, buffer, token);

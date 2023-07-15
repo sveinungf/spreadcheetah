@@ -1,5 +1,4 @@
 using SpreadCheetah.Helpers;
-using System.Globalization;
 using System.IO.Compression;
 using System.Net;
 
@@ -15,13 +14,7 @@ internal struct CommentsXml : IXmlWriter
         Dictionary<CellReference, string> notes,
         CancellationToken token)
     {
-        // TODO: Polyfill
-#if NETSTANDARD2_0 || NETSTANDARD2_1
-        var entryName = FormattableString.Invariant($"xl/comments{notesFilesIndex}.xml");
-#else
-        var entryName = string.Create(CultureInfo.InvariantCulture, $"xl/comments{notesFilesIndex}.xml");
-#endif
-
+        var entryName = StringHelper.Invariant($"xl/comments{notesFilesIndex}.xml");
         var entry = archive.CreateEntry(entryName, compressionLevel);
         var writer = new CommentsXml(notes.ToList());
         return writer.WriteAsync(entry, buffer, token);
