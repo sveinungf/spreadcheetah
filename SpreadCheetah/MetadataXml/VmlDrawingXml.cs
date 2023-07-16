@@ -120,10 +120,10 @@ internal struct VmlDrawingXml : IXmlWriter
     private static (int Column, int Row) ParseReference(string reference)
     {
         var match = Regex.Match(reference);
-        if (!match.Success || match.Captures.Count < 2)
+        if (!match.Success || match.Captures is not { Count: < 2 } captures)
             throw new ArgumentException("Invalid reference.", nameof(reference));
 
-        if (!TryParseColumnNumber(match.Captures[0], out var column) || !TryParseInteger(match.Captures[1], out var row))
+        if (!TryParseColumnNumber(captures[0], out var column) || !TryParseInteger(captures[1], out var row))
             throw new ArgumentException("Invalid reference.", nameof(reference));
 
         return (column, row);
