@@ -456,12 +456,11 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         {
             var worksheetIndex = _worksheets.Count;
             await CommentsXml.WriteAsync(_archive, _compressionLevel, _buffer, _notesFileIndex, notes, token).ConfigureAwait(false);
+            await VmlDrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, _notesFileIndex, notes, token).ConfigureAwait(false);
             await WorksheetRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, worksheetIndex, _notesFileIndex, token).ConfigureAwait(false);
         }
 
         _worksheet = null;
-
-        // TODO: Write xl/drawings/vmlDrawingX.vml
     }
 
     /// <summary>
