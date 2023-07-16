@@ -44,17 +44,17 @@ internal readonly partial record struct CellReference
 
     private CellReference(string reference) => Reference = reference;
 
-    private static bool TryCreate(string value, bool allowSingleCell, CellReferenceType type, [NotNullWhen(true)] out CellReference? reference)
+    private static bool TryCreate(string value, CellReferenceSpan span, CellReferenceType type, [NotNullWhen(true)] out CellReference? reference)
     {
         reference = null;
 
         if (string.IsNullOrWhiteSpace(value))
             return false;
 
-        var match = type switch
+        var match = (type, span) switch
         {
-            CellReferenceType.Relative when !allowSingleCell => RelativeCellRangeRegex().IsMatch(value),
-            CellReferenceType.RelativeOrAbsolute when allowSingleCell => RelativeOrAbsoluteCellOrCellRangeRegex().IsMatch(value),
+            (CellReferenceType.Relative, CellReferenceSpan.CellRange) => RelativeCellRangeRegex().IsMatch(value),
+            (CellReferenceType.RelativeOrAbsolute, CellReferenceSpan.SingleCellOrCellRange) => RelativeOrAbsoluteCellOrCellRangeRegex().IsMatch(value),
             _ => false
         };
 
@@ -64,14 +64,16 @@ internal readonly partial record struct CellReference
         return match;
     }
 
-    public static CellReference Create(string value, bool allowSingleCell, CellReferenceType type, [CallerArgumentExpression(nameof(value))] string? paramName = null)
+    public static CellReference Create(string value, CellReferenceSpan span, CellReferenceType type, [CallerArgumentExpression(nameof(value))] string? paramName = null)
     {
-        if (!TryCreate(value, allowSingleCell, type, out var reference))
+        if (!TryCreate(value, span, type, out var reference))
         {
-            if (allowSingleCell)
-                ThrowHelper.CellOrCellRangeReferenceInvalid(paramName);
-            else
+            if (span == CellReferenceSpan.SingleCell)
+                ThrowHelper.SingleCellReferenceInvalid(paramName);
+            else if (span == CellReferenceSpan.CellRange)
                 ThrowHelper.CellRangeReferenceInvalid(paramName);
+            else
+                ThrowHelper.SingleCellOrCellRangeReferenceInvalid(paramName);
         }
 
         return reference.Value;

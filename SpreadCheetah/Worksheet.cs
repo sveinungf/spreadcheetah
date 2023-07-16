@@ -109,7 +109,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         if (_validations.Count >= SpreadsheetConstants.MaxNumberOfDataValidations)
             return false;
 
-        var cellReference = CellReference.Create(reference, true, CellReferenceType.RelativeOrAbsolute);
+        var cellReference = CellReference.Create(reference, CellReferenceSpan.SingleCellOrCellRange, CellReferenceType.RelativeOrAbsolute);
         _validations[cellReference] = validation;
         return true;
     }

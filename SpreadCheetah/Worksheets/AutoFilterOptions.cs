@@ -22,6 +22,6 @@ public class AutoFilterOptions
     /// </summary>
     public AutoFilterOptions(string cellRange)
     {
-        CellRange = CellReference.Create(cellRange, false, CellReferenceType.Relative);
+        CellRange = CellReference.Create(cellRange, CellReferenceSpan.CellRange, CellReferenceType.Relative);
     }
 }

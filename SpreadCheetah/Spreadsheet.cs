@@ -441,7 +441,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(cellRange);
 
-        var cellReference = CellReference.Create(cellRange, false, CellReferenceType.Relative);
+        var cellReference = CellReference.Create(cellRange, CellReferenceSpan.CellRange, CellReferenceType.Relative);
         Worksheet.MergeCells(cellReference);
     }
 
