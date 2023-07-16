@@ -1,3 +1,4 @@
+using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using System.IO.Compression;
 using System.Net;
@@ -11,7 +12,7 @@ internal struct CommentsXml : IXmlWriter
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
         int notesFilesIndex,
-        Dictionary<CellReference, string> notes,
+        Dictionary<SingleCellRelativeReference, string> notes,
         CancellationToken token)
     {
         var entryName = StringHelper.Invariant($"xl/comments{notesFilesIndex}.xml");
@@ -31,11 +32,11 @@ internal struct CommentsXml : IXmlWriter
     private static ReadOnlySpan<byte> CommentEnd => "</t></text></comment>"u8;
     private static ReadOnlySpan<byte> Footer => "</commentList></comments>"u8;
 
-    private readonly List<KeyValuePair<CellReference, string>> _notes;
+    private readonly List<KeyValuePair<SingleCellRelativeReference, string>> _notes;
     private Element _next;
     private int _nextIndex;
 
-    private CommentsXml(List<KeyValuePair<CellReference, string>> notes)
+    private CommentsXml(List<KeyValuePair<SingleCellRelativeReference, string>> notes)
     {
         _notes = notes;
     }

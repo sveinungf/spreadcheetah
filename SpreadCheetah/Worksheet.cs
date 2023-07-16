@@ -1,3 +1,4 @@
+using SpreadCheetah.CellReferences;
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.MetadataXml;
@@ -19,7 +20,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private HashSet<CellReference>? _cellMerges;
     private string? _autoFilterRange;
 
-    public Dictionary<CellReference, string>? Notes { get; private set; }
+    public Dictionary<SingleCellRelativeReference, string>? Notes { get; private set; }
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer, bool writeCellReferenceAttributes)
     {
@@ -116,11 +117,9 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public void AddNote(string cellReference, string note)
     {
-        // TODO: cellReference can not be a range.
-        // TODO: cellReference must be a absolute reference.
-
-        Notes ??= new Dictionary<CellReference, string>();
-        Notes[new CellReference()] = note;
+        var reference = SingleCellRelativeReference.Create(cellReference);
+        Notes ??= new Dictionary<SingleCellRelativeReference, string>();
+        Notes[reference] = note;
     }
 
     public void MergeCells(CellReference cellRange)
