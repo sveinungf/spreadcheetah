@@ -1,3 +1,4 @@
+using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.SourceGeneration;
@@ -441,7 +442,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(cellRange);
 
-        var cellReference = CellReference.Create(cellRange, CellReferenceSpan.CellRange, CellReferenceType.Relative);
+        var cellReference = CellRangeRelativeReference.Create(cellRange);
         Worksheet.MergeCells(cellReference);
     }
 

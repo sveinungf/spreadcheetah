@@ -1,3 +1,4 @@
+using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Validations;
 using System.Net;
@@ -6,12 +7,12 @@ namespace SpreadCheetah.MetadataXml;
 
 internal struct DataValidationXml
 {
-    private readonly CellReference _reference;
+    private readonly SingleCellOrCellRangeReference _reference;
     private readonly DataValidation _validation;
     private Element _next;
     private int _nextIndex;
 
-    public DataValidationXml(CellReference reference, DataValidation validation)
+    public DataValidationXml(SingleCellOrCellRangeReference reference, DataValidation validation)
     {
         _reference = reference;
         _validation = validation;

@@ -16,8 +16,8 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly DataCellWriter _dataCellWriter;
     private readonly StyledCellWriter _styledCellWriter;
     private readonly CellWriterState _state;
-    private Dictionary<CellReference, DataValidation>? _validations;
-    private HashSet<CellReference>? _cellMerges;
+    private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
+    private HashSet<CellRangeRelativeReference>? _cellMerges;
     private string? _autoFilterRange;
 
     public Dictionary<SingleCellRelativeReference, string>? Notes { get; private set; }
@@ -105,12 +105,12 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public bool TryAddDataValidation(string reference, DataValidation validation)
     {
-        _validations ??= new Dictionary<CellReference, DataValidation>();
+        _validations ??= new Dictionary<SingleCellOrCellRangeReference, DataValidation>();
 
         if (_validations.Count >= SpreadsheetConstants.MaxNumberOfDataValidations)
             return false;
 
-        var cellReference = CellReference.Create(reference, CellReferenceSpan.SingleCellOrCellRange, CellReferenceType.RelativeOrAbsolute);
+        var cellReference = SingleCellOrCellRangeReference.Create(reference);
         _validations[cellReference] = validation;
         return true;
     }
@@ -122,9 +122,9 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         Notes[reference] = note;
     }
 
-    public void MergeCells(CellReference cellRange)
+    public void MergeCells(CellRangeRelativeReference cellRange)
     {
-        _cellMerges ??= new HashSet<CellReference>();
+        _cellMerges ??= new HashSet<CellRangeRelativeReference>();
         _cellMerges.Add(cellRange);
     }
 

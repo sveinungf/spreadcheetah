@@ -1,3 +1,4 @@
+using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Validations;
 
@@ -5,16 +6,16 @@ namespace SpreadCheetah.MetadataXml;
 
 internal struct WorksheetEndXml
 {
-    private readonly List<CellReference>? _cellMerges;
-    private readonly List<KeyValuePair<CellReference, DataValidation>>? _validations;
+    private readonly List<CellRangeRelativeReference>? _cellMerges;
+    private readonly List<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>>? _validations;
     private readonly string? _autoFilterRange;
     private DataValidationXml? _validationXmlWriter;
     private Element _next;
     private int _nextIndex;
 
     public WorksheetEndXml(
-        List<CellReference>? cellMerges,
-        List<KeyValuePair<CellReference, DataValidation>>? validations,
+        List<CellRangeRelativeReference>? cellMerges,
+        List<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>>? validations,
         string? autoFilterRange)
     {
         _cellMerges = cellMerges;
