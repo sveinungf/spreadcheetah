@@ -419,7 +419,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return Worksheet.TryAddDataValidation(reference, validation);
     }
 
-    internal void AddNote(string cellReference, string note)
+    public void AddNote(string cellReference, string note)
     {
         Worksheet.AddNote(cellReference, note);
         var metadata = _worksheets[_worksheets.Count - 1]; // TODO: ref?
