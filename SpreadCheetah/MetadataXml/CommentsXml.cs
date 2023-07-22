@@ -24,11 +24,11 @@ internal struct CommentsXml : IXmlWriter
     private static ReadOnlySpan<byte> Header =>
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">"""u8 +
-        """<authors><author></author></authors>"""u8 +
+        """<authors><author/></authors>"""u8 +
         """<commentList>"""u8;
 
     private static ReadOnlySpan<byte> CommentStart => "<comment ref=\""u8;
-    private static ReadOnlySpan<byte> CommentAfterRef => "\""u8 + """authorId="0"><text><t>"""u8;
+    private static ReadOnlySpan<byte> CommentAfterRef => "\" "u8 + """authorId="0"><text><t>"""u8;
     private static ReadOnlySpan<byte> CommentEnd => "</t></text></comment>"u8;
     private static ReadOnlySpan<byte> Footer => "</commentList></comments>"u8;
 
