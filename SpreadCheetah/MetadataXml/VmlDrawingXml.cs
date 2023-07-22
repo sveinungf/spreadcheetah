@@ -32,6 +32,7 @@ internal struct VmlDrawingXml : IXmlWriter
         <v:shape id="shape_0" type="#_x0000_t202" style="position:absolute;width:108pt;height:59.25pt;z-index:1;visibility:hidden" fillcolor="infoBackground [80]" strokecolor="none [81]" o:insetmode="auto">
             <v:fill color2="infoBackground [80]"/>
             <v:shadow color="none [81]" obscured="t"/>
+            <v:textbox/>
             <x:ClientData ObjectType="Note">
                 <x:MoveWithCells/>
                 <x:SizeWithCells/>

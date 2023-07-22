@@ -28,8 +28,8 @@ internal struct CommentsXml : IXmlWriter
         """<commentList>"""u8;
 
     private static ReadOnlySpan<byte> CommentStart => "<comment ref=\""u8;
-    private static ReadOnlySpan<byte> CommentAfterRef => "\" "u8 + """authorId="0"><text><t>"""u8;
-    private static ReadOnlySpan<byte> CommentEnd => "</t></text></comment>"u8;
+    private static ReadOnlySpan<byte> CommentAfterRef => "\" "u8 + """authorId="0"><text><r><t>"""u8;
+    private static ReadOnlySpan<byte> CommentEnd => "</t></r></text></comment>"u8;
     private static ReadOnlySpan<byte> Footer => "</commentList></comments>"u8;
 
     private readonly List<KeyValuePair<SingleCellRelativeReference, string>> _notes;

@@ -1,3 +1,4 @@
+using ClosedXML.Excel;
 using SpreadCheetah.Test.Helpers;
 using Xunit;
 
@@ -9,16 +10,22 @@ public class SpreadsheetNoteTests
     public async Task Spreadsheet_AddNote_Success()
     {
         // Arrange
+        const string noteText = "My note";
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
 
         // Act
-        spreadsheet.AddNote("A1", "My note");
+        spreadsheet.AddNote("A1", noteText);
         await spreadsheet.FinishAsync();
 
         // Assert
         SpreadsheetAssert.Valid(stream);
-        // TODO: Verify
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.True(actualCell.HasComment);
+        var actualNote = actualCell.GetComment();
+        Assert.Equal(noteText, actualNote.Text);
     }
 }
