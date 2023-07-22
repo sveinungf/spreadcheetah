@@ -115,11 +115,11 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         return true;
     }
 
-    public void AddNote(string cellReference, string note)
+    public void AddNote(string cellReference, string noteText)
     {
         var reference = SingleCellRelativeReference.Create(cellReference);
         Notes ??= new Dictionary<SingleCellRelativeReference, string>();
-        Notes[reference] = note;
+        Notes[reference] = noteText;
     }
 
     public void MergeCells(CellRangeRelativeReference cellRange)

@@ -420,9 +420,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return Worksheet.TryAddDataValidation(reference, validation);
     }
 
-    public void AddNote(string cellReference, string note)
+    public void AddNote(string cellReference, string noteText)
     {
-        Worksheet.AddNote(cellReference, note);
+        Worksheet.AddNote(cellReference, noteText);
         var metadata = _worksheets[_worksheets.Count - 1]; // TODO: ref?
         if (metadata.NotesFileIndex is null)
             _worksheets[_worksheets.Count - 1] = metadata with { NotesFileIndex = ++_notesFileIndex };
