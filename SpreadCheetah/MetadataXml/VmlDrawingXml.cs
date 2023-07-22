@@ -84,22 +84,7 @@ internal struct VmlDrawingXml : IXmlWriter
             var written = 0;
 
             if (!ShapeStart.TryCopyTo(span, ref written)) return false;
-
-            // From an example:
-            // From (upper right coordinate of a rectangle)
-            // [0] Left column (startingColumn + 1)
-            // [1] Left column offset (always 15)
-            // [2] Left row (startingRow)
-            // [3] Left row offset (startingRow == 0 ? 2 : 10)
-            // To (bottom right coordinate of a rectangle)
-            // [4] Right column (startingColumn + 3)
-            // [5] Right column offset (always 15)
-            // [6] Right row (startingRow + 3)
-            // [7] Right row offset (startingRow == 0 ? 16 : 4)
-
-            // TODO: Excel generated this anchor for A1
-            if (!"1,15,0,2,3,31,4,1"u8.TryCopyTo(span, ref written)) return false;
-
+            if (!TryWriteAnchor(reference, span, ref written)) return false;
             if (!ShapeAfterAnchor.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(reference.Row - 1, span, ref written)) return false;
             if (!ShapeAfterRow.TryCopyTo(span, ref written)) return false;
@@ -107,6 +92,45 @@ internal struct VmlDrawingXml : IXmlWriter
             if (!ShapeEnd.TryCopyTo(span, ref written)) return false;
 
             bytesWritten += written;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// From
+    /// [0] Left column
+    /// [1] Left column offset
+    /// [2] Left row
+    /// [3] Left row offset
+    /// To
+    /// [4] Right column
+    /// [5] Right column offset
+    /// [6] Right row
+    /// [7] Right row offset
+    /// </summary>
+    private static bool TryWriteAnchor(SingleCellRelativeReference reference, Span<byte> span, ref int written)
+    {
+        var col = reference.Column;
+        var row = reference.Row;
+
+        if (!SpanHelper.TryWrite(col, span, ref written)) return false;
+
+        if (row <= 1)
+        {
+            if (!",12,0,1,"u8.TryCopyTo(span, ref written)) return false;
+            if (!SpanHelper.TryWrite(col + 2, span, ref written)) return false;
+            if (!",18,4,5"u8.TryCopyTo(span, ref written)) return false;
+        }
+        else
+        {
+            if (!",12,"u8.TryCopyTo(span, ref written)) return false;
+            if (!SpanHelper.TryWrite(row - 2, span, ref written)) return false;
+            if (!",11,"u8.TryCopyTo(span, ref written)) return false;
+            if (!SpanHelper.TryWrite(col + 2, span, ref written)) return false;
+            if (!",18,"u8.TryCopyTo(span, ref written)) return false;
+            if (!SpanHelper.TryWrite(row + 2, span, ref written)) return false;
+            if (!",15"u8.TryCopyTo(span, ref written)) return false;
         }
 
         return true;
