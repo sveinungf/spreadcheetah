@@ -30,10 +30,11 @@ public class SpreadsheetNoteTests
         SpreadsheetAssert.Valid(stream);
         using var workbook = new XLWorkbook(stream);
         var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(reference);
-        Assert.Equal(cellValue, actualCell.Value);
-        Assert.True(actualCell.HasComment);
-        var actualNote = actualCell.GetComment();
+        var valueCell = worksheet.Cell(1, 1);
+        Assert.Equal(cellValue, valueCell.Value);
+        var noteCell = worksheet.Cell(reference);
+        Assert.True(noteCell.HasComment);
+        var actualNote = noteCell.GetComment();
         Assert.Equal(noteText, actualNote.Text);
         var p = actualNote.Position;
         Assert.Equal(expectedPosition, new[] { p.Column, p.ColumnOffset, p.Row, p.RowOffset });
