@@ -1,3 +1,4 @@
+using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
@@ -154,7 +155,7 @@ public sealed class DataValidation
     public static DataValidation ListValuesFromCells(string cellRange, bool showDropdown = true)
     {
         ArgumentNullException.ThrowIfNull(cellRange);
-        var cellReference = CellReference.Create(cellRange, true, CellReferenceType.RelativeOrAbsolute);
+        var cellReference = SingleCellOrCellRangeReference.Create(cellRange);
         return ListValuesInternal(cellReference.Reference, showDropdown);
     }
 
@@ -176,7 +177,7 @@ public sealed class DataValidation
         ArgumentNullException.ThrowIfNull(cellRange);
         worksheetName.EnsureValidWorksheetName();
 
-        var cellReference = CellReference.Create(cellRange, true, CellReferenceType.RelativeOrAbsolute);
+        var cellReference = SingleCellOrCellRangeReference.Create(cellRange);
 
 #pragma warning disable CA1307, MA0074 // Specify StringComparison for clarity
         worksheetName = worksheetName.Replace("'", "''");

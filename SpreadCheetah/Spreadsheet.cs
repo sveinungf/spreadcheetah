@@ -1,3 +1,4 @@
+using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.SourceGeneration;
@@ -25,6 +26,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private DefaultStyling? _defaultStyling;
     private Dictionary<ImmutableStyle, int>? _styles;
     private Worksheet? _worksheet;
+    private int _notesFileIndex;
     private bool _disposed;
     private bool _finished;
 
@@ -121,7 +123,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var entryStream = entry.Open();
         _worksheet = new Worksheet(entryStream, _defaultStyling, _buffer, _writeCellReferenceAttributes);
         await _worksheet.WriteHeadAsync(options, token).ConfigureAwait(false);
-        _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible, false));
+        _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible, null));
     }
 
     /// <summary>
@@ -418,12 +420,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return Worksheet.TryAddDataValidation(reference, validation);
     }
 
-    internal void AddNote(string cellReference, string note)
+    public void AddNote(string cellReference, string noteText)
     {
-        Worksheet.AddNote(cellReference, note);
+        Worksheet.AddNote(cellReference, noteText);
         var metadata = _worksheets[_worksheets.Count - 1]; // TODO: ref?
-        if (!metadata.HasNotes)
-            _worksheets[_worksheets.Count - 1] = metadata with { HasNotes = true };
+        if (metadata.NotesFileIndex is null)
+            _worksheets[_worksheets.Count - 1] = metadata with { NotesFileIndex = ++_notesFileIndex };
     }
 
     /// <summary>
@@ -440,23 +442,26 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(cellRange);
 
-        var cellReference = CellReference.Create(cellRange, false, CellReferenceType.Relative);
+        var cellReference = CellRangeRelativeReference.Create(cellRange);
         Worksheet.MergeCells(cellReference);
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
     {
-        if (_worksheet is null) return;
+        if (_worksheet is not { } worksheet) return;
 
-        var notes = _worksheet.Notes;
+        await worksheet.FinishAsync(token).ConfigureAwait(false);
+        await worksheet.DisposeAsync().ConfigureAwait(false);
 
-        await _worksheet.FinishAsync(token).ConfigureAwait(false);
-        await _worksheet.DisposeAsync().ConfigureAwait(false);
+        if (worksheet.Notes is { } notes)
+        {
+            var worksheetIndex = _worksheets.Count;
+            await CommentsXml.WriteAsync(_archive, _compressionLevel, _buffer, _notesFileIndex, notes, token).ConfigureAwait(false);
+            await VmlDrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, _notesFileIndex, notes, token).ConfigureAwait(false);
+            await WorksheetRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, worksheetIndex, _notesFileIndex, token).ConfigureAwait(false);
+        }
+
         _worksheet = null;
-
-        // TODO: Write xl/commentsX.xml file
-        // TODO: Write xl/drawings/vmlDrawingX.vml
-        // TODO: Write xl/worksheets/_rels/sheetX.xml.rels
     }
 
     /// <summary>
@@ -475,7 +480,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         var hasStyles = _styles != null;
 
-        // TODO: Changes to ContentTypes if there are any notes
         await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
         await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, token).ConfigureAwait(false);

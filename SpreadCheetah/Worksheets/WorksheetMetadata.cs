@@ -4,4 +4,4 @@ internal readonly record struct WorksheetMetadata(
     string Name,
     string Path, // TODO: Just store an integer?
     WorksheetVisibility Visibility,
-    bool HasNotes);
+    int? NotesFileIndex);

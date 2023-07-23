@@ -1,3 +1,4 @@
+using SpreadCheetah.CellReferences;
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.MetadataXml;
@@ -15,11 +16,11 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly DataCellWriter _dataCellWriter;
     private readonly StyledCellWriter _styledCellWriter;
     private readonly CellWriterState _state;
-    private Dictionary<CellReference, DataValidation>? _validations;
-    private HashSet<CellReference>? _cellMerges;
+    private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
+    private HashSet<CellRangeRelativeReference>? _cellMerges;
     private string? _autoFilterRange;
 
-    public Dictionary<CellReference, string>? Notes { get; private set; }
+    public Dictionary<SingleCellRelativeReference, string>? Notes { get; private set; }
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer, bool writeCellReferenceAttributes)
     {
@@ -95,28 +96,26 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public bool TryAddDataValidation(string reference, DataValidation validation)
     {
-        _validations ??= new Dictionary<CellReference, DataValidation>();
+        _validations ??= new Dictionary<SingleCellOrCellRangeReference, DataValidation>();
 
         if (_validations.Count >= SpreadsheetConstants.MaxNumberOfDataValidations)
             return false;
 
-        var cellReference = CellReference.Create(reference, true, CellReferenceType.RelativeOrAbsolute);
+        var cellReference = SingleCellOrCellRangeReference.Create(reference);
         _validations[cellReference] = validation;
         return true;
     }
 
-    public void AddNote(string cellReference, string note)
+    public void AddNote(string cellReference, string noteText)
     {
-        // TODO: cellReference can not be a range.
-        // TODO: cellReference must be a absolute reference.
-
-        Notes ??= new Dictionary<CellReference, string>();
-        Notes[new CellReference()] = note;
+        var reference = SingleCellRelativeReference.Create(cellReference);
+        Notes ??= new Dictionary<SingleCellRelativeReference, string>();
+        Notes[reference] = noteText;
     }
 
-    public void MergeCells(CellReference cellRange)
+    public void MergeCells(CellRangeRelativeReference cellRange)
     {
-        _cellMerges ??= new HashSet<CellReference>();
+        _cellMerges ??= new HashSet<CellRangeRelativeReference>();
         _cellMerges.Add(cellRange);
     }
 

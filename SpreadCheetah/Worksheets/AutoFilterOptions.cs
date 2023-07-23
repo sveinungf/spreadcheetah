@@ -1,3 +1,5 @@
+using SpreadCheetah.CellReferences;
+
 namespace SpreadCheetah.Worksheets;
 
 /// <summary>
@@ -8,7 +10,7 @@ public class AutoFilterOptions
     /// <summary>
     /// The cell range to filter. Not exposed publicly in case there will be a more dynamic way to set the range in the future.
     /// </summary>
-    internal CellReference CellRange { get; }
+    internal CellRangeRelativeReference CellRange { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AutoFilterOptions"/> class for a range of cells.
@@ -22,6 +24,6 @@ public class AutoFilterOptions
     /// </summary>
     public AutoFilterOptions(string cellRange)
     {
-        CellRange = CellReference.Create(cellRange, false, CellReferenceType.Relative);
+        CellRange = CellRangeRelativeReference.Create(cellRange);
     }
 }
