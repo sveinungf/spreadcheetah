@@ -1,5 +1,6 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
+using System.Buffers;
 using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
@@ -29,7 +30,11 @@ internal struct VmlDrawingXml : IXmlWriter
             <v:stroke joinstyle="miter"/>
             <v:path gradientshapeok="t" o:connecttype="rect"/>
         </v:shapetype>
-        <v:shape id="shape_0" type="#_x0000_t202" style="position:absolute;width:108pt;height:59.25pt;z-index:1;visibility:hidden" fillcolor="infoBackground [80]" strokecolor="none [81]" o:insetmode="auto">
+        <v:shape id="shape_0" type="#_x0000_t202" style="position:absolute;margin-left:57pt;margin-top:
+        """u8;
+
+    private static ReadOnlySpan<byte> ShapeAfterMarginTop => """
+        pt;width:100.8pt;height:60.6pt;z-index:1;visibility:hidden" fillcolor="infoBackground [80]" strokecolor="none [81]" o:insetmode="auto">
             <v:fill color2="infoBackground [80]"/>
             <v:shadow color="none [81]" obscured="t"/>
             <v:textbox/>
@@ -84,6 +89,11 @@ internal struct VmlDrawingXml : IXmlWriter
             var written = 0;
 
             if (!ShapeStart.TryCopyTo(span, ref written)) return false;
+
+            var marginTop = reference.Row == 1 ? 1.2 : reference.Row * 14.4 - 20.4;
+            if (!SpanHelper.TryWrite(marginTop, span, ref written, new StandardFormat('F', 1))) return false;
+
+            if (!ShapeAfterMarginTop.TryCopyTo(span, ref written)) return false;
             if (!TryWriteAnchor(reference, span, ref written)) return false;
             if (!ShapeAfterAnchor.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(reference.Row - 1, span, ref written)) return false;
