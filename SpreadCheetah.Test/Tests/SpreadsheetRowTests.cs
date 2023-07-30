@@ -354,9 +354,9 @@ public class SpreadsheetRowTests
     }
 
     public static IEnumerable<object?[]> DateTimes() => TestData.CombineWithCellTypes<DateTime?>(
-        new DateTime(2000, 1, 1),
-        new DateTime(2001, 2, 3, 4, 5, 6),
-        new DateTime(2001, 2, 3, 4, 5, 6, 789),
+        new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Unspecified),
+        new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Unspecified),
+        new DateTime(2001, 2, 3, 4, 5, 6, 789, DateTimeKind.Unspecified),
         DateTime.MaxValue,
         DateTime.MinValue,
         null
@@ -400,7 +400,7 @@ public class SpreadsheetRowTests
     public async Task Spreadsheet_AddRow_CellWithDateTimeValueAndDefaultNumberFormat(string? defaultNumberFormat, CellType type, RowCollectionType rowType)
     {
         // Arrange
-        var value = new DateTime(2022, 9, 11, 14, 7, 13);
+        var value = new DateTime(2022, 9, 11, 14, 7, 13, DateTimeKind.Unspecified);
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { DefaultDateTimeNumberFormat = defaultNumberFormat };
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))

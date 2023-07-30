@@ -140,7 +140,7 @@ internal static class CellFactory
 
     private static object CreateForDateTime(CellType cellType, bool isNull, StyleId? styleId, out object? value)
     {
-        DateTime? actualValue = !isNull ? new DateTime(2021, 2, 3) : null;
+        DateTime? actualValue = !isNull ? new DateTime(2021, 2, 3, 0, 0, 0, DateTimeKind.Unspecified) : null;
         value = actualValue;
 
         return cellType switch
@@ -154,7 +154,7 @@ internal static class CellFactory
 
     private static Cell CreateForDateTime(Formula formula, bool isNull, StyleId? styleId, out object? value)
     {
-        DateTime? actualValue = !isNull ? new DateTime(2021, 2, 3) : null;
+        DateTime? actualValue = !isNull ? new DateTime(2021, 2, 3, 0, 0, 0, DateTimeKind.Unspecified) : null;
         value = actualValue;
         return new Cell(formula, actualValue, styleId);
     }
