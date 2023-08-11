@@ -37,7 +37,7 @@ public class SpreadCheetahOptions
     /// <summary>
     /// The default number format used for <see cref="DateTime"/> cells. Defaults to <see cref="NumberFormats.DateTimeSortable"/>.
     /// </summary>
-    public string? DefaultDateTimeNumberFormat { get; set; } = NumberFormats.DateTimeSortable;
+    public NumberFormat? DefaultDateTimeNumberFormat { get; set; } = NumberFormat.Custom(NumberFormats.DateTimeSortable);
 
     /// <summary>
     /// Write the explicit cell reference attribute for each cell in the resulting spreadsheet.

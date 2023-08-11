@@ -22,7 +22,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly SpreadsheetBuffer _buffer;
     private readonly bool _writeCellReferenceAttributes;
     private readonly byte[] _arrayPoolBuffer;
-    private readonly string? _defaultDateTimeNumberFormat;
+    private readonly NumberFormat? _defaultDateTimeNumberFormat;
     private DefaultStyling? _defaultStyling;
     private Dictionary<ImmutableStyle, int>? _styles;
     private Worksheet? _worksheet;
@@ -39,7 +39,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         }
     }
 
-    private Spreadsheet(ZipArchive archive, CompressionLevel compressionLevel, int bufferSize, string? defaultDateTimeNumberFormat, bool writeCellReferenceAttributes)
+    private Spreadsheet(ZipArchive archive, CompressionLevel compressionLevel, int bufferSize, NumberFormat? defaultDateTimeNumberFormat, bool writeCellReferenceAttributes)
     {
         _archive = archive;
         _compressionLevel = compressionLevel;

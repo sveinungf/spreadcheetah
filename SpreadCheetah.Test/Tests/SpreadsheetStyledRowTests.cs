@@ -1091,4 +1091,100 @@ public class SpreadsheetStyledRowTests
         var actualSheet2Refs = sheet2Row.Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
+
+
+    public static IEnumerable<object?[]> ExplicitPredefinedNumberFormats() => TestData.CombineWithStyledCellTypes(
+        Enum.GetValues(typeof(PredefinedNumberFormat)).Cast<PredefinedNumberFormat>().ToArray()
+        );
+
+    [Theory]
+    [MemberData(nameof(ExplicitPredefinedNumberFormats))]
+    public async Task Spreadsheet_AddRow_PredefinedNumberFormatCellExplicitly(PredefinedNumberFormat numberFormat, CellType type, RowCollectionType rowType)
+    {
+        // Arrange
+        const string cellValue = "Number format test";
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var style = new Style { NumberFormat = NumberFormat.Predefined(numberFormat) };
+            var styleId = spreadsheet.AddStyle(style);
+            var styledCell = CellFactory.Create(type, cellValue, styleId);
+
+            // Act
+            await spreadsheet.AddRowAsync(styledCell, rowType);
+            await spreadsheet.FinishAsync();
+        }
+
+        var expectedNumberFormatId = (int)numberFormat;
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.Equal(cellValue, actualCell.Value);
+        Assert.Equal(expectedNumberFormatId, actualCell.Style.NumberFormat.NumberFormatId);
+    }
+
+    public static IEnumerable<object?[]> CustomNumberFormatsMatchingPredefinedFormats() => TestData.CombineWithStyledCellTypes(
+        NumberFormats.General,
+        NumberFormats.Fraction,
+        NumberFormats.FractionTwoDenominatorPlaces,
+        NumberFormats.NoDecimalPlaces,
+        NumberFormats.Percent,
+        NumberFormats.PercentTwoDecimalPlaces,
+        NumberFormats.Scientific,
+        NumberFormats.ThousandsSeparator,
+        NumberFormats.ThousandsSeparatorTwoDecimalPlaces,
+        NumberFormats.TwoDecimalPlaces,
+        "mm-dd-yy",
+        "d-mmm-yy",
+        "d-mmm",
+        "mmm-yy",
+        "h:mm AM/PM",
+        "h:mm:ss AM/PM",
+        "h:mm",
+        "h:mm:ss",
+        "m/d/yy h:mm",
+        "#,##0 ;(#,##0)",
+        "#,##0 ;[Red](#,##0)",
+        "#,##0.00;(#,##0.00)",
+        "#,##0.00;[Red](#,##0.00)",
+        "mm:ss",
+        "[h]:mm:ss",
+        "mmss.0",
+        "##0.0E+0",
+        NumberFormats.Text);
+
+    [Theory]
+    [MemberData(nameof(CustomNumberFormats))]
+    [MemberData(nameof(CustomNumberFormatsMatchingPredefinedFormats))] // Check that old hardcoded predefined number formats can be explictly specified as custom formats
+    public async Task Spreadsheet_AddRow_CustomNumberFormatCellWithStringValueExplicitly(string numberFormat, CellType type, RowCollectionType rowType)
+    {
+        // Arrange
+        const string cellValue = "Number format test";
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var style = new Style { NumberFormat = NumberFormat.Custom(numberFormat) };
+            var styleId = spreadsheet.AddStyle(style);
+            var styledCell = CellFactory.Create(type, cellValue, styleId);
+
+            // Act
+            await spreadsheet.AddRowAsync(styledCell, rowType);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.Equal(cellValue, actualCell.Value);
+        Assert.Equal(numberFormat, actualCell.Style.NumberFormat.Format);
+    }
 }

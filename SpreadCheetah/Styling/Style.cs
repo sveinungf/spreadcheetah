@@ -1,5 +1,3 @@
-using SpreadCheetah.Helpers;
-
 namespace SpreadCheetah.Styling;
 
 /// <summary>
@@ -20,6 +18,5 @@ public sealed record Style
     public Font Font { get; set; } = new();
 
     /// <summary>Format that defines how a number or <see cref="DateTime"/> cell should be displayed.</summary>
-    public string? NumberFormat { get => _numberFormat; set => _numberFormat = value.WithEnsuredMaxLength(255); }
-    private string? _numberFormat;
+    public NumberFormat? NumberFormat { get; set; }
 }

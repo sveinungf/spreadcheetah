@@ -65,10 +65,10 @@ internal struct StylesXml : IXmlWriter
         {
             var numberFormat = style.NumberFormat;
             if (numberFormat is null) continue;
-            if (NumberFormats.GetPredefinedNumberFormatId(numberFormat) is not null) continue;
+            if (numberFormat.Value.CustomFormat is null) continue;
 
             dictionary ??= new Dictionary<string, int>(StringComparer.Ordinal);
-            if (dictionary.TryAdd(numberFormat, numberFormatId))
+            if (dictionary.TryAdd(numberFormat.Value.CustomFormat, numberFormatId))
                 ++numberFormatId;
         }
 
@@ -223,11 +223,12 @@ internal struct StylesXml : IXmlWriter
         return true;
     }
 
-    private static int GetNumberFormatId(string? numberFormat, IReadOnlyDictionary<string, int>? customNumberFormats)
+    private static int GetNumberFormatId(NumberFormat? numberFormat, IReadOnlyDictionary<string, int>? customNumberFormats)
     {
         if (numberFormat is null) return 0;
-        return NumberFormats.GetPredefinedNumberFormatId(numberFormat)
-            ?? customNumberFormats?.GetValueOrDefault(numberFormat)
+        if (numberFormat.Value.PredefinedFormat.HasValue) return numberFormat.Value.PredefinedFormat.Value;
+        if (numberFormat.Value.CustomFormat is null) return 0;
+        return customNumberFormats?.GetValueOrDefault(numberFormat.Value.CustomFormat)
             ?? 0;
     }
 

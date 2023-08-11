@@ -5,7 +5,7 @@ internal readonly record struct ImmutableStyle(
     ImmutableBorder Border,
     ImmutableFill Fill,
     ImmutableFont Font,
-    string? NumberFormat)
+    NumberFormat? NumberFormat)
 {
     public static ImmutableStyle From(Style style) => new(
         Alignment: ImmutableAlignment.From(style.Alignment),
