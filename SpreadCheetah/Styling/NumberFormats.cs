@@ -1,7 +1,7 @@
 namespace SpreadCheetah.Styling;
 
 /// <summary>
-/// Predefined number formats. Can be used in a style by setting <see cref="Style.Format"/>.
+/// Standard number formats. Can be used in a style by setting <see cref="Style.Format"/>.
 /// </summary>
 public static class NumberFormats
 {
@@ -41,7 +41,7 @@ public static class NumberFormats
     /// <summary>Format as number with two decimal places.</summary>
     public const string TwoDecimalPlaces = "0.00";
 
-    internal static int? GetPredefinedNumberFormatId(string? format) => format switch
+    internal static int? GetStandardNumberFormatId(string? format) => format switch
     {
         General => 0,
         NoDecimalPlaces => 1,

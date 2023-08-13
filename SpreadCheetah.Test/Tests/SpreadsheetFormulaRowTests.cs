@@ -337,7 +337,7 @@ public class SpreadsheetFormulaRowTests
         // Arrange
         var formulaText = FormulaGenerator.Generate(length);
         const float cachedValue = 5.67f;
-        var numberFormat = NumberFormat.Predefined(PredefinedNumberFormat.Percent);
+        var numberFormat = NumberFormat.Standard(StandardNumberFormat.Percent);
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
@@ -355,7 +355,7 @@ public class SpreadsheetFormulaRowTests
             await spreadsheet.FinishAsync();
         }
 
-        var expectedNumberFormatId = (int)PredefinedNumberFormat.Percent;
+        var expectedNumberFormatId = (int)StandardNumberFormat.Percent;
 
         // Assert
         SpreadsheetAssert.Valid(stream);

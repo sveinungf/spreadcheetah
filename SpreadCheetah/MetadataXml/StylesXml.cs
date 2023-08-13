@@ -226,7 +226,7 @@ internal struct StylesXml : IXmlWriter
     private static int GetNumberFormatId(NumberFormat? numberFormat, IReadOnlyDictionary<string, int>? customNumberFormats)
     {
         if (numberFormat is null) return 0;
-        if (numberFormat.Value.PredefinedFormat.HasValue) return numberFormat.Value.PredefinedFormat.Value;
+        if (numberFormat.Value.StandardFormat.HasValue) return numberFormat.Value.StandardFormat.Value;
         if (numberFormat.Value.CustomFormat is null) return 0;
         return customNumberFormats?.GetValueOrDefault(numberFormat.Value.CustomFormat)
             ?? 0;

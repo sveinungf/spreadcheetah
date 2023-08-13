@@ -362,7 +362,7 @@ public class SpreadsheetStyledRowTests
         Assert.Throws<ArgumentException>(() => style.Font.Name = fontName);
     }
 
-    public static IEnumerable<object?[]> PredefinedNumberFormats() => TestData.CombineWithStyledCellTypes(
+    public static IEnumerable<object?[]> StandardNumberFormats() => TestData.CombineWithStyledCellTypes(
         NumberFormats.Fraction,
         NumberFormats.FractionTwoDenominatorPlaces,
         NumberFormats.General,
@@ -376,8 +376,8 @@ public class SpreadsheetStyledRowTests
         null);
 
     [Theory]
-    [MemberData(nameof(PredefinedNumberFormats))]
-    public async Task Spreadsheet_AddRow_PredefinedNumberFormatCellWithStringValue(string? numberFormat, CellType type, RowCollectionType rowType)
+    [MemberData(nameof(StandardNumberFormats))]
+    public async Task Spreadsheet_AddRow_StandardNumberFormatCellWithStringValue(string? numberFormat, CellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Number format test";
@@ -397,7 +397,7 @@ public class SpreadsheetStyledRowTests
             await spreadsheet.FinishAsync();
         }
 
-        var expectedNumberFormatId = NumberFormatHelper.GetPredefinedNumberFormatId(numberFormat) ?? 0;
+        var expectedNumberFormatId = NumberFormatHelper.GetStandardNumberFormatId(numberFormat) ?? 0;
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -791,7 +791,7 @@ public class SpreadsheetStyledRowTests
             style.Font.Italic = formatting;
             style.Font.Name = fontName;
             style.Font.Strikethrough = formatting;
-            style.Format = formatting ? NumberFormat.Predefined(PredefinedNumberFormat.Percent) : null;
+            style.Format = formatting ? NumberFormat.Standard(StandardNumberFormat.Percent) : null;
             var styleId = spreadsheet.AddStyle(style);
             var styledCell = CellFactory.Create(type, cellValue, styleId);
 
@@ -822,7 +822,7 @@ public class SpreadsheetStyledRowTests
         // Arrange
         var elements = new (string Value, Color FillColor, Color FontColor, string FontName, bool FontOption, double FontSize, NumberFormat Format)[]
         {
-            ("Value 1", Color.Blue, Color.PaleGoldenrod, "Times New Roman", true, 12, NumberFormat.Predefined(PredefinedNumberFormat.Fraction)),
+            ("Value 1", Color.Blue, Color.PaleGoldenrod, "Times New Roman", true, 12, NumberFormat.Standard(StandardNumberFormat.Fraction)),
             ("Value 2", Color.Snow, Color.Gainsboro, "Consolas", false, 20, NumberFormat.Custom("0.0000")),
             ("Value 3", Color.Aquamarine, Color.YellowGreen, "Impact", false, 18, NumberFormat.Custom("0.0000"))
         };
@@ -872,8 +872,8 @@ public class SpreadsheetStyledRowTests
             Assert.Equal(element.FontOption, actualCell.Style.Font.Italic);
             Assert.Equal(element.FontOption, actualCell.Style.Font.Strikethrough);
 
-            if (element.Format.Equals(NumberFormat.Predefined(PredefinedNumberFormat.Fraction)))
-                Assert.Equal((int)PredefinedNumberFormat.Fraction, actualCell.Style.NumberFormat.NumberFormatId);
+            if (element.Format.Equals(NumberFormat.Standard(StandardNumberFormat.Fraction)))
+                Assert.Equal((int)StandardNumberFormat.Fraction, actualCell.Style.NumberFormat.NumberFormatId);
             else
                 Assert.Equal(element.Format.ToString(), actualCell.Style.NumberFormat.Format);
         });
@@ -1096,13 +1096,13 @@ public class SpreadsheetStyledRowTests
     }
 
 
-    public static IEnumerable<object?[]> ExplicitPredefinedNumberFormats() => TestData.CombineWithStyledCellTypes(
-        Enum.GetValues(typeof(PredefinedNumberFormat)).Cast<PredefinedNumberFormat>().ToArray()
+    public static IEnumerable<object?[]> ExplicitStandardNumberFormats() => TestData.CombineWithStyledCellTypes(
+        Enum.GetValues(typeof(StandardNumberFormat)).Cast<StandardNumberFormat>().ToArray()
         );
 
     [Theory]
-    [MemberData(nameof(ExplicitPredefinedNumberFormats))]
-    public async Task Spreadsheet_AddRow_PredefinedNumberFormatCellExplicitly(PredefinedNumberFormat numberFormat, CellType type, RowCollectionType rowType)
+    [MemberData(nameof(ExplicitStandardNumberFormats))]
+    public async Task Spreadsheet_AddRow_StandardNumberFormatCellExplicitly(StandardNumberFormat numberFormat, CellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Number format test";
@@ -1111,7 +1111,7 @@ public class SpreadsheetStyledRowTests
         {
             await spreadsheet.StartWorksheetAsync("Sheet");
 
-            var style = new Style { Format = NumberFormat.Predefined(numberFormat) };
+            var style = new Style { Format = NumberFormat.Standard(numberFormat) };
             var styleId = spreadsheet.AddStyle(style);
             var styledCell = CellFactory.Create(type, cellValue, styleId);
 
@@ -1131,7 +1131,7 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(expectedNumberFormatId, actualCell.Style.NumberFormat.NumberFormatId);
     }
 
-    public static IEnumerable<object?[]> CustomNumberFormatsMatchingPredefinedFormats() => TestData.CombineWithStyledCellTypes(
+    public static IEnumerable<object?[]> CustomNumberFormatsMatchingStandardFormats() => TestData.CombineWithStyledCellTypes(
         NumberFormats.General,
         NumberFormats.Fraction,
         NumberFormats.FractionTwoDenominatorPlaces,
@@ -1163,7 +1163,7 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(CustomNumberFormats))]
-    [MemberData(nameof(CustomNumberFormatsMatchingPredefinedFormats))] // Check that old hardcoded predefined number formats can be explictly specified as custom formats
+    [MemberData(nameof(CustomNumberFormatsMatchingStandardFormats))] // Check that old hardcoded standard number formats can be explictly specified as custom formats
     public async Task Spreadsheet_AddRow_CustomNumberFormatCellWithStringValueExplicitly(string numberFormat, CellType type, RowCollectionType rowType)
     {
         // Arrange

@@ -1,9 +1,9 @@
 namespace SpreadCheetah.Styling
 {
     /// <summary>
-    /// Predefined number formats. These are interpreted by Excel in a locale dependent way, so the exact formatting may depend on the system locale settings when the file is viewed.
+    /// Standard number formats. These are interpreted by Excel in a locale dependent way, so the exact formatting may depend on the system locale settings when the file is viewed.
     /// </summary>
-    public enum PredefinedNumberFormat
+    public enum StandardNumberFormat
     {
         /// <summary>The default format.</summary>
         General = 0,

@@ -4,7 +4,7 @@ namespace SpreadCheetah.Test.Helpers;
 
 internal static class NumberFormatHelper
 {
-    public static int? GetPredefinedNumberFormatId(string? format) => format switch
+    public static int? GetStandardNumberFormatId(string? format) => format switch
     {
         NumberFormats.General => 0,
         NumberFormats.NoDecimalPlaces => 1,

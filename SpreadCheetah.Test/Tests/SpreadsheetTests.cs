@@ -482,7 +482,7 @@ public class SpreadsheetTests
 
         var style = new Style();
         if (!defaultStyle)
-            style.Format = NumberFormat.Predefined(PredefinedNumberFormat.Fraction);
+            style.Format = NumberFormat.Standard(StandardNumberFormat.Fraction);
 
         // Act
         var styleId = spreadsheet.AddStyle(style);
