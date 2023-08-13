@@ -108,8 +108,8 @@ public readonly struct Cell : IEquatable<Cell>
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Cell"/> struct with a <see cref="DateTime"/> value and an optional style.
-    /// Will be displayed in the number format from <see cref="Style.NumberFormat"/> if set,
-    /// otherwise <see cref="SpreadCheetahOptions.DefaultDateTimeNumberFormat"/> will be used instead.
+    /// Will be displayed in the number format from <see cref="Style.Format"/> if set,
+    /// otherwise <see cref="SpreadCheetahOptions.DefaultDateTimeFormat"/> will be used instead.
     /// </summary>
     public Cell(DateTime value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
     {
@@ -117,8 +117,8 @@ public readonly struct Cell : IEquatable<Cell>
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StyledCell"/> struct with a <see cref="DateTime"/> value and an optional style.
-    /// Will be displayed in the number format from <see cref="Style.NumberFormat"/> if set,
-    /// otherwise <see cref="SpreadCheetahOptions.DefaultDateTimeNumberFormat"/> will be used instead.
+    /// Will be displayed in the number format from <see cref="Style.Format"/> if set,
+    /// otherwise <see cref="SpreadCheetahOptions.DefaultDateTimeFormat"/> will be used instead.
     /// If <c>value</c> is <c>null</c>, the cell will be empty.
     /// </summary>
     public Cell(DateTime? value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)

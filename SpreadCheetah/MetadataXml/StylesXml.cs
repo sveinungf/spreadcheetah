@@ -63,7 +63,7 @@ internal struct StylesXml : IXmlWriter
 
         foreach (var style in styles)
         {
-            var numberFormat = style.NumberFormat;
+            var numberFormat = style.Format;
             if (numberFormat is null) continue;
             if (numberFormat.Value.CustomFormat is null) continue;
 
@@ -177,7 +177,7 @@ internal struct StylesXml : IXmlWriter
             var span = bytes.Slice(bytesWritten);
             var written = 0;
 
-            var numberFormatId = GetNumberFormatId(style.NumberFormat, _customNumberFormats);
+            var numberFormatId = GetNumberFormatId(style.Format, _customNumberFormats);
 
             if (!"<xf numFmtId=\""u8.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(numberFormatId, span, ref written)) return false;

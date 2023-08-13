@@ -402,7 +402,9 @@ public class SpreadsheetRowTests
         // Arrange
         var value = new DateTime(2022, 9, 11, 14, 7, 13, DateTimeKind.Unspecified);
         using var stream = new MemoryStream();
+#pragma warning disable CS0618 // Type or member is obsolete - Testing legacy behaviour
         var options = new SpreadCheetahOptions { DefaultDateTimeNumberFormat = defaultNumberFormat };
+#pragma warning restore CS0618 // Type or member is obsolete
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
         {
             await spreadsheet.StartWorksheetAsync("Sheet");
@@ -537,7 +539,7 @@ public class SpreadsheetRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        var options = new SpreadCheetahOptions { DefaultDateTimeNumberFormat = null, WriteCellReferenceAttributes = true };
+        var options = new SpreadCheetahOptions { DefaultDateTimeFormat = null, WriteCellReferenceAttributes = true };
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
 
         var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(cellType, valueType, isNull, null, out var value)).ToList();

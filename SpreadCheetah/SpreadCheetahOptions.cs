@@ -37,7 +37,18 @@ public class SpreadCheetahOptions
     /// <summary>
     /// The default number format used for <see cref="DateTime"/> cells. Defaults to <see cref="NumberFormats.DateTimeSortable"/>.
     /// </summary>
-    public NumberFormat? DefaultDateTimeNumberFormat { get; set; } = NumberFormat.Custom(NumberFormats.DateTimeSortable);
+#pragma warning disable S1133 // Deprecated code should be removed - This is required for backwards binary compatibility
+    [Obsolete($"Use {nameof(SpreadCheetahOptions)}.{nameof(DefaultDateTimeFormat)} instead")]
+    public string? DefaultDateTimeNumberFormat {
+        get => DefaultDateTimeFormat?.CustomFormat;
+        set => DefaultDateTimeFormat = value == null ? null : NumberFormat.FromLegacyString(value);
+    }
+#pragma warning restore S1133 // Deprecated code should be removed
+
+    /// <summary>
+    /// The default number format used for <see cref="DateTime"/> cells. Defaults to <see cref="NumberFormats.DateTimeSortable"/>.
+    /// </summary>
+    public NumberFormat? DefaultDateTimeFormat { get; set; } = NumberFormat.Custom(NumberFormats.DateTimeSortable);
 
     /// <summary>
     /// Write the explicit cell reference attribute for each cell in the resulting spreadsheet.

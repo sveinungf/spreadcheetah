@@ -1,4 +1,5 @@
 using Bogus;
+using SpreadCheetah.Styling;
 using System.Drawing;
 
 namespace SpreadCheetah.Test.Helpers;
@@ -31,7 +32,7 @@ internal static class RandomizerExtensions
         return value1;
     }
 
-    public static string NumberFormat(this Randomizer randomizer)
+    public static NumberFormat NumberFormat(this Randomizer randomizer)
     {
         string value;
 
@@ -40,7 +41,7 @@ internal static class RandomizerExtensions
             value = randomizer.String2(2, 255, "dhmsy0.,;-#%?/[] ");
         } while (string.Equals(value, "0%", StringComparison.Ordinal));
 
-        return value;
+        return Styling.NumberFormat.Custom(value);
     }
 
     public static double SimpleDouble(this Randomizer randomizer)

@@ -386,7 +386,9 @@ public class SpreadsheetStyledRowTests
         {
             await spreadsheet.StartWorksheetAsync("Sheet");
 
+#pragma warning disable CS0618 // Type or member is obsolete - Testing legacy behaviour
             var style = new Style { NumberFormat = numberFormat };
+#pragma warning restore CS0618 // Type or member is obsolete
             var styleId = spreadsheet.AddStyle(style);
             var styledCell = CellFactory.Create(type, cellValue, styleId);
 
@@ -424,7 +426,9 @@ public class SpreadsheetStyledRowTests
         {
             await spreadsheet.StartWorksheetAsync("Sheet");
 
+#pragma warning disable CS0618 // Type or member is obsolete - Testing legacy behaviour
             var style = new Style { NumberFormat = numberFormat };
+#pragma warning restore CS0618 // Type or member is obsolete
             var styleId = spreadsheet.AddStyle(style);
             var styledCell = CellFactory.Create(type, cellValue, styleId);
 
@@ -448,12 +452,12 @@ public class SpreadsheetStyledRowTests
     {
         // Arrange
         const string cellValue = "Number format test";
-        const string format = "0.0000";
+        var format = NumberFormat.Custom("0.0000");
         var styles = new Style[]
         {
-            new() { NumberFormat = format },
-            new() { NumberFormat = format, Fill = new Fill { Color = Color.Coral } },
-            new() { NumberFormat = format, Font = new Font { Bold = true } }
+            new() { Format = format },
+            new() { Format = format, Fill = new Fill { Color = Color.Coral } },
+            new() { Format = format, Font = new Font { Bold = true } }
         };
 
         using var stream = new MemoryStream();
@@ -474,7 +478,7 @@ public class SpreadsheetStyledRowTests
         var worksheet = workbook.Worksheets.Single();
         var actualCells = worksheet.CellsUsed();
         Assert.All(actualCells, x => Assert.Equal(cellValue, x.Value));
-        Assert.All(actualCells, x => Assert.Equal(format, x.Style.NumberFormat.Format));
+        Assert.All(actualCells, x => Assert.Equal(format.ToString(), x.Style.NumberFormat.Format));
         Assert.Equal(styles.Length, actualCells.Count());
     }
 
@@ -494,7 +498,7 @@ public class SpreadsheetStyledRowTests
             var style = new Style();
             style.Font.Italic = true;
             if (withExplicitNumberFormat)
-                style.NumberFormat = explicitNumberFormat;
+                style.Format = NumberFormat.Custom(explicitNumberFormat);
 
             var styleId = spreadsheet.AddStyle(style);
             var styledCell = CellFactory.Create(type, value, styleId);
@@ -787,7 +791,7 @@ public class SpreadsheetStyledRowTests
             style.Font.Italic = formatting;
             style.Font.Name = fontName;
             style.Font.Strikethrough = formatting;
-            style.NumberFormat = formatting ? NumberFormats.Percent : null;
+            style.Format = formatting ? NumberFormat.Predefined(PredefinedNumberFormat.Percent) : null;
             var styleId = spreadsheet.AddStyle(style);
             var styledCell = CellFactory.Create(type, cellValue, styleId);
 
@@ -816,11 +820,11 @@ public class SpreadsheetStyledRowTests
     public async Task Spreadsheet_AddRow_MultipleCellsWithDifferentStyles(CellType type, RowCollectionType rowType)
     {
         // Arrange
-        var elements = new (string Value, Color FillColor, Color FontColor, string FontName, bool FontOption, double FontSize, string NumberFormat)[]
+        var elements = new (string Value, Color FillColor, Color FontColor, string FontName, bool FontOption, double FontSize, NumberFormat Format)[]
         {
-            ("Value 1", Color.Blue, Color.PaleGoldenrod, "Times New Roman", true, 12, NumberFormats.Fraction),
-            ("Value 2", Color.Snow, Color.Gainsboro, "Consolas", false, 20, "0.0000"),
-            ("Value 3", Color.Aquamarine, Color.YellowGreen, "Impact", false, 18, "0.00000")
+            ("Value 1", Color.Blue, Color.PaleGoldenrod, "Times New Roman", true, 12, NumberFormat.Predefined(PredefinedNumberFormat.Fraction)),
+            ("Value 2", Color.Snow, Color.Gainsboro, "Consolas", false, 20, NumberFormat.Custom("0.0000")),
+            ("Value 3", Color.Aquamarine, Color.YellowGreen, "Impact", false, 18, NumberFormat.Custom("0.0000"))
         };
 
         using var stream = new MemoryStream();
@@ -842,7 +846,7 @@ public class SpreadsheetStyledRowTests
                         Size = x.FontSize,
                         Strikethrough = x.FontOption
                     },
-                    NumberFormat = x.NumberFormat
+                    Format = x.Format
                 };
 
                 var styleId = spreadsheet.AddStyle(style);
@@ -868,11 +872,10 @@ public class SpreadsheetStyledRowTests
             Assert.Equal(element.FontOption, actualCell.Style.Font.Italic);
             Assert.Equal(element.FontOption, actualCell.Style.Font.Strikethrough);
 
-            var numberFormatId = NumberFormatHelper.GetPredefinedNumberFormatId(element.NumberFormat);
-            if (numberFormatId is not null)
-                Assert.Equal(numberFormatId, actualCell.Style.NumberFormat.NumberFormatId);
+            if (element.Format.Equals(NumberFormat.Predefined(PredefinedNumberFormat.Fraction)))
+                Assert.Equal((int)PredefinedNumberFormat.Fraction, actualCell.Style.NumberFormat.NumberFormatId);
             else
-                Assert.Equal(element.NumberFormat, actualCell.Style.NumberFormat.Format);
+                Assert.Equal(element.Format.ToString(), actualCell.Style.NumberFormat.Format);
         });
     }
 
@@ -1108,7 +1111,7 @@ public class SpreadsheetStyledRowTests
         {
             await spreadsheet.StartWorksheetAsync("Sheet");
 
-            var style = new Style { NumberFormat = NumberFormat.Predefined(numberFormat) };
+            var style = new Style { Format = NumberFormat.Predefined(numberFormat) };
             var styleId = spreadsheet.AddStyle(style);
             var styledCell = CellFactory.Create(type, cellValue, styleId);
 
@@ -1170,7 +1173,7 @@ public class SpreadsheetStyledRowTests
         {
             await spreadsheet.StartWorksheetAsync("Sheet");
 
-            var style = new Style { NumberFormat = NumberFormat.Custom(numberFormat) };
+            var style = new Style { Format = NumberFormat.Custom(numberFormat) };
             var styleId = spreadsheet.AddStyle(style);
             var styledCell = CellFactory.Create(type, cellValue, styleId);
 

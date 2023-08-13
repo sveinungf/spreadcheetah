@@ -1,7 +1,7 @@
 namespace SpreadCheetah.Styling;
 
 /// <summary>
-/// Predefined number formats. Can be used in a style by setting <see cref="Style.NumberFormat"/>.
+/// Predefined number formats. Can be used in a style by setting <see cref="Style.Format"/>.
 /// </summary>
 public static class NumberFormats
 {

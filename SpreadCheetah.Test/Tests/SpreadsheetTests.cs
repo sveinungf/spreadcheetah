@@ -77,7 +77,7 @@ public class SpreadsheetTests
         // Arrange
         var options = new SpreadCheetahOptions();
         if (!hasStyle)
-            options.DefaultDateTimeNumberFormat = null;
+            options.DefaultDateTimeFormat = null;
 
         using var stream = new MemoryStream();
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
@@ -482,7 +482,7 @@ public class SpreadsheetTests
 
         var style = new Style();
         if (!defaultStyle)
-            style.NumberFormat = NumberFormats.Fraction;
+            style.Format = NumberFormat.Predefined(PredefinedNumberFormat.Fraction);
 
         // Act
         var styleId = spreadsheet.AddStyle(style);

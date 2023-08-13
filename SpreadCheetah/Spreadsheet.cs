@@ -22,7 +22,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly SpreadsheetBuffer _buffer;
     private readonly bool _writeCellReferenceAttributes;
     private readonly byte[] _arrayPoolBuffer;
-    private readonly NumberFormat? _defaultDateTimeNumberFormat;
+    private readonly NumberFormat? _defaultDateTimeFormat;
     private DefaultStyling? _defaultStyling;
     private Dictionary<ImmutableStyle, int>? _styles;
     private Worksheet? _worksheet;
@@ -39,13 +39,13 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         }
     }
 
-    private Spreadsheet(ZipArchive archive, CompressionLevel compressionLevel, int bufferSize, NumberFormat? defaultDateTimeNumberFormat, bool writeCellReferenceAttributes)
+    private Spreadsheet(ZipArchive archive, CompressionLevel compressionLevel, int bufferSize, NumberFormat? defaultDateTimeFormat, bool writeCellReferenceAttributes)
     {
         _archive = archive;
         _compressionLevel = compressionLevel;
         _arrayPoolBuffer = ArrayPool<byte>.Shared.Rent(bufferSize);
         _buffer = new SpreadsheetBuffer(_arrayPoolBuffer);
-        _defaultDateTimeNumberFormat = defaultDateTimeNumberFormat;
+        _defaultDateTimeFormat = defaultDateTimeFormat;
         _writeCellReferenceAttributes = writeCellReferenceAttributes;
     }
 
@@ -60,15 +60,15 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var archive = new ZipArchive(stream, ZipArchiveMode.Create, true);
         var bufferSize = options?.BufferSize ?? SpreadCheetahOptions.DefaultBufferSize;
         var compressionLevel = GetCompressionLevel(options?.CompressionLevel ?? SpreadCheetahOptions.DefaultCompressionLevel);
-        var defaultDateTimeNumberFormat = options is null ? NumberFormats.DateTimeSortable : options.DefaultDateTimeNumberFormat;
+        var defaultDateTimeFormat = options is null ? new SpreadCheetahOptions().DefaultDateTimeFormat : options.DefaultDateTimeFormat;
         var writeCellReferenceAttributes = options?.WriteCellReferenceAttributes ?? false;
 
-        var spreadsheet = new Spreadsheet(archive, compressionLevel, bufferSize, defaultDateTimeNumberFormat, writeCellReferenceAttributes);
+        var spreadsheet = new Spreadsheet(archive, compressionLevel, bufferSize, defaultDateTimeFormat, writeCellReferenceAttributes);
         await spreadsheet.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
         // If no style is ever added to the spreadsheet, then we can skip creating the styles.xml file.
         // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
-        if (defaultDateTimeNumberFormat is not null)
+        if (defaultDateTimeFormat is not null)
             spreadsheet.AddDefaultStyle();
 
         return spreadsheet;
@@ -362,8 +362,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private StyleId AddStyle(in ImmutableStyle style)
     {
         // Optionally add another style for DateTime when there is no explicit number format in the new style.
-        ImmutableStyle? dateTimeStyle = _defaultDateTimeNumberFormat is not null && style.NumberFormat is null
-            ? style with { NumberFormat = _defaultDateTimeNumberFormat }
+        ImmutableStyle? dateTimeStyle = _defaultDateTimeFormat is not null && style.Format is null
+            ? style with { Format = _defaultDateTimeFormat }
             : null;
 
         _styles ??= new Dictionary<ImmutableStyle, int>();

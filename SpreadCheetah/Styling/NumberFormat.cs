@@ -1,10 +1,16 @@
 using SpreadCheetah.Helpers;
+using System.Globalization;
 
 namespace SpreadCheetah.Styling
 {
-    public struct NumberFormat
+    /// <summary>
+    /// Format that defines how a number or <see cref="DateTime"/> cell should be displayed.
+    /// May be a custom format, initialised by <see cref="NumberFormat.Custom"/>, or a predefined format, initialised by <see cref="NumberFormat.Predefined"/>
+    /// </summary>
+#pragma warning disable CA1815, CA2231 // Override equals and operator equals on value types - equals operator not appropriate for this type
+    public readonly struct NumberFormat : IEquatable<NumberFormat>
+#pragma warning restore CA1815, CA2231
     {
-
         private NumberFormat(string? customFormat, int? predefinedFormat)
         {
             CustomFormat = customFormat.WithEnsuredMaxLength(255);
@@ -34,37 +40,14 @@ namespace SpreadCheetah.Styling
             return new NumberFormat(null, (int)format);
         }
 
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            if (CustomFormat is not null) return CustomFormat;
-            if (PredefinedFormat.HasValue) return Enum.GetName(typeof(PredefinedNumberFormat), PredefinedFormat.Value);
-            return string.Empty;
-        }
-
-        /// <inheritdoc />
-        public override bool Equals(object obj)
-        {
-            if (obj is NumberFormat numberFormat)
-            {
-                return string.Equals(numberFormat.CustomFormat, CustomFormat, StringComparison.Ordinal) &&
-                       numberFormat.PredefinedFormat == PredefinedFormat;
-            }
-            return false;
-        }
-
         /// <summary>
-        /// Implcitly creates a predefined number format.
+        /// Creates a number format from a string which may be custom or predefined.
+        /// For backwards compatibility purposes only.
         /// </summary>
-#pragma warning disable CA2225 // Operator overloads have named alternates - named alternatives are provided, named Custom and Predefined, for more fluent syntax.
-        public static implicit operator NumberFormat(PredefinedNumberFormat format) => NumberFormat.Predefined(format);
-
-        /// <summary>
-        /// Implicitly creates a custom or predefined number format
-        /// </summary>
-        public static implicit operator NumberFormat(string formatString)
+        /// <param name="formatString">The custom or predefined string to use for this number format</param>
+        /// <returns>A <see cref="NumberFormat"/> representing this format</returns>
+        internal static NumberFormat FromLegacyString(string formatString)
         {
-            // Backwards compatibilty - if string being cast from is one of the old hard-coded predefined number format strings, convert it to an actual predefined number format to match previous behaviour
             var predefinedNumberFormat = NumberFormats.GetPredefinedNumberFormatId(formatString);
             if (predefinedNumberFormat.HasValue)
             {
@@ -75,6 +58,36 @@ namespace SpreadCheetah.Styling
                 return new NumberFormat(formatString, null);
             }
         }
-#pragma warning restore CA2225 // Operator overloads have named alternates
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            if (CustomFormat is not null) return CustomFormat;
+            if (PredefinedFormat.HasValue) return Enum.GetName(typeof(PredefinedNumberFormat), PredefinedFormat.Value) ?? PredefinedFormat.Value.ToString(CultureInfo.InvariantCulture);
+            return string.Empty;
+        }
+
+        /// <inheritdoc />
+        public override readonly bool Equals(object? obj)
+        {
+            if (obj is NumberFormat numberFormat)
+            {
+                return Equals(numberFormat);
+            }
+            return false;
+        }
+
+        /// <inheritdoc />
+        public bool Equals(NumberFormat other)
+        {
+            return string.Equals(other.CustomFormat, CustomFormat, StringComparison.Ordinal) &&
+                   other.PredefinedFormat == PredefinedFormat;
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(CustomFormat, PredefinedFormat);
+        }
     }
 }
