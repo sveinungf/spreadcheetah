@@ -362,7 +362,8 @@ public class SpreadsheetStyledRowTests
         Assert.Throws<ArgumentException>(() => style.Font.Name = fontName);
     }
 
-    public static IEnumerable<object?[]> PredefinedNumberFormats() => TestData.CombineWithStyledCellTypes(
+#pragma warning disable CS0618 // Type or member is obsolete - Testing for backwards compatibilty
+    public static IEnumerable<object?[]> StandardNumberFormats() => TestData.CombineWithStyledCellTypes(
         NumberFormats.Fraction,
         NumberFormats.FractionTwoDenominatorPlaces,
         NumberFormats.General,
@@ -374,10 +375,11 @@ public class SpreadsheetStyledRowTests
         NumberFormats.ThousandsSeparatorTwoDecimalPlaces,
         NumberFormats.TwoDecimalPlaces,
         null);
+#pragma warning restore CS0618 // Type or member is obsolete
 
     [Theory]
-    [MemberData(nameof(PredefinedNumberFormats))]
-    public async Task Spreadsheet_AddRow_PredefinedNumberFormatCellWithStringValue(string? numberFormat, CellType type, RowCollectionType rowType)
+    [MemberData(nameof(StandardNumberFormats))]
+    public async Task Spreadsheet_AddRow_StandardNumberFormatCellWithStringValue(string? numberFormat, CellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Number format test";
@@ -386,7 +388,9 @@ public class SpreadsheetStyledRowTests
         {
             await spreadsheet.StartWorksheetAsync("Sheet");
 
+#pragma warning disable CS0618 // Type or member is obsolete - Testing legacy behaviour
             var style = new Style { NumberFormat = numberFormat };
+#pragma warning restore CS0618 // Type or member is obsolete
             var styleId = spreadsheet.AddStyle(style);
             var styledCell = CellFactory.Create(type, cellValue, styleId);
 
@@ -395,7 +399,7 @@ public class SpreadsheetStyledRowTests
             await spreadsheet.FinishAsync();
         }
 
-        var expectedNumberFormatId = NumberFormatHelper.GetPredefinedNumberFormatId(numberFormat) ?? 0;
+        var expectedNumberFormatId = NumberFormatHelper.GetStandardNumberFormatId(numberFormat) ?? 0;
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -424,7 +428,9 @@ public class SpreadsheetStyledRowTests
         {
             await spreadsheet.StartWorksheetAsync("Sheet");
 
+#pragma warning disable CS0618 // Type or member is obsolete - Testing legacy behaviour
             var style = new Style { NumberFormat = numberFormat };
+#pragma warning restore CS0618 // Type or member is obsolete
             var styleId = spreadsheet.AddStyle(style);
             var styledCell = CellFactory.Create(type, cellValue, styleId);
 
@@ -448,12 +454,12 @@ public class SpreadsheetStyledRowTests
     {
         // Arrange
         const string cellValue = "Number format test";
-        const string format = "0.0000";
+        var format = NumberFormat.Custom("0.0000");
         var styles = new Style[]
         {
-            new() { NumberFormat = format },
-            new() { NumberFormat = format, Fill = new Fill { Color = Color.Coral } },
-            new() { NumberFormat = format, Font = new Font { Bold = true } }
+            new() { Format = format },
+            new() { Format = format, Fill = new Fill { Color = Color.Coral } },
+            new() { Format = format, Font = new Font { Bold = true } }
         };
 
         using var stream = new MemoryStream();
@@ -474,7 +480,7 @@ public class SpreadsheetStyledRowTests
         var worksheet = workbook.Worksheets.Single();
         var actualCells = worksheet.CellsUsed();
         Assert.All(actualCells, x => Assert.Equal(cellValue, x.Value));
-        Assert.All(actualCells, x => Assert.Equal(format, x.Style.NumberFormat.Format));
+        Assert.All(actualCells, x => Assert.Equal(format.ToString(), x.Style.NumberFormat.Format));
         Assert.Equal(styles.Length, actualCells.Count());
     }
 
@@ -494,7 +500,7 @@ public class SpreadsheetStyledRowTests
             var style = new Style();
             style.Font.Italic = true;
             if (withExplicitNumberFormat)
-                style.NumberFormat = explicitNumberFormat;
+                style.Format = NumberFormat.Custom(explicitNumberFormat);
 
             var styleId = spreadsheet.AddStyle(style);
             var styledCell = CellFactory.Create(type, value, styleId);
@@ -787,7 +793,7 @@ public class SpreadsheetStyledRowTests
             style.Font.Italic = formatting;
             style.Font.Name = fontName;
             style.Font.Strikethrough = formatting;
-            style.NumberFormat = formatting ? NumberFormats.Percent : null;
+            style.Format = formatting ? NumberFormat.Standard(StandardNumberFormat.Percent) : null;
             var styleId = spreadsheet.AddStyle(style);
             var styledCell = CellFactory.Create(type, cellValue, styleId);
 
@@ -816,11 +822,11 @@ public class SpreadsheetStyledRowTests
     public async Task Spreadsheet_AddRow_MultipleCellsWithDifferentStyles(CellType type, RowCollectionType rowType)
     {
         // Arrange
-        var elements = new (string Value, Color FillColor, Color FontColor, string FontName, bool FontOption, double FontSize, string NumberFormat)[]
+        var elements = new (string Value, Color FillColor, Color FontColor, string FontName, bool FontOption, double FontSize, NumberFormat Format)[]
         {
-            ("Value 1", Color.Blue, Color.PaleGoldenrod, "Times New Roman", true, 12, NumberFormats.Fraction),
-            ("Value 2", Color.Snow, Color.Gainsboro, "Consolas", false, 20, "0.0000"),
-            ("Value 3", Color.Aquamarine, Color.YellowGreen, "Impact", false, 18, "0.00000")
+            ("Value 1", Color.Blue, Color.PaleGoldenrod, "Times New Roman", true, 12, NumberFormat.Standard(StandardNumberFormat.Fraction)),
+            ("Value 2", Color.Snow, Color.Gainsboro, "Consolas", false, 20, NumberFormat.Custom("0.0000")),
+            ("Value 3", Color.Aquamarine, Color.YellowGreen, "Impact", false, 18, NumberFormat.Custom("0.0000"))
         };
 
         using var stream = new MemoryStream();
@@ -842,7 +848,7 @@ public class SpreadsheetStyledRowTests
                         Size = x.FontSize,
                         Strikethrough = x.FontOption
                     },
-                    NumberFormat = x.NumberFormat
+                    Format = x.Format
                 };
 
                 var styleId = spreadsheet.AddStyle(style);
@@ -868,11 +874,10 @@ public class SpreadsheetStyledRowTests
             Assert.Equal(element.FontOption, actualCell.Style.Font.Italic);
             Assert.Equal(element.FontOption, actualCell.Style.Font.Strikethrough);
 
-            var numberFormatId = NumberFormatHelper.GetPredefinedNumberFormatId(element.NumberFormat);
-            if (numberFormatId is not null)
-                Assert.Equal(numberFormatId, actualCell.Style.NumberFormat.NumberFormatId);
+            if (element.Format.Equals(NumberFormat.Standard(StandardNumberFormat.Fraction)))
+                Assert.Equal((int)StandardNumberFormat.Fraction, actualCell.Style.NumberFormat.NumberFormatId);
             else
-                Assert.Equal(element.NumberFormat, actualCell.Style.NumberFormat.Format);
+                Assert.Equal(element.Format.ToString(), actualCell.Style.NumberFormat.Format);
         });
     }
 
@@ -1090,5 +1095,103 @@ public class SpreadsheetStyledRowTests
         var sheet2Row = sheetParts[1].Worksheet.Descendants<Row>().Single();
         var actualSheet2Refs = sheet2Row.Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
+    }
+
+
+    public static IEnumerable<object?[]> ExplicitStandardNumberFormats() => TestData.CombineWithStyledCellTypes(
+        Enum.GetValues(typeof(StandardNumberFormat)).Cast<StandardNumberFormat>().ToArray()
+        );
+
+    [Theory]
+    [MemberData(nameof(ExplicitStandardNumberFormats))]
+    public async Task Spreadsheet_AddRow_StandardNumberFormatCellExplicitly(StandardNumberFormat numberFormat, CellType type, RowCollectionType rowType)
+    {
+        // Arrange
+        const string cellValue = "Number format test";
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var style = new Style { Format = NumberFormat.Standard(numberFormat) };
+            var styleId = spreadsheet.AddStyle(style);
+            var styledCell = CellFactory.Create(type, cellValue, styleId);
+
+            // Act
+            await spreadsheet.AddRowAsync(styledCell, rowType);
+            await spreadsheet.FinishAsync();
+        }
+
+        var expectedNumberFormatId = (int)numberFormat;
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.Equal(cellValue, actualCell.Value);
+        Assert.Equal(expectedNumberFormatId, actualCell.Style.NumberFormat.NumberFormatId);
+    }
+
+#pragma warning disable CS0618 // Type or member is obsolete - Testing legacy behaviour
+    public static IEnumerable<object?[]> CustomNumberFormatsMatchingStandardFormats() => TestData.CombineWithStyledCellTypes(
+        NumberFormats.General,
+        NumberFormats.Fraction,
+        NumberFormats.FractionTwoDenominatorPlaces,
+        NumberFormats.NoDecimalPlaces,
+        NumberFormats.Percent,
+        NumberFormats.PercentTwoDecimalPlaces,
+        NumberFormats.Scientific,
+        NumberFormats.ThousandsSeparator,
+        NumberFormats.ThousandsSeparatorTwoDecimalPlaces,
+        NumberFormats.TwoDecimalPlaces,
+        "mm-dd-yy",
+        "d-mmm-yy",
+        "d-mmm",
+        "mmm-yy",
+        "h:mm AM/PM",
+        "h:mm:ss AM/PM",
+        "h:mm",
+        "h:mm:ss",
+        "m/d/yy h:mm",
+        "#,##0 ;(#,##0)",
+        "#,##0 ;[Red](#,##0)",
+        "#,##0.00;(#,##0.00)",
+        "#,##0.00;[Red](#,##0.00)",
+        "mm:ss",
+        "[h]:mm:ss",
+        "mmss.0",
+        "##0.0E+0",
+        NumberFormats.Text);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+    [Theory]
+    [MemberData(nameof(CustomNumberFormats))]
+    [MemberData(nameof(CustomNumberFormatsMatchingStandardFormats))] // Check that old hardcoded standard number formats can be explictly specified as custom formats
+    public async Task Spreadsheet_AddRow_CustomNumberFormatCellWithStringValueExplicitly(string numberFormat, CellType type, RowCollectionType rowType)
+    {
+        // Arrange
+        const string cellValue = "Number format test";
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            var style = new Style { Format = NumberFormat.Custom(numberFormat) };
+            var styleId = spreadsheet.AddStyle(style);
+            var styledCell = CellFactory.Create(type, cellValue, styleId);
+
+            // Act
+            await spreadsheet.AddRowAsync(styledCell, rowType);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.Equal(cellValue, actualCell.Value);
+        Assert.Equal(numberFormat, actualCell.Style.NumberFormat.Format);
     }
 }

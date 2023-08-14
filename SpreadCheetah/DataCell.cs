@@ -121,7 +121,7 @@ public readonly struct DataCell : IEquatable<DataCell>
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a <see cref="DateTime"/> value.
-    /// Will be displayed in the number format from <see cref="SpreadCheetahOptions.DefaultDateTimeNumberFormat"/>.
+    /// Will be displayed in the number format from <see cref="SpreadCheetahOptions.DefaultDateTimeFormat"/>.
     /// </summary>
     public DataCell(DateTime value) : this()
     {
@@ -131,7 +131,7 @@ public readonly struct DataCell : IEquatable<DataCell>
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a <see cref="DateTime"/> value.
-    /// Will be displayed in the number format from <see cref="SpreadCheetahOptions.DefaultDateTimeNumberFormat"/>.
+    /// Will be displayed in the number format from <see cref="SpreadCheetahOptions.DefaultDateTimeFormat"/>.
     /// If <c>value</c> is <c>null</c>, the cell will be empty.
     /// </summary>
     public DataCell(DateTime? value) : this()

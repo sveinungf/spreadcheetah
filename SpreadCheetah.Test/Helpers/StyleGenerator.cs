@@ -54,7 +54,10 @@ internal static class StyleGenerator
             .RuleFor(x => x.Border, _ => testBorders.Generate())
             .RuleFor(x => x.Fill, _ => testFills.Generate())
             .RuleFor(x => x.Font, _ => testFonts.Generate())
-            .RuleFor(x => x.NumberFormat, f => f.Random.NumberFormat().OrNull(f, .1f));
+            .RuleFor(x => x.Format, f => f.Random.NumberFormat().OrNull(f, .1f))
+#pragma warning disable CS0618 // Type or member is obsolete - Being ignored
+            .Ignore(x => x.NumberFormat);
+#pragma warning restore CS0618 // Type or member is obsolete
 
         return styles.Generate(count);
     }

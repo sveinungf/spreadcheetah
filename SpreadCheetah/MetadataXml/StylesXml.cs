@@ -63,12 +63,12 @@ internal struct StylesXml : IXmlWriter
 
         foreach (var style in styles)
         {
-            var numberFormat = style.NumberFormat;
+            var numberFormat = style.Format;
             if (numberFormat is null) continue;
-            if (NumberFormats.GetPredefinedNumberFormatId(numberFormat) is not null) continue;
+            if (numberFormat.Value.CustomFormat is null) continue;
 
             dictionary ??= new Dictionary<string, int>(StringComparer.Ordinal);
-            if (dictionary.TryAdd(numberFormat, numberFormatId))
+            if (dictionary.TryAdd(numberFormat.Value.CustomFormat, numberFormatId))
                 ++numberFormatId;
         }
 
@@ -177,7 +177,7 @@ internal struct StylesXml : IXmlWriter
             var span = bytes.Slice(bytesWritten);
             var written = 0;
 
-            var numberFormatId = GetNumberFormatId(style.NumberFormat, _customNumberFormats);
+            var numberFormatId = GetNumberFormatId(style.Format, _customNumberFormats);
 
             if (!"<xf numFmtId=\""u8.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(numberFormatId, span, ref written)) return false;
@@ -223,11 +223,12 @@ internal struct StylesXml : IXmlWriter
         return true;
     }
 
-    private static int GetNumberFormatId(string? numberFormat, IReadOnlyDictionary<string, int>? customNumberFormats)
+    private static int GetNumberFormatId(NumberFormat? numberFormat, IReadOnlyDictionary<string, int>? customNumberFormats)
     {
         if (numberFormat is null) return 0;
-        return NumberFormats.GetPredefinedNumberFormatId(numberFormat)
-            ?? customNumberFormats?.GetValueOrDefault(numberFormat)
+        if (numberFormat.Value.StandardFormat.HasValue) return (int)numberFormat.Value.StandardFormat.Value;
+        if (numberFormat.Value.CustomFormat is null) return 0;
+        return customNumberFormats?.GetValueOrDefault(numberFormat.Value.CustomFormat)
             ?? 0;
     }
 

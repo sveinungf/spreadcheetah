@@ -22,7 +22,7 @@ public class AddObjectAsRow
     [Benchmark]
     public async Task SpreadCheetahAddAsRow()
     {
-        var options = new SpreadCheetahOptions { DefaultDateTimeNumberFormat = null };
+        var options = new SpreadCheetahOptions { DefaultDateTimeFormat = null };
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, options);
         await spreadsheet.StartWorksheetAsync("Book1");
         var ctx = StudentContext.Default.Student;
@@ -39,7 +39,7 @@ public class AddObjectAsRow
     [Benchmark]
     public async Task SpreadCheetahAddRangeAsRows()
     {
-        var options = new SpreadCheetahOptions { DefaultDateTimeNumberFormat = null };
+        var options = new SpreadCheetahOptions { DefaultDateTimeFormat = null };
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, options);
         await spreadsheet.StartWorksheetAsync("Book1");
         var ctx = StudentContext.Default.Student;

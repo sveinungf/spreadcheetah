@@ -64,7 +64,7 @@ public class StringCells : IDisposable
     [Benchmark]
     public async Task SpreadCheetah()
     {
-        var options = new SpreadCheetahOptions { DefaultDateTimeNumberFormat = null };
+        var options = new SpreadCheetahOptions { DefaultDateTimeFormat = null };
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream, options);
         await spreadsheet.StartWorksheetAsync(SheetName);
         var cells = new DataCell[NumberOfColumns];

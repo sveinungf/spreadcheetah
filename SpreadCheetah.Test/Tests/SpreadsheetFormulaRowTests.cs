@@ -337,14 +337,14 @@ public class SpreadsheetFormulaRowTests
         // Arrange
         var formulaText = FormulaGenerator.Generate(length);
         const float cachedValue = 5.67f;
-        const string numberFormat = NumberFormats.Percent;
+        var numberFormat = NumberFormat.Standard(StandardNumberFormat.Percent);
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
         {
             await spreadsheet.StartWorksheetAsync("Sheet");
 
-            var style = new Style { NumberFormat = numberFormat };
+            var style = new Style { Format = numberFormat };
             var styleId = spreadsheet.AddStyle(style);
 
             var formula = new Formula(formulaText);
@@ -355,7 +355,7 @@ public class SpreadsheetFormulaRowTests
             await spreadsheet.FinishAsync();
         }
 
-        var expectedNumberFormatId = NumberFormatHelper.GetPredefinedNumberFormatId(numberFormat) ?? 0;
+        var expectedNumberFormatId = (int)StandardNumberFormat.Percent;
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -373,7 +373,7 @@ public class SpreadsheetFormulaRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        var options = new SpreadCheetahOptions { DefaultDateTimeNumberFormat = null, WriteCellReferenceAttributes = true };
+        var options = new SpreadCheetahOptions { DefaultDateTimeFormat = null, WriteCellReferenceAttributes = true };
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
         var formula = new Formula("SUM(A1,A2)");
 

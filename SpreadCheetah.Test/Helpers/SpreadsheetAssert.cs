@@ -59,7 +59,7 @@ internal static class SpreadsheetAssert
         Assert.Equal(style.Font.Strikethrough, closedXmlStyle.Font.Strikethrough);
         AssertColor(style.Font.Color, closedXmlStyle.Font.FontColor);
 
-        Assert.Equal(style.NumberFormat ?? "", closedXmlStyle.NumberFormat.Format);
+        Assert.Equal(style.Format?.ToString() ?? "", closedXmlStyle.NumberFormat.Format);
     }
 
     private static void AssertEdgeBorder(EdgeBorder border, XLBorderStyleValues style, XLColor color)
