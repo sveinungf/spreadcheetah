@@ -7,18 +7,16 @@ namespace SpreadCheetah.Styling
     /// Format that defines how a number or <see cref="DateTime"/> cell should be displayed.
     /// May be a custom format, initialised by <see cref="NumberFormat.Custom"/>, or a standard format, initialised by <see cref="NumberFormat.Standard"/>
     /// </summary>
-#pragma warning disable CA1815, CA2231 // Override equals and operator equals on value types - equals operator not appropriate for this type
-    public readonly struct NumberFormat : IEquatable<NumberFormat>
-#pragma warning restore CA1815, CA2231
+    public readonly record struct NumberFormat : IEquatable<NumberFormat>
     {
-        private NumberFormat(string? customFormat, int? standardFormat)
+        private NumberFormat(string? customFormat, StandardNumberFormat? standardFormat)
         {
             CustomFormat = customFormat.WithEnsuredMaxLength(255);
-            StandardFormat = standardFormat;
+            StandardFormat = (!standardFormat.HasValue || EnumHelper.IsDefined(standardFormat.Value)) ? standardFormat : throw new ArgumentOutOfRangeException(nameof(standardFormat));
         }
         
         internal string? CustomFormat { get; }
-        internal int? StandardFormat { get; }
+        internal StandardNumberFormat? StandardFormat { get; }
 
         /// <summary>
         /// Creates a custom number format. The <paramref name="formatString"/> must be an <see href="https://support.microsoft.com/en-us/office/number-format-codes-5026bbd6-04bc-48cd-bf33-80f18b4eae68">Excel Format Code</see>
@@ -37,7 +35,7 @@ namespace SpreadCheetah.Styling
         /// <returns>A <see cref="NumberFormat"/> representing this standard format</returns>
         public static NumberFormat Standard(StandardNumberFormat format)
         {
-            return new NumberFormat(null, (int)format);
+            return new NumberFormat(null, format);
         }
 
         /// <summary>
@@ -48,7 +46,7 @@ namespace SpreadCheetah.Styling
         /// <returns>A <see cref="NumberFormat"/> representing this format</returns>
         internal static NumberFormat FromLegacyString(string formatString)
         {
-            var standardNumberFormat = NumberFormats.GetStandardNumberFormatId(formatString);
+            var standardNumberFormat = (StandardNumberFormat?)NumberFormats.GetStandardNumberFormatId(formatString);
             if (standardNumberFormat.HasValue)
             {
                 return new NumberFormat(null, standardNumberFormat);
@@ -63,31 +61,8 @@ namespace SpreadCheetah.Styling
         public override string ToString()
         {
             if (CustomFormat is not null) return CustomFormat;
-            if (StandardFormat.HasValue) return Enum.GetName(typeof(StandardNumberFormat), StandardFormat.Value) ?? StandardFormat.Value.ToString(CultureInfo.InvariantCulture);
+            if (StandardFormat.HasValue) return StandardFormat.Value.ToString();
             return string.Empty;
-        }
-
-        /// <inheritdoc />
-        public override readonly bool Equals(object? obj)
-        {
-            if (obj is NumberFormat numberFormat)
-            {
-                return Equals(numberFormat);
-            }
-            return false;
-        }
-
-        /// <inheritdoc />
-        public bool Equals(NumberFormat other)
-        {
-            return string.Equals(other.CustomFormat, CustomFormat, StringComparison.Ordinal) &&
-                   other.StandardFormat == StandardFormat;
-        }
-
-        /// <inheritdoc />
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(CustomFormat, StandardFormat);
         }
     }
 }

@@ -45,5 +45,12 @@ namespace SpreadCheetah.Test.Tests
             Assert.Equal(numberFormatExplict, numberFormatLegacyFromStyle);
             Assert.Equal(numberFormatExplict, numberFormatLegacyFromOptions);
         }
+
+        [Fact]
+        public static void NumberFormatThrowsExceptionOnInvalidFormat()
+        {
+            Assert.ThrowsAny<ArgumentException>(() => NumberFormat.Custom(new string('a', 256))); // Strings longer than 255 characters should throw.
+            Assert.ThrowsAny<ArgumentOutOfRangeException>(() => NumberFormat.Standard((StandardNumberFormat)(-1))); // Numbers that are not in the enum should throw.
+        }
     }
 }

@@ -16,6 +16,9 @@ public class SpreadCheetahOptions
     /// <summary>The default compression level.</summary>
     public static readonly SpreadCheetahCompressionLevel DefaultCompressionLevel = SpreadCheetahCompressionLevel.Fastest;
 
+    /// <summary>The default default number format used for <see cref="DateTime"/> cells, which is <see cref="NumberFormats.DateTimeSortable"/>.</summary>
+    public static readonly NumberFormat DefaultDefaultDateTimeFormat = NumberFormat.Custom(NumberFormats.DateTimeSortable);
+
     /// <summary>
     /// Compression level to use when generating the spreadsheet archive. Defaults to <see cref="SpreadCheetahCompressionLevel.Fastest"/>.
     /// </summary>
@@ -48,7 +51,7 @@ public class SpreadCheetahOptions
     /// <summary>
     /// The default number format used for <see cref="DateTime"/> cells. Defaults to <see cref="NumberFormats.DateTimeSortable"/>.
     /// </summary>
-    public NumberFormat? DefaultDateTimeFormat { get; set; } = NumberFormat.Custom(NumberFormats.DateTimeSortable);
+    public NumberFormat? DefaultDateTimeFormat { get; set; } = DefaultDefaultDateTimeFormat;
 
     /// <summary>
     /// Write the explicit cell reference attribute for each cell in the resulting spreadsheet.
