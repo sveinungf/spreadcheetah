@@ -5,6 +5,7 @@ namespace SpreadCheetah.Test.Tests
 {
     public static class NumberFormatTests
     {
+#pragma warning disable CS0618 // Type or member is obsolete - Testing for backwards compatibilty
         [Theory]
         [InlineData(NumberFormats.General, StandardNumberFormat.General)]
         [InlineData(NumberFormats.Fraction, StandardNumberFormat.Fraction)]
@@ -37,14 +38,13 @@ namespace SpreadCheetah.Test.Tests
         public static void NumberFormatFromCustomStringBackwardCompatibility(string customString, StandardNumberFormat expectedStandardFormat)
         {
             var numberFormatExplict = NumberFormat.Standard(expectedStandardFormat);
-#pragma warning disable CS0618 // Type or member is obsolete - Testing for backwards compatibilty
             var numberFormatLegacyFromStyle = (new Style { NumberFormat = customString }).Format;
             var numberFormatLegacyFromOptions = (new SpreadCheetahOptions { DefaultDateTimeNumberFormat = customString }).DefaultDateTimeFormat;
-#pragma warning restore CS0618 // Type or member is obsolete
 
             Assert.Equal(numberFormatExplict, numberFormatLegacyFromStyle);
             Assert.Equal(numberFormatExplict, numberFormatLegacyFromOptions);
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         [Fact]
         public static void NumberFormatThrowsExceptionOnInvalidFormat()

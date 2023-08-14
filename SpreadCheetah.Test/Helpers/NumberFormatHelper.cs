@@ -4,6 +4,7 @@ namespace SpreadCheetah.Test.Helpers;
 
 internal static class NumberFormatHelper
 {
+#pragma warning disable CS0618 // Type or member is obsolete - Required for backwards compatibile behaviour
     public static int? GetStandardNumberFormatId(string? format) => format switch
     {
         NumberFormats.General => 0,
@@ -36,4 +37,5 @@ internal static class NumberFormatHelper
         NumberFormats.Text => 49,
         _ => null
     };
+#pragma warning restore CS0618 // Type or member is obsolete
 }

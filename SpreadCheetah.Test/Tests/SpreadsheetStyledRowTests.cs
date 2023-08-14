@@ -362,6 +362,7 @@ public class SpreadsheetStyledRowTests
         Assert.Throws<ArgumentException>(() => style.Font.Name = fontName);
     }
 
+#pragma warning disable CS0618 // Type or member is obsolete - Testing for backwards compatibilty
     public static IEnumerable<object?[]> StandardNumberFormats() => TestData.CombineWithStyledCellTypes(
         NumberFormats.Fraction,
         NumberFormats.FractionTwoDenominatorPlaces,
@@ -374,6 +375,7 @@ public class SpreadsheetStyledRowTests
         NumberFormats.ThousandsSeparatorTwoDecimalPlaces,
         NumberFormats.TwoDecimalPlaces,
         null);
+#pragma warning restore CS0618 // Type or member is obsolete
 
     [Theory]
     [MemberData(nameof(StandardNumberFormats))]
@@ -1131,6 +1133,7 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(expectedNumberFormatId, actualCell.Style.NumberFormat.NumberFormatId);
     }
 
+#pragma warning disable CS0618 // Type or member is obsolete - Testing legacy behaviour
     public static IEnumerable<object?[]> CustomNumberFormatsMatchingStandardFormats() => TestData.CombineWithStyledCellTypes(
         NumberFormats.General,
         NumberFormats.Fraction,
@@ -1160,6 +1163,7 @@ public class SpreadsheetStyledRowTests
         "mmss.0",
         "##0.0E+0",
         NumberFormats.Text);
+#pragma warning restore CS0618 // Type or member is obsolete
 
     [Theory]
     [MemberData(nameof(CustomNumberFormats))]

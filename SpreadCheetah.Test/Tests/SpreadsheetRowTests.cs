@@ -387,6 +387,7 @@ public class SpreadsheetRowTests
         Assert.Equal(NumberFormats.DateTimeSortable, actualCell.Style.NumberFormat.Format);
     }
 
+#pragma warning disable CS0618 // Type or member is obsolete - Testing for backwards compatibilty
     public static IEnumerable<object?[]> DateTimeNumberFormats() => TestData.CombineWithCellTypes(
         NumberFormats.DateTimeSortable,
         NumberFormats.General,
@@ -402,9 +403,7 @@ public class SpreadsheetRowTests
         // Arrange
         var value = new DateTime(2022, 9, 11, 14, 7, 13, DateTimeKind.Unspecified);
         using var stream = new MemoryStream();
-#pragma warning disable CS0618 // Type or member is obsolete - Testing legacy behaviour
         var options = new SpreadCheetahOptions { DefaultDateTimeNumberFormat = defaultNumberFormat };
-#pragma warning restore CS0618 // Type or member is obsolete
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
         {
             await spreadsheet.StartWorksheetAsync("Sheet");
@@ -425,6 +424,7 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedValue, actualCell.GetValue<DateTime>());
         Assert.Equal(defaultNumberFormat ?? NumberFormats.General, actualCell.Style.Numberformat.Format);
     }
+#pragma warning restore CS0618 // Type or member is obsolete
 
     public static IEnumerable<object?[]> Booleans() => TestData.CombineWithCellTypes<bool?, string>(
         (true, "1"),
