@@ -17,7 +17,7 @@ public class SpreadCheetahOptions
     public static readonly SpreadCheetahCompressionLevel DefaultCompressionLevel = SpreadCheetahCompressionLevel.Fastest;
 
     /// <summary>The default default number format used for <see cref="DateTime"/> cells, which is <see cref="NumberFormats.DateTimeSortable"/>.</summary>
-    public static readonly NumberFormat DefaultDefaultDateTimeFormat = NumberFormat.Custom(NumberFormats.DateTimeSortable);
+    internal static readonly NumberFormat DefaultDefaultDateTimeFormat = NumberFormat.Custom(NumberFormats.DateTimeSortable);
 
     /// <summary>
     /// Compression level to use when generating the spreadsheet archive. Defaults to <see cref="SpreadCheetahCompressionLevel.Fastest"/>.
