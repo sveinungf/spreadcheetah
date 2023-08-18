@@ -44,7 +44,7 @@ internal readonly partial record struct SingleCellRelativeReference
         var match = Regex().Match(value);
         if (!match.Success ||
             match.Groups is not { Count: 3 } groups ||
-            !TryParseColumnNumber(groups[1], out column) ||
+            !TryParseColumnName(groups[1], out column) ||
             !TryParseInteger(groups[2], out row))
         {
             ThrowHelper.SingleCellReferenceInvalid(paramName);
@@ -53,26 +53,12 @@ internal readonly partial record struct SingleCellRelativeReference
         return new SingleCellRelativeReference(value, column, row);
     }
 
-    // TODO: Make optimized variant and move to SpreadsheetUtility
-    private static bool TryParseColumnNumber(ReadOnlySpan<char> columnName, out int columnNumber)
-    {
-        columnNumber = 0;
-        var pow = 1;
-        for (int i = columnName.Length - 1; i >= 0; i--)
-        {
-            columnNumber += (columnName[i] - 'A' + 1) * pow;
-            pow *= 26;
-        }
-
-        return true;
-    }
-
-    private static bool TryParseColumnNumber(Capture capture, out int columnNumber)
+    private static bool TryParseColumnName(Capture capture, out int columnNumber)
     {
 #if NET6_0_OR_GREATER
-        return TryParseColumnNumber(capture.ValueSpan, out columnNumber);
+        return SpreadsheetUtility.TryParseColumnName(capture.ValueSpan, out columnNumber);
 #else
-        return TryParseColumnNumber(capture.Value.AsSpan(), out columnNumber);
+        return SpreadsheetUtility.TryParseColumnName(capture.Value.AsSpan(), out columnNumber);
 #endif
     }
 
