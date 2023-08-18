@@ -6,7 +6,7 @@ namespace SpreadCheetah.Benchmark.Benchmarks;
 
 [SimpleJob(RuntimeMoniker.Net70)]
 [MemoryDiagnoser(false)]
-public class ColumnName
+public class GetColumnName
 {
     private int[] _numbers = null!;
     private string[] _names = null!;
@@ -25,7 +25,7 @@ public class ColumnName
     }
 
     [Benchmark]
-    public string[] GetColumnName()
+    public string[] GetColumnNameBaseline()
     {
         var names = _names;
         for (var i = 0; i < _numbers.Length; i++)
