@@ -119,9 +119,9 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         _cellMerges.Add(cellRange);
     }
 
-    public async ValueTask FinishAsync(CancellationToken token)
+    public async ValueTask FinishAsync(int? notesFileIndex, CancellationToken token)
     {
-        var writer = new WorksheetEndXml(_cellMerges?.ToList(), _validations?.ToList(), _autoFilterRange);
+        var writer = new WorksheetEndXml(_cellMerges?.ToList(), _validations?.ToList(), _autoFilterRange, notesFileIndex);
         await writer.WriteAsync(_stream, _buffer, token).ConfigureAwait(false);
         await _stream.FlushAsync(token).ConfigureAwait(false);
     }

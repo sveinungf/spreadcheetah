@@ -1,5 +1,6 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 using SpreadCheetah.Test.Helpers;
 using Xunit;
 
@@ -75,5 +76,29 @@ public class SpreadsheetNoteTests
         var styles = strings.Select(x => x.Split(':')).ToDictionary(x => x[0], x => x[1], StringComparer.OrdinalIgnoreCase);
         Assert.Equal("57pt", styles["margin-left"]);
         Assert.Equal(expectedTopMargin, styles["margin-top"]);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddNote_SheetXmlHasLegacyDrawing()
+    {
+        // Arrange
+        const string noteText = "My note";
+        const string cellValue = "My value";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        await spreadsheet.AddRowAsync(new Cell(cellValue));
+
+        // Act
+        spreadsheet.AddNote("A1", noteText);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var actual = SpreadsheetDocument.Open(stream, true);
+        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
+        var worksheet = sheetPart.Worksheet;
+        var legacyDrawing = worksheet.ChildElements.OfType<LegacyDrawing>().Single();
+        Assert.Equal("rId1", legacyDrawing.Id);
     }
 }
