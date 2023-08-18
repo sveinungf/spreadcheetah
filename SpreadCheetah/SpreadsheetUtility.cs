@@ -84,4 +84,32 @@ public static class SpreadsheetUtility
         bytesWritten = 0;
         return false;
     }
+
+    public static bool TryParseColumnName(ReadOnlySpan<char> columnName, out int columnNumber)
+    {
+        if (columnName is [var a] && IsValid(a))
+        {
+            columnNumber = ToNumber(a);
+            return true;
+        }
+
+        if (columnName is [var b0, var b1] && IsValid(b0) && IsValid(b1))
+        {
+            columnNumber = ToNumber(b0) * 26 + ToNumber(b1);
+            return true;
+        }
+
+        if (columnName is [var c0, var c1, var c2] && IsValid(c0) && IsValid(c1) && IsValid(c2))
+        {
+            columnNumber = (ToNumber(c0) * 26 + ToNumber(c1)) * 26 + ToNumber(c2);
+            if (columnNumber <= SpreadsheetConstants.MaxNumberOfColumns)
+                return true;
+        }
+
+        columnNumber = 0;
+        return false;
+
+        static bool IsValid(char c) => (uint)(c - 'A') <= ('Z' - 'A');
+        static int ToNumber(char c) => c - 'A' + 1;
+    }
 }
