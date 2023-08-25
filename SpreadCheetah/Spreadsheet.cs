@@ -422,8 +422,13 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
     public void AddNote(string cellReference, string noteText)
     {
+        ArgumentNullException.ThrowIfNull(cellReference);
+        ArgumentNullException.ThrowIfNull(noteText);
+        if (noteText.Length > SpreadsheetConstants.MaxNoteTextLength)
+            ThrowHelper.NoteTextTooLong(nameof(noteText));
+
         Worksheet.AddNote(cellReference, noteText);
-        var metadata = _worksheets[_worksheets.Count - 1]; // TODO: ref?
+        var metadata = _worksheets[_worksheets.Count - 1];
         if (metadata.NotesFileIndex is null)
             _worksheets[_worksheets.Count - 1] = metadata with { NotesFileIndex = ++_notesFileIndex };
     }

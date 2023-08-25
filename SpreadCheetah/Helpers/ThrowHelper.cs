@@ -26,6 +26,9 @@ internal static class ThrowHelper
     public static void NoActiveWorksheet() => throw new SpreadCheetahException("There is no active worksheet.");
 
     [DoesNotReturn]
+    public static void NoteTextTooLong(string? paramName) => throw new ArgumentException("Note text can not exceed " + SpreadsheetConstants.MaxNoteTextLength + " characters.", paramName);
+
+    [DoesNotReturn]
     public static void SpreadsheetMustContainWorksheet() => throw new SpreadCheetahException("Spreadsheet must contain at least one worksheet.");
 
     [DoesNotReturn]
