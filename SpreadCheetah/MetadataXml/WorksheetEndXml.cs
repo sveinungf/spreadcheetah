@@ -9,7 +9,7 @@ internal struct WorksheetEndXml : IXmlWriter
     private readonly List<CellRangeRelativeReference>? _cellMerges;
     private readonly List<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>>? _validations;
     private readonly string? _autoFilterRange;
-    private readonly int? _notesFileIndex;
+    private readonly bool _hasNotes;
     private DataValidationXml? _validationXmlWriter;
     private Element _next;
     private int _nextIndex;
@@ -18,12 +18,12 @@ internal struct WorksheetEndXml : IXmlWriter
         List<CellRangeRelativeReference>? cellMerges,
         List<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>>? validations,
         string? autoFilterRange,
-        int? notesFileIndex)
+        bool hasNotes)
     {
         _cellMerges = cellMerges;
         _validations = validations;
         _autoFilterRange = autoFilterRange;
-        _notesFileIndex = notesFileIndex;
+        _hasNotes = hasNotes;
     }
 
     public bool TryWrite(Span<byte> bytes, out int bytesWritten)
@@ -147,19 +147,7 @@ internal struct WorksheetEndXml : IXmlWriter
         => _validations is null || "</dataValidations>"u8.TryCopyTo(bytes, ref bytesWritten);
 
     private readonly bool TryWriteLegacyDrawing(Span<byte> bytes, ref int bytesWritten)
-    {
-        if (_notesFileIndex is not { } notesFileIndex) return true;
-
-        var span = bytes.Slice(bytesWritten);
-        var written = 0;
-
-        if (!"<legacyDrawing r:id=\"rId"u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(notesFileIndex, span, ref written)) return false;
-        if (!"\"/>"u8.TryCopyTo(span, ref written)) return false;
-
-        bytesWritten += written;
-        return true;
-    }
+        => !_hasNotes || """<legacyDrawing r:id="rId1"/>"""u8.TryCopyTo(bytes, ref bytesWritten);
 
     private enum Element
     {

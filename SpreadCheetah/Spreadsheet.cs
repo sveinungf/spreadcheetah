@@ -450,9 +450,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         if (_worksheet is not { } worksheet) return;
 
-        int? notesFileIndex = worksheet.Notes is null ? null : _notesFileIndex;
+        var hasNotes = worksheet.Notes is not null;
 
-        await worksheet.FinishAsync(notesFileIndex, token).ConfigureAwait(false);
+        await worksheet.FinishAsync(hasNotes, token).ConfigureAwait(false);
         await worksheet.DisposeAsync().ConfigureAwait(false);
 
         if (worksheet.Notes is { } notes)
