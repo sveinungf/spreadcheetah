@@ -2,6 +2,8 @@ using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using SpreadCheetah.Test.Helpers;
+using System.IO.Compression;
+using System.Text;
 using Xunit;
 
 namespace SpreadCheetah.Test.Tests;
@@ -39,6 +41,114 @@ public class SpreadsheetNoteTests
         Assert.Equal(noteText, actualNote.Text);
         var p = actualNote.Position;
         Assert.Equal(expectedPosition, new[] { p.Column, p.ColumnOffset, p.Row, p.RowOffset });
+    }
+
+    [Theory]
+    [InlineData("OneWord")]
+    [InlineData("With whitespace")]
+    [InlineData("With trailing whitespace ")]
+    [InlineData(" With leading whitespace")]
+    [InlineData("With-Special-Characters!#¤%&")]
+    [InlineData("With'Single'Quotes")]
+    [InlineData("With\"Quotation\"Marks")]
+    [InlineData("WithNorwegianCharactersÆØÅ")]
+    public async Task Spreadsheet_AddNote_CorrectText(string noteText)
+    {
+        // Arrange
+        const string reference = "A2";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act
+        spreadsheet.AddNote(reference, noteText);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var noteCell = worksheet.Cell(reference);
+        Assert.Equal(noteText, noteCell.GetCellNoteText());
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddNote_TextLongerThanBufferSize()
+    {
+        // Arrange
+        var sb = new StringBuilder();
+        var counter = 1;
+        while (sb.Length < SpreadCheetahOptions.MinimumBufferSize + 100)
+        {
+            sb.Append(counter++).Append(' ');
+        }
+
+        var noteText = sb.ToString();
+
+        const string reference = "A2";
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act
+        spreadsheet.AddNote(reference, noteText);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var noteCell = worksheet.Cell(reference);
+        Assert.Equal(noteText, noteCell.GetCellNoteText());
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddNote_MultipleWithTextLongerThanBufferSize()
+    {
+        // Arrange
+        var sb = new StringBuilder();
+        var counter = 1;
+        while (sb.Length < SpreadCheetahOptions.MinimumBufferSize + 100)
+        {
+            sb.Append(counter++).Append(' ');
+        }
+
+        var noteText = sb.ToString();
+
+        var references = new[] { "A2", "B4", "C6" };
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act
+        foreach (var reference in references)
+        {
+            spreadsheet.AddNote(reference, noteText);
+        }
+
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var noteCells = references.Select(x => worksheet.Cell(x));
+        Assert.All(noteCells, x => Assert.Equal(noteText, x.GetCellNoteText()));
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddNote_TooLongText()
+    {
+        // Arrange
+        var noteText = new string('a', 32769);
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act & Assert
+        Assert.ThrowsAny<ArgumentException>(() => spreadsheet.AddNote("A1", noteText));
     }
 
     [Theory]
@@ -100,5 +210,119 @@ public class SpreadsheetNoteTests
         var worksheet = sheetPart.Worksheet;
         var legacyDrawing = worksheet.ChildElements.OfType<LegacyDrawing>().Single();
         Assert.Equal("rId1", legacyDrawing.Id);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddNote_MultipleNotesInWorksheet()
+    {
+        // Arrange
+        const int noteCount = 3;
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var notes = Enumerable.Range(1, noteCount)
+            .Select(x => SpreadsheetUtility.GetColumnName(x) + x)
+            .Select(x => (Reference: x, NoteText: "Note for " + x))
+            .ToList();
+
+        // Act
+        foreach (var (reference, noteText) in notes)
+        {
+            spreadsheet.AddNote(reference, noteText);
+        }
+
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var noteCells = notes.Select(x => worksheet.Cell(x.Reference));
+        Assert.Equal(notes.Select(x => x.NoteText), noteCells.Select(x => x.GetCellNoteText()));
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddNote_NoteInSecondWorksheet()
+    {
+        // Arrange
+        const string reference = "A1";
+        const string noteText = "My note";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        await spreadsheet.StartWorksheetAsync("Sheet 2");
+
+        // Act
+        spreadsheet.AddNote(reference, noteText);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheets = workbook.Worksheets.ToList();
+        Assert.Equal(2, worksheets.Count);
+        var firstSheetCell = worksheets[0].Cell(reference);
+        Assert.False(firstSheetCell.HasComment);
+        var secondSheetCell = worksheets[1].Cell(reference);
+        Assert.Equal(noteText, secondSheetCell.GetCellNoteText());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Spreadsheet_AddNote_ExpectedNoteFileNames(bool noteInSecondSheet)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        if (noteInSecondSheet)
+            await spreadsheet.StartWorksheetAsync("Sheet 2");
+
+        // Act
+        spreadsheet.AddNote("A1", "My note");
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var zip = new ZipArchive(stream);
+        var filenames = zip.Entries.Select(x => x.FullName).ToList();
+        Assert.Contains("xl/comments1.xml", filenames);
+        Assert.Contains("xl/drawings/vmlDrawing1.vml", filenames);
+        Assert.Contains($"xl/worksheets/_rels/sheet{(noteInSecondSheet ? 2 : 1)}.xml.rels", filenames);
+        Assert.DoesNotContain($"xl/worksheets/_rels/sheet{(noteInSecondSheet ? 1 : 2)}.xml.rels", filenames);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddNote_NotesInMultipleWorksheets()
+    {
+        // Arrange
+        const int noteCount = 3;
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        var notes = Enumerable.Range(1, noteCount)
+            .Select(x => SpreadsheetUtility.GetColumnName(x) + x)
+            .Select(x => (Reference: x, NoteText: "Note for " + x))
+            .ToList();
+
+        // Act
+        for (var i = 0; i < notes.Count; i++)
+        {
+            var (reference, noteText) = notes[i];
+            await spreadsheet.StartWorksheetAsync("Sheet " + i);
+            spreadsheet.AddNote(reference, noteText);
+        }
+
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheets = workbook.Worksheets.ToList();
+        Assert.Equal(notes.Count, worksheets.Count);
+        var actualNoteText = Enumerable.Range(0, notes.Count)
+            .Select(x => worksheets[x].Cell(notes[x].Reference))
+            .Select(x => x.GetCellNoteText());
+
+        Assert.Equal(notes.Select(x => x.NoteText), actualNoteText);
     }
 }

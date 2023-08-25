@@ -72,6 +72,32 @@ public class SpreadsheetTests
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task Spreadsheet_Finish_OnlyNoteFilesWhenThereIsNote(bool hasNote)
+    {
+        // Arrange
+        var options = new SpreadCheetahOptions { DefaultDateTimeFormat = null };
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await spreadsheet.StartWorksheetAsync("Book 1");
+
+        if (hasNote)
+            spreadsheet.AddNote("B5", "My note");
+
+        // Act
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var zip = new ZipArchive(stream);
+        var filenames = zip.Entries.Select(x => x.FullName).ToList();
+        Assert.Equal(hasNote, filenames.Contains("xl/comments1.xml", StringComparer.OrdinalIgnoreCase));
+        Assert.Equal(hasNote, filenames.Contains("xl/drawings/vmlDrawing1.vml", StringComparer.OrdinalIgnoreCase));
+        Assert.Equal(hasNote, filenames.Contains("xl/worksheets/_rels/sheet1.xml.rels", StringComparer.OrdinalIgnoreCase));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task Spreadsheet_Finish_OnlyStylesXmlWhenThereIsStyling(bool hasStyle)
     {
         // Arrange
