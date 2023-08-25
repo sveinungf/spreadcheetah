@@ -33,6 +33,8 @@ internal struct CommentsXml : IXmlWriter
     private static ReadOnlySpan<byte> Footer => "</commentList></comments>"u8;
 
     private readonly List<KeyValuePair<SingleCellRelativeReference, string>> _notes;
+    private string? _currentXmlEncodedNote;
+    private int _currentXmlEncodedNoteIndex;
     private Element _next;
     private int _nextIndex;
 
@@ -70,15 +72,29 @@ internal struct CommentsXml : IXmlWriter
             var span = bytes.Slice(bytesWritten);
             var written = 0;
 
-            if (!CommentStart.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(cellRef.Reference, span, ref written)) return false;
-            if (!CommentAfterRef.TryCopyTo(span, ref written)) return false;
+            if (_currentXmlEncodedNote is null)
+            {
+                if (!CommentStart.TryCopyTo(span, ref written)) return false;
+                if (!SpanHelper.TryWrite(cellRef.Reference, span, ref written)) return false;
+                if (!CommentAfterRef.TryCopyTo(span, ref written)) return false;
 
-            var xmlEncodedNote = WebUtility.HtmlEncode(note);
-            if (!SpanHelper.TryWrite(xmlEncodedNote, span, ref written)) return false;
-            if (!CommentEnd.TryCopyTo(span, ref written)) return false;
+                _currentXmlEncodedNote = WebUtility.HtmlEncode(note);
+                _currentXmlEncodedNoteIndex = 0;
+            }
+
+            if (!SpanHelper.TryWriteLongString(_currentXmlEncodedNote, ref _currentXmlEncodedNoteIndex, span, ref written))
+            {
+                bytesWritten += written;
+                return false;
+            }
 
             bytesWritten += written;
+
+            if (!CommentEnd.TryCopyTo(span.Slice(written))) return false;
+            bytesWritten += CommentEnd.Length;
+
+            _currentXmlEncodedNote = null;
+            _currentXmlEncodedNoteIndex = 0;
         }
 
         return true;
