@@ -365,7 +365,7 @@ public class SpreadsheetTests
             FrozenRows = rows
         };
 
-        var expectedColumnName = CellReferenceHelper.GetExcelColumnName((columns ?? 0) + 1);
+        var expectedColumnName = SpreadsheetUtility.GetColumnName((columns ?? 0) + 1);
         var expectedCellReference = $"{expectedColumnName}{(rows ?? 0) + 1}";
         var expectedActivePane = columns switch
         {
