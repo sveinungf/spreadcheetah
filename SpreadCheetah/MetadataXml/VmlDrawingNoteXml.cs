@@ -8,26 +8,23 @@ namespace SpreadCheetah.MetadataXml;
 [StructLayout(LayoutKind.Auto)]
 internal struct VmlDrawingNoteXml
 {
-    // TODO: Remove whitespace
-    private static ReadOnlySpan<byte> ShapeStart => """
-        <v:shapetype id="_x0000_t202" coordsize="21600,21600" o:spt="202" path="m,l,21600r21600,l21600,xe">
-            <v:stroke joinstyle="miter"/>
-            <v:path gradientshapeok="t" o:connecttype="rect"/>
-        </v:shapetype>
-        <v:shape id="shape_0" type="#_x0000_t202" style="position:absolute;margin-left:57pt;margin-top:
-        """u8;
+    private static ReadOnlySpan<byte> ShapeStart =>
+        """<v:shapetype id="_x0000_t202" coordsize="21600,21600" o:spt="202" path="m,l,21600r21600,l21600,xe">"""u8
+        + """<v:stroke joinstyle="miter"/>"""u8
+        + """<v:path gradientshapeok="t" o:connecttype="rect"/>"""u8
+        + """</v:shapetype>"""u8
+        + """<v:shape id="shape_0" type="#_x0000_t202" style="position:absolute;margin-left:57pt;margin-top:"""u8;
 
-    private static ReadOnlySpan<byte> ShapeAfterMarginTop => """
-        pt;width:100.8pt;height:60.6pt;z-index:1;visibility:hidden" fillcolor="infoBackground [80]" strokecolor="none [81]" o:insetmode="auto">
-            <v:fill color2="infoBackground [80]"/>
-            <v:shadow color="none [81]" obscured="t"/>
-            <v:textbox/>
-            <x:ClientData ObjectType="Note">
-                <x:MoveWithCells/>
-                <x:SizeWithCells/>
-                <x:AutoFill>False</x:AutoFill>
-                <x:Anchor>
-        """u8;
+    private static ReadOnlySpan<byte> ShapeAfterMarginTop =>
+        """pt;width:100.8pt;height:60.6pt;z-index:1;visibility:hidden" fillcolor="infoBackground [80]" strokecolor="none [81]" o:insetmode="auto">"""u8
+        + """<v:fill color2="infoBackground [80]"/>"""u8
+        + """<v:shadow color="none [81]" obscured="t"/>"""u8
+        + """<v:textbox/>"""u8
+        + """<x:ClientData ObjectType="Note">"""u8
+        + """<x:MoveWithCells/>"""u8
+        + """<x:SizeWithCells/>"""u8
+        + """<x:AutoFill>False</x:AutoFill>"""u8
+        + """<x:Anchor>"""u8;
 
     private static ReadOnlySpan<byte> ShapeAfterAnchor => "</x:Anchor><x:Row>"u8;
     private static ReadOnlySpan<byte> ShapeAfterRow => "</x:Row><x:Column>"u8;
