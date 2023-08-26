@@ -18,14 +18,12 @@ public sealed record Style
     public Font Font { get; set; } = new();
 
     /// <summary>Format that defines how a number or <see cref="DateTime"/> cell should be displayed.</summary>
-#pragma warning disable S1133 // Deprecated code should be removed - This is required for backwards binary compatibility
     [Obsolete($"Use {nameof(Style)}.{nameof(Format)} instead")]
-    public string? NumberFormat 
+    public string? NumberFormat
     {
         get => Format?.CustomFormat;
         set => Format = value == null ? null : Styling.NumberFormat.FromLegacyString(value);
     }
-#pragma warning restore S1133 // Deprecated code should be removed
 
     /// <summary>Format that defines how a number or <see cref="DateTime"/> cell should be displayed.</summary>
     public NumberFormat? Format { get; set; }

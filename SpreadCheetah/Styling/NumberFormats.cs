@@ -8,7 +8,6 @@ public static class NumberFormats
     /// <summary>Format as a sortable date with time.</summary>
     public const string DateTimeSortable = @"yyyy\-mm\-dd\ hh:mm:ss";
 
-#pragma warning disable S1133 // Deprecated code should be removed - This is required for backwards binary compatibility
     /// <summary>Format as integer with fraction using one digit denominator.</summary>
     [Obsolete($"Use {nameof(NumberFormat)}.{nameof(NumberFormat.Standard)}({nameof(StandardNumberFormat)}.{nameof(StandardNumberFormat.Fraction)})")]
     public const string Fraction = "# ?/?";
@@ -52,7 +51,6 @@ public static class NumberFormats
     /// <summary>Format as number with two decimal places.</summary>
     [Obsolete($"Use {nameof(NumberFormat)}.{nameof(NumberFormat.Standard)}({nameof(StandardNumberFormat)}.{nameof(StandardNumberFormat.TwoDecimalPlaces)})")]
     public const string TwoDecimalPlaces = "0.00";
-#pragma warning restore S1133 // Deprecated code should be removed
 
 #pragma warning disable CS0618 // Type or member is obsolete - Required for backwards compatibile behaviour
     internal static int? GetStandardNumberFormatId(string? format) => format switch
