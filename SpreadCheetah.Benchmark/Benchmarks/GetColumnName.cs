@@ -83,7 +83,9 @@ public class GetColumnName
         while (columnNumber > 0)
         {
             int modulo = (columnNumber - 1) % 26;
+#pragma warning disable S1643 // Strings should not be concatenated using '+' in a loop
             columnName = Convert.ToChar('A' + modulo) + columnName;
+#pragma warning restore S1643 // Strings should not be concatenated using '+' in a loop
             columnNumber = (columnNumber - modulo) / 26;
         }
 
