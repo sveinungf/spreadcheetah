@@ -12,7 +12,7 @@ internal static class StringExtensions
             ? throw new ArgumentException(StringHelper.Invariant($"The value can not exceed {maxLength} characters."), nameof(value))
             : value;
 
-    public static void EnsureValidWorksheetName(this string name, [CallerArgumentExpression("name")] string? paramName = null)
+    public static void EnsureValidWorksheetName(this string name, [CallerArgumentExpression(nameof(name))] string? paramName = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             ThrowHelper.WorksheetNameEmptyOrWhiteSpace(paramName);

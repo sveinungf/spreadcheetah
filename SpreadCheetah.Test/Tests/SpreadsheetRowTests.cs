@@ -467,7 +467,7 @@ public class SpreadsheetRowTests
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
         {
             await spreadsheet.StartWorksheetAsync("Sheet");
-            var cells = values.Select(x => CellFactory.Create(type, x)).ToList();
+            var cells = values.ConvertAll(x => CellFactory.Create(type, x));
 
             // Act
             await spreadsheet.AddRowAsync(cells, rowType);
@@ -491,7 +491,7 @@ public class SpreadsheetRowTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize });
         await spreadsheet.StartWorksheetAsync("Sheet");
-        var cells = values.Select(x => CellFactory.Create(type, x)).ToList();
+        var cells = values.ConvertAll(x => CellFactory.Create(type, x));
 
         // Act
         await spreadsheet.AddRowAsync(cells, rowType);

@@ -12,7 +12,7 @@ public static class SpreadsheetUtility
     /// </summary>
     public static string GetColumnName(int columnNumber)
     {
-        if (columnNumber < 1 || columnNumber > SpreadsheetConstants.MaxNumberOfColumns)
+        if (columnNumber is < 1 or > SpreadsheetConstants.MaxNumberOfColumns)
             ThrowHelper.ColumnNumberInvalid(nameof(columnNumber), columnNumber);
 
         if (columnNumber <= 26)
@@ -44,7 +44,7 @@ public static class SpreadsheetUtility
     /// </summary>
     public static bool TryGetColumnNameUtf8(int columnNumber, Span<byte> destination, out int bytesWritten)
     {
-        if (columnNumber < 1 || columnNumber > SpreadsheetConstants.MaxNumberOfColumns)
+        if (columnNumber is < 1 or > SpreadsheetConstants.MaxNumberOfColumns)
             ThrowHelper.ColumnNumberInvalid(nameof(columnNumber), columnNumber);
 
         if (columnNumber <= 26)

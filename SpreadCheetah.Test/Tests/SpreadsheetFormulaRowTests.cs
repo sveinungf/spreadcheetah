@@ -355,7 +355,7 @@ public class SpreadsheetFormulaRowTests
             await spreadsheet.FinishAsync();
         }
 
-        var expectedNumberFormatId = (int)StandardNumberFormat.Percent;
+        const int expectedNumberFormatId = (int)StandardNumberFormat.Percent;
 
         // Assert
         SpreadsheetAssert.Valid(stream);

@@ -1097,10 +1097,7 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
 
-
-    public static IEnumerable<object?[]> ExplicitStandardNumberFormats() => TestData.CombineWithStyledCellTypes(
-        Enum.GetValues(typeof(StandardNumberFormat)).Cast<StandardNumberFormat>().ToArray()
-        );
+    public static IEnumerable<object?[]> ExplicitStandardNumberFormats() => TestData.CombineWithStyledCellTypes(EnumHelper.GetValues<StandardNumberFormat>());
 
     [Theory]
     [MemberData(nameof(ExplicitStandardNumberFormats))]

@@ -75,7 +75,7 @@ public class GetColumnName
 
     private static string GetColumnNameWithLoop(int columnNumber)
     {
-        if (columnNumber < 1 || columnNumber > MaxNumberOfColumns)
+        if (columnNumber is < 1 or > MaxNumberOfColumns)
             ThrowColumnNumberInvalid(nameof(columnNumber), columnNumber);
 
         string columnName = "";
@@ -94,7 +94,7 @@ public class GetColumnName
 
     public static string GetColumnNameWithStringFormat(int columnNumber)
     {
-        if (columnNumber < 1 || columnNumber > MaxNumberOfColumns)
+        if (columnNumber is < 1 or > MaxNumberOfColumns)
             ThrowColumnNumberInvalid(nameof(columnNumber), columnNumber);
 
         if (columnNumber <= 26)
@@ -120,7 +120,7 @@ public class GetColumnName
 
     public static string GetColumnNameWithModulo(int columnNumber)
     {
-        if (columnNumber < 1 || columnNumber > MaxNumberOfColumns)
+        if (columnNumber is < 1 or > MaxNumberOfColumns)
             ThrowColumnNumberInvalid(nameof(columnNumber), columnNumber);
 
         if (columnNumber <= 26)

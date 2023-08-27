@@ -24,7 +24,7 @@ public class BoldStringCells
         for (var row = 1; row <= NumberOfRows; ++row)
         {
             var columns = Enumerable.Range(1, NumberOfColumns).ToList();
-            _values.Add(columns.Select(x => $"{x}-{row}").ToList());
+            _values.Add(columns.ConvertAll(x => $"{x}-{row}"));
         }
     }
 
