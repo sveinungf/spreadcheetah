@@ -1,5 +1,6 @@
 using SpreadCheetah.Helpers;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
@@ -65,9 +66,9 @@ internal readonly partial record struct SingleCellRelativeReference
     private static bool TryParseInteger(Capture capture, out int result)
     {
 #if NET6_0_OR_GREATER
-        return int.TryParse(capture.ValueSpan, out result);
+        return int.TryParse(capture.ValueSpan, NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out result);
 #else
-        return int.TryParse(capture.Value, out result);
+        return int.TryParse(capture.Value, NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out result);
 #endif
     }
 }
