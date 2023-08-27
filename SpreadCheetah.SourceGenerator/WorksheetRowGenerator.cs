@@ -467,8 +467,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         for (var i = 0; i < propertyNames.Count; ++i)
         {
-            var propertyName = propertyNames[i];
-            sb.AppendLine(indent + 1, $"cells[{i}] = new DataCell(obj.{propertyName});");
+            sb.AppendIndentation(indent + 1)
+                .Append("cells[")
+                .Append(i)
+                .Append("] = new DataCell(obj.")
+                .Append(propertyNames[i])
+                .AppendLine(");");
         }
 
         sb.AppendLine(indent, $"    return spreadsheet.AddRowAsync(cells.AsMemory(0, {propertyNames.Count}), token);");
