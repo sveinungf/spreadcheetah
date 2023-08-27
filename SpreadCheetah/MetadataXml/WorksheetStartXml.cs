@@ -54,21 +54,8 @@ internal struct WorksheetStartXml : IXmlWriter
         var written = 0;
 
         if (!"<sheetViews><sheetView workbookViewId=\"0\"><pane "u8.TryCopyTo(span, ref written)) return false;
-
-        if (options.FrozenColumns is not null)
-        {
-            if (!"xSplit=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(options.FrozenColumns.Value, span, ref written)) return false;
-            if (!"\" "u8.TryCopyTo(span, ref written)) return false;
-        }
-
-        if (options.FrozenRows is not null)
-        {
-            if (!"ySplit=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(options.FrozenRows.Value, span, ref written)) return false;
-            if (!"\" "u8.TryCopyTo(span, ref written)) return false;
-        }
-
+        if (!TryWritexSplit(span, ref written)) return false;
+        if (!TryWriteySplit(span, ref written)) return false;
         if (!"topLeftCell=\""u8.TryCopyTo(span, ref written)) return false;
 
         var column = (options.FrozenColumns ?? 0) + 1;
@@ -103,6 +90,26 @@ internal struct WorksheetStartXml : IXmlWriter
 
         bytesWritten += written;
         return true;
+    }
+
+    private readonly bool TryWritexSplit(Span<byte> bytes, ref int bytesWritten)
+    {
+        if (_options?.FrozenColumns is not { } frozenColumns)
+            return true;
+
+        if (!"xSplit=\""u8.TryCopyTo(bytes, ref bytesWritten)) return false;
+        if (!SpanHelper.TryWrite(frozenColumns, bytes, ref bytesWritten)) return false;
+        return "\" "u8.TryCopyTo(bytes, ref bytesWritten);
+    }
+
+    private readonly bool TryWriteySplit(Span<byte> bytes, ref int bytesWritten)
+    {
+        if (_options?.FrozenRows is not { } frozenRows)
+            return true;
+
+        if (!"ySplit=\""u8.TryCopyTo(bytes, ref bytesWritten)) return false;
+        if (!SpanHelper.TryWrite(frozenRows, bytes, ref bytesWritten)) return false;
+        return "\" "u8.TryCopyTo(bytes, ref bytesWritten);
     }
 
     private bool TryWriteColumns(Span<byte> bytes, ref int bytesWritten)
