@@ -16,7 +16,9 @@ internal struct StylesXml : IXmlWriter
     {
         var entry = archive.CreateEntry("xl/styles.xml", compressionLevel);
         var writer = new StylesXml(styles.Keys.ToList());
+#pragma warning disable EPS06 // Hidden struct copy operation
         return writer.WriteAsync(entry, buffer, token);
+#pragma warning restore EPS06 // Hidden struct copy operation
     }
 
     private static ReadOnlySpan<byte> Header =>

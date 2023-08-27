@@ -17,7 +17,9 @@ internal struct VmlDrawingXml : IXmlWriter
         var entryName = StringHelper.Invariant($"xl/drawings/vmlDrawing{notesFilesIndex}.vml");
         var entry = archive.CreateEntry(entryName, compressionLevel);
         var writer = new VmlDrawingXml(notes.Keys.ToList());
+#pragma warning disable EPS06 // Hidden struct copy operation
         return writer.WriteAsync(entry, buffer, token);
+#pragma warning restore EPS06 // Hidden struct copy operation
     }
 
     private static ReadOnlySpan<byte> Header =>
