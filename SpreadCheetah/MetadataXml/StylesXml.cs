@@ -1,6 +1,7 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
+using System;
 using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
@@ -186,17 +187,8 @@ internal struct StylesXml : IXmlWriter
             if (!"\""u8.TryCopyTo(span, ref written)) return false;
             if (numberFormatId > 0 && !" applyNumberFormat=\"1\""u8.TryCopyTo(span, ref written)) return false;
 
-            var fontIndex = _fonts.GetValueOrDefault(style.Font);
-            if (!" fontId=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(fontIndex, span, ref written)) return false;
-            if (!"\""u8.TryCopyTo(span, ref written)) return false;
-            if (fontIndex > 0 && !" applyFont=\"1\""u8.TryCopyTo(span, ref written)) return false;
-
-            var fillIndex = _fills.GetValueOrDefault(style.Fill);
-            if (!" fillId=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(fillIndex, span, ref written)) return false;
-            if (!"\""u8.TryCopyTo(span, ref written)) return false;
-            if (fillIndex > 0 && !" applyFill=\"1\""u8.TryCopyTo(span, ref written)) return false;
+            if (!TryWriteFont(style.Font, span, ref written)) return false;
+            if (!TryWriteFill(style.Fill, span, ref written)) return false;
 
             if (_borders.TryGetValue(style.Border, out var borderIndex) && borderIndex > 0)
             {
@@ -223,6 +215,24 @@ internal struct StylesXml : IXmlWriter
         }
 
         return true;
+    }
+
+    private readonly bool TryWriteFont(ImmutableFont font, Span<byte> bytes, ref int bytesWritten)
+    {
+        var fontIndex = _fonts.GetValueOrDefault(font);
+        if (!" fontId=\""u8.TryCopyTo(bytes, ref bytesWritten)) return false;
+        if (!SpanHelper.TryWrite(fontIndex, bytes, ref bytesWritten)) return false;
+        if (!"\""u8.TryCopyTo(bytes, ref bytesWritten)) return false;
+        return fontIndex == 0 || " applyFont=\"1\""u8.TryCopyTo(bytes, ref bytesWritten);
+    }
+
+    private readonly bool TryWriteFill(ImmutableFill fill, Span<byte> bytes, ref int bytesWritten)
+    {
+        var fillIndex = _fills.GetValueOrDefault(fill);
+        if (!" fillId=\""u8.TryCopyTo(bytes, ref bytesWritten)) return false;
+        if (!SpanHelper.TryWrite(fillIndex, bytes, ref bytesWritten)) return false;
+        if (!"\""u8.TryCopyTo(bytes, ref bytesWritten)) return false;
+        return fillIndex == 0 || " applyFill=\"1\""u8.TryCopyTo(bytes, ref bytesWritten);
     }
 
     private static int GetNumberFormatId(NumberFormat? numberFormat, IReadOnlyDictionary<string, int>? customNumberFormats)
