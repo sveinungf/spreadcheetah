@@ -18,7 +18,9 @@ internal struct DataValidationXml
         _validation = validation;
     }
 
+#pragma warning disable MA0051 // Method is too long
     public bool TryWrite(Span<byte> bytes, ref int bytesWritten)
+#pragma warning restore MA0051 // Method is too long
     {
         var valid = _validation;
 
