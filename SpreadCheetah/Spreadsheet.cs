@@ -420,6 +420,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return Worksheet.TryAddDataValidation(reference, validation);
     }
 
+    /// <summary>
+    /// Adds a plain text note for a cell. The cell reference must be in the A1 reference style, e.g. "A1" or "C4".
+    /// </summary>
     public void AddNote(string cellReference, string noteText)
     {
         ArgumentNullException.ThrowIfNull(cellReference);

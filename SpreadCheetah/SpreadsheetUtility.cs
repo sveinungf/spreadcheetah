@@ -85,6 +85,10 @@ public static class SpreadsheetUtility
         return false;
     }
 
+    /// <summary>
+    /// Try to parse the column number from a column name. E.g. column name 'A' can be parsed to column number 1.
+    /// Returns <c>true</c> if the column number was parsed successfully, and <c>false</c> otherwise.
+    /// </summary>
     public static bool TryParseColumnName(ReadOnlySpan<char> columnName, out int columnNumber)
     {
         if (columnName is [var a] && IsValid(a))
