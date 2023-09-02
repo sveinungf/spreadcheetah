@@ -66,7 +66,7 @@ public class SpreadsheetTests
         var exception = await Record.ExceptionAsync(async () => await spreadsheet.FinishAsync());
 
         // Assert
-        Assert.Equal(hasWorksheet, exception == null);
+        Assert.NotEqual(hasWorksheet, exception is SpreadCheetahException);
     }
 
     [Theory]
@@ -196,6 +196,7 @@ public class SpreadsheetTests
     [InlineData("With'Single'Quotes")]
     [InlineData("With\"Quotation\"Marks")]
     [InlineData("WithNorwegianCharactersÆØÅ")]
+    [InlineData("Exactly 31 Characters Long Name")]
     public async Task Spreadsheet_StartWorksheet_CorrectName(string name)
     {
         // Arrange
@@ -476,7 +477,7 @@ public class SpreadsheetTests
         var exception = await Record.ExceptionAsync(async () => await spreadsheet.StartWorksheetAsync("Book 2"));
 
         // Assert
-        Assert.Equal(!hasFinished, exception is null);
+        Assert.Equal(hasFinished, exception is SpreadCheetahException);
     }
 
     [Fact]

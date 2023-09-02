@@ -17,6 +17,24 @@ public class SpreadsheetRowTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public async Task Spreadsheet_AddRow_ThrowsWhenNoWorksheet(bool hasWorksheet)
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+
+        if (hasWorksheet)
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act
+        var exception = await Record.ExceptionAsync(async () => await spreadsheet.AddRowAsync(Array.Empty<DataCell>()));
+
+        // Assert
+        Assert.NotEqual(hasWorksheet, exception is SpreadCheetahException);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public async Task Spreadsheet_AddRow_ThrowsWhenAlreadyFinished(bool finished)
     {
         // Arrange

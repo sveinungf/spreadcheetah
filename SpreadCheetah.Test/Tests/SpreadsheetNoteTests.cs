@@ -138,17 +138,22 @@ public class SpreadsheetNoteTests
         Assert.All(noteCells, x => Assert.Equal(noteText, x.GetCellNoteText()));
     }
 
-    [Fact]
-    public async Task Spreadsheet_AddNote_TooLongText()
+    [Theory]
+    [InlineData(32768, false)]
+    [InlineData(32769, true)]
+    public async Task Spreadsheet_AddNote_ThrowsOnTooLongText(int textLength, bool exceptionExpected)
     {
         // Arrange
-        var noteText = new string('a', 32769);
+        var noteText = new string('a', textLength);
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
 
-        // Act & Assert
-        Assert.ThrowsAny<ArgumentException>(() => spreadsheet.AddNote("A1", noteText));
+        // Act
+        var exception = Record.Exception(() => spreadsheet.AddNote("A1", noteText));
+
+        // Assert
+        Assert.Equal(exceptionExpected, exception is ArgumentException);
     }
 
     [Theory]

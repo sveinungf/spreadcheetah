@@ -78,6 +78,36 @@ public static class SpreadsheetUtilityTests
     }
 
     [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    [InlineData(16385)]
+    public static void SpreadsheetUtility_TryGetColumnNameUtf8_InvalidNumber(int number)
+    {
+        // Arrange
+        var bytes = new byte[10];
+
+        // Act & Assert
+        Assert.ThrowsAny<ArgumentOutOfRangeException>(() => SpreadsheetUtility.TryGetColumnNameUtf8(number, bytes, out _));
+    }
+
+    [Theory]
+    [InlineData(1, 0)]
+    [InlineData(27, 1)]
+    [InlineData(703, 2)]
+    public static void SpreadsheetUtility_TryGetColumnNameUtf8_TooShortDestinationLength(int number, int destinationLength)
+    {
+        // Arrange
+        var bytes = new byte[destinationLength];
+
+        // Act
+        var result = SpreadsheetUtility.TryGetColumnNameUtf8(number, bytes, out var bytesWritten);
+
+        // Assert
+        Assert.False(result);
+        Assert.Equal(0, bytesWritten);
+    }
+
+    [Theory]
     [InlineData(1, "A")]
     [InlineData(3, "C")]
     [InlineData(24, "X")]
