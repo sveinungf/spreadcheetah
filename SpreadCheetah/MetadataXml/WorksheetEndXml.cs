@@ -6,7 +6,7 @@ namespace SpreadCheetah.MetadataXml;
 
 internal struct WorksheetEndXml : IXmlWriter
 {
-    private readonly List<CellRangeRelativeReference>? _cellMerges;
+    private readonly ReadOnlyMemory<CellRangeRelativeReference> _cellMerges;
     private readonly ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>> _validations;
     private readonly string? _autoFilterRange;
     private readonly bool _hasNotes;
@@ -15,12 +15,12 @@ internal struct WorksheetEndXml : IXmlWriter
     private int _nextIndex;
 
     public WorksheetEndXml(
-        List<CellRangeRelativeReference>? cellMerges,
+        ReadOnlyMemory<CellRangeRelativeReference>? cellMerges,
         ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>>? validations,
         string? autoFilterRange,
         bool hasNotes)
     {
-        _cellMerges = cellMerges;
+        _cellMerges = cellMerges ?? ReadOnlyMemory<CellRangeRelativeReference>.Empty;
         _validations = validations ?? ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>>.Empty;
         _autoFilterRange = autoFilterRange;
         _hasNotes = hasNotes;
@@ -69,13 +69,13 @@ internal struct WorksheetEndXml : IXmlWriter
 
     private readonly bool TryWriteCellMergesStart(Span<byte> bytes, ref int bytesWritten)
     {
-        if (_cellMerges is not { } cellMerges) return true;
+        if (_cellMerges.IsEmpty) return true;
 
         var span = bytes.Slice(bytesWritten);
         var written = 0;
 
         if (!"<mergeCells count=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(cellMerges.Count, span, ref written)) return false;
+        if (!SpanHelper.TryWrite(_cellMerges.Length, span, ref written)) return false;
         if (!"\">"u8.TryCopyTo(span, ref written)) return false;
 
         bytesWritten += written;
@@ -84,9 +84,10 @@ internal struct WorksheetEndXml : IXmlWriter
 
     private bool TryWriteCellMerges(Span<byte> bytes, ref int bytesWritten)
     {
-        if (_cellMerges is not { } cellMerges) return true;
+        if (_cellMerges.IsEmpty) return true;
+        var cellMerges = _cellMerges.Span;
 
-        for (; _nextIndex < cellMerges.Count; ++_nextIndex)
+        for (; _nextIndex < cellMerges.Length; ++_nextIndex)
         {
             var cellMerge = cellMerges[_nextIndex];
             var span = bytes.Slice(bytesWritten);
@@ -104,7 +105,7 @@ internal struct WorksheetEndXml : IXmlWriter
     }
 
     private readonly bool TryWriteCellMergesEnd(Span<byte> bytes, ref int bytesWritten)
-        => _cellMerges is null || "</mergeCells>"u8.TryCopyTo(bytes, ref bytesWritten);
+        => _cellMerges.IsEmpty || "</mergeCells>"u8.TryCopyTo(bytes, ref bytesWritten);
 
     private readonly bool TryWriteValidationsStart(Span<byte> bytes, ref int bytesWritten)
     {
