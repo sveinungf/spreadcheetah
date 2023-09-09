@@ -7,7 +7,7 @@ namespace SpreadCheetah.MetadataXml;
 internal struct WorksheetEndXml : IXmlWriter
 {
     private readonly List<CellRangeRelativeReference>? _cellMerges;
-    private readonly List<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>>? _validations;
+    private readonly ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>> _validations;
     private readonly string? _autoFilterRange;
     private readonly bool _hasNotes;
     private DataValidationXml? _validationXmlWriter;
@@ -16,12 +16,12 @@ internal struct WorksheetEndXml : IXmlWriter
 
     public WorksheetEndXml(
         List<CellRangeRelativeReference>? cellMerges,
-        List<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>>? validations,
+        ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>>? validations,
         string? autoFilterRange,
         bool hasNotes)
     {
         _cellMerges = cellMerges;
-        _validations = validations;
+        _validations = validations ?? ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>>.Empty;
         _autoFilterRange = autoFilterRange;
         _hasNotes = hasNotes;
     }
@@ -108,13 +108,13 @@ internal struct WorksheetEndXml : IXmlWriter
 
     private readonly bool TryWriteValidationsStart(Span<byte> bytes, ref int bytesWritten)
     {
-        if (_validations is not { } validations) return true;
+        if (_validations.IsEmpty) return true;
 
         var span = bytes.Slice(bytesWritten);
         var written = 0;
 
         if (!"<dataValidations count=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(validations.Count, span, ref written)) return false;
+        if (!SpanHelper.TryWrite(_validations.Length, span, ref written)) return false;
         if (!"\">"u8.TryCopyTo(span, ref written)) return false;
 
         bytesWritten += written;
@@ -123,9 +123,10 @@ internal struct WorksheetEndXml : IXmlWriter
 
     private bool TryWriteValidations(Span<byte> bytes, ref int bytesWritten)
     {
-        if (_validations is not { } validations) return true;
+        if (_validations.IsEmpty) return true;
+        var validations = _validations.Span;
 
-        for (; _nextIndex < validations.Count; ++_nextIndex)
+        for (; _nextIndex < validations.Length; ++_nextIndex)
         {
             var pair = validations[_nextIndex];
 
@@ -144,7 +145,7 @@ internal struct WorksheetEndXml : IXmlWriter
     }
 
     private readonly bool TryWriteValidationsEnd(Span<byte> bytes, ref int bytesWritten)
-        => _validations is null || "</dataValidations>"u8.TryCopyTo(bytes, ref bytesWritten);
+        => _validations.IsEmpty || "</dataValidations>"u8.TryCopyTo(bytes, ref bytesWritten);
 
     private readonly bool TryWriteLegacyDrawing(Span<byte> bytes, ref int bytesWritten)
         => !_hasNotes || """<legacyDrawing r:id="rId1"/>"""u8.TryCopyTo(bytes, ref bytesWritten);

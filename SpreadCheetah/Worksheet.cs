@@ -121,7 +121,9 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public async ValueTask FinishAsync(bool hasNotes, CancellationToken token)
     {
-        var writer = new WorksheetEndXml(_cellMerges?.ToList(), _validations?.ToList(), _autoFilterRange, hasNotes);
+        using var validationsPooledArray = _validations?.ToPooledArray();
+
+        var writer = new WorksheetEndXml(_cellMerges?.ToList(), validationsPooledArray?.Memory, _autoFilterRange, hasNotes);
 #pragma warning disable EPS06 // Hidden struct copy operation
         await writer.WriteAsync(_stream, _buffer, token).ConfigureAwait(false);
 #pragma warning restore EPS06 // Hidden struct copy operation
