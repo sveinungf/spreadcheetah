@@ -25,8 +25,15 @@ internal struct ContentTypesXml : IXmlWriter
         """<Default Extension="xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" />"""u8 +
         """<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />"""u8;
 
+    // TODO: When there is a JPG image, this is the first "Default Extension":
+    // <Default Extension="jpg" ContentType="image/jpeg"/>
+
     private static ReadOnlySpan<byte> Vml => "<Default Extension=\"vml\" ContentType=\"application/vnd.openxmlformats-officedocument.vmlDrawing\"/>"u8;
     private static ReadOnlySpan<byte> Styles => """<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml" />"""u8;
+
+    // TODO: When there is a JPG image, this is added after the Styles Override:
+    // <Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>
+
     private static ReadOnlySpan<byte> SheetStart => """<Override PartName="/"""u8;
     private static ReadOnlySpan<byte> SheetEnd => "\" "u8 + """ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" />"""u8;
     private static ReadOnlySpan<byte> CommentStart => """<Override PartName="/xl/comments"""u8;

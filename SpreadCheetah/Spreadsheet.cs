@@ -497,6 +497,11 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (_styles is not null)
             await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styles, token).ConfigureAwait(false);
 
+        // TODO: When there is a JPG image, these files are added:
+        // 1. xl/drawings/drawing1.xml
+        // 2. xl/drawings/_rels/drawing1.xml.rels
+        // 3. xl/media/image1.jpg (seems to be the exact same file that was added, but filename was changed)
+
         _finished = true;
 
         // The XLSX can become corrupt if the archive is not flushed before the resulting stream is being used.

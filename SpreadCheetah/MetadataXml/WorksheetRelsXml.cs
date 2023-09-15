@@ -25,6 +25,9 @@ internal struct WorksheetRelsXml : IXmlWriter
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">"""u8;
 
+    // TODO: When there is a JPG image, this element is added (need to check what Id it would get if there would be comments as well):
+    // <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/>
+
     private static ReadOnlySpan<byte> CommentStart => """<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments" Target="../comments"""u8;
     private static ReadOnlySpan<byte> VmlDrawingStart => """<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/vmlDrawing" Target="../drawings/vmlDrawing"""u8;
     private static ReadOnlySpan<byte> Footer => "</Relationships>"u8;
