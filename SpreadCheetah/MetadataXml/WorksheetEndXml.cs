@@ -32,7 +32,7 @@ internal struct WorksheetEndXml : IXmlWriter
 
         if (_next == Element.SheetDataEnd && !Advance("</sheetData>"u8.TryCopyTo(bytes, ref bytesWritten))) return false;
 
-        // TODO: When there is a JPG image, this element is added after end of sheetData (need to check order with what's below here as well):
+        // TODO: When there is a JPG/PNG image, this element is added after end of sheetData (need to check order with what's below here as well):
         // <drawing r:id="rId1"/>
 
         if (_next == Element.AutoFilter && !Advance(TryWriteAutoFilter(bytes, ref bytesWritten))) return false;
