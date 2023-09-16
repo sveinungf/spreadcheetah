@@ -465,9 +465,11 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         if (worksheet.Notes is { } notes)
         {
+            using var notesPooledArray = notes.ToPooledArray();
+
             var worksheetIndex = _worksheets.Count;
-            await CommentsXml.WriteAsync(_archive, _compressionLevel, _buffer, _notesFileIndex, notes, token).ConfigureAwait(false);
-            await VmlDrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, _notesFileIndex, notes, token).ConfigureAwait(false);
+            await CommentsXml.WriteAsync(_archive, _compressionLevel, _buffer, _notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
+            await VmlDrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, _notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
             await WorksheetRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, worksheetIndex, _notesFileIndex, token).ConfigureAwait(false);
         }
 
