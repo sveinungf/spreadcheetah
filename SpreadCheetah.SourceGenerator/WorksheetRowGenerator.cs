@@ -196,6 +196,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
     private static bool IsSupportedNullableType(Compilation compilation, ITypeSymbol type)
     {
+        //check if it's a type with nullable annotation
+        if (type.NullableAnnotation == NullableAnnotation.Annotated)
+            return true;
+
         if (type.SpecialType != SpecialType.System_Nullable_T)
             return false;
 
@@ -217,6 +221,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     private static readonly SpecialType[] SupportedPrimitiveTypes =
     {
         SpecialType.System_Boolean,
+        SpecialType.System_DateTime,
         SpecialType.System_Decimal,
         SpecialType.System_Double,
         SpecialType.System_Int32,
