@@ -54,6 +54,38 @@ public class WorksheetRowSourceGeneratorTests
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
+    [Theory]
+    [InlineData(CellValueType.Int, false)]
+    public Task WorksheetRowSourceGenerator_Generate_ClassWithSingleGenericProperty(CellValueType type, bool nullable)
+    {
+        var keyword = type switch
+        {
+            CellValueType.Int => "int",
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+        };
+
+        if (nullable)
+            keyword += "?";
+
+        // Arrange
+        var source = $$"""
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
+
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(ClassWithSingleGenericProperty<{{keyword}}>))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
+
     [Fact]
     public Task WorksheetRowSourceGenerator_Generate_ClassWithMultipleProperties()
     {
