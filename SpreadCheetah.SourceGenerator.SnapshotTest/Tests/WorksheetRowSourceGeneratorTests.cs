@@ -54,12 +54,16 @@ public class WorksheetRowSourceGeneratorTests
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
+    // TODO: Fill in all supported types
     [Theory]
+    [InlineData(CellValueType.Bool, false)]
     [InlineData(CellValueType.Int, false)]
+    [InlineData(CellValueType.Int, true)]
     public Task WorksheetRowSourceGenerator_Generate_ClassWithSingleGenericProperty(CellValueType type, bool nullable)
     {
         var keyword = type switch
         {
+            CellValueType.Bool => "bool",
             CellValueType.Int => "int",
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
@@ -83,7 +87,7 @@ public class WorksheetRowSourceGeneratorTests
             """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, type, nullable);
     }
 
     [Fact]
