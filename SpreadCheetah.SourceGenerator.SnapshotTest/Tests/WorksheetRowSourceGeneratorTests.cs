@@ -10,18 +10,19 @@ public class WorksheetRowSourceGeneratorTests
     public Task WorksheetRowSourceGenerator_Generate_ClassWithSingleProperty()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
 
-namespace MyNamespace
-{
-    [WorksheetRow(typeof(ClassWithSingleProperty))]
-    public partial class MyGenRowContext : WorksheetRowContext
-    {
-    }
-}";
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(ClassWithSingleProperty))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
@@ -31,22 +32,23 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_InternalClassWithSingleProperty()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using System;
 
-namespace MyNamespace
-{
-    internal class InternalClassWithSingleProperty
-    {
-        public string? Name { get; set; }
-    }
+            namespace MyNamespace
+            {
+                internal class InternalClassWithSingleProperty
+                {
+                    public string? Name { get; set; }
+                }
 
-    [WorksheetRow(typeof(InternalClassWithSingleProperty))]
-    internal partial class MyGenRowContext : WorksheetRowContext
-    {
-    }
-}";
+                [WorksheetRow(typeof(InternalClassWithSingleProperty))]
+                internal partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
@@ -56,18 +58,19 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ClassWithMultipleProperties()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
 
-namespace MyNamespace
-{
-    [WorksheetRow(typeof(ClassWithMultipleProperties))]
-    public partial class MyGenRowContext : WorksheetRowContext
-    {
-    }
-}";
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(ClassWithMultipleProperties))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
@@ -77,18 +80,19 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ClassWithNoProperties()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
 
-namespace MyNamespace
-{
-    [WorksheetRow(typeof(ClassWithNoProperties))]
-    public partial class MyGenRowContext : WorksheetRowContext
-    {
-    }
-}";
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(ClassWithNoProperties))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
@@ -98,19 +102,20 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ClassWithNoPropertiesAndWarningsSuppressed()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
 
-namespace MyNamespace
-{
-    [WorksheetRowGenerationOptions(SuppressWarnings = true)]
-    [WorksheetRow(typeof(ClassWithNoProperties))]
-    public partial class MyGenRowContext : WorksheetRowContext
-    {
-    }
-}";
+            namespace MyNamespace
+            {
+                [WorksheetRowGenerationOptions(SuppressWarnings = true)]
+                [WorksheetRow(typeof(ClassWithNoProperties))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
@@ -120,18 +125,19 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ClassWithUnsupportedProperty()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
 
-namespace MyNamespace
-{
-    [WorksheetRow(typeof(ClassWithUnsupportedProperty))]
-    public partial class MyGenRowContext : WorksheetRowContext
-    {
-    }
-}";
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(ClassWithUnsupportedProperty))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
@@ -141,19 +147,20 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ClassWithUnsupportedPropertyAndWarningsSuppressed()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
 
-namespace MyNamespace
-{
-    [WorksheetRow(typeof(ClassWithUnsupportedProperty))]
-    [WorksheetRowGenerationOptions(SuppressWarnings = true)]
-    public partial class MyGenRowContext : WorksheetRowContext
-    {
-    }
-}";
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(ClassWithUnsupportedProperty))]
+                [WorksheetRowGenerationOptions(SuppressWarnings = true)]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
@@ -163,18 +170,19 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_RecordClassWithSingleProperty()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
 
-namespace MyNamespace
-{
-    [WorksheetRow(typeof(RecordClassWithSingleProperty))]
-    public partial class MyGenRowContext : WorksheetRowContext
-    {
-    }
-}";
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(RecordClassWithSingleProperty))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
@@ -184,18 +192,19 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_StructWithSingleProperty()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
 
-namespace MyNamespace
-{
-    [WorksheetRow(typeof(StructWithSingleProperty))]
-    public partial class MyGenRowContext : WorksheetRowContext
-    {
-    }
-}";
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(StructWithSingleProperty))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
@@ -205,18 +214,19 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_RecordStructWithSingleProperty()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
 
-namespace MyNamespace
-{
-    [WorksheetRow(typeof(RecordStructWithSingleProperty))]
-    public partial class MyGenRowContext : WorksheetRowContext
-    {
-    }
-}";
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(RecordStructWithSingleProperty))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
@@ -226,18 +236,19 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ReadOnlyStructWithSingleProperty()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
 
-namespace MyNamespace
-{
-    [WorksheetRow(typeof(ReadOnlyStructWithSingleProperty))]
-    public partial class MyGenRowContext : WorksheetRowContext
-    {
-    }
-}";
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(ReadOnlyStructWithSingleProperty))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
@@ -247,18 +258,19 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ReadOnlyRecordStructWithSingleProperty()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
 
-namespace MyNamespace
-{
-    [WorksheetRow(typeof(ReadOnlyRecordStructWithSingleProperty))]
-    public partial class MyGenRowContext : WorksheetRowContext
-    {
-    }
-}";
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(ReadOnlyRecordStructWithSingleProperty))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
@@ -268,19 +280,20 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ContextWithTwoWorksheetRowAttributes()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
 
-namespace MyNamespace
-{
-    [WorksheetRow(typeof(ClassWithSingleProperty))]
-    [WorksheetRow(typeof(ClassWithMultipleProperties))]
-    public partial class MyGenRowContext : WorksheetRowContext
-    {
-    }
-}";
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(ClassWithSingleProperty))]
+                [WorksheetRow(typeof(ClassWithMultipleProperties))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
@@ -290,18 +303,19 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ContextWithTwoSimilarWorksheetRowAttributes()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using System;
 
-namespace MyNamespace
-{
-    [WorksheetRow(typeof(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty))]
-    [WorksheetRow(typeof(SpreadCheetah.SourceGenerator.SnapshotTest.AlternativeModels.ClassWithSingleProperty))]
-    public partial class MyGenRowContext : WorksheetRowContext
-    {
-    }
-}";
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty))]
+                [WorksheetRow(typeof(SpreadCheetah.SourceGenerator.SnapshotTest.AlternativeModels.ClassWithSingleProperty))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
@@ -311,18 +325,19 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ContextClassWithInternalAccessibility()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
 
-namespace MyNamespace
-{
-    [WorksheetRow(typeof(ClassWithSingleProperty))]
-    internal partial class MyGenRowContext : WorksheetRowContext
-    {
-    }
-}";
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(ClassWithSingleProperty))]
+                internal partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
@@ -332,18 +347,19 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_ContextClassWithDefaultAccessibility()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
 
-namespace MyNamespace
-{
-    [WorksheetRow(typeof(ClassWithSingleProperty))]
-    partial class MyGenRowContext : WorksheetRowContext
-    {
-    }
-}";
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(ClassWithSingleProperty))]
+                partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
@@ -353,23 +369,24 @@ namespace MyNamespace
     public Task WorksheetRowSourceGenerator_Generate_TwoContextClasses()
     {
         // Arrange
-        const string source = @"
-using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-using System;
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
 
-namespace MyNamespace;
+            namespace MyNamespace;
 
-[WorksheetRow(typeof(ClassWithSingleProperty))]
-public partial class MyGenRowContext : WorksheetRowContext
-{
-}
+            [WorksheetRow(typeof(ClassWithSingleProperty))]
+            public partial class MyGenRowContext : WorksheetRowContext
+            {
+            }
 
-[WorksheetRow(typeof(ClassWithMultipleProperties))]
-public partial class MyGenRowContext2 : WorksheetRowContext
-{
-}
-";
+            [WorksheetRow(typeof(ClassWithMultipleProperties))]
+            public partial class MyGenRowContext2 : WorksheetRowContext
+            {
+            }
+
+            """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
