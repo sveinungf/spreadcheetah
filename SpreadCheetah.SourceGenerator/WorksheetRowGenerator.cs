@@ -196,11 +196,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
     private static bool IsSupportedNullableType(Compilation compilation, ITypeSymbol type)
     {
-        //check if it's a type with nullable annotation
-        if (type.NullableAnnotation == NullableAnnotation.Annotated)
-            return true;
-
-        if (type.SpecialType != SpecialType.System_Nullable_T)
+        if (type.NullableAnnotation != NullableAnnotation.Annotated)
             return false;
 
         var nullableT = compilation.GetTypeByMetadataName("System.Nullable`1");
