@@ -54,32 +54,18 @@ public class WorksheetRowSourceGeneratorTests
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
-    // TODO: Fill in all supported types
-    [Theory]
-    [InlineData(CellValueType.Bool, false)]
-    [InlineData(CellValueType.Int, false)]
-    [InlineData(CellValueType.Int, true)]
-    public Task WorksheetRowSourceGenerator_Generate_ClassWithSingleGenericProperty(CellValueType type, bool nullable)
+    [Fact]
+    public Task WorksheetRowSourceGenerator_Generate_ClassWithAllSupportedTypes()
     {
-        var keyword = type switch
-        {
-            CellValueType.Bool => "bool",
-            CellValueType.Int => "int",
-            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
-        };
-
-        if (nullable)
-            keyword += "?";
-
         // Arrange
-        var source = $$"""
+        const string source = """
             using SpreadCheetah.SourceGeneration;
             using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
             using System;
 
             namespace MyNamespace
             {
-                [WorksheetRow(typeof(ClassWithSingleGenericProperty<{{keyword}}>))]
+                [WorksheetRow(typeof(ClassWithAllSupportedTypes))]
                 public partial class MyGenRowContext : WorksheetRowContext
                 {
                 }
@@ -87,7 +73,7 @@ public class WorksheetRowSourceGeneratorTests
             """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, type, nullable);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
 
     [Fact]
