@@ -5,7 +5,7 @@ name: build
 
 on:
   push:
-    branches: [ "main", "dev/action" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
