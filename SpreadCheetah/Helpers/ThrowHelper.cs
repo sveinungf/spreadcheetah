@@ -25,6 +25,11 @@ internal static class ThrowHelper
     [DoesNotReturn]
     public static void NoActiveWorksheet() => throw new SpreadCheetahException("There is no active worksheet.");
 
+    // TODO: Image or Picture?
+    // TODO: Add? Or some other verb?
+    [DoesNotReturn]
+    public static void AddImageBeforeStartingWorksheet() => throw new SpreadCheetahException("Images must be added before starting a worksheet.");
+
     [DoesNotReturn]
     public static void NoteTextTooLong(string? paramName) => throw new ArgumentException("Note text can not exceed " + SpreadsheetConstants.MaxNoteTextLength + " characters.", paramName);
 

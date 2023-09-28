@@ -454,6 +454,27 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         Worksheet.MergeCells(cellReference);
     }
 
+    // TODO: Image or Picture?
+    // TODO: Add? Or some other verb?
+    internal async ValueTask AddImageAsync(Stream stream, CancellationToken token = default)
+    {
+        if (_worksheet is not null)
+            ThrowHelper.AddImageBeforeStartingWorksheet();
+
+        // TODO: Increment image file name
+        // TODO: PNG or JPG
+        var entry = _archive.CreateEntry("xl/media/image1.png");
+        var entryStream = entry.Open();
+#if NETSTANDARD2_0
+        using (entryStream)
+#else
+        await using (entryStream.ConfigureAwait(false))
+#endif
+        {
+            await stream.CopyToAsync(entryStream, token).ConfigureAwait(false);
+        }
+    }
+
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
     {
         if (_worksheet is not { } worksheet) return;
