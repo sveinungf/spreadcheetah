@@ -28,6 +28,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private Dictionary<ImmutableStyle, int>? _styles;
     private Worksheet? _worksheet;
     private ImageTypes _imageTypes;
+    private int _imageCount;
     private int _notesFileIndex;
     private bool _disposed;
     private bool _finished;
@@ -469,6 +470,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (!_imageTypes.HasFlag(ImageTypes.Png))
             _imageTypes |= ImageTypes.Png;
 
+        ++_imageCount;
+
         var entry = _archive.CreateEntry("xl/media/image1.png");
         var entryStream = entry.Open();
 #if NETSTANDARD2_0
@@ -517,7 +520,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         var hasStyles = _styles != null;
 
-        await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
+        await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, _imageTypes, _imageCount, hasStyles, token).ConfigureAwait(false);
         await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, token).ConfigureAwait(false);
 

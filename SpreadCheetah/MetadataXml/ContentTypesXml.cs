@@ -1,4 +1,5 @@
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Images;
 using SpreadCheetah.Worksheets;
 using System.IO.Compression;
 
@@ -11,11 +12,13 @@ internal struct ContentTypesXml : IXmlWriter
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
         List<WorksheetMetadata> worksheets,
+        ImageTypes imageTypes,
+        int imageCount,
         bool hasStylesXml,
         CancellationToken token)
     {
         var entry = archive.CreateEntry("[Content_Types].xml", compressionLevel);
-        var writer = new ContentTypesXml(worksheets, hasStylesXml);
+        var writer = new ContentTypesXml(worksheets, imageTypes, imageCount, hasStylesXml);
         return writer.WriteAsync(entry, buffer, token);
     }
 
@@ -25,17 +28,17 @@ internal struct ContentTypesXml : IXmlWriter
         """<Default Extension="xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" />"""u8 +
         """<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />"""u8;
 
-    // TODO: When there is a JPG image, this is the first "Default Extension":
-    // <Default Extension="jpg" ContentType="image/jpeg"/>
-
-    // TODO: When there is a PNG image, this is the first "Default Extension":
-    // <Default Extension="png" ContentType="image/png"/>
-
+    private static ReadOnlySpan<byte> Jpg => """<Default Extension="jpg" ContentType="image/jpeg"/>"""u8;
+    private static ReadOnlySpan<byte> Png => """<Default Extension="png" ContentType="image/png"/>"""u8;
     private static ReadOnlySpan<byte> Vml => "<Default Extension=\"vml\" ContentType=\"application/vnd.openxmlformats-officedocument.vmlDrawing\"/>"u8;
     private static ReadOnlySpan<byte> Styles => """<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml" />"""u8;
 
-    // TODO: When there is a JPG/PNG image, this is added after the Styles Override:
-    // <Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>
+    // TODO: Test spreadsheet with both JPG and PNG
+    // TODO: Test spreadsheet with both image and comments
+    // TODO: Test spreadsheet with many images
+    // TODO: Is this the correct path for all added images? Regardless of worksheet?
+    private static ReadOnlySpan<byte> DrawingStart => """<Override PartName="/xl/drawings/drawing"""u8;
+    private static ReadOnlySpan<byte> DrawingEnd => """.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>"""u8;
 
     private static ReadOnlySpan<byte> SheetStart => """<Override PartName="/"""u8;
     private static ReadOnlySpan<byte> SheetEnd => "\" "u8 + """ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" />"""u8;
@@ -44,13 +47,17 @@ internal struct ContentTypesXml : IXmlWriter
     private static ReadOnlySpan<byte> Footer => "</Types>"u8;
 
     private readonly List<WorksheetMetadata> _worksheets;
+    private readonly ImageTypes _imageTypes;
+    private readonly int _imageCount;
     private readonly bool _hasStylesXml;
     private Element _next;
-    private int _nextWorksheetIndex;
+    private int _nextIndex;
 
-    private ContentTypesXml(List<WorksheetMetadata> worksheets, bool hasStylesXml)
+    private ContentTypesXml(List<WorksheetMetadata> worksheets, ImageTypes imageTypes, int imageCount, bool hasStylesXml)
     {
         _worksheets = worksheets;
+        _imageTypes = imageTypes;
+        _imageCount = imageCount;
         _hasStylesXml = hasStylesXml;
     }
 
@@ -59,8 +66,10 @@ internal struct ContentTypesXml : IXmlWriter
         bytesWritten = 0;
 
         if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
+        if (_next == Element.ImageTypes && !Advance(TryWriteImageTypes(bytes, ref bytesWritten))) return false;
         if (_next == Element.Vml && !Advance(TryWriteVml(bytes, ref bytesWritten))) return false;
         if (_next == Element.Styles && !Advance(TryWriteStyles(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Drawings && !Advance(TryWriteDrawings(bytes, ref bytesWritten))) return false;
         if (_next == Element.Worksheets && !Advance(TryWriteWorksheets(bytes, ref bytesWritten))) return false;
         if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
 
@@ -75,8 +84,43 @@ internal struct ContentTypesXml : IXmlWriter
         return success;
     }
 
+    private readonly bool TryWriteImageTypes(Span<byte> bytes, ref int bytesWritten)
+    {
+        if (_imageTypes == ImageTypes.None)
+            return true;
+
+        if (_imageTypes.HasFlag(ImageTypes.Jpg) && !Jpg.TryCopyTo(bytes, ref bytesWritten))
+            return false;
+
+        if (_imageTypes.HasFlag(ImageTypes.Png) && !Png.TryCopyTo(bytes, ref bytesWritten))
+            return false;
+
+        return true;
+    }
+
     private readonly bool TryWriteStyles(Span<byte> bytes, ref int bytesWritten)
         => !_hasStylesXml || Styles.TryCopyTo(bytes, ref bytesWritten);
+
+    private bool TryWriteDrawings(Span<byte> bytes, ref int bytesWritten)
+    {
+        if (_imageCount == 0)
+            return true;
+
+        for (; _nextIndex < _imageCount; ++_nextIndex)
+        {
+            var span = bytes.Slice(bytesWritten);
+            var written = 0;
+
+            if (!DrawingStart.TryCopyTo(span, ref written)) return false;
+            if (!SpanHelper.TryWrite(_nextIndex, span, ref written)) return false;
+            if (!DrawingEnd.TryCopyTo(span, ref written)) return false;
+
+            bytesWritten += written;
+        }
+
+        _nextIndex = 0;
+        return true;
+    }
 
     private readonly bool TryWriteVml(Span<byte> bytes, ref int bytesWritten)
     {
@@ -88,9 +132,9 @@ internal struct ContentTypesXml : IXmlWriter
     {
         var worksheets = _worksheets;
 
-        for (; _nextWorksheetIndex < worksheets.Count; ++_nextWorksheetIndex)
+        for (; _nextIndex < worksheets.Count; ++_nextIndex)
         {
-            var worksheet = worksheets[_nextWorksheetIndex];
+            var worksheet = worksheets[_nextIndex];
             var span = bytes.Slice(bytesWritten);
             var written = 0;
 
@@ -114,8 +158,10 @@ internal struct ContentTypesXml : IXmlWriter
     private enum Element
     {
         Header,
+        ImageTypes,
         Vml,
         Styles,
+        Drawings,
         Worksheets,
         Footer,
         Done
