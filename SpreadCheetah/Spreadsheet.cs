@@ -1,5 +1,6 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Images;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.Styling;
@@ -26,6 +27,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private DefaultStyling? _defaultStyling;
     private Dictionary<ImmutableStyle, int>? _styles;
     private Worksheet? _worksheet;
+    private ImageTypes _imageTypes;
     private int _notesFileIndex;
     private bool _disposed;
     private bool _finished;
@@ -463,6 +465,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         // TODO: Increment image file name
         // TODO: PNG or JPG
+        // TODO: Is HasFlag redundant?
+        if (!_imageTypes.HasFlag(ImageTypes.Png))
+            _imageTypes |= ImageTypes.Png;
+
         var entry = _archive.CreateEntry("xl/media/image1.png");
         var entryStream = entry.Open();
 #if NETSTANDARD2_0
@@ -521,7 +527,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         // TODO: When there is a JPG/PNG image, these files are added:
         // 1. xl/drawings/drawing1.xml
         // 2. xl/drawings/_rels/drawing1.xml.rels
-        // 3. xl/media/image1.jpg OR xl/media/image1.png (seems to be the exact same file that was added, but filename was changed)
 
         _finished = true;
 
