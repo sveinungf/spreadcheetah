@@ -94,5 +94,18 @@ public class SpreadsheetImageTests
         Assert.Equal(expectedPngBytes, actualPngBytes);
     }
 
-    // TODO: Test for embedding image from non-seekable stream
+    [Fact]
+    public async Task Spreadsheet_EmbedImage_PngFromReadOnlyStream()
+    {
+        // Arrange
+        using var pngStream = new AsyncReadOnlyMemoryStream(EmbeddedResources.GetStream("one-red-pixel.png"));
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+
+        // Act
+        var exception = await Record.ExceptionAsync(() => spreadsheet.EmbedImageAsync(pngStream).AsTask());
+
+        // Assert
+        Assert.Null(exception);
+    }
 }
