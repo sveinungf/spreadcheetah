@@ -40,6 +40,9 @@ internal static class ThrowHelper
     public static void StartWorksheetNotAllowedAfterFinish() => throw new SpreadCheetahException("Can't start another worksheet after " + nameof(Spreadsheet.FinishAsync) + " has been called.");
 
     [DoesNotReturn]
+    public static void StreamDoesNotSupportReading(string? paramName) => throw new ArgumentException("The stream does not support reading.", paramName);
+
+    [DoesNotReturn]
     public static void ValueIsNegative<T>(string? paramName, T value) => throw new ArgumentOutOfRangeException(paramName, value, "The value can not be negative.");
 
     [DoesNotReturn]
