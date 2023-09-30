@@ -6,6 +6,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Images\*" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Bogus" Version="34.0.2" />
     <PackageReference Include="ClosedXML" Version="0.102.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.0">
