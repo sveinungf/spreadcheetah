@@ -459,7 +459,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
     // TODO: Image or Picture?
     // TODO: Add? Or some other verb?
-    internal async ValueTask AddImageAsync(Stream stream, CancellationToken token = default)
+    internal async ValueTask EmbedImageAsync(Stream stream, CancellationToken token = default)
     {
         if (_worksheet is not null)
             ThrowHelper.AddImageBeforeStartingWorksheet();

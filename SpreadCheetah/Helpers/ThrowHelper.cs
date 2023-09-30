@@ -28,7 +28,7 @@ internal static class ThrowHelper
     // TODO: Image or Picture?
     // TODO: Add? Or some other verb?
     [DoesNotReturn]
-    public static void AddImageBeforeStartingWorksheet() => throw new SpreadCheetahException("Images must be added before starting a worksheet.");
+    public static void EmbedImageBeforeStartingWorksheet() => throw new SpreadCheetahException("Images must be embedded before starting a worksheet.");
 
     [DoesNotReturn]
     public static void NoteTextTooLong(string? paramName) => throw new ArgumentException("Note text can not exceed " + SpreadsheetConstants.MaxNoteTextLength + " characters.", paramName);
