@@ -462,7 +462,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     internal async ValueTask EmbedImageAsync(Stream stream, CancellationToken token = default)
     {
         if (_worksheet is not null)
-            ThrowHelper.AddImageBeforeStartingWorksheet();
+            ThrowHelper.EmbedImageBeforeStartingWorksheet();
 
         // TODO: Increment image file name
         // TODO: PNG or JPG
