@@ -479,14 +479,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (imageType is null)
             ThrowHelper.StreamContentNotSupportedImageType(nameof(stream));
 
-        // TODO: Increment image file name
-        // TODO: PNG or JPG
-        // TODO: Is HasFlag redundant?
-        if (!_imageTypes.HasFlag(imageType.Value))
-            _imageTypes |= imageType.Value;
-
+        _imageTypes |= imageType.Value;
         ++_imageCount;
 
+        // TODO: Increment image file name
         // TODO: Correct file extension for JPG/PNG
         var entry = _archive.CreateEntry("xl/media/image1.png");
         var entryStream = entry.Open();
