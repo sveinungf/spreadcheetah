@@ -467,14 +467,27 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (_worksheet is not null)
             ThrowHelper.EmbedImageBeforeStartingWorksheet();
 
+        using var pooledArray = await stream.ReadToPooledArrayAsync(FileSignature.MaxHeaderBytesToCheck, token).ConfigureAwait(false);
+        var buffer = pooledArray.Memory;
+
+        if (buffer.Length == 0)
+            ThrowHelper.StreamReadNoBytes(nameof(stream));
+        if (buffer.Length < FileSignature.MaxHeaderBytesToCheck)
+            ThrowHelper.StreamReadNotEnoughBytes(nameof(stream));
+
+        var imageType = FileSignature.GetImageTypeFromHeader(buffer.Span);
+        if (imageType is null)
+            ThrowHelper.StreamContentNotSupportedImageType(nameof(stream));
+
         // TODO: Increment image file name
         // TODO: PNG or JPG
         // TODO: Is HasFlag redundant?
-        if (!_imageTypes.HasFlag(ImageTypes.Png))
-            _imageTypes |= ImageTypes.Png;
+        if (!_imageTypes.HasFlag(imageType.Value))
+            _imageTypes |= imageType.Value;
 
         ++_imageCount;
 
+        // TODO: Correct file extension for JPG/PNG
         var entry = _archive.CreateEntry("xl/media/image1.png");
         var entryStream = entry.Open();
 #if NETSTANDARD2_0
@@ -483,6 +496,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         await using (entryStream.ConfigureAwait(false))
 #endif
         {
+            await entryStream.WriteAsync(buffer, token).ConfigureAwait(false);
             await stream.CopyToAsync(entryStream, token).ConfigureAwait(false);
         }
     }

@@ -43,6 +43,15 @@ internal static class ThrowHelper
     public static void StreamDoesNotSupportReading(string? paramName) => throw new ArgumentException("The stream does not support reading.", paramName);
 
     [DoesNotReturn]
+    public static void StreamReadNoBytes(string? paramName) => throw new ArgumentException("Could not read any data from the stream. Perhaps the stream's Position should be set to 0 before calling the method.", paramName);
+
+    [DoesNotReturn]
+    public static void StreamReadNotEnoughBytes(string? paramName) => throw new ArgumentException("The stream did not contain enough data to determine the actual content.", paramName);
+
+    [DoesNotReturn]
+    public static void StreamContentNotSupportedImageType(string? paramName) => throw new ArgumentException("The stream content is not a supported image type.", nameof(paramName));
+
+    [DoesNotReturn]
     public static void ValueIsNegative<T>(string? paramName, T value) => throw new ArgumentOutOfRangeException(paramName, value, "The value can not be negative.");
 
     [DoesNotReturn]
