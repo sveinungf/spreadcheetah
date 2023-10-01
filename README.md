@@ -1,6 +1,8 @@
 # SpreadCheetah
 
-[![Nuget](https://img.shields.io/nuget/v/SpreadCheetah)](https://www.nuget.org/packages/SpreadCheetah)
+[![Nuget](https://img.shields.io/nuget/v/SpreadCheetah?logo=nuget)](https://www.nuget.org/packages/SpreadCheetah)
+[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/sveinungf/spreadcheetah/dotnet.yml?logo=github)](https://github.com/sveinungf/spreadcheetah/actions/workflows/dotnet.yml)
+[![Codecov](https://img.shields.io/codecov/c/gh/sveinungf/spreadcheetah?logo=codecov)](https://app.codecov.io/gh/sveinungf/spreadcheetah)
 
 SpreadCheetah is a high-performance .NET library for generating spreadsheet (Microsoft Excel XLSX) files.
 
