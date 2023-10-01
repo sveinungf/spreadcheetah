@@ -13,7 +13,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly Stream _stream;
     private readonly SpreadsheetBuffer _buffer;
     private readonly CellWriter _cellWriter;
-    private readonly DataCellWriter _dataCellWriter;
+    private readonly BaseCellWriter<DataCell> _dataCellWriter;
     private readonly StyledCellWriter _styledCellWriter;
     private readonly CellWriterState _state;
     private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
@@ -28,7 +28,9 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         _buffer = buffer;
         _state = new CellWriterState(buffer, writeCellReferenceAttributes);
         _cellWriter = new CellWriter(_state, defaultStyling);
-        _dataCellWriter = new DataCellWriter(_state, defaultStyling);
+        _dataCellWriter = writeCellReferenceAttributes
+            ? new DataCellWithReferenceAttributesWriter(_state, defaultStyling)
+            : new DataCellWriter(_state, defaultStyling);
         _styledCellWriter = new StyledCellWriter(_state, defaultStyling);
     }
 

@@ -20,16 +20,22 @@ internal sealed class StringCellValueWriter : CellValueWriter
         var bytes = buffer.GetSpan();
         var written = 0;
 
-        if (!state.WriteCellReferenceAttributes)
-        {
-            if (!BeginStringCell.TryCopyTo(bytes, ref written)) return false;
-        }
-        else
-        {
-            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
-            if (!"\" t=\"inlineStr\"><is><t>"u8.TryCopyTo(bytes, ref written)) return false;
-        }
+        if (!BeginStringCell.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(cell.StringValue, bytes, ref written)) return false;
+        if (!EndStringCell.TryCopyTo(bytes, ref written)) return false;
 
+        buffer.Advance(written);
+        return true;
+    }
+
+    public override bool TryWriteCellWithReferenceAttribute(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
+    {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+        if (!"\" t=\"inlineStr\"><is><t>"u8.TryCopyTo(bytes, ref written)) return false;
         if (!SpanHelper.TryWrite(cell.StringValue, bytes, ref written)) return false;
         if (!EndStringCell.TryCopyTo(bytes, ref written)) return false;
 

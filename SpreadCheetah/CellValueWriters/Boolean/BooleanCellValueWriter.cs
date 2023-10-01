@@ -11,12 +11,18 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
     private static ReadOnlySpan<byte> BeginBooleanFormulaCell => "<c t=\"b\"><f>"u8;
 
     protected abstract bool TryWriteCell(CellWriterState state);
+    protected abstract bool TryWriteCellWithReferenceAttribute(CellWriterState state);
     protected abstract bool TryWriteEndStyleValue(Span<byte> bytes, out int bytesWritten);
     protected abstract bool TryWriteEndFormulaValue(Span<byte> bytes, out int bytesWritten);
 
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
     {
         return TryWriteCell(state);
+    }
+
+    public override bool TryWriteCellWithReferenceAttribute(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
+    {
+        return TryWriteCellWithReferenceAttribute(state);
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state)

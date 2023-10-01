@@ -16,6 +16,14 @@ internal sealed class NullDateTimeCellValueWriter : NullValueWriterBase
             : TryWriteCell(state);
     }
 
+    public override bool TryWriteCellWithReferenceAttribute(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
+    {
+        var defaultStyleId = defaultStyling?.DateTimeStyleId;
+        return defaultStyleId is not null
+            ? TryWriteCellWithReferenceAttribute(defaultStyleId.Value, state)
+            : TryWriteCellWithReferenceAttribute(state);
+    }
+
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
     {
         var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;

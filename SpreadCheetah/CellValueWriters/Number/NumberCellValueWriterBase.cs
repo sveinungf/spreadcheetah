@@ -19,16 +19,24 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         var bytes = buffer.GetSpan();
         var written = 0;
 
-        if (!state.WriteCellReferenceAttributes)
-        {
-            if (!BeginDataCell.TryCopyTo(bytes, ref written)) return false;
-        }
-        else
-        {
-            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
-            if (!"\"><v>"u8.TryCopyTo(bytes, ref written)) return false;
-        }
+        if (!BeginDataCell.TryCopyTo(bytes, ref written)) return false;
+        if (!TryWriteValue(cell, bytes.Slice(written), out var valueLength)) return false;
+        written += valueLength;
 
+        if (!EndDefaultCell.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
+    protected bool TryWriteCellWithReferenceAttribute(in DataCell cell, CellWriterState state)
+    {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+        if (!"\"><v>"u8.TryCopyTo(bytes, ref written)) return false;
         if (!TryWriteValue(cell, bytes.Slice(written), out var valueLength)) return false;
         written += valueLength;
 
@@ -44,16 +52,27 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         var bytes = buffer.GetSpan();
         var written = 0;
 
-        if (!state.WriteCellReferenceAttributes)
-        {
-            if (!StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes, ref written)) return false;
-        }
-        else
-        {
-            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
-            if (!StyledCellHelper.EndReferenceBeginStyleId.TryCopyTo(bytes, ref written)) return false;
-        }
+        if (!StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(styleId, bytes, ref written)) return false;
+        if (!EndStyleBeginValue.TryCopyTo(bytes, ref written)) return false;
 
+        if (!TryWriteValue(cell, bytes.Slice(written), out var valueLength)) return false;
+        written += valueLength;
+
+        if (!EndDefaultCell.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
+    protected bool TryWriteCellWithReferenceAttribute(in DataCell cell, int styleId, CellWriterState state)
+    {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+        if (!StyledCellHelper.EndReferenceBeginStyleId.TryCopyTo(bytes, ref written)) return false;
         if (!SpanHelper.TryWrite(styleId, bytes, ref written)) return false;
         if (!EndStyleBeginValue.TryCopyTo(bytes, ref written)) return false;
 
