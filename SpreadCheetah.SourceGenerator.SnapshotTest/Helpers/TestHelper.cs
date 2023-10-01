@@ -6,7 +6,7 @@ namespace SpreadCheetah.SourceGenerator.SnapshotTest.Helpers;
 
 internal static class TestHelper
 {
-    public static SettingsTask CompileAndVerify<T>(string source) where T : IIncrementalGenerator, new()
+    public static SettingsTask CompileAndVerify<T>(string source, params object?[] parameters) where T : IIncrementalGenerator, new()
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
 
@@ -35,6 +35,10 @@ internal static class TestHelper
         var settings = new VerifySettings();
         settings.UseDirectory("../Snapshots");
 
-        return Verify(target, settings);
+        var task = Verify(target, settings);
+
+        return parameters.Length > 0
+            ? task.UseParameters(parameters)
+            : task;
     }
 }

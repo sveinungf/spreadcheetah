@@ -136,6 +136,28 @@ public class WorksheetRowGeneratorTests
     }
 
     [Fact]
+    public async Task Spreadsheet_AddAsRow_ClassWithAllSupportedTypes()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act
+        var obj = new ClassWithAllSupportedTypes();
+        var ctx = AllSupportedTypesContext.Default.ClassWithAllSupportedTypes;
+        await spreadsheet.AddAsRowAsync(obj, ctx);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        stream.Position = 0;
+        using var actual = SpreadsheetDocument.Open(stream, false);
+        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
+        var cellCount = sheetPart.Worksheet.Descendants<OpenXmlCell>().Count();
+        Assert.Equal(16, cellCount);
+    }
+
+    [Fact]
     public async Task Spreadsheet_AddAsRow_ObjectWithCustomType()
     {
         // Arrange

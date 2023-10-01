@@ -1,9 +1,11 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 
 namespace SpreadCheetah.MetadataXml;
 
+[StructLayout(LayoutKind.Auto)]
 internal struct VmlDrawingXml : IXmlWriter
 {
     public static ValueTask WriteAsync(
@@ -11,12 +13,12 @@ internal struct VmlDrawingXml : IXmlWriter
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
         int notesFilesIndex,
-        Dictionary<SingleCellRelativeReference, string> notes,
+        ReadOnlyMemory<KeyValuePair<SingleCellRelativeReference, string>> notes,
         CancellationToken token)
     {
         var entryName = StringHelper.Invariant($"xl/drawings/vmlDrawing{notesFilesIndex}.vml");
         var entry = archive.CreateEntry(entryName, compressionLevel);
-        var writer = new VmlDrawingXml(notes.Keys.ToList());
+        var writer = new VmlDrawingXml(notes);
 #pragma warning disable EPS06 // Hidden struct copy operation
         return writer.WriteAsync(entry, buffer, token);
 #pragma warning restore EPS06 // Hidden struct copy operation
@@ -27,14 +29,14 @@ internal struct VmlDrawingXml : IXmlWriter
 
     private static ReadOnlySpan<byte> Footer => "</xml>"u8;
 
-    private readonly List<SingleCellRelativeReference> _noteReferences;
+    private readonly ReadOnlyMemory<KeyValuePair<SingleCellRelativeReference, string>> _notes;
     private VmlDrawingNoteXml? _currentNoteXmlWriter;
     private Element _next;
     private int _nextIndex;
 
-    private VmlDrawingXml(List<SingleCellRelativeReference> noteReferences)
+    private VmlDrawingXml(ReadOnlyMemory<KeyValuePair<SingleCellRelativeReference, string>> notes)
     {
-        _noteReferences = noteReferences;
+        _notes = notes;
     }
 
     public bool TryWrite(Span<byte> bytes, out int bytesWritten)
@@ -58,13 +60,14 @@ internal struct VmlDrawingXml : IXmlWriter
 
     private bool TryWriteNotes(Span<byte> bytes, ref int bytesWritten)
     {
-        var references = _noteReferences;
+        var notes = _notes.Span;
 
-        for (; _nextIndex < references.Count; ++_nextIndex)
+        for (; _nextIndex < notes.Length; ++_nextIndex)
         {
-            var span = bytes.Slice(bytesWritten);
+            var reference = notes[_nextIndex].Key;
+            var noteXmlWriter = _currentNoteXmlWriter ?? new VmlDrawingNoteXml(reference);
 
-            var noteXmlWriter = _currentNoteXmlWriter ?? new VmlDrawingNoteXml(references[_nextIndex]);
+            var span = bytes.Slice(bytesWritten);
             if (!noteXmlWriter.TryWrite(span, out var written))
             {
                 _currentNoteXmlWriter = noteXmlWriter;
