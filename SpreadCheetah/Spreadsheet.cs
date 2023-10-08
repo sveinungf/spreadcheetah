@@ -459,7 +459,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
     // TODO: Image or Picture?
     // TODO: Add? Or some other verb?
-    public async ValueTask EmbedImageAsync(Stream stream, CancellationToken token = default)
+    public async ValueTask<EmbeddedImage> EmbedImageAsync(Stream stream, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(stream);
         if (!stream.CanRead)
@@ -495,6 +495,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             await entryStream.WriteAsync(buffer, token).ConfigureAwait(false);
             await stream.CopyToAsync(entryStream, token).ConfigureAwait(false);
         }
+
+        return new EmbeddedImage();
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
