@@ -1,3 +1,6 @@
+using SpreadCheetah.Helpers;
+using System.Buffers.Binary;
+using System.Diagnostics;
 using System.IO.Compression;
 
 namespace SpreadCheetah.Images;
@@ -31,7 +34,7 @@ internal static class ZipArchiveExtensions
 
             var task = type switch
             {
-                ImageType.Png => stream.CopyPngToAsync(entryStream, token),
+                ImageType.Png => stream.CopyPngToAsync(entryStream, header.Length, token),
                 _ => new ValueTask<EmbeddedImage>(new EmbeddedImage(0, 0))
             };
 
@@ -39,10 +42,37 @@ internal static class ZipArchiveExtensions
         }
     }
 
-    private static async ValueTask<EmbeddedImage> CopyPngToAsync(this Stream source, Stream destination, CancellationToken token)
+    private static async ValueTask<EmbeddedImage> CopyPngToAsync(this Stream source, Stream destination, int bytesReadSoFar, CancellationToken token)
     {
+        // A valid PNG file should start with these bytes:
+        // 8 bytes: File signature
+        // 4 bytes: Chunk length
+        // 4 bytes: Chunk type (IHDR)
+        // 4 bytes: Image width
+        // 4 bytes: Image height
+        const int bytesBeforeDimensionStart = 16;
+        const int bytesRequiredToReadDimensions = 24;
+        var bytesToRead = bytesRequiredToReadDimensions - bytesReadSoFar;
+        Debug.Assert(bytesToRead > 0);
+
+        using var pooledArray = await source.ReadToPooledArrayAsync(bytesToRead, token).ConfigureAwait(false);
+        var buffer = pooledArray.Memory;
+
+        if (buffer.Length < bytesToRead)
+            ThrowHelper.StreamReadNotEnoughBytes(nameof(source));
+
+        var result = ReadPngDimensions(buffer.Span.Slice(bytesBeforeDimensionStart - bytesReadSoFar));
+
+        await destination.WriteAsync(buffer, token).ConfigureAwait(false);
         await source.CopyToAsync(destination, token).ConfigureAwait(false);
-        // TODO: Parse from file
-        return new EmbeddedImage(0, 0);
+
+        return result;
+    }
+
+    private static EmbeddedImage ReadPngDimensions(ReadOnlySpan<byte> bytes)
+    {
+        var width = BinaryPrimitives.ReadInt32BigEndian(bytes);
+        var height = BinaryPrimitives.ReadInt32BigEndian(bytes.Slice(4));
+        return new EmbeddedImage(height, width);
     }
 }

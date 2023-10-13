@@ -78,11 +78,14 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
 
         // Act
-        await spreadsheet.EmbedImageAsync(pngStream);
+        var result = await spreadsheet.EmbedImageAsync(pngStream);
 
         // Assert
         await spreadsheet.StartWorksheetAsync("Sheet 1");
         await spreadsheet.FinishAsync();
+
+        Assert.Equal(1, result.Height);
+        Assert.Equal(1, result.Width);
 
         using var archive = new ZipArchive(outputStream);
         var entry = archive.GetEntry("xl/media/image1.png");
