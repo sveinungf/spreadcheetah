@@ -7,10 +7,10 @@ internal static class FileSignature
 
     public static readonly int MaxHeaderBytesToCheck = PngHeader.Length;
 
-    public static ImageTypes? GetImageTypeFromHeader(ReadOnlySpan<byte> header)
+    public static ImageType? GetImageTypeFromHeader(ReadOnlySpan<byte> header)
     {
         if (header.StartsWith(PngHeader))
-            return ImageTypes.Png;
+            return ImageType.Png;
 
         return null;
     }

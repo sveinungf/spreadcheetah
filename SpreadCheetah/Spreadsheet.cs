@@ -26,9 +26,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly NumberFormat? _defaultDateTimeFormat;
     private DefaultStyling? _defaultStyling;
     private Dictionary<ImmutableStyle, int>? _styles;
+    private ImageCount? _imageCount;
     private Worksheet? _worksheet;
-    private ImageTypes _imageTypes;
-    private int _imageCount;
     private int _notesFileIndex;
     private bool _disposed;
     private bool _finished;
@@ -479,8 +478,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (imageType is null)
             ThrowHelper.StreamContentNotSupportedImageType(nameof(stream));
 
-        _imageTypes |= imageType.Value;
-        ++_imageCount;
+        _imageCount ??= new ImageCount();
+        _imageCount.Add(imageType.Value);
 
         // TODO: Increment image file name
         // TODO: Correct file extension for JPG/PNG
@@ -537,7 +536,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         var hasStyles = _styles != null;
 
-        await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, _imageTypes, _imageCount, hasStyles, token).ConfigureAwait(false);
+        await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, _imageCount, hasStyles, token).ConfigureAwait(false);
         await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, token).ConfigureAwait(false);
 

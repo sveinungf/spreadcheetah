@@ -12,13 +12,12 @@ internal struct ContentTypesXml : IXmlWriter
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
         List<WorksheetMetadata> worksheets,
-        ImageTypes imageTypes,
-        int imageCount,
+        ImageCount? imageCount,
         bool hasStylesXml,
         CancellationToken token)
     {
         var entry = archive.CreateEntry("[Content_Types].xml", compressionLevel);
-        var writer = new ContentTypesXml(worksheets, imageTypes, imageCount, hasStylesXml);
+        var writer = new ContentTypesXml(worksheets, imageCount, hasStylesXml);
         return writer.WriteAsync(entry, buffer, token);
     }
 
@@ -47,16 +46,14 @@ internal struct ContentTypesXml : IXmlWriter
     private static ReadOnlySpan<byte> Footer => "</Types>"u8;
 
     private readonly List<WorksheetMetadata> _worksheets;
-    private readonly ImageTypes _imageTypes;
-    private readonly int _imageCount;
+    private readonly ImageCount? _imageCount;
     private readonly bool _hasStylesXml;
     private Element _next;
     private int _nextIndex;
 
-    private ContentTypesXml(List<WorksheetMetadata> worksheets, ImageTypes imageTypes, int imageCount, bool hasStylesXml)
+    private ContentTypesXml(List<WorksheetMetadata> worksheets, ImageCount? imageCount, bool hasStylesXml)
     {
         _worksheets = worksheets;
-        _imageTypes = imageTypes;
         _imageCount = imageCount;
         _hasStylesXml = hasStylesXml;
     }
@@ -86,13 +83,13 @@ internal struct ContentTypesXml : IXmlWriter
 
     private readonly bool TryWriteImageTypes(Span<byte> bytes, ref int bytesWritten)
     {
-        if (_imageTypes == ImageTypes.None)
+        if (_imageCount is not { } imageCount)
             return true;
 
-        if (_imageTypes.HasFlag(ImageTypes.Jpg) && !Jpg.TryCopyTo(bytes, ref bytesWritten))
+        if (imageCount.Jpg > 0 && !Jpg.TryCopyTo(bytes, ref bytesWritten))
             return false;
 
-        if (_imageTypes.HasFlag(ImageTypes.Png) && !Png.TryCopyTo(bytes, ref bytesWritten))
+        if (imageCount.Png > 0 && !Png.TryCopyTo(bytes, ref bytesWritten))
             return false;
 
         return true;
@@ -103,10 +100,12 @@ internal struct ContentTypesXml : IXmlWriter
 
     private bool TryWriteDrawings(Span<byte> bytes, ref int bytesWritten)
     {
-        if (_imageCount == 0)
+        if (_imageCount is not { } imageCount)
             return true;
 
-        for (; _nextIndex < _imageCount; ++_nextIndex)
+        var totalCount = imageCount.TotalCount;
+
+        for (; _nextIndex < totalCount; ++_nextIndex)
         {
             var span = bytes.Slice(bytesWritten);
             var written = 0;
