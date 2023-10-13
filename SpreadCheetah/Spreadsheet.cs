@@ -481,21 +481,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _imageCount ??= new ImageCount();
         _imageCount.Add(imageType.Value);
 
-        // TODO: Increment image file name
-        // TODO: Correct file extension for JPG/PNG
-        var entry = _archive.CreateEntry("xl/media/image1.png");
-        var entryStream = entry.Open();
-#if NETSTANDARD2_0
-        using (entryStream)
-#else
-        await using (entryStream.ConfigureAwait(false))
-#endif
-        {
-            await entryStream.WriteAsync(buffer, token).ConfigureAwait(false);
-            await stream.CopyToAsync(entryStream, token).ConfigureAwait(false);
-        }
-
-        return new EmbeddedImage();
+        // TODO: What about imageCount if this fails?
+        return await _archive.CreateImageEntryAsync(stream, buffer, imageType.Value, token).ConfigureAwait(false);
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
