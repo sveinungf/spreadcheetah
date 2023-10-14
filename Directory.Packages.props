@@ -11,7 +11,7 @@
     <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="9.8.0.76515" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="BenchmarkDotNet" Version="0.13.7" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.13.9" />
     <PackageVersion Include="Bogus" Version="34.0.2" />
     <PackageVersion Include="ClosedXML" Version="0.102.1" />
     <PackageVersion Include="coverlet.collector" Version="6.0.0" />
@@ -23,15 +23,15 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.3.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
     <PackageVersion Include="Polyfill" Version="1.26.0" />
     <PackageVersion Include="System.Collections.Immutable" Version="7.0.0" />
     <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
     <PackageVersion Include="System.Memory" Version="4.5.4" />
-    <PackageVersion Include="Verify.SourceGenerators" Version="2.1.0" />
-    <PackageVersion Include="Verify.Xunit" Version="20.8.2" />
-    <PackageVersion Include="xunit" Version="2.5.0" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.0" />
+    <PackageVersion Include="Verify.SourceGenerators" Version="2.2.0" />
+    <PackageVersion Include="Verify.Xunit" Version="22.1.3" />
+    <PackageVersion Include="xunit" Version="2.5.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3" />
   </ItemGroup>
 </Project>
