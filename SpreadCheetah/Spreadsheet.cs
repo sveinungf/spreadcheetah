@@ -485,6 +485,11 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return await _archive.CreateImageEntryAsync(stream, buffer, imageType.Value, token).ConfigureAwait(false);
     }
 
+    public void AddImage(string cellReference, EmbeddedImage image, ImageOptions? options = null)
+    {
+        // TODO
+    }
+
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
     {
         if (_worksheet is not { } worksheet) return;
