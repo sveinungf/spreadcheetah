@@ -1,0 +1,37 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageVersionOverrideEnabled>false</CentralPackageVersionOverrideEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <GlobalPackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.4.0-beta.1" />
+    <GlobalPackageReference Include="Meziantou.Analyzer" Version="2.0.82" />
+    <GlobalPackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.7.30" />
+    <GlobalPackageReference Include="Roslynator.Analyzers" Version="4.5.0" />
+    <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="9.8.0.76515" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageVersion Include="BenchmarkDotNet" Version="0.13.7" />
+    <PackageVersion Include="Bogus" Version="34.0.2" />
+    <PackageVersion Include="ClosedXML" Version="0.102.1" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.0" />
+    <PackageVersion Include="DocumentFormat.OpenXml" Version="2.20.0" />
+    <PackageVersion Include="EPPlusFree" Version="4.5.3.8" />
+    <PackageVersion Include="ErrorProne.NET.Structs" Version="0.4.0-beta.1" />
+    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.1" />
+    <PackageVersion Include="Microsoft.Bcl.HashCode" Version="1.1.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.3.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.1" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
+    <PackageVersion Include="Polyfill" Version="1.26.0" />
+    <PackageVersion Include="System.Collections.Immutable" Version="7.0.0" />
+    <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
+    <PackageVersion Include="System.Memory" Version="4.5.4" />
+    <PackageVersion Include="Verify.SourceGenerators" Version="2.1.0" />
+    <PackageVersion Include="Verify.Xunit" Version="20.8.2" />
+    <PackageVersion Include="xunit" Version="2.5.0" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.0" />
+  </ItemGroup>
+</Project>
