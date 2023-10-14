@@ -13,6 +13,6 @@ internal static class ArgumentNullExceptionBackport
     }
 
     [DoesNotReturn]
-    private static void Throw(string? paramName) => throw new System.ArgumentNullException(paramName);
+    private static void Throw(string? paramName) => throw new ArgumentNullException(paramName);
 }
 #endif

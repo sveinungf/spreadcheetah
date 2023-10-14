@@ -4,6 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
 
+#if !NET6_0_OR_GREATER
+using ArgumentNullException = SpreadCheetah.Helpers.Backporting.ArgumentNullExceptionBackport;
+#endif
+
 namespace SpreadCheetah.Validations;
 
 /// <summary>
