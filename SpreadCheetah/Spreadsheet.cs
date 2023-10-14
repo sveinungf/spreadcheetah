@@ -9,6 +9,10 @@ using SpreadCheetah.Worksheets;
 using System.Buffers;
 using System.IO.Compression;
 
+#if !NET6_0_OR_GREATER
+using ArgumentNullException = SpreadCheetah.Helpers.Backporting.ArgumentNullExceptionBackport;
+#endif
+
 namespace SpreadCheetah;
 
 /// <summary>
