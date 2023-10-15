@@ -111,10 +111,12 @@ internal struct DrawingXml : IXmlWriter
         const int fromColumnOffset = 0;
         const int fromRowOffset = 0;
 
-        // TODO: Should be calculated from image size minus any offset
+        // TODO: Support sizing
+        // TODO: Subtract offsets
         // TODO: Should they be long?
-        const int toColumnOffset = 406080;
-        const int toRowOffset = 81360;
+        // Convert pixels to EMU
+        var toColumnOffset = _imageOptions.ActualImageWidth * 9525;
+        var toRowOffset = _imageOptions.ActualImageHeight * 9525;
 
         var column = _cellReference.Column - 1;
         var row = _cellReference.Row - 1;

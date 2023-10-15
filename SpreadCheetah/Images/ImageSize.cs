@@ -24,6 +24,6 @@ public sealed class ImageSize
         return new ImageSize();
     }
 
-    // TODO: Fit cell height option?
-    // TODO: Fit cell width option?
+    // TODO: Fit to cell height option?
+    // TODO: Fit to cell width option?
 }
