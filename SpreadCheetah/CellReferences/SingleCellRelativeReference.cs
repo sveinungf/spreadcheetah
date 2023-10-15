@@ -44,9 +44,9 @@ internal readonly partial record struct SingleCellRelativeReference
         int row = 0;
         var match = Regex().Match(value);
         if (!match.Success ||
-            match.Groups is not { Count: 3 } groups ||
-            !TryParseColumnName(groups[1], out column) ||
-            !TryParseInteger(groups[2], out row))
+            match.Groups is not [_, var columnCapture, var rowCapture] ||
+            !TryParseColumnName(columnCapture, out column) ||
+            !TryParseInteger(rowCapture, out row))
         {
             ThrowHelper.SingleCellReferenceInvalid(paramName);
         }
