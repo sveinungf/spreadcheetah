@@ -1,4 +1,6 @@
+using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Images.Internal;
 using System.IO.Compression;
 using System.Net;
 
@@ -10,13 +12,14 @@ internal struct DrawingXml : IXmlWriter
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
-        string name,
+        SingleCellRelativeReference cellReference,
+        ImmutableImageOptions imageOptions,
         CancellationToken token)
     {
         // TODO: Increment number
         var entryName = "xl/drawings/drawing1.xml";
         var entry = archive.CreateEntry(entryName, compressionLevel);
-        var writer = new DrawingXml(name);
+        var writer = new DrawingXml(cellReference, imageOptions);
         return writer.WriteAsync(entry, buffer, token);
     }
 
@@ -75,13 +78,17 @@ internal struct DrawingXml : IXmlWriter
         </xdr:wsDr>
         """u8;
 
+    private readonly SingleCellRelativeReference _cellReference;
+    private readonly ImmutableImageOptions _imageOptions;
     private readonly string _xmlEncodedName;
     private int _xmlEncodedNameIndex;
     private Element _next;
 
-    private DrawingXml(string name)
+    private DrawingXml(SingleCellRelativeReference cellReference, ImmutableImageOptions imageOptions)
     {
-        _xmlEncodedName = WebUtility.HtmlEncode(name);
+        _cellReference = cellReference;
+        _imageOptions = imageOptions;
+        _xmlEncodedName = WebUtility.HtmlEncode(imageOptions.Name);
     }
 
     public bool TryWrite(Span<byte> bytes, out int bytesWritten)
