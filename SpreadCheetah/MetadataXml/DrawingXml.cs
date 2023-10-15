@@ -25,8 +25,6 @@ internal struct DrawingXml : IXmlWriter
 
     // TODO: twoCellAnchor?
     // TODO: Parameter for editAs
-    // TODO: col/row
-    // TODO: Offsets
     // TODO: Remove whitespace
     private static ReadOnlySpan<byte> Header => """
         <?xml version="1.0" encoding="utf-8"?>
@@ -35,23 +33,14 @@ internal struct DrawingXml : IXmlWriter
             xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
             <xdr:twoCellAnchor editAs="oneCell">
                 <xdr:from>
-                    <xdr:col>1</xdr:col>
-                    <xdr:colOff>0</xdr:colOff>
-                    <xdr:row>1</xdr:row>
-                    <xdr:rowOff>0</xdr:rowOff>
-                </xdr:from>
-                <xdr:to>
-                    <xdr:col>2</xdr:col>
-                    <xdr:colOff>406080</xdr:colOff>
-                    <xdr:row>8</xdr:row>
-                    <xdr:rowOff>81360</xdr:rowOff>
-                </xdr:to>
-                <xdr:pic>
-                    <xdr:nvPicPr>
-                        <xdr:cNvPr id="0" name=
+                    <xdr:col>
         """u8 + "\""u8;
 
-    // TODO: rId1?
+    // TODO: cNvPr ID?
+    private static ReadOnlySpan<byte> AnchorEnd => """</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="0" name="""u8;
+
+    // TODO: rId1 - Should be correct ID
+    // TODO: Remove whitespace
     private static ReadOnlySpan<byte> Footer => "\""u8 + """
                     descr=""></xdr:cNvPr>
                         <xdr:cNvPicPr/>
@@ -96,6 +85,8 @@ internal struct DrawingXml : IXmlWriter
         bytesWritten = 0;
 
         if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Anchor && !Advance(TryWriteAnchor(bytes, ref bytesWritten))) return false;
+        if (_next == Element.AnchorEnd && !Advance(AnchorEnd.TryCopyTo(bytes, ref bytesWritten))) return false;
         if (_next == Element.Name && !Advance(TryWriteName(bytes, ref bytesWritten))) return false;
         if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
 
@@ -110,6 +101,44 @@ internal struct DrawingXml : IXmlWriter
         return success;
     }
 
+    private readonly bool TryWriteAnchor(Span<byte> bytes, ref int bytesWritten)
+    {
+        var span = bytes.Slice(bytesWritten);
+        var written = 0;
+
+        // TODO: Upper-left offsets
+        // TODO: Should they be long?
+        const int fromColumnOffset = 0;
+        const int fromRowOffset = 0;
+
+        // TODO: Should be calculated from image size minus any offset
+        // TODO: Should they be long?
+        const int toColumnOffset = 406080;
+        const int toRowOffset = 81360;
+
+        var column = _cellReference.Column - 1;
+        var row = _cellReference.Row - 1;
+
+        if (!TryWriteAnchorPart(span, ref written, column, row, fromColumnOffset, fromRowOffset)) return false;
+        if (!"</xdr:rowOff></xdr:from><xdr:to><xdr:col>"u8.TryCopyTo(bytes, ref written)) return false;
+        if (!TryWriteAnchorPart(span, ref written, column, row, toColumnOffset, toRowOffset)) return false;
+
+        bytesWritten += written;
+        return true;
+
+        static bool TryWriteAnchorPart(Span<byte> bytes, ref int bytesWritten, int column, int row, int columnOffset, int rowOffset)
+        {
+            if (!SpanHelper.TryWrite(column, bytes, ref bytesWritten)) return false;
+            if (!"</xdr:col><xdr:colOff"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
+            if (!SpanHelper.TryWrite(columnOffset, bytes, ref bytesWritten)) return false;
+            if (!"</xdr:colOff><xdr:row>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
+            if (!SpanHelper.TryWrite(row, bytes, ref bytesWritten)) return false;
+            if (!"</xdr:row><xdr:rowOff>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
+            if (!SpanHelper.TryWrite(rowOffset, bytes, ref bytesWritten)) return false;
+            return true;
+        }
+    }
+
     private bool TryWriteName(Span<byte> bytes, ref int bytesWritten)
     {
         return SpanHelper.TryWriteLongString(_xmlEncodedName, ref _xmlEncodedNameIndex, bytes, ref bytesWritten);
@@ -118,6 +147,8 @@ internal struct DrawingXml : IXmlWriter
     private enum Element
     {
         Header,
+        Anchor,
+        AnchorEnd,
         Name,
         Footer,
         Done
