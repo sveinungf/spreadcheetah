@@ -470,12 +470,13 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (_worksheet is not null)
             ThrowHelper.EmbedImageBeforeStartingWorksheet();
 
-        using var pooledArray = await stream.ReadToPooledArrayAsync(FileSignature.MaxHeaderBytesToCheck, token).ConfigureAwait(false);
+        const int bytesToRead = 24; // Enough to cover PNG file signature with dimensions
+        using var pooledArray = await stream.ReadToPooledArrayAsync(bytesToRead, token).ConfigureAwait(false);
         var buffer = pooledArray.Memory;
 
         if (buffer.Length == 0)
             ThrowHelper.StreamReadNoBytes(nameof(stream));
-        if (buffer.Length < FileSignature.MaxHeaderBytesToCheck)
+        if (buffer.Length < bytesToRead)
             ThrowHelper.StreamReadNotEnoughBytes(nameof(stream));
 
         var imageType = FileSignature.GetImageTypeFromHeader(buffer.Span);

@@ -1,4 +1,3 @@
-using SpreadCheetah.Helpers;
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO.Compression;
@@ -34,7 +33,7 @@ internal static class ZipArchiveExtensions
 
             var task = type switch
             {
-                ImageType.Png => stream.CopyPngToAsync(entryStream, header.Length, token),
+                ImageType.Png => stream.CopyPngToAsync(entryStream, header, token),
                 _ => new ValueTask<EmbeddedImage>(new EmbeddedImage(0, 0))
             };
 
@@ -42,7 +41,7 @@ internal static class ZipArchiveExtensions
         }
     }
 
-    private static async ValueTask<EmbeddedImage> CopyPngToAsync(this Stream source, Stream destination, int bytesReadSoFar, CancellationToken token)
+    private static async ValueTask<EmbeddedImage> CopyPngToAsync(this Stream source, Stream destination, ReadOnlyMemory<byte> bytesReadSoFar, CancellationToken token)
     {
         // A valid PNG file should start with these bytes:
         // 8 bytes: File signature
@@ -52,20 +51,10 @@ internal static class ZipArchiveExtensions
         // 4 bytes: Image height
         const int bytesBeforeDimensionStart = 16;
         const int bytesRequiredToReadDimensions = 24;
-        var bytesToRead = bytesRequiredToReadDimensions - bytesReadSoFar;
-        Debug.Assert(bytesToRead > 0);
+        Debug.Assert(bytesReadSoFar.Length >= bytesRequiredToReadDimensions);
 
-        using var pooledArray = await source.ReadToPooledArrayAsync(bytesToRead, token).ConfigureAwait(false);
-        var buffer = pooledArray.Memory;
-
-        if (buffer.Length < bytesToRead)
-            ThrowHelper.StreamReadNotEnoughBytes(nameof(source));
-
-        var result = ReadPngDimensions(buffer.Span.Slice(bytesBeforeDimensionStart - bytesReadSoFar));
-
-        await destination.WriteAsync(buffer, token).ConfigureAwait(false);
+        var result = ReadPngDimensions(bytesReadSoFar.Span.Slice(bytesBeforeDimensionStart));
         await source.CopyToAsync(destination, token).ConfigureAwait(false);
-
         return result;
     }
 
