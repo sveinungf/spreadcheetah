@@ -1,4 +1,3 @@
-using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
 using System.IO.Compression;
@@ -11,15 +10,14 @@ internal struct DrawingXml : IXmlWriter
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
-        SingleCellRelativeReference cellReference,
-        ImmutableImage image, // TODO: Should take all images for a sheet here
+        List<WorksheetImage> images,
         CancellationToken token)
     {
         // TODO: Increment number.
         // TODO: Note potential difference between image ID and drawing ID if image is reused across cells.
         var entryName = "xl/drawings/drawing1.xml";
         var entry = archive.CreateEntry(entryName, compressionLevel);
-        var writer = new DrawingXml(cellReference, image);
+        var writer = new DrawingXml(images);
 #pragma warning disable EPS06 // Hidden struct copy operation
         return writer.WriteAsync(entry, buffer, token);
 #pragma warning restore EPS06 // Hidden struct copy operation
@@ -30,32 +28,16 @@ internal struct DrawingXml : IXmlWriter
         """xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" """u8 +
         """xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">"""u8;
 
-    // TODO: twoCellAnchor?
-    // TODO: Parameter for editAs
-    private static ReadOnlySpan<byte> ImageStart => """<xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>"""u8 + "\""u8;
-
-    // TODO: cNvPr ID? Should be globally unique. Starts at 0 and increments by 1 for each image (regardless of sheet).
-    private static ReadOnlySpan<byte> AnchorEnd => """</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="""u8 + "\""u8;
-    private static ReadOnlySpan<byte> ImageIdEnd => "\""u8 + """ name="Image """u8;
-
-    // TODO: Is it OK to use rId when other relation IDs are present? (That are not related to images)
-    private static ReadOnlySpan<byte> NameEnd => "\" "u8 + """descr=""></xdr:cNvPr><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId"""u8;
-
-    private static ReadOnlySpan<byte> ImageEnd => "\""u8 +
-        """></a:blip><a:stretch/></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="1" y="1"/><a:ext cx="1" cy="1"/>"""u8 +
-        """</a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:ln w="0"><a:noFill/></a:ln></xdr:spPr>"""u8 +
-        """</xdr:pic><xdr:clientData/></xdr:twoCellAnchor>"""u8;
-
     private static ReadOnlySpan<byte> Footer => """</xdr:wsDr>"""u8;
 
-    private readonly SingleCellRelativeReference _cellReference;
-    private readonly ImmutableImage _image;
+    private readonly List<WorksheetImage> _images;
+    private DrawingImageXml? _currentImageXmlWriter;
     private Element _next;
+    private int _nextIndex;
 
-    private DrawingXml(SingleCellRelativeReference cellReference, ImmutableImage image)
+    private DrawingXml(List<WorksheetImage> images)
     {
-        _cellReference = cellReference;
-        _image = image;
+        _images = images;
     }
 
     public bool TryWrite(Span<byte> bytes, out int bytesWritten)
@@ -63,9 +45,7 @@ internal struct DrawingXml : IXmlWriter
         bytesWritten = 0;
 
         if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
-        if (_next == Element.ImageStart && !Advance(ImageStart.TryCopyTo(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Anchor && !Advance(TryWriteAnchor(bytes, ref bytesWritten))) return false;
-        if (_next == Element.ImageEnd && !Advance(TryWriteImageEnd(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Images && !Advance(TryWriteImages(bytes, ref bytesWritten))) return false;
         if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
 
         return true;
@@ -79,69 +59,35 @@ internal struct DrawingXml : IXmlWriter
         return success;
     }
 
-    private readonly bool TryWriteAnchor(Span<byte> bytes, ref int bytesWritten)
+    private bool TryWriteImages(Span<byte> bytes, ref int bytesWritten)
     {
-        var span = bytes.Slice(bytesWritten);
-        var written = 0;
+        var images = _images;
 
-        // TODO: Upper-left offsets
-        // TODO: Should they be long?
-        const int fromColumnOffset = 0;
-        const int fromRowOffset = 0;
-
-        // TODO: Support sizing
-        // TODO: Subtract offsets
-        // TODO: Should they be long?
-        // Convert pixels to EMU by multiplying with 9525
-        var toColumnOffset = _image.ActualImageWidth * 9525;
-        var toRowOffset = _image.ActualImageHeight * 9525;
-
-        var column = _cellReference.Column - 1;
-        var row = _cellReference.Row - 1;
-
-        if (!TryWriteAnchorPart(span, ref written, column, row, fromColumnOffset, fromRowOffset)) return false;
-        if (!"</xdr:rowOff></xdr:from><xdr:to><xdr:col>"u8.TryCopyTo(bytes, ref written)) return false;
-        if (!TryWriteAnchorPart(span, ref written, column, row, toColumnOffset, toRowOffset)) return false;
-
-        bytesWritten += written;
-        return true;
-
-        static bool TryWriteAnchorPart(Span<byte> bytes, ref int bytesWritten, int column, int row, int columnOffset, int rowOffset)
+        for (; _nextIndex < images.Count; ++_nextIndex)
         {
-            if (!SpanHelper.TryWrite(column, bytes, ref bytesWritten)) return false;
-            if (!"</xdr:col><xdr:colOff"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
-            if (!SpanHelper.TryWrite(columnOffset, bytes, ref bytesWritten)) return false;
-            if (!"</xdr:colOff><xdr:row>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
-            if (!SpanHelper.TryWrite(row, bytes, ref bytesWritten)) return false;
-            if (!"</xdr:row><xdr:rowOff>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
-            if (!SpanHelper.TryWrite(rowOffset, bytes, ref bytesWritten)) return false;
-            return true;
+            var imageXmlWriter = _currentImageXmlWriter
+                ?? new DrawingImageXml(images[_nextIndex]);
+
+            var span = bytes.Slice(bytesWritten);
+            var done = imageXmlWriter.TryWrite(span, out var written);
+            bytesWritten += written;
+
+            if (!done)
+            {
+                _currentImageXmlWriter = imageXmlWriter;
+                return false;
+            }
+
+            _currentImageXmlWriter = null;
         }
-    }
 
-    private readonly bool TryWriteImageEnd(Span<byte> bytes, ref int bytesWritten)
-    {
-        var span = bytes.Slice(bytesWritten);
-        var written = 0;
-
-        if (!AnchorEnd.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_image.EmbeddedImageId - 1, span, ref written)) return false;
-        if (!ImageIdEnd.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_image.EmbeddedImageId, span, ref written)) return false;
-        if (!NameEnd.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_image.EmbeddedImageId, span, ref written)) return false; // TODO: Not correct right now: rId should only be unique within the sheet. Starts at 1 and increments for each image in the sheet.
-        if (!ImageEnd.TryCopyTo(span, ref written)) return false;
-
-        bytesWritten += written;
         return true;
     }
 
     private enum Element
     {
         Header,
-        ImageStart,
-        Anchor,
-        ImageEnd,
+        Images,
         Footer,
         Done
     }

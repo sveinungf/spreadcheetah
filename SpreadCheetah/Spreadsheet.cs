@@ -534,8 +534,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             // 1. xl/drawings/drawing1.xml
             // 2. xl/drawings/_rels/drawing1.xml.rels
 
-            var image = images.Single();
-            await DrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, image.Reference, image.Image, token).ConfigureAwait(false);
+            await DrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, images, token).ConfigureAwait(false);
         }
 
         _worksheet = null;
