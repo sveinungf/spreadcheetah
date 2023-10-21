@@ -1,6 +1,7 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Validations;
@@ -21,6 +22,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private string? _autoFilterRange;
 
     public Dictionary<SingleCellRelativeReference, string>? Notes { get; private set; }
+    public List<WorksheetImage>? Images { get; private set; }
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer, bool writeCellReferenceAttributes)
     {
@@ -104,6 +106,12 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         var cellReference = SingleCellOrCellRangeReference.Create(reference);
         _validations[cellReference] = validation;
         return true;
+    }
+
+    public void AddImage(in WorksheetImage image)
+    {
+        Images ??= new List<WorksheetImage>();
+        Images.Add(image);
     }
 
     public void AddNote(string cellReference, string noteText)

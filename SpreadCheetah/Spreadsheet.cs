@@ -1,6 +1,7 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images;
+using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.Styling;
@@ -460,8 +461,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         Worksheet.MergeCells(cellReference);
     }
 
-    // TODO: Image or Picture?
-    // TODO: Add? Or some other verb?
     public async ValueTask<EmbeddedImage> EmbedImageAsync(Stream stream, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(stream);
@@ -485,14 +484,25 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         _imageCount ??= new ImageCount();
         _imageCount.Add(imageType.Value);
+        var embeddedImageId = _imageCount.TotalCount;
 
         // TODO: What about imageCount if this fails?
-        return await _archive.CreateImageEntryAsync(stream, buffer, imageType.Value, token).ConfigureAwait(false);
+        return await _archive.CreateImageEntryAsync(stream, buffer, imageType.Value, embeddedImageId, token).ConfigureAwait(false);
     }
 
     public void AddImage(string cellReference, EmbeddedImage image, ImageOptions? options = null)
     {
-        // TODO
+        ArgumentNullException.ThrowIfNull(cellReference);
+        ArgumentNullException.ThrowIfNull(image);
+
+        var reference = SingleCellRelativeReference.Create(cellReference);
+
+        // TODO: Name seems to be required and unique globally. Set it to "Image X" for now, where X starts at 1 and increments by 1 for each image.
+        // TODO: No support for setting it explicitly as of now.
+        var name = "Image 1";
+        var immutableImage = new ImmutableImage(image.Id, name, image.Width, image.Height, options?.Size);
+        var worksheetImage = new WorksheetImage(reference, immutableImage);
+        Worksheet.AddImage(worksheetImage);
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
@@ -512,6 +522,20 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             await CommentsXml.WriteAsync(_archive, _compressionLevel, _buffer, _notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
             await VmlDrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, _notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
             await WorksheetRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, worksheetIndex, _notesFileIndex, token).ConfigureAwait(false);
+        }
+
+        if (worksheet.Images is { } images)
+        {
+            // TODO: Two images in a sheet -> both in drawing1.xml
+            // TODO: Images across two sheets -> drawing1.xml and drawing2.xml
+            // TODO: For each drawing XML there is also a matching rels file
+
+            // TODO: When there is a JPG/PNG image, these files are added:
+            // 1. xl/drawings/drawing1.xml
+            // 2. xl/drawings/_rels/drawing1.xml.rels
+
+            var image = images.Single();
+            await DrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, image.Reference, image.Image, token).ConfigureAwait(false);
         }
 
         _worksheet = null;
@@ -539,10 +563,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         if (_styles is not null)
             await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styles, token).ConfigureAwait(false);
-
-        // TODO: When there is a JPG/PNG image, these files are added:
-        // 1. xl/drawings/drawing1.xml
-        // 2. xl/drawings/_rels/drawing1.xml.rels
 
         _finished = true;
 

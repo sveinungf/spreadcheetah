@@ -13,14 +13,17 @@ internal struct DrawingXml : IXmlWriter
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
         SingleCellRelativeReference cellReference,
-        ImmutableImageOptions imageOptions,
+        ImmutableImage image, // TODO: Should take all images for a sheet here
         CancellationToken token)
     {
-        // TODO: Increment number
+        // TODO: Increment number.
+        // TODO: Note potential difference between image ID and drawing ID if image is reused across cells.
         var entryName = "xl/drawings/drawing1.xml";
         var entry = archive.CreateEntry(entryName, compressionLevel);
-        var writer = new DrawingXml(cellReference, imageOptions);
+        var writer = new DrawingXml(cellReference, image);
+#pragma warning disable EPS06 // Hidden struct copy operation
         return writer.WriteAsync(entry, buffer, token);
+#pragma warning restore EPS06 // Hidden struct copy operation
     }
 
     // TODO: twoCellAnchor?
@@ -36,17 +39,15 @@ internal struct DrawingXml : IXmlWriter
                     <xdr:col>
         """u8 + "\""u8;
 
-    // TODO: cNvPr ID?
+    // TODO: cNvPr ID? Should be globally unique. Starts at 0 and increments by 1 for each image (regardless of sheet).
     private static ReadOnlySpan<byte> AnchorEnd => """</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="0" name="""u8;
 
-    // TODO: rId1 - Should be correct ID
+    // TODO: Is it OK to use rId when other relation IDs are present? (That are not related to images)
+    private static ReadOnlySpan<byte> NameEnd => "\" "u8 + """descr=""></xdr:cNvPr><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId"""u8;
+
     // TODO: Remove whitespace
-    private static ReadOnlySpan<byte> Footer => "\""u8 + """
-                    descr=""></xdr:cNvPr>
-                        <xdr:cNvPicPr/>
-                    </xdr:nvPicPr>
-                    <xdr:blipFill>
-                        <a:blip r:embed="rId1"></a:blip>
+    private static ReadOnlySpan<byte> End => "\""u8 + """
+                    ></a:blip>
                         <a:stretch/>
                     </xdr:blipFill>
                     <xdr:spPr>
@@ -68,16 +69,16 @@ internal struct DrawingXml : IXmlWriter
         """u8;
 
     private readonly SingleCellRelativeReference _cellReference;
-    private readonly ImmutableImageOptions _imageOptions;
+    private readonly ImmutableImage _image;
     private readonly string _xmlEncodedName;
     private int _xmlEncodedNameIndex;
     private Element _next;
 
-    private DrawingXml(SingleCellRelativeReference cellReference, ImmutableImageOptions imageOptions)
+    private DrawingXml(SingleCellRelativeReference cellReference, ImmutableImage image)
     {
         _cellReference = cellReference;
-        _imageOptions = imageOptions;
-        _xmlEncodedName = WebUtility.HtmlEncode(imageOptions.Name);
+        _image = image;
+        _xmlEncodedName = WebUtility.HtmlEncode(image.Name);
     }
 
     public bool TryWrite(Span<byte> bytes, out int bytesWritten)
@@ -88,7 +89,7 @@ internal struct DrawingXml : IXmlWriter
         if (_next == Element.Anchor && !Advance(TryWriteAnchor(bytes, ref bytesWritten))) return false;
         if (_next == Element.AnchorEnd && !Advance(AnchorEnd.TryCopyTo(bytes, ref bytesWritten))) return false;
         if (_next == Element.Name && !Advance(TryWriteName(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Footer && !Advance(TryWriteFooter(bytes, ref bytesWritten))) return false;
 
         return true;
     }
@@ -114,9 +115,9 @@ internal struct DrawingXml : IXmlWriter
         // TODO: Support sizing
         // TODO: Subtract offsets
         // TODO: Should they be long?
-        // Convert pixels to EMU
-        var toColumnOffset = _imageOptions.ActualImageWidth * 9525;
-        var toRowOffset = _imageOptions.ActualImageHeight * 9525;
+        // Convert pixels to EMU by multiplying with 9525
+        var toColumnOffset = _image.ActualImageWidth * 9525;
+        var toRowOffset = _image.ActualImageHeight * 9525;
 
         var column = _cellReference.Column - 1;
         var row = _cellReference.Row - 1;
@@ -144,6 +145,19 @@ internal struct DrawingXml : IXmlWriter
     private bool TryWriteName(Span<byte> bytes, ref int bytesWritten)
     {
         return SpanHelper.TryWriteLongString(_xmlEncodedName, ref _xmlEncodedNameIndex, bytes, ref bytesWritten);
+    }
+
+    private readonly bool TryWriteFooter(Span<byte> bytes, ref int bytesWritten)
+    {
+        var span = bytes.Slice(bytesWritten);
+        var written = 0;
+
+        if (!NameEnd.TryCopyTo(span, ref written)) return false;
+        if (!SpanHelper.TryWrite(_image.EmbeddedImageId, span, ref written)) return false; // TODO: rId should only be unique within the sheet. Starts at 1 and increments for each image in the sheet.
+        if (!End.TryCopyTo(span, ref written)) return false;
+
+        bytesWritten += written;
+        return true;
     }
 
     private enum Element

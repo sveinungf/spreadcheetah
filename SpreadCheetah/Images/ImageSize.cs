@@ -3,7 +3,7 @@ namespace SpreadCheetah.Images;
 public sealed class ImageSize
 {
     internal decimal? ScaleValue { get; private set; }
-    internal (int Height, int Width)? DimensionsValue { get; private set; }
+    internal (int Width, int Height)? DimensionsValue { get; private set; }
 
     private ImageSize()
     {
@@ -14,16 +14,18 @@ public sealed class ImageSize
         return new ImageSize { ScaleValue = scale };
     }
 
-    public static ImageSize Dimensions(int height, int width)
+    public static ImageSize Dimensions(int width, int height)
     {
-        return new ImageSize { DimensionsValue = (height, width) };
+        return new ImageSize { DimensionsValue = (width, height) };
     }
 
-    public static ImageSize FitCell()
+    public static ImageSize FillCell()
     {
         return new ImageSize();
     }
 
-    // TODO: Fit to cell height option?
-    // TODO: Fit to cell width option?
+    public static ImageSize FitCell(int columnWidth, int rowHeight)
+    {
+        return new ImageSize();
+    }
 }

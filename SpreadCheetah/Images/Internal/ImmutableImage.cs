@@ -1,7 +1,8 @@
 namespace SpreadCheetah.Images.Internal;
 
-internal readonly record struct ImmutableImageOptions(
+internal readonly record struct ImmutableImage(
+    int EmbeddedImageId,
     string Name,
-    int ActualImageHeight,
     int ActualImageWidth,
+    int ActualImageHeight,
     ImageSize? DesiredSize);

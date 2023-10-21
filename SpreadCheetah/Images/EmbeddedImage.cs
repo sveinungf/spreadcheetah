@@ -2,12 +2,14 @@ namespace SpreadCheetah.Images;
 
 public sealed class EmbeddedImage
 {
-    public int Height { get; }
     public int Width { get; }
+    public int Height { get; }
+    internal int Id { get; }
 
-    internal EmbeddedImage(int height, int width)
+    internal EmbeddedImage(int width, int height, int id)
     {
-        Height = height;
         Width = width;
+        Height = height;
+        Id = id;
     }
 }
