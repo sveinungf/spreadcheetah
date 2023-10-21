@@ -25,8 +25,6 @@ internal static class ThrowHelper
     [DoesNotReturn]
     public static void NoActiveWorksheet() => throw new SpreadCheetahException("There is no active worksheet.");
 
-    // TODO: Image or Picture?
-    // TODO: Add? Or some other verb?
     [DoesNotReturn]
     public static void EmbedImageBeforeStartingWorksheet() => throw new SpreadCheetahException("Images must be embedded before starting a worksheet.");
 

@@ -31,10 +31,6 @@ internal struct WorksheetEndXml : IXmlWriter
         bytesWritten = 0;
 
         if (_next == Element.SheetDataEnd && !Advance("</sheetData>"u8.TryCopyTo(bytes, ref bytesWritten))) return false;
-
-        // TODO: When there is a JPG/PNG image, this element is added after end of sheetData (need to check order with what's below here as well):
-        // <drawing r:id="rId1"/>
-
         if (_next == Element.AutoFilter && !Advance(TryWriteAutoFilter(bytes, ref bytesWritten))) return false;
         if (_next == Element.CellMergesStart && !Advance(TryWriteCellMergesStart(bytes, ref bytesWritten))) return false;
         if (_next == Element.CellMerges && !Advance(TryWriteCellMerges(bytes, ref bytesWritten))) return false;
@@ -42,6 +38,12 @@ internal struct WorksheetEndXml : IXmlWriter
         if (_next == Element.ValidationsStart && !Advance(TryWriteValidationsStart(bytes, ref bytesWritten))) return false;
         if (_next == Element.Validations && !Advance(TryWriteValidations(bytes, ref bytesWritten))) return false;
         if (_next == Element.ValidationsEnd && !Advance(TryWriteValidationsEnd(bytes, ref bytesWritten))) return false;
+
+        // TODO: When there is a JPG/PNG image, this element is added after validations and before legacyDrawing
+        // TODO: If there are two sheets with images, they both use rId1 here
+        // TODO: But if there is a note in the sheet, then rId1 -> comments XML, rId2 -> drawing XML, rId3 -> VML drawing
+        // <drawing r:id="rId1"/>
+
         if (_next == Element.LegacyDrawing && !Advance(TryWriteLegacyDrawing(bytes, ref bytesWritten))) return false;
         if (_next == Element.Footer && !Advance("</worksheet>"u8.TryCopyTo(bytes, ref bytesWritten))) return false;
 

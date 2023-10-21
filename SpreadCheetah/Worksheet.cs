@@ -16,7 +16,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly DataCellWriter _dataCellWriter;
     private readonly StyledCellWriter _styledCellWriter;
     private readonly CellWriterState _state;
-    private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
+    private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations; // TODO: The DataValidation class is mutable after being added
     private HashSet<CellRangeRelativeReference>? _cellMerges;
     private string? _autoFilterRange;
 

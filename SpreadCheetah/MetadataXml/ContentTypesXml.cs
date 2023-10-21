@@ -103,6 +103,7 @@ internal struct ContentTypesXml : IXmlWriter
         if (_imageCount is not { } imageCount)
             return true;
 
+        // TODO: This is not correct. There should be one drawing XML per sheet with images.
         var totalCount = imageCount.TotalCount;
 
         for (; _nextIndex < totalCount; ++_nextIndex)
