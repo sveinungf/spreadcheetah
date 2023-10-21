@@ -2,7 +2,6 @@ using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
 using System.IO.Compression;
-using System.Net;
 
 namespace SpreadCheetah.MetadataXml;
 
@@ -26,18 +25,14 @@ internal struct DrawingXml : IXmlWriter
 #pragma warning restore EPS06 // Hidden struct copy operation
     }
 
+    private static ReadOnlySpan<byte> Header => """<?xml version="1.0" encoding="utf-8"?>"""u8 +
+        """<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" """u8 +
+        """xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" """u8 +
+        """xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">"""u8;
+
     // TODO: twoCellAnchor?
     // TODO: Parameter for editAs
-    // TODO: Remove whitespace
-    private static ReadOnlySpan<byte> Header => """
-        <?xml version="1.0" encoding="utf-8"?>
-        <xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing"
-            xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
-            xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-            <xdr:twoCellAnchor editAs="oneCell">
-                <xdr:from>
-                    <xdr:col>
-        """u8 + "\""u8;
+    private static ReadOnlySpan<byte> ImageStart => """<xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>"""u8 + "\""u8;
 
     // TODO: cNvPr ID? Should be globally unique. Starts at 0 and increments by 1 for each image (regardless of sheet).
     private static ReadOnlySpan<byte> AnchorEnd => """</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="""u8 + "\""u8;
@@ -46,28 +41,12 @@ internal struct DrawingXml : IXmlWriter
     // TODO: Is it OK to use rId when other relation IDs are present? (That are not related to images)
     private static ReadOnlySpan<byte> NameEnd => "\" "u8 + """descr=""></xdr:cNvPr><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId"""u8;
 
-    // TODO: Remove whitespace
-    private static ReadOnlySpan<byte> End => "\""u8 + """
-                    ></a:blip>
-                        <a:stretch/>
-                    </xdr:blipFill>
-                    <xdr:spPr>
-                        <a:xfrm>
-                            <a:off x="1" y="1"/>
-                            <a:ext cx="1" cy="1"/>
-                        </a:xfrm>
-                        <a:prstGeom prst="rect">
-                            <a:avLst/>
-                        </a:prstGeom>
-                        <a:ln w="0">
-                            <a:noFill/>
-                        </a:ln>
-                    </xdr:spPr>
-                </xdr:pic>
-                <xdr:clientData/>
-            </xdr:twoCellAnchor>
-        </xdr:wsDr>
-        """u8;
+    private static ReadOnlySpan<byte> ImageEnd => "\""u8 +
+        """></a:blip><a:stretch/></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="1" y="1"/><a:ext cx="1" cy="1"/>"""u8 +
+        """</a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:ln w="0"><a:noFill/></a:ln></xdr:spPr>"""u8 +
+        """</xdr:pic><xdr:clientData/></xdr:twoCellAnchor>"""u8;
+
+    private static ReadOnlySpan<byte> Footer => """</xdr:wsDr>"""u8;
 
     private readonly SingleCellRelativeReference _cellReference;
     private readonly ImmutableImage _image;
@@ -84,8 +63,10 @@ internal struct DrawingXml : IXmlWriter
         bytesWritten = 0;
 
         if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
+        if (_next == Element.ImageStart && !Advance(ImageStart.TryCopyTo(bytes, ref bytesWritten))) return false;
         if (_next == Element.Anchor && !Advance(TryWriteAnchor(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Footer && !Advance(TryWriteFooter(bytes, ref bytesWritten))) return false;
+        if (_next == Element.ImageEnd && !Advance(TryWriteImageEnd(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
 
         return true;
     }
@@ -138,7 +119,7 @@ internal struct DrawingXml : IXmlWriter
         }
     }
 
-    private readonly bool TryWriteFooter(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteImageEnd(Span<byte> bytes, ref int bytesWritten)
     {
         var span = bytes.Slice(bytesWritten);
         var written = 0;
@@ -149,7 +130,7 @@ internal struct DrawingXml : IXmlWriter
         if (!SpanHelper.TryWrite(_image.EmbeddedImageId, span, ref written)) return false;
         if (!NameEnd.TryCopyTo(span, ref written)) return false;
         if (!SpanHelper.TryWrite(_image.EmbeddedImageId, span, ref written)) return false; // TODO: Not correct right now: rId should only be unique within the sheet. Starts at 1 and increments for each image in the sheet.
-        if (!End.TryCopyTo(span, ref written)) return false;
+        if (!ImageEnd.TryCopyTo(span, ref written)) return false;
 
         bytesWritten += written;
         return true;
@@ -158,7 +139,9 @@ internal struct DrawingXml : IXmlWriter
     private enum Element
     {
         Header,
+        ImageStart,
         Anchor,
+        ImageEnd,
         Footer,
         Done
     }
