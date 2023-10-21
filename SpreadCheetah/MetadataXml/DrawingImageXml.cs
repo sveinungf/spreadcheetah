@@ -8,25 +8,22 @@ internal struct DrawingImageXml
     // TODO: twoCellAnchor?
     // TODO: Parameter for editAs
     private static ReadOnlySpan<byte> ImageStart => """<xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>"""u8 + "\""u8;
-
-    // TODO: cNvPr ID? Should be globally unique. Starts at 0 and increments by 1 for each image (regardless of sheet).
     private static ReadOnlySpan<byte> AnchorEnd => """</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="""u8 + "\""u8;
     private static ReadOnlySpan<byte> ImageIdEnd => "\""u8 + """ name="Image """u8;
-
-    // TODO: Is it OK to use rId when other relation IDs are present? (That are not related to images)
     private static ReadOnlySpan<byte> NameEnd => "\" "u8 + """descr=""></xdr:cNvPr><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId"""u8;
-
     private static ReadOnlySpan<byte> ImageEnd => "\""u8 +
         """></a:blip><a:stretch/></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="1" y="1"/><a:ext cx="1" cy="1"/>"""u8 +
         """</a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:ln w="0"><a:noFill/></a:ln></xdr:spPr>"""u8 +
         """</xdr:pic><xdr:clientData/></xdr:twoCellAnchor>"""u8;
 
     private readonly WorksheetImage _image;
+    private readonly int _worksheetImageIndex;
     private Element _next;
 
-    public DrawingImageXml(WorksheetImage image)
+    public DrawingImageXml(WorksheetImage image, int worksheetImageIndex)
     {
         _image = image;
+        _worksheetImageIndex = worksheetImageIndex;
     }
 
     public bool TryWrite(Span<byte> bytes, out int bytesWritten)
@@ -58,6 +55,12 @@ internal struct DrawingImageXml
         const int fromColumnOffset = 0;
         const int fromRowOffset = 0;
 
+        var column = _image.Reference.Column - 1;
+        var row = _image.Reference.Row - 1;
+
+        if (!TryWriteAnchorPart(span, ref written, column, row, fromColumnOffset, fromRowOffset)) return false;
+        if (!"</xdr:rowOff></xdr:from><xdr:to><xdr:col>"u8.TryCopyTo(bytes, ref written)) return false;
+
         // TODO: Support sizing
         // TODO: Subtract offsets
         // TODO: Should they be long?
@@ -65,11 +68,6 @@ internal struct DrawingImageXml
         var toColumnOffset = _image.Image.ActualImageWidth * 9525;
         var toRowOffset = _image.Image.ActualImageHeight * 9525;
 
-        var column = _image.Reference.Column - 1;
-        var row = _image.Reference.Row - 1;
-
-        if (!TryWriteAnchorPart(span, ref written, column, row, fromColumnOffset, fromRowOffset)) return false;
-        if (!"</xdr:rowOff></xdr:from><xdr:to><xdr:col>"u8.TryCopyTo(bytes, ref written)) return false;
         if (!TryWriteAnchorPart(span, ref written, column, row, toColumnOffset, toRowOffset)) return false;
 
         bytesWritten += written;
@@ -94,11 +92,11 @@ internal struct DrawingImageXml
         var written = 0;
 
         if (!AnchorEnd.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_image.Image.EmbeddedImageId - 1, span, ref written)) return false;
+        if (!SpanHelper.TryWrite(_image.Image.EmbeddedImageId - 1, span, ref written)) return false; // TODO: Verify that this starts at 0 and increments by 1 for each image (regardless of sheet).
         if (!ImageIdEnd.TryCopyTo(span, ref written)) return false;
         if (!SpanHelper.TryWrite(_image.Image.EmbeddedImageId, span, ref written)) return false;
         if (!NameEnd.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_image.Image.EmbeddedImageId, span, ref written)) return false; // TODO: Not correct right now: rId should only be unique within the sheet. Starts at 1 and increments for each image in the sheet.
+        if (!SpanHelper.TryWrite(_worksheetImageIndex + 1, span, ref written)) return false; // TODO: Verify that this starts at 1 and increments for each image in the sheet.
         if (!ImageEnd.TryCopyTo(span, ref written)) return false;
 
         bytesWritten += written;

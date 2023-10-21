@@ -66,7 +66,7 @@ internal struct DrawingXml : IXmlWriter
         for (; _nextIndex < images.Count; ++_nextIndex)
         {
             var imageXmlWriter = _currentImageXmlWriter
-                ?? new DrawingImageXml(images[_nextIndex]);
+                ?? new DrawingImageXml(images[_nextIndex], _nextIndex);
 
             var span = bytes.Slice(bytesWritten);
             var done = imageXmlWriter.TryWrite(span, out var written);
