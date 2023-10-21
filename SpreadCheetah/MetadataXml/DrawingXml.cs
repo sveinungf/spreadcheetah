@@ -40,7 +40,8 @@ internal struct DrawingXml : IXmlWriter
         """u8 + "\""u8;
 
     // TODO: cNvPr ID? Should be globally unique. Starts at 0 and increments by 1 for each image (regardless of sheet).
-    private static ReadOnlySpan<byte> AnchorEnd => """</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="0" name="""u8;
+    private static ReadOnlySpan<byte> AnchorEnd => """</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="""u8 + "\""u8;
+    private static ReadOnlySpan<byte> ImageIdEnd => "\""u8 + """ name="Image """u8;
 
     // TODO: Is it OK to use rId when other relation IDs are present? (That are not related to images)
     private static ReadOnlySpan<byte> NameEnd => "\" "u8 + """descr=""></xdr:cNvPr><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId"""u8;
@@ -70,15 +71,12 @@ internal struct DrawingXml : IXmlWriter
 
     private readonly SingleCellRelativeReference _cellReference;
     private readonly ImmutableImage _image;
-    private readonly string _xmlEncodedName;
-    private int _xmlEncodedNameIndex;
     private Element _next;
 
     private DrawingXml(SingleCellRelativeReference cellReference, ImmutableImage image)
     {
         _cellReference = cellReference;
         _image = image;
-        _xmlEncodedName = WebUtility.HtmlEncode(image.Name);
     }
 
     public bool TryWrite(Span<byte> bytes, out int bytesWritten)
@@ -87,8 +85,6 @@ internal struct DrawingXml : IXmlWriter
 
         if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
         if (_next == Element.Anchor && !Advance(TryWriteAnchor(bytes, ref bytesWritten))) return false;
-        if (_next == Element.AnchorEnd && !Advance(AnchorEnd.TryCopyTo(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Name && !Advance(TryWriteName(bytes, ref bytesWritten))) return false;
         if (_next == Element.Footer && !Advance(TryWriteFooter(bytes, ref bytesWritten))) return false;
 
         return true;
@@ -142,18 +138,17 @@ internal struct DrawingXml : IXmlWriter
         }
     }
 
-    private bool TryWriteName(Span<byte> bytes, ref int bytesWritten)
-    {
-        return SpanHelper.TryWriteLongString(_xmlEncodedName, ref _xmlEncodedNameIndex, bytes, ref bytesWritten);
-    }
-
     private readonly bool TryWriteFooter(Span<byte> bytes, ref int bytesWritten)
     {
         var span = bytes.Slice(bytesWritten);
         var written = 0;
 
+        if (!AnchorEnd.TryCopyTo(span, ref written)) return false;
+        if (!SpanHelper.TryWrite(_image.EmbeddedImageId - 1, span, ref written)) return false;
+        if (!ImageIdEnd.TryCopyTo(span, ref written)) return false;
+        if (!SpanHelper.TryWrite(_image.EmbeddedImageId, span, ref written)) return false;
         if (!NameEnd.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_image.EmbeddedImageId, span, ref written)) return false; // TODO: rId should only be unique within the sheet. Starts at 1 and increments for each image in the sheet.
+        if (!SpanHelper.TryWrite(_image.EmbeddedImageId, span, ref written)) return false; // TODO: Not correct right now: rId should only be unique within the sheet. Starts at 1 and increments for each image in the sheet.
         if (!End.TryCopyTo(span, ref written)) return false;
 
         bytesWritten += written;
@@ -164,8 +159,6 @@ internal struct DrawingXml : IXmlWriter
     {
         Header,
         Anchor,
-        AnchorEnd,
-        Name,
         Footer,
         Done
     }
