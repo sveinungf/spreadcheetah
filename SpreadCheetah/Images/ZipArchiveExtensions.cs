@@ -22,7 +22,7 @@ internal static class ZipArchiveExtensions
             _ => throw new ArgumentOutOfRangeException(nameof(type)),
         };
 
-        var entry = archive.CreateEntry(entryName);
+        var entry = archive.CreateEntry(entryName); // TODO: Compression level. Ban CreateEntry without it?
         var entryStream = entry.Open();
 #if NETSTANDARD2_0
         using (entryStream)
