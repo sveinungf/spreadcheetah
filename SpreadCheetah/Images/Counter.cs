@@ -1,13 +1,13 @@
 namespace SpreadCheetah.Images;
 
-internal class ImageCount
+internal sealed class Counter
 {
     public int Jpg { get; private set; }
     public int Png { get; private set; }
 
-    public int TotalCount => Jpg + Png;
+    public int TotalImageCount => Jpg + Png;
 
-    public void Add(ImageType type)
+    public void AddImage(ImageType type)
     {
         if (type == ImageType.Jpg)
             ++Jpg;

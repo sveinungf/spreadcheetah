@@ -29,9 +29,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly bool _writeCellReferenceAttributes;
     private readonly byte[] _arrayPoolBuffer;
     private readonly NumberFormat? _defaultDateTimeFormat;
+    private Counter? _counter;
     private DefaultStyling? _defaultStyling;
     private Dictionary<ImmutableStyle, int>? _styles;
-    private ImageCount? _imageCount;
     private Worksheet? _worksheet;
     private int _notesFileIndex;
     private bool _disposed;
@@ -482,9 +482,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (imageType is null)
             ThrowHelper.StreamContentNotSupportedImageType(nameof(stream));
 
-        _imageCount ??= new ImageCount();
-        _imageCount.Add(imageType.Value);
-        var embeddedImageId = _imageCount.TotalCount;
+        _counter ??= new Counter();
+        _counter.AddImage(imageType.Value);
+        var embeddedImageId = _counter.TotalImageCount;
 
         // TODO: What about imageCount if this fails?
         return await _archive.CreateImageEntryAsync(stream, buffer, imageType.Value, embeddedImageId, token).ConfigureAwait(false);
@@ -494,6 +494,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(cellReference);
         ArgumentNullException.ThrowIfNull(image);
+
+        // TODO: Increment _drawingsFileIndex OR consider having a flag enum on the worksheet (for having drawing/note), and just a counter for sheets having drawings/notes?
 
         var reference = SingleCellRelativeReference.Create(cellReference);
 
@@ -526,6 +528,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         if (worksheet.Images is { } images)
         {
+            // TODO: Pass drawingsFileIndex
             await DrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, images, token).ConfigureAwait(false);
             await DrawingRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, images, token).ConfigureAwait(false);
         }
@@ -549,7 +552,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         var hasStyles = _styles != null;
 
-        await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, _imageCount, hasStyles, token).ConfigureAwait(false);
+        await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, _counter, hasStyles, token).ConfigureAwait(false);
         await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, token).ConfigureAwait(false);
 

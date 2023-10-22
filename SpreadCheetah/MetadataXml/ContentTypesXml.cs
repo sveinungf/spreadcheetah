@@ -12,12 +12,12 @@ internal struct ContentTypesXml : IXmlWriter
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
         List<WorksheetMetadata> worksheets,
-        ImageCount? imageCount,
+        Counter? counter,
         bool hasStylesXml,
         CancellationToken token)
     {
         var entry = archive.CreateEntry("[Content_Types].xml", compressionLevel);
-        var writer = new ContentTypesXml(worksheets, imageCount, hasStylesXml);
+        var writer = new ContentTypesXml(worksheets, counter, hasStylesXml);
         return writer.WriteAsync(entry, buffer, token);
     }
 
@@ -46,15 +46,15 @@ internal struct ContentTypesXml : IXmlWriter
     private static ReadOnlySpan<byte> Footer => "</Types>"u8;
 
     private readonly List<WorksheetMetadata> _worksheets;
-    private readonly ImageCount? _imageCount;
+    private readonly Counter? _counter;
     private readonly bool _hasStylesXml;
     private Element _next;
     private int _nextIndex;
 
-    private ContentTypesXml(List<WorksheetMetadata> worksheets, ImageCount? imageCount, bool hasStylesXml)
+    private ContentTypesXml(List<WorksheetMetadata> worksheets, Counter? counter, bool hasStylesXml)
     {
         _worksheets = worksheets;
-        _imageCount = imageCount;
+        _counter = counter;
         _hasStylesXml = hasStylesXml;
     }
 
@@ -83,13 +83,13 @@ internal struct ContentTypesXml : IXmlWriter
 
     private readonly bool TryWriteImageTypes(Span<byte> bytes, ref int bytesWritten)
     {
-        if (_imageCount is not { } imageCount)
+        if (_counter is not { } counter)
             return true;
 
-        if (imageCount.Jpg > 0 && !Jpg.TryCopyTo(bytes, ref bytesWritten))
+        if (counter.Jpg > 0 && !Jpg.TryCopyTo(bytes, ref bytesWritten))
             return false;
 
-        if (imageCount.Png > 0 && !Png.TryCopyTo(bytes, ref bytesWritten))
+        if (counter.Png > 0 && !Png.TryCopyTo(bytes, ref bytesWritten))
             return false;
 
         return true;
@@ -100,11 +100,11 @@ internal struct ContentTypesXml : IXmlWriter
 
     private bool TryWriteDrawings(Span<byte> bytes, ref int bytesWritten)
     {
-        if (_imageCount is not { } imageCount)
+        if (_counter is not { } counter)
             return true;
 
         // TODO: This is not correct. There should be one drawing XML per sheet with images.
-        var totalCount = imageCount.TotalCount;
+        var totalCount = counter.TotalImageCount;
 
         for (; _nextIndex < totalCount; ++_nextIndex)
         {
