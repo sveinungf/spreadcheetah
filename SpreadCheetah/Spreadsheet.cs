@@ -526,15 +526,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         if (worksheet.Images is { } images)
         {
-            // TODO: Two images in a sheet -> both in drawing1.xml
-            // TODO: Images across two sheets -> drawing1.xml and drawing2.xml
-            // TODO: For each drawing XML there is also a matching rels file
-
-            // TODO: When there is a JPG/PNG image, these files are added:
-            // 1. xl/drawings/drawing1.xml
-            // 2. xl/drawings/_rels/drawing1.xml.rels
-
             await DrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, images, token).ConfigureAwait(false);
+            await DrawingRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, images, token).ConfigureAwait(false);
         }
 
         _worksheet = null;
