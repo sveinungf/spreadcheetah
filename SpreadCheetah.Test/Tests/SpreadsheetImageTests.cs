@@ -83,6 +83,7 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.StartWorksheetAsync("Sheet 1");
         await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
 
         Assert.Equal(1, result.Height);
         Assert.Equal(1, result.Width);
@@ -111,4 +112,27 @@ public class SpreadsheetImageTests
         // Assert
         Assert.Null(exception);
     }
+
+    [Fact]
+    public async Task Spreadsheet_AddImage_Png()
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+
+        // Act
+        spreadsheet.AddImage("B3", embeddedImage);
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        // TODO: More verification
+    }
+
+    // TODO: Test for start worksheet before embedding image
+    // TODO: Test for embed image after finishing the first worksheet
 }
