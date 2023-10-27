@@ -1,4 +1,5 @@
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Images.Internal;
 using SpreadCheetah.Worksheets;
 using System.IO.Compression;
 
@@ -86,10 +87,10 @@ internal struct ContentTypesXml : IXmlWriter
         if (_fileCounter is not { } counter)
             return true;
 
-        if (counter.Jpg > 0 && !Jpg.TryCopyTo(bytes, ref bytesWritten))
+        if (counter.AddedImageTypes.HasFlag(AddedImageTypes.Png) && !Png.TryCopyTo(bytes, ref bytesWritten))
             return false;
 
-        if (counter.Png > 0 && !Png.TryCopyTo(bytes, ref bytesWritten))
+        if (counter.AddedImageTypes.HasFlag(AddedImageTypes.Jpg) && !Jpg.TryCopyTo(bytes, ref bytesWritten))
             return false;
 
         return true;

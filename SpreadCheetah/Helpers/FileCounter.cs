@@ -1,4 +1,6 @@
 using SpreadCheetah.Images;
+using SpreadCheetah.Images.Internal;
+using System.Diagnostics;
 
 namespace SpreadCheetah.Helpers;
 
@@ -6,16 +8,18 @@ internal sealed class FileCounter
 {
     public int WorksheetsWithImages { get; set; }
     public int WorksheetsWithNotes { get; set; }
-    public int Jpg { get; private set; } // TODO: Maybe this could be a flag enum?
-    public int Png { get; private set; } // TODO: Maybe this could be a flag enum?
-
-    public int TotalImageCount => Jpg + Png;
+    public int TotalImageCount { get; private set; }
+    public AddedImageTypes AddedImageTypes { get; private set; }
 
     public void AddImage(ImageType type)
     {
-        if (type == ImageType.Jpg)
-            ++Jpg;
-        else if (type == ImageType.Png)
-            ++Png;
+        Debug.Assert(type > ImageType.None && EnumHelper.IsDefined(type));
+
+        if (type == ImageType.Png)
+            AddedImageTypes |= AddedImageTypes.Png;
+        else if (type == ImageType.Jpg)
+            AddedImageTypes |= AddedImageTypes.Jpg;
+
+        TotalImageCount++;
     }
 }
