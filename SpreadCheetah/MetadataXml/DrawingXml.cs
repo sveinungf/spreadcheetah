@@ -10,12 +10,11 @@ internal struct DrawingXml : IXmlWriter
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
+        int drawingsFileIndex,
         List<WorksheetImage> images,
         CancellationToken token)
     {
-        // TODO: Increment number.
-        // TODO: Note potential difference between image ID and drawing ID if image is reused across cells.
-        var entryName = "xl/drawings/drawing1.xml";
+        var entryName = StringHelper.Invariant($"xl/drawings/drawing{drawingsFileIndex}.xml");
         var entry = archive.CreateEntry(entryName, compressionLevel);
         var writer = new DrawingXml(images);
 #pragma warning disable EPS06 // Hidden struct copy operation

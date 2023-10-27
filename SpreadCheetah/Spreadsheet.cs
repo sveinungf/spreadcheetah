@@ -539,9 +539,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         {
             var sheetsWithImages = _fileCounter?.WorksheetsWithImages ?? 0;
             Debug.Assert(sheetsWithImages > 0);
-            // TODO: Pass sheetsWithImages
-            await DrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, images, token).ConfigureAwait(false);
-            await DrawingRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, images, token).ConfigureAwait(false);
+            await DrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, sheetsWithImages, images, token).ConfigureAwait(false);
+            await DrawingRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, sheetsWithImages, images, token).ConfigureAwait(false);
         }
 
         _worksheet = null;

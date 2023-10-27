@@ -10,12 +10,11 @@ internal struct DrawingRelsXml : IXmlWriter
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
+        int drawingsFileIndex,
         List<WorksheetImage> images,
         CancellationToken token)
     {
-        // TODO: Increment number.
-        // TODO: Note potential difference between image ID and drawing ID if image is reused across cells.
-        var entryName = "xl/drawings/_rels/drawing1.xml.rels";
+        var entryName = StringHelper.Invariant($"xl/drawings/_rels/drawing{drawingsFileIndex}.xml.rels");
         var entry = archive.CreateEntry(entryName, compressionLevel);
         var writer = new DrawingRelsXml(images);
         return writer.WriteAsync(entry, buffer, token);

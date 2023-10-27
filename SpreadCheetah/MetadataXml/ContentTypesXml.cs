@@ -35,7 +35,6 @@ internal struct ContentTypesXml : IXmlWriter
     // TODO: Test spreadsheet with both JPEG and PNG
     // TODO: Test spreadsheet with both image and comments
     // TODO: Test spreadsheet with many images
-    // TODO: Is this the correct path for all added images? Regardless of worksheet?
     private static ReadOnlySpan<byte> DrawingStart => """<Override PartName="/xl/drawings/drawing"""u8;
     private static ReadOnlySpan<byte> DrawingEnd => """.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>"""u8;
 
