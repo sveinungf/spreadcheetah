@@ -490,7 +490,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var embeddedImageId = _fileCounter.TotalImageCount;
 
         // TODO: What about imageCount if this fails?
-        return await _archive.CreateImageEntryAsync(stream, buffer, imageType.Value, embeddedImageId, token).ConfigureAwait(false);
+        return await _archive.CreateImageEntryAsync(stream, _compressionLevel, buffer, imageType.Value, embeddedImageId, token).ConfigureAwait(false);
     }
 
     public void AddImage(string cellReference, EmbeddedImage image, ImageOptions? options = null)

@@ -9,6 +9,7 @@ internal static class ZipArchiveExtensions
     public static async ValueTask<EmbeddedImage> CreateImageEntryAsync(
         this ZipArchive archive,
         Stream stream,
+        CompressionLevel compressionLevel,
         ReadOnlyMemory<byte> header,
         ImageType type,
         int embeddedImageId,
@@ -22,7 +23,7 @@ internal static class ZipArchiveExtensions
             _ => throw new ArgumentOutOfRangeException(nameof(type)),
         };
 
-        var entry = archive.CreateEntry(entryName); // TODO: Compression level. Ban CreateEntry without it?
+        var entry = archive.CreateEntry(entryName, compressionLevel);
         var entryStream = entry.Open();
 #if NETSTANDARD2_0
         using (entryStream)
