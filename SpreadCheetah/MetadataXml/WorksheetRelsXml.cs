@@ -47,6 +47,7 @@ internal struct WorksheetRelsXml : IXmlWriter
         if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
         if (_next == Element.VmlDrawing && !Advance(TryWriteVmlDrawing(bytes, ref bytesWritten))) return false;
         if (_next == Element.Comments && !Advance(TryWriteComments(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Drawing && !Advance(TryWriteDrawing(bytes, ref bytesWritten))) return false;
         if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
 
         return true;
@@ -63,6 +64,8 @@ internal struct WorksheetRelsXml : IXmlWriter
     private readonly bool TryWriteVmlDrawing(Span<byte> bytes, ref int bytesWritten)
     {
         var notesFilesIndex = _fileCounter.WorksheetsWithNotes;
+        if (notesFilesIndex <= 0) return true;
+
         var span = bytes.Slice(bytesWritten);
         var written = 0;
 
@@ -77,6 +80,8 @@ internal struct WorksheetRelsXml : IXmlWriter
     private readonly bool TryWriteComments(Span<byte> bytes, ref int bytesWritten)
     {
         var notesFilesIndex = _fileCounter.WorksheetsWithNotes;
+        if (notesFilesIndex <= 0) return true;
+
         var span = bytes.Slice(bytesWritten);
         var written = 0;
 
@@ -91,6 +96,8 @@ internal struct WorksheetRelsXml : IXmlWriter
     private readonly bool TryWriteDrawing(Span<byte> bytes, ref int bytesWritten)
     {
         var drawingsFileIndex = _fileCounter.WorksheetsWithImages;
+        if (drawingsFileIndex <= 0) return true;
+
         var span = bytes.Slice(bytesWritten);
         var written = 0;
 
