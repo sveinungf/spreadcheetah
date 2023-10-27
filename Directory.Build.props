@@ -15,4 +15,8 @@
       <NoWarn>MA0048</NoWarn>
     </PackageReference>
   </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)/BannedSymbols.txt" Visible="false" />
+  </ItemGroup>
 </Project>

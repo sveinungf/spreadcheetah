@@ -189,8 +189,15 @@ dotnet_diagnostic.MA0015.severity = warning
 dotnet_diagnostic.MA0047.severity = warning
 # MA0048: File name must match type name
 dotnet_diagnostic.MA0048.severity = warning
+# MA0053: Make class sealed
+dotnet_diagnostic.MA0053.severity = warning
+MA0053.public_class_should_be_sealed = true
 # MA0076: Do not use implicit culture-sensitive ToString in interpolated strings
 dotnet_diagnostic.MA0076.severity = warning
+
+# Disable MA0053 for types that have been publicly exposed in a previous version
+[{AutoFilterOptions.cs,ColumnOptions.cs,RowOptions.cs,SpreadCheetahOptions.cs,WorksheetOptions.cs,WorksheetRowGenerator.cs}]
+dotnet_diagnostic.MA0053.severity = none
 
 [{*Test,*.Benchmark}/**.cs]
 # MA0004: Use .ConfigureAwait(false)
@@ -201,6 +208,8 @@ dotnet_diagnostic.MA0011.severity = none
 dotnet_diagnostic.MA0025.severity = none
 # MA0047: Declare types in namespaces
 dotnet_diagnostic.MA0047.severity = none
+# MA0053: Make class sealed
+dotnet_diagnostic.MA0053.severity = none
 # MA0075: Do not use implicit culture-sensitive ToString
 dotnet_diagnostic.MA0075.severity = none
 # MA0076: Do not use implicit culture-sensitive ToString in interpolated strings

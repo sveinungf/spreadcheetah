@@ -6,6 +6,7 @@
   <ItemGroup>
     <GlobalPackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.4.0-beta.1" />
     <GlobalPackageReference Include="Meziantou.Analyzer" Version="2.0.93" />
+    <GlobalPackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" />
     <GlobalPackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.7.30" />
     <GlobalPackageReference Include="Roslynator.Analyzers" Version="4.5.0" />
     <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="9.12.0.78982" />
