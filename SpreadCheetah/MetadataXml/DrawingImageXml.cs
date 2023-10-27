@@ -7,7 +7,7 @@ internal struct DrawingImageXml
 {
     // TODO: twoCellAnchor?
     // TODO: Parameter for editAs
-    private static ReadOnlySpan<byte> ImageStart => """<xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>"""u8 + "\""u8;
+    private static ReadOnlySpan<byte> ImageStart => """<xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>"""u8;
     private static ReadOnlySpan<byte> AnchorEnd => """</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="""u8 + "\""u8;
     private static ReadOnlySpan<byte> ImageIdEnd => "\""u8 + """ name="Image """u8;
     private static ReadOnlySpan<byte> NameEnd => "\" "u8 + """descr=""></xdr:cNvPr><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId"""u8;
@@ -59,7 +59,7 @@ internal struct DrawingImageXml
         var row = _image.Reference.Row - 1;
 
         if (!TryWriteAnchorPart(span, ref written, column, row, fromColumnOffset, fromRowOffset)) return false;
-        if (!"</xdr:rowOff></xdr:from><xdr:to><xdr:col>"u8.TryCopyTo(bytes, ref written)) return false;
+        if (!"</xdr:rowOff></xdr:from><xdr:to><xdr:col>"u8.TryCopyTo(span, ref written)) return false;
 
         // TODO: Support sizing
         // TODO: Subtract offsets
@@ -76,7 +76,7 @@ internal struct DrawingImageXml
         static bool TryWriteAnchorPart(Span<byte> bytes, ref int bytesWritten, int column, int row, int columnOffset, int rowOffset)
         {
             if (!SpanHelper.TryWrite(column, bytes, ref bytesWritten)) return false;
-            if (!"</xdr:col><xdr:colOff"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
+            if (!"</xdr:col><xdr:colOff>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
             if (!SpanHelper.TryWrite(columnOffset, bytes, ref bytesWritten)) return false;
             if (!"</xdr:colOff><xdr:row>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
             if (!SpanHelper.TryWrite(row, bytes, ref bytesWritten)) return false;
