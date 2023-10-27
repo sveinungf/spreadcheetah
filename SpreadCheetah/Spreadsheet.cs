@@ -499,12 +499,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(image);
 
         var reference = SingleCellRelativeReference.Create(cellReference);
-
-        // TODO: Name seems to be required and unique globally. Set it to "Image X" for now, where X starts at 1 and increments by 1 for each image.
-        // TODO: No support for setting it explicitly as of now.
-        var name = "Image 1";
-        var immutableImage = new ImmutableImage(image.Id, name, image.Width, image.Height, options?.Size);
+        var immutableImage = new ImmutableImage(image.Id, image.Width, image.Height, options?.Size);
         var worksheetImage = new WorksheetImage(reference, immutableImage);
+
         Worksheet.AddImage(worksheetImage, out var firstImage);
 
         if (firstImage)
