@@ -17,8 +17,8 @@ internal sealed class FileCounter
 
         if (type == ImageType.Png)
             AddedImageTypes |= AddedImageTypes.Png;
-        else if (type == ImageType.Jpg)
-            AddedImageTypes |= AddedImageTypes.Jpg;
+        else if (type == ImageType.Jpeg)
+            AddedImageTypes |= AddedImageTypes.Jpeg;
 
         TotalImageCount++;
     }

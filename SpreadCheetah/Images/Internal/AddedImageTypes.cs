@@ -5,5 +5,5 @@ internal enum AddedImageTypes
 {
     None = 0,
     Png = 1,
-    Jpg = 2
+    Jpeg = 2
 }

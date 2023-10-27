@@ -4,5 +4,5 @@ internal enum ImageType
 {
     None,
     Png,
-    Jpg
+    Jpeg
 }

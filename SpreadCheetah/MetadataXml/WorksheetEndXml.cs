@@ -39,7 +39,7 @@ internal struct WorksheetEndXml : IXmlWriter
         if (_next == Element.Validations && !Advance(TryWriteValidations(bytes, ref bytesWritten))) return false;
         if (_next == Element.ValidationsEnd && !Advance(TryWriteValidationsEnd(bytes, ref bytesWritten))) return false;
 
-        // TODO: When there is a JPG/PNG image, this element is added after validations and before legacyDrawing
+        // TODO: When there is a JPEG/PNG image, this element is added after validations and before legacyDrawing
         // TODO: If there are two sheets with images, they both use rId1 here
         // TODO: But if there is a note in the sheet, then rId1 -> comments XML, rId2 -> drawing XML, rId3 -> VML drawing
         // <drawing r:id="rId1"/>

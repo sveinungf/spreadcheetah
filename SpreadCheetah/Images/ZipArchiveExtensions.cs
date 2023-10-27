@@ -19,7 +19,7 @@ internal static class ZipArchiveExtensions
         var fileExtension = type switch
         {
             ImageType.Png => ".png",
-            ImageType.Jpg => ".jpg",
+            ImageType.Jpeg => ".jpeg",
             _ => throw new ArgumentOutOfRangeException(nameof(type)),
         };
 

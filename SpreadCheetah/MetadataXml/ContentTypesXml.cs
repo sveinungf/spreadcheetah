@@ -27,12 +27,12 @@ internal struct ContentTypesXml : IXmlWriter
         """<Default Extension="xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" />"""u8 +
         """<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />"""u8;
 
-    private static ReadOnlySpan<byte> Jpg => """<Default Extension="jpg" ContentType="image/jpeg"/>"""u8;
+    private static ReadOnlySpan<byte> Jpeg => """<Default Extension="jpeg" ContentType="image/jpeg"/>"""u8;
     private static ReadOnlySpan<byte> Png => """<Default Extension="png" ContentType="image/png"/>"""u8;
     private static ReadOnlySpan<byte> Vml => "<Default Extension=\"vml\" ContentType=\"application/vnd.openxmlformats-officedocument.vmlDrawing\"/>"u8;
     private static ReadOnlySpan<byte> Styles => """<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml" />"""u8;
 
-    // TODO: Test spreadsheet with both JPG and PNG
+    // TODO: Test spreadsheet with both JPEG and PNG
     // TODO: Test spreadsheet with both image and comments
     // TODO: Test spreadsheet with many images
     // TODO: Is this the correct path for all added images? Regardless of worksheet?
@@ -90,7 +90,7 @@ internal struct ContentTypesXml : IXmlWriter
         if (counter.AddedImageTypes.HasFlag(AddedImageTypes.Png) && !Png.TryCopyTo(bytes, ref bytesWritten))
             return false;
 
-        if (counter.AddedImageTypes.HasFlag(AddedImageTypes.Jpg) && !Jpg.TryCopyTo(bytes, ref bytesWritten))
+        if (counter.AddedImageTypes.HasFlag(AddedImageTypes.Jpeg) && !Jpeg.TryCopyTo(bytes, ref bytesWritten))
             return false;
 
         return true;
