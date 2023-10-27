@@ -1,3 +1,4 @@
+using SpreadCheetah.Helpers;
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO.Compression;
@@ -15,14 +16,14 @@ internal static class ZipArchiveExtensions
         int embeddedImageId,
         CancellationToken token)
     {
-        // TODO: Increment image file name. It should basically be sequential numbering without taking filetype into account.
-        // TODO: Correct file extension for JPG/PNG
-        var entryName = type switch
+        var fileExtension = type switch
         {
-            ImageType.Png => "xl/media/image1.png",
+            ImageType.Png => ".png",
+            ImageType.Jpg => ".jpg",
             _ => throw new ArgumentOutOfRangeException(nameof(type)),
         };
 
+        var entryName = StringHelper.Invariant($"xl/media/image{embeddedImageId}{fileExtension}");
         var entry = archive.CreateEntry(entryName, compressionLevel);
         var entryStream = entry.Open();
 #if NETSTANDARD2_0
