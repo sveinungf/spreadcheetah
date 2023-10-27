@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.globalconfig = .globalconfig
+		BannedSymbols.txt = BannedSymbols.txt
 		Directory.Build.props = Directory.Build.props
 		Directory.Packages.props = Directory.Packages.props
 		README.md = README.md

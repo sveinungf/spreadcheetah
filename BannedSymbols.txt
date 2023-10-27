@@ -1,0 +1,1 @@
+M:System.IO.Compression.ZipArchive.CreateEntry(System.String);Pass CompressionLevel parameter
