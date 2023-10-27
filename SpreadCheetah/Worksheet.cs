@@ -141,12 +141,15 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         _cellMerges.Add(cellRange);
     }
 
-    public async ValueTask FinishAsync(bool hasNotes, CancellationToken token)
+    public async ValueTask FinishAsync(CancellationToken token)
     {
         using var cellMergesPooledArray = _cellMerges?.ToPooledArray();
         using var validationsPooledArray = _validations?.ToPooledArray();
 
-        var writer = new WorksheetEndXml(cellMergesPooledArray?.Memory, validationsPooledArray?.Memory, _autoFilterRange, hasNotes);
+        var hasNotes = Notes is not null;
+        var hasImages = Images is not null;
+
+        var writer = new WorksheetEndXml(cellMergesPooledArray?.Memory, validationsPooledArray?.Memory, _autoFilterRange, hasNotes, hasImages);
 #pragma warning disable EPS06 // Hidden struct copy operation
         await writer.WriteAsync(_stream, _buffer, token).ConfigureAwait(false);
 #pragma warning restore EPS06 // Hidden struct copy operation

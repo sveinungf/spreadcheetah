@@ -518,9 +518,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         if (_worksheet is not { } worksheet) return;
 
-        var hasNotes = worksheet.Notes is not null;
-
-        await worksheet.FinishAsync(hasNotes, token).ConfigureAwait(false);
+        await worksheet.FinishAsync(token).ConfigureAwait(false);
         await worksheet.DisposeAsync().ConfigureAwait(false);
 
         if (worksheet.Notes is { } notes)
@@ -529,10 +527,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             Debug.Assert(sheetsWithNotes > 0);
             using var notesPooledArray = notes.ToPooledArray();
 
-            var worksheetIndex = _worksheets.Count;
             await CommentsXml.WriteAsync(_archive, _compressionLevel, _buffer, sheetsWithNotes, notesPooledArray.Memory, token).ConfigureAwait(false);
             await VmlDrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, sheetsWithNotes, notesPooledArray.Memory, token).ConfigureAwait(false);
-            await WorksheetRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, worksheetIndex, sheetsWithNotes, token).ConfigureAwait(false);
         }
 
         if (worksheet.Images is { } images)
@@ -541,6 +537,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             Debug.Assert(sheetsWithImages > 0);
             await DrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, sheetsWithImages, images, token).ConfigureAwait(false);
             await DrawingRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, sheetsWithImages, images, token).ConfigureAwait(false);
+        }
+
+        if (_fileCounter is { } counter && (counter.WorksheetsWithImages > 0 || counter.WorksheetsWithNotes > 0))
+        {
+            var worksheetIndex = _worksheets.Count;
+            await WorksheetRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, worksheetIndex, counter, token).ConfigureAwait(false);
         }
 
         _worksheet = null;
