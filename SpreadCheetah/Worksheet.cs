@@ -108,16 +108,30 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         return true;
     }
 
-    public void AddImage(in WorksheetImage image)
+    public void AddImage(in WorksheetImage image, out bool firstImage)
     {
-        Images ??= new List<WorksheetImage>();
+        firstImage = false;
+
+        if (Images is null)
+        {
+            firstImage = true;
+            Images = new List<WorksheetImage>();
+        }
+
         Images.Add(image);
     }
 
-    public void AddNote(string cellReference, string noteText)
+    public void AddNote(string cellReference, string noteText, out bool firstNote)
     {
         var reference = SingleCellRelativeReference.Create(cellReference);
-        Notes ??= new Dictionary<SingleCellRelativeReference, string>();
+        firstNote = false;
+
+        if (Notes is null)
+        {
+            firstNote = true;
+            Notes = new Dictionary<SingleCellRelativeReference, string>();
+        }
+
         Notes[reference] = noteText;
     }
 

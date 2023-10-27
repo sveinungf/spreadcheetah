@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace SpreadCheetah.Images;
 
 public sealed class EmbeddedImage
@@ -12,6 +14,7 @@ public sealed class EmbeddedImage
 
     internal EmbeddedImage(int width, int height, int id)
     {
+        Debug.Assert(id > 0);
         Width = width;
         Height = height;
         Id = id;

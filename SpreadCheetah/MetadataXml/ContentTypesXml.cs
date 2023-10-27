@@ -1,5 +1,4 @@
 using SpreadCheetah.Helpers;
-using SpreadCheetah.Images;
 using SpreadCheetah.Worksheets;
 using System.IO.Compression;
 
@@ -12,12 +11,12 @@ internal struct ContentTypesXml : IXmlWriter
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
         List<WorksheetMetadata> worksheets,
-        Counter? counter,
+        FileCounter? fileCounter,
         bool hasStylesXml,
         CancellationToken token)
     {
         var entry = archive.CreateEntry("[Content_Types].xml", compressionLevel);
-        var writer = new ContentTypesXml(worksheets, counter, hasStylesXml);
+        var writer = new ContentTypesXml(worksheets, fileCounter, hasStylesXml);
         return writer.WriteAsync(entry, buffer, token);
     }
 
@@ -46,15 +45,15 @@ internal struct ContentTypesXml : IXmlWriter
     private static ReadOnlySpan<byte> Footer => "</Types>"u8;
 
     private readonly List<WorksheetMetadata> _worksheets;
-    private readonly Counter? _counter;
+    private readonly FileCounter? _fileCounter;
     private readonly bool _hasStylesXml;
     private Element _next;
     private int _nextIndex;
 
-    private ContentTypesXml(List<WorksheetMetadata> worksheets, Counter? counter, bool hasStylesXml)
+    private ContentTypesXml(List<WorksheetMetadata> worksheets, FileCounter? fileCounter, bool hasStylesXml)
     {
         _worksheets = worksheets;
-        _counter = counter;
+        _fileCounter = fileCounter;
         _hasStylesXml = hasStylesXml;
     }
 
@@ -68,6 +67,7 @@ internal struct ContentTypesXml : IXmlWriter
         if (_next == Element.Styles && !Advance(TryWriteStyles(bytes, ref bytesWritten))) return false;
         if (_next == Element.Drawings && !Advance(TryWriteDrawings(bytes, ref bytesWritten))) return false;
         if (_next == Element.Worksheets && !Advance(TryWriteWorksheets(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Comments && !Advance(TryWriteComments(bytes, ref bytesWritten))) return false;
         if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
 
         return true;
@@ -83,7 +83,7 @@ internal struct ContentTypesXml : IXmlWriter
 
     private readonly bool TryWriteImageTypes(Span<byte> bytes, ref int bytesWritten)
     {
-        if (_counter is not { } counter)
+        if (_fileCounter is not { } counter)
             return true;
 
         if (counter.Jpg > 0 && !Jpg.TryCopyTo(bytes, ref bytesWritten))
@@ -100,13 +100,10 @@ internal struct ContentTypesXml : IXmlWriter
 
     private bool TryWriteDrawings(Span<byte> bytes, ref int bytesWritten)
     {
-        if (_counter is not { } counter)
+        if (_fileCounter is not { } counter)
             return true;
 
-        // TODO: This is not correct. There should be one drawing XML per sheet with images.
-        var totalCount = counter.TotalImageCount;
-
-        for (; _nextIndex < totalCount; ++_nextIndex)
+        for (; _nextIndex < counter.WorksheetsWithImages; ++_nextIndex)
         {
             var span = bytes.Slice(bytesWritten);
             var written = 0;
@@ -124,7 +121,7 @@ internal struct ContentTypesXml : IXmlWriter
 
     private readonly bool TryWriteVml(Span<byte> bytes, ref int bytesWritten)
     {
-        var hasNotes = _worksheets.Exists(x => x.NotesFileIndex is not null);
+        var hasNotes = _fileCounter is { WorksheetsWithNotes: > 0 };
         return !hasNotes || Vml.TryCopyTo(bytes, ref bytesWritten);
     }
 
@@ -142,16 +139,32 @@ internal struct ContentTypesXml : IXmlWriter
             if (!SpanHelper.TryWrite(worksheet.Path, span, ref written)) return false;
             if (!SheetEnd.TryCopyTo(span, ref written)) return false;
 
-            if (worksheet.NotesFileIndex is { } notesFileIndex)
-            {
-                if (!CommentStart.TryCopyTo(span, ref written)) return false;
-                if (!SpanHelper.TryWrite(notesFileIndex, span, ref written)) return false;
-                if (!CommentEnd.TryCopyTo(span, ref written)) return false;
-            }
+            bytesWritten += written;
+        }
+
+        _nextIndex = 0;
+        return true;
+    }
+
+    // TODO: Test for many worksheets that have notes
+    private bool TryWriteComments(Span<byte> bytes, ref int bytesWritten)
+    {
+        if (_fileCounter is not { } counter)
+            return true;
+
+        for (; _nextIndex < counter.WorksheetsWithNotes; ++_nextIndex)
+        {
+            var span = bytes.Slice(bytesWritten);
+            var written = 0;
+
+            if (!CommentStart.TryCopyTo(span, ref written)) return false;
+            if (!SpanHelper.TryWrite(_nextIndex + 1, span, ref written)) return false;
+            if (!CommentEnd.TryCopyTo(span, ref written)) return false;
 
             bytesWritten += written;
         }
 
+        _nextIndex = 0;
         return true;
     }
 
@@ -163,6 +176,7 @@ internal struct ContentTypesXml : IXmlWriter
         Styles,
         Drawings,
         Worksheets,
+        Comments,
         Footer,
         Done
     }

@@ -9,6 +9,7 @@ using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 using System.Buffers;
+using System.Diagnostics;
 using System.IO.Compression;
 
 #if !NET6_0_OR_GREATER
@@ -29,11 +30,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly bool _writeCellReferenceAttributes;
     private readonly byte[] _arrayPoolBuffer;
     private readonly NumberFormat? _defaultDateTimeFormat;
-    private Counter? _counter;
     private DefaultStyling? _defaultStyling;
     private Dictionary<ImmutableStyle, int>? _styles;
+    private FileCounter? _fileCounter;
     private Worksheet? _worksheet;
-    private int _notesFileIndex;
     private bool _disposed;
     private bool _finished;
 
@@ -130,7 +130,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var entryStream = entry.Open();
         _worksheet = new Worksheet(entryStream, _defaultStyling, _buffer, _writeCellReferenceAttributes);
         await _worksheet.WriteHeadAsync(options, token).ConfigureAwait(false);
-        _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible, null));
+        _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
     }
 
     /// <summary>
@@ -437,10 +437,13 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (noteText.Length > SpreadsheetConstants.MaxNoteTextLength)
             ThrowHelper.NoteTextTooLong(nameof(noteText));
 
-        Worksheet.AddNote(cellReference, noteText);
-        var metadata = _worksheets[_worksheets.Count - 1];
-        if (metadata.NotesFileIndex is null)
-            _worksheets[_worksheets.Count - 1] = metadata with { NotesFileIndex = ++_notesFileIndex };
+        Worksheet.AddNote(cellReference, noteText, out var firstNote);
+
+        if (firstNote)
+        {
+            _fileCounter ??= new FileCounter();
+            _fileCounter.WorksheetsWithNotes++;
+        }
     }
 
     /// <summary>
@@ -482,9 +485,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (imageType is null)
             ThrowHelper.StreamContentNotSupportedImageType(nameof(stream));
 
-        _counter ??= new Counter();
-        _counter.AddImage(imageType.Value);
-        var embeddedImageId = _counter.TotalImageCount;
+        _fileCounter ??= new FileCounter();
+        _fileCounter.AddImage(imageType.Value);
+        var embeddedImageId = _fileCounter.TotalImageCount;
 
         // TODO: What about imageCount if this fails?
         return await _archive.CreateImageEntryAsync(stream, buffer, imageType.Value, embeddedImageId, token).ConfigureAwait(false);
@@ -495,8 +498,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(cellReference);
         ArgumentNullException.ThrowIfNull(image);
 
-        // TODO: Increment _drawingsFileIndex OR consider having a flag enum on the worksheet (for having drawing/note), and just a counter for sheets having drawings/notes?
-
         var reference = SingleCellRelativeReference.Create(cellReference);
 
         // TODO: Name seems to be required and unique globally. Set it to "Image X" for now, where X starts at 1 and increments by 1 for each image.
@@ -504,7 +505,13 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var name = "Image 1";
         var immutableImage = new ImmutableImage(image.Id, name, image.Width, image.Height, options?.Size);
         var worksheetImage = new WorksheetImage(reference, immutableImage);
-        Worksheet.AddImage(worksheetImage);
+        Worksheet.AddImage(worksheetImage, out var firstImage);
+
+        if (firstImage)
+        {
+            _fileCounter ??= new FileCounter();
+            _fileCounter.WorksheetsWithImages++;
+        }
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
@@ -518,17 +525,21 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         if (worksheet.Notes is { } notes)
         {
+            var sheetsWithNotes = _fileCounter?.WorksheetsWithNotes ?? 0;
+            Debug.Assert(sheetsWithNotes > 0);
             using var notesPooledArray = notes.ToPooledArray();
 
             var worksheetIndex = _worksheets.Count;
-            await CommentsXml.WriteAsync(_archive, _compressionLevel, _buffer, _notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
-            await VmlDrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, _notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
-            await WorksheetRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, worksheetIndex, _notesFileIndex, token).ConfigureAwait(false);
+            await CommentsXml.WriteAsync(_archive, _compressionLevel, _buffer, sheetsWithNotes, notesPooledArray.Memory, token).ConfigureAwait(false);
+            await VmlDrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, sheetsWithNotes, notesPooledArray.Memory, token).ConfigureAwait(false);
+            await WorksheetRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, worksheetIndex, sheetsWithNotes, token).ConfigureAwait(false);
         }
 
         if (worksheet.Images is { } images)
         {
-            // TODO: Pass drawingsFileIndex
+            var sheetsWithImages = _fileCounter?.WorksheetsWithImages ?? 0;
+            Debug.Assert(sheetsWithImages > 0);
+            // TODO: Pass sheetsWithImages
             await DrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, images, token).ConfigureAwait(false);
             await DrawingRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, images, token).ConfigureAwait(false);
         }
@@ -552,7 +563,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         var hasStyles = _styles != null;
 
-        await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, _counter, hasStyles, token).ConfigureAwait(false);
+        await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, _fileCounter, hasStyles, token).ConfigureAwait(false);
         await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, token).ConfigureAwait(false);
 
