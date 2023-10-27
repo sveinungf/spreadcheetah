@@ -109,7 +109,7 @@ internal struct ContentTypesXml : IXmlWriter
             var written = 0;
 
             if (!DrawingStart.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(_nextIndex, span, ref written)) return false;
+            if (!SpanHelper.TryWrite(_nextIndex + 1, span, ref written)) return false;
             if (!DrawingEnd.TryCopyTo(span, ref written)) return false;
 
             bytesWritten += written;
