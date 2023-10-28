@@ -1,3 +1,5 @@
+using ClosedXML.Excel;
+using ClosedXML.Excel.Drawings;
 using SpreadCheetah.Test.Helpers;
 using System.IO.Compression;
 using Xunit;
@@ -39,7 +41,7 @@ public class SpreadsheetImageTests
     public async Task Spreadsheet_EmbedImage_StreamAtEnd()
     {
         // Arrange
-        using var pngStream = EmbeddedResources.GetStream("one-red-pixel.png");
+        using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
         using var outputStream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
         pngStream.Position = pngStream.Length;
@@ -56,7 +58,7 @@ public class SpreadsheetImageTests
     public async Task Spreadsheet_EmbedImage_ActiveWorksheet()
     {
         // Arrange
-        using var pngStream = EmbeddedResources.GetStream("one-red-pixel.png");
+        using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
         using var outputStream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
         await spreadsheet.StartWorksheetAsync("Sheet 1");
@@ -69,11 +71,14 @@ public class SpreadsheetImageTests
         Assert.Contains("embed", concreteException.Message, StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact]
-    public async Task Spreadsheet_EmbedImage_Png()
+    [Theory]
+    [InlineData("red-1x1.png", 1, 1)]
+    [InlineData("green-266x183.png", 266, 183)]
+    [InlineData("blue-250x250.png", 250, 250)]
+    public async Task Spreadsheet_EmbedImage_Png(string filename, int expectedWidth, int expectedHeight)
     {
         // Arrange
-        using var pngStream = EmbeddedResources.GetStream("one-red-pixel.png");
+        using var pngStream = EmbeddedResources.GetStream(filename);
         using var outputStream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
 
@@ -85,8 +90,8 @@ public class SpreadsheetImageTests
         await spreadsheet.FinishAsync();
         SpreadsheetAssert.Valid(outputStream);
 
-        Assert.Equal(1, result.Height);
-        Assert.Equal(1, result.Width);
+        Assert.Equal(expectedWidth, result.Width);
+        Assert.Equal(expectedHeight, result.Height);
 
         using var archive = new ZipArchive(outputStream);
         var entry = archive.GetEntry("xl/media/image1.png");
@@ -102,7 +107,7 @@ public class SpreadsheetImageTests
     public async Task Spreadsheet_EmbedImage_PngFromReadOnlyStream()
     {
         // Arrange
-        using var pngStream = new AsyncReadOnlyMemoryStream(EmbeddedResources.GetStream("one-red-pixel.png"));
+        using var pngStream = new AsyncReadOnlyMemoryStream(EmbeddedResources.GetStream("red-1x1.png"));
         using var outputStream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
 
@@ -117,6 +122,7 @@ public class SpreadsheetImageTests
     public async Task Spreadsheet_AddImage_Png()
     {
         // Arrange
+        const string reference = "B3";
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
@@ -124,13 +130,22 @@ public class SpreadsheetImageTests
         await spreadsheet.StartWorksheetAsync("Sheet 1");
 
         // Act
-        spreadsheet.AddImage("B3", embeddedImage);
+        spreadsheet.AddImage(reference, embeddedImage);
 
         // Assert
         await spreadsheet.FinishAsync();
         SpreadsheetAssert.Valid(outputStream);
 
-        // TODO: More verification
+        using var workbook = new XLWorkbook(outputStream);
+        var worksheet = workbook.Worksheets.Single();
+        var picture = Assert.Single(worksheet.Pictures);
+        Assert.Equal(reference, picture.TopLeftCell.Address.ToString());
+        Assert.Equal(XLPictureFormat.Png, picture.Format);
+        Assert.Equal(266, picture.OriginalWidth);
+        Assert.Equal(183, picture.OriginalHeight);
+        Assert.Equal(0, picture.Top);
+        Assert.Equal(0, picture.Left);
+        Assert.Equal("Image 1", picture.Name);
     }
 
     // TODO: Test for start worksheet before embedding image
