@@ -14,6 +14,7 @@ internal static class ZipArchiveExtensions
         ReadOnlyMemory<byte> header,
         ImageType type,
         int embeddedImageId,
+        Guid spreadsheetGuid,
         CancellationToken token)
     {
         var fileExtension = type switch
@@ -36,15 +37,16 @@ internal static class ZipArchiveExtensions
 
             var task = type switch
             {
-                ImageType.Png => stream.CopyPngToAsync(entryStream, header, embeddedImageId, token),
-                _ => new ValueTask<EmbeddedImage>(new EmbeddedImage(0, 0, embeddedImageId))
+                ImageType.Png => stream.CopyPngToAsync(entryStream, header, embeddedImageId, spreadsheetGuid, token),
+                _ => new ValueTask<EmbeddedImage>(new EmbeddedImage(0, 0, embeddedImageId, spreadsheetGuid))
             };
 
             return await task.ConfigureAwait(false);
         }
     }
 
-    private static async ValueTask<EmbeddedImage> CopyPngToAsync(this Stream source, Stream destination, ReadOnlyMemory<byte> bytesReadSoFar, int embeddedImageId, CancellationToken token)
+    private static async ValueTask<EmbeddedImage> CopyPngToAsync(this Stream source, Stream destination, ReadOnlyMemory<byte> bytesReadSoFar,
+        int embeddedImageId, Guid spreadsheetGuid, CancellationToken token)
     {
         // A valid PNG file should start with these bytes:
         // 8 bytes: File signature
@@ -58,7 +60,7 @@ internal static class ZipArchiveExtensions
 
         var (width, height) = ReadPngDimensions(bytesReadSoFar.Span.Slice(bytesBeforeDimensionStart));
         await source.CopyToAsync(destination, token).ConfigureAwait(false);
-        return new EmbeddedImage(width, height, embeddedImageId);
+        return new EmbeddedImage(width, height, embeddedImageId, spreadsheetGuid);
     }
 
     private static (int Width, int Height) ReadPngDimensions(ReadOnlySpan<byte> bytes)

@@ -23,6 +23,7 @@ namespace SpreadCheetah;
 /// </summary>
 public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 {
+    private readonly Guid _spreadsheetGuid = Guid.NewGuid();
     private readonly List<WorksheetMetadata> _worksheets = new();
     private readonly ZipArchive _archive;
     private readonly CompressionLevel _compressionLevel;
@@ -492,13 +493,16 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var embeddedImageId = _fileCounter.TotalImageCount;
 
         // TODO: What about imageCount if this fails?
-        return await _archive.CreateImageEntryAsync(stream, _compressionLevel, buffer, imageType.Value, embeddedImageId, token).ConfigureAwait(false);
+        return await _archive.CreateImageEntryAsync(stream, _compressionLevel, buffer, imageType.Value, embeddedImageId, _spreadsheetGuid, token).ConfigureAwait(false);
     }
 
     public void AddImage(string cellReference, EmbeddedImage image, ImageOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(cellReference);
         ArgumentNullException.ThrowIfNull(image);
+
+        if (_spreadsheetGuid != image.SpreadsheetGuid)
+            ThrowHelper.CantAddImageEmbeddedInOtherSpreadsheet();
 
         var reference = SingleCellRelativeReference.Create(cellReference);
         var immutableImage = new ImmutableImage(image.Id, image.Width, image.Height, options?.Size);

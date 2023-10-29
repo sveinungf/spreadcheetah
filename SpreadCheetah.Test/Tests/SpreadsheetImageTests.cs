@@ -200,4 +200,24 @@ public class SpreadsheetImageTests
         Assert.Equal(0, picture.Left);
         Assert.Equal("Image 1", picture.Name);
     }
+
+    [Fact]
+    public async Task Spreadsheet_AddImage_EmbeddedImageFromOtherSpreadsheet()
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var stream = new MemoryStream();
+        using var otherStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await using var otherSpreadsheet = await Spreadsheet.CreateNewAsync(otherStream);
+        var embeddedImage = await otherSpreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+
+        // Act
+        var exception = Record.Exception(() => spreadsheet.AddImage("A1", embeddedImage));
+
+        // Assert
+        var concreteException = Assert.IsType<SpreadCheetahException>(exception);
+        Assert.Contains("spreadsheet", concreteException.Message, StringComparison.OrdinalIgnoreCase);
+    }
 }
