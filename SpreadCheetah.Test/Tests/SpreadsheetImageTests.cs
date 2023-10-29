@@ -71,6 +71,24 @@ public class SpreadsheetImageTests
         Assert.Contains("embed", concreteException.Message, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task Spreadsheet_EmbedImage_FinishedSpreadsheet()
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        await spreadsheet.FinishAsync();
+
+        // Act
+        var exception = await Record.ExceptionAsync(() => spreadsheet.EmbedImageAsync(pngStream).AsTask());
+
+        // Assert
+        var concreteException = Assert.IsType<SpreadCheetahException>(exception);
+        Assert.Contains(nameof(Spreadsheet.FinishAsync), concreteException.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
     [Theory]
     [InlineData("red-1x1.png", 1, 1)]
     [InlineData("green-266x183.png", 266, 183)]
@@ -148,6 +166,38 @@ public class SpreadsheetImageTests
         Assert.Equal("Image 1", picture.Name);
     }
 
-    // TODO: Test for start worksheet before embedding image
-    // TODO: Test for embed image after finishing the first worksheet
+    [Fact]
+    public async Task Spreadsheet_AddImage_PngInSecondWorksheet()
+    {
+        // Arrange
+        const string reference = "A1";
+        const string worksheetName = "Sheet 2";
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        await spreadsheet.StartWorksheetAsync(worksheetName);
+
+        // Act
+        spreadsheet.AddImage(reference, embeddedImage);
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        using var workbook = new XLWorkbook(outputStream);
+        var worksheet1 = Assert.Single(workbook.Worksheets.Where(x => !string.Equals(worksheetName, x.Name, StringComparison.Ordinal)));
+        Assert.Empty(worksheet1.Pictures);
+
+        var worksheet2 = Assert.Single(workbook.Worksheets.Where(x => string.Equals(worksheetName, x.Name, StringComparison.Ordinal)));
+        var picture = Assert.Single(worksheet2.Pictures);
+        Assert.Equal(reference, picture.TopLeftCell.Address.ToString());
+        Assert.Equal(XLPictureFormat.Png, picture.Format);
+        Assert.Equal(266, picture.OriginalWidth);
+        Assert.Equal(183, picture.OriginalHeight);
+        Assert.Equal(0, picture.Top);
+        Assert.Equal(0, picture.Left);
+        Assert.Equal("Image 1", picture.Name);
+    }
 }

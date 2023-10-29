@@ -467,6 +467,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public async ValueTask<EmbeddedImage> EmbedImageAsync(Stream stream, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(stream);
+        if (_finished)
+            ThrowHelper.EmbedImageNotAllowedAfterFinish();
         if (!stream.CanRead)
             ThrowHelper.StreamDoesNotSupportReading(nameof(stream));
         if (_worksheet is not null)

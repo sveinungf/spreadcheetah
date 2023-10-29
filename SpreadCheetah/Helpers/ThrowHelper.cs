@@ -29,6 +29,9 @@ internal static class ThrowHelper
     public static void EmbedImageBeforeStartingWorksheet() => throw new SpreadCheetahException("Images must be embedded before starting a worksheet.");
 
     [DoesNotReturn]
+    public static void EmbedImageNotAllowedAfterFinish() => throw new SpreadCheetahException("Can't embed image after " + nameof(Spreadsheet.FinishAsync) + " has been called.");
+
+    [DoesNotReturn]
     public static void NoteTextTooLong(string? paramName) => throw new ArgumentException("Note text can not exceed " + SpreadsheetConstants.MaxNoteTextLength + " characters.", paramName);
 
     [DoesNotReturn]
