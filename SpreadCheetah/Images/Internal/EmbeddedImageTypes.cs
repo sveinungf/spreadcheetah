@@ -1,7 +1,7 @@
 namespace SpreadCheetah.Images.Internal;
 
 [Flags]
-internal enum AddedImageTypes
+internal enum EmbeddedImageTypes
 {
     None = 0,
     Png = 1,

@@ -489,8 +489,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ThrowHelper.StreamContentNotSupportedImageType(nameof(stream));
 
         _fileCounter ??= new FileCounter();
-        _fileCounter.AddImage(imageType.Value);
-        var embeddedImageId = _fileCounter.TotalImageCount;
+        _fileCounter.AddEmbeddedImage(imageType.Value);
+        var embeddedImageId = _fileCounter.TotalEmbeddedImages;
 
         // TODO: What about imageCount if this fails?
         return await _archive.CreateImageEntryAsync(stream, _compressionLevel, buffer, imageType.Value, embeddedImageId, _spreadsheetGuid, token).ConfigureAwait(false);

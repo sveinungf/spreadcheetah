@@ -85,10 +85,10 @@ internal struct ContentTypesXml : IXmlWriter
         if (_fileCounter is not { } counter)
             return true;
 
-        if (counter.AddedImageTypes.HasFlag(AddedImageTypes.Png) && !Png.TryCopyTo(bytes, ref bytesWritten))
+        if (counter.EmbeddedImageTypes.HasFlag(EmbeddedImageTypes.Png) && !Png.TryCopyTo(bytes, ref bytesWritten))
             return false;
 
-        if (counter.AddedImageTypes.HasFlag(AddedImageTypes.Jpeg) && !Jpeg.TryCopyTo(bytes, ref bytesWritten))
+        if (counter.EmbeddedImageTypes.HasFlag(EmbeddedImageTypes.Jpeg) && !Jpeg.TryCopyTo(bytes, ref bytesWritten))
             return false;
 
         return true;
