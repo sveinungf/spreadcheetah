@@ -278,6 +278,97 @@ public class SpreadsheetImageTests
     }
 
     [Fact]
+    public async Task Spreadsheet_AddImage_SamePngUsedInMultipleWorksheets()
+    {
+        // Arrange
+        var worksheet1References = new[] { "A10", "B3", "J2" };
+        var worksheet2References = new[] { "B10", "C1", "H20" };
+        using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        foreach (var reference in worksheet1References)
+        {
+            spreadsheet.AddImage(reference, embeddedImage);
+        }
+
+        await spreadsheet.StartWorksheetAsync("Sheet 2");
+        foreach (var reference in worksheet2References)
+        {
+            spreadsheet.AddImage(reference, embeddedImage);
+        }
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        using var workbook = new XLWorkbook(outputStream);
+        var worksheet1 = workbook.Worksheets.First();
+        var worksheet1Pictures = worksheet1.Pictures.ToList();
+        Assert.Equal(worksheet1References, worksheet1Pictures.Select(x => x.TopLeftCell.Address.ToString()));
+
+        var worksheet2 = workbook.Worksheets.Skip(1).First();
+        var worksheet2Pictures = worksheet2.Pictures.ToList();
+        Assert.Equal(worksheet2References, worksheet2Pictures.Select(x => x.TopLeftCell.Address.ToString()));
+
+        var imageNames = worksheet1Pictures.Concat(worksheet2Pictures).Select(x => x.Name).ToHashSet(StringComparer.Ordinal);
+        Assert.Equal(worksheet1References.Length + worksheet2References.Length, imageNames.Count);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddImage_MultiplePngUsedInMultipleWorksheets()
+    {
+        // Arrange
+        var imageFilenames = new[] { "blue-250x250.png", "green-266x183.png", "red-1x1.png", "yellow-1x1.png" };
+        var worksheet1References = new[] { "A10", "B3" };
+        var worksheet2References = new[] { "B10", "C1" };
+
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImages = new Queue<EmbeddedImage>();
+
+        foreach (var filename in imageFilenames)
+        {
+            using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
+            var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+            embeddedImages.Enqueue(embeddedImage);
+        }
+
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        foreach (var reference in worksheet1References)
+        {
+            spreadsheet.AddImage(reference, embeddedImages.Dequeue());
+        }
+
+        await spreadsheet.StartWorksheetAsync("Sheet 2");
+        foreach (var reference in worksheet2References)
+        {
+            spreadsheet.AddImage(reference, embeddedImages.Dequeue());
+        }
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        using var workbook = new XLWorkbook(outputStream);
+        var worksheet1 = workbook.Worksheets.First();
+        var worksheet1Pictures = worksheet1.Pictures.ToList();
+        Assert.Equal(worksheet1References, worksheet1Pictures.Select(x => x.TopLeftCell.Address.ToString()));
+
+        var worksheet2 = workbook.Worksheets.Skip(1).First();
+        var worksheet2Pictures = worksheet2.Pictures.ToList();
+        Assert.Equal(worksheet2References, worksheet2Pictures.Select(x => x.TopLeftCell.Address.ToString()));
+
+        var imageNames = worksheet1Pictures.Concat(worksheet2Pictures).Select(x => x.Name).ToHashSet(StringComparer.Ordinal);
+        Assert.Equal(worksheet1References.Length + worksheet2References.Length, imageNames.Count);
+    }
+
+    [Fact]
     public async Task Spreadsheet_AddImage_EmbeddedImageFromOtherSpreadsheet()
     {
         // Arrange
