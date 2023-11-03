@@ -51,7 +51,6 @@ internal struct DrawingImageXml
         var written = 0;
 
         // TODO: Upper-left offsets
-        // TODO: Should they be long?
         const int fromColumnOffset = 0;
         const int fromRowOffset = 0;
 
@@ -63,7 +62,6 @@ internal struct DrawingImageXml
 
         // TODO: Support sizing
         // TODO: Subtract offsets
-        // TODO: Should they be long?
         // Convert pixels to EMU by multiplying with 9525
         var toColumnOffset = _image.Image.ActualImageWidth * 9525;
         var toRowOffset = _image.Image.ActualImageHeight * 9525;

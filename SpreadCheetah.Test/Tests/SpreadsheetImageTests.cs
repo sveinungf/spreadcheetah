@@ -169,6 +169,36 @@ public class SpreadsheetImageTests
     }
 
     [Fact]
+    public async Task Spreadsheet_AddImage_PngWithLargeResolution()
+    {
+        // Arrange
+        const string reference = "B3";
+        using var pngStream = EmbeddedResources.GetStream("orange-10000x10000.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+
+        // Act
+        spreadsheet.AddImage(reference, embeddedImage);
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        using var workbook = new XLWorkbook(outputStream);
+        var worksheet = workbook.Worksheets.Single();
+        var picture = Assert.Single(worksheet.Pictures);
+        Assert.Equal(reference, picture.TopLeftCell.Address.ToString());
+        Assert.Equal(XLPictureFormat.Png, picture.Format);
+        Assert.Equal(10000, picture.OriginalWidth);
+        Assert.Equal(10000, picture.OriginalHeight);
+        Assert.Equal(0, picture.Top);
+        Assert.Equal(0, picture.Left);
+        Assert.Equal("Image 1", picture.Name);
+    }
+
+    [Fact]
     public async Task Spreadsheet_AddImage_PngInSecondWorksheet()
     {
         // Arrange
