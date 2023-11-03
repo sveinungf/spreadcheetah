@@ -58,7 +58,6 @@ internal struct DrawingRelsXml : IXmlWriter
     {
         var images = _images;
 
-        // TODO: Can reuse the same rId when reusing the same image
         for (; _nextImageIndex < images.Count; ++_nextImageIndex)
         {
             var index = _nextImageIndex;

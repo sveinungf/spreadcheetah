@@ -96,8 +96,7 @@ internal struct DrawingImageXml
         if (!ImageIdEnd.TryCopyTo(span, ref written)) return false;
         if (!SpanHelper.TryWrite(_image.ImageNumber, span, ref written)) return false;
         if (!NameEnd.TryCopyTo(span, ref written)) return false;
-        // TODO: This can use the same rId when using the same image multiple times
-        if (!SpanHelper.TryWrite(_worksheetImageIndex + 1, span, ref written)) return false; // TODO: Verify that this starts at 1 and increments for each image in the sheet.
+        if (!SpanHelper.TryWrite(_worksheetImageIndex + 1, span, ref written)) return false;
         if (!ImageEnd.TryCopyTo(span, ref written)) return false;
 
         bytesWritten += written;
