@@ -92,10 +92,11 @@ internal struct DrawingImageXml
         var written = 0;
 
         if (!AnchorEnd.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_image.Image.EmbeddedImageId - 1, span, ref written)) return false; // TODO: Verify that this starts at 0 and increments by 1 for each image (regardless of sheet).
+        if (!SpanHelper.TryWrite(_worksheetImageIndex, span, ref written)) return false;
         if (!ImageIdEnd.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_image.Image.EmbeddedImageId, span, ref written)) return false;
+        if (!SpanHelper.TryWrite(_image.ImageNumber, span, ref written)) return false;
         if (!NameEnd.TryCopyTo(span, ref written)) return false;
+        // TODO: This can use the same rId when using the same image multiple times
         if (!SpanHelper.TryWrite(_worksheetImageIndex + 1, span, ref written)) return false; // TODO: Verify that this starts at 1 and increments for each image in the sheet.
         if (!ImageEnd.TryCopyTo(span, ref written)) return false;
 

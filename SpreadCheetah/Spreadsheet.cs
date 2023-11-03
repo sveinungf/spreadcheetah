@@ -506,15 +506,15 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         var reference = SingleCellRelativeReference.Create(cellReference);
         var immutableImage = new ImmutableImage(image.Id, image.Width, image.Height, options?.Size);
-        var worksheetImage = new WorksheetImage(reference, immutableImage);
 
+        _fileCounter ??= new FileCounter();
+        _fileCounter.TotalAddedImages++;
+
+        var worksheetImage = new WorksheetImage(reference, immutableImage, _fileCounter.TotalAddedImages);
         Worksheet.AddImage(worksheetImage, out var firstImage);
 
         if (firstImage)
-        {
-            _fileCounter ??= new FileCounter();
             _fileCounter.WorksheetsWithImages++;
-        }
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)

@@ -9,6 +9,7 @@ internal sealed class FileCounter
     public int WorksheetsWithImages { get; set; }
     public int WorksheetsWithNotes { get; set; }
     public int TotalEmbeddedImages { get; private set; }
+    public int TotalAddedImages { get; set; }
     public EmbeddedImageTypes EmbeddedImageTypes { get; private set; }
 
     public void AddEmbeddedImage(ImageType type)

@@ -1,5 +1,7 @@
 using ClosedXML.Excel;
 using ClosedXML.Excel.Drawings;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
+using SpreadCheetah.Images;
 using SpreadCheetah.Test.Helpers;
 using System.IO.Compression;
 using Xunit;
@@ -199,6 +201,80 @@ public class SpreadsheetImageTests
         Assert.Equal(0, picture.Top);
         Assert.Equal(0, picture.Left);
         Assert.Equal("Image 1", picture.Name);
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(10)]
+    [InlineData(1000)]
+    public async Task Spreadsheet_AddImage_MultiplePng(int count)
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImages = new List<EmbeddedImage>(count);
+        for (var i = 0; i < count; i++)
+        {
+            pngStream.Position = 0;
+            var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+            embeddedImages.Add(embeddedImage);
+        }
+
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        var row = 1;
+
+        // Act
+        foreach (var embeddedImage in embeddedImages)
+        {
+            var reference = "A" + row;
+            spreadsheet.AddImage(reference, embeddedImage);
+            row++;
+        }
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        using var workbook = new XLWorkbook(outputStream);
+        var worksheet = workbook.Worksheets.Single();
+        var pictures = worksheet.Pictures.ToList();
+        Assert.Equal(count, pictures.Count);
+        Assert.All(pictures, x => Assert.Equal(1, x.OriginalWidth));
+        Assert.All(pictures, x => Assert.Equal(1, x.OriginalHeight));
+        Assert.Equal(count, pictures.Select(x => x.Name).ToHashSet(StringComparer.Ordinal).Count);
+        Assert.Equal(count, pictures.Select(x => x.TopLeftCell.Address.ToString()).ToHashSet(StringComparer.Ordinal).Count);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddImage_SamePngUsedInMultipleCells()
+    {
+        // Arrange
+        var references = new[] { "A10", "B3", "J2" };
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+
+        // Act
+        foreach (var reference in references)
+        {
+            spreadsheet.AddImage(reference, embeddedImage);
+        }
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        using var workbook = new XLWorkbook(outputStream);
+        var worksheet = workbook.Worksheets.Single();
+        var pictures = worksheet.Pictures.ToList();
+        Assert.Equal(references.Length, pictures.Count);
+        Assert.All(pictures, x => Assert.Equal(266, x.OriginalWidth));
+        Assert.All(pictures, x => Assert.Equal(183, x.OriginalHeight));
+        Assert.Equal(references, pictures.Select(x => x.TopLeftCell.Address.ToString()));
+        Assert.Equal(references.Length, pictures.Select(x => x.Name).ToHashSet(StringComparer.Ordinal).Count);
     }
 
     [Fact]

@@ -6,4 +6,5 @@ namespace SpreadCheetah.Images.Internal;
 [StructLayout(LayoutKind.Auto)]
 internal readonly record struct WorksheetImage(
     SingleCellRelativeReference Reference,
-    ImmutableImage Image);
+    ImmutableImage Image,
+    int ImageNumber);
