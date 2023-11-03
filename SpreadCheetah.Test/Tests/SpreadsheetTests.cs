@@ -8,6 +8,7 @@ using SpreadCheetah.Worksheets;
 using System.IO.Compression;
 using Xunit;
 using Color = System.Drawing.Color;
+using DataValidation = SpreadCheetah.Validations.DataValidation;
 using Fill = SpreadCheetah.Styling.Fill;
 
 namespace SpreadCheetah.Test.Tests;
@@ -128,6 +129,39 @@ public class SpreadsheetTests
         // Act
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Name");
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_Finish_WorksheetWithAllFeaturesThatAffectWorksheetXml()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        var options = new WorksheetOptions
+        {
+            AutoFilter = new AutoFilterOptions("A1:F1"),
+            FrozenColumns = 2,
+            FrozenRows = 1,
+            Visibility = WorksheetVisibility.Hidden
+        };
+
+        options.Column(2).Width = 80;
+
+        await spreadsheet.StartWorksheetAsync("Sheet", options);
+
+        var validation = DataValidation.TextLengthLessThan(50);
+        spreadsheet.AddDataValidation("A2:A100", validation);
+        spreadsheet.AddImage("B1", embeddedImage);
+        spreadsheet.AddNote("C1", "My note");
+        spreadsheet.MergeCells("B2:F3");
+
+        // Act
         await spreadsheet.FinishAsync();
 
         // Assert

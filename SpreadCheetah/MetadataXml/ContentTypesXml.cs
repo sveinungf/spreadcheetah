@@ -31,12 +31,8 @@ internal struct ContentTypesXml : IXmlWriter
     private static ReadOnlySpan<byte> Png => """<Default Extension="png" ContentType="image/png"/>"""u8;
     private static ReadOnlySpan<byte> Vml => "<Default Extension=\"vml\" ContentType=\"application/vnd.openxmlformats-officedocument.vmlDrawing\"/>"u8;
     private static ReadOnlySpan<byte> Styles => """<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml" />"""u8;
-
-    // TODO: Test spreadsheet with both image and comments
-    // TODO: Test spreadsheet with many images
     private static ReadOnlySpan<byte> DrawingStart => """<Override PartName="/xl/drawings/drawing"""u8;
     private static ReadOnlySpan<byte> DrawingEnd => """.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>"""u8;
-
     private static ReadOnlySpan<byte> SheetStart => """<Override PartName="/"""u8;
     private static ReadOnlySpan<byte> SheetEnd => "\" "u8 + """ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" />"""u8;
     private static ReadOnlySpan<byte> CommentStart => """<Override PartName="/xl/comments"""u8;

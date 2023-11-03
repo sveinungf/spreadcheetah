@@ -27,8 +27,6 @@ internal struct WorksheetRelsXml : IXmlWriter
 
     private static ReadOnlySpan<byte> VmlDrawingStart => """<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/vmlDrawing" Target="../drawings/vmlDrawing"""u8;
     private static ReadOnlySpan<byte> CommentStart => """<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments" Target="../comments"""u8;
-
-    // TODO: Verify that using "rId3" works both when sheet has notes and doesn't
     private static ReadOnlySpan<byte> DrawingStart => """<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing"""u8;
     private static ReadOnlySpan<byte> Footer => "</Relationships>"u8;
 

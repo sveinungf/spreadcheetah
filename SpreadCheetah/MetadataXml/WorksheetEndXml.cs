@@ -152,7 +152,6 @@ internal struct WorksheetEndXml : IXmlWriter
     private readonly bool TryWriteValidationsEnd(Span<byte> bytes, ref int bytesWritten)
         => _validations.IsEmpty || "</dataValidations>"u8.TryCopyTo(bytes, ref bytesWritten);
 
-    // TODO: Verify that using "rId3" works both when sheet has notes and doesn't
     private readonly bool TryWriteDrawing(Span<byte> bytes, ref int bytesWritten)
         => !_hasImages || """<drawing r:id="rId3"/>"""u8.TryCopyTo(bytes, ref bytesWritten);
 
