@@ -157,6 +157,25 @@ public class SpreadsheetNoteTests
     }
 
     [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("A")]
+    [InlineData("A0")]
+    [InlineData("A1:A2")]
+    [InlineData("$A$1")]
+    public async Task Spreadsheet_AddNote_InvalidReference(string reference)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act & Assert
+        Assert.ThrowsAny<ArgumentException>(() => spreadsheet.AddNote(reference, "My note"));
+    }
+
+    [Theory]
     [InlineData("A1", "1.2pt")]
     [InlineData("A2", "8.4pt")]
     [InlineData("B1", "1.2pt")]
@@ -217,15 +236,17 @@ public class SpreadsheetNoteTests
         Assert.Equal("rId1", legacyDrawing.Id);
     }
 
-    [Fact]
-    public async Task Spreadsheet_AddNote_MultipleNotesInWorksheet()
+    [Theory]
+    [InlineData(3)]
+    [InlineData(100)]
+    [InlineData(10000)]
+    public async Task Spreadsheet_AddNote_MultipleNotesInWorksheet(int count)
     {
         // Arrange
-        const int noteCount = 3;
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
-        var notes = Enumerable.Range(1, noteCount)
+        var notes = Enumerable.Range(1, count)
             .Select(x => SpreadsheetUtility.GetColumnName(x) + x)
             .Select(x => (Reference: x, NoteText: "Note for " + x))
             .ToList();
@@ -297,14 +318,16 @@ public class SpreadsheetNoteTests
         Assert.DoesNotContain($"xl/worksheets/_rels/sheet{(noteInSecondSheet ? 1 : 2)}.xml.rels", filenames);
     }
 
-    [Fact]
-    public async Task Spreadsheet_AddNote_NotesInMultipleWorksheets()
+    [Theory]
+    [InlineData(3)]
+    [InlineData(10)]
+    [InlineData(1000)]
+    public async Task Spreadsheet_AddNote_NotesInMultipleWorksheets(int count)
     {
         // Arrange
-        const int noteCount = 3;
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        var notes = Enumerable.Range(1, noteCount)
+        var notes = Enumerable.Range(1, count)
             .Select(x => SpreadsheetUtility.GetColumnName(x) + x)
             .Select(x => (Reference: x, NoteText: "Note for " + x))
             .ToList();
