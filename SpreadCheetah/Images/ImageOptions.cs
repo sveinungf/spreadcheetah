@@ -12,8 +12,6 @@ public sealed class ImageOptions
     public bool ResizeWithCells { get; set; }
 
     // TODO: Offsets. Future version?
-
-    // TODO: Use "Picture" instead of "Image" across the board, since that is what Excel is doing
     // TODO: For MoveAndSizeWithCells to work, the bottom right corner must reference a cell
 
     internal ImageAnchor GetAnchor()
