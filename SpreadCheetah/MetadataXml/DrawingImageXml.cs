@@ -87,9 +87,17 @@ internal struct DrawingImageXml
 
         // TODO: Support sizing
         // TODO: Subtract offsets
-        // Convert pixels to EMU by multiplying with 9525
-        var toColumnOffset = _image.Image.ActualImageWidth * 9525;
-        var toRowOffset = _image.Image.ActualImageHeight * 9525;
+        var image = _image.Image;
+
+        var (widthInPixels, heightInPixels) = image.DesiredSize switch
+        {
+            { DimensionsValue: (int width, int height) } => (width, height),
+            { ScaleValue: decimal scale } => ((int)(image.OriginalDimensions.Width * scale), (int)(image.OriginalDimensions.Height * scale)),
+            _ => image.OriginalDimensions
+        };
+
+        var toColumnOffset = widthInPixels.PixelsToEmu();
+        var toRowOffset = heightInPixels.PixelsToEmu();
 
         if (!TryWriteAnchorPart(span, ref written, column, row, toColumnOffset, toRowOffset)) return false;
 

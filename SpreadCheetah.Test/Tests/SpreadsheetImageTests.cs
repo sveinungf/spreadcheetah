@@ -1,5 +1,6 @@
 using ClosedXML.Excel;
 using ClosedXML.Excel.Drawings;
+using OfficeOpenXml;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using SpreadCheetah.Images;
 using SpreadCheetah.Test.Helpers;
@@ -463,4 +464,36 @@ public class SpreadsheetImageTests
         var concreteException = Assert.IsType<ArgumentException>(exception);
         Assert.Contains(nameof(ImageOptions.ResizeWithCells), concreteException.Message, StringComparison.Ordinal);
     }
+
+    [Theory]
+    [InlineData(1, 1)]
+    [InlineData(10, 20)]
+    [InlineData(266, 183)]
+    [InlineData(1000, 1000)]
+    public async Task Spreadsheet_AddImage_PngWithCustomDimension(int width, int height)
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+
+        // Act
+        var options = new ImageOptions { Size = ImageSize.Dimensions(width, height) };
+        spreadsheet.AddImage("D4", embeddedImage, options);
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        using var package = new ExcelPackage(outputStream);
+        var worksheet = Assert.Single(package.Workbook.Worksheets);
+        var drawing = Assert.Single(worksheet.Drawings);
+        var (actualWidth, actualHeight) = drawing.GetActualDimensions();
+        Assert.Equal(width, actualWidth);
+        Assert.Equal(height, actualHeight);
+    }
+
+    // TODO: Test for custom scale
 }

@@ -65,6 +65,7 @@ internal static class ZipArchiveExtensions
 
     private static (int Width, int Height) ReadPngDimensions(ReadOnlySpan<byte> bytes)
     {
+        // TODO: Sanity check for the read values
         var width = BinaryPrimitives.ReadInt32BigEndian(bytes);
         var height = BinaryPrimitives.ReadInt32BigEndian(bytes.Slice(4));
         return (width, height);

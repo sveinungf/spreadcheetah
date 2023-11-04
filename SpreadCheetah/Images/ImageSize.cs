@@ -9,23 +9,25 @@ public sealed class ImageSize
     {
     }
 
-    public static ImageSize Scale(decimal scale)
-    {
-        return new ImageSize { ScaleValue = scale };
-    }
-
     public static ImageSize Dimensions(int width, int height)
     {
+        // TODO: Sanity check for arguments
         return new ImageSize { DimensionsValue = (width, height) };
     }
 
-    public static ImageSize FillCell()
+    public static ImageSize Scale(decimal scale)
     {
-        return new ImageSize();
+        // TODO: Sanity check for argument
+        return new ImageSize { ScaleValue = scale };
     }
 
-    public static ImageSize FitCell(int columnWidth, int rowHeight)
-    {
-        return new ImageSize();
-    }
+    // TODO: Fill cell option: A way of doing this could be to pass two cell references when adding images. Can fill multiple cells this way.
+
+    // TODO: Fit cell option: Keep aspect ratio, but with maximum image size inside a cell (or multiple cells).
+    // TODO: Should probably pass two cell references for this option as well, otherwise resizing with cells won't work.
+    // TODO: Should have some alignment option as well? But that won't work with offsets.
+    // TODO: Will need to know column widths and row heights. Pass these as arguments? Note: Can be for multiple columns/rows.
+    // TODO: Perhaps this option can come in a later version.
+
+    // TODO: Different image options when adding for a single cell reference compared to for two cell references?
 }
