@@ -418,6 +418,33 @@ public class SpreadsheetImageTests
         Assert.Contains("spreadsheet", concreteException.Message, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Theory]
+    [InlineData(true, true, XLPicturePlacement.MoveAndSize)]
+    [InlineData(true, false, XLPicturePlacement.Move)]
+    [InlineData(false, false, XLPicturePlacement.FreeFloating)]
+    public async Task Spreadsheet_AddImage_Anchor(bool moveWithCells, bool resizeWithCells, XLPicturePlacement expectedPlacement)
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        var options = new ImageOptions { MoveWithCells = moveWithCells, ResizeWithCells = resizeWithCells };
+
+        // Act
+        spreadsheet.AddImage("A1", embeddedImage, options);
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        using var workbook = new XLWorkbook(outputStream);
+        var worksheet = workbook.Worksheets.Single();
+        var picture = Assert.Single(worksheet.Pictures);
+        Assert.Equal(expectedPlacement, picture.Placement);
+    }
+
     [Fact]
     public async Task Spreadsheet_AddImage_InvalidAnchor()
     {

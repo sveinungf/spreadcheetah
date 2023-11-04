@@ -1,13 +1,14 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
+using System.Diagnostics;
 
 namespace SpreadCheetah.MetadataXml;
 
 internal struct DrawingImageXml
 {
     // TODO: twoCellAnchor?
-    // TODO: Parameter for editAs (oneCell/twoCell/absolute)
-    private static ReadOnlySpan<byte> ImageStart => """<xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>"""u8;
+    private static ReadOnlySpan<byte> ImageStart => "<xdr:twoCellAnchor editAs=\""u8;
+    private static ReadOnlySpan<byte> AnchorStart => "\"><xdr:from><xdr:col>"u8;
     private static ReadOnlySpan<byte> AnchorEnd => """</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="""u8 + "\""u8;
     private static ReadOnlySpan<byte> ImageIdEnd => "\""u8 + """ name="Image """u8;
     private static ReadOnlySpan<byte> NameEnd => "\" "u8 + """descr=""></xdr:cNvPr><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId"""u8;
@@ -30,7 +31,7 @@ internal struct DrawingImageXml
     {
         bytesWritten = 0;
 
-        if (_next == Element.ImageStart && !Advance(ImageStart.TryCopyTo(bytes, ref bytesWritten))) return false;
+        if (_next == Element.ImageStart && !Advance(TryWriteImageStart(bytes, ref bytesWritten))) return false;
         if (_next == Element.Anchor && !Advance(TryWriteAnchor(bytes, ref bytesWritten))) return false;
         if (_next == Element.ImageEnd && !Advance(TryWriteImageEnd(bytes, ref bytesWritten))) return false;
 
@@ -43,6 +44,30 @@ internal struct DrawingImageXml
             ++_next;
 
         return success;
+    }
+
+    private readonly bool TryWriteImageStart(Span<byte> bytes, ref int bytesWritten)
+    {
+        var span = bytes.Slice(bytesWritten);
+        var written = 0;
+
+        if (!ImageStart.TryCopyTo(span, ref written)) return false;
+
+        var anchorAttribute = _image.Image.Anchor switch
+        {
+            ImageAnchor.OneCell => "oneCell"u8,
+            ImageAnchor.TwoCell => "twoCell"u8,
+            ImageAnchor.Absolute => "absolute"u8,
+            _ => ReadOnlySpan<byte>.Empty,
+        };
+
+        Debug.Assert(!anchorAttribute.IsEmpty);
+
+        if (!anchorAttribute.TryCopyTo(span, ref written)) return false;
+        if (!AnchorStart.TryCopyTo(span, ref written)) return false;
+
+        bytesWritten += written;
+        return true;
     }
 
     private readonly bool TryWriteAnchor(Span<byte> bytes, ref int bytesWritten)
