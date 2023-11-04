@@ -141,7 +141,6 @@ internal struct ContentTypesXml : IXmlWriter
         return true;
     }
 
-    // TODO: Test for many worksheets that have notes
     private bool TryWriteComments(Span<byte> bytes, ref int bytesWritten)
     {
         if (_fileCounter is not { } counter)
