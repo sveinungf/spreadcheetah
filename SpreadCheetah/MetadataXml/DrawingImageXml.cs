@@ -6,7 +6,7 @@ namespace SpreadCheetah.MetadataXml;
 internal struct DrawingImageXml
 {
     // TODO: twoCellAnchor?
-    // TODO: Parameter for editAs
+    // TODO: Parameter for editAs (oneCell/twoCell/absolute)
     private static ReadOnlySpan<byte> ImageStart => """<xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>"""u8;
     private static ReadOnlySpan<byte> AnchorEnd => """</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="""u8 + "\""u8;
     private static ReadOnlySpan<byte> ImageIdEnd => "\""u8 + """ name="Image """u8;

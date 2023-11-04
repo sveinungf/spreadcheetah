@@ -1,3 +1,4 @@
+using SpreadCheetah.Images;
 using System.Diagnostics.CodeAnalysis;
 
 namespace SpreadCheetah.Helpers;
@@ -36,6 +37,9 @@ internal static class ThrowHelper
 
     [DoesNotReturn]
     public static void NoteTextTooLong(string? paramName) => throw new ArgumentException("Note text can not exceed " + SpreadsheetConstants.MaxNoteTextLength + " characters.", paramName);
+
+    [DoesNotReturn]
+    public static void ResizeWithCellsNotSupportedWhenMoveWithCells(string? paramName) => throw new ArgumentException($"Enabling {nameof(ImageOptions)}.{nameof(ImageOptions.ResizeWithCells)} is not supported when {nameof(ImageOptions)}.{nameof(ImageOptions.MoveWithCells)} is false.", paramName);
 
     [DoesNotReturn]
     public static void SpreadsheetMustContainWorksheet() => throw new SpreadCheetahException("Spreadsheet must contain at least one worksheet.");

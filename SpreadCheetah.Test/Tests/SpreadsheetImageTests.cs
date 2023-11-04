@@ -417,4 +417,23 @@ public class SpreadsheetImageTests
         var concreteException = Assert.IsType<SpreadCheetahException>(exception);
         Assert.Contains("spreadsheet", concreteException.Message, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public async Task Spreadsheet_AddImage_InvalidAnchor()
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        var options = new ImageOptions { MoveWithCells = false, ResizeWithCells = true };
+
+        // Act
+        var exception = Record.Exception(() => spreadsheet.AddImage("A1", embeddedImage, options));
+
+        // Assert
+        var concreteException = Assert.IsType<ArgumentException>(exception);
+        Assert.Contains(nameof(ImageOptions.ResizeWithCells), concreteException.Message, StringComparison.Ordinal);
+    }
 }
