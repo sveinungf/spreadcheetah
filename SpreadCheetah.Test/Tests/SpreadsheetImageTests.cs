@@ -495,5 +495,36 @@ public class SpreadsheetImageTests
         Assert.Equal(height, actualHeight);
     }
 
-    // TODO: Test for custom scale
+    [Theory]
+    [InlineData(0.1, 27, 18)]
+    [InlineData(0.5, 133, 92)]
+    [InlineData(1.0, 266, 183)]
+    [InlineData(13.37, 3556, 2447)]
+    [InlineData(375.0, 99750, 68625)]
+    public async Task Spreadsheet_AddImage_PngWithCustomScale(decimal scale, int expectedWidth, int expectedHeight)
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+
+        // Act
+        var options = new ImageOptions { Size = ImageSize.Scale(scale) };
+        spreadsheet.AddImage("D4", embeddedImage, options);
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        using var package = new ExcelPackage(outputStream);
+        var worksheet = Assert.Single(package.Workbook.Worksheets);
+        var drawing = Assert.Single(worksheet.Drawings);
+        var (actualWidth, actualHeight) = drawing.GetActualDimensions();
+        Assert.Equal(expectedWidth, actualWidth);
+        Assert.Equal(expectedHeight, actualHeight);
+    }
+
+    // TODO: Test for scaling too much, by 0, and by negative should fail
 }

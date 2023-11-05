@@ -26,7 +26,7 @@ public sealed class ImageSize
     // TODO: Fit cell option: Keep aspect ratio, but with maximum image size inside a cell (or multiple cells).
     // TODO: Should probably pass two cell references for this option as well, otherwise resizing with cells won't work.
     // TODO: Should have some alignment option as well? But that won't work with offsets.
-    // TODO: Will need to know column widths and row heights. Pass these as arguments? Note: Can be for multiple columns/rows.
+    // TODO: Will need to know column widths and row heights. Column widths should be known. Total row height should be passed as argument? Note: Can be for multiple columns/rows.
     // TODO: Perhaps this option can come in a later version.
 
     // TODO: Different image options when adding for a single cell reference compared to for two cell references?

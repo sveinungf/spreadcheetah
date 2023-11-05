@@ -92,7 +92,7 @@ internal struct DrawingImageXml
         var (widthInPixels, heightInPixels) = image.DesiredSize switch
         {
             { DimensionsValue: (int width, int height) } => (width, height),
-            { ScaleValue: decimal scale } => ((int)(image.OriginalDimensions.Width * scale), (int)(image.OriginalDimensions.Height * scale)),
+            { ScaleValue: decimal scale } => image.OriginalDimensions.Scale(scale),
             _ => image.OriginalDimensions
         };
 
