@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah.Helpers;
 
@@ -8,6 +9,14 @@ internal static class IntegerExtensions
     public static int PixelsToEmu(this int n) => n * 9525;
 
     public static string ToStringInvariant(this int n) => n.ToString(CultureInfo.InvariantCulture);
+
+    public static void EnsureValidImageDimension(this int value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
+    {
+        if (value <= 0)
+            ThrowHelper.ImageDimensionZeroOrNegative(paramName, value);
+        if (value > SpreadsheetConstants.MaxImageDimension)
+            ThrowHelper.ImageDimensionTooLarge(paramName, value);
+    }
 
     public static (int Width, int Height) Scale(this (int Width, int Height) dimensions, decimal scale)
     {

@@ -24,7 +24,7 @@ internal static class ThrowHelper
     public static void EnumValueInvalid<T>(string? paramName, T value) => throw new ArgumentOutOfRangeException(paramName, value, "The value is not a valid enum value.");
 
     [DoesNotReturn]
-    public static void MaxNumberOfDataValidations() => throw new SpreadCheetahException("Can't add more than " + SpreadsheetConstants.MaxNumberOfDataValidations + " data validations to a worksheet.");
+    public static void MaxNumberOfDataValidations() => throw new SpreadCheetahException($"Can't add more than {SpreadsheetConstants.MaxNumberOfDataValidations} data validations to a worksheet.");
 
     [DoesNotReturn]
     public static void NoActiveWorksheet() => throw new SpreadCheetahException("There is no active worksheet.");
@@ -33,10 +33,16 @@ internal static class ThrowHelper
     public static void EmbedImageBeforeStartingWorksheet() => throw new SpreadCheetahException("Images must be embedded before starting a worksheet.");
 
     [DoesNotReturn]
-    public static void EmbedImageNotAllowedAfterFinish() => throw new SpreadCheetahException("Can't embed image after " + nameof(Spreadsheet.FinishAsync) + " has been called.");
+    public static void EmbedImageNotAllowedAfterFinish() => throw new SpreadCheetahException($"Can't embed image after {nameof(Spreadsheet.FinishAsync)} has been called.");
 
     [DoesNotReturn]
-    public static void NoteTextTooLong(string? paramName) => throw new ArgumentException("Note text can not exceed " + SpreadsheetConstants.MaxNoteTextLength + " characters.", paramName);
+    public static void ImageDimensionTooLarge(string? paramName, int actualValue) => throw new ArgumentOutOfRangeException(paramName, actualValue, $"Image width and height can't exceed {SpreadsheetConstants.MaxImageDimension} pixels.");
+
+    [DoesNotReturn]
+    public static void ImageDimensionZeroOrNegative(string? paramName, int actualValue) => throw new ArgumentOutOfRangeException(paramName, actualValue, "Image width and height must be greater than 0 pixels.");
+
+    [DoesNotReturn]
+    public static void NoteTextTooLong(string? paramName) => throw new ArgumentException($"Note text can not exceed {SpreadsheetConstants.MaxNoteTextLength} characters.", paramName);
 
     [DoesNotReturn]
     public static void ResizeWithCellsNotSupportedWhenMoveWithCells(string? paramName) => throw new ArgumentException($"Enabling {nameof(ImageOptions)}.{nameof(ImageOptions.ResizeWithCells)} is not supported when {nameof(ImageOptions)}.{nameof(ImageOptions.MoveWithCells)} is false.", paramName);
@@ -45,7 +51,7 @@ internal static class ThrowHelper
     public static void SpreadsheetMustContainWorksheet() => throw new SpreadCheetahException("Spreadsheet must contain at least one worksheet.");
 
     [DoesNotReturn]
-    public static void StartWorksheetNotAllowedAfterFinish() => throw new SpreadCheetahException("Can't start another worksheet after " + nameof(Spreadsheet.FinishAsync) + " has been called.");
+    public static void StartWorksheetNotAllowedAfterFinish() => throw new SpreadCheetahException($"Can't start another worksheet after {nameof(Spreadsheet.FinishAsync)} has been called.");
 
     [DoesNotReturn]
     public static void StreamDoesNotSupportReading(string? paramName) => throw new ArgumentException("The stream does not support reading.", paramName);

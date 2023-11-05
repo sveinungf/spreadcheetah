@@ -526,5 +526,7 @@ public class SpreadsheetImageTests
         Assert.Equal(expectedHeight, actualHeight);
     }
 
+    // TODO: Test for embedding image with invalid dimensions
     // TODO: Test for scaling too much, by 0, and by negative should fail
+    // TODO: Test for transparent image
 }

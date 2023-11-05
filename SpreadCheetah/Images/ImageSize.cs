@@ -1,3 +1,5 @@
+using SpreadCheetah.Helpers;
+
 namespace SpreadCheetah.Images;
 
 public sealed class ImageSize
@@ -11,7 +13,8 @@ public sealed class ImageSize
 
     public static ImageSize Dimensions(int width, int height)
     {
-        // TODO: Sanity check for arguments
+        width.EnsureValidImageDimension();
+        height.EnsureValidImageDimension();
         return new ImageSize { DimensionsValue = (width, height) };
     }
 
