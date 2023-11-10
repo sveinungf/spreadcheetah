@@ -505,11 +505,15 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ThrowHelper.CantAddImageEmbeddedInOtherSpreadsheet();
 
         var reference = SingleCellRelativeReference.Create(cellReference);
+        if (options is not null)
+            image.EnsureValidOptions(options);
+
         var anchor = options?.GetAnchor() ?? ImageAnchor.OneCell;
         if (anchor == ImageAnchor.None)
             ThrowHelper.ResizeWithCellsNotSupportedWhenMoveWithCells(nameof(options));
 
-        var immutableImage = new ImmutableImage(image.Id, (image.Width, image.Height), anchor, options?.Size);
+        var originalDimensions = (image.Width, image.Height);
+        var immutableImage = new ImmutableImage(image.Id, originalDimensions, anchor, options?.Size);
 
         _fileCounter ??= new FileCounter();
         _fileCounter.TotalAddedImages++;

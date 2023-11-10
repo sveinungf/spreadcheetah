@@ -1,4 +1,6 @@
+using SpreadCheetah.Helpers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah.Images;
 
@@ -20,5 +22,16 @@ public sealed class EmbeddedImage
         Height = height;
         Id = id;
         SpreadsheetGuid = spreadsheetGuid;
+    }
+
+    internal void EnsureValidOptions(ImageOptions options, [CallerArgumentExpression(nameof(options))] string? paramName = null)
+    {
+        var originalDimensions = (Width, Height);
+        if (options.Size?.ScaleValue is { } scale)
+        {
+            var (width, height) = originalDimensions.Scale(scale);
+            width.EnsureValidImageDimension(paramName);
+            height.EnsureValidImageDimension(paramName);
+        }
     }
 }

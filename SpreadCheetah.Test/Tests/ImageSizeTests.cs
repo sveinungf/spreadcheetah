@@ -16,4 +16,13 @@ public class ImageSizeTests
     {
         Assert.ThrowsAny<ArgumentOutOfRangeException>(() => ImageSize.Dimensions(width, height));
     }
+
+    [Theory]
+    [InlineData(-0.1)]
+    [InlineData(0.0)]
+    [InlineData(1001)]
+    public void ImageSize_Scale_Invalid(decimal scale)
+    {
+        Assert.ThrowsAny<ArgumentOutOfRangeException>(() => ImageSize.Scale(scale));
+    }
 }

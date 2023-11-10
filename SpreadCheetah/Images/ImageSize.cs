@@ -13,14 +13,18 @@ public sealed class ImageSize
 
     public static ImageSize Dimensions(int width, int height)
     {
-        width.EnsureValidImageDimension();
-        height.EnsureValidImageDimension();
+        width.EnsureValidImageDimension(nameof(width));
+        height.EnsureValidImageDimension(nameof(height));
         return new ImageSize { DimensionsValue = (width, height) };
     }
 
     public static ImageSize Scale(decimal scale)
     {
-        // TODO: Sanity check for argument
+        if (scale <= 0.0m)
+            ThrowHelper.ImageScaleTooSmall(nameof(scale), scale);
+        if (scale > 1000m)
+            ThrowHelper.ImageScaleTooLarge(nameof(scale), scale);
+
         return new ImageSize { ScaleValue = scale };
     }
 

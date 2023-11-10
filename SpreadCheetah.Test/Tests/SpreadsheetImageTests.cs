@@ -526,7 +526,23 @@ public class SpreadsheetImageTests
         Assert.Equal(expectedHeight, actualHeight);
     }
 
+    [Theory]
+    [InlineData(0.002)]
+    [InlineData(376.0)]
+    public async Task Spreadsheet_AddImage_PngWithInvalidCustomScale(decimal scale)
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        var options = new ImageOptions { Size = ImageSize.Scale(scale) };
+
+        // Act & Assert
+        Assert.ThrowsAny<ArgumentOutOfRangeException>(() => spreadsheet.AddImage("D4", embeddedImage, options));
+    }
+
     // TODO: Test for embedding image with invalid dimensions
-    // TODO: Test for scaling too much, by 0, and by negative should fail
     // TODO: Test for transparent image
 }
