@@ -76,7 +76,7 @@ internal struct DrawingImageXml
         var span = bytes.Slice(bytesWritten);
         var written = 0;
 
-        // TODO: Upper-left offsets
+        // TODO: Handle custom upper-left offsets
         const int fromColumnOffset = 0;
         const int fromRowOffset = 0;
 
@@ -88,31 +88,27 @@ internal struct DrawingImageXml
 
         var image = _image.Image;
 
-        if (image.DesiredSize is { FillCellValue: true } size)
+        var (widthInPixels, heightInPixels) = image.DesiredSize switch
         {
-            var (toColumn, toRow) = size.FillCellRangeLowerRightReference is { } lowerRight
-                ? (lowerRight.Column - 1, lowerRight.Row - 1)
-                : (column + 1, row + 1);
+            { DimensionsValue: (int width, int height) } => (width, height),
+            { ScaleValue: { } scale } => image.OriginalDimensions.Scale(scale),
+            _ => image.OriginalDimensions
+        };
 
-            // TODO: Lower-right offsets
-            if (!TryWriteAnchorPart(span, ref written, toColumn, toRow, 0, 0)) return false;
-        }
-        else
+        var (toColumn, toRow) = image.DesiredSize switch
         {
-            var (widthInPixels, heightInPixels) = image.DesiredSize switch
-            {
-                { DimensionsValue: (int width, int height) } => (width, height),
-                { ScaleValue: { } scale } => image.OriginalDimensions.Scale(scale),
-                _ => image.OriginalDimensions
-            };
+            { FillCellValue: false } => (column, row),
+            { FillCellRangeLowerRightReference: { } lowerRight } => (lowerRight.Column - 1, lowerRight.Row - 1),
+            _ => (column + 1, row + 1)
+        };
 
-            // TODO: Can use a number with a unit identifier? (http://officeopenxml.com/drwPicInSpread-oneCell.php)
-            // TODO: Lower-right offsets
-            var toColumnOffset = widthInPixels.PixelsToEmu();
-            var toRowOffset = heightInPixels.PixelsToEmu();
+        // TODO: Can use a number with a unit identifier? (http://officeopenxml.com/drwPicInSpread-oneCell.php)
+        // TODO: Handle custom lower-right offsets
+        var (toColumnOffset, toRowOffset) = image.DesiredSize is { FillCellValue: true }
+            ? (0, 0)
+            : (widthInPixels.PixelsToEmu(), heightInPixels.PixelsToEmu());
 
-            if (!TryWriteAnchorPart(span, ref written, column, row, toColumnOffset, toRowOffset)) return false;
-        }
+        if (!TryWriteAnchorPart(span, ref written, toColumn, toRow, toColumnOffset, toRowOffset)) return false;
 
         bytesWritten += written;
         return true;
