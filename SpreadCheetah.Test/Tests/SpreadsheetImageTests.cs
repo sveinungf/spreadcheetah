@@ -562,7 +562,10 @@ public class SpreadsheetImageTests
         await spreadsheet.FinishAsync();
         SpreadsheetAssert.Valid(outputStream);
 
-        // TODO: More assertions
+        using var package = new ExcelPackage(outputStream);
+        var worksheet = Assert.Single(package.Workbook.Worksheets);
+        var drawing = Assert.Single(worksheet.Drawings);
+        Assert.Equal("C4", drawing.To.ToCellReferenceString());
     }
 
     [Theory]
@@ -588,7 +591,10 @@ public class SpreadsheetImageTests
         await spreadsheet.FinishAsync();
         SpreadsheetAssert.Valid(outputStream);
 
-        // TODO: More assertions
+        using var package = new ExcelPackage(outputStream);
+        var worksheet = Assert.Single(package.Workbook.Worksheets);
+        var drawing = Assert.Single(worksheet.Drawings);
+        Assert.Equal(lowerRightReference, drawing.To.ToCellReferenceString());
     }
 
     // TODO: Test for adding image with invalid reference for lowerRightReference
