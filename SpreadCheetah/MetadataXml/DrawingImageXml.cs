@@ -6,12 +6,16 @@ namespace SpreadCheetah.MetadataXml;
 
 internal struct DrawingImageXml
 {
-    // TODO: twoCellAnchor?
+    // TODO: twoCellAnchor? Use oneCellAnchor in some cases (http://officeopenxml.com/drwPicInSpread-oneCell.php)
+    // TODO: oneCellAnchor has no attributes
+    // TODO: No possibility to resize image with oneCellAnchor?
     private static ReadOnlySpan<byte> ImageStart => "<xdr:twoCellAnchor editAs=\""u8;
     private static ReadOnlySpan<byte> AnchorStart => "\"><xdr:from><xdr:col>"u8;
     private static ReadOnlySpan<byte> AnchorEnd => """</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="""u8 + "\""u8;
     private static ReadOnlySpan<byte> ImageIdEnd => "\""u8 + """ name="Image """u8;
     private static ReadOnlySpan<byte> NameEnd => "\" "u8 + """descr=""></xdr:cNvPr><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId"""u8;
+
+    // TODO: Bounding box size? (http://officeopenxml.com/drwSp-size.php)
     private static ReadOnlySpan<byte> ImageEnd => "\""u8 +
         """></a:blip><a:stretch/></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="1" y="1"/><a:ext cx="1" cy="1"/>"""u8 +
         """</a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:ln w="0"><a:noFill/></a:ln></xdr:spPr>"""u8 +
@@ -96,6 +100,7 @@ internal struct DrawingImageXml
             _ => image.OriginalDimensions
         };
 
+        // TODO: Can use a number with a unit identifier? (http://officeopenxml.com/drwPicInSpread-oneCell.php)
         var toColumnOffset = widthInPixels.PixelsToEmu();
         var toRowOffset = heightInPixels.PixelsToEmu();
 

@@ -9,6 +9,7 @@ public sealed class ImageOptions
     public bool MoveWithCells { get; set; } = true;
 
     // TODO: In XML doc: Can't be set to true if MoveWithCells is false.
+    // TODO: Not relevant when using Size = null, Size.Dimensions, and Size.Scale?
     public bool ResizeWithCells { get; set; }
 
     // TODO: Offsets. Future version?
