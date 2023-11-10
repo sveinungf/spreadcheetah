@@ -547,7 +547,6 @@ public class SpreadsheetImageTests
     public async Task Spreadsheet_AddImage_PngWithFillCell()
     {
         // Arrange
-        const string reference = "B3";
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
@@ -556,7 +555,7 @@ public class SpreadsheetImageTests
         var options = new ImageOptions { Size = ImageSize.FillCell() };
 
         // Act
-        spreadsheet.AddImage(reference, embeddedImage, options);
+        spreadsheet.AddImage("B3", embeddedImage, options);
 
         // Assert
         await spreadsheet.FinishAsync();
@@ -576,7 +575,6 @@ public class SpreadsheetImageTests
     public async Task Spreadsheet_AddImage_PngWithFillCellRange(string lowerRightReference)
     {
         // Arrange
-        const string reference = "B3";
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
@@ -585,7 +583,7 @@ public class SpreadsheetImageTests
         var options = new ImageOptions { Size = ImageSize.FillCellRange(lowerRightReference) };
 
         // Act
-        spreadsheet.AddImage(reference, embeddedImage, options);
+        spreadsheet.AddImage("B3", embeddedImage, options);
 
         // Assert
         await spreadsheet.FinishAsync();
@@ -597,7 +595,25 @@ public class SpreadsheetImageTests
         Assert.Equal(lowerRightReference, drawing.To.ToCellReferenceString());
     }
 
-    // TODO: Test for adding image with invalid reference for lowerRightReference
+    [Theory]
+    [InlineData("A2")]
+    [InlineData("B3")]
+    [InlineData("B4")]
+    [InlineData("C3")]
+    public async Task Spreadsheet_AddImage_PngWithInvalidFillCellRange(string lowerRightReference)
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        var options = new ImageOptions { Size = ImageSize.FillCellRange(lowerRightReference) };
+
+        // Act & Assert
+        Assert.ThrowsAny<ArgumentOutOfRangeException>(() => spreadsheet.AddImage("B3", embeddedImage, options));
+    }
+
     // TODO: Test for embedding image with invalid dimensions
     // TODO: Test for transparent image
 }

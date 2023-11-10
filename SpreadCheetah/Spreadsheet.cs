@@ -505,8 +505,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ThrowHelper.CantAddImageEmbeddedInOtherSpreadsheet();
 
         var reference = SingleCellRelativeReference.Create(upperLeftCellReference);
-        if (options is not null)
-            image.EnsureValidOptions(options);
+        options?.EnsureValidFor(reference, image, nameof(options));
 
         var anchor = options?.GetAnchor() ?? ImageAnchor.OneCell;
         if (anchor == ImageAnchor.None)
