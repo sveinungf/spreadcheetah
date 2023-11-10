@@ -496,15 +496,15 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return await _archive.CreateImageEntryAsync(stream, _compressionLevel, buffer, imageType.Value, embeddedImageId, _spreadsheetGuid, token).ConfigureAwait(false);
     }
 
-    public void AddImage(string cellReference, EmbeddedImage image, ImageOptions? options = null)
+    public void AddImage(string upperLeftCellReference, EmbeddedImage image, ImageOptions? options = null)
     {
-        ArgumentNullException.ThrowIfNull(cellReference);
+        ArgumentNullException.ThrowIfNull(upperLeftCellReference);
         ArgumentNullException.ThrowIfNull(image);
 
         if (_spreadsheetGuid != image.SpreadsheetGuid)
             ThrowHelper.CantAddImageEmbeddedInOtherSpreadsheet();
 
-        var reference = SingleCellRelativeReference.Create(cellReference);
+        var reference = SingleCellRelativeReference.Create(upperLeftCellReference);
         if (options is not null)
             image.EnsureValidOptions(options);
 
