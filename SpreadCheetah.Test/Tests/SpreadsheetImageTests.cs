@@ -543,6 +543,55 @@ public class SpreadsheetImageTests
         Assert.ThrowsAny<ArgumentOutOfRangeException>(() => spreadsheet.AddImage("D4", embeddedImage, options));
     }
 
+    [Fact]
+    public async Task Spreadsheet_AddImage_PngWithFillCell()
+    {
+        // Arrange
+        const string reference = "B3";
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        var options = new ImageOptions { Size = ImageSize.FillCell() };
+
+        // Act
+        spreadsheet.AddImage(reference, embeddedImage, options);
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        // TODO: More assertions
+    }
+
+    [Theory]
+    [InlineData("C4")]
+    [InlineData("C20")]
+    [InlineData("D7")]
+    [InlineData("P4")]
+    public async Task Spreadsheet_AddImage_PngWithFillCellRange(string lowerRightReference)
+    {
+        // Arrange
+        const string reference = "B3";
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        var options = new ImageOptions { Size = ImageSize.FillCellRange(lowerRightReference) };
+
+        // Act
+        spreadsheet.AddImage(reference, embeddedImage, options);
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        // TODO: More assertions
+    }
+
+    // TODO: Test for adding image with invalid reference for lowerRightReference
     // TODO: Test for embedding image with invalid dimensions
     // TODO: Test for transparent image
 }

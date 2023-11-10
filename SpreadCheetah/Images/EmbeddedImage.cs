@@ -33,5 +33,7 @@ public sealed class EmbeddedImage
             width.EnsureValidImageDimension(paramName);
             height.EnsureValidImageDimension(paramName);
         }
+
+        // TODO: Verify that FillCell lower right reference is not invalid. Both column and row must be at least 1 greater than upperLeft for image.
     }
 }

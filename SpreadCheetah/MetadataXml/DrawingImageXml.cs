@@ -6,9 +6,6 @@ namespace SpreadCheetah.MetadataXml;
 
 internal struct DrawingImageXml
 {
-    // TODO: twoCellAnchor? Use oneCellAnchor in some cases (http://officeopenxml.com/drwPicInSpread-oneCell.php)
-    // TODO: oneCellAnchor has no attributes
-    // TODO: No possibility to resize image with oneCellAnchor?
     private static ReadOnlySpan<byte> ImageStart => "<xdr:twoCellAnchor editAs=\""u8;
     private static ReadOnlySpan<byte> AnchorStart => "\"><xdr:from><xdr:col>"u8;
     private static ReadOnlySpan<byte> AnchorEnd => """</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="""u8 + "\""u8;
@@ -89,22 +86,33 @@ internal struct DrawingImageXml
         if (!TryWriteAnchorPart(span, ref written, column, row, fromColumnOffset, fromRowOffset)) return false;
         if (!"</xdr:rowOff></xdr:from><xdr:to><xdr:col>"u8.TryCopyTo(span, ref written)) return false;
 
-        // TODO: Support sizing
-        // TODO: Subtract offsets
         var image = _image.Image;
 
-        var (widthInPixels, heightInPixels) = image.DesiredSize switch
+        if (image.DesiredSize is { FillCellValue: true } size)
         {
-            { DimensionsValue: (int width, int height) } => (width, height),
-            { ScaleValue: { } scale } => image.OriginalDimensions.Scale(scale),
-            _ => image.OriginalDimensions
-        };
+            var (toColumn, toRow) = size.FillCellRangeLowerRightReference is { } lowerRight
+                ? (lowerRight.Column - 1, lowerRight.Row - 1)
+                : (column + 1, row + 1);
 
-        // TODO: Can use a number with a unit identifier? (http://officeopenxml.com/drwPicInSpread-oneCell.php)
-        var toColumnOffset = widthInPixels.PixelsToEmu();
-        var toRowOffset = heightInPixels.PixelsToEmu();
+            // TODO: Lower-right offsets
+            if (!TryWriteAnchorPart(span, ref written, toColumn, toRow, 0, 0)) return false;
+        }
+        else
+        {
+            var (widthInPixels, heightInPixels) = image.DesiredSize switch
+            {
+                { DimensionsValue: (int width, int height) } => (width, height),
+                { ScaleValue: { } scale } => image.OriginalDimensions.Scale(scale),
+                _ => image.OriginalDimensions
+            };
 
-        if (!TryWriteAnchorPart(span, ref written, column, row, toColumnOffset, toRowOffset)) return false;
+            // TODO: Can use a number with a unit identifier? (http://officeopenxml.com/drwPicInSpread-oneCell.php)
+            // TODO: Lower-right offsets
+            var toColumnOffset = widthInPixels.PixelsToEmu();
+            var toRowOffset = heightInPixels.PixelsToEmu();
+
+            if (!TryWriteAnchorPart(span, ref written, column, row, toColumnOffset, toRowOffset)) return false;
+        }
 
         bytesWritten += written;
         return true;
