@@ -76,24 +76,17 @@ internal struct DrawingImageXml
         var span = bytes.Slice(bytesWritten);
         var written = 0;
 
-        // TODO: Handle custom upper-left offsets
-        const int fromColumnOffset = 0;
-        const int fromRowOffset = 0;
+        var image = _image.Image;
+
+        // TODO: Verify that Left and Top is correct here
+        var fromColumnOffset = image.Offset?.Left.PixelsToEmu() ?? 0;
+        var fromRowOffset = image.Offset?.Top.PixelsToEmu() ?? 0;
 
         var column = _image.Reference.Column - 1;
         var row = _image.Reference.Row - 1;
 
         if (!TryWriteAnchorPart(span, ref written, column, row, fromColumnOffset, fromRowOffset)) return false;
         if (!"</xdr:rowOff></xdr:from><xdr:to><xdr:col>"u8.TryCopyTo(span, ref written)) return false;
-
-        var image = _image.Image;
-
-        var (widthInPixels, heightInPixels) = image.DesiredSize switch
-        {
-            { DimensionsValue: (int width, int height) } => (width, height),
-            { ScaleValue: { } scale } => image.OriginalDimensions.Scale(scale),
-            _ => image.OriginalDimensions
-        };
 
         var (toColumn, toRow) = image.DesiredSize switch
         {
@@ -102,28 +95,38 @@ internal struct DrawingImageXml
             _ => (column + 1, row + 1)
         };
 
-        // TODO: Can use a number with a unit identifier? (http://officeopenxml.com/drwPicInSpread-oneCell.php)
-        // TODO: Handle custom lower-right offsets
         var (toColumnOffset, toRowOffset) = image.DesiredSize is { FillCellValue: true }
-            ? (0, 0)
-            : (widthInPixels.PixelsToEmu(), heightInPixels.PixelsToEmu());
+            ? (image.Offset?.Right ?? 0, image.Offset?.Bottom ?? 0) // TODO: Only offsets here correct? And Right/Bottom is correct?
+            : CalculateOffsetsFromDimensions(image);
 
         if (!TryWriteAnchorPart(span, ref written, toColumn, toRow, toColumnOffset, toRowOffset)) return false;
 
         bytesWritten += written;
         return true;
+    }
 
-        static bool TryWriteAnchorPart(Span<byte> bytes, ref int bytesWritten, int column, int row, int columnOffset, int rowOffset)
+    private static bool TryWriteAnchorPart(Span<byte> bytes, ref int bytesWritten, int column, int row, int columnOffset, int rowOffset)
+    {
+        if (!SpanHelper.TryWrite(column, bytes, ref bytesWritten)) return false;
+        if (!"</xdr:col><xdr:colOff>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
+        if (!SpanHelper.TryWrite(columnOffset, bytes, ref bytesWritten)) return false;
+        if (!"</xdr:colOff><xdr:row>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
+        if (!SpanHelper.TryWrite(row, bytes, ref bytesWritten)) return false;
+        if (!"</xdr:row><xdr:rowOff>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
+        if (!SpanHelper.TryWrite(rowOffset, bytes, ref bytesWritten)) return false;
+        return true;
+    }
+
+    private static (int ColumnOffset, int RowOffset) CalculateOffsetsFromDimensions(in ImmutableImage image)
+    {
+        var (actualWidth, actualHeight) = image.DesiredSize switch
         {
-            if (!SpanHelper.TryWrite(column, bytes, ref bytesWritten)) return false;
-            if (!"</xdr:col><xdr:colOff>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
-            if (!SpanHelper.TryWrite(columnOffset, bytes, ref bytesWritten)) return false;
-            if (!"</xdr:colOff><xdr:row>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
-            if (!SpanHelper.TryWrite(row, bytes, ref bytesWritten)) return false;
-            if (!"</xdr:row><xdr:rowOff>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
-            if (!SpanHelper.TryWrite(rowOffset, bytes, ref bytesWritten)) return false;
-            return true;
-        }
+            { DimensionsValue: (int width, int height) } => (width, height),
+            { ScaleValue: { } scale } => image.OriginalDimensions.Scale(scale),
+            _ => image.OriginalDimensions
+        };
+
+        return (actualWidth.PixelsToEmu(), actualHeight.PixelsToEmu());
     }
 
     private readonly bool TryWriteImageEnd(Span<byte> bytes, ref int bytesWritten)

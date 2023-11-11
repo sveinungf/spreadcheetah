@@ -7,6 +7,7 @@ namespace SpreadCheetah.Images;
 public sealed class ImageOptions
 {
     public ImageSize? Size { get; set; }
+    public ImageOffset? Offset { get; set; }
 
     public bool MoveWithCells { get; set; } = true;
 
@@ -14,7 +15,6 @@ public sealed class ImageOptions
     // TODO: Not relevant when using Size = null, Size.Dimensions, and Size.Scale?
     public bool ResizeWithCells { get; set; }
 
-    // TODO: Offsets. Future version?
     // TODO: For MoveAndSizeWithCells to work, the bottom right corner must reference a cell
 
     internal ImageAnchor GetAnchor()

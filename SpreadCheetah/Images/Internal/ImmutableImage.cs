@@ -4,4 +4,5 @@ internal readonly record struct ImmutableImage(
     int EmbeddedImageId,
     (int Width, int Height) OriginalDimensions,
     ImageAnchor Anchor,
-    ImageSize? DesiredSize);
+    ImageSize? DesiredSize,
+    ImageOffset? Offset);

@@ -512,7 +512,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ThrowHelper.ResizeWithCellsNotSupportedWhenMoveWithCells(nameof(options));
 
         var originalDimensions = (image.Width, image.Height);
-        var immutableImage = new ImmutableImage(image.Id, originalDimensions, anchor, options?.Size);
+        var immutableImage = new ImmutableImage(image.Id, originalDimensions, anchor, options?.Size, options?.Offset);
 
         _fileCounter ??= new FileCounter();
         _fileCounter.TotalAddedImages++;
