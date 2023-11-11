@@ -18,10 +18,10 @@ SpreadCheetah is designed to create spreadsheet files in a forward-only manner.
 That means worksheets from left to right, rows from top to bottom, and row cells from left to right.
 This allows for creating spreadsheet files in a streaming manner, while also keeping a low memory footprint.
 
-Most basic spreadsheet functionality is supported, such as cells with different data types, basic styling, and formulas. More advanced functionality is planned for future releases. See the list of currently supported spreadsheet functionality [here](https://github.com/sveinungf/spreadcheetah/wiki#supported-spreadsheet-functionality).
+Most basic spreadsheet functionality is supported, such as cells with different data types, basic styling, and formulas. More advanced functionality is planned for future releases. See the list of currently supported spreadsheet functionality [in the wiki](https://github.com/sveinungf/spreadcheetah/wiki#supported-spreadsheet-functionality).
 
 ## How to install
-SpreadCheetah is available as a [NuGet package](https://www.nuget.org/packages/SpreadCheetah). The NuGet package targets .NET Standard 2.0 as well as newer versions of .NET. The .NET Standard 2.0 version is just intended for backwards compatibility (.NET Framework and earlier versions of .NET Core). More optimizations are enabled when targeting newer versions of .NET.
+SpreadCheetah is available as a [package on nuget.org](https://www.nuget.org/packages/SpreadCheetah). The NuGet package targets .NET Standard 2.0 as well as newer versions of .NET. The .NET Standard 2.0 version is intended for backwards compatibility (.NET Framework and earlier versions of .NET Core). More optimizations are enabled when targeting newer versions of .NET.
 
 ## Basic usage
 ```cs
@@ -114,7 +114,7 @@ The source generator can generate rows from classes, records, and structs. It ca
 
 
 ## Benchmarks
-The benchmark results here have been collected using [Benchmark.NET](https://github.com/dotnet/benchmarkdotnet) with the following system configuration:
+The benchmark results here have been collected using [BenchmarkDotNet](https://github.com/dotnet/benchmarkdotnet) with the following system configuration:
 
 ``` ini
 BenchmarkDotNet=v0.13.2, OS=Windows 10 (10.0.19043.2251/21H1/May2021Update)
@@ -129,7 +129,7 @@ InvocationCount=1  UnrollFactor=1
 ```
 
 The code executed in the benchmark creates a worksheet of 20 000 rows and 10 columns filled with string values. The same use case has been implemented in other spreadsheet libraries for comparison.
-Some of these libraries have multiple ways of achieving the same result, but to make this a fair comparison the idea is to use the most efficient approach for each library. The code is available [here](https://github.com/sveinungf/spreadcheetah/blob/main/SpreadCheetah.Benchmark/Benchmarks/StringCells.cs).
+Some of these libraries have multiple ways of achieving the same result, but to make this a fair comparison the idea is to use the most efficient approach for each library. The code is available [in the Benchmark project](https://github.com/sveinungf/spreadcheetah/blob/main/SpreadCheetah.Benchmark/Benchmarks/StringCells.cs).
 
 
 ### .NET Framework 4.8
