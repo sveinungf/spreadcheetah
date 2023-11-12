@@ -77,10 +77,8 @@ internal struct DrawingImageXml
         var written = 0;
 
         var image = _image.Image;
-
-        // TODO: Verify that Left and Top is correct here
-        var fromColumnOffset = image.Offset?.Left.PixelsToEmu() ?? 0;
-        var fromRowOffset = image.Offset?.Top.PixelsToEmu() ?? 0;
+        var fromColumnOffset = image.Offset?.Left ?? 0;
+        var fromRowOffset = image.Offset?.Top ?? 0;
 
         var column = _image.Reference.Column - 1;
         var row = _image.Reference.Row - 1;
@@ -96,8 +94,8 @@ internal struct DrawingImageXml
         };
 
         var (toColumnOffset, toRowOffset) = image.DesiredSize is { FillCellValue: true }
-            ? (image.Offset?.Right ?? 0, image.Offset?.Bottom ?? 0) // TODO: Only offsets here correct? And Right/Bottom is correct?
-            : CalculateOffsetsFromDimensions(image);
+            ? (image.Offset?.Right ?? 0, image.Offset?.Bottom ?? 0)
+            : CalculateActualDimensions(image);
 
         if (!TryWriteAnchorPart(span, ref written, toColumn, toRow, toColumnOffset, toRowOffset)) return false;
 
@@ -105,28 +103,26 @@ internal struct DrawingImageXml
         return true;
     }
 
-    private static bool TryWriteAnchorPart(Span<byte> bytes, ref int bytesWritten, int column, int row, int columnOffset, int rowOffset)
+    private static bool TryWriteAnchorPart(Span<byte> bytes, ref int bytesWritten, int column, int row, int columnPixelsOffset, int rowPixelsOffset)
     {
         if (!SpanHelper.TryWrite(column, bytes, ref bytesWritten)) return false;
         if (!"</xdr:col><xdr:colOff>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
-        if (!SpanHelper.TryWrite(columnOffset, bytes, ref bytesWritten)) return false;
+        if (!SpanHelper.TryWrite(columnPixelsOffset.PixelsToEmu(), bytes, ref bytesWritten)) return false;
         if (!"</xdr:colOff><xdr:row>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
         if (!SpanHelper.TryWrite(row, bytes, ref bytesWritten)) return false;
         if (!"</xdr:row><xdr:rowOff>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
-        if (!SpanHelper.TryWrite(rowOffset, bytes, ref bytesWritten)) return false;
+        if (!SpanHelper.TryWrite(rowPixelsOffset.PixelsToEmu(), bytes, ref bytesWritten)) return false;
         return true;
     }
 
-    private static (int ColumnOffset, int RowOffset) CalculateOffsetsFromDimensions(in ImmutableImage image)
+    private static (int Width, int Height) CalculateActualDimensions(in ImmutableImage image)
     {
-        var (actualWidth, actualHeight) = image.DesiredSize switch
+        return image.DesiredSize switch
         {
             { DimensionsValue: (int width, int height) } => (width, height),
             { ScaleValue: { } scale } => image.OriginalDimensions.Scale(scale),
             _ => image.OriginalDimensions
         };
-
-        return (actualWidth.PixelsToEmu(), actualHeight.PixelsToEmu());
     }
 
     private readonly bool TryWriteImageEnd(Span<byte> bytes, ref int bytesWritten)
