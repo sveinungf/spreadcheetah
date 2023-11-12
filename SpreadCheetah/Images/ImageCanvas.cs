@@ -3,18 +3,16 @@ using SpreadCheetah.Helpers;
 
 namespace SpreadCheetah.Images;
 
-public readonly record struct ImageCanvas
+public record ImageCanvas
 {
-    internal int Column { get; private init; }
-    internal int Row { get; private init; }
-    internal bool MoveWithCellsValue { get; private init; }
+    internal int Column { get; init; }
+    internal int Row { get; init; }
+    internal bool MoveWithCellsValue { get; init; }
     internal decimal? ScaleValue { get; private init; }
     internal (int Width, int Height)? DimensionsValue { get; private init; }
 
-    public ImageCanvas()
+    protected ImageCanvas()
     {
-        Column = 1;
-        Row = 1;
     }
 
     public static ImageCanvas From(string upperLeftReference)
