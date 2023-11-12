@@ -3,14 +3,14 @@ using SpreadCheetah.Helpers;
 
 namespace SpreadCheetah.Images;
 
-public sealed class ImageSize
+public sealed class ImageSize // TODO: Replace with ImageCanvas?
 {
     private static ImageSize FillCellInstance { get; } = new() { FillCellValue = true };
 
-    internal decimal? ScaleValue { get; private set; }
-    internal (int Width, int Height)? DimensionsValue { get; private set; }
-    internal bool FillCellValue { get; private set; }
-    internal SingleCellRelativeReference? FillCellRangeLowerRightReference { get; private set; }
+    internal decimal? ScaleValue { get; private init; }
+    internal (int Width, int Height)? DimensionsValue { get; private init; }
+    internal bool FillCellValue { get; private init; }
+    internal SingleCellRelativeReference? FillCellRangeLowerRightReference { get; private init; }
 
     private ImageSize()
     {

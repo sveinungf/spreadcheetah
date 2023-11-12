@@ -2,10 +2,10 @@ namespace SpreadCheetah.Images;
 
 public sealed class ImageOffset
 {
-    internal int Left { get; private set; }
-    internal int Top { get; private set; }
-    internal int Right { get; private set; }
-    internal int Bottom { get; private set; }
+    internal int Left { get; private init; }
+    internal int Top { get; private init; }
+    internal int Right { get; private init; }
+    internal int Bottom { get; private init; }
 
     public static ImageOffset Pixels(int left, int top, int right, int bottom)
     {

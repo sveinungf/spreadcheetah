@@ -614,6 +614,8 @@ public class SpreadsheetImageTests
         Assert.ThrowsAny<ArgumentOutOfRangeException>(() => spreadsheet.AddImage("B3", embeddedImage, options));
     }
 
+    // TODO: Tests for offsets with OneAnchor
+    // TODO: Tests for offsets with TwoAnchor
     // TODO: Test for embedding image with invalid dimensions
     // TODO: Test for transparent image
 }
