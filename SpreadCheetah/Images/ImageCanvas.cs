@@ -3,69 +3,76 @@ using SpreadCheetah.Helpers;
 
 namespace SpreadCheetah.Images;
 
-public record ImageCanvas
+public readonly struct ImageCanvas
 {
-    internal int Column { get; init; }
-    internal int Row { get; init; }
-    internal bool MoveWithCellsValue { get; init; }
-    internal decimal? ScaleValue { get; private init; }
-    internal (int Width, int Height)? DimensionsValue { get; private init; }
+    internal ushort FromColumn { get; } // TODO: 0 = 'A'?
+    internal uint FromRow { get; } // TODO: 0 = row 1?
+    internal ImageCanvasOptions Options { get; }
+    internal ushort ToColumn { get; } // TODO: 0 = 'A'?
+    internal uint ToRow { get; } // TODO: 0 = row 1?
+    internal float ScaleValue { get; }
+    internal ushort DimensionWidth { get; }
+    internal ushort DimensionHeight { get; }
 
-    protected ImageCanvas()
+    // TODO: Verify that default constructor places the image with original dimensions in A1
+
+    private ImageCanvas(SingleCellRelativeReference reference, ImageCanvasOptions options, ushort toColumn = 0, uint toRow = 0, float scaleValue = 0, ushort dimensionWidth = 0, ushort dimensionHeight = 0)
     {
+        FromColumn = (ushort)reference.Column;
+        FromRow = (uint)reference.Row;
+        Options = options;
+        ToColumn = toColumn;
+        ToRow = toRow;
+        ScaleValue = scaleValue;
+        DimensionWidth = dimensionWidth;
+        DimensionHeight = dimensionHeight;
     }
 
-    public static ImageCanvas From(string upperLeftReference)
+    public static ImageCanvas Dimensions(ReadOnlySpan<char> upperLeftReference, int width, int height, bool moveWithCells = true)
+    {
+        // TODO: SingleCellRelativeReference.Column can be ushort?
+        // TODO: SingleCellRelativeReference.Row can be uint?
+        var reference = SingleCellRelativeReference.Create(upperLeftReference);
+        width.EnsureValidImageDimension(nameof(width)); // TODO: Return ushort?
+        height.EnsureValidImageDimension(nameof(height)); // TODO: Return ushort?
+        var options = moveWithCells ? ImageCanvasOptions.Dimensions | ImageCanvasOptions.MoveWithCells : ImageCanvasOptions.Dimensions;
+        return new ImageCanvas(reference, options, dimensionWidth: (ushort)width, dimensionHeight: (ushort)height);
+    }
+
+    public static ImageCanvas Scale(ReadOnlySpan<char> upperLeftReference, decimal scale, bool moveWithCells = true)
     {
         var reference = SingleCellRelativeReference.Create(upperLeftReference);
-        return new ImageCanvas
-        {
-            Column = reference.Column,
-            Row = reference.Row
-        };
-    }
 
-    public ImageCanvas Dimensions(int width, int height)
-    {
-        width.EnsureValidImageDimension(nameof(width));
-        height.EnsureValidImageDimension(nameof(height));
-        return this with { DimensionsValue = (width, height) };
-    }
-
-    public ImageCanvas Scale(decimal scale)
-    {
         if (scale <= 0.0m)
             ThrowHelper.ImageScaleTooSmall(nameof(scale), scale);
         if (scale > 1000m)
             ThrowHelper.ImageScaleTooLarge(nameof(scale), scale);
 
-        return this with { ScaleValue = scale };
+        var options = moveWithCells ? ImageCanvasOptions.Scale | ImageCanvasOptions.MoveWithCells : ImageCanvasOptions.Scale;
+        return new ImageCanvas(reference, options, scaleValue: (float)scale);
     }
 
-    public ImageBoundedCanvas FillCell()
+    private static ImageCanvas FillCell(SingleCellRelativeReference upperLeft, ushort lowerRightColumn, uint lowerRightRow, bool moveWithCells, bool resizeWithCells)
     {
-        // TODO: Throw if dimensions or scale has been set
-        return new ImageBoundedCanvas(this)
-        {
-            ToColumn = Column + 1,
-            ToRow = Row + 1
-        };
+        var options = ImageCanvasOptions.FillCell;
+        if (moveWithCells)
+            options |= ImageCanvasOptions.MoveWithCells;
+        if (resizeWithCells)
+            options |= ImageCanvasOptions.ResizeWithCells;
+
+        return new ImageCanvas(upperLeft, options, lowerRightColumn, lowerRightRow);
     }
 
-    public ImageBoundedCanvas FillCellsTo(string lowerRightReference)
+    public static ImageCanvas FillCell(ReadOnlySpan<char> cellReference, bool moveWithCells = true, bool resizeWithCells = true)
     {
-        // TODO: Throw if dimensions or scale has been set
-        var reference = SingleCellRelativeReference.Create(lowerRightReference);
-        // TODO: Validate that reference is at least +1 compared to upperLeftReference
-        return new ImageBoundedCanvas(this)
-        {
-            ToColumn = reference.Column,
-            ToRow = reference.Row
-        };
+        var upperLeft = SingleCellRelativeReference.Create(cellReference);
+        return FillCell(upperLeft, (ushort)(upperLeft.Column + 1), (uint)(upperLeft.Row + 1), moveWithCells, resizeWithCells);
     }
 
-    public ImageCanvas MoveWithCells(bool moveWithCells = true)
+    public static ImageCanvas FillCells(ReadOnlySpan<char> upperLeftReference, ReadOnlySpan<char> lowerRightReference, bool moveWithCells = true, bool resizeWithCells = true)
     {
-        return this with { MoveWithCellsValue = moveWithCells };
+        var upperLeft = SingleCellRelativeReference.Create(upperLeftReference);
+        var lowerRight = SingleCellRelativeReference.Create(lowerRightReference);
+        return FillCell(upperLeft, (ushort)lowerRight.Column, (uint)lowerRight.Row, moveWithCells, resizeWithCells);
     }
 }

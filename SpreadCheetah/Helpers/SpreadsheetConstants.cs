@@ -3,7 +3,7 @@ namespace SpreadCheetah.Helpers;
 internal static class SpreadsheetConstants
 {
     // Limitation set by SpreadCheetah
-    public const int MaxImageDimension = 100000;
+    public const int MaxImageDimension = ushort.MaxValue;
 
     // Limitation set by SpreadCheetah
     public const int MaxNoteTextLength = 32768;

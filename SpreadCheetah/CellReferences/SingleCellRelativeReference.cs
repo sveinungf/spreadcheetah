@@ -36,7 +36,12 @@ internal readonly partial record struct SingleCellRelativeReference
 #if NET7_0_OR_GREATER
     public static SingleCellRelativeReference Create(ReadOnlySpan<char> value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
 #else
+    public static SingleCellRelativeReference Create(ReadOnlySpan<char> value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
+        => CreateInternal(value.ToString(), paramName ?? nameof(value));
     public static SingleCellRelativeReference Create(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
+        => CreateInternal(value, paramName ?? nameof(value));
+
+    private static SingleCellRelativeReference CreateInternal(string value, string paramName)
 #endif
     {
         if (!TryParseColumnRow(value, out var column, out var row))
