@@ -162,6 +162,9 @@ public class SpreadsheetNoteTests
     [InlineData(" ")]
     [InlineData("A")]
     [InlineData("A0")]
+    [InlineData(" A1")]
+    [InlineData("A 1")]
+    [InlineData("A1 ")]
     [InlineData("A1:A2")]
     [InlineData("$A$1")]
     public async Task Spreadsheet_AddNote_InvalidReference(string reference)
