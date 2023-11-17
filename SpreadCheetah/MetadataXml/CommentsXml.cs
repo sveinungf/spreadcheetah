@@ -77,7 +77,7 @@ internal struct CommentsXml : IXmlWriter
             if (_currentXmlEncodedNote is null)
             {
                 if (!CommentStart.TryCopyTo(span, ref written)) return false;
-                if (!SpanHelper.TryWrite(cellRef.Reference, span, ref written)) return false;
+                if (!SpanHelper.TryWriteCellReference(cellRef.Column, (uint)cellRef.Row, span, ref written)) return false;
                 if (!CommentAfterRef.TryCopyTo(span, ref written)) return false;
 
                 _currentXmlEncodedNote = WebUtility.HtmlEncode(note);
