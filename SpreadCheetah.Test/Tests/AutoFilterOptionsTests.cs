@@ -27,9 +27,9 @@ public static class AutoFilterOptionsTests
     [InlineData("A1:A")]
     [InlineData("A1:AAAA2")]
     [InlineData("$A$1:$A$2")]
-    public static void AutoFilterOptions_Create_InvalidRange(string cellRange)
+    public static void AutoFilterOptions_Create_InvalidRange(string? cellRange)
     {
         // Act & Assert
-        Assert.ThrowsAny<ArgumentException>(() => new AutoFilterOptions(cellRange));
+        Assert.ThrowsAny<ArgumentException>(() => new AutoFilterOptions(cellRange!));
     }
 }
