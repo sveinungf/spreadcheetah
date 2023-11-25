@@ -9,7 +9,7 @@
     <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(MSBuildProjectName)' != 'SpreadCheetah.SourceGenerator.CSharp8Test'">
+  <ItemGroup Condition="'$(MSBuildProjectName)' != 'SpreadCheetah.SourceGenerator' And '$(MSBuildProjectName)' != 'SpreadCheetah.SourceGenerator.CSharp8Test'">
     <PackageReference Include="Polyfill">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
