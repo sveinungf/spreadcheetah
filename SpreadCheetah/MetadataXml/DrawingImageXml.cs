@@ -55,12 +55,15 @@ internal struct DrawingImageXml
 
         if (!ImageStart.TryCopyTo(span, ref written)) return false;
 
-        var anchorAttribute = _image.Image.Anchor switch
+        var moveWithCells = _image.Canvas.Options.HasFlag(ImageCanvasOptions.MoveWithCells);
+        var resizeWithCells = _image.Canvas.Options.HasFlag(ImageCanvasOptions.ResizeWithCells);
+
+        var anchorAttribute = (moveWithCells, resizeWithCells) switch
         {
-            ImageAnchor.OneCell => "oneCell"u8,
-            ImageAnchor.TwoCell => "twoCell"u8,
-            ImageAnchor.Absolute => "absolute"u8,
-            _ => ReadOnlySpan<byte>.Empty,
+            (true, true) => "twoCell"u8,
+            (true, false) => "oneCell"u8,
+            (false, false) => "absolute"u8,
+            _ => []
         };
 
         Debug.Assert(!anchorAttribute.IsEmpty);

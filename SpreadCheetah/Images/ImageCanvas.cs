@@ -79,19 +79,26 @@ public readonly struct ImageCanvas
     }
 
     // TODO: Test for this
+    // TODO: In XML doc: resizeWithCells can't be set to true if moveWithCells is false.
     public static ImageCanvas FillCell(ReadOnlySpan<char> cellReference, bool moveWithCells = true, bool resizeWithCells = true)
     {
         var upperLeft = SingleCellRelativeReference.Create(cellReference);
-        return FillCell(upperLeft, (ushort)(upperLeft.Column), (uint)(upperLeft.Row), moveWithCells, resizeWithCells);
+        if (resizeWithCells && !moveWithCells)
+            ThrowHelper.ResizeAndMoveCellsCombinationNotSupported(nameof(resizeWithCells), nameof(moveWithCells));
+
+        return FillCell(upperLeft, (ushort)(upperLeft.Column), (uint)upperLeft.Row, moveWithCells, resizeWithCells);
     }
 
     // TODO: Test for this
+    // TODO: In XML doc: resizeWithCells can't be set to true if moveWithCells is false.
     public static ImageCanvas FillCells(ReadOnlySpan<char> upperLeftReference, ReadOnlySpan<char> lowerRightReference, bool moveWithCells = true, bool resizeWithCells = true)
     {
         var upperLeft = SingleCellRelativeReference.Create(upperLeftReference);
         var lowerRight = SingleCellRelativeReference.Create(lowerRightReference);
         if (lowerRight.Column <= upperLeft.Column || lowerRight.Row <= upperLeft.Row)
             ThrowHelper.FillCellRangeMustContainAtLeastOneCell(nameof(lowerRightReference));
+        if (resizeWithCells && !moveWithCells)
+            ThrowHelper.ResizeAndMoveCellsCombinationNotSupported(nameof(resizeWithCells), nameof(moveWithCells));
 
         return FillCell(upperLeft, (ushort)(lowerRight.Column - 1), (uint)(lowerRight.Row - 1), moveWithCells, resizeWithCells);
     }

@@ -26,6 +26,28 @@ public class ImageCanvasTests
         Assert.ThrowsAny<ArgumentOutOfRangeException>(() => ImageCanvas.Scaled("A1".AsSpan(), scale));
     }
 
+    [Fact]
+    public void ImageCanvas_FillCell_InvalidAnchor()
+    {
+        // Act
+        var exception = Record.Exception(() => ImageCanvas.FillCell("A1".AsSpan(), moveWithCells: false, resizeWithCells: true));
+
+        // Assert
+        var concreteException = Assert.IsType<ArgumentException>(exception);
+        Assert.Contains("resize", concreteException.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ImageCanvas_FillCells_InvalidAnchor()
+    {
+        // Act
+        var exception = Record.Exception(() => ImageCanvas.FillCells("A1".AsSpan(), "D4".AsSpan(), moveWithCells: false, resizeWithCells: true));
+
+        // Assert
+        var concreteException = Assert.IsType<ArgumentException>(exception);
+        Assert.Contains("resize", concreteException.Message, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("A2")]
     [InlineData("B3")]

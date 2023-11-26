@@ -441,11 +441,10 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
         await spreadsheet.StartWorksheetAsync("Sheet 1");
-        var canvas = ImageCanvas.OriginalSize("A1".AsSpan());
-        var options = new ImageOptions { MoveWithCells = moveWithCells, ResizeWithCells = resizeWithCells };
+        var canvas = ImageCanvas.FillCell("A1".AsSpan(), moveWithCells, resizeWithCells);
 
         // Act
-        spreadsheet.AddImage(canvas, embeddedImage, options);
+        spreadsheet.AddImage(canvas, embeddedImage);
 
         // Assert
         await spreadsheet.FinishAsync();
@@ -455,26 +454,6 @@ public class SpreadsheetImageTests
         var worksheet = workbook.Worksheets.Single();
         var picture = Assert.Single(worksheet.Pictures);
         Assert.Equal(expectedPlacement, picture.Placement);
-    }
-
-    [Fact]
-    public async Task Spreadsheet_AddImage_InvalidAnchor()
-    {
-        // Arrange
-        using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
-        using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
-        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
-        await spreadsheet.StartWorksheetAsync("Sheet 1");
-        var canvas = ImageCanvas.OriginalSize("A1".AsSpan());
-        var options = new ImageOptions { MoveWithCells = false, ResizeWithCells = true };
-
-        // Act
-        var exception = Record.Exception(() => spreadsheet.AddImage(canvas, embeddedImage, options));
-
-        // Assert
-        var concreteException = Assert.IsType<ArgumentException>(exception);
-        Assert.Contains(nameof(ImageOptions.ResizeWithCells), concreteException.Message, StringComparison.Ordinal);
     }
 
     [Theory]

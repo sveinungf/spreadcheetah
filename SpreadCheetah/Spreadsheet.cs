@@ -504,12 +504,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (_spreadsheetGuid != image.SpreadsheetGuid)
             ThrowHelper.CantAddImageEmbeddedInOtherSpreadsheet();
 
-        var anchor = options?.GetAnchor() ?? ImageAnchor.OneCell;
-        if (anchor == ImageAnchor.None)
-            ThrowHelper.ResizeWithCellsNotSupportedWhenMoveWithCells(nameof(options));
-
-        var originalDimensions = (image.Width, image.Height);
-        var immutableImage = new ImmutableImage(originalDimensions, anchor, options?.Offset);
+        var immutableImage = new ImmutableImage(options?.Offset);
 
         _fileCounter ??= new FileCounter();
         _fileCounter.TotalAddedImages++;
