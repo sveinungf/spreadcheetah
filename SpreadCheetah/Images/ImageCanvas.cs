@@ -28,6 +28,14 @@ public readonly struct ImageCanvas
         DimensionHeight = dimensionHeight;
     }
 
+    public static ImageCanvas OriginalSize(ReadOnlySpan<char> upperLeftReference, bool moveWithCells = true)
+    {
+        var reference = SingleCellRelativeReference.Create(upperLeftReference);
+        var options = moveWithCells ? ImageCanvasOptions.MoveWithCells : ImageCanvasOptions.None;
+        return new ImageCanvas(reference, options);
+    }
+
+    // TODO: Test for this
     public static ImageCanvas Dimensions(ReadOnlySpan<char> upperLeftReference, int width, int height, bool moveWithCells = true)
     {
         // TODO: SingleCellRelativeReference.Column can be ushort?
@@ -39,7 +47,8 @@ public readonly struct ImageCanvas
         return new ImageCanvas(reference, options, dimensionWidth: (ushort)width, dimensionHeight: (ushort)height);
     }
 
-    public static ImageCanvas Scale(ReadOnlySpan<char> upperLeftReference, decimal scale, bool moveWithCells = true)
+    // TODO: Test for this
+    public static ImageCanvas Scaled(ReadOnlySpan<char> upperLeftReference, decimal scale, bool moveWithCells = true)
     {
         var reference = SingleCellRelativeReference.Create(upperLeftReference);
 
@@ -60,15 +69,22 @@ public readonly struct ImageCanvas
         if (resizeWithCells)
             options |= ImageCanvasOptions.ResizeWithCells;
 
+        // TODO: Check that lowerRight is valid
+        // ThrowHelper.FillCellRangeMustContainAtLeastOneCell(paramName);
+
+        // TODO: Verify for ThrowHelper.ResizeWithCellsNotSupportedWhenMoveWithCells(nameof(options));
+
         return new ImageCanvas(upperLeft, options, lowerRightColumn, lowerRightRow);
     }
 
+    // TODO: Test for this
     public static ImageCanvas FillCell(ReadOnlySpan<char> cellReference, bool moveWithCells = true, bool resizeWithCells = true)
     {
         var upperLeft = SingleCellRelativeReference.Create(cellReference);
         return FillCell(upperLeft, (ushort)(upperLeft.Column + 1), (uint)(upperLeft.Row + 1), moveWithCells, resizeWithCells);
     }
 
+    // TODO: Test for this
     public static ImageCanvas FillCells(ReadOnlySpan<char> upperLeftReference, ReadOnlySpan<char> lowerRightReference, bool moveWithCells = true, bool resizeWithCells = true)
     {
         var upperLeft = SingleCellRelativeReference.Create(upperLeftReference);
