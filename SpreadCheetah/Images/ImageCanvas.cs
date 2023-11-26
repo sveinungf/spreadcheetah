@@ -48,6 +48,7 @@ public readonly struct ImageCanvas
     }
 
     // TODO: Test for this
+    // TODO: scale should be float?
     public static ImageCanvas Scaled(ReadOnlySpan<char> upperLeftReference, decimal scale, bool moveWithCells = true)
     {
         var reference = SingleCellRelativeReference.Create(upperLeftReference);

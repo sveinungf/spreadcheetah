@@ -2,6 +2,7 @@ using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using OfficeOpenXml;
+using SpreadCheetah.Images;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
@@ -157,7 +158,7 @@ public class SpreadsheetTests
 
         var validation = DataValidation.TextLengthLessThan(50);
         spreadsheet.AddDataValidation("A2:A100", validation);
-        spreadsheet.AddImage("B1", embeddedImage);
+        spreadsheet.AddImage(ImageCanvas.OriginalSize("B1".AsSpan()), embeddedImage);
         spreadsheet.AddNote("C1", "My note");
         spreadsheet.MergeCells("B2:F3");
 

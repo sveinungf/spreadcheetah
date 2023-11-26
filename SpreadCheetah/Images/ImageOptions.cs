@@ -6,6 +6,7 @@ namespace SpreadCheetah.Images;
 
 public sealed class ImageOptions
 {
+    // TODO: Remove
     public ImageSize? Size { get; set; }
     public ImageOffset? Offset { get; set; }
 
