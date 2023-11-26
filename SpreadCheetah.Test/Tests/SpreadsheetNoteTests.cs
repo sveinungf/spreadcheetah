@@ -167,7 +167,7 @@ public class SpreadsheetNoteTests
     [InlineData("A1 ")]
     [InlineData("A1:A2")]
     [InlineData("$A$1")]
-    public async Task Spreadsheet_AddNote_InvalidReference(string reference)
+    public async Task Spreadsheet_AddNote_InvalidReference(string? reference)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -175,7 +175,7 @@ public class SpreadsheetNoteTests
         await spreadsheet.StartWorksheetAsync("Sheet");
 
         // Act & Assert
-        Assert.ThrowsAny<ArgumentException>(() => spreadsheet.AddNote(reference, "My note"));
+        Assert.ThrowsAny<ArgumentException>(() => spreadsheet.AddNote(reference!, "My note"));
     }
 
     [Theory]

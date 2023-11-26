@@ -42,7 +42,7 @@ public class SpreadsheetMergeCellsTests
     [InlineData("$A$1:$A$2")]
     [InlineData("A0:A0")]
     [InlineData("A0:A10")]
-    public async Task Spreadsheet_MergeCells_InvalidRange(string cellRange)
+    public async Task Spreadsheet_MergeCells_InvalidRange(string? cellRange)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -50,7 +50,7 @@ public class SpreadsheetMergeCellsTests
         await spreadsheet.StartWorksheetAsync("Sheet");
 
         // Act & Assert
-        Assert.ThrowsAny<ArgumentException>(() => spreadsheet.MergeCells(cellRange));
+        Assert.ThrowsAny<ArgumentException>(() => spreadsheet.MergeCells(cellRange!));
     }
 
     [Theory]

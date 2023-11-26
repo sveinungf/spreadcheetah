@@ -1,14 +1,15 @@
 <Project>
   <PropertyGroup>
-    <LangVersion>11.0</LangVersion>
+    <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <AnalysisLevel>7-all</AnalysisLevel>
+    <AnalysisLevel>8-all</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(MSBuildProjectName)' != 'SpreadCheetah.SourceGenerator.CSharp8Test'">
+  <ItemGroup Condition="'$(MSBuildProjectName)' != 'SpreadCheetah.SourceGenerator' And '$(MSBuildProjectName)' != 'SpreadCheetah.SourceGenerator.CSharp8Test'">
     <PackageReference Include="Polyfill">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
