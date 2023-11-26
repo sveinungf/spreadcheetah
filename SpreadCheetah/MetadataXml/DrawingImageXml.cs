@@ -1,4 +1,5 @@
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Images;
 using SpreadCheetah.Images.Internal;
 using System.Diagnostics;
 
@@ -86,16 +87,13 @@ internal struct DrawingImageXml
         if (!TryWriteAnchorPart(span, ref written, column, row, fromColumnOffset, fromRowOffset)) return false;
         if (!"</xdr:rowOff></xdr:from><xdr:to><xdr:col>"u8.TryCopyTo(span, ref written)) return false;
 
-        var (toColumn, toRow) = image.DesiredSize switch
-        {
-            { FillCellValue: false } => (column, row),
-            { FillCellRangeLowerRightReference: { } lowerRight } => ((ushort)(lowerRight.Column - 1), (uint)(lowerRight.Row - 1)),
-            _ => ((ushort)(column + 1), row + 1)
-        };
+        var (toColumn, toRow) = _image.Canvas.Options.HasFlag(ImageCanvasOptions.FillCell)
+            ? (_image.Canvas.ToColumn, _image.Canvas.ToRow)
+            : (column, row);
 
-        var (toColumnOffset, toRowOffset) = image.DesiredSize is { FillCellValue: true }
+        var (toColumnOffset, toRowOffset) = _image.Canvas.Options.HasFlag(ImageCanvasOptions.FillCell)
             ? (image.Offset?.Right ?? 0, image.Offset?.Bottom ?? 0)
-            : CalculateActualDimensions(image);
+            : CalculateActualDimensions(_image);
 
         if (!TryWriteAnchorPart(span, ref written, toColumn, toRow, toColumnOffset, toRowOffset)) return false;
 
@@ -115,14 +113,16 @@ internal struct DrawingImageXml
         return true;
     }
 
-    private static (int Width, int Height) CalculateActualDimensions(in ImmutableImage image)
+    private static (int Width, int Height) CalculateActualDimensions(in WorksheetImage image)
     {
-        return image.DesiredSize switch
-        {
-            { DimensionsValue: (int width, int height) } => (width, height),
-            { ScaleValue: { } scale } => image.OriginalDimensions.Scale(scale),
-            _ => image.OriginalDimensions
-        };
+        var canvas = image.Canvas;
+        if (canvas.Options.HasFlag(ImageCanvasOptions.Dimensions))
+            return (canvas.DimensionWidth, canvas.DimensionHeight);
+
+        var originalDimensions = (image.EmbeddedImage.Width, image.EmbeddedImage.Height);
+        return canvas.Options.HasFlag(ImageCanvasOptions.Scaled)
+            ? originalDimensions.Scale(canvas.ScaleValue)
+            : originalDimensions;
     }
 
     private readonly bool TryWriteImageEnd(Span<byte> bytes, ref int bytesWritten)

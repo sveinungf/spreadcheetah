@@ -1,4 +1,4 @@
-﻿namespace SpreadCheetah.Images;
+namespace SpreadCheetah.Images;
 
 [Flags]
 internal enum ImageCanvasOptions
@@ -6,7 +6,7 @@ internal enum ImageCanvasOptions
     None,
     MoveWithCells = 1,
     ResizeWithCells = 2,
-    Scale = 4,
+    Scaled = 4,
     Dimensions = 8,
     FillCell = 16
 }

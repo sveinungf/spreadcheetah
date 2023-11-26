@@ -58,7 +58,7 @@ public readonly struct ImageCanvas
         if (scale > 1000m)
             ThrowHelper.ImageScaleTooLarge(nameof(scale), scale);
 
-        var options = moveWithCells ? ImageCanvasOptions.Scale | ImageCanvasOptions.MoveWithCells : ImageCanvasOptions.Scale;
+        var options = moveWithCells ? ImageCanvasOptions.Scaled | ImageCanvasOptions.MoveWithCells : ImageCanvasOptions.Scaled;
         return new ImageCanvas(reference, options, scaleValue: (float)scale);
     }
 
