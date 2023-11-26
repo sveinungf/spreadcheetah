@@ -504,12 +504,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (_spreadsheetGuid != image.SpreadsheetGuid)
             ThrowHelper.CantAddImageEmbeddedInOtherSpreadsheet();
 
-        var immutableImage = new ImmutableImage(options?.Offset);
-
         _fileCounter ??= new FileCounter();
         _fileCounter.TotalAddedImages++;
 
-        var worksheetImage = new WorksheetImage(canvas, image, immutableImage, _fileCounter.TotalAddedImages);
+        var worksheetImage = new WorksheetImage(canvas, image, options?.Offset, _fileCounter.TotalAddedImages);
         Worksheet.AddImage(worksheetImage, out var firstImage);
 
         if (firstImage)

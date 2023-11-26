@@ -80,9 +80,8 @@ internal struct DrawingImageXml
         var span = bytes.Slice(bytesWritten);
         var written = 0;
 
-        var image = _image.Image;
-        var fromColumnOffset = image.Offset?.Left ?? 0;
-        var fromRowOffset = image.Offset?.Top ?? 0;
+        var fromColumnOffset = _image.Offset?.Left ?? 0;
+        var fromRowOffset = _image.Offset?.Top ?? 0;
 
         var column = _image.Canvas.FromColumn;
         var row = _image.Canvas.FromRow;
@@ -95,7 +94,7 @@ internal struct DrawingImageXml
             : (column, row);
 
         var (toColumnOffset, toRowOffset) = _image.Canvas.Options.HasFlag(ImageCanvasOptions.FillCell)
-            ? (image.Offset?.Right ?? 0, image.Offset?.Bottom ?? 0)
+            ? (_image.Offset?.Right ?? 0, _image.Offset?.Bottom ?? 0)
             : CalculateActualDimensions(_image);
 
         if (!TryWriteAnchorPart(span, ref written, toColumn, toRow, toColumnOffset, toRowOffset)) return false;
