@@ -31,14 +31,6 @@ public sealed class ImageOptions
 
     internal void EnsureValidFor(SingleCellRelativeReference reference, EmbeddedImage image, string paramName)
     {
-        var originalDimensions = (image.Width, image.Height);
-        if (Size?.ScaleValue is { } scale)
-        {
-            var (width, height) = originalDimensions.Scale(scale);
-            width.EnsureValidImageDimension(paramName);
-            height.EnsureValidImageDimension(paramName);
-        }
-
         if (Size?.FillCellRangeLowerRightReference is { } lowerRight
             && (lowerRight.Column <= reference.Column || lowerRight.Row <= reference.Row))
         {

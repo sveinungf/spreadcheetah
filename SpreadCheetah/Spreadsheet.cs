@@ -507,6 +507,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var upperLeftCellReference = $"{SpreadsheetUtility.GetColumnName(canvas.FromColumn + 1)}{canvas.FromRow + 1}";
         var reference = SingleCellRelativeReference.Create(upperLeftCellReference);
         options?.EnsureValidFor(reference, image, nameof(options));
+        ImageValidator.EnsureValidCanvas(canvas, image);
 
         var anchor = options?.GetAnchor() ?? ImageAnchor.OneCell;
         if (anchor == ImageAnchor.None)
