@@ -21,7 +21,7 @@ public class ImageCanvasTests
     [InlineData(-0.1)]
     [InlineData(0.0)]
     [InlineData(1001)]
-    public void ImageCanvas_Scale_Invalid(decimal scale)
+    public void ImageCanvas_Scaled_Invalid(decimal scale)
     {
         Assert.ThrowsAny<ArgumentOutOfRangeException>(() => ImageCanvas.Scaled("A1".AsSpan(), scale));
     }

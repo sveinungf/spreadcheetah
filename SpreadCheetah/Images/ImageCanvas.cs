@@ -5,11 +5,15 @@ namespace SpreadCheetah.Images;
 
 public readonly struct ImageCanvas
 {
-    internal ushort FromColumn { get; } // TODO: 0 = 'A'
-    internal uint FromRow { get; } // TODO: 0 = row 1
     internal ImageCanvasOptions Options { get; }
-    internal ushort ToColumn { get; } // TODO: 0 = 'A'
-    internal uint ToRow { get; } // TODO: 0 = row 1
+    /// <summary>Starts at 0, meaning 'A' = 0</summary>
+    internal ushort FromColumn { get; }
+    /// <summary>Starts at 0, meaning row 1 = 0</summary>
+    internal uint FromRow { get; }
+    /// <summary>Starts at 0, meaning 'A' = 0</summary>
+    internal ushort ToColumn { get; }
+    /// <summary>Starts at 0, meaning row 1 = 0</summary>
+    internal uint ToRow { get; }
     internal float ScaleValue { get; }
     internal ushort DimensionWidth { get; }
     internal ushort DimensionHeight { get; }
@@ -35,7 +39,6 @@ public readonly struct ImageCanvas
         return new ImageCanvas(reference, options);
     }
 
-    // TODO: Test for this
     public static ImageCanvas Dimensions(ReadOnlySpan<char> upperLeftReference, int width, int height, bool moveWithCells = true)
     {
         // TODO: SingleCellRelativeReference.Column can be ushort?
@@ -47,7 +50,6 @@ public readonly struct ImageCanvas
         return new ImageCanvas(reference, options, dimensionWidth: (ushort)width, dimensionHeight: (ushort)height);
     }
 
-    // TODO: Test for this
     // TODO: scale should be float?
     public static ImageCanvas Scaled(ReadOnlySpan<char> upperLeftReference, decimal scale, bool moveWithCells = true)
     {
@@ -70,15 +72,9 @@ public readonly struct ImageCanvas
         if (resizeWithCells)
             options |= ImageCanvasOptions.ResizeWithCells;
 
-        // TODO: Check that lowerRight is valid
-        // ThrowHelper.FillCellRangeMustContainAtLeastOneCell(paramName);
-
-        // TODO: Verify for ThrowHelper.ResizeWithCellsNotSupportedWhenMoveWithCells(nameof(options));
-
         return new ImageCanvas(upperLeft, options, lowerRightColumn, lowerRightRow);
     }
 
-    // TODO: Test for this
     // TODO: In XML doc: resizeWithCells can't be set to true if moveWithCells is false.
     public static ImageCanvas FillCell(ReadOnlySpan<char> cellReference, bool moveWithCells = true, bool resizeWithCells = true)
     {
@@ -86,10 +82,9 @@ public readonly struct ImageCanvas
         if (resizeWithCells && !moveWithCells)
             ThrowHelper.ResizeAndMoveCellsCombinationNotSupported(nameof(resizeWithCells), nameof(moveWithCells));
 
-        return FillCell(upperLeft, (ushort)(upperLeft.Column), (uint)upperLeft.Row, moveWithCells, resizeWithCells);
+        return FillCell(upperLeft, (ushort)upperLeft.Column, (uint)upperLeft.Row, moveWithCells, resizeWithCells);
     }
 
-    // TODO: Test for this
     // TODO: In XML doc: resizeWithCells can't be set to true if moveWithCells is false.
     public static ImageCanvas FillCells(ReadOnlySpan<char> upperLeftReference, ReadOnlySpan<char> lowerRightReference, bool moveWithCells = true, bool resizeWithCells = true)
     {

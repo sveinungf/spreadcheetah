@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace SpreadCheetah.Images;
 
-public sealed class EmbeddedImage
+public sealed class EmbeddedImage // TODO: readonly struct?
 {
     public int Width { get; }
     public int Height { get; }
