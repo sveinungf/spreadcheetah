@@ -61,7 +61,7 @@ internal struct DrawingRelsXml : IXmlWriter
         for (; _nextImageIndex < images.Count; ++_nextImageIndex)
         {
             var index = _nextImageIndex;
-            var imageId = images[index].Image.EmbeddedImageId;
+            var imageId = images[index].EmbeddedImage.Id;
             var span = bytes.Slice(bytesWritten);
             var written = 0;
 

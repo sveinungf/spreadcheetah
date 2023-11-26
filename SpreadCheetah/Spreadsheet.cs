@@ -499,23 +499,22 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public void AddImage(ImageCanvas canvas, EmbeddedImage image, ImageOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(image);
+        ImageValidator.EnsureValidCanvas(canvas, image);
 
         if (_spreadsheetGuid != image.SpreadsheetGuid)
             ThrowHelper.CantAddImageEmbeddedInOtherSpreadsheet();
-
-        ImageValidator.EnsureValidCanvas(canvas, image);
 
         var anchor = options?.GetAnchor() ?? ImageAnchor.OneCell;
         if (anchor == ImageAnchor.None)
             ThrowHelper.ResizeWithCellsNotSupportedWhenMoveWithCells(nameof(options));
 
         var originalDimensions = (image.Width, image.Height);
-        var immutableImage = new ImmutableImage(image.Id, originalDimensions, anchor, options?.Size, options?.Offset);
+        var immutableImage = new ImmutableImage(originalDimensions, anchor, options?.Size, options?.Offset);
 
         _fileCounter ??= new FileCounter();
         _fileCounter.TotalAddedImages++;
 
-        var worksheetImage = new WorksheetImage(canvas, immutableImage, _fileCounter.TotalAddedImages);
+        var worksheetImage = new WorksheetImage(canvas, image, immutableImage, _fileCounter.TotalAddedImages);
         Worksheet.AddImage(worksheetImage, out var firstImage);
 
         if (firstImage)
