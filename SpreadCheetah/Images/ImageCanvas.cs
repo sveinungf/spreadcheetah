@@ -5,21 +5,21 @@ namespace SpreadCheetah.Images;
 
 public readonly struct ImageCanvas
 {
-    internal ushort FromColumn { get; } // TODO: 0 = 'A'?
-    internal uint FromRow { get; } // TODO: 0 = row 1?
+    internal ushort FromColumn { get; } // TODO: 0 = 'A'
+    internal uint FromRow { get; } // TODO: 0 = row 1
     internal ImageCanvasOptions Options { get; }
-    internal ushort ToColumn { get; } // TODO: 0 = 'A'?
-    internal uint ToRow { get; } // TODO: 0 = row 1?
+    internal ushort ToColumn { get; } // TODO: 0 = 'A'
+    internal uint ToRow { get; } // TODO: 0 = row 1
     internal float ScaleValue { get; }
     internal ushort DimensionWidth { get; }
     internal ushort DimensionHeight { get; }
 
     // TODO: Verify that default constructor places the image with original dimensions in A1
 
-    private ImageCanvas(SingleCellRelativeReference reference, ImageCanvasOptions options, ushort toColumn = 0, uint toRow = 0, float scaleValue = 0, ushort dimensionWidth = 0, ushort dimensionHeight = 0)
+    private ImageCanvas(SingleCellRelativeReference fromReference, ImageCanvasOptions options, ushort toColumn = 0, uint toRow = 0, float scaleValue = 0, ushort dimensionWidth = 0, ushort dimensionHeight = 0)
     {
-        FromColumn = (ushort)reference.Column;
-        FromRow = (uint)reference.Row;
+        FromColumn = (ushort)(fromReference.Column - 1);
+        FromRow = (uint)(fromReference.Row - 1);
         Options = options;
         ToColumn = toColumn;
         ToRow = toRow;
@@ -82,7 +82,7 @@ public readonly struct ImageCanvas
     public static ImageCanvas FillCell(ReadOnlySpan<char> cellReference, bool moveWithCells = true, bool resizeWithCells = true)
     {
         var upperLeft = SingleCellRelativeReference.Create(cellReference);
-        return FillCell(upperLeft, (ushort)(upperLeft.Column + 1), (uint)(upperLeft.Row + 1), moveWithCells, resizeWithCells);
+        return FillCell(upperLeft, (ushort)(upperLeft.Column), (uint)(upperLeft.Row), moveWithCells, resizeWithCells);
     }
 
     // TODO: Test for this
@@ -90,6 +90,6 @@ public readonly struct ImageCanvas
     {
         var upperLeft = SingleCellRelativeReference.Create(upperLeftReference);
         var lowerRight = SingleCellRelativeReference.Create(lowerRightReference);
-        return FillCell(upperLeft, (ushort)lowerRight.Column, (uint)lowerRight.Row, moveWithCells, resizeWithCells);
+        return FillCell(upperLeft, (ushort)(lowerRight.Column - 1), (uint)(lowerRight.Row - 1), moveWithCells, resizeWithCells);
     }
 }

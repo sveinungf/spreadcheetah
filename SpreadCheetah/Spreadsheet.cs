@@ -504,7 +504,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ThrowHelper.CantAddImageEmbeddedInOtherSpreadsheet();
 
         // TODO: Remove creating this reference again
-        var upperLeftCellReference = $"{SpreadsheetUtility.GetColumnName(canvas.FromColumn)}{canvas.FromRow}";
+        var upperLeftCellReference = $"{SpreadsheetUtility.GetColumnName(canvas.FromColumn + 1)}{canvas.FromRow + 1}";
         var reference = SingleCellRelativeReference.Create(upperLeftCellReference);
         options?.EnsureValidFor(reference, image, nameof(options));
 
@@ -518,7 +518,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _fileCounter ??= new FileCounter();
         _fileCounter.TotalAddedImages++;
 
-        var worksheetImage = new WorksheetImage(reference, immutableImage, _fileCounter.TotalAddedImages);
+        var worksheetImage = new WorksheetImage(canvas, immutableImage, _fileCounter.TotalAddedImages);
         Worksheet.AddImage(worksheetImage, out var firstImage);
 
         if (firstImage)

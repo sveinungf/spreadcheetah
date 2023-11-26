@@ -80,8 +80,8 @@ internal struct DrawingImageXml
         var fromColumnOffset = image.Offset?.Left ?? 0;
         var fromRowOffset = image.Offset?.Top ?? 0;
 
-        var column = _image.Reference.Column - 1;
-        var row = _image.Reference.Row - 1;
+        var column = _image.Canvas.FromColumn;
+        var row = _image.Canvas.FromRow;
 
         if (!TryWriteAnchorPart(span, ref written, column, row, fromColumnOffset, fromRowOffset)) return false;
         if (!"</xdr:rowOff></xdr:from><xdr:to><xdr:col>"u8.TryCopyTo(span, ref written)) return false;
@@ -89,8 +89,8 @@ internal struct DrawingImageXml
         var (toColumn, toRow) = image.DesiredSize switch
         {
             { FillCellValue: false } => (column, row),
-            { FillCellRangeLowerRightReference: { } lowerRight } => (lowerRight.Column - 1, lowerRight.Row - 1),
-            _ => (column + 1, row + 1)
+            { FillCellRangeLowerRightReference: { } lowerRight } => ((ushort)(lowerRight.Column - 1), (uint)(lowerRight.Row - 1)),
+            _ => ((ushort)(column + 1), row + 1)
         };
 
         var (toColumnOffset, toRowOffset) = image.DesiredSize is { FillCellValue: true }
@@ -103,7 +103,7 @@ internal struct DrawingImageXml
         return true;
     }
 
-    private static bool TryWriteAnchorPart(Span<byte> bytes, ref int bytesWritten, int column, int row, int columnPixelsOffset, int rowPixelsOffset)
+    private static bool TryWriteAnchorPart(Span<byte> bytes, ref int bytesWritten, ushort column, uint row, int columnPixelsOffset, int rowPixelsOffset)
     {
         if (!SpanHelper.TryWrite(column, bytes, ref bytesWritten)) return false;
         if (!"</xdr:col><xdr:colOff>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
