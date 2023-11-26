@@ -500,7 +500,7 @@ public class SpreadsheetImageTests
     [InlineData(0.5, 133, 92)]
     [InlineData(1.0, 266, 183)]
     [InlineData(13.37, 3556, 2447)]
-    [InlineData(375.0, 99750, 68625)]
+    [InlineData(246.0, 65436, 45018)]
     public async Task Spreadsheet_AddImage_PngWithCustomScale(decimal scale, int expectedWidth, int expectedHeight)
     {
         // Arrange
