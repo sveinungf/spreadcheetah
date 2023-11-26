@@ -493,8 +493,7 @@ public class SpreadsheetImageTests
         var canvas = ImageCanvas.Dimensions("D4".AsSpan(), width, height);
 
         // Act
-        var options = new ImageOptions { Size = ImageSize.Dimensions(width, height) };
-        spreadsheet.AddImage(canvas, embeddedImage, options);
+        spreadsheet.AddImage(canvas, embeddedImage);
 
         // Assert
         await spreadsheet.FinishAsync();
@@ -525,8 +524,7 @@ public class SpreadsheetImageTests
         var canvas = ImageCanvas.Scaled("D4".AsSpan(), scale);
 
         // Act
-        var options = new ImageOptions { Size = ImageSize.Scale(scale) };
-        spreadsheet.AddImage(canvas, embeddedImage, options);
+        spreadsheet.AddImage(canvas, embeddedImage);
 
         // Assert
         await spreadsheet.FinishAsync();
@@ -551,11 +549,10 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
         await spreadsheet.StartWorksheetAsync("Sheet 1");
-        var options = new ImageOptions { Size = ImageSize.Scale(scale) };
         var canvas = ImageCanvas.Scaled("D4".AsSpan(), scale);
 
         // Act & Assert
-        Assert.ThrowsAny<ArgumentOutOfRangeException>(() => spreadsheet.AddImage(canvas, embeddedImage, options));
+        Assert.ThrowsAny<ArgumentOutOfRangeException>(() => spreadsheet.AddImage(canvas, embeddedImage));
     }
 
     [Fact]
@@ -567,11 +564,10 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
         await spreadsheet.StartWorksheetAsync("Sheet 1");
-        var options = new ImageOptions { Size = ImageSize.FillCell() };
         var canvas = ImageCanvas.FillCell("B3".AsSpan());
 
         // Act
-        spreadsheet.AddImage(canvas, embeddedImage, options);
+        spreadsheet.AddImage(canvas, embeddedImage);
 
         // Assert
         await spreadsheet.FinishAsync();
@@ -596,11 +592,10 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
         await spreadsheet.StartWorksheetAsync("Sheet 1");
-        var options = new ImageOptions { Size = ImageSize.FillCellRange(lowerRightReference) };
         var canvas = ImageCanvas.FillCells("B3".AsSpan(), lowerRightReference.AsSpan());
 
         // Act
-        spreadsheet.AddImage(canvas, embeddedImage, options);
+        spreadsheet.AddImage(canvas, embeddedImage);
 
         // Assert
         await spreadsheet.FinishAsync();
