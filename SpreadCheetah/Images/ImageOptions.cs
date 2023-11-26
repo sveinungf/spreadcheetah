@@ -1,5 +1,3 @@
-using SpreadCheetah.CellReferences;
-using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
 
 namespace SpreadCheetah.Images;
@@ -27,14 +25,5 @@ public sealed class ImageOptions
             (false, false) => ImageAnchor.Absolute,
             _ => ImageAnchor.None
         };
-    }
-
-    internal void EnsureValidFor(SingleCellRelativeReference reference, EmbeddedImage image, string paramName)
-    {
-        if (Size?.FillCellRangeLowerRightReference is { } lowerRight
-            && (lowerRight.Column <= reference.Column || lowerRight.Row <= reference.Row))
-        {
-            ThrowHelper.FillCellRangeMustContainAtLeastOneCell(paramName);
-        }
     }
 }

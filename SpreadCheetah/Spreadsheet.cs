@@ -503,10 +503,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (_spreadsheetGuid != image.SpreadsheetGuid)
             ThrowHelper.CantAddImageEmbeddedInOtherSpreadsheet();
 
-        // TODO: Remove creating this reference again
-        var upperLeftCellReference = $"{SpreadsheetUtility.GetColumnName(canvas.FromColumn + 1)}{canvas.FromRow + 1}";
-        var reference = SingleCellRelativeReference.Create(upperLeftCellReference);
-        options?.EnsureValidFor(reference, image, nameof(options));
         ImageValidator.EnsureValidCanvas(canvas, image);
 
         var anchor = options?.GetAnchor() ?? ImageAnchor.OneCell;

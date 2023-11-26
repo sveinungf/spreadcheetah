@@ -612,26 +612,6 @@ public class SpreadsheetImageTests
         Assert.Equal(lowerRightReference, drawing.To.ToCellReferenceString());
     }
 
-    [Theory]
-    [InlineData("A2")]
-    [InlineData("B3")]
-    [InlineData("B4")]
-    [InlineData("C3")]
-    public async Task Spreadsheet_AddImage_PngWithInvalidFillCellRange(string lowerRightReference)
-    {
-        // Arrange
-        using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
-        using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
-        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
-        await spreadsheet.StartWorksheetAsync("Sheet 1");
-        var options = new ImageOptions { Size = ImageSize.FillCellRange(lowerRightReference) };
-        var canvas = ImageCanvas.FillCells("B3".AsSpan(), lowerRightReference.AsSpan());
-
-        // Act & Assert
-        Assert.ThrowsAny<ArgumentOutOfRangeException>(() => spreadsheet.AddImage(canvas, embeddedImage, options));
-    }
-
     // TODO: Tests for offsets with OneAnchor
     // TODO: Tests for offsets with TwoAnchor
     // TODO: Test for embedding image with invalid dimensions

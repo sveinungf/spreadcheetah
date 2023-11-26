@@ -90,6 +90,9 @@ public readonly struct ImageCanvas
     {
         var upperLeft = SingleCellRelativeReference.Create(upperLeftReference);
         var lowerRight = SingleCellRelativeReference.Create(lowerRightReference);
+        if (lowerRight.Column <= upperLeft.Column || lowerRight.Row <= upperLeft.Row)
+            ThrowHelper.FillCellRangeMustContainAtLeastOneCell(nameof(lowerRightReference));
+
         return FillCell(upperLeft, (ushort)(lowerRight.Column - 1), (uint)(lowerRight.Row - 1), moveWithCells, resizeWithCells);
     }
 }
