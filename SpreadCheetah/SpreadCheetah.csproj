@@ -19,6 +19,8 @@
     <PackageReleaseNotes>https://github.com/sveinungf/spreadcheetah/releases/tag/v1.11.0</PackageReleaseNotes>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>spreadcheetahKey.snk</AssemblyOriginatorKeyFile>
 
     <!-- SourceLink -->
     <IncludeSymbols>true</IncludeSymbols>
@@ -27,7 +29,7 @@
 
     <!-- Package validation -->
     <EnablePackageValidation>true</EnablePackageValidation>
-    <PackageValidationBaselineVersion>1.10.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.11.0</PackageValidationBaselineVersion>
     <EnableStrictModeForCompatibleTfms>true</EnableStrictModeForCompatibleTfms>
     <EnableStrictModeForCompatibleFrameworksInPackage>true</EnableStrictModeForCompatibleFrameworksInPackage>
   </PropertyGroup>
