@@ -42,8 +42,8 @@ public readonly struct ImageCanvas
     public static ImageCanvas Dimensions(ReadOnlySpan<char> upperLeftReference, int width, int height, bool moveWithCells = true)
     {
         var reference = SingleCellRelativeReference.Create(upperLeftReference);
-        width.EnsureValidImageDimension(nameof(width)); // TODO: Return ushort?
-        height.EnsureValidImageDimension(nameof(height)); // TODO: Return ushort?
+        width.EnsureValidImageDimension();
+        height.EnsureValidImageDimension();
         var options = moveWithCells ? ImageCanvasOptions.Dimensions | ImageCanvasOptions.MoveWithCells : ImageCanvasOptions.Dimensions;
         return new ImageCanvas(reference, options, dimensionWidth: (ushort)width, dimensionHeight: (ushort)height);
     }

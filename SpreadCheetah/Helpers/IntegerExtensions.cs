@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah.Helpers;
 
@@ -9,7 +10,7 @@ internal static class IntegerExtensions
 
     public static string ToStringInvariant(this int n) => n.ToString(CultureInfo.InvariantCulture);
 
-    public static void EnsureValidImageDimension(this int value, string? paramName)
+    public static void EnsureValidImageDimension(this int value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
     {
         if (value <= 0)
             ThrowHelper.ImageDimensionZeroOrNegative(paramName, value);

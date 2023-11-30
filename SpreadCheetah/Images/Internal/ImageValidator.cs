@@ -6,13 +6,13 @@ internal static class ImageValidator
 {
     public static void EnsureValidCanvas(ImageCanvas canvas, EmbeddedImage image)
     {
-        var originalDimensions = (image.Width, image.Height);
         if (canvas.Options.HasFlag(ImageCanvasOptions.Scaled))
         {
             var scale = canvas.ScaleValue;
+            var originalDimensions = (image.Width, image.Height);
             var (width, height) = originalDimensions.Scale(scale);
-            width.EnsureValidImageDimension(nameof(canvas));
-            height.EnsureValidImageDimension(nameof(canvas));
+            width.EnsureValidImageDimension();
+            height.EnsureValidImageDimension();
         }
     }
 }
