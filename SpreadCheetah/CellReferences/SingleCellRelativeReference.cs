@@ -25,9 +25,9 @@ internal readonly partial record struct SingleCellRelativeReference
     public ushort Column { get; }
 
     /// <summary>Row number starts at 1.</summary>
-    public int Row { get; }
+    public uint Row { get; }
 
-    private SingleCellRelativeReference(ushort column, int row)
+    private SingleCellRelativeReference(ushort column, uint row)
     {
         Column = column;
         Row = row;
@@ -51,7 +51,7 @@ internal readonly partial record struct SingleCellRelativeReference
     }
 
 #if NET7_0_OR_GREATER
-    private static bool TryParseColumnRow(ReadOnlySpan<char> value, out ushort column, out int row)
+    private static bool TryParseColumnRow(ReadOnlySpan<char> value, out ushort column, out uint row)
     {
         column = 0;
         row = 0;
@@ -68,10 +68,10 @@ internal readonly partial record struct SingleCellRelativeReference
         if (!RowRegex().IsMatch(rowSpan))
             return false;
 
-        return int.TryParse(rowSpan, NumberStyles.None, NumberFormatInfo.InvariantInfo, out row);
+        return uint.TryParse(rowSpan, NumberStyles.None, NumberFormatInfo.InvariantInfo, out row);
     }
 #else
-    private static bool TryParseColumnRow(string value, out ushort column, out int row)
+    private static bool TryParseColumnRow(string value, out ushort column, out uint row)
     {
         column = 0;
         row = 0;
@@ -83,7 +83,7 @@ internal readonly partial record struct SingleCellRelativeReference
         if (!TryParseColumnName(columnGroup.Value.AsSpan(), out column))
             return false;
 
-        return int.TryParse(rowGroup.Value, NumberStyles.None, NumberFormatInfo.InvariantInfo, out row);
+        return uint.TryParse(rowGroup.Value, NumberStyles.None, NumberFormatInfo.InvariantInfo, out row);
     }
 #endif
 
