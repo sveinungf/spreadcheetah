@@ -41,7 +41,6 @@ public readonly struct ImageCanvas
 
     public static ImageCanvas Dimensions(ReadOnlySpan<char> upperLeftReference, int width, int height, bool moveWithCells = true)
     {
-        // TODO: SingleCellRelativeReference.Column can be ushort?
         // TODO: SingleCellRelativeReference.Row can be uint?
         var reference = SingleCellRelativeReference.Create(upperLeftReference);
         width.EnsureValidImageDimension(nameof(width)); // TODO: Return ushort?
@@ -82,7 +81,7 @@ public readonly struct ImageCanvas
         if (resizeWithCells && !moveWithCells)
             ThrowHelper.ResizeAndMoveCellsCombinationNotSupported(nameof(resizeWithCells), nameof(moveWithCells));
 
-        return FillCell(upperLeft, (ushort)upperLeft.Column, (uint)upperLeft.Row, moveWithCells, resizeWithCells);
+        return FillCell(upperLeft, upperLeft.Column, (uint)upperLeft.Row, moveWithCells, resizeWithCells);
     }
 
     // TODO: In XML doc: resizeWithCells can't be set to true if moveWithCells is false.

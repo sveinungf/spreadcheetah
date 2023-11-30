@@ -22,12 +22,12 @@ internal readonly partial record struct SingleCellRelativeReference
 #endif
 
     /// <summary>Column 'A' becomes column number 1.</summary>
-    public int Column { get; }
+    public ushort Column { get; }
 
     /// <summary>Row number starts at 1.</summary>
     public int Row { get; }
 
-    private SingleCellRelativeReference(int column, int row)
+    private SingleCellRelativeReference(ushort column, int row)
     {
         Column = column;
         Row = row;
@@ -51,7 +51,7 @@ internal readonly partial record struct SingleCellRelativeReference
     }
 
 #if NET7_0_OR_GREATER
-    private static bool TryParseColumnRow(ReadOnlySpan<char> value, out int column, out int row)
+    private static bool TryParseColumnRow(ReadOnlySpan<char> value, out ushort column, out int row)
     {
         column = 0;
         row = 0;
@@ -61,7 +61,7 @@ internal readonly partial record struct SingleCellRelativeReference
             return false;
 
         var columnNameLength = enumerator.Current.Length;
-        if (!SpreadsheetUtility.TryParseColumnName(value[..columnNameLength], out column))
+        if (!TryParseColumnName(value[..columnNameLength], out column))
             return false;
 
         var rowSpan = value[columnNameLength..];
@@ -71,7 +71,7 @@ internal readonly partial record struct SingleCellRelativeReference
         return int.TryParse(rowSpan, NumberStyles.None, NumberFormatInfo.InvariantInfo, out row);
     }
 #else
-    private static bool TryParseColumnRow(string value, out int column, out int row)
+    private static bool TryParseColumnRow(string value, out ushort column, out int row)
     {
         column = 0;
         row = 0;
@@ -80,10 +80,22 @@ internal readonly partial record struct SingleCellRelativeReference
         if (!match.Success || match.Groups is not [_, var columnGroup, var rowGroup])
             return false;
 
-        if (!SpreadsheetUtility.TryParseColumnName(columnGroup.Value.AsSpan(), out column))
+        if (!TryParseColumnName(columnGroup.Value.AsSpan(), out column))
             return false;
 
         return int.TryParse(rowGroup.Value, NumberStyles.None, NumberFormatInfo.InvariantInfo, out row);
     }
 #endif
+
+    private static bool TryParseColumnName(ReadOnlySpan<char> columnName, out ushort column)
+    {
+        if (!SpreadsheetUtility.TryParseColumnName(columnName, out var columnInt))
+        {
+            column = 0;
+            return false;
+        }
+
+        column = (ushort)columnInt;
+        return true;
+    }
 }

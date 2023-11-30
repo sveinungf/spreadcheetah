@@ -82,7 +82,7 @@ internal struct VmlDrawingNoteXml
         if (row <= 1)
         {
             if (!",12,0,1,"u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(col + 2, span, ref written)) return false;
+            if (!SpanHelper.TryWrite((ushort)(col + 2), span, ref written)) return false;
             if (!",18,4,5"u8.TryCopyTo(span, ref written)) return false;
         }
         else
@@ -90,7 +90,7 @@ internal struct VmlDrawingNoteXml
             if (!",12,"u8.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(row - 2, span, ref written)) return false;
             if (!",11,"u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(col + 2, span, ref written)) return false;
+            if (!SpanHelper.TryWrite((ushort)(col + 2), span, ref written)) return false;
             if (!",18,"u8.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(row + 2, span, ref written)) return false;
             if (!",15"u8.TryCopyTo(span, ref written)) return false;
