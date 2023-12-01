@@ -44,10 +44,10 @@ internal static class ThrowHelper
     public static void ImageDimensionZeroOrNegative(string? paramName, int actualValue) => throw new ArgumentOutOfRangeException(paramName, actualValue, "Image width and height must be at least 1 pixel.");
 
     [DoesNotReturn]
-    public static void ImageScaleTooLarge(string? paramName, decimal actualValue) => throw new ArgumentOutOfRangeException(paramName, actualValue, $"The image scale can't cause image width or height to exceed {SpreadsheetConstants.MaxImageDimension} pixels.");
+    public static void ImageScaleTooLarge(string? paramName, float actualValue) => throw new ArgumentOutOfRangeException(paramName, actualValue, $"The image scale can't cause image width or height to exceed {SpreadsheetConstants.MaxImageDimension} pixels.");
 
     [DoesNotReturn]
-    public static void ImageScaleTooSmall(string? paramName, decimal actualValue) => throw new ArgumentOutOfRangeException(paramName, actualValue, "The image scale must result in image width and height being at least 1 pixel.");
+    public static void ImageScaleTooSmall(string? paramName, float actualValue) => throw new ArgumentOutOfRangeException(paramName, actualValue, "The image scale must result in image width and height being at least 1 pixel.");
 
     [DoesNotReturn]
     public static void NoteTextTooLong(string? paramName) => throw new ArgumentException($"Note text can not exceed {SpreadsheetConstants.MaxNoteTextLength} characters.", paramName);

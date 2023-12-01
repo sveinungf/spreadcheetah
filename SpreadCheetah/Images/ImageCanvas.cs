@@ -48,18 +48,17 @@ public readonly struct ImageCanvas
         return new ImageCanvas(reference, options, dimensionWidth: (ushort)width, dimensionHeight: (ushort)height);
     }
 
-    // TODO: scale should be float?
-    public static ImageCanvas Scaled(ReadOnlySpan<char> upperLeftReference, decimal scale, bool moveWithCells = true)
+    public static ImageCanvas Scaled(ReadOnlySpan<char> upperLeftReference, float scale, bool moveWithCells = true)
     {
         var reference = SingleCellRelativeReference.Create(upperLeftReference);
 
-        if (scale <= 0.0m)
+        if (scale <= 0.0f)
             ThrowHelper.ImageScaleTooSmall(nameof(scale), scale);
-        if (scale > 1000m)
+        if (scale > 1000f)
             ThrowHelper.ImageScaleTooLarge(nameof(scale), scale);
 
         var options = moveWithCells ? ImageCanvasOptions.Scaled | ImageCanvasOptions.MoveWithCells : ImageCanvasOptions.Scaled;
-        return new ImageCanvas(reference, options, scaleValue: (float)scale);
+        return new ImageCanvas(reference, options, scaleValue: scale);
     }
 
     private static ImageCanvas FillCell(SingleCellRelativeReference upperLeft, ushort lowerRightColumn, uint lowerRightRow, bool moveWithCells, bool resizeWithCells)

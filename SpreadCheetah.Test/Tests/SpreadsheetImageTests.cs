@@ -492,7 +492,7 @@ public class SpreadsheetImageTests
     [InlineData(1.0, 266, 183)]
     [InlineData(13.37, 3556, 2447)]
     [InlineData(246.0, 65436, 45018)]
-    public async Task Spreadsheet_AddImage_PngWithCustomScale(decimal scale, int expectedWidth, int expectedHeight)
+    public async Task Spreadsheet_AddImage_PngWithCustomScale(float scale, int expectedWidth, int expectedHeight)
     {
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
@@ -520,7 +520,7 @@ public class SpreadsheetImageTests
     [Theory]
     [InlineData(0.002)]
     [InlineData(376.0)]
-    public async Task Spreadsheet_AddImage_PngWithInvalidCustomScale(decimal scale)
+    public async Task Spreadsheet_AddImage_PngWithInvalidCustomScale(float scale)
     {
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
