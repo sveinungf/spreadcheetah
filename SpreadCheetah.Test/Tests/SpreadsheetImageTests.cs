@@ -586,7 +586,47 @@ public class SpreadsheetImageTests
         Assert.Equal(lowerRightReference, drawing.To.ToCellReferenceString());
     }
 
-    // TODO: Tests for offsets with OneAnchor
+    [Theory]
+    [InlineData(-100, -80)]
+    [InlineData(-2, 5)]
+    [InlineData(0, 0)]
+    [InlineData(3, -8)]
+    [InlineData(2000, 3000)]
+    public async Task Spreadsheet_AddImage_PngWithOffset(int leftOffset, int topOffset)
+    {
+        // Arrange
+        const string reference = "T20";
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
+        var options = new ImageOptions { Offset = ImageOffset.Pixels(leftOffset, topOffset, 0, 0) };
+
+        // Act
+        spreadsheet.AddImage(canvas, embeddedImage, options);
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        // Use ClosedXML to verify offsets to be the same as originally passed (EPPlus calculates them differently)
+        using var workbook = new XLWorkbook(outputStream);
+        var worksheet = Assert.Single(workbook.Worksheets);
+        var picture = Assert.Single(worksheet.Pictures);
+        Assert.Equal(leftOffset, picture.Left);
+        Assert.Equal(topOffset, picture.Top);
+
+        // Use EPPlus to verify the image dimensions haven't changed (ClosedXML doesn't seem to calculate this)
+        using var package = new ExcelPackage(outputStream);
+        var ws = Assert.Single(package.Workbook.Worksheets);
+        var drawing = Assert.Single(ws.Drawings);
+        var (actualWidth, actualHeight) = drawing.GetActualDimensions();
+        Assert.Equal(266, actualWidth);
+        Assert.Equal(183, actualHeight);
+    }
+
     // TODO: Tests for offsets with TwoAnchor
     // TODO: Test for embedding image with invalid dimensions
     // TODO: Test for transparent image
