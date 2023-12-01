@@ -9,7 +9,6 @@ public readonly record struct ImageOffset
 
     public static ImageOffset Pixels(int left, int top, int right, int bottom)
     {
-        // TODO: Validate arguments. Positive or negative limits?
         return new ImageOffset
         {
             Left = left,

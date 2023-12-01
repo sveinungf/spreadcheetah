@@ -592,7 +592,7 @@ public class SpreadsheetImageTests
     [InlineData(0, 0)]
     [InlineData(3, -8)]
     [InlineData(2000, 3000)]
-    public async Task Spreadsheet_AddImage_PngWithOffset(int leftOffset, int topOffset)
+    public async Task Spreadsheet_AddImage_PngWithOffset(int left, int top)
     {
         // Arrange
         const string reference = "T20";
@@ -602,7 +602,7 @@ public class SpreadsheetImageTests
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
         await spreadsheet.StartWorksheetAsync("Sheet 1");
         var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
-        var options = new ImageOptions { Offset = ImageOffset.Pixels(leftOffset, topOffset, 0, 0) };
+        var options = new ImageOptions { Offset = ImageOffset.Pixels(left, top, 0, 0) };
 
         // Act
         spreadsheet.AddImage(canvas, embeddedImage, options);
@@ -615,8 +615,8 @@ public class SpreadsheetImageTests
         using var workbook = new XLWorkbook(outputStream);
         var worksheet = Assert.Single(workbook.Worksheets);
         var picture = Assert.Single(worksheet.Pictures);
-        Assert.Equal(leftOffset, picture.Left);
-        Assert.Equal(topOffset, picture.Top);
+        Assert.Equal(left, picture.Left);
+        Assert.Equal(top, picture.Top);
 
         // Use EPPlus to verify the image dimensions haven't changed (ClosedXML doesn't seem to calculate this)
         using var package = new ExcelPackage(outputStream);
@@ -627,7 +627,54 @@ public class SpreadsheetImageTests
         Assert.Equal(183, actualHeight);
     }
 
-    // TODO: Tests for offsets with TwoAnchor
+    [Theory]
+    [InlineData(-10, -10, 10, 10)]
+    [InlineData(0, 0, 0, 0)]
+    [InlineData(0, 0, 0, 10)]
+    [InlineData(0, 0, 10, 0)]
+    [InlineData(0, 10, 0, 0)]
+    [InlineData(10, 0, 0, 0)]
+    [InlineData(10, 10, 10, 10)]
+    [InlineData(1000, 1000, -1000, -1000)] // This would cause the image not to appear, but not sure how to avoid it...
+    public async Task Spreadsheet_AddImage_PngWithFillCellsAndOffsets(int left, int top, int right, int bottom)
+    {
+        // Arrange
+        const string reference = "T20";
+        const int cellPixelWidth = 64;
+        const int cellPixelHeight = 20;
+        var expectedWidth = cellPixelWidth - left + right;
+        var expectedHeight = cellPixelHeight - top + bottom;
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        var canvas = ImageCanvas.FillCell(reference.AsSpan());
+        var options = new ImageOptions { Offset = ImageOffset.Pixels(left, top, right, bottom) };
+
+        // Act
+        spreadsheet.AddImage(canvas, embeddedImage, options);
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        // Use ClosedXML to verify offsets to be the same as originally passed (EPPlus calculates them differently)
+        using var workbook = new XLWorkbook(outputStream);
+        var worksheet = Assert.Single(workbook.Worksheets);
+        var picture = Assert.Single(worksheet.Pictures);
+        Assert.Equal(left, picture.Left);
+        Assert.Equal(top, picture.Top);
+
+        // Use EPPlus to verify the image dimensions (ClosedXML doesn't seem to calculate this)
+        using var package = new ExcelPackage(outputStream);
+        var ws = Assert.Single(package.Workbook.Worksheets);
+        var drawing = Assert.Single(ws.Drawings);
+        var (actualWidth, actualHeight) = drawing.GetActualDimensions();
+        Assert.Equal(expectedWidth, actualWidth);
+        Assert.Equal(expectedHeight, actualHeight);
+    }
+
     // TODO: Test for embedding image with invalid dimensions
     // TODO: Test for transparent image
 }
