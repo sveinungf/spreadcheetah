@@ -89,13 +89,16 @@ internal struct DrawingImageXml
         if (!TryWriteAnchorPart(span, ref written, column, row, fromColumnOffset, fromRowOffset)) return false;
         if (!"</xdr:rowOff></xdr:from><xdr:to><xdr:col>"u8.TryCopyTo(span, ref written)) return false;
 
-        var (toColumn, toRow) = _image.Canvas.Options.HasFlag(ImageCanvasOptions.FillCell)
+        var fillCell = _image.Canvas.Options.HasFlag(ImageCanvasOptions.FillCell);
+
+        var (toColumn, toRow) = fillCell
             ? (_image.Canvas.ToColumn, _image.Canvas.ToRow)
             : (column, row);
 
-        var (toColumnOffset, toRowOffset) = _image.Canvas.Options.HasFlag(ImageCanvasOptions.FillCell)
+        var (actualWidth, actualHeight) = CalculateActualDimensions(_image);
+        var (toColumnOffset, toRowOffset) = fillCell
             ? (_image.Offset?.Right ?? 0, _image.Offset?.Bottom ?? 0)
-            : CalculateActualDimensions(_image);
+            : (actualWidth + fromColumnOffset, actualHeight + fromRowOffset);
 
         if (!TryWriteAnchorPart(span, ref written, toColumn, toRow, toColumnOffset, toRowOffset)) return false;
 
