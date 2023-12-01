@@ -1,6 +1,6 @@
 namespace SpreadCheetah.Images;
 
-public sealed class ImageOffset // TODO: readonly struct?
+public readonly record struct ImageOffset
 {
     internal int Left { get; private init; }
     internal int Top { get; private init; }
