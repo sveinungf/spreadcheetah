@@ -20,7 +20,7 @@ public readonly record struct DataCell
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a text value.
     /// If <c>value</c> is <c>null</c>, the cell will be empty.
     /// </summary>
-    public DataCell(string? value) : this()
+    public DataCell(string? value)
     {
         StringValue = value != null ? WebUtility.HtmlEncode(value) : string.Empty;
         _writer = value != null ? CellValueWriter.String : CellValueWriter.Null;
@@ -29,7 +29,7 @@ public readonly record struct DataCell
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with an integer value.
     /// </summary>
-    public DataCell(int value) : this()
+    public DataCell(int value)
     {
         NumberValue = new CellValue(value);
         _writer = CellValueWriter.Integer;
@@ -39,7 +39,7 @@ public readonly record struct DataCell
     /// Initializes a new instance of the <see cref="DataCell"/> struct with an integer value.
     /// If <c>value</c> is <c>null</c>, the cell will be empty.
     /// </summary>
-    public DataCell(int? value) : this()
+    public DataCell(int? value)
     {
         NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
         _writer = value is null ? CellValueWriter.Null : CellValueWriter.Integer;
@@ -65,7 +65,7 @@ public readonly record struct DataCell
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a floating point value.
     /// </summary>
-    public DataCell(float value) : this()
+    public DataCell(float value)
     {
         NumberValue = new CellValue(value);
         _writer = CellValueWriter.Float;
@@ -75,7 +75,7 @@ public readonly record struct DataCell
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a floating-point value.
     /// If <c>value</c> is <c>null</c>, the cell will be empty.
     /// </summary>
-    public DataCell(float? value) : this()
+    public DataCell(float? value)
     {
         NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
         _writer = value is null ? CellValueWriter.Null : CellValueWriter.Float;
@@ -85,7 +85,7 @@ public readonly record struct DataCell
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a double-precision floating-point value.
     /// Note that Open XML limits the precision to 15 significant digits for numbers. This could potentially lead to a loss of precision.
     /// </summary>
-    public DataCell(double value) : this()
+    public DataCell(double value)
     {
         NumberValue = new CellValue(value);
         _writer = CellValueWriter.Double;
@@ -96,7 +96,7 @@ public readonly record struct DataCell
     /// If <c>value</c> is <c>null</c>, the cell will be empty.
     /// Note that Open XML limits the precision to 15 significant digits for numbers. This could potentially lead to a loss of precision.
     /// </summary>
-    public DataCell(double? value) : this()
+    public DataCell(double? value)
     {
         NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
         _writer = value is null ? CellValueWriter.Null : CellValueWriter.Double;
@@ -123,7 +123,7 @@ public readonly record struct DataCell
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a <see cref="DateTime"/> value.
     /// Will be displayed in the number format from <see cref="SpreadCheetahOptions.DefaultDateTimeFormat"/>.
     /// </summary>
-    public DataCell(DateTime value) : this()
+    public DataCell(DateTime value)
     {
         NumberValue = new CellValue(value.ToOADate());
         _writer = CellValueWriter.DateTime;
@@ -134,7 +134,7 @@ public readonly record struct DataCell
     /// Will be displayed in the number format from <see cref="SpreadCheetahOptions.DefaultDateTimeFormat"/>.
     /// If <c>value</c> is <c>null</c>, the cell will be empty.
     /// </summary>
-    public DataCell(DateTime? value) : this()
+    public DataCell(DateTime? value)
     {
         NumberValue = value is null ? new CellValue() : new CellValue(value.Value.ToOADate());
         _writer = value is null ? CellValueWriter.NullDateTime : CellValueWriter.DateTime;
@@ -143,7 +143,7 @@ public readonly record struct DataCell
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a boolean value.
     /// </summary>
-    public DataCell(bool value) : this()
+    public DataCell(bool value)
     {
         _writer = GetBooleanWriter(value);
     }
@@ -152,7 +152,7 @@ public readonly record struct DataCell
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a boolean value.
     /// If <c>value</c> is <c>null</c>, the cell will be empty.
     /// </summary>
-    public DataCell(bool? value) : this()
+    public DataCell(bool? value)
     {
         _writer = value is null ? CellValueWriter.Null : GetBooleanWriter(value.Value);
     }
