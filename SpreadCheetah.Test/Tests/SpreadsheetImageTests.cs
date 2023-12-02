@@ -140,6 +140,22 @@ public class SpreadsheetImageTests
     }
 
     [Fact]
+    public async Task Spreadsheet_EmbedImage_PngWithInvalidResolution()
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("red-1x1.invalidpng");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+
+        // Act
+        var exception = await Record.ExceptionAsync(() => spreadsheet.EmbedImageAsync(pngStream).AsTask());
+
+        // Assert
+        var concreteException = Assert.IsType<ArgumentOutOfRangeException>(exception);
+        Assert.Contains("width", concreteException.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task Spreadsheet_AddImage_Png()
     {
         // Arrange
@@ -675,6 +691,5 @@ public class SpreadsheetImageTests
         Assert.Equal(expectedHeight, actualHeight);
     }
 
-    // TODO: Test for embedding image with invalid dimensions
     // TODO: Test for transparent image
 }
