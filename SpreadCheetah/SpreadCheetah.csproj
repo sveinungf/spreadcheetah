@@ -15,7 +15,7 @@
     <Description>SpreadCheetah is a high-performance .NET library for generating spreadsheet (Microsoft Excel XLSX) files.</Description>
     <PackageProjectUrl>https://github.com/sveinungf/spreadcheetah</PackageProjectUrl>
     <RepositoryUrl>https://github.com/sveinungf/spreadcheetah</RepositoryUrl>
-    <PackageTags>spreadsheet;excel;xlsx;openxml;sourcegenerator</PackageTags>
+    <PackageTags>spreadsheet;excel;xlsx;openxml;sourcegenerator;performance;nativeaot</PackageTags>
     <PackageReleaseNotes>https://github.com/sveinungf/spreadcheetah/releases/tag/v1.11.0</PackageReleaseNotes>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
