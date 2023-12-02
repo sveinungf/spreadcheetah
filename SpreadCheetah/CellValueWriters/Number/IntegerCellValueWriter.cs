@@ -8,7 +8,4 @@ internal sealed class IntegerCellValueWriter : NumberCellValueWriter
     {
         return Utf8Formatter.TryFormat(cell.NumberValue.IntValue, destination, out bytesWritten);
     }
-
-    public override bool Equals(in CellValue value, in CellValue other) => value.IntValue == other.IntValue;
-    public override int GetHashCodeFor(in CellValue value) => value.IntValue.GetHashCode();
 }

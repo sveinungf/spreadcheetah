@@ -30,8 +30,6 @@ internal abstract class CellValueWriter
     public abstract bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex);
     public abstract bool TryWriteEndElement(SpreadsheetBuffer buffer);
     public abstract bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer);
-    public abstract bool Equals(in CellValue value, in CellValue other);
-    public abstract int GetHashCodeFor(in CellValue value);
 
     protected static bool TryWriteCellStartWithReference(CellWriterState state, Span<byte> bytes, ref int bytesWritten)
     {

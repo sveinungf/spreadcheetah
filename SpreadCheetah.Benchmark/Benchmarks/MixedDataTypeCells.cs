@@ -4,6 +4,7 @@ using SpreadCheetah.Benchmark.Helpers;
 
 namespace SpreadCheetah.Benchmark.Benchmarks;
 
+[SimpleJob(RuntimeMoniker.Net48)]
 [SimpleJob(RuntimeMoniker.Net70)]
 [SimpleJob(RuntimeMoniker.Net80)]
 [MemoryDiagnoser]

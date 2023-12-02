@@ -6,7 +6,7 @@ namespace SpreadCheetah;
 /// <summary>
 /// Represents the value and data type for a worksheet cell.
 /// </summary>
-public readonly struct DataCell : IEquatable<DataCell>
+public readonly record struct DataCell
 {
     private readonly CellValueWriter? _writer;
 
@@ -20,7 +20,7 @@ public readonly struct DataCell : IEquatable<DataCell>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a text value.
     /// If <c>value</c> is <c>null</c>, the cell will be empty.
     /// </summary>
-    public DataCell(string? value) : this()
+    public DataCell(string? value)
     {
         StringValue = value != null ? WebUtility.HtmlEncode(value) : string.Empty;
         _writer = value != null ? CellValueWriter.String : CellValueWriter.Null;
@@ -29,7 +29,7 @@ public readonly struct DataCell : IEquatable<DataCell>
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with an integer value.
     /// </summary>
-    public DataCell(int value) : this()
+    public DataCell(int value)
     {
         NumberValue = new CellValue(value);
         _writer = CellValueWriter.Integer;
@@ -39,7 +39,7 @@ public readonly struct DataCell : IEquatable<DataCell>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with an integer value.
     /// If <c>value</c> is <c>null</c>, the cell will be empty.
     /// </summary>
-    public DataCell(int? value) : this()
+    public DataCell(int? value)
     {
         NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
         _writer = value is null ? CellValueWriter.Null : CellValueWriter.Integer;
@@ -65,7 +65,7 @@ public readonly struct DataCell : IEquatable<DataCell>
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a floating point value.
     /// </summary>
-    public DataCell(float value) : this()
+    public DataCell(float value)
     {
         NumberValue = new CellValue(value);
         _writer = CellValueWriter.Float;
@@ -75,7 +75,7 @@ public readonly struct DataCell : IEquatable<DataCell>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a floating-point value.
     /// If <c>value</c> is <c>null</c>, the cell will be empty.
     /// </summary>
-    public DataCell(float? value) : this()
+    public DataCell(float? value)
     {
         NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
         _writer = value is null ? CellValueWriter.Null : CellValueWriter.Float;
@@ -85,7 +85,7 @@ public readonly struct DataCell : IEquatable<DataCell>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a double-precision floating-point value.
     /// Note that Open XML limits the precision to 15 significant digits for numbers. This could potentially lead to a loss of precision.
     /// </summary>
-    public DataCell(double value) : this()
+    public DataCell(double value)
     {
         NumberValue = new CellValue(value);
         _writer = CellValueWriter.Double;
@@ -96,7 +96,7 @@ public readonly struct DataCell : IEquatable<DataCell>
     /// If <c>value</c> is <c>null</c>, the cell will be empty.
     /// Note that Open XML limits the precision to 15 significant digits for numbers. This could potentially lead to a loss of precision.
     /// </summary>
-    public DataCell(double? value) : this()
+    public DataCell(double? value)
     {
         NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
         _writer = value is null ? CellValueWriter.Null : CellValueWriter.Double;
@@ -123,7 +123,7 @@ public readonly struct DataCell : IEquatable<DataCell>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a <see cref="DateTime"/> value.
     /// Will be displayed in the number format from <see cref="SpreadCheetahOptions.DefaultDateTimeFormat"/>.
     /// </summary>
-    public DataCell(DateTime value) : this()
+    public DataCell(DateTime value)
     {
         NumberValue = new CellValue(value.ToOADate());
         _writer = CellValueWriter.DateTime;
@@ -134,7 +134,7 @@ public readonly struct DataCell : IEquatable<DataCell>
     /// Will be displayed in the number format from <see cref="SpreadCheetahOptions.DefaultDateTimeFormat"/>.
     /// If <c>value</c> is <c>null</c>, the cell will be empty.
     /// </summary>
-    public DataCell(DateTime? value) : this()
+    public DataCell(DateTime? value)
     {
         NumberValue = value is null ? new CellValue() : new CellValue(value.Value.ToOADate());
         _writer = value is null ? CellValueWriter.NullDateTime : CellValueWriter.DateTime;
@@ -143,7 +143,7 @@ public readonly struct DataCell : IEquatable<DataCell>
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a boolean value.
     /// </summary>
-    public DataCell(bool value) : this()
+    public DataCell(bool value)
     {
         _writer = GetBooleanWriter(value);
     }
@@ -152,27 +152,10 @@ public readonly struct DataCell : IEquatable<DataCell>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a boolean value.
     /// If <c>value</c> is <c>null</c>, the cell will be empty.
     /// </summary>
-    public DataCell(bool? value) : this()
+    public DataCell(bool? value)
     {
         _writer = value is null ? CellValueWriter.Null : GetBooleanWriter(value.Value);
     }
 
     private static CellValueWriter GetBooleanWriter(bool value) => value ? CellValueWriter.TrueBoolean : CellValueWriter.FalseBoolean;
-
-    /// <inheritdoc/>
-    public bool Equals(DataCell other) => Writer == other.Writer
-        && string.Equals(StringValue, other.StringValue, StringComparison.Ordinal)
-        && Writer.Equals(NumberValue, other.NumberValue);
-
-    /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is DataCell cell && Equals(cell);
-
-    /// <inheritdoc/>
-    public override int GetHashCode() => HashCode.Combine(StringValue, Writer, Writer.GetHashCodeFor(NumberValue));
-
-    /// <summary>Determines whether two instances have the same value.</summary>
-    public static bool operator ==(in DataCell left, in DataCell right) => left.Equals(right);
-
-    /// <summary>Determines whether two instances have different values.</summary>
-    public static bool operator !=(in DataCell left, in DataCell right) => !left.Equals(right);
 }

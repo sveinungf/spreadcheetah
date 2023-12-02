@@ -139,7 +139,4 @@ internal abstract class NullValueWriterBase : CellValueWriter
     /// </summary>
     public override bool CanWriteValuePieceByPiece(in DataCell cell) => false;
     public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex) => true;
-
-    public override bool Equals(in CellValue value, in CellValue other) => true;
-    public override int GetHashCodeFor(in CellValue value) => 0;
 }
