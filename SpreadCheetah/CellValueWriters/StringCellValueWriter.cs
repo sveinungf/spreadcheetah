@@ -222,7 +222,4 @@ internal sealed class StringCellValueWriter : CellValueWriter
     {
         return buffer.WriteLongString(cell.StringValue, ref valueIndex);
     }
-
-    public override bool Equals(in CellValue value, in CellValue other) => true;
-    public override int GetHashCodeFor(in CellValue value) => 0;
 }

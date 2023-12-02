@@ -6,7 +6,7 @@ namespace SpreadCheetah;
 /// Represents the value and an optional style for a worksheet cell.
 /// Style IDs are created with <see cref="Spreadsheet.AddStyle(Style)"/>.
 /// </summary>
-public readonly struct StyledCell : IEquatable<StyledCell>
+public readonly record struct StyledCell
 {
     internal DataCell DataCell { get; }
 
@@ -164,22 +164,4 @@ public readonly struct StyledCell : IEquatable<StyledCell>
         DataCell = new DataCell(value);
         StyleId = styleId;
     }
-
-    /// <inheritdoc/>
-    public bool Equals(StyledCell other)
-    {
-        return DataCell.Equals(other.DataCell) && EqualityComparer<StyleId?>.Default.Equals(StyleId, other.StyleId);
-    }
-
-    /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is StyledCell other && Equals(other);
-
-    /// <inheritdoc/>
-    public override int GetHashCode() => HashCode.Combine(DataCell, StyleId);
-
-    /// <summary>Determines whether two instances have the same value.</summary>
-    public static bool operator ==(in StyledCell left, in StyledCell right) => left.Equals(right);
-
-    /// <summary>Determines whether two instances have different values.</summary>
-    public static bool operator !=(in StyledCell left, in StyledCell right) => !left.Equals(right);
 }

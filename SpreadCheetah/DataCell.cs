@@ -6,7 +6,7 @@ namespace SpreadCheetah;
 /// <summary>
 /// Represents the value and data type for a worksheet cell.
 /// </summary>
-public readonly struct DataCell : IEquatable<DataCell>
+public readonly record struct DataCell
 {
     private readonly CellValueWriter? _writer;
 
@@ -158,21 +158,4 @@ public readonly struct DataCell : IEquatable<DataCell>
     }
 
     private static CellValueWriter GetBooleanWriter(bool value) => value ? CellValueWriter.TrueBoolean : CellValueWriter.FalseBoolean;
-
-    /// <inheritdoc/>
-    public bool Equals(DataCell other) => Writer == other.Writer
-        && string.Equals(StringValue, other.StringValue, StringComparison.Ordinal)
-        && Writer.Equals(NumberValue, other.NumberValue);
-
-    /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is DataCell cell && Equals(cell);
-
-    /// <inheritdoc/>
-    public override int GetHashCode() => HashCode.Combine(StringValue, Writer, Writer.GetHashCodeFor(NumberValue));
-
-    /// <summary>Determines whether two instances have the same value.</summary>
-    public static bool operator ==(in DataCell left, in DataCell right) => left.Equals(right);
-
-    /// <summary>Determines whether two instances have different values.</summary>
-    public static bool operator !=(in DataCell left, in DataCell right) => !left.Equals(right);
 }

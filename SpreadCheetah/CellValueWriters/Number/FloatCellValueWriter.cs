@@ -8,7 +8,4 @@ internal sealed class FloatCellValueWriter : NumberCellValueWriter
     {
         return Utf8Formatter.TryFormat(cell.NumberValue.FloatValue, destination, out bytesWritten);
     }
-
-    public override bool Equals(in CellValue value, in CellValue other) => value.FloatValue == other.FloatValue;
-    public override int GetHashCodeFor(in CellValue value) => value.FloatValue.GetHashCode();
 }
