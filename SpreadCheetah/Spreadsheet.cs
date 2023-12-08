@@ -1,5 +1,7 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Images;
+using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.Styling;
@@ -7,6 +9,7 @@ using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 using System.Buffers;
+using System.Diagnostics;
 using System.IO.Compression;
 
 #if !NET6_0_OR_GREATER
@@ -20,6 +23,7 @@ namespace SpreadCheetah;
 /// </summary>
 public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 {
+    private readonly Guid _spreadsheetGuid = Guid.NewGuid();
     private readonly List<WorksheetMetadata> _worksheets = new();
     private readonly ZipArchive _archive;
     private readonly CompressionLevel _compressionLevel;
@@ -29,8 +33,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly NumberFormat? _defaultDateTimeFormat;
     private DefaultStyling? _defaultStyling;
     private Dictionary<ImmutableStyle, int>? _styles;
+    private FileCounter? _fileCounter;
     private Worksheet? _worksheet;
-    private int _notesFileIndex;
     private bool _disposed;
     private bool _finished;
 
@@ -127,7 +131,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var entryStream = entry.Open();
         _worksheet = new Worksheet(entryStream, _defaultStyling, _buffer, _writeCellReferenceAttributes);
         await _worksheet.WriteHeadAsync(options, token).ConfigureAwait(false);
-        _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible, null));
+        _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
     }
 
     /// <summary>
@@ -434,10 +438,13 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (noteText.Length > SpreadsheetConstants.MaxNoteTextLength)
             ThrowHelper.NoteTextTooLong(nameof(noteText));
 
-        Worksheet.AddNote(cellReference, noteText);
-        var metadata = _worksheets[_worksheets.Count - 1];
-        if (metadata.NotesFileIndex is null)
-            _worksheets[_worksheets.Count - 1] = metadata with { NotesFileIndex = ++_notesFileIndex };
+        Worksheet.AddNote(cellReference, noteText, out var firstNote);
+
+        if (firstNote)
+        {
+            _fileCounter ??= new FileCounter();
+            _fileCounter.WorksheetsWithNotes++;
+        }
     }
 
     /// <summary>
@@ -458,23 +465,94 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         Worksheet.MergeCells(cellReference);
     }
 
+    /// <summary>
+    /// Embeds an image from a stream into the spreadsheet. Once an image has been embedded, it can be used
+    /// in a worksheet by calling <see cref="AddImage"/> with the returned <see cref="EmbeddedImage"/> as an argument.
+    /// Images can only be embedded before any worksheet has been started (i.e. before the first call to <see cref="StartWorksheetAsync"/>.
+    /// Only PNG images are currently supported.
+    /// </summary>
+    public async ValueTask<EmbeddedImage> EmbedImageAsync(Stream stream, CancellationToken token = default)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+        if (_finished)
+            ThrowHelper.EmbedImageNotAllowedAfterFinish();
+        if (!stream.CanRead)
+            ThrowHelper.StreamDoesNotSupportReading(nameof(stream));
+        if (_worksheet is not null)
+            ThrowHelper.EmbedImageBeforeStartingWorksheet();
+
+        const int bytesToRead = 24; // Enough to cover PNG file signature with dimensions
+        using var pooledArray = await stream.ReadToPooledArrayAsync(bytesToRead, token).ConfigureAwait(false);
+        var buffer = pooledArray.Memory;
+
+        if (buffer.Length == 0)
+            ThrowHelper.StreamReadNoBytes(nameof(stream));
+        if (buffer.Length < bytesToRead)
+            ThrowHelper.StreamReadNotEnoughBytes(nameof(stream));
+
+        var imageType = FileSignature.GetImageTypeFromHeader(buffer.Span);
+        if (imageType is null)
+            ThrowHelper.StreamContentNotSupportedImageType(nameof(stream));
+
+        var type = imageType.GetValueOrDefault();
+        _fileCounter ??= new FileCounter();
+        _fileCounter.AddEmbeddedImage(type);
+        var embeddedImageId = _fileCounter.TotalEmbeddedImages;
+
+        return await _archive.CreateImageEntryAsync(stream, _compressionLevel, buffer, type, embeddedImageId, _spreadsheetGuid, token).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Adds an embedded image to the current worksheet. To embed an image, call <see cref="EmbedImageAsync"/>.
+    /// Placement and size is defined by the <see cref="ImageCanvas"/> parameter.
+    /// </summary>
+    public void AddImage(ImageCanvas canvas, EmbeddedImage image, ImageOptions? options = null)
+    {
+        ArgumentNullException.ThrowIfNull(image);
+        ImageValidator.EnsureValidCanvas(canvas, image);
+
+        if (_spreadsheetGuid != image.SpreadsheetGuid)
+            ThrowHelper.CantAddImageEmbeddedInOtherSpreadsheet();
+
+        _fileCounter ??= new FileCounter();
+        _fileCounter.TotalAddedImages++;
+
+        var worksheetImage = new WorksheetImage(canvas, image, options?.Offset, _fileCounter.TotalAddedImages);
+        Worksheet.AddImage(worksheetImage, out var firstImage);
+
+        if (firstImage)
+            _fileCounter.WorksheetsWithImages++;
+    }
+
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
     {
         if (_worksheet is not { } worksheet) return;
 
-        var hasNotes = worksheet.Notes is not null;
-
-        await worksheet.FinishAsync(hasNotes, token).ConfigureAwait(false);
+        await worksheet.FinishAsync(token).ConfigureAwait(false);
         await worksheet.DisposeAsync().ConfigureAwait(false);
 
         if (worksheet.Notes is { } notes)
         {
+            var sheetsWithNotes = _fileCounter?.WorksheetsWithNotes ?? 0;
+            Debug.Assert(sheetsWithNotes > 0);
             using var notesPooledArray = notes.ToPooledArray();
 
+            await CommentsXml.WriteAsync(_archive, _compressionLevel, _buffer, sheetsWithNotes, notesPooledArray.Memory, token).ConfigureAwait(false);
+            await VmlDrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, sheetsWithNotes, notesPooledArray.Memory, token).ConfigureAwait(false);
+        }
+
+        if (worksheet.Images is { } images)
+        {
+            var sheetsWithImages = _fileCounter?.WorksheetsWithImages ?? 0;
+            Debug.Assert(sheetsWithImages > 0);
+            await DrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, sheetsWithImages, images, token).ConfigureAwait(false);
+            await DrawingRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, sheetsWithImages, images, token).ConfigureAwait(false);
+        }
+
+        if (_fileCounter is { } counter && (counter.WorksheetsWithImages > 0 || counter.WorksheetsWithNotes > 0))
+        {
             var worksheetIndex = _worksheets.Count;
-            await CommentsXml.WriteAsync(_archive, _compressionLevel, _buffer, _notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
-            await VmlDrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, _notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
-            await WorksheetRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, worksheetIndex, _notesFileIndex, token).ConfigureAwait(false);
+            await WorksheetRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, worksheetIndex, counter, token).ConfigureAwait(false);
         }
 
         _worksheet = null;
@@ -496,7 +574,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         var hasStyles = _styles != null;
 
-        await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
+        await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, _fileCounter, hasStyles, token).ConfigureAwait(false);
         await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, token).ConfigureAwait(false);
 

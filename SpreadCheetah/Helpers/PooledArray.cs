@@ -31,14 +31,29 @@ internal readonly struct PooledArray<T> : IDisposable
         try
         {
             collection.CopyTo(array, 0);
+            return new PooledArray<T>(array, collection.Count);
         }
-        catch (Exception)
+        catch
         {
             ArrayPool<T>.Shared.Return(array);
             throw;
         }
+    }
 
-        return new PooledArray<T>(array, collection.Count);
+    public static async ValueTask<PooledArray<byte>> CreateAsync(Stream stream, int maxBytesToRead, CancellationToken token)
+    {
+        var array = ArrayPool<byte>.Shared.Rent(maxBytesToRead);
+
+        try
+        {
+            var bytesRead = await stream.ReadAsync(array, token).ConfigureAwait(false);
+            return new PooledArray<byte>(array, bytesRead);
+        }
+        catch
+        {
+            ArrayPool<byte>.Shared.Return(array);
+            throw;
+        }
     }
 
     public void Dispose()

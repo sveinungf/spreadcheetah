@@ -8,75 +8,75 @@ internal class WriteOnlyMemoryStream : MemoryStream
     public override long Position
     {
         get => base.Position;
-        set => throw new NotImplementedException();
+        set => throw new InvalidOperationException();
     }
 
     public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state)
     {
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
     }
 
 #if NETCOREAPP
-        public override void CopyTo(Stream destination, int bufferSize)
-        {
-            throw new NotImplementedException();
-        }
+    public override void CopyTo(Stream destination, int bufferSize)
+    {
+        throw new InvalidOperationException();
+    }
 #endif
 
     public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
     }
 
     public override int EndRead(IAsyncResult asyncResult)
     {
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
     }
 
     public override byte[] GetBuffer()
     {
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
     }
 
     public override int Read(byte[] buffer, int offset, int count)
     {
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
     }
 
 #if NETCOREAPP
-        public override int Read(Span<byte> destination)
-        {
-            throw new NotImplementedException();
-        }
+    public override int Read(Span<byte> destination)
+    {
+        throw new InvalidOperationException();
+    }
 
-        public override ValueTask<int> ReadAsync(Memory<byte> destination, CancellationToken cancellationToken = new CancellationToken())
-        {
-            throw new NotImplementedException();
-        }
+    public override ValueTask<int> ReadAsync(Memory<byte> destination, CancellationToken cancellationToken = new CancellationToken())
+    {
+        throw new InvalidOperationException();
+    }
 #endif
 
     public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
     }
 
     public override int ReadByte()
     {
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
     }
 
     public override long Seek(long offset, SeekOrigin loc)
     {
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
     }
 
     public override bool TryGetBuffer(out ArraySegment<byte> buffer)
     {
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
     }
 
     public override byte[] ToArray()
     {
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
     }
 }

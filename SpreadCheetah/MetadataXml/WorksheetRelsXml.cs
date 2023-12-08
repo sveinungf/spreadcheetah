@@ -12,12 +12,12 @@ internal struct WorksheetRelsXml : IXmlWriter
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
         int worksheetIndex,
-        int notesFilesIndex,
+        FileCounter fileCounter,
         CancellationToken token)
     {
         var entryName = StringHelper.Invariant($"xl/worksheets/_rels/sheet{worksheetIndex}.xml.rels");
         var entry = archive.CreateEntry(entryName, compressionLevel);
-        var writer = new WorksheetRelsXml(notesFilesIndex);
+        var writer = new WorksheetRelsXml(fileCounter);
         return writer.WriteAsync(entry, buffer, token);
     }
 
@@ -25,16 +25,17 @@ internal struct WorksheetRelsXml : IXmlWriter
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">"""u8;
 
-    private static ReadOnlySpan<byte> CommentStart => """<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments" Target="../comments"""u8;
     private static ReadOnlySpan<byte> VmlDrawingStart => """<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/vmlDrawing" Target="../drawings/vmlDrawing"""u8;
+    private static ReadOnlySpan<byte> CommentStart => """<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments" Target="../comments"""u8;
+    private static ReadOnlySpan<byte> DrawingStart => """<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing"""u8;
     private static ReadOnlySpan<byte> Footer => "</Relationships>"u8;
 
-    private readonly int _notesFilesIndex;
+    private readonly FileCounter _fileCounter;
     private Element _next;
 
-    private WorksheetRelsXml(int notesFilesIndex)
+    private WorksheetRelsXml(FileCounter fileCounter)
     {
-        _notesFilesIndex = notesFilesIndex;
+        _fileCounter = fileCounter;
     }
 
     public bool TryWrite(Span<byte> bytes, out int bytesWritten)
@@ -44,6 +45,7 @@ internal struct WorksheetRelsXml : IXmlWriter
         if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
         if (_next == Element.VmlDrawing && !Advance(TryWriteVmlDrawing(bytes, ref bytesWritten))) return false;
         if (_next == Element.Comments && !Advance(TryWriteComments(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Drawing && !Advance(TryWriteDrawing(bytes, ref bytesWritten))) return false;
         if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
 
         return true;
@@ -59,7 +61,9 @@ internal struct WorksheetRelsXml : IXmlWriter
 
     private readonly bool TryWriteVmlDrawing(Span<byte> bytes, ref int bytesWritten)
     {
-        var notesFilesIndex = _notesFilesIndex;
+        var notesFilesIndex = _fileCounter.WorksheetsWithNotes;
+        if (notesFilesIndex <= 0) return true;
+
         var span = bytes.Slice(bytesWritten);
         var written = 0;
 
@@ -73,7 +77,9 @@ internal struct WorksheetRelsXml : IXmlWriter
 
     private readonly bool TryWriteComments(Span<byte> bytes, ref int bytesWritten)
     {
-        var notesFilesIndex = _notesFilesIndex;
+        var notesFilesIndex = _fileCounter.WorksheetsWithNotes;
+        if (notesFilesIndex <= 0) return true;
+
         var span = bytes.Slice(bytesWritten);
         var written = 0;
 
@@ -85,11 +91,28 @@ internal struct WorksheetRelsXml : IXmlWriter
         return true;
     }
 
+    private readonly bool TryWriteDrawing(Span<byte> bytes, ref int bytesWritten)
+    {
+        var drawingsFileIndex = _fileCounter.WorksheetsWithImages;
+        if (drawingsFileIndex <= 0) return true;
+
+        var span = bytes.Slice(bytesWritten);
+        var written = 0;
+
+        if (!DrawingStart.TryCopyTo(span, ref written)) return false;
+        if (!SpanHelper.TryWrite(drawingsFileIndex, span, ref written)) return false;
+        if (!""".xml"/>"""u8.TryCopyTo(span, ref written)) return false;
+
+        bytesWritten += written;
+        return true;
+    }
+
     private enum Element
     {
         Header,
         VmlDrawing,
         Comments,
+        Drawing,
         Footer,
         Done
     }

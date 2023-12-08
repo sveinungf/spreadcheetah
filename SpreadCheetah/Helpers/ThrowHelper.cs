@@ -5,6 +5,9 @@ namespace SpreadCheetah.Helpers;
 internal static class ThrowHelper
 {
     [DoesNotReturn]
+    public static void CantAddImageEmbeddedInOtherSpreadsheet() => throw new SpreadCheetahException("The image can't be added because it was embedded in another spreadsheet.");
+
+    [DoesNotReturn]
     public static void ColumnNumberInvalid(string? paramName, int number) => throw new ArgumentOutOfRangeException(paramName, number, "The column number must be greater than 0 and can't be larger than 16384.");
 
     [DoesNotReturn]
@@ -20,19 +23,55 @@ internal static class ThrowHelper
     public static void EnumValueInvalid<T>(string? paramName, T value) => throw new ArgumentOutOfRangeException(paramName, value, "The value is not a valid enum value.");
 
     [DoesNotReturn]
-    public static void MaxNumberOfDataValidations() => throw new SpreadCheetahException("Can't add more than " + SpreadsheetConstants.MaxNumberOfDataValidations + " data validations to a worksheet.");
+    public static void MaxNumberOfDataValidations() => throw new SpreadCheetahException($"Can't add more than {SpreadsheetConstants.MaxNumberOfDataValidations} data validations to a worksheet.");
 
     [DoesNotReturn]
     public static void NoActiveWorksheet() => throw new SpreadCheetahException("There is no active worksheet.");
 
     [DoesNotReturn]
-    public static void NoteTextTooLong(string? paramName) => throw new ArgumentException("Note text can not exceed " + SpreadsheetConstants.MaxNoteTextLength + " characters.", paramName);
+    public static void EmbedImageBeforeStartingWorksheet() => throw new SpreadCheetahException("Images must be embedded before starting a worksheet.");
+
+    [DoesNotReturn]
+    public static void EmbedImageNotAllowedAfterFinish() => throw new SpreadCheetahException($"Can't embed image after {nameof(Spreadsheet.FinishAsync)} has been called.");
+
+    [DoesNotReturn]
+    public static void FillCellRangeMustContainAtLeastOneCell(string? paramName) => throw new ArgumentOutOfRangeException(paramName, "The cell range must contain at least one cell.");
+
+    [DoesNotReturn]
+    public static void ImageDimensionTooLarge(string? paramName, int actualValue) => throw new ArgumentOutOfRangeException(paramName, actualValue, $"Image width or height can't exceed {SpreadsheetConstants.MaxImageDimension} pixels.");
+
+    [DoesNotReturn]
+    public static void ImageDimensionZeroOrNegative(string? paramName, int actualValue) => throw new ArgumentOutOfRangeException(paramName, actualValue, "Image width and height must be at least 1 pixel.");
+
+    [DoesNotReturn]
+    public static void ImageScaleTooLarge(string? paramName, float actualValue) => throw new ArgumentOutOfRangeException(paramName, actualValue, $"The image scale can't cause image width or height to exceed {SpreadsheetConstants.MaxImageDimension} pixels.");
+
+    [DoesNotReturn]
+    public static void ImageScaleTooSmall(string? paramName, float actualValue) => throw new ArgumentOutOfRangeException(paramName, actualValue, "The image scale must result in image width and height being at least 1 pixel.");
+
+    [DoesNotReturn]
+    public static void NoteTextTooLong(string? paramName) => throw new ArgumentException($"Note text can not exceed {SpreadsheetConstants.MaxNoteTextLength} characters.", paramName);
+
+    [DoesNotReturn]
+    public static void ResizeAndMoveCellsCombinationNotSupported(string resizeParamName, string moveParamName) => throw new ArgumentException($"Enabling {resizeParamName} is not supported when {moveParamName} is false.", resizeParamName);
 
     [DoesNotReturn]
     public static void SpreadsheetMustContainWorksheet() => throw new SpreadCheetahException("Spreadsheet must contain at least one worksheet.");
 
     [DoesNotReturn]
-    public static void StartWorksheetNotAllowedAfterFinish() => throw new SpreadCheetahException("Can't start another worksheet after " + nameof(Spreadsheet.FinishAsync) + " has been called.");
+    public static void StartWorksheetNotAllowedAfterFinish() => throw new SpreadCheetahException($"Can't start another worksheet after {nameof(Spreadsheet.FinishAsync)} has been called.");
+
+    [DoesNotReturn]
+    public static void StreamDoesNotSupportReading(string? paramName) => throw new ArgumentException("The stream does not support reading.", paramName);
+
+    [DoesNotReturn]
+    public static void StreamReadNoBytes(string? paramName) => throw new ArgumentException("Could not read any data from the stream. Perhaps the stream's Position should be set to 0 before calling the method?", paramName);
+
+    [DoesNotReturn]
+    public static void StreamReadNotEnoughBytes(string? paramName) => throw new ArgumentException("The stream did not contain enough data to determine the actual content.", paramName);
+
+    [DoesNotReturn]
+    public static void StreamContentNotSupportedImageType(string? paramName) => throw new ArgumentException("The stream content is not a supported image type. Currently only PNG images are supported.", nameof(paramName));
 
     [DoesNotReturn]
     public static void ValueIsNegative<T>(string? paramName, T value) => throw new ArgumentOutOfRangeException(paramName, value, "The value can not be negative.");

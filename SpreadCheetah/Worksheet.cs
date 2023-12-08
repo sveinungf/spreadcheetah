@@ -1,6 +1,7 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Validations;
@@ -21,6 +22,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private string? _autoFilterRange;
 
     public Dictionary<SingleCellRelativeReference, string>? Notes { get; private set; }
+    public List<WorksheetImage>? Images { get; private set; }
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer, bool writeCellReferenceAttributes)
     {
@@ -106,10 +108,30 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         return true;
     }
 
-    public void AddNote(string cellReference, string noteText)
+    public void AddImage(in WorksheetImage image, out bool firstImage)
+    {
+        firstImage = false;
+
+        if (Images is null)
+        {
+            firstImage = true;
+            Images = new List<WorksheetImage>();
+        }
+
+        Images.Add(image);
+    }
+
+    public void AddNote(string cellReference, string noteText, out bool firstNote)
     {
         var reference = SingleCellRelativeReference.Create(cellReference);
-        Notes ??= new Dictionary<SingleCellRelativeReference, string>();
+        firstNote = false;
+
+        if (Notes is null)
+        {
+            firstNote = true;
+            Notes = new Dictionary<SingleCellRelativeReference, string>();
+        }
+
         Notes[reference] = noteText;
     }
 
@@ -119,12 +141,15 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         _cellMerges.Add(cellRange);
     }
 
-    public async ValueTask FinishAsync(bool hasNotes, CancellationToken token)
+    public async ValueTask FinishAsync(CancellationToken token)
     {
         using var cellMergesPooledArray = _cellMerges?.ToPooledArray();
         using var validationsPooledArray = _validations?.ToPooledArray();
 
-        var writer = new WorksheetEndXml(cellMergesPooledArray?.Memory, validationsPooledArray?.Memory, _autoFilterRange, hasNotes);
+        var hasNotes = Notes is not null;
+        var hasImages = Images is not null;
+
+        var writer = new WorksheetEndXml(cellMergesPooledArray?.Memory, validationsPooledArray?.Memory, _autoFilterRange, hasNotes, hasImages);
 #pragma warning disable EPS06 // Hidden struct copy operation
         await writer.WriteAsync(_stream, _buffer, token).ConfigureAwait(false);
 #pragma warning restore EPS06 // Hidden struct copy operation

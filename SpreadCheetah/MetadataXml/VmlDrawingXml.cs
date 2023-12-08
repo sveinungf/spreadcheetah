@@ -64,19 +64,20 @@ internal struct VmlDrawingXml : IXmlWriter
 
         for (; _nextIndex < notes.Length; ++_nextIndex)
         {
-            var reference = notes[_nextIndex].Key;
-            var noteXmlWriter = _currentNoteXmlWriter ?? new VmlDrawingNoteXml(reference);
+            var noteXmlWriter = _currentNoteXmlWriter
+                ?? new VmlDrawingNoteXml(notes[_nextIndex].Key);
 
             var span = bytes.Slice(bytesWritten);
-            if (!noteXmlWriter.TryWrite(span, out var written))
+            var done = noteXmlWriter.TryWrite(span, out var written);
+            bytesWritten += written;
+
+            if (!done)
             {
                 _currentNoteXmlWriter = noteXmlWriter;
-                bytesWritten += written;
                 return false;
             }
 
             _currentNoteXmlWriter = null;
-            bytesWritten += written;
         }
 
         return true;
