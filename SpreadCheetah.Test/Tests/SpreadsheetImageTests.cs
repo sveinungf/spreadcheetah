@@ -675,6 +675,37 @@ public class SpreadsheetImageTests
         Assert.Equal(expectedHeight, actualHeight);
     }
 
-    // TODO: Test for embedding image with invalid dimensions
-    // TODO: Test for transparent image
+    [Fact]
+    public async Task Spreadsheet_AddImage_PngWithDefaultCanvas()
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        ImageCanvas canvas = default;
+
+        // Act
+        spreadsheet.AddImage(canvas, embeddedImage);
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        // Use ClosedXML to verify offsets to be the same as originally passed (EPPlus calculates them differently)
+        using var workbook = new XLWorkbook(outputStream);
+        var worksheet = Assert.Single(workbook.Worksheets);
+        var picture = Assert.Single(worksheet.Pictures);
+        Assert.Equal(0, picture.Left);
+        Assert.Equal(0, picture.Top);
+
+        // Use EPPlus to verify the image dimensions (ClosedXML doesn't seem to calculate this)
+        using var package = new ExcelPackage(outputStream);
+        var ws = Assert.Single(package.Workbook.Worksheets);
+        var drawing = Assert.Single(ws.Drawings);
+        var (actualWidth, actualHeight) = drawing.GetActualDimensions();
+        Assert.Equal(266, actualWidth);
+        Assert.Equal(183, actualHeight);
+    }
 }
