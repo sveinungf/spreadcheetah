@@ -2,9 +2,15 @@ using System.Diagnostics;
 
 namespace SpreadCheetah.Images;
 
+/// <summary>
+/// Reference for an embedded image. Images are embedded with <see cref="Spreadsheet.EmbedImageAsync"/>.
+/// </summary>
 public sealed class EmbeddedImage
 {
+    /// <summary>The width of the image in pixels.</summary>
     public int Width { get; }
+
+    /// <summary>The height of the image in pixels.</summary>
     public int Height { get; }
 
     /// <summary>

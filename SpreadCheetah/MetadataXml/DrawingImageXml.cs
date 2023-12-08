@@ -2,9 +2,11 @@ using SpreadCheetah.Helpers;
 using SpreadCheetah.Images;
 using SpreadCheetah.Images.Internal;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace SpreadCheetah.MetadataXml;
 
+[StructLayout(LayoutKind.Auto)]
 internal struct DrawingImageXml
 {
     private static ReadOnlySpan<byte> ImageStart => "<xdr:twoCellAnchor editAs=\""u8;
@@ -13,7 +15,6 @@ internal struct DrawingImageXml
     private static ReadOnlySpan<byte> ImageIdEnd => "\""u8 + """ name="Image """u8;
     private static ReadOnlySpan<byte> NameEnd => "\" "u8 + """descr=""></xdr:cNvPr><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId"""u8;
 
-    // TODO: Bounding box size? (http://officeopenxml.com/drwSp-size.php)
     private static ReadOnlySpan<byte> ImageEnd => "\""u8 +
         """></a:blip><a:stretch/></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="1" y="1"/><a:ext cx="1" cy="1"/>"""u8 +
         """</a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:ln w="0"><a:noFill/></a:ln></xdr:spPr>"""u8 +

@@ -1,9 +1,14 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
+using System.Runtime.InteropServices;
 
 namespace SpreadCheetah.Images;
 
-public readonly struct ImageCanvas
+/// <summary>
+/// Represents the placement and size of an image in a worksheet.
+/// </summary>
+[StructLayout(LayoutKind.Auto)]
+public readonly record struct ImageCanvas
 {
     internal ImageCanvasOptions Options { get; }
     /// <summary>Starts at 0, meaning 'A' = 0</summary>
@@ -18,8 +23,6 @@ public readonly struct ImageCanvas
     internal ushort DimensionWidth { get; }
     internal ushort DimensionHeight { get; }
 
-    // TODO: Verify that default constructor places the image with original dimensions in A1
-
     private ImageCanvas(SingleCellRelativeReference fromReference, ImageCanvasOptions options, ushort toColumn = 0, uint toRow = 0, float scaleValue = 0, ushort dimensionWidth = 0, ushort dimensionHeight = 0)
     {
         FromColumn = (ushort)(fromReference.Column - 1);
@@ -32,6 +35,12 @@ public readonly struct ImageCanvas
         DimensionHeight = dimensionHeight;
     }
 
+    /// <summary>
+    /// Show the image in its original size with its upper left corner at <paramref name="upperLeftReference"/>.
+    /// The cell reference must be in the A1 reference style, e.g. "A1" or "C4".
+    /// The <paramref name="moveWithCells"/> parameter decides whether or not the image should move when
+    /// cells further up or left change size.
+    /// </summary>
     public static ImageCanvas OriginalSize(ReadOnlySpan<char> upperLeftReference, bool moveWithCells = true)
     {
         var reference = SingleCellRelativeReference.Create(upperLeftReference);
@@ -39,6 +48,12 @@ public readonly struct ImageCanvas
         return new ImageCanvas(reference, options);
     }
 
+    /// <summary>
+    /// Show the image with the specified dimensions with its upper left corner at <paramref name="upperLeftReference"/>.
+    /// The cell reference must be in the A1 reference style, e.g. "A1" or "C4".
+    /// The <paramref name="moveWithCells"/> parameter decides whether or not the image should move when
+    /// cells further up or left change size.
+    /// </summary>
     public static ImageCanvas Dimensions(ReadOnlySpan<char> upperLeftReference, int width, int height, bool moveWithCells = true)
     {
         var reference = SingleCellRelativeReference.Create(upperLeftReference);
@@ -48,6 +63,14 @@ public readonly struct ImageCanvas
         return new ImageCanvas(reference, options, dimensionWidth: (ushort)width, dimensionHeight: (ushort)height);
     }
 
+    /// <summary>
+    /// Show the image with the specified scale with its upper left corner at <paramref name="upperLeftReference"/>.
+    /// The <paramref name="scale"/> must be between 0.0 and 1000. A <paramref name="scale"/> less than 1.0 will make the
+    /// image appear smaller than its original size, while a <paramref name="scale"/> greater than 1.0 will make the
+    /// image appear larger. The cell reference must be in the A1 reference style, e.g. "A1" or "C4".
+    /// The <paramref name="moveWithCells"/> parameter decides whether or not the image should move when
+    /// cells further up or left change size.
+    /// </summary>
     public static ImageCanvas Scaled(ReadOnlySpan<char> upperLeftReference, float scale, bool moveWithCells = true)
     {
         var reference = SingleCellRelativeReference.Create(upperLeftReference);
@@ -72,7 +95,15 @@ public readonly struct ImageCanvas
         return new ImageCanvas(upperLeft, options, lowerRightColumn, lowerRightRow);
     }
 
-    // TODO: In XML doc: resizeWithCells can't be set to true if moveWithCells is false.
+    /// <summary>
+    /// Show the image so that it fills the cell at <paramref name="cellReference"/>.
+    /// The cell reference must be in the A1 reference style, e.g. "A1" or "C4".
+    /// The <paramref name="moveWithCells"/> parameter decides whether or not the image should move when
+    /// cells further up or left change size.
+    /// The <paramref name="resizeWithCells"/> parameter decides whether or not the image should resize when
+    /// the cell is being resized. <paramref name="resizeWithCells"/> can only be set to <c>true</c>
+    /// if <paramref name="moveWithCells"/> is also set to <c>true</c>.
+    /// </summary>
     public static ImageCanvas FillCell(ReadOnlySpan<char> cellReference, bool moveWithCells = true, bool resizeWithCells = true)
     {
         var upperLeft = SingleCellRelativeReference.Create(cellReference);
@@ -82,7 +113,15 @@ public readonly struct ImageCanvas
         return FillCell(upperLeft, upperLeft.Column, upperLeft.Row, moveWithCells, resizeWithCells);
     }
 
-    // TODO: In XML doc: resizeWithCells can't be set to true if moveWithCells is false.
+    /// <summary>
+    /// Show the image so that it fills the cell range from <paramref name="upperLeftReference"/> to <paramref name="lowerRightReference"/>.
+    /// The cell references must be in the A1 reference style, e.g. "A1" or "C4".
+    /// The <paramref name="moveWithCells"/> parameter decides whether or not the image should move when
+    /// cells further up or left change size.
+    /// The <paramref name="resizeWithCells"/> parameter decides whether or not the image should resize when
+    /// the cell range is being resized. <paramref name="resizeWithCells"/> can only be set to <c>true</c>
+    /// if <paramref name="moveWithCells"/> is also set to <c>true</c>.
+    /// </summary>
     public static ImageCanvas FillCells(ReadOnlySpan<char> upperLeftReference, ReadOnlySpan<char> lowerRightReference, bool moveWithCells = true, bool resizeWithCells = true)
     {
         var upperLeft = SingleCellRelativeReference.Create(upperLeftReference);

@@ -465,6 +465,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         Worksheet.MergeCells(cellReference);
     }
 
+    /// <summary>
+    /// Embeds an image from a stream into the spreadsheet. Once an image has been embedded, it can be used
+    /// in a worksheet by calling <see cref="AddImage"/> with the returned <see cref="EmbeddedImage"/> as an argument.
+    /// Images can only be embedded before any worksheet has been started (i.e. before the first call to <see cref="StartWorksheetAsync"/>.
+    /// Only PNG images are currently supported.
+    /// </summary>
     public async ValueTask<EmbeddedImage> EmbedImageAsync(Stream stream, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(stream);
@@ -488,14 +494,18 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (imageType is null)
             ThrowHelper.StreamContentNotSupportedImageType(nameof(stream));
 
+        var type = imageType.GetValueOrDefault();
         _fileCounter ??= new FileCounter();
-        _fileCounter.AddEmbeddedImage(imageType.Value);
+        _fileCounter.AddEmbeddedImage(type);
         var embeddedImageId = _fileCounter.TotalEmbeddedImages;
 
-        // TODO: What about imageCount if this fails?
-        return await _archive.CreateImageEntryAsync(stream, _compressionLevel, buffer, imageType.Value, embeddedImageId, _spreadsheetGuid, token).ConfigureAwait(false);
+        return await _archive.CreateImageEntryAsync(stream, _compressionLevel, buffer, type, embeddedImageId, _spreadsheetGuid, token).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Adds an embedded image to the current worksheet. To embed an image, call <see cref="EmbedImageAsync"/>.
+    /// Placement and size is defined by the <see cref="ImageCanvas"/> parameter.
+    /// </summary>
     public void AddImage(ImageCanvas canvas, EmbeddedImage image, ImageOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(image);
