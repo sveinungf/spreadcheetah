@@ -54,7 +54,11 @@ public class SpreadCheetahOptions
 
     /// <summary>
     /// Write the explicit cell reference attribute for each cell in the resulting spreadsheet.
-    /// The attribute is optional according to the Open XML specification, but it is required for Microsoft's Spreadsheet Compare tool to do a comparison.
+    /// The attribute is optional according to the Open XML specification, but it can be required for some readers such as:
+    /// <list type="bullet">
+    ///   <item>Microsoft Excel ADO OleDb provider.</item>
+    ///   <item>Microsoft Spreadsheet Compare tool.</item>
+    /// </list>
     /// Writing the attribute will slightly affect the performance of writing cells, and will also increase the resulting file size.
     /// Defaults to <c>false</c>.
     /// </summary>
