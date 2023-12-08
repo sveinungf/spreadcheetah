@@ -19,13 +19,14 @@
     <PackageReleaseNotes>https://github.com/sveinungf/spreadcheetah/releases/tag/v1.11.0</PackageReleaseNotes>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    
+    <!-- Strong name -->
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>spreadcheetahKey.snk</AssemblyOriginatorKeyFile>
 
-    <!-- SourceLink -->
+    <!-- Symbol package -->
     <IncludeSymbols>true</IncludeSymbols>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <DebugType>embedded</DebugType>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
 
     <!-- Package validation -->
     <EnablePackageValidation>true</EnablePackageValidation>
@@ -46,10 +47,6 @@
 
   <ItemGroup>
     <PackageReference Include="ErrorProne.NET.Structs">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.SourceLink.GitHub">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
