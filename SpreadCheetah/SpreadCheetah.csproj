@@ -9,14 +9,14 @@
 
     <!-- NuGet package -->
     <PackageId>SpreadCheetah</PackageId>
-    <Version>1.11.0</Version>
+    <Version>1.12.0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>sveinungf</Authors>
     <Description>SpreadCheetah is a high-performance .NET library for generating spreadsheet (Microsoft Excel XLSX) files.</Description>
     <PackageProjectUrl>https://github.com/sveinungf/spreadcheetah</PackageProjectUrl>
     <RepositoryUrl>https://github.com/sveinungf/spreadcheetah</RepositoryUrl>
     <PackageTags>spreadsheet;excel;xlsx;openxml;sourcegenerator;performance;nativeaot</PackageTags>
-    <PackageReleaseNotes>https://github.com/sveinungf/spreadcheetah/releases/tag/v1.11.0</PackageReleaseNotes>
+    <PackageReleaseNotes>https://github.com/sveinungf/spreadcheetah/releases/tag/v1.12.0</PackageReleaseNotes>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     
