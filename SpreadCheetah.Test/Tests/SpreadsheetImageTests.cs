@@ -140,6 +140,22 @@ public class SpreadsheetImageTests
     }
 
     [Fact]
+    public async Task Spreadsheet_EmbedImage_PngWithInvalidResolution()
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("red-1x1.invalidpng");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+
+        // Act
+        var exception = await Record.ExceptionAsync(() => spreadsheet.EmbedImageAsync(pngStream).AsTask());
+
+        // Assert
+        var concreteException = Assert.IsType<ArgumentOutOfRangeException>(exception);
+        Assert.Contains("width", concreteException.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task Spreadsheet_AddImage_Png()
     {
         // Arrange
@@ -165,6 +181,37 @@ public class SpreadsheetImageTests
         Assert.Equal(XLPictureFormat.Png, picture.Format);
         Assert.Equal(266, picture.OriginalWidth);
         Assert.Equal(183, picture.OriginalHeight);
+        Assert.Equal(0, picture.Top);
+        Assert.Equal(0, picture.Left);
+        Assert.Equal("Image 1", picture.Name);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddImage_PngWithTransparentBackground()
+    {
+        // Arrange
+        const string reference = "B3";
+        using var pngStream = EmbeddedResources.GetStream("yellow-500x500-transparent.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
+
+        // Act
+        spreadsheet.AddImage(canvas, embeddedImage);
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        using var workbook = new XLWorkbook(outputStream);
+        var worksheet = Assert.Single(workbook.Worksheets);
+        var picture = Assert.Single(worksheet.Pictures);
+        Assert.Equal(reference, picture.TopLeftCell.Address.ToString());
+        Assert.Equal(XLPictureFormat.Png, picture.Format);
+        Assert.Equal(500, picture.OriginalWidth);
+        Assert.Equal(500, picture.OriginalHeight);
         Assert.Equal(0, picture.Top);
         Assert.Equal(0, picture.Left);
         Assert.Equal("Image 1", picture.Name);
