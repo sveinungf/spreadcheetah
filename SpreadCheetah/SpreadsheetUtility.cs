@@ -20,21 +20,40 @@ public static class SpreadsheetUtility
 
         if (columnNumber <= 702)
         {
-            Span<char> characters = stackalloc char[2];
             var quotient = Math.DivRem(columnNumber - 1, 26, out var remainder);
-            characters[0] = (char)('A' - 1 + quotient);
-            characters[1] = (char)('A' + remainder);
-            return characters.ToString();
+#if NET8_0_OR_GREATER
+            return new string(
+            [
+                (char)('A' - 1 + quotient),
+                (char)('A' + remainder)
+            ]);
+#else
+            return stackalloc char[2]
+            {
+                (char)('A' - 1 + quotient),
+                (char)('A' + remainder)
+            }.ToString();
+#endif
         }
         else
         {
-            Span<char> characters = stackalloc char[3];
             var quotient1 = Math.DivRem(columnNumber - 1, 26, out var remainder1);
             var quotient2 = Math.DivRem(quotient1 - 1, 26, out var remainder2);
-            characters[0] = (char)('A' - 1 + quotient2);
-            characters[1] = (char)('A' + remainder2);
-            characters[2] = (char)('A' + remainder1);
-            return characters.ToString();
+#if NET8_0_OR_GREATER
+            return new string(
+            [
+                (char)('A' - 1 + quotient2),
+                (char)('A' + remainder2),
+                (char)('A' + remainder1)
+            ]);
+#else
+            return stackalloc char[3]
+            {
+                (char)('A' - 1 + quotient2),
+                (char)('A' + remainder2),
+                (char)('A' + remainder1)
+            }.ToString();
+#endif
         }
     }
 

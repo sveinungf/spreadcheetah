@@ -4,7 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace SpreadCheetah.Benchmark.Benchmarks;
 
+[SimpleJob(RuntimeMoniker.Net48)]
 [SimpleJob(RuntimeMoniker.Net70)]
+[SimpleJob(RuntimeMoniker.Net80)]
 [MemoryDiagnoser(false)]
 public class GetColumnName
 {
