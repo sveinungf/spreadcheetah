@@ -2,13 +2,9 @@ using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.CellWriters;
 
-internal sealed class StyledCellWriter : BaseCellWriter<StyledCell>
+internal sealed class StyledCellWriter(CellWriterState state, DefaultStyling? defaultStyling)
+    : BaseCellWriter<StyledCell>(state, defaultStyling)
 {
-    public StyledCellWriter(CellWriterState state, DefaultStyling? defaultStyling)
-        : base(state, defaultStyling)
-    {
-    }
-
     protected override bool TryWriteCell(in StyledCell cell)
     {
         return cell.StyleId is null

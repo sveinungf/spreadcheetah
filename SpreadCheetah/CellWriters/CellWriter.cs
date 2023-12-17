@@ -3,13 +3,9 @@ using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.CellWriters;
 
-internal sealed class CellWriter : BaseCellWriter<Cell>
+internal sealed class CellWriter(CellWriterState state, DefaultStyling? defaultStyling)
+    : BaseCellWriter<Cell>(state, defaultStyling)
 {
-    public CellWriter(CellWriterState state, DefaultStyling? defaultStyling)
-        : base(state, defaultStyling)
-    {
-    }
-
     protected override bool TryWriteCell(in Cell cell) => cell switch
     {
         { Formula: not null } => cell.DataCell.Writer.TryWriteCell(cell.Formula.Value.FormulaText, cell.DataCell, cell.StyleId, DefaultStyling, State),
