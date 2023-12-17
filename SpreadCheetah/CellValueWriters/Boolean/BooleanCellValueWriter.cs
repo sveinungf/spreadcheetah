@@ -24,6 +24,11 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         return TryWriteCell(styleId, state);
     }
 
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    {
+        return TryWriteCell(styleId, buffer);
+    }
+
     private bool TryWriteCell(StyleId styleId, CellWriterState state)
     {
         var buffer = state.Buffer;
@@ -48,6 +53,20 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         return true;
     }
 
+    private bool TryWriteCell(StyleId styleId, SpreadsheetBuffer buffer)
+    {
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!BeginStyledBooleanCell.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+        if (!TryWriteEndStyleValue(bytes.Slice(written), out var endLength)) return false;
+        written += endLength;
+
+        buffer.Advance(written);
+        return true;
+    }
+
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
     {
         var buffer = state.Buffer;
@@ -58,6 +77,27 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         if (!TryWriteEndFormulaValue(bytes.Slice(written), out var endLength)) return false;
 
         buffer.Advance(written + endLength);
+        return true;
+    }
+
+    public override bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state)
+    {
+        return TryWriteCellWithReference(styleId, state);
+    }
+
+    private bool TryWriteCellWithReference(StyleId styleId, CellWriterState state)
+    {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+        if (!"\" t=\"b\" s=\""u8.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+        if (!TryWriteEndStyleValue(bytes.Slice(written), out var endLength)) return false;
+        written += endLength;
+
+        buffer.Advance(written);
         return true;
     }
 

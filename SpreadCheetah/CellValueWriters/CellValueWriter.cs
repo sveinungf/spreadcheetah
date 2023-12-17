@@ -21,7 +21,10 @@ internal abstract class CellValueWriter
     public static CellValueWriter String { get; } = new StringCellValueWriter();
 
     public abstract bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state);
+    [Obsolete]
     public abstract bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state);
+    public abstract bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer);
+    public abstract bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state);
     public abstract bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state);
     public abstract bool WriteStartElement(CellWriterState state);
     public abstract bool WriteStartElement(StyleId styleId, CellWriterState state);

@@ -56,6 +56,19 @@ internal abstract class NullValueWriterBase : CellValueWriter
         return true;
     }
 
+    protected static bool TryWriteCell(int styleId, SpreadsheetBuffer buffer)
+    {
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(styleId, bytes, ref written)) return false;
+        if (!EndStyleNullValue.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
     protected static bool TryWriteCell(string formulaText, int? styleId, CellWriterState state)
     {
         var buffer = state.Buffer;
@@ -72,6 +85,31 @@ internal abstract class NullValueWriterBase : CellValueWriter
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state)
     {
         return TryWriteCell(GetStyleId(styleId), state);
+    }
+
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    {
+        return TryWriteCell(GetStyleId(styleId), buffer);
+    }
+
+    public override bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state)
+    {
+        return TryWriteCellWithReference(GetStyleId(styleId), state);
+    }
+
+    protected static bool TryWriteCellWithReference(int styleId, CellWriterState state)
+    {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+        if (!StyledCellHelper.EndReferenceBeginStyleId.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(styleId, bytes, ref written)) return false;
+        if (!EndStyleNullValue.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
     }
 
     public override bool TryWriteEndElement(SpreadsheetBuffer buffer) => true;
