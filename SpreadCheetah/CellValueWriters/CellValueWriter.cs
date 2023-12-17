@@ -20,12 +20,15 @@ internal abstract class CellValueWriter
     public static CellValueWriter FalseBoolean { get; } = new FalseBooleanCellValueWriter();
     public static CellValueWriter String { get; } = new StringCellValueWriter();
 
+    [Obsolete]
     public abstract bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state);
+    public abstract bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer);
     [Obsolete]
     public abstract bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state);
     public abstract bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer);
-    public abstract bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state);
     public abstract bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state);
+    public abstract bool TryWriteCellWithReference(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state);
+    public abstract bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state);
     public abstract bool WriteStartElement(CellWriterState state);
     public abstract bool WriteStartElement(StyleId styleId, CellWriterState state);
     public abstract bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state);

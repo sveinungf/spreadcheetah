@@ -29,6 +29,30 @@ internal sealed class TrueBooleanCellValueWriter : BooleanCellValueWriter
         return true;
     }
 
+    protected override bool TryWriteCell(SpreadsheetBuffer buffer)
+    {
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!TrueBooleanCell.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
+    protected override bool TryWriteCellWithReference(CellWriterState state)
+    {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+        if (!"\" t=\"b\"><v>1</v></c>"u8.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
     protected override bool TryWriteEndStyleValue(Span<byte> bytes, out int bytesWritten)
     {
         if (EndStyleTrueBooleanValue.TryCopyTo(bytes))

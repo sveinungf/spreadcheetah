@@ -38,6 +38,21 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         return true;
     }
 
+    protected bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer)
+    {
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!BeginDataCell.TryCopyTo(bytes, ref written)) return false;
+        if (!TryWriteValue(cell, bytes.Slice(written), out var valueLength)) return false;
+        written += valueLength;
+
+        if (!EndDefaultCell.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
     protected bool TryWriteCell(in DataCell cell, int styleId, CellWriterState state)
     {
         var buffer = state.Buffer;
@@ -114,6 +129,23 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
     public override bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state)
     {
         return TryWriteCellWithReference(cell, GetStyleId(styleId), state);
+    }
+
+    protected bool TryWriteCellWithReference(in DataCell cell, CellWriterState state)
+    {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+        if (!"\"><v>"u8.TryCopyTo(bytes, ref written)) return false;
+        if (!TryWriteValue(cell, bytes.Slice(written), out var valueLength)) return false;
+        written += valueLength;
+
+        if (!EndDefaultCell.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
     }
 
     protected bool TryWriteCellWithReference(in DataCell cell, int styleId, CellWriterState state)

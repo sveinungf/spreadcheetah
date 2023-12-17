@@ -16,10 +16,26 @@ internal sealed class NullDateTimeCellValueWriter : NullValueWriterBase
             : TryWriteCell(state);
     }
 
+    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    {
+        var defaultStyleId = defaultStyling?.DateTimeStyleId;
+        return defaultStyleId is not null
+            ? TryWriteCell(defaultStyleId.Value, buffer)
+            : TryWriteCell(buffer);
+    }
+
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
     {
         var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
         return TryWriteCell(formulaText, actualStyleId, state);
+    }
+
+    public override bool TryWriteCellWithReference(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
+    {
+        var defaultStyleId = defaultStyling?.DateTimeStyleId;
+        return defaultStyleId is not null
+            ? TryWriteCellWithReference(defaultStyleId.Value, state)
+            : TryWriteCellWithReference(state);
     }
 
     public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)

@@ -37,6 +37,19 @@ internal sealed class StringCellValueWriter : CellValueWriter
         return true;
     }
 
+    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    {
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!BeginStringCell.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(cell.StringValue, bytes, ref written)) return false;
+        if (!EndStringCell.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state)
     {
         var buffer = state.Buffer;
@@ -87,6 +100,21 @@ internal sealed class StringCellValueWriter : CellValueWriter
         if (!FormulaCellHelper.EndFormulaBeginCachedValue.TryCopyTo(bytes, ref written)) return false;
         if (!SpanHelper.TryWrite(cachedValue.StringValue, bytes, ref written)) return false;
         if (!FormulaCellHelper.EndCachedValueEndCell.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
+    public override bool TryWriteCellWithReference(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
+    {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+        if (!"\" t=\"inlineStr\"><is><t>"u8.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(cell.StringValue, bytes, ref written)) return false;
+        if (!EndStringCell.TryCopyTo(bytes, ref written)) return false;
 
         buffer.Advance(written);
         return true;

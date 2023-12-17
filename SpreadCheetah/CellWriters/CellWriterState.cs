@@ -3,6 +3,7 @@ namespace SpreadCheetah.CellWriters;
 internal sealed class CellWriterState
 {
     public SpreadsheetBuffer Buffer { get; }
+    [Obsolete]
     public bool WriteCellReferenceAttributes { get; }
     public uint NextRowIndex { get; set; } = 1;
     public int Column { get; set; }
