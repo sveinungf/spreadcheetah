@@ -329,6 +329,34 @@ internal sealed class StringCellValueWriter : CellValueWriter
         return true;
     }
 
+    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer)
+    {
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!BeginStyledStringCell.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+        if (!EndStyleBeginInlineString.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
+    public override bool WriteStartElementWithReference(StyleId styleId, CellWriterState state)
+    {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+        if (!"\" t=\"inlineStr\" s=\""u8.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+        if (!EndStyleBeginInlineString.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
     public override bool CanWriteValuePieceByPiece(in DataCell cell) => true;
 
     public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)

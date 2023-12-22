@@ -319,6 +319,34 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
         return true;
     }
 
+    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer)
+    {
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(GetStyleId(styleId), bytes, ref written)) return false;
+        if (!EndStyleBeginValue.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
+    public override bool WriteStartElementWithReference(StyleId styleId, CellWriterState state)
+    {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+        if (!StyledCellHelper.EndReferenceBeginStyleId.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(GetStyleId(styleId), bytes, ref written)) return false;
+        if (!EndStyleBeginValue.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
     protected static bool WriteFormulaStartElement(int? styleId, CellWriterState state)
     {
         var buffer = state.Buffer;

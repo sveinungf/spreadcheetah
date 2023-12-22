@@ -220,6 +220,8 @@ internal abstract class NullValueWriterBase : CellValueWriter
     public override bool WriteStartElement(CellWriterState state) => TryWriteCell(state);
 
     public override bool WriteStartElement(StyleId styleId, CellWriterState state) => TryWriteCell(GetStyleId(styleId), state);
+    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => TryWriteCell(GetStyleId(styleId), buffer);
+    public override bool WriteStartElementWithReference(StyleId styleId, CellWriterState state) => TryWriteCellWithReference(GetStyleId(styleId), state);
 
     /// <summary>
     /// Returns false because there is no value to write for 'null'.
