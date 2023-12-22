@@ -286,6 +286,50 @@ internal sealed class StringCellValueWriter : CellValueWriter
         return true;
     }
 
+    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    {
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (styleId is null)
+        {
+            if (!BeginStringFormulaCell.TryCopyTo(bytes, ref written)) return false;
+            buffer.Advance(written);
+            return true;
+        }
+
+        if (!BeginStyledStringCell.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+        if (!FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
+    public override bool WriteFormulaStartElementWithReference(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
+    {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (styleId is null)
+        {
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!"\" t=\"str\"><f>"u8.TryCopyTo(bytes, ref written)) return false;
+
+            buffer.Advance(written);
+            return true;
+        }
+
+        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+        if (!"\" t=\"inlineStr\" s=\""u8.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+        if (!FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
     public override bool WriteStartElement(CellWriterState state)
     {
         var buffer = state.Buffer;

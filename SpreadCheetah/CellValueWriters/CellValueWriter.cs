@@ -40,7 +40,10 @@ internal abstract class CellValueWriter
     public abstract bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer);
     public abstract bool WriteStartElementWithReference(CellWriterState state);
     public abstract bool WriteStartElementWithReference(StyleId styleId, CellWriterState state);
+    [Obsolete]
     public abstract bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state);
+    public abstract bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer);
+    public abstract bool WriteFormulaStartElementWithReference(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state);
     public abstract bool CanWriteValuePieceByPiece(in DataCell cell);
     public abstract bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex);
     public abstract bool TryWriteEndElement(SpreadsheetBuffer buffer);

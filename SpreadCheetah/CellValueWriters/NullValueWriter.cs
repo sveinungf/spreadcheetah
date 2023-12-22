@@ -42,4 +42,14 @@ internal sealed class NullValueWriter : NullValueWriterBase
     {
         return WriteFormulaStartElement(styleId?.Id, state);
     }
+
+    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    {
+        return WriteFormulaStartElement(styleId?.Id, buffer);
+    }
+
+    public override bool WriteFormulaStartElementWithReference(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
+    {
+        return WriteFormulaStartElementWithReference(styleId?.Id, state);
+    }
 }

@@ -253,6 +253,50 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         return true;
     }
 
+    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    {
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (styleId is null)
+        {
+            if (!BeginBooleanFormulaCell.TryCopyTo(bytes, ref written)) return false;
+            buffer.Advance(written);
+            return true;
+        }
+
+        if (!BeginStyledBooleanCell.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+        if (!FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
+    public override bool WriteFormulaStartElementWithReference(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
+    {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (styleId is null)
+        {
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!"\" t=\"b\"><f>"u8.TryCopyTo(bytes, ref written)) return false;
+
+            buffer.Advance(written);
+            return true;
+        }
+
+        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+        if (!"\" t=\"b\" s=\""u8.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+        if (!FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
     public override bool WriteStartElement(CellWriterState state) => TryWriteCell(state);
     public override bool WriteStartElement(SpreadsheetBuffer buffer) => TryWriteCell(buffer);
     public override bool WriteStartElement(StyleId styleId, CellWriterState state) => TryWriteCell(styleId, state);

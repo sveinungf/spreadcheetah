@@ -55,4 +55,16 @@ internal sealed class NullDateTimeCellValueWriter : NullValueWriterBase
         var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
         return WriteFormulaStartElement(actualStyleId, state);
     }
+
+    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    {
+        var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
+        return WriteFormulaStartElement(actualStyleId, buffer);
+    }
+
+    public override bool WriteFormulaStartElementWithReference(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
+    {
+        var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
+        return WriteFormulaStartElementWithReference(actualStyleId, state);
+    }
 }
