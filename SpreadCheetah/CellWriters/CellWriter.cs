@@ -8,16 +8,16 @@ internal sealed class CellWriter(CellWriterState state, DefaultStyling? defaultS
 {
     protected override bool TryWriteCell(in Cell cell) => cell switch
     {
-        { Formula: not null } => cell.DataCell.Writer.TryWriteCell(cell.Formula.Value.FormulaText, cell.DataCell, cell.StyleId, DefaultStyling, State),
-        { StyleId: not null } => cell.DataCell.Writer.TryWriteCell(cell.DataCell, cell.StyleId, State),
-        _ => cell.DataCell.Writer.TryWriteCell(cell.DataCell, DefaultStyling, State)
+        { Formula: not null } => cell.DataCell.Writer.TryWriteCell(cell.Formula.Value.FormulaText, cell.DataCell, cell.StyleId, DefaultStyling, Buffer),
+        { StyleId: not null } => cell.DataCell.Writer.TryWriteCell(cell.DataCell, cell.StyleId, Buffer),
+        _ => cell.DataCell.Writer.TryWriteCell(cell.DataCell, DefaultStyling, Buffer)
     };
 
     protected override bool WriteStartElement(in Cell cell) => cell switch
     {
-        { Formula: not null } => cell.DataCell.Writer.WriteFormulaStartElement(cell.StyleId, DefaultStyling, State),
-        { StyleId: not null } => cell.DataCell.Writer.WriteStartElement(cell.StyleId, State),
-        _ => cell.DataCell.Writer.WriteStartElement(State)
+        { Formula: not null } => cell.DataCell.Writer.WriteFormulaStartElement(cell.StyleId, DefaultStyling, Buffer),
+        { StyleId: not null } => cell.DataCell.Writer.WriteStartElement(cell.StyleId, Buffer),
+        _ => cell.DataCell.Writer.WriteStartElement(Buffer)
     };
 
     protected override bool TryWriteEndElement(in Cell cell)

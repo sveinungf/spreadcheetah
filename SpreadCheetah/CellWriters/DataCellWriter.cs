@@ -7,12 +7,12 @@ internal sealed class DataCellWriter(CellWriterState state, DefaultStyling? defa
 {
     protected override bool TryWriteCell(in DataCell cell)
     {
-        return cell.Writer.TryWriteCell(cell, DefaultStyling, State);
+        return cell.Writer.TryWriteCell(cell, DefaultStyling, Buffer);
     }
 
     protected override bool WriteStartElement(in DataCell cell)
     {
-        return cell.Writer.WriteStartElement(State);
+        return cell.Writer.WriteStartElement(Buffer);
     }
 
     protected override bool TryWriteEndElement(in DataCell cell)

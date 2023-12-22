@@ -8,15 +8,15 @@ internal sealed class StyledCellWriter(CellWriterState state, DefaultStyling? de
     protected override bool TryWriteCell(in StyledCell cell)
     {
         return cell.StyleId is null
-            ? cell.DataCell.Writer.TryWriteCell(cell.DataCell, DefaultStyling, State)
-            : cell.DataCell.Writer.TryWriteCell(cell.DataCell, cell.StyleId, State);
+            ? cell.DataCell.Writer.TryWriteCell(cell.DataCell, DefaultStyling, Buffer)
+            : cell.DataCell.Writer.TryWriteCell(cell.DataCell, cell.StyleId, Buffer);
     }
 
     protected override bool WriteStartElement(in StyledCell cell)
     {
         return cell.StyleId is null
-            ? cell.DataCell.Writer.WriteStartElement(State)
-            : cell.DataCell.Writer.WriteStartElement(cell.StyleId, State);
+            ? cell.DataCell.Writer.WriteStartElement(Buffer)
+            : cell.DataCell.Writer.WriteStartElement(cell.StyleId, Buffer);
     }
 
     protected override bool TryWriteEndElement(in StyledCell cell)
