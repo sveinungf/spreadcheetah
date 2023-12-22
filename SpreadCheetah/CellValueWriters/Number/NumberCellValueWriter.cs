@@ -8,19 +8,9 @@ internal abstract class NumberCellValueWriter : NumberCellValueWriterBase
 {
     protected override int GetStyleId(StyleId styleId) => styleId.Id;
 
-    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
-    {
-        return TryWriteCell(cell, state);
-    }
-
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
         return TryWriteCell(cell, buffer);
-    }
-
-    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
-    {
-        return TryWriteCell(formulaText, cachedValue, styleId?.Id, state);
     }
 
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
@@ -36,11 +26,6 @@ internal abstract class NumberCellValueWriter : NumberCellValueWriterBase
     public override bool TryWriteCellWithReference(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
     {
         return TryWriteCellWithReference(formulaText, cachedValue, styleId?.Id, state);
-    }
-
-    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
-    {
-        return WriteFormulaStartElement(styleId?.Id, state);
     }
 
     public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)

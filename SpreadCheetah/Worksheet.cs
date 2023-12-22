@@ -28,7 +28,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     {
         _stream = stream;
         _buffer = buffer;
-        _state = new CellWriterState(buffer, writeCellReferenceAttributes);
+        _state = new CellWriterState(buffer);
 
         if (writeCellReferenceAttributes)
         {
