@@ -37,12 +37,24 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
         return TryWriteCell(formulaText, cachedValue, actualStyleId, state);
     }
 
+    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    {
+        var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
+        return TryWriteCell(formulaText, cachedValue, actualStyleId, buffer);
+    }
+
     public override bool TryWriteCellWithReference(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
     {
         var defaultStyleId = defaultStyling?.DateTimeStyleId;
         return defaultStyleId is not null
             ? TryWriteCellWithReference(cell, defaultStyleId.Value, state)
             : TryWriteCellWithReference(cell, state);
+    }
+
+    public override bool TryWriteCellWithReference(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
+    {
+        var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
+        return TryWriteCellWithReference(formulaText, cachedValue, actualStyleId, state);
     }
 
     public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)

@@ -23,9 +23,19 @@ internal abstract class NumberCellValueWriter : NumberCellValueWriterBase
         return TryWriteCell(formulaText, cachedValue, styleId?.Id, state);
     }
 
+    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    {
+        return TryWriteCell(formulaText, cachedValue, styleId?.Id, buffer);
+    }
+
     public override bool TryWriteCellWithReference(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
     {
         return TryWriteCellWithReference(cell, state);
+    }
+
+    public override bool TryWriteCellWithReference(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
+    {
+        return TryWriteCellWithReference(formulaText, cachedValue, styleId?.Id, state);
     }
 
     public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
