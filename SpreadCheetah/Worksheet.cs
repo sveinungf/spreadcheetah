@@ -29,9 +29,19 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         _stream = stream;
         _buffer = buffer;
         _state = new CellWriterState(buffer, writeCellReferenceAttributes);
-        _cellWriter = new CellWriter(_state, defaultStyling);
-        _dataCellWriter = new DataCellWriter(_state, defaultStyling);
-        _styledCellWriter = new StyledCellWriter(_state, defaultStyling);
+
+        if (writeCellReferenceAttributes)
+        {
+            _cellWriter = new CellWithReferenceWriter(_state, defaultStyling);
+            _dataCellWriter = new DataCellWithReferenceWriter(_state, defaultStyling);
+            _styledCellWriter = new StyledCellWithReferenceWriter(_state, defaultStyling);
+        }
+        else
+        {
+            _cellWriter = new CellWriter(_state, defaultStyling);
+            _dataCellWriter = new DataCellWriter(_state, defaultStyling);
+            _styledCellWriter = new StyledCellWriter(_state, defaultStyling);
+        }
     }
 
     public int NextRowNumber => (int)_state.NextRowIndex;
