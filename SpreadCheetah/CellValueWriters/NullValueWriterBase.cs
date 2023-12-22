@@ -218,9 +218,10 @@ internal abstract class NullValueWriterBase : CellValueWriter
     }
 
     public override bool WriteStartElement(CellWriterState state) => TryWriteCell(state);
-
+    public override bool WriteStartElement(SpreadsheetBuffer buffer) => TryWriteCell(buffer);
     public override bool WriteStartElement(StyleId styleId, CellWriterState state) => TryWriteCell(GetStyleId(styleId), state);
     public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => TryWriteCell(GetStyleId(styleId), buffer);
+    public override bool WriteStartElementWithReference(CellWriterState state) => TryWriteCellWithReference(state);
     public override bool WriteStartElementWithReference(StyleId styleId, CellWriterState state) => TryWriteCellWithReference(GetStyleId(styleId), state);
 
     /// <summary>

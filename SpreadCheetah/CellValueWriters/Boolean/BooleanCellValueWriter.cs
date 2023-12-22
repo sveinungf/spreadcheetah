@@ -254,9 +254,10 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
     }
 
     public override bool WriteStartElement(CellWriterState state) => TryWriteCell(state);
-
+    public override bool WriteStartElement(SpreadsheetBuffer buffer) => TryWriteCell(buffer);
     public override bool WriteStartElement(StyleId styleId, CellWriterState state) => TryWriteCell(styleId, state);
     public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => TryWriteCell(styleId, buffer);
+    public override bool WriteStartElementWithReference(CellWriterState state) => TryWriteCellWithReference(state);
     public override bool WriteStartElementWithReference(StyleId styleId, CellWriterState state) => TryWriteCellWithReference(styleId, state);
 
     /// <summary>
