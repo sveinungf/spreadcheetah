@@ -265,4 +265,34 @@ internal abstract class BaseCellWriter<T>
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         TryWriteEndElement(cell);
     }
+
+    protected bool FinishWritingFormulaCellValue(in Cell cell, string formulaText, ref int cellValueIndex)
+    {
+        // Write the formula
+        if (cellValueIndex < formulaText.Length)
+        {
+            if (!Buffer.WriteLongString(formulaText, ref cellValueIndex)) return false;
+
+            // Finish if there is no cached value to write piece by piece
+            if (!cell.DataCell.Writer.CanWriteValuePieceByPiece(cell.DataCell)) return true;
+        }
+
+        // If there is a cached value, we need to write "[FORMULA]</f><v>[CACHEDVALUE]"
+        var cachedValueStartIndex = formulaText.Length + 1;
+
+        // Write the "</f><v>" part
+        if (cellValueIndex < cachedValueStartIndex)
+        {
+            var separator = FormulaCellHelper.EndFormulaBeginCachedValue;
+            if (separator.Length > Buffer.FreeCapacity) return false;
+            Buffer.Advance(SpanHelper.GetBytes(separator, Buffer.GetSpan()));
+            cellValueIndex = cachedValueStartIndex;
+        }
+
+        // Write the cached value
+        var cachedValueIndex = cellValueIndex - cachedValueStartIndex;
+        var result = cell.DataCell.Writer.WriteValuePieceByPiece(cell.DataCell, Buffer, ref cachedValueIndex);
+        cellValueIndex = cachedValueIndex + cachedValueStartIndex;
+        return result;
+    }
 }

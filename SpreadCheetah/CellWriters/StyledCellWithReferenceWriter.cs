@@ -7,21 +7,25 @@ internal sealed class StyledCellWithReferenceWriter(CellWriterState state, Defau
 {
     protected override bool TryWriteCell(in StyledCell cell)
     {
-        throw new NotImplementedException();
+        return cell.StyleId is null
+            ? cell.DataCell.Writer.TryWriteCellWithReference(cell.DataCell, DefaultStyling, State)
+            : cell.DataCell.Writer.TryWriteCellWithReference(cell.DataCell, cell.StyleId, State);
     }
 
     protected override bool WriteStartElement(in StyledCell cell)
     {
-        throw new NotImplementedException();
+        return cell.StyleId is null
+            ? cell.DataCell.Writer.WriteStartElementWithReference(State)
+            : cell.DataCell.Writer.WriteStartElementWithReference(cell.StyleId, State);
     }
 
     protected override bool TryWriteEndElement(in StyledCell cell)
     {
-        throw new NotImplementedException();
+        return cell.DataCell.Writer.TryWriteEndElement(Buffer);
     }
 
     protected override bool FinishWritingCellValue(in StyledCell cell, ref int cellValueIndex)
     {
-        throw new NotImplementedException();
+        return Buffer.WriteLongString(cell.DataCell.StringValue, ref cellValueIndex);
     }
 }

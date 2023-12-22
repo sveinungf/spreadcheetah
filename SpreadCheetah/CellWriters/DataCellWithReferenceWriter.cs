@@ -7,21 +7,21 @@ internal sealed class DataCellWithReferenceWriter(CellWriterState state, Default
 {
     protected override bool TryWriteCell(in DataCell cell)
     {
-        throw new NotImplementedException();
+        return cell.Writer.TryWriteCellWithReference(cell, DefaultStyling, State);
     }
 
     protected override bool WriteStartElement(in DataCell cell)
     {
-        throw new NotImplementedException();
+        return cell.Writer.WriteStartElementWithReference(State);
     }
 
     protected override bool TryWriteEndElement(in DataCell cell)
     {
-        throw new NotImplementedException();
+        return cell.Writer.TryWriteEndElement(Buffer);
     }
 
     protected override bool FinishWritingCellValue(in DataCell cell, ref int cellValueIndex)
     {
-        throw new NotImplementedException();
+        return Buffer.WriteLongString(cell.StringValue, ref cellValueIndex);
     }
 }

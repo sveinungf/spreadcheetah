@@ -7,21 +7,35 @@ internal sealed class CellWithReferenceWriter(CellWriterState state, DefaultStyl
 {
     protected override bool TryWriteCell(in Cell cell)
     {
-        throw new NotImplementedException();
+        var writer = cell.DataCell.Writer;
+        return cell switch
+        {
+            { Formula: { } f } => writer.TryWriteCellWithReference(f.FormulaText, cell.DataCell, cell.StyleId, DefaultStyling, State),
+            { StyleId: not null } => writer.TryWriteCellWithReference(cell.DataCell, cell.StyleId, State),
+            _ => writer.TryWriteCellWithReference(cell.DataCell, DefaultStyling, State)
+        };
     }
 
     protected override bool WriteStartElement(in Cell cell)
     {
-        throw new NotImplementedException();
+        var writer = cell.DataCell.Writer;
+        return cell switch
+        {
+            { Formula: not null } => writer.WriteFormulaStartElementWithReference(cell.StyleId, DefaultStyling, State),
+            { StyleId: not null } => writer.WriteStartElementWithReference(cell.StyleId, State),
+            _ => writer.WriteStartElementWithReference(State)
+        };
     }
 
     protected override bool TryWriteEndElement(in Cell cell)
     {
-        throw new NotImplementedException();
+        return cell.DataCell.Writer.TryWriteEndElement(cell, Buffer);
     }
 
     protected override bool FinishWritingCellValue(in Cell cell, ref int cellValueIndex)
     {
-        throw new NotImplementedException();
+        return cell.Formula is { } formula
+            ? FinishWritingFormulaCellValue(cell, formula.FormulaText, ref cellValueIndex)
+            : cell.DataCell.Writer.WriteValuePieceByPiece(cell.DataCell, Buffer, ref cellValueIndex);
     }
 }
