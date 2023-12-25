@@ -1,3 +1,5 @@
+using SpreadCheetah.Helpers;
+using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using System.Buffers.Text;
 
@@ -13,5 +15,13 @@ internal sealed class IntegerCellValueWriter : NumberCellValueWriter
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
         return buffer.TryWrite($"{BeginDataCell}{cell.NumberValue.IntValue}{EndDefaultCell}");
+    }
+
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    {
+        return buffer.TryWrite(
+            $"{StyledCellHelper.BeginStyledNumberCell}{styleId.Id}{EndStyleBeginValue}" +
+            $"{cell.NumberValue.IntValue}" +
+            $"{EndDefaultCell}");
     }
 }

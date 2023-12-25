@@ -10,41 +10,8 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
     protected abstract bool TryWriteValue(in DataCell cell, Span<byte> destination, out int bytesWritten);
 
     protected static ReadOnlySpan<byte> BeginDataCell => "<c><v>"u8;
-    private static ReadOnlySpan<byte> EndStyleBeginValue => "\"><v>"u8;
+    protected static ReadOnlySpan<byte> EndStyleBeginValue => "\"><v>"u8;
     protected static ReadOnlySpan<byte> EndDefaultCell => "</v></c>"u8;
-
-    protected bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer)
-    {
-        var bytes = buffer.GetSpan();
-        var written = 0;
-
-        if (!BeginDataCell.TryCopyTo(bytes, ref written)) return false;
-        if (!TryWriteValue(cell, bytes.Slice(written), out var valueLength)) return false;
-        written += valueLength;
-
-        if (!EndDefaultCell.TryCopyTo(bytes, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
-    }
-
-    protected bool TryWriteCell(in DataCell cell, int styleId, SpreadsheetBuffer buffer)
-    {
-        var bytes = buffer.GetSpan();
-        var written = 0;
-
-        if (!StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes, ref written)) return false;
-        if (!SpanHelper.TryWrite(styleId, bytes, ref written)) return false;
-        if (!EndStyleBeginValue.TryCopyTo(bytes, ref written)) return false;
-
-        if (!TryWriteValue(cell, bytes.Slice(written), out var valueLength)) return false;
-        written += valueLength;
-
-        if (!EndDefaultCell.TryCopyTo(bytes, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
-    }
 
     protected bool TryWriteCell(string formulaText, in DataCell cachedValue, int? styleId, SpreadsheetBuffer buffer)
     {
@@ -60,11 +27,6 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
 
         buffer.Advance(written);
         return true;
-    }
-
-    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
-    {
-        return TryWriteCell(cell, GetStyleId(styleId), buffer);
     }
 
     public override bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state)
