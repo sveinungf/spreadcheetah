@@ -10,7 +10,7 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
     protected abstract bool TryWriteValue(in DataCell cell, Span<byte> destination, out int bytesWritten);
 
     protected static ReadOnlySpan<byte> BeginDataCell => "<c><v>"u8;
-    protected static ReadOnlySpan<byte> EndStyleBeginValue => "\"><v>"u8;
+    protected static ReadOnlySpan<byte> EndStyleBeginValue => "\"><v>"u8; // TODO: Rename
     protected static ReadOnlySpan<byte> EndDefaultCell => "</v></c>"u8;
 
     protected bool TryWriteCell(string formulaText, in DataCell cachedValue, int? styleId, SpreadsheetBuffer buffer)

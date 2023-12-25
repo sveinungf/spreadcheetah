@@ -1,3 +1,4 @@
+using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using System.Buffers.Text;
 using System.Diagnostics;
@@ -153,6 +154,18 @@ internal sealed class SpreadsheetBuffer
             }
 
             return Fail();
+        }
+
+        public bool AppendFormatted(CellWriterState state)
+        {
+            var bytes = _buffer.GetSpan();
+            var written = 0;
+
+            if (!"<c r=\""u8.TryCopyTo(bytes, ref written)) return Fail();
+            if (!SpanHelper.TryWriteCellReference(state.Column + 1, state.NextRowIndex - 1, bytes, ref written)) return Fail();
+
+            _buffer.Advance(written);
+            return true;
         }
 
         private bool Fail()
