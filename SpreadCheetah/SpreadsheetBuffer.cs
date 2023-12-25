@@ -92,6 +92,28 @@ internal sealed class SpreadsheetBuffer
             return Fail();
         }
 
+        public bool AppendFormatted(float value)
+        {
+            if (Utf8Formatter.TryFormat(value, _buffer.GetSpan(), out var bytesWritten))
+            {
+                _buffer.Advance(bytesWritten);
+                return true;
+            }
+
+            return Fail();
+        }
+
+        public bool AppendFormatted(double value)
+        {
+            if (Utf8Formatter.TryFormat(value, _buffer.GetSpan(), out var bytesWritten))
+            {
+                _buffer.Advance(bytesWritten);
+                return true;
+            }
+
+            return Fail();
+        }
+
         public bool AppendFormatted<T>(T value)
         {
             Debug.Fail("Create non-generic overloads to avoid allocations when running on .NET Framework");

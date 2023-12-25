@@ -9,9 +9,9 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
     protected abstract int GetStyleId(StyleId styleId);
     protected abstract bool TryWriteValue(in DataCell cell, Span<byte> destination, out int bytesWritten);
 
-    private static ReadOnlySpan<byte> BeginDataCell => "<c><v>"u8;
+    protected static ReadOnlySpan<byte> BeginDataCell => "<c><v>"u8;
     private static ReadOnlySpan<byte> EndStyleBeginValue => "\"><v>"u8;
-    private static ReadOnlySpan<byte> EndDefaultCell => "</v></c>"u8;
+    protected static ReadOnlySpan<byte> EndDefaultCell => "</v></c>"u8;
 
     protected bool TryWriteCell(in DataCell cell, SpreadsheetBuffer buffer)
     {
