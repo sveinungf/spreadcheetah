@@ -53,21 +53,19 @@ public class SpreadsheetFormulaRowTests
         // Arrange
         const string formulaText = "SUM(A1,A2)";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
 
-            var style = new Style();
-            style.Font.Bold = bold;
-            var styleId = spreadsheet.AddStyle(style);
+        var style = new Style();
+        style.Font.Bold = bold;
+        var styleId = spreadsheet.AddStyle(style);
 
-            var formula = new Formula(formulaText);
-            var cell = new Cell(formula, styleId);
+        var formula = new Formula(formulaText);
+        var cell = new Cell(formula, styleId);
 
-            // Act
-            await spreadsheet.AddRowAsync(cell);
-            await spreadsheet.FinishAsync();
-        }
+        // Act
+        await spreadsheet.AddRowAsync(cell);
+        await spreadsheet.FinishAsync();
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -108,30 +106,28 @@ public class SpreadsheetFormulaRowTests
         Assert.Equal(valueType.GetExpectedDefaultNumberFormat() ?? "", actualCell.Style.NumberFormat.Format);
     }
 
+    public static IEnumerable<object?[]> ItalicWithValueTypes() => TestData.CombineWithValueTypes(true, false);
+
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Spreadsheet_AddRow_CellWithFormulaAndStyleAndCachedValue(bool italic)
+    [MemberData(nameof(ItalicWithValueTypes))]
+    public async Task Spreadsheet_AddRow_CellWithFormulaAndStyleAndCachedValue(bool italic, CellValueType cachedValueType, RowCollectionType rowType, bool cachedValueIsNull)
     {
         // Arrange
         const string formulaText = "SUM(A1,A2)";
-        const int cachedValue = int.MinValue;
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
 
-            var style = new Style();
-            style.Font.Italic = italic;
-            var styleId = spreadsheet.AddStyle(style);
+        var style = new Style();
+        style.Font.Italic = italic;
+        var styleId = spreadsheet.AddStyle(style);
 
-            var formula = new Formula(formulaText);
-            var cell = new Cell(formula, cachedValue, styleId);
+        var formula = new Formula(formulaText);
+        var cell = CellFactory.Create(formula, cachedValueType, cachedValueIsNull, styleId, out var cachedValue);
 
-            // Act
-            await spreadsheet.AddRowAsync(cell);
-            await spreadsheet.FinishAsync();
-        }
+        // Act
+        await spreadsheet.AddRowAsync(cell, rowType);
+        await spreadsheet.FinishAsync();
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -140,7 +136,7 @@ public class SpreadsheetFormulaRowTests
         var actualCell = worksheet.Cell(1, 1);
         Assert.Equal(formulaText, actualCell.FormulaA1);
         Assert.Equal(italic, actualCell.Style.Font.Italic);
-        Assert.Equal(cachedValue, actualCell.CachedValue.GetNumber());
+        Assert.Equal(cachedValue.GetExpectedCachedValueAsString(), actualCell.CachedValue.ToString(CultureInfo.InvariantCulture));
     }
 
     [Theory]
