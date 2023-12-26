@@ -28,7 +28,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
         if (actualStyleId is { } style)
         {
             return buffer.TryWrite(
-                $"{StyledCellHelper.BeginStyledNumberCell}{style}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{StyledCellHelper.BeginStyledNumberCell}{style}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
                 $"{cachedValue.NumberValue.DoubleValue}" +
@@ -46,7 +46,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
     private static bool TryWriteDateTimeCell(in DataCell cell, int styleId, SpreadsheetBuffer buffer)
     {
         return buffer.TryWrite(
-            $"{StyledCellHelper.BeginStyledNumberCell}{styleId}{EndStyleBeginValue}" +
+            $"{StyledCellHelper.BeginStyledNumberCell}{styleId}{EndQuoteBeginValue}" +
             $"{cell.NumberValue.DoubleValue}" +
             $"{EndDefaultCell}");
     }
@@ -57,7 +57,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
             return TryWriteDateTimeCellWithReference(cell, styleId, state);
 
         return state.Buffer.TryWrite(
-            $"{state}{EndStyleBeginValue}" +
+            $"{state}{EndQuoteBeginValue}" +
             $"{cell.NumberValue.DoubleValue}" +
             $"{EndDefaultCell}");
     }
@@ -73,7 +73,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
         if (actualStyleId is { } style)
         {
             return state.Buffer.TryWrite(
-                $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{style}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{style}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
                 $"{cachedValue.NumberValue.DoubleValue}" +
@@ -81,7 +81,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
         }
 
         return state.Buffer.TryWrite(
-            $"{state}{FormulaCellHelper.EndStyleBeginFormula}" +
+            $"{state}{FormulaCellHelper.EndQuoteBeginFormula}" +
             $"{formulaText}" +
             $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
             $"{cachedValue.NumberValue.DoubleValue}" +
@@ -91,7 +91,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
     private static bool TryWriteDateTimeCellWithReference(in DataCell cell, int styleId, CellWriterState state)
     {
         return state.Buffer.TryWrite(
-            $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{styleId}{EndStyleBeginValue}" +
+            $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{styleId}{EndQuoteBeginValue}" +
             $"{cell.NumberValue.DoubleValue}" +
             $"{EndDefaultCell}");
     }

@@ -27,7 +27,7 @@ internal sealed class TrueBooleanCellValueWriter : BooleanCellValueWriter
         if (styleId is { } style)
         {
             return buffer.TryWrite(
-                $"{BeginStyledBooleanCell}{style}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{BeginStyledBooleanCell}{style}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{EndFormulaTrueBooleanValue}");
         }
@@ -50,7 +50,7 @@ internal sealed class TrueBooleanCellValueWriter : BooleanCellValueWriter
         if (styleId is { } style)
         {
             return state.Buffer.TryWrite(
-                $"{state}{EndReferenceBeginStyled}{style.Id}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{state}{EndReferenceBeginStyled}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{EndFormulaTrueBooleanValue}");
         }

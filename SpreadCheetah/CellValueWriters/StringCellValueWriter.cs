@@ -36,7 +36,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
         if (styleId is { } style)
         {
             return buffer.TryWrite(
-                $"{BeginStyledStringFormulaCell}{style.Id}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{BeginStyledStringFormulaCell}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
                 $"{cachedValue.StringValue}" +
@@ -69,7 +69,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
         if (styleId is { } style)
         {
             return state.Buffer.TryWrite(
-                $"{state}{EndReferenceBeginFormulaCellStyle}{style.Id}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{state}{EndReferenceBeginFormulaCellStyle}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
                 $"{cachedValue.StringValue}" +
@@ -99,14 +99,14 @@ internal sealed class StringCellValueWriter : CellValueWriter
     public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
         return styleId is { } style
-            ? buffer.TryWrite($"{BeginStyledStringCell}{style.Id}{FormulaCellHelper.EndStyleBeginFormula}")
+            ? buffer.TryWrite($"{BeginStyledStringCell}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}")
             : buffer.TryWrite($"{BeginStringFormulaCell}");
     }
 
     public override bool WriteFormulaStartElementWithReference(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
     {
         return styleId is { } style
-            ? state.Buffer.TryWrite($"{state}{EndReferenceBeginStyle}{style.Id}{FormulaCellHelper.EndStyleBeginFormula}")
+            ? state.Buffer.TryWrite($"{state}{EndReferenceBeginStyle}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}")
             : state.Buffer.TryWrite($"{state}{EndReferenceBeginFormula}");
     }
 

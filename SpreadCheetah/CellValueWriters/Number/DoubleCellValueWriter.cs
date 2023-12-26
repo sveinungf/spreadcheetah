@@ -15,7 +15,7 @@ internal sealed class DoubleCellValueWriter : NumberCellValueWriter
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
         return buffer.TryWrite(
-            $"{StyledCellHelper.BeginStyledNumberCell}{styleId.Id}{EndStyleBeginValue}" +
+            $"{StyledCellHelper.BeginStyledNumberCell}{styleId.Id}{EndQuoteBeginValue}" +
             $"{cell.NumberValue.DoubleValue}" +
             $"{EndDefaultCell}");
     }
@@ -25,7 +25,7 @@ internal sealed class DoubleCellValueWriter : NumberCellValueWriter
         if (styleId is { } style)
         {
             return buffer.TryWrite(
-                $"{StyledCellHelper.BeginStyledNumberCell}{style.Id}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{StyledCellHelper.BeginStyledNumberCell}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
                 $"{cachedValue.NumberValue.DoubleValue}" +
@@ -43,7 +43,7 @@ internal sealed class DoubleCellValueWriter : NumberCellValueWriter
     public override bool TryWriteCellWithReference(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
     {
         return state.Buffer.TryWrite(
-            $"{state}{EndStyleBeginValue}" +
+            $"{state}{EndQuoteBeginValue}" +
             $"{cell.NumberValue.DoubleValue}" +
             $"{EndDefaultCell}");
     }
@@ -51,7 +51,7 @@ internal sealed class DoubleCellValueWriter : NumberCellValueWriter
     public override bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state)
     {
         return state.Buffer.TryWrite(
-            $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{styleId.Id}{EndStyleBeginValue}" +
+            $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{styleId.Id}{EndQuoteBeginValue}" +
             $"{cell.NumberValue.DoubleValue}" +
             $"{EndDefaultCell}");
     }
@@ -61,7 +61,7 @@ internal sealed class DoubleCellValueWriter : NumberCellValueWriter
         if (styleId is { } style)
         {
             return state.Buffer.TryWrite(
-                $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{style.Id}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
                 $"{cachedValue.NumberValue.DoubleValue}" +
@@ -69,7 +69,7 @@ internal sealed class DoubleCellValueWriter : NumberCellValueWriter
         }
 
         return state.Buffer.TryWrite(
-            $"{state}{FormulaCellHelper.EndStyleBeginFormula}" +
+            $"{state}{FormulaCellHelper.EndQuoteBeginFormula}" +
             $"{formulaText}" +
             $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
             $"{cachedValue.NumberValue.DoubleValue}" +

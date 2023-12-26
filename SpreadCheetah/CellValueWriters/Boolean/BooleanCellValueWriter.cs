@@ -42,14 +42,14 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
     public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
         return styleId is { } style
-            ? buffer.TryWrite($"{BeginStyledBooleanCell}{style.Id}{FormulaCellHelper.EndStyleBeginFormula}")
+            ? buffer.TryWrite($"{BeginStyledBooleanCell}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}")
             : buffer.TryWrite($"{BeginBooleanFormulaCell}");
     }
 
     public override bool WriteFormulaStartElementWithReference(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
     {
         return styleId is { } style
-            ? state.Buffer.TryWrite($"{state}{EndReferenceBeginStyled}{style.Id}{FormulaCellHelper.EndStyleBeginFormula}")
+            ? state.Buffer.TryWrite($"{state}{EndReferenceBeginStyled}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}")
             : state.Buffer.TryWrite($"{state}{EndReferenceBeginFormula}");
     }
 

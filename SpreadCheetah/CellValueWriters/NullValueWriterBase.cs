@@ -9,7 +9,7 @@ internal abstract class NullValueWriterBase : CellValueWriter
     protected abstract int GetStyleId(StyleId styleId);
 
     private static ReadOnlySpan<byte> NullDataCell => "<c/>"u8;
-    private static ReadOnlySpan<byte> EndStyleNullValue => "\"/>"u8; // TODO: Rename
+    private static ReadOnlySpan<byte> EndQuoteNullValue => "\"/>"u8;
     private static ReadOnlySpan<byte> EndFormulaEndCell => "</f></c>"u8;
 
     protected static bool TryWriteCell(SpreadsheetBuffer buffer)
@@ -19,7 +19,7 @@ internal abstract class NullValueWriterBase : CellValueWriter
 
     protected static bool TryWriteCell(int styleId, SpreadsheetBuffer buffer)
     {
-        return buffer.TryWrite($"{StyledCellHelper.BeginStyledNumberCell}{styleId}{EndStyleNullValue}");
+        return buffer.TryWrite($"{StyledCellHelper.BeginStyledNumberCell}{styleId}{EndQuoteNullValue}");
     }
 
     protected static bool TryWriteCell(string formulaText, int? styleId, SpreadsheetBuffer buffer)
@@ -27,7 +27,7 @@ internal abstract class NullValueWriterBase : CellValueWriter
         if (styleId is { } style)
         {
             return buffer.TryWrite(
-                $"{StyledCellHelper.BeginStyledNumberCell}{style}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{StyledCellHelper.BeginStyledNumberCell}{style}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{EndFormulaEndCell}");
         }
@@ -45,7 +45,7 @@ internal abstract class NullValueWriterBase : CellValueWriter
 
     protected static bool TryWriteCellWithReference(CellWriterState state)
     {
-        return state.Buffer.TryWrite($"{state}{EndStyleNullValue}");
+        return state.Buffer.TryWrite($"{state}{EndQuoteNullValue}");
     }
 
     public override bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state)
@@ -55,7 +55,7 @@ internal abstract class NullValueWriterBase : CellValueWriter
 
     protected static bool TryWriteCellWithReference(int styleId, CellWriterState state)
     {
-        return state.Buffer.TryWrite($"{state}{StyledCellHelper.EndReferenceBeginStyleId}{styleId}{EndStyleNullValue}");
+        return state.Buffer.TryWrite($"{state}{StyledCellHelper.EndReferenceBeginStyleId}{styleId}{EndQuoteNullValue}");
     }
 
     protected static bool TryWriteCellWithReference(string formulaText, int? styleId, CellWriterState state)
@@ -63,13 +63,13 @@ internal abstract class NullValueWriterBase : CellValueWriter
         if (styleId is { } style)
         {
             return state.Buffer.TryWrite(
-                $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{style}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{style}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{EndFormulaEndCell}");
         }
 
         return state.Buffer.TryWrite(
-            $"{state}{FormulaCellHelper.EndStyleBeginFormula}" +
+            $"{state}{FormulaCellHelper.EndQuoteBeginFormula}" +
             $"{formulaText}" +
             $"{EndFormulaEndCell}");
     }
@@ -84,15 +84,15 @@ internal abstract class NullValueWriterBase : CellValueWriter
     protected static bool WriteFormulaStartElement(int? styleId, SpreadsheetBuffer buffer)
     {
         return styleId is { } style
-            ? buffer.TryWrite($"{StyledCellHelper.BeginStyledNumberCell}{style}{FormulaCellHelper.EndStyleBeginFormula}")
+            ? buffer.TryWrite($"{StyledCellHelper.BeginStyledNumberCell}{style}{FormulaCellHelper.EndQuoteBeginFormula}")
             : buffer.TryWrite($"{FormulaCellHelper.BeginNumberFormulaCell}");
     }
 
     protected static bool WriteFormulaStartElementWithReference(int? styleId, CellWriterState state)
     {
         return styleId is { } style
-            ? state.Buffer.TryWrite($"{state}{StyledCellHelper.EndReferenceBeginStyleId}{style}{FormulaCellHelper.EndStyleBeginFormula}")
-            : state.Buffer.TryWrite($"{state}{FormulaCellHelper.EndStyleBeginFormula}");
+            ? state.Buffer.TryWrite($"{state}{StyledCellHelper.EndReferenceBeginStyleId}{style}{FormulaCellHelper.EndQuoteBeginFormula}")
+            : state.Buffer.TryWrite($"{state}{FormulaCellHelper.EndQuoteBeginFormula}");
     }
 
     public override bool WriteStartElement(SpreadsheetBuffer buffer) => TryWriteCell(buffer);
