@@ -31,7 +31,22 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
         var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
-        return TryWriteCell(formulaText, cachedValue, actualStyleId, buffer);
+        if (actualStyleId is { } style)
+        {
+            return buffer.TryWrite(
+                $"{StyledCellHelper.BeginStyledNumberCell}{style}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{formulaText}" +
+                $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
+                $"{cachedValue.NumberValue.DoubleValue}" +
+                $"{FormulaCellHelper.EndCachedValueEndCell}");
+        }
+
+        return buffer.TryWrite(
+            $"{FormulaCellHelper.BeginNumberFormulaCell}" +
+            $"{formulaText}" +
+            $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
+            $"{cachedValue.NumberValue.DoubleValue}" +
+            $"{FormulaCellHelper.EndCachedValueEndCell}");
     }
 
     private static bool TryWriteDateTimeCell(in DataCell cell, int styleId, SpreadsheetBuffer buffer)
