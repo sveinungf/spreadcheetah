@@ -121,17 +121,8 @@ internal abstract class BaseCellWriter<T>
         return TryWriteRowEnd();
     }
 
-    private bool TryWriteRowEnd()
-    {
-        var rowEnd = "</row>"u8;
-        if (rowEnd.TryCopyTo(Buffer.GetSpan()))
-        {
-            Buffer.Advance(rowEnd.Length);
-            return true;
-        }
-
-        return false;
-    }
+    private static ReadOnlySpan<byte> RowEnd => "</row>"u8;
+    private bool TryWriteRowEnd() => Buffer.TryWrite($"{RowEnd}");
 
     private async ValueTask WriteRowEndAsync(Stream stream, CancellationToken token)
     {

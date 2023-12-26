@@ -104,6 +104,17 @@ internal sealed class SpreadsheetBuffer
             return Fail();
         }
 
+        public bool AppendFormatted(uint value)
+        {
+            if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
+            {
+                _pos += bytesWritten;
+                return true;
+            }
+
+            return Fail();
+        }
+
         public bool AppendFormatted(float value)
         {
             if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
