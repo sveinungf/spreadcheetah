@@ -70,13 +70,15 @@ internal sealed class SpreadsheetBuffer
             _success = true;
         }
 
+        private readonly Span<byte> GetSpan() => _buffer._buffer.AsSpan(_buffer._index + _pos);
+
         // TODO: Remove or throw? Literals should rather use ReadOnlySpan<byte>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendLiteral(string value)
         {
             if (value is not null)
             {
-                var dest = _buffer.GetSpan().Slice(_pos);
+                var dest = GetSpan();
 #if NET8_0_OR_GREATER
                 if (System.Text.Unicode.Utf8.TryWrite(dest, CultureInfo.InvariantCulture, $"{value}", out var bytesWritten))
 #else
@@ -93,7 +95,7 @@ internal sealed class SpreadsheetBuffer
 
         public bool AppendFormatted(int value)
         {
-            if (Utf8Formatter.TryFormat(value, _buffer.GetSpan().Slice(_pos), out var bytesWritten))
+            if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
             {
                 _pos += bytesWritten;
                 return true;
@@ -104,7 +106,7 @@ internal sealed class SpreadsheetBuffer
 
         public bool AppendFormatted(float value)
         {
-            if (Utf8Formatter.TryFormat(value, _buffer.GetSpan().Slice(_pos), out var bytesWritten))
+            if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
             {
                 _pos += bytesWritten;
                 return true;
@@ -115,7 +117,7 @@ internal sealed class SpreadsheetBuffer
 
         public bool AppendFormatted(double value)
         {
-            if (Utf8Formatter.TryFormat(value, _buffer.GetSpan().Slice(_pos), out var bytesWritten))
+            if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
             {
                 _pos += bytesWritten;
                 return true;
@@ -137,7 +139,7 @@ internal sealed class SpreadsheetBuffer
 
         public bool AppendFormatted(string? value)
         {
-            if (Utf8Helper.TryGetBytes(value, _buffer.GetSpan().Slice(_pos), out int bytesWritten))
+            if (Utf8Helper.TryGetBytes(value, GetSpan(), out int bytesWritten))
             {
                 _pos += bytesWritten;
                 return true;
@@ -148,7 +150,7 @@ internal sealed class SpreadsheetBuffer
 
         public bool AppendFormatted(scoped ReadOnlySpan<byte> utf8Value)
         {
-            if (utf8Value.TryCopyTo(_buffer.GetSpan().Slice(_pos)))
+            if (utf8Value.TryCopyTo(GetSpan()))
             {
                 _pos += utf8Value.Length;
                 return true;
@@ -159,7 +161,7 @@ internal sealed class SpreadsheetBuffer
 
         public bool AppendFormatted(CellWriterState state)
         {
-            var bytes = _buffer.GetSpan().Slice(_pos);
+            var bytes = GetSpan();
             var bytesWritten = 0;
 
             if (!"<c r=\""u8.TryCopyTo(bytes, ref bytesWritten)) return Fail();
