@@ -10,36 +10,27 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
     private static ReadOnlySpan<byte> BeginStyledBooleanCell => "<c t=\"b\" s=\""u8;
     private static ReadOnlySpan<byte> BeginBooleanFormulaCell => "<c t=\"b\"><f>"u8;
 
-    protected abstract bool TryWriteCell(CellWriterState state);
+    protected abstract bool TryWriteCell(SpreadsheetBuffer buffer);
+    protected abstract bool TryWriteCellWithReference(CellWriterState state);
     protected abstract bool TryWriteEndStyleValue(Span<byte> bytes, out int bytesWritten);
     protected abstract bool TryWriteEndFormulaValue(Span<byte> bytes, out int bytesWritten);
 
-    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
+    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
-        return TryWriteCell(state);
+        return TryWriteCell(buffer);
     }
 
-    public override bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state)
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
-        return TryWriteCell(styleId, state);
+        return TryWriteCell(styleId, buffer);
     }
 
-    private bool TryWriteCell(StyleId styleId, CellWriterState state)
+    private bool TryWriteCell(StyleId styleId, SpreadsheetBuffer buffer)
     {
-        var buffer = state.Buffer;
         var bytes = buffer.GetSpan();
         var written = 0;
 
-        if (!state.WriteCellReferenceAttributes)
-        {
-            if (!BeginStyledBooleanCell.TryCopyTo(bytes, ref written)) return false;
-        }
-        else
-        {
-            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
-            if (!"\" t=\"b\" s=\""u8.TryCopyTo(bytes, ref written)) return false;
-        }
-
+        if (!BeginStyledBooleanCell.TryCopyTo(bytes, ref written)) return false;
         if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
         if (!TryWriteEndStyleValue(bytes.Slice(written), out var endLength)) return false;
         written += endLength;
@@ -48,12 +39,22 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
+    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
-        var buffer = state.Buffer;
         var bytes = buffer.GetSpan();
+        var written = 0;
 
-        if (!TryWriteFormulaCellStart(styleId, state, bytes, out var written)) return false;
+        if (styleId is null)
+        {
+            if (!BeginBooleanFormulaCell.TryCopyTo(bytes, ref written)) return false;
+        }
+        else
+        {
+            if (!BeginStyledBooleanCell.TryCopyTo(bytes, ref written)) return false;
+            if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+            if (!FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes, ref written)) return false;
+        }
+
         if (!SpanHelper.TryWrite(formulaText, bytes, ref written)) return false;
         if (!TryWriteEndFormulaValue(bytes.Slice(written), out var endLength)) return false;
 
@@ -61,37 +62,55 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         return true;
     }
 
-    private static bool TryWriteFormulaCellStart(StyleId? styleId, CellWriterState state, Span<byte> bytes, out int bytesWritten)
+    public override bool TryWriteCellWithReference(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
     {
-        bytesWritten = 0;
+        return TryWriteCellWithReference(state);
+    }
+
+    public override bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state)
+    {
+        return TryWriteCellWithReference(styleId, state);
+    }
+
+    private bool TryWriteCellWithReference(StyleId styleId, CellWriterState state)
+    {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
+
+        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+        if (!"\" t=\"b\" s=\""u8.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+        if (!TryWriteEndStyleValue(bytes.Slice(written), out var endLength)) return false;
+        written += endLength;
+
+        buffer.Advance(written);
+        return true;
+    }
+
+    public override bool TryWriteCellWithReference(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
+    {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
         var written = 0;
 
         if (styleId is null)
         {
-            if (!state.WriteCellReferenceAttributes)
-                return BeginBooleanFormulaCell.TryCopyTo(bytes, ref bytesWritten);
-
             if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
             if (!"\" t=\"b\"><f>"u8.TryCopyTo(bytes, ref written)) return false;
-
-            bytesWritten = written;
-            return true;
-        }
-
-        if (!state.WriteCellReferenceAttributes)
-        {
-            if (!BeginStyledBooleanCell.TryCopyTo(bytes, ref written)) return false;
         }
         else
         {
             if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
             if (!"\" t=\"b\" s=\""u8.TryCopyTo(bytes, ref written)) return false;
+            if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+            if (!FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes, ref written)) return false;
         }
 
-        if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
-        if (!FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(formulaText, bytes, ref written)) return false;
+        if (!TryWriteEndFormulaValue(bytes.Slice(written), out var endLength)) return false;
 
-        bytesWritten = written;
+        buffer.Advance(written + endLength);
         return true;
     }
 
@@ -112,38 +131,19 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         return false;
     }
 
-    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
+    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
-        var buffer = state.Buffer;
         var bytes = buffer.GetSpan();
         var written = 0;
 
         if (styleId is null)
         {
-            if (!state.WriteCellReferenceAttributes)
-            {
-                if (!BeginBooleanFormulaCell.TryCopyTo(bytes, ref written)) return false;
-                buffer.Advance(written);
-                return true;
-            }
-
-            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
-            if (!"\" t=\"b\"><f>"u8.TryCopyTo(bytes, ref written)) return false;
-
+            if (!BeginBooleanFormulaCell.TryCopyTo(bytes, ref written)) return false;
             buffer.Advance(written);
             return true;
         }
 
-        if (!state.WriteCellReferenceAttributes)
-        {
-            if (!BeginStyledBooleanCell.TryCopyTo(bytes, ref written)) return false;
-        }
-        else
-        {
-            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
-            if (!"\" t=\"b\" s=\""u8.TryCopyTo(bytes, ref written)) return false;
-        }
-
+        if (!BeginStyledBooleanCell.TryCopyTo(bytes, ref written)) return false;
         if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
         if (!FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes, ref written)) return false;
 
@@ -151,9 +151,34 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
         return true;
     }
 
-    public override bool WriteStartElement(CellWriterState state) => TryWriteCell(state);
+    public override bool WriteFormulaStartElementWithReference(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
+    {
+        var buffer = state.Buffer;
+        var bytes = buffer.GetSpan();
+        var written = 0;
 
-    public override bool WriteStartElement(StyleId styleId, CellWriterState state) => TryWriteCell(styleId, state);
+        if (styleId is null)
+        {
+            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+            if (!"\" t=\"b\"><f>"u8.TryCopyTo(bytes, ref written)) return false;
+
+            buffer.Advance(written);
+            return true;
+        }
+
+        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
+        if (!"\" t=\"b\" s=\""u8.TryCopyTo(bytes, ref written)) return false;
+        if (!SpanHelper.TryWrite(styleId.Id, bytes, ref written)) return false;
+        if (!FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes, ref written)) return false;
+
+        buffer.Advance(written);
+        return true;
+    }
+
+    public override bool WriteStartElement(SpreadsheetBuffer buffer) => TryWriteCell(buffer);
+    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => TryWriteCell(styleId, buffer);
+    public override bool WriteStartElementWithReference(CellWriterState state) => TryWriteCellWithReference(state);
+    public override bool WriteStartElementWithReference(StyleId styleId, CellWriterState state) => TryWriteCellWithReference(styleId, state);
 
     /// <summary>
     /// Returns false because the value is written together with the end element in <see cref="TryWriteEndElement(in Cell, SpreadsheetBuffer)"/>.
