@@ -46,13 +46,20 @@ internal sealed class SpreadsheetBuffer
 
     public bool TryWrite([InterpolatedStringHandlerArgument("")] ref TryWriteInterpolatedStringHandler handler)
     {
-        return handler._success;
+        if (handler._success)
+        {
+            Advance(handler._pos);
+            return true;
+        }
+
+        return false;
     }
 
     [InterpolatedStringHandler]
     public ref struct TryWriteInterpolatedStringHandler
     {
         private readonly SpreadsheetBuffer _buffer;
+        internal int _pos;
         internal bool _success;
 
         public TryWriteInterpolatedStringHandler(int literalLength, int formattedCount, SpreadsheetBuffer buffer, out bool shouldAppend)
@@ -67,14 +74,14 @@ internal sealed class SpreadsheetBuffer
         {
             if (value is not null)
             {
-                var dest = _buffer.GetSpan();
+                var dest = _buffer.GetSpan().Slice(_pos);
 #if NET8_0_OR_GREATER
                 if (System.Text.Unicode.Utf8.TryWrite(dest, CultureInfo.InvariantCulture, $"{value}", out var bytesWritten))
 #else
                 if (Utf8Helper.TryGetBytes(value, dest, out var bytesWritten))
 #endif
                 {
-                    _buffer.Advance(bytesWritten);
+                    _pos += bytesWritten;
                     return true;
                 }
             }
@@ -84,9 +91,9 @@ internal sealed class SpreadsheetBuffer
 
         public bool AppendFormatted(int value)
         {
-            if (Utf8Formatter.TryFormat(value, _buffer.GetSpan(), out var bytesWritten))
+            if (Utf8Formatter.TryFormat(value, _buffer.GetSpan().Slice(_pos), out var bytesWritten))
             {
-                _buffer.Advance(bytesWritten);
+                _pos += bytesWritten;
                 return true;
             }
 
@@ -95,9 +102,9 @@ internal sealed class SpreadsheetBuffer
 
         public bool AppendFormatted(float value)
         {
-            if (Utf8Formatter.TryFormat(value, _buffer.GetSpan(), out var bytesWritten))
+            if (Utf8Formatter.TryFormat(value, _buffer.GetSpan().Slice(_pos), out var bytesWritten))
             {
-                _buffer.Advance(bytesWritten);
+                _pos += bytesWritten;
                 return true;
             }
 
@@ -106,9 +113,9 @@ internal sealed class SpreadsheetBuffer
 
         public bool AppendFormatted(double value)
         {
-            if (Utf8Formatter.TryFormat(value, _buffer.GetSpan(), out var bytesWritten))
+            if (Utf8Formatter.TryFormat(value, _buffer.GetSpan().Slice(_pos), out var bytesWritten))
             {
-                _buffer.Advance(bytesWritten);
+                _pos += bytesWritten;
                 return true;
             }
 
@@ -136,9 +143,9 @@ internal sealed class SpreadsheetBuffer
         public bool AppendFormatted(scoped ReadOnlySpan<char> value)
 #endif
         {
-            if (Utf8Helper.TryGetBytes(value, _buffer.GetSpan(), out int bytesWritten))
+            if (Utf8Helper.TryGetBytes(value, _buffer.GetSpan().Slice(_pos), out int bytesWritten))
             {
-                _buffer.Advance(bytesWritten);
+                _pos += bytesWritten;
                 return true;
             }
 
@@ -147,9 +154,9 @@ internal sealed class SpreadsheetBuffer
 
         public bool AppendFormatted(scoped ReadOnlySpan<byte> utf8Value)
         {
-            if (utf8Value.TryCopyTo(_buffer.GetSpan()))
+            if (utf8Value.TryCopyTo(_buffer.GetSpan().Slice(_pos)))
             {
-                _buffer.Advance(utf8Value.Length);
+                _pos += utf8Value.Length;
                 return true;
             }
 
@@ -158,13 +165,13 @@ internal sealed class SpreadsheetBuffer
 
         public bool AppendFormatted(CellWriterState state)
         {
-            var bytes = _buffer.GetSpan();
-            var written = 0;
+            var bytes = _buffer.GetSpan().Slice(_pos);
+            var bytesWritten = 0;
 
-            if (!"<c r=\""u8.TryCopyTo(bytes, ref written)) return Fail();
-            if (!SpanHelper.TryWriteCellReference(state.Column + 1, state.NextRowIndex - 1, bytes, ref written)) return Fail();
+            if (!"<c r=\""u8.TryCopyTo(bytes, ref bytesWritten)) return Fail();
+            if (!SpanHelper.TryWriteCellReference(state.Column + 1, state.NextRowIndex - 1, bytes, ref bytesWritten)) return Fail();
 
-            _buffer.Advance(written);
+            _pos += bytesWritten;
             return true;
         }
 
