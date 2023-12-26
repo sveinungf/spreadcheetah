@@ -7,7 +7,6 @@ namespace SpreadCheetah.CellValueWriters.Number;
 internal abstract class NumberCellValueWriterBase : CellValueWriter
 {
     protected abstract int GetStyleId(StyleId styleId);
-    protected abstract bool TryWriteValue(in DataCell cell, Span<byte> destination, out int bytesWritten);
 
     protected static ReadOnlySpan<byte> BeginDataCell => "<c><v>"u8;
     protected static ReadOnlySpan<byte> EndStyleBeginValue => "\"><v>"u8; // TODO: Rename
@@ -151,16 +150,6 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
     }
 
     public override bool CanWriteValuePieceByPiece(in DataCell cell) => true;
-
-    public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)
-    {
-        var bytes = buffer.GetSpan();
-        if (!TryWriteValue(cell, bytes, out var bytesWritten))
-            return false;
-
-        buffer.Advance(bytesWritten);
-        return true;
-    }
 
     public override bool TryWriteEndElement(SpreadsheetBuffer buffer)
     {

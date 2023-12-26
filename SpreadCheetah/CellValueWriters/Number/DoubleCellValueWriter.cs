@@ -2,17 +2,11 @@ using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
-using System.Buffers.Text;
 
 namespace SpreadCheetah.CellValueWriters.Number;
 
 internal sealed class DoubleCellValueWriter : NumberCellValueWriter
 {
-    protected override bool TryWriteValue(in DataCell cell, Span<byte> destination, out int bytesWritten)
-    {
-        return Utf8Formatter.TryFormat(cell.NumberValue.DoubleValue, destination, out bytesWritten);
-    }
-
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
         return buffer.TryWrite($"{BeginDataCell}{cell.NumberValue.DoubleValue}{EndDefaultCell}");
@@ -80,5 +74,10 @@ internal sealed class DoubleCellValueWriter : NumberCellValueWriter
             $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
             $"{cachedValue.NumberValue.DoubleValue}" +
             $"{FormulaCellHelper.EndCachedValueEndCell}");
+    }
+
+    public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)
+    {
+        return buffer.TryWrite($"{cell.NumberValue.DoubleValue}");
     }
 }

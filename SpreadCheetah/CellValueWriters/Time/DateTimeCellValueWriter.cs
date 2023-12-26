@@ -3,18 +3,12 @@ using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
-using System.Buffers.Text;
 
 namespace SpreadCheetah.CellValueWriters.Time;
 
 internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
 {
     protected override int GetStyleId(StyleId styleId) => styleId.DateTimeId;
-
-    protected override bool TryWriteValue(in DataCell cell, Span<byte> destination, out int bytesWritten)
-    {
-        return Utf8Formatter.TryFormat(cell.NumberValue.DoubleValue, destination, out bytesWritten);
-    }
 
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
@@ -112,5 +106,10 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
     {
         var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
         return WriteFormulaStartElementWithReference(actualStyleId, state);
+    }
+
+    public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)
+    {
+        return buffer.TryWrite($"{cell.NumberValue.DoubleValue}");
     }
 }
