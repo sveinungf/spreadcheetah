@@ -7,15 +7,10 @@ using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah;
 
-internal sealed class SpreadsheetBuffer
+internal sealed class SpreadsheetBuffer(byte[] buffer)
 {
-    private readonly byte[] _buffer;
+    private readonly byte[] _buffer = buffer;
     private int _index;
-
-    public SpreadsheetBuffer(byte[] buffer)
-    {
-        _buffer = buffer;
-    }
 
     public Span<byte> GetSpan() => _buffer.AsSpan(_index);
     public int FreeCapacity => _buffer.Length - _index;
@@ -72,22 +67,15 @@ internal sealed class SpreadsheetBuffer
 
         private readonly Span<byte> GetSpan() => _buffer._buffer.AsSpan(_buffer._index + _pos);
 
-        // TODO: Remove or throw? Literals should rather use ReadOnlySpan<byte>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendLiteral(string value)
         {
-            if (value is not null)
+            Debug.Fail("Use ReadOnlySpan<byte> instead of string literals");
+
+            if (value is not null && Utf8Helper.TryGetBytes(value, GetSpan(), out var bytesWritten))
             {
-                var dest = GetSpan();
-#if NET8_0_OR_GREATER
-                if (System.Text.Unicode.Utf8.TryWrite(dest, CultureInfo.InvariantCulture, $"{value}", out var bytesWritten))
-#else
-                if (Utf8Helper.TryGetBytes(value, dest, out var bytesWritten))
-#endif
-                {
-                    _pos += bytesWritten;
-                    return true;
-                }
+                _pos += bytesWritten;
+                return true;
             }
 
             return Fail();
