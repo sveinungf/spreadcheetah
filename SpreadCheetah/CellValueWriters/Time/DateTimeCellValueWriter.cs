@@ -76,7 +76,22 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
     public override bool TryWriteCellWithReference(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
     {
         var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
-        return TryWriteCellWithReference(formulaText, cachedValue, actualStyleId, state);
+        if (actualStyleId is { } style)
+        {
+            return state.Buffer.TryWrite(
+                $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{style}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{formulaText}" +
+                $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
+                $"{cachedValue.NumberValue.DoubleValue}" +
+                $"{FormulaCellHelper.EndCachedValueEndCell}");
+        }
+
+        return state.Buffer.TryWrite(
+            $"{state}{FormulaCellHelper.EndStyleBeginFormula}" +
+            $"{formulaText}" +
+            $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
+            $"{cachedValue.NumberValue.DoubleValue}" +
+            $"{FormulaCellHelper.EndCachedValueEndCell}");
     }
 
     private static bool TryWriteDateTimeCellWithReference(in DataCell cell, int styleId, CellWriterState state)

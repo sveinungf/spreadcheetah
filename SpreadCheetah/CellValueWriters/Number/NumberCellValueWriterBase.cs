@@ -13,23 +13,6 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
     protected static ReadOnlySpan<byte> EndStyleBeginValue => "\"><v>"u8; // TODO: Rename
     protected static ReadOnlySpan<byte> EndDefaultCell => "</v></c>"u8;
 
-    protected bool TryWriteCellWithReference(string formulaText, in DataCell cachedValue, int? styleId, CellWriterState state)
-    {
-        var buffer = state.Buffer;
-        var bytes = buffer.GetSpan();
-
-        if (!TryWriteFormulaCellStartWithReference(styleId, state, bytes, out var written)) return false;
-        if (!SpanHelper.TryWrite(formulaText, bytes, ref written)) return false;
-        if (!FormulaCellHelper.EndFormulaBeginCachedValue.TryCopyTo(bytes, ref written)) return false;
-        if (!TryWriteValue(cachedValue, bytes.Slice(written), out var valueLength)) return false;
-        written += valueLength;
-
-        if (!FormulaCellHelper.EndCachedValueEndCell.TryCopyTo(bytes, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
-    }
-
     public static bool TryWriteFormulaCellStart(int? styleId, Span<byte> bytes, out int bytesWritten)
     {
         bytesWritten = 0;
