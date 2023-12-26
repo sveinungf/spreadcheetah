@@ -27,7 +27,7 @@ internal sealed class TrueBooleanCellValueWriter : BooleanCellValueWriter
         if (styleId is { } style)
         {
             return buffer.TryWrite(
-                $"{BeginStyledBooleanCell}{style}{FormulaCellHelper.EndQuoteBeginFormula}" +
+                $"{BeginStyledBooleanCell}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{EndFormulaTrueBooleanValue}");
         }
