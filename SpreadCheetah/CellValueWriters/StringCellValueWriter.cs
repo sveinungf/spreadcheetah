@@ -16,15 +16,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
 
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
-        var bytes = buffer.GetSpan();
-        var written = 0;
-
-        if (!BeginStringCell.TryCopyTo(bytes, ref written)) return false;
-        if (!SpanHelper.TryWrite(cell.StringValue, bytes, ref written)) return false;
-        if (!EndStringCell.TryCopyTo(bytes, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        return buffer.TryWrite($"{BeginStringCell}{cell.StringValue}{EndStringCell}");
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)

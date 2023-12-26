@@ -69,6 +69,7 @@ internal sealed class SpreadsheetBuffer
             _success = shouldAppend = buffer.FreeCapacity >= literalLength;
         }
 
+        // TODO: Remove or throw? Literals should rather use ReadOnlySpan<byte>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendLiteral(string value)
         {
@@ -130,18 +131,10 @@ internal sealed class SpreadsheetBuffer
                 ? f.ToString(null, CultureInfo.InvariantCulture)
                 : value?.ToString();
 
-#if NETSTANDARD2_0
             return AppendFormatted(s);
-#else
-            return AppendFormatted(s.AsSpan());
-#endif
         }
 
-#if NETSTANDARD2_0
         public bool AppendFormatted(string? value)
-#else
-        public bool AppendFormatted(scoped ReadOnlySpan<char> value)
-#endif
         {
             if (Utf8Helper.TryGetBytes(value, _buffer.GetSpan().Slice(_pos), out int bytesWritten))
             {
