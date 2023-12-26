@@ -62,11 +62,12 @@ internal sealed class SpreadsheetBuffer
         internal int _pos;
         internal bool _success;
 
-        public TryWriteInterpolatedStringHandler(int literalLength, int formattedCount, SpreadsheetBuffer buffer, out bool shouldAppend)
+        public TryWriteInterpolatedStringHandler(int literalLength, int formattedCount, SpreadsheetBuffer buffer)
         {
+            _ = literalLength;
             _ = formattedCount;
             _buffer = buffer;
-            _success = shouldAppend = buffer.FreeCapacity >= literalLength;
+            _success = true;
         }
 
         // TODO: Remove or throw? Literals should rather use ReadOnlySpan<byte>
