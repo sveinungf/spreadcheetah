@@ -61,4 +61,24 @@ internal sealed class DoubleCellValueWriter : NumberCellValueWriter
             $"{cell.NumberValue.DoubleValue}" +
             $"{EndDefaultCell}");
     }
+
+    public override bool TryWriteCellWithReference(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
+    {
+        if (styleId is { } style)
+        {
+            return state.Buffer.TryWrite(
+                $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{style.Id}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{formulaText}" +
+                $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
+                $"{cachedValue.NumberValue.DoubleValue}" +
+                $"{FormulaCellHelper.EndCachedValueEndCell}");
+        }
+
+        return state.Buffer.TryWrite(
+            $"{state}{FormulaCellHelper.EndStyleBeginFormula}" +
+            $"{formulaText}" +
+            $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
+            $"{cachedValue.NumberValue.DoubleValue}" +
+            $"{FormulaCellHelper.EndCachedValueEndCell}");
+    }
 }
