@@ -1,59 +1,68 @@
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Styling;
+using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.CellValueWriters.Boolean;
 
 internal sealed class TrueBooleanCellValueWriter : BooleanCellValueWriter
 {
     private static ReadOnlySpan<byte> TrueBooleanCell => "<c t=\"b\"><v>1</v></c>"u8;
+    private static ReadOnlySpan<byte> EndReferenceTrueBooleanValue => "\" t=\"b\"><v>1</v></c>"u8;
     private static ReadOnlySpan<byte> EndStyleTrueBooleanValue => "\"><v>1</v></c>"u8;
     private static ReadOnlySpan<byte> EndFormulaTrueBooleanValue => "</f><v>1</v></c>"u8;
 
     protected override bool TryWriteCell(SpreadsheetBuffer buffer)
     {
-        var bytes = buffer.GetSpan();
-        var written = 0;
+        return buffer.TryWrite($"{TrueBooleanCell}");
+    }
 
-        if (!TrueBooleanCell.TryCopyTo(bytes, ref written)) return false;
+    protected override bool TryWriteCell(StyleId styleId, SpreadsheetBuffer buffer)
+    {
+        return buffer.TryWrite($"{BeginStyledBooleanCell}{styleId.Id}{EndStyleTrueBooleanValue}");
+    }
 
-        buffer.Advance(written);
-        return true;
+    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    {
+        if (styleId is { } style)
+        {
+            return buffer.TryWrite(
+                $"{BeginStyledBooleanCell}{style}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{formulaText}" +
+                $"{EndFormulaTrueBooleanValue}");
+        }
+
+        return buffer.TryWrite($"{BeginBooleanFormulaCell}{formulaText}{EndFormulaTrueBooleanValue}");
     }
 
     protected override bool TryWriteCellWithReference(CellWriterState state)
     {
-        var buffer = state.Buffer;
-        var bytes = buffer.GetSpan();
-        var written = 0;
-
-        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
-        if (!"\" t=\"b\"><v>1</v></c>"u8.TryCopyTo(bytes, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        return state.Buffer.TryWrite($"{state}{EndReferenceTrueBooleanValue}");
     }
 
-    protected override bool TryWriteEndStyleValue(Span<byte> bytes, out int bytesWritten)
+    protected override bool TryWriteCellWithReference(StyleId styleId, CellWriterState state)
     {
-        if (EndStyleTrueBooleanValue.TryCopyTo(bytes))
-        {
-            bytesWritten = EndStyleTrueBooleanValue.Length;
-            return true;
-        }
-
-        bytesWritten = 0;
-        return false;
+        return state.Buffer.TryWrite($"{state}{EndReferenceBeginStyled}{styleId.Id}{EndStyleTrueBooleanValue}");
     }
 
-    protected override bool TryWriteEndFormulaValue(Span<byte> bytes, out int bytesWritten)
+    public override bool TryWriteCellWithReference(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
     {
-        if (EndFormulaTrueBooleanValue.TryCopyTo(bytes))
+        if (styleId is { } style)
         {
-            bytesWritten = EndFormulaTrueBooleanValue.Length;
-            return true;
+            return state.Buffer.TryWrite(
+                $"{state}{EndReferenceBeginStyled}{style.Id}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{formulaText}" +
+                $"{EndFormulaTrueBooleanValue}");
         }
 
-        bytesWritten = 0;
-        return false;
+        return state.Buffer.TryWrite(
+            $"{state}{EndReferenceBeginFormula}" +
+            $"{formulaText}" +
+            $"{EndFormulaTrueBooleanValue}");
+    }
+
+    public override bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer)
+    {
+        return cell.Formula is null || buffer.TryWrite($"{EndFormulaTrueBooleanValue}");
     }
 }
