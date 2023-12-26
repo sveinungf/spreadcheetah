@@ -9,5 +9,6 @@ public enum CellValueType
     Double,
     Decimal,
     DateTime,
-    Bool
+    BoolTrue,
+    BoolFalse
 }

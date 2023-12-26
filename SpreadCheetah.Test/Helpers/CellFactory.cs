@@ -93,7 +93,8 @@ internal static class CellFactory
 
     public static object Create(CellType cellType, CellValueType valueType, bool isNull, StyleId? styleId, out object? value) => valueType switch
     {
-        CellValueType.Bool => CreateForBool(cellType, isNull, styleId, out value),
+        CellValueType.BoolFalse => CreateForBool(cellType, isNull ? null : false, styleId, out value),
+        CellValueType.BoolTrue => CreateForBool(cellType, isNull ? null : true, styleId, out value),
         CellValueType.DateTime => CreateForDateTime(cellType, isNull, styleId, out value),
         CellValueType.Decimal => CreateForDecimal(cellType, isNull, styleId, out value),
         CellValueType.Double => CreateForDouble(cellType, isNull, styleId, out value),
@@ -106,7 +107,8 @@ internal static class CellFactory
 
     public static Cell Create(Formula formula, CellValueType valueType, bool isNull, StyleId? styleId, out object? value) => valueType switch
     {
-        CellValueType.Bool => CreateForBool(formula, isNull, styleId, out value),
+        CellValueType.BoolFalse => CreateForBool(formula, isNull ? null : false, styleId, out value),
+        CellValueType.BoolTrue => CreateForBool(formula, isNull ? null : true, styleId, out value),
         CellValueType.DateTime => CreateForDateTime(formula, isNull, styleId, out value),
         CellValueType.Decimal => CreateForDecimal(formula, isNull, styleId, out value),
         CellValueType.Double => CreateForDouble(formula, isNull, styleId, out value),
@@ -117,9 +119,8 @@ internal static class CellFactory
         _ => throw new ArgumentOutOfRangeException(nameof(valueType), valueType, null)
     };
 
-    private static object CreateForBool(CellType cellType, bool isNull, StyleId? styleId, out object? value)
+    private static object CreateForBool(CellType cellType, bool? actualValue, StyleId? styleId, out object? value)
     {
-        bool? actualValue = isNull ? null : true;
         value = actualValue;
 
         return cellType switch
@@ -131,9 +132,8 @@ internal static class CellFactory
         };
     }
 
-    private static Cell CreateForBool(Formula formula, bool isNull, StyleId? styleId, out object? value)
+    private static Cell CreateForBool(Formula formula, bool? actualValue, StyleId? styleId, out object? value)
     {
-        bool? actualValue = !isNull ? true : null;
         value = actualValue;
         return new Cell(formula, actualValue, styleId);
     }
