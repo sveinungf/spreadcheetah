@@ -33,4 +33,12 @@ internal sealed class IntegerCellValueWriter : NumberCellValueWriter
             $"{cell.NumberValue.IntValue}" +
             $"{EndDefaultCell}");
     }
+
+    public override bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state)
+    {
+        return state.Buffer.TryWrite(
+            $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{styleId.Id}{EndStyleBeginValue}" +
+            $"{cell.NumberValue.IntValue}" +
+            $"{EndDefaultCell}");
+    }
 }

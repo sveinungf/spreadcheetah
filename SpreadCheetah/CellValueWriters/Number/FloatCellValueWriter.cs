@@ -1,3 +1,4 @@
+using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
@@ -21,6 +22,22 @@ internal sealed class FloatCellValueWriter : NumberCellValueWriter
     {
         return buffer.TryWrite(
             $"{StyledCellHelper.BeginStyledNumberCell}{styleId.Id}{EndStyleBeginValue}" +
+            $"{cell.NumberValue.FloatValue}" +
+            $"{EndDefaultCell}");
+    }
+
+    public override bool TryWriteCellWithReference(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
+    {
+        return state.Buffer.TryWrite(
+            $"{state}{EndStyleBeginValue}" +
+            $"{cell.NumberValue.FloatValue}" +
+            $"{EndDefaultCell}");
+    }
+
+    public override bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state)
+    {
+        return state.Buffer.TryWrite(
+            $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{styleId.Id}{EndStyleBeginValue}" +
             $"{cell.NumberValue.FloatValue}" +
             $"{EndDefaultCell}");
     }
