@@ -1,4 +1,3 @@
-using SpreadCheetah.CellValueWriters.Number;
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
@@ -10,61 +9,33 @@ internal abstract class NullValueWriterBase : CellValueWriter
     protected abstract int GetStyleId(StyleId styleId);
 
     private static ReadOnlySpan<byte> NullDataCell => "<c/>"u8;
-    private static ReadOnlySpan<byte> EndStyleNullValue => "\"/>"u8;
+    private static ReadOnlySpan<byte> EndStyleNullValue => "\"/>"u8; // TODO: Rename
     private static ReadOnlySpan<byte> EndFormulaEndCell => "</f></c>"u8;
 
     protected static bool TryWriteCell(SpreadsheetBuffer buffer)
     {
-        var bytes = buffer.GetSpan();
-        var written = 0;
-
-        if (!NullDataCell.TryCopyTo(bytes, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        return buffer.TryWrite($"{NullDataCell}");
     }
 
     protected static bool TryWriteCell(int styleId, SpreadsheetBuffer buffer)
     {
-        var bytes = buffer.GetSpan();
-        var written = 0;
-
-        if (!StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes, ref written)) return false;
-        if (!SpanHelper.TryWrite(styleId, bytes, ref written)) return false;
-        if (!EndStyleNullValue.TryCopyTo(bytes, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        return buffer.TryWrite($"{StyledCellHelper.BeginStyledNumberCell}{styleId}{EndStyleNullValue}");
     }
 
     protected static bool TryWriteCell(string formulaText, int? styleId, SpreadsheetBuffer buffer)
     {
-        var bytes = buffer.GetSpan();
-
-        if (!TryWriteFormulaCellStart(styleId, bytes, out var written)) return false;
-        if (!SpanHelper.TryWrite(formulaText, bytes, ref written)) return false;
-        if (!EndFormulaEndCell.TryCopyTo(bytes, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
-    }
-
-    private static bool TryWriteFormulaCellStart(int? styleId, Span<byte> bytes, out int bytesWritten)
-    {
-        bytesWritten = 0;
-        var written = 0;
-
-        if (styleId is null)
+        if (styleId is { } style)
         {
-            return FormulaCellHelper.BeginNumberFormulaCell.TryCopyTo(bytes, ref bytesWritten);
+            return buffer.TryWrite(
+                $"{StyledCellHelper.BeginStyledNumberCell}{style}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{formulaText}" +
+                $"{EndFormulaEndCell}");
         }
 
-        if (!StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes, ref written)) return false;
-        if (!SpanHelper.TryWrite(styleId.Value, bytes, ref written)) return false;
-        if (!FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes, ref written)) return false;
-
-        bytesWritten = written;
-        return true;
+        return buffer.TryWrite(
+            $"{FormulaCellHelper.BeginNumberFormulaCell}" +
+            $"{formulaText}" +
+            $"{EndFormulaEndCell}");
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
@@ -74,15 +45,7 @@ internal abstract class NullValueWriterBase : CellValueWriter
 
     protected static bool TryWriteCellWithReference(CellWriterState state)
     {
-        var buffer = state.Buffer;
-        var bytes = buffer.GetSpan();
-        var written = 0;
-
-        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
-        if (!"\"/>"u8.TryCopyTo(bytes, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        return state.Buffer.TryWrite($"{state}{EndStyleNullValue}");
     }
 
     public override bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state)
@@ -92,114 +55,44 @@ internal abstract class NullValueWriterBase : CellValueWriter
 
     protected static bool TryWriteCellWithReference(int styleId, CellWriterState state)
     {
-        var buffer = state.Buffer;
-        var bytes = buffer.GetSpan();
-        var written = 0;
-
-        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
-        if (!StyledCellHelper.EndReferenceBeginStyleId.TryCopyTo(bytes, ref written)) return false;
-        if (!SpanHelper.TryWrite(styleId, bytes, ref written)) return false;
-        if (!EndStyleNullValue.TryCopyTo(bytes, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        return state.Buffer.TryWrite($"{state}{StyledCellHelper.EndReferenceBeginStyleId}{styleId}{EndStyleNullValue}");
     }
 
     protected static bool TryWriteCellWithReference(string formulaText, int? styleId, CellWriterState state)
     {
-        var buffer = state.Buffer;
-        var bytes = buffer.GetSpan();
-
-        if (!TryWriteFormulaCellStartWithReference(styleId, state, bytes, out var written)) return false;
-        if (!SpanHelper.TryWrite(formulaText, bytes, ref written)) return false;
-        if (!EndFormulaEndCell.TryCopyTo(bytes, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
-    }
-
-    private static bool TryWriteFormulaCellStartWithReference(int? styleId, CellWriterState state, Span<byte> bytes, out int bytesWritten)
-    {
-        bytesWritten = 0;
-        var written = 0;
-
-        if (styleId is null)
+        if (styleId is { } style)
         {
-            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
-            if (!"\"><f>"u8.TryCopyTo(bytes, ref written)) return false;
-
-            bytesWritten = written;
-            return true;
+            return state.Buffer.TryWrite(
+                $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{style}{FormulaCellHelper.EndStyleBeginFormula}" +
+                $"{formulaText}" +
+                $"{EndFormulaEndCell}");
         }
 
-        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
-        if (!StyledCellHelper.EndReferenceBeginStyleId.TryCopyTo(bytes, ref written)) return false;
-        if (!SpanHelper.TryWrite(styleId.Value, bytes, ref written)) return false;
-        if (!FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes, ref written)) return false;
-
-        bytesWritten = written;
-        return true;
+        return state.Buffer.TryWrite(
+            $"{state}{FormulaCellHelper.EndStyleBeginFormula}" +
+            $"{formulaText}" +
+            $"{EndFormulaEndCell}");
     }
 
     public override bool TryWriteEndElement(SpreadsheetBuffer buffer) => true;
 
     public override bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer)
     {
-        if (cell.Formula is null)
-            return true;
-
-        var bytes = buffer.GetSpan();
-        if (EndFormulaEndCell.TryCopyTo(bytes))
-        {
-            buffer.Advance(EndFormulaEndCell.Length);
-            return true;
-        }
-
-        return false;
+        return cell.Formula is null || buffer.TryWrite($"{EndFormulaEndCell}");
     }
 
     protected static bool WriteFormulaStartElement(int? styleId, SpreadsheetBuffer buffer)
     {
-        var bytes = buffer.GetSpan();
-        var written = 0;
-
-        if (styleId is null)
-        {
-            if (!FormulaCellHelper.BeginNumberFormulaCell.TryCopyTo(bytes, ref written)) return false;
-            buffer.Advance(written);
-            return true;
-        }
-
-        if (!StyledCellHelper.BeginStyledNumberCell.TryCopyTo(bytes, ref written)) return false;
-        if (!SpanHelper.TryWrite(styleId.Value, bytes, ref written)) return false;
-        if (!FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        return styleId is { } style
+            ? buffer.TryWrite($"{StyledCellHelper.BeginStyledNumberCell}{style}{FormulaCellHelper.EndStyleBeginFormula}")
+            : buffer.TryWrite($"{FormulaCellHelper.BeginNumberFormulaCell}");
     }
 
     protected static bool WriteFormulaStartElementWithReference(int? styleId, CellWriterState state)
     {
-        var buffer = state.Buffer;
-        var bytes = buffer.GetSpan();
-        var written = 0;
-
-        if (styleId is null)
-        {
-            if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
-            if (!"\"><f>"u8.TryCopyTo(bytes, ref written)) return false;
-
-            buffer.Advance(written);
-            return true;
-        }
-
-        if (!TryWriteCellStartWithReference(state, bytes, ref written)) return false;
-        if (!StyledCellHelper.EndReferenceBeginStyleId.TryCopyTo(bytes, ref written)) return false;
-        if (!SpanHelper.TryWrite(styleId.Value, bytes, ref written)) return false;
-        if (!FormulaCellHelper.EndStyleBeginFormula.TryCopyTo(bytes, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        return styleId is { } style
+            ? state.Buffer.TryWrite($"{state}{StyledCellHelper.EndReferenceBeginStyleId}{style}{FormulaCellHelper.EndStyleBeginFormula}")
+            : state.Buffer.TryWrite($"{state}{FormulaCellHelper.EndStyleBeginFormula}");
     }
 
     public override bool WriteStartElement(SpreadsheetBuffer buffer) => TryWriteCell(buffer);
