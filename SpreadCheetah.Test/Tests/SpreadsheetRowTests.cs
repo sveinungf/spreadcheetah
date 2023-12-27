@@ -652,6 +652,33 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Spreadsheet_AddRow_ExplicitCellReferenceForDateTimeCellWithDefaultStyling(bool isNull)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { WriteCellReferenceAttributes = true };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await spreadsheet.StartWorksheetAsync("Sheet1");
+
+        DateTime? cellValue = isNull ? null : new DateTime(2019, 8, 7, 6, 5, 4, DateTimeKind.Utc);
+        var cell = new Cell(cellValue);
+
+        // Act
+        await spreadsheet.AddRowAsync(cell);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var actual = SpreadsheetDocument.Open(stream, true);
+        var sheetPart = Assert.Single(actual.WorkbookPart!.WorksheetParts);
+        var actualRow = Assert.Single(sheetPart.Worksheet.Descendants<Row>());
+        var actualCell = Assert.Single(actualRow.Descendants<OpenXmlCell>());
+        Assert.Equal("A1", actualCell.CellReference?.Value);
+    }
+
     public static IEnumerable<object?[]> RowHeights() => TestData.CombineWithCellTypes<double?>(
         0.1,
         10d,
