@@ -1,3 +1,4 @@
+using SpreadCheetah.CellValueWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Worksheets;
@@ -259,13 +260,15 @@ internal abstract class BaseCellWriter<T>
 
     protected bool FinishWritingFormulaCellValue(in Cell cell, string formulaText, ref int cellValueIndex)
     {
+        var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
+
         // Write the formula
         if (cellValueIndex < formulaText.Length)
         {
             if (!Buffer.WriteLongString(formulaText, ref cellValueIndex)) return false;
 
             // Finish if there is no cached value to write piece by piece
-            if (!cell.DataCell.Writer.CanWriteValuePieceByPiece(cell.DataCell)) return true;
+            if (!writer.CanWriteValuePieceByPiece(cell.DataCell)) return true;
         }
 
         // If there is a cached value, we need to write "[FORMULA]</f><v>[CACHEDVALUE]"
@@ -282,7 +285,7 @@ internal abstract class BaseCellWriter<T>
 
         // Write the cached value
         var cachedValueIndex = cellValueIndex - cachedValueStartIndex;
-        var result = cell.DataCell.Writer.WriteValuePieceByPiece(cell.DataCell, Buffer, ref cachedValueIndex);
+        var result = writer.WriteValuePieceByPiece(cell.DataCell, Buffer, ref cachedValueIndex);
         cellValueIndex = cachedValueIndex + cachedValueStartIndex;
         return result;
     }

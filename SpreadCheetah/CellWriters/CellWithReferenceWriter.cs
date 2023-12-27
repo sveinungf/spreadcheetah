@@ -1,3 +1,4 @@
+using SpreadCheetah.CellValueWriters;
 using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.CellWriters;
@@ -7,7 +8,7 @@ internal sealed class CellWithReferenceWriter(CellWriterState state, DefaultStyl
 {
     protected override bool TryWriteCell(in Cell cell)
     {
-        var writer = cell.DataCell.Writer;
+        var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
         return cell switch
         {
             { Formula: { } f } => writer.TryWriteCellWithReference(f.FormulaText, cell.DataCell, cell.StyleId, DefaultStyling, State),
@@ -18,7 +19,7 @@ internal sealed class CellWithReferenceWriter(CellWriterState state, DefaultStyl
 
     protected override bool WriteStartElement(in Cell cell)
     {
-        var writer = cell.DataCell.Writer;
+        var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
         return cell switch
         {
             { Formula: not null } => writer.WriteFormulaStartElementWithReference(cell.StyleId, DefaultStyling, State),
@@ -29,13 +30,13 @@ internal sealed class CellWithReferenceWriter(CellWriterState state, DefaultStyl
 
     protected override bool TryWriteEndElement(in Cell cell)
     {
-        return cell.DataCell.Writer.TryWriteEndElement(cell, Buffer);
+        return CellValueWriter.GetWriter(cell.DataCell.Type).TryWriteEndElement(cell, Buffer);
     }
 
     protected override bool FinishWritingCellValue(in Cell cell, ref int cellValueIndex)
     {
         return cell.Formula is { } formula
             ? FinishWritingFormulaCellValue(cell, formula.FormulaText, ref cellValueIndex)
-            : cell.DataCell.Writer.WriteValuePieceByPiece(cell.DataCell, Buffer, ref cellValueIndex);
+            : CellValueWriter.GetWriter(cell.DataCell.Type).WriteValuePieceByPiece(cell.DataCell, Buffer, ref cellValueIndex);
     }
 }

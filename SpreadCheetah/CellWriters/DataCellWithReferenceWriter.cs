@@ -1,3 +1,4 @@
+using SpreadCheetah.CellValueWriters;
 using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.CellWriters;
@@ -7,17 +8,17 @@ internal sealed class DataCellWithReferenceWriter(CellWriterState state, Default
 {
     protected override bool TryWriteCell(in DataCell cell)
     {
-        return cell.Writer.TryWriteCellWithReference(cell, DefaultStyling, State);
+        return CellValueWriter.GetWriter(cell.Type).TryWriteCellWithReference(cell, DefaultStyling, State);
     }
 
     protected override bool WriteStartElement(in DataCell cell)
     {
-        return cell.Writer.WriteStartElementWithReference(State);
+        return CellValueWriter.GetWriter(cell.Type).WriteStartElementWithReference(State);
     }
 
     protected override bool TryWriteEndElement(in DataCell cell)
     {
-        return cell.Writer.TryWriteEndElement(Buffer);
+        return CellValueWriter.GetWriter(cell.Type).TryWriteEndElement(Buffer);
     }
 
     protected override bool FinishWritingCellValue(in DataCell cell, ref int cellValueIndex)
