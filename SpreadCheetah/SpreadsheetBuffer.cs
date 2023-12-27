@@ -2,6 +2,7 @@ using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using System.Buffers.Text;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
@@ -67,7 +68,7 @@ internal sealed class SpreadsheetBuffer(byte[] buffer)
 
         private readonly Span<byte> GetSpan() => _buffer._buffer.AsSpan(_buffer._index + _pos);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [ExcludeFromCodeCoverage]
         public bool AppendLiteral(string value)
         {
             Debug.Fail("Use ReadOnlySpan<byte> instead of string literals");
@@ -82,17 +83,6 @@ internal sealed class SpreadsheetBuffer(byte[] buffer)
         }
 
         public bool AppendFormatted(int value)
-        {
-            if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
-            {
-                _pos += bytesWritten;
-                return true;
-            }
-
-            return Fail();
-        }
-
-        public bool AppendFormatted(uint value)
         {
             if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
             {
@@ -125,6 +115,7 @@ internal sealed class SpreadsheetBuffer(byte[] buffer)
             return Fail();
         }
 
+        [ExcludeFromCodeCoverage]
         public bool AppendFormatted<T>(T value)
         {
             Debug.Fail("Create non-generic overloads to avoid allocations when running on .NET Framework");
