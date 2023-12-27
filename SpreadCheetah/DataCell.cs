@@ -8,13 +8,9 @@ namespace SpreadCheetah;
 /// </summary>
 public readonly record struct DataCell
 {
-    private readonly CellValueWriter? _writer;
-
     internal CellValue NumberValue { get; }
-
     internal string? StringValue { get; }
-
-    internal CellValueWriter Writer => _writer ?? CellValueWriter.Null;
+    internal CellWriterType Type { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a text value.
@@ -23,7 +19,7 @@ public readonly record struct DataCell
     public DataCell(string? value)
     {
         StringValue = value != null ? WebUtility.HtmlEncode(value) : string.Empty;
-        _writer = value != null ? CellValueWriter.String : CellValueWriter.Null;
+        Type = value != null ? CellWriterType.String : CellWriterType.Null;
     }
 
     /// <summary>
@@ -32,7 +28,7 @@ public readonly record struct DataCell
     public DataCell(int value)
     {
         NumberValue = new CellValue(value);
-        _writer = CellValueWriter.Integer;
+        Type = CellWriterType.Integer;
     }
 
     /// <summary>
@@ -42,7 +38,7 @@ public readonly record struct DataCell
     public DataCell(int? value)
     {
         NumberValue = value is null ? new CellValue() : new CellValue(value.GetValueOrDefault());
-        _writer = value is null ? CellValueWriter.Null : CellValueWriter.Integer;
+        Type = value is null ? CellWriterType.Null : CellWriterType.Integer;
     }
 
     /// <summary>
@@ -68,7 +64,7 @@ public readonly record struct DataCell
     public DataCell(float value)
     {
         NumberValue = new CellValue(value);
-        _writer = CellValueWriter.Float;
+        Type = CellWriterType.Float;
     }
 
     /// <summary>
@@ -78,7 +74,7 @@ public readonly record struct DataCell
     public DataCell(float? value)
     {
         NumberValue = value is null ? new CellValue() : new CellValue(value.GetValueOrDefault());
-        _writer = value is null ? CellValueWriter.Null : CellValueWriter.Float;
+        Type = value is null ? CellWriterType.Null : CellWriterType.Float;
     }
 
     /// <summary>
@@ -88,7 +84,7 @@ public readonly record struct DataCell
     public DataCell(double value)
     {
         NumberValue = new CellValue(value);
-        _writer = CellValueWriter.Double;
+        Type = CellWriterType.Double;
     }
 
     /// <summary>
@@ -99,7 +95,7 @@ public readonly record struct DataCell
     public DataCell(double? value)
     {
         NumberValue = value is null ? new CellValue() : new CellValue(value.GetValueOrDefault());
-        _writer = value is null ? CellValueWriter.Null : CellValueWriter.Double;
+        Type = value is null ? CellWriterType.Null : CellWriterType.Double;
     }
 
     /// <summary>
@@ -126,7 +122,7 @@ public readonly record struct DataCell
     public DataCell(DateTime value)
     {
         NumberValue = new CellValue(value.ToOADate());
-        _writer = CellValueWriter.DateTime;
+        Type = CellWriterType.DateTime;
     }
 
     /// <summary>
@@ -137,7 +133,7 @@ public readonly record struct DataCell
     public DataCell(DateTime? value)
     {
         NumberValue = value is null ? new CellValue() : new CellValue(value.GetValueOrDefault().ToOADate());
-        _writer = value is null ? CellValueWriter.NullDateTime : CellValueWriter.DateTime;
+        Type = value is null ? CellWriterType.NullDateTime : CellWriterType.DateTime;
     }
 
     /// <summary>
@@ -145,7 +141,7 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(bool value)
     {
-        _writer = GetBooleanWriter(value);
+        Type = GetBooleanWriter(value);
     }
 
     /// <summary>
@@ -154,8 +150,8 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(bool? value)
     {
-        _writer = value is null ? CellValueWriter.Null : GetBooleanWriter(value.GetValueOrDefault());
+        Type = value is null ? CellWriterType.Null : GetBooleanWriter(value.GetValueOrDefault());
     }
 
-    private static CellValueWriter GetBooleanWriter(bool value) => value ? CellValueWriter.TrueBoolean : CellValueWriter.FalseBoolean;
+    private static CellWriterType GetBooleanWriter(bool value) => value ? CellWriterType.TrueBoolean : CellWriterType.FalseBoolean;
 }

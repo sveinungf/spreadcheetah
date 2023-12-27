@@ -4,20 +4,27 @@ using SpreadCheetah.CellValueWriters.Time;
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
+using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah.CellValueWriters;
 
 internal abstract class CellValueWriter
 {
-    public static CellValueWriter Null { get; } = new NullValueWriter();
-    public static CellValueWriter Integer { get; } = new IntegerCellValueWriter();
-    public static CellValueWriter Float { get; } = new FloatCellValueWriter();
-    public static CellValueWriter Double { get; } = new DoubleCellValueWriter();
-    public static CellValueWriter DateTime { get; } = new DateTimeCellValueWriter();
-    public static CellValueWriter NullDateTime { get; } = new NullDateTimeCellValueWriter();
-    public static CellValueWriter TrueBoolean { get; } = new TrueBooleanCellValueWriter();
-    public static CellValueWriter FalseBoolean { get; } = new FalseBooleanCellValueWriter();
-    public static CellValueWriter String { get; } = new StringCellValueWriter();
+    private static readonly CellValueWriter[] Writers =
+    [
+        new NullValueWriter(),
+        new IntegerCellValueWriter(),
+        new FloatCellValueWriter(),
+        new DoubleCellValueWriter(),
+        new DateTimeCellValueWriter(),
+        new NullDateTimeCellValueWriter(),
+        new TrueBooleanCellValueWriter(),
+        new FalseBooleanCellValueWriter(),
+        new StringCellValueWriter()
+    ];
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static CellValueWriter GetWriter(CellWriterType type) => Writers[(int)type];
 
     public abstract bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer);
     public abstract bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer);
