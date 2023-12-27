@@ -39,6 +39,16 @@ public static class SpreadsheetUtilityTests
     }
 
     [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    [InlineData(16385)]
+    public static void SpreadsheetUtility_GetColumnName_InvalidNumber(int number)
+    {
+        // Act & Assert
+        Assert.ThrowsAny<ArgumentOutOfRangeException>(() => SpreadsheetUtility.GetColumnName(number));
+    }
+
+    [Theory]
     [InlineData(1, "A")]
     [InlineData(3, "C")]
     [InlineData(24, "X")]
