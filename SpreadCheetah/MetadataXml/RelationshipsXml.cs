@@ -24,9 +24,8 @@ internal static class RelationshipsXml
         await using (stream.ConfigureAwait(false))
 #endif
         {
-            Debug.Assert(Content.Length <= buffer.FreeCapacity);
-            Content.TryCopyTo(buffer.GetSpan());
-            buffer.Advance(Content.Length);
+            var ok = buffer.TryWrite($"{Content}");
+            Debug.Assert(ok);
             await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }
     }

@@ -1045,6 +1045,50 @@ public class SpreadsheetStyledRowTests
 
     [Theory]
     [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_LongStringValueStyledCells(CellType cellType, RowCollectionType rowType)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        var value = new string('a', options.BufferSize * 2);
+        var style = new Style();
+        style.Fill.Color = Color.Thistle;
+        var styleId = spreadsheet.AddStyle(style);
+
+        var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(cellType, value, styleId)).ToList();
+        var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(cellType, value, styleId)).ToList();
+        var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(cellType, value, styleId)).ToList();
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("Sheet1");
+        await spreadsheet.AddRowAsync(row1, rowType);
+        await spreadsheet.AddRowAsync(row2, rowType);
+        await spreadsheet.AddRowAsync(row3, rowType);
+
+        await spreadsheet.StartWorksheetAsync("Sheet2");
+        await spreadsheet.AddRowAsync(row1, rowType);
+
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var actual = SpreadsheetDocument.Open(stream, true);
+        var sheetParts = actual.WorkbookPart!.WorksheetParts.ToList();
+        Assert.Equal(2, sheetParts.Count);
+
+        var sheet1Rows = sheetParts[0].Worksheet.Descendants<Row>().ToList();
+        Assert.Equal(3, sheet1Rows.Count);
+        Assert.All(sheet1Rows[0].Descendants<OpenXmlCell>(), x => Assert.Equal(value, x.InnerText));
+        Assert.All(sheet1Rows[1].Descendants<OpenXmlCell>(), x => Assert.Equal(value, x.InnerText));
+        Assert.All(sheet1Rows[2].Descendants<OpenXmlCell>(), x => Assert.Equal(value, x.InnerText));
+
+        var sheet2Row = Assert.Single(sheetParts[1].Worksheet.Descendants<Row>());
+        Assert.All(sheet2Row.Descendants<OpenXmlCell>(), x => Assert.Equal(value, x.InnerText));
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddRow_ExplicitCellReferencesForLongStringValueStyledCells(CellType cellType, RowCollectionType rowType)
     {
         // Arrange
