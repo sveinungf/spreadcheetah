@@ -56,14 +56,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             return null;
 
         var classSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration, token);
-        if (classSymbol is null)
-            return null;
-
-        if (classSymbol.IsStatic)
-            return null;
-
-        var baseType = classSymbol.BaseType;
-        if (baseType is null)
+        if (classSymbol is not { IsStatic: false, BaseType: { } baseType })
             return null;
 
         var baseContext = GetContextBaseType(context.SemanticModel.Compilation);
@@ -116,10 +109,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             return false;
 
         var args = attribute.ConstructorArguments;
-        if (args.Length != 1)
-            return false;
-
-        if (args[0].Value is not INamedTypeSymbol symbol)
+        if (args is not [{ Value: INamedTypeSymbol symbol }])
             return false;
 
         if (symbol.Kind == SymbolKind.ErrorType)
@@ -215,7 +205,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     }
 
     private static readonly SpecialType[] SupportedPrimitiveTypes =
-    {
+    [
         SpecialType.System_Boolean,
         SpecialType.System_DateTime,
         SpecialType.System_Decimal,
@@ -223,7 +213,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         SpecialType.System_Int32,
         SpecialType.System_Int64,
         SpecialType.System_Single
-    };
+    ];
 
     private static void Execute(Compilation compilation, ImmutableArray<ContextClass?> classes, SourceProductionContext context)
     {
