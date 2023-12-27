@@ -7,6 +7,8 @@ namespace SpreadCheetah;
 /// </summary>
 public static class SpreadsheetUtility
 {
+    private static readonly string[] Alphabet = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
+
     /// <summary>
     /// Get the column name from a column number. E.g. column number 1 will return column name 'A'.
     /// </summary>
@@ -16,7 +18,7 @@ public static class SpreadsheetUtility
             ThrowHelper.ColumnNumberInvalid(nameof(columnNumber), columnNumber);
 
         if (columnNumber <= 26)
-            return ((char)(columnNumber + 'A' - 1)).ToString();
+            return Alphabet[columnNumber - 1];
 
         if (columnNumber <= 702)
         {
@@ -35,26 +37,24 @@ public static class SpreadsheetUtility
             }.ToString();
 #endif
         }
-        else
-        {
-            var quotient1 = Math.DivRem(columnNumber - 1, 26, out var remainder1);
-            var quotient2 = Math.DivRem(quotient1 - 1, 26, out var remainder2);
+
+        var quotient1 = Math.DivRem(columnNumber - 1, 26, out var remainder1);
+        var quotient2 = Math.DivRem(quotient1 - 1, 26, out var remainder2);
 #if NET8_0_OR_GREATER
-            return new string(
-            [
-                (char)('A' - 1 + quotient2),
-                (char)('A' + remainder2),
-                (char)('A' + remainder1)
-            ]);
+        return new string(
+        [
+            (char)('A' - 1 + quotient2),
+            (char)('A' + remainder2),
+            (char)('A' + remainder1)
+        ]);
 #else
-            return stackalloc char[3]
-            {
-                (char)('A' - 1 + quotient2),
-                (char)('A' + remainder2),
-                (char)('A' + remainder1)
-            }.ToString();
+        return stackalloc char[3]
+        {
+            (char)('A' - 1 + quotient2),
+            (char)('A' + remainder2),
+            (char)('A' + remainder1)
+        }.ToString();
 #endif
-        }
     }
 
     /// <summary>

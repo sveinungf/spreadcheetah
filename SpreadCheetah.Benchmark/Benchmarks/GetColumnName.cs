@@ -13,11 +13,14 @@ public class GetColumnName
     private int[] _numbers = null!;
     private string[] _names = null!;
 
+    [Params(26, 16384)]
+    public int MaxNumber { get; set; }
+
     [GlobalSetup]
     public void GlobalSetup()
     {
         var random = new Random(42);
-        _numbers = Enumerable.Range(0, 10000).Select(_ => random.Next(1, 16384)).ToArray();
+        _numbers = Enumerable.Range(0, 10000).Select(_ => random.Next(1, MaxNumber)).ToArray();
     }
 
     [IterationSetup]
@@ -26,7 +29,7 @@ public class GetColumnName
         _names = new string[_numbers.Length];
     }
 
-    [Benchmark]
+    [Benchmark(Baseline = true)]
     public string[] GetColumnNameBaseline()
     {
         var names = _names;
