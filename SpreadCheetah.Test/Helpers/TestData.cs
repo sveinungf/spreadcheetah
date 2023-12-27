@@ -5,7 +5,7 @@ namespace SpreadCheetah.Test.Helpers;
 internal static class TestData
 {
     private static readonly CellType[] CellTypeArray = EnumHelper.GetValues<CellType>();
-    private static readonly CellType[] StyledCellTypeArray = new[] { CellType.StyledCell, CellType.Cell };
+    private static readonly CellType[] StyledCellTypeArray = [CellType.StyledCell, CellType.Cell];
     private static readonly CellValueType[] CellValueTypeArray = EnumHelper.GetValues<CellValueType>();
     private static readonly RowCollectionType[] RowCollectionTypeArray = EnumHelper.GetValues<RowCollectionType>();
 

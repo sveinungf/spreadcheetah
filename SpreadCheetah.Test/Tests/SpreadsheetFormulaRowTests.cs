@@ -106,6 +106,32 @@ public class SpreadsheetFormulaRowTests
         Assert.Equal(valueType.GetExpectedDefaultNumberFormat() ?? "", actualCell.Style.NumberFormat.Format);
     }
 
+    [Fact]
+    public async Task Spreadsheet_AddRow_CellWithFormulaAndCachedDateTimeValueWithoutDefaultStyle()
+    {
+        // Arrange
+        const string formulaText = "SUM(A1,A2)";
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { DefaultDateTimeFormat = null };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var formula = new Formula(formulaText);
+        var cachedValue = new DateTime(2020, 1, 2, 3, 4, 5, DateTimeKind.Utc);
+        var cell = new Cell(formula, cachedValue);
+
+        // Act
+        await spreadsheet.AddRowAsync(cell);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.Equal(formulaText, actualCell.FormulaA1);
+        Assert.Equal(cachedValue.ToOADate(), actualCell.GetValue<double>(), 0.0001);
+    }
+
     public static IEnumerable<object?[]> ItalicWithValueTypes() => TestData.CombineWithValueTypes(true, false);
 
     [Theory]
