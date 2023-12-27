@@ -104,7 +104,7 @@ internal struct StyleBordersXml
         if (!" style=\""u8.TryCopyTo(span, ref written)) return false;
         if (!TryWriteStyleAttributeValue(style, span, ref written)) return false;
 
-        if (color is null)
+        if (color is not { } colorValue)
         {
             if (!"\"/>"u8.TryCopyTo(span, ref written)) return false;
             bytesWritten += written;
@@ -112,7 +112,7 @@ internal struct StyleBordersXml
         }
 
         if (!"\"><color rgb=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(color.Value, span, ref written)) return false;
+        if (!SpanHelper.TryWrite(colorValue, span, ref written)) return false;
         if (!"\"/></"u8.TryCopyTo(span, ref written)) return false;
         if (!TryWriteBorderPartName(borderPart, span, ref written)) return false;
         if (!">"u8.TryCopyTo(span, ref written)) return false;

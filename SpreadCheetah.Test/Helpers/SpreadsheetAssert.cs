@@ -86,6 +86,6 @@ internal static class SpreadsheetAssert
     private static void AssertColor(Color? color, XLColor closedXmlColor)
     {
         color ??= Color.FromArgb(255, 0, 0, 0);
-        Assert.Equal(XLColor.FromColor(color.Value), closedXmlColor);
+        Assert.Equal(XLColor.FromColor(color.GetValueOrDefault()), closedXmlColor);
     }
 }

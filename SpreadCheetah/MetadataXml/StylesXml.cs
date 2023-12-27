@@ -66,11 +66,11 @@ internal struct StylesXml : IXmlWriter
         foreach (var style in styles)
         {
             var numberFormat = style.Format;
-            if (numberFormat is null) continue;
-            if (numberFormat.Value.CustomFormat is null) continue;
+            if (numberFormat is not { } format) continue;
+            if (format.CustomFormat is null) continue;
 
             dictionary ??= new Dictionary<string, int>(StringComparer.Ordinal);
-            if (dictionary.TryAdd(numberFormat.Value.CustomFormat, numberFormatId))
+            if (dictionary.TryAdd(format.CustomFormat, numberFormatId))
                 ++numberFormatId;
         }
 
@@ -236,11 +236,10 @@ internal struct StylesXml : IXmlWriter
 
     private static int GetNumberFormatId(NumberFormat? numberFormat, IReadOnlyDictionary<string, int>? customNumberFormats)
     {
-        if (numberFormat is null) return 0;
-        if (numberFormat.Value.StandardFormat.HasValue) return (int)numberFormat.Value.StandardFormat.Value;
-        if (numberFormat.Value.CustomFormat is null) return 0;
-        return customNumberFormats?.GetValueOrDefault(numberFormat.Value.CustomFormat)
-            ?? 0;
+        if (numberFormat is not { } format) return 0;
+        if (format.StandardFormat is { } standardFormat) return (int)standardFormat;
+        if (format.CustomFormat is null) return 0;
+        return customNumberFormats?.GetValueOrDefault(format.CustomFormat) ?? 0;
     }
 
     private static bool TryWriteAlignment(ImmutableAlignment alignment, Span<byte> bytes, ref int bytesWritten)

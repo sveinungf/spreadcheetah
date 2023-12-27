@@ -24,7 +24,7 @@ namespace SpreadCheetah;
 public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 {
     private readonly Guid _spreadsheetGuid = Guid.NewGuid();
-    private readonly List<WorksheetMetadata> _worksheets = new();
+    private readonly List<WorksheetMetadata> _worksheets = [];
     private readonly ZipArchive _archive;
     private readonly CompressionLevel _compressionLevel;
     private readonly SpreadsheetBuffer _buffer;
@@ -374,10 +374,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ? style with { Format = _defaultDateTimeFormat }
             : null;
 
-        _styles ??= new Dictionary<ImmutableStyle, int>();
+        _styles ??= [];
         if (_styles.TryGetValue(style, out var id))
         {
-            return dateTimeStyle is not null && _styles.TryGetValue(dateTimeStyle.Value, out var dateTimeId)
+            return dateTimeStyle is { } dtStyle && _styles.TryGetValue(dtStyle, out var dateTimeId)
                 ? new StyleId(id, dateTimeId)
                 : new StyleId(id, id);
         }
@@ -385,11 +385,11 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var newId = _styles.Count;
         _styles[style] = newId;
 
-        if (dateTimeStyle is null)
+        if (dateTimeStyle is not { } dateTimeStyleValue)
             return new StyleId(newId, newId);
 
         var newDateTimeId = newId + 1;
-        _styles[dateTimeStyle.Value] = newDateTimeId;
+        _styles[dateTimeStyleValue] = newDateTimeId;
         return new StyleId(newId, newDateTimeId);
     }
 

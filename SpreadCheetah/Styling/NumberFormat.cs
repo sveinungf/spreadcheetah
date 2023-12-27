@@ -11,7 +11,9 @@ public readonly record struct NumberFormat : IEquatable<NumberFormat>
     private NumberFormat(string? customFormat, StandardNumberFormat? standardFormat)
     {
         CustomFormat = customFormat.WithEnsuredMaxLength(255);
-        StandardFormat = (!standardFormat.HasValue || EnumHelper.IsDefined(standardFormat.Value)) ? standardFormat : throw new ArgumentOutOfRangeException(nameof(standardFormat));
+        StandardFormat = (standardFormat is not { } format || EnumHelper.IsDefined(format))
+            ? standardFormat
+            : throw new ArgumentOutOfRangeException(nameof(standardFormat));
     }
 
     internal string? CustomFormat { get; }
@@ -46,21 +48,16 @@ public readonly record struct NumberFormat : IEquatable<NumberFormat>
     internal static NumberFormat FromLegacyString(string formatString)
     {
         var standardNumberFormat = (StandardNumberFormat?)NumberFormats.GetStandardNumberFormatId(formatString);
-        if (standardNumberFormat.HasValue)
-        {
-            return new NumberFormat(null, standardNumberFormat);
-        }
-        else
-        {
-            return new NumberFormat(formatString, null);
-        }
+        return standardNumberFormat is not null
+            ? new NumberFormat(null, standardNumberFormat)
+            : new NumberFormat(formatString, null);
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
         if (CustomFormat is not null) return CustomFormat;
-        if (StandardFormat.HasValue) return StandardFormat.Value.ToString();
+        if (StandardFormat is { } format) return format.ToString();
         return string.Empty;
     }
 }

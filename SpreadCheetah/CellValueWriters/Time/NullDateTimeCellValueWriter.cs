@@ -11,8 +11,8 @@ internal sealed class NullDateTimeCellValueWriter : NullValueWriterBase
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
         var defaultStyleId = defaultStyling?.DateTimeStyleId;
-        return defaultStyleId is not null
-            ? TryWriteCell(defaultStyleId.Value, buffer)
+        return defaultStyleId is { } styleId
+            ? TryWriteCell(styleId, buffer)
             : TryWriteCell(buffer);
     }
 
@@ -25,8 +25,8 @@ internal sealed class NullDateTimeCellValueWriter : NullValueWriterBase
     public override bool TryWriteCellWithReference(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
     {
         var defaultStyleId = defaultStyling?.DateTimeStyleId;
-        return defaultStyleId is not null
-            ? TryWriteCellWithReference(defaultStyleId.Value, state)
+        return defaultStyleId is { } styleId
+            ? TryWriteCellWithReference(styleId, state)
             : TryWriteCellWithReference(state);
     }
 

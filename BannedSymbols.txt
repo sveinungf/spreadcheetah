@@ -1,1 +1,2 @@
 M:System.IO.Compression.ZipArchive.CreateEntry(System.String);Pass CompressionLevel parameter
+P:System.Nullable`1.Value;GetValueOrDefault() or the coalesce operator do less work

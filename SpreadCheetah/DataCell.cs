@@ -41,7 +41,7 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(int? value)
     {
-        NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
+        NumberValue = value is null ? new CellValue() : new CellValue(value.GetValueOrDefault());
         _writer = value is null ? CellValueWriter.Null : CellValueWriter.Integer;
     }
 
@@ -77,7 +77,7 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(float? value)
     {
-        NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
+        NumberValue = value is null ? new CellValue() : new CellValue(value.GetValueOrDefault());
         _writer = value is null ? CellValueWriter.Null : CellValueWriter.Float;
     }
 
@@ -98,7 +98,7 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(double? value)
     {
-        NumberValue = value is null ? new CellValue() : new CellValue(value.Value);
+        NumberValue = value is null ? new CellValue() : new CellValue(value.GetValueOrDefault());
         _writer = value is null ? CellValueWriter.Null : CellValueWriter.Double;
     }
 
@@ -115,7 +115,7 @@ public readonly record struct DataCell
     /// If <c>value</c> is <c>null</c>, the cell will be empty.
     /// Note that Open XML limits the precision to 15 significant digits for numbers. This could potentially lead to a loss of precision.
     /// </summary>
-    public DataCell(decimal? value) : this(value != null ? decimal.ToDouble(value.Value) : null)
+    public DataCell(decimal? value) : this(value != null ? decimal.ToDouble(value.GetValueOrDefault()) : null)
     {
     }
 
@@ -136,7 +136,7 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(DateTime? value)
     {
-        NumberValue = value is null ? new CellValue() : new CellValue(value.Value.ToOADate());
+        NumberValue = value is null ? new CellValue() : new CellValue(value.GetValueOrDefault().ToOADate());
         _writer = value is null ? CellValueWriter.NullDateTime : CellValueWriter.DateTime;
     }
 
@@ -154,7 +154,7 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(bool? value)
     {
-        _writer = value is null ? CellValueWriter.Null : GetBooleanWriter(value.Value);
+        _writer = value is null ? CellValueWriter.Null : GetBooleanWriter(value.GetValueOrDefault());
     }
 
     private static CellValueWriter GetBooleanWriter(bool value) => value ? CellValueWriter.TrueBoolean : CellValueWriter.FalseBoolean;

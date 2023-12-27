@@ -1,4 +1,3 @@
-using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.CellWriters;
@@ -8,7 +7,7 @@ internal sealed class CellWriter(CellWriterState state, DefaultStyling? defaultS
 {
     protected override bool TryWriteCell(in Cell cell) => cell switch
     {
-        { Formula: not null } => cell.DataCell.Writer.TryWriteCell(cell.Formula.Value.FormulaText, cell.DataCell, cell.StyleId, DefaultStyling, Buffer),
+        { Formula: { } formula } => cell.DataCell.Writer.TryWriteCell(formula.FormulaText, cell.DataCell, cell.StyleId, DefaultStyling, Buffer),
         { StyleId: not null } => cell.DataCell.Writer.TryWriteCell(cell.DataCell, cell.StyleId, Buffer),
         _ => cell.DataCell.Writer.TryWriteCell(cell.DataCell, DefaultStyling, Buffer)
     };

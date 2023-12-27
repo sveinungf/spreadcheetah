@@ -121,7 +121,7 @@ internal struct WorksheetStartXml : IXmlWriter
         for (; _nextIndex < columns.Count; ++_nextIndex)
         {
             var (columnIndex, options) = columns[_nextIndex];
-            if (options.Width is null)
+            if (options.Width is not { } width)
                 continue;
 
             var span = bytes.Slice(bytesWritten);
@@ -138,7 +138,7 @@ internal struct WorksheetStartXml : IXmlWriter
             if (!"\" max=\""u8.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(columnIndex, span, ref written)) return false;
             if (!"\" width=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(options.Width.Value, span, ref written)) return false;
+            if (!SpanHelper.TryWrite(width, span, ref written)) return false;
             if (!"\" customWidth=\"1\" />"u8.TryCopyTo(span, ref written)) return false;
 
             _anyColumnWritten = anyColumnWritten;

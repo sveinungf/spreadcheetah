@@ -22,7 +22,7 @@ internal static class CellRowHelper
 
     public static bool TryWriteRowStart(uint rowIndex, RowOptions options, SpreadsheetBuffer buffer)
     {
-        if (options.Height is null)
+        if (options.Height is not { } height)
             return TryWriteRowStart(rowIndex, buffer);
 
         var bytes = buffer.GetSpan();
@@ -33,7 +33,7 @@ internal static class CellRowHelper
         if (RowStart.TryCopyTo(bytes)
             && Utf8Formatter.TryFormat(rowIndex, bytes.Slice(part1), out var part2)
             && RowHeightStart.TryCopyTo(bytes.Slice(part1 + part2))
-            && Utf8Formatter.TryFormat(options.Height.Value, bytes.Slice(part1 + part2 + part3), out var part4)
+            && Utf8Formatter.TryFormat(height, bytes.Slice(part1 + part2 + part3), out var part4)
             && RowHeightEnd.TryCopyTo(bytes.Slice(part1 + part2 + part3 + part4)))
         {
             buffer.Advance(part1 + part2 + part3 + part4 + part5);
