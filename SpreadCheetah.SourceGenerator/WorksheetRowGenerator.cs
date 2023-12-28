@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SpreadCheetah.SourceGenerator;
+using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Helpers;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -196,51 +197,49 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 continue;
             }
 
-            if (p.Type.SpecialType == SpecialType.System_String
-                || SupportedPrimitiveTypes.Contains(p.Type.SpecialType)
-                || IsSupportedNullableType(compilation, p.Type))
+            if (!IsSupportedType(p.Type, compilation))
             {
-                int? order = null;
+                unsupportedPropertyNames.Add(p);
+                continue;
+            }
 
-                foreach (var attribute in p.GetAttributes())
-                {
-                    if (TryParseColumnOrderAttribute(attribute, columnOrderAttribute, out var attributeValue))
-                    {
-                        order = attributeValue;
-                        break;
-                    }
-                }
-
-                if (order is not { } orderValue)
-                {
-                    implicitOrderPropertyNames.Add(p.Name);
-                }
-                else if (explicitOrderPropertyNames.ContainsKey(orderValue))
-                {
-                    // TODO: Fail
-                }
-                else
-                {
-                    explicitOrderPropertyNames.Add(orderValue, p.Name);
-                }
+            if (!TryGetExplicitColumnOrder(p, columnOrderAttribute, out var columnOrder))
+            {
+                implicitOrderPropertyNames.Add(p.Name);
+            }
+            else if (explicitOrderPropertyNames.ContainsKey(columnOrder))
+            {
+                // TODO: Fail
             }
             else
             {
-                unsupportedPropertyNames.Add(p);
+                explicitOrderPropertyNames.Add(columnOrder, p.Name);
             }
         }
 
-        var implicitOrderNumber = 1;
-        foreach (var propertyName in implicitOrderPropertyNames)
-        {
-            while (explicitOrderPropertyNames.ContainsKey(implicitOrderNumber))
-                ++implicitOrderNumber;
-
-            explicitOrderPropertyNames.Add(implicitOrderNumber, propertyName);
-            ++implicitOrderNumber;
-        }
+        explicitOrderPropertyNames.AddWithImplicitKeys(implicitOrderPropertyNames);
 
         return new TypePropertiesInfo(explicitOrderPropertyNames, unsupportedPropertyNames);
+    }
+
+    private static bool TryGetExplicitColumnOrder(IPropertySymbol property, INamedTypeSymbol columnOrderAttribute, out int columnOrder)
+    {
+        columnOrder = 0;
+
+        foreach (var attribute in property.GetAttributes())
+        {
+            if (TryParseColumnOrderAttribute(attribute, columnOrderAttribute, out columnOrder))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsSupportedType(ITypeSymbol type, Compilation compilation)
+    {
+        return type.SpecialType == SpecialType.System_String
+            || SupportedPrimitiveTypes.Contains(type.SpecialType)
+            || IsSupportedNullableType(compilation, type);
     }
 
     private static bool IsSupportedNullableType(Compilation compilation, ITypeSymbol type)
