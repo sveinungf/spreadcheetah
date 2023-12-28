@@ -189,6 +189,28 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
+    public Task WorksheetRowSourceGenerator_Generate_ClassWithInheritance()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
+
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(ClassWithInheritance))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
+
+    [Fact]
     public Task WorksheetRowSourceGenerator_Generate_RecordClassWithSingleProperty()
     {
         // Arrange
@@ -288,6 +310,28 @@ public class WorksheetRowSourceGeneratorTests
             namespace MyNamespace
             {
                 [WorksheetRow(typeof(ReadOnlyRecordStructWithSingleProperty))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
+
+    [Fact]
+    public Task WorksheetRowSourceGenerator_Generate_RecordClassWithInheritance()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
+
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(RecordClassWithInheritance))]
                 public partial class MyGenRowContext : WorksheetRowContext
                 {
                 }
