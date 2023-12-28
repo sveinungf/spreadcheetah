@@ -24,7 +24,7 @@ internal static class TestHelper
             MetadataReference.CreateFromFile(typeof(TestHelper).Assembly.Location)
         };
 
-        var compilation = CSharpCompilation.Create("Tests", new[] { syntaxTree }, references);
+        var compilation = CSharpCompilation.Create("Tests", [syntaxTree], references);
 
         var generator = new T();
 #pragma warning disable S3220 // Method calls should not resolve ambiguously to overloads with "params"
