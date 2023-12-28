@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SpreadCheetah.SourceGenerator;
 using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Helpers;
+using SpreadCheetah.SourceGenerator.Models;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -33,26 +34,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         BaseList.Types.Count: > 0
     };
 
-    private static INamedTypeSymbol? GetWorksheetRowAttributeType(Compilation compilation)
-    {
-        return compilation.GetTypeByMetadataName("SpreadCheetah.SourceGeneration.WorksheetRowAttribute");
-    }
-
-    private static INamedTypeSymbol? GetGenerationOptionsAttributeType(Compilation compilation)
-    {
-        return compilation.GetTypeByMetadataName("SpreadCheetah.SourceGeneration.WorksheetRowGenerationOptionsAttribute");
-    }
-
-    private static INamedTypeSymbol? GetColumnOrderAttributeType(Compilation compilation)
-    {
-        return compilation.GetTypeByMetadataName("SpreadCheetah.SourceGeneration.ColumnOrderAttribute");
-    }
-
-    private static INamedTypeSymbol? GetContextBaseType(Compilation compilation)
-    {
-        return compilation.GetTypeByMetadataName("SpreadCheetah.SourceGeneration.WorksheetRowContext");
-    }
-
     private static ContextClass? GetSemanticTargetForGeneration(GeneratorSyntaxContext context, CancellationToken token)
     {
         if (context.Node is not ClassDeclarationSyntax classDeclaration)
@@ -65,19 +46,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         if (classSymbol is not { IsStatic: false, BaseType: { } baseType })
             return null;
 
-        var baseContext = GetContextBaseType(context.SemanticModel.Compilation);
-        if (baseContext is null)
+        if (!context.SemanticModel.Compilation.TryGetCompilationTypes(out var compilationTypes))
             return null;
 
-        if (!SymbolEqualityComparer.Default.Equals(baseContext, baseType))
-            return null;
-
-        var worksheetRowAttribute = GetWorksheetRowAttributeType(context.SemanticModel.Compilation);
-        if (worksheetRowAttribute is null)
-            return null;
-
-        var optionsAttribute = GetGenerationOptionsAttributeType(context.SemanticModel.Compilation);
-        if (optionsAttribute is null)
+        if (!SymbolEqualityComparer.Default.Equals(compilationTypes.WorksheetRowContext, baseType))
             return null;
 
         var rowTypes = new Dictionary<INamedTypeSymbol, Location>(SymbolEqualityComparer.Default);
@@ -85,19 +57,19 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var attribute in classSymbol.GetAttributes())
         {
-            if (TryParseWorksheetRowAttribute(attribute, worksheetRowAttribute, token, out var typeSymbol, out var location)
+            if (TryParseWorksheetRowAttribute(attribute, compilationTypes.WorksheetRowAttribute, token, out var typeSymbol, out var location)
                 && !rowTypes.ContainsKey(typeSymbol))
             {
                 rowTypes[typeSymbol] = location;
                 continue;
             }
 
-            if (TryParseOptionsAttribute(attribute, optionsAttribute, out var options))
+            if (TryParseOptionsAttribute(attribute, compilationTypes.WorksheetRowGenerationOptionsAttribute, out var options))
                 generatorOptions = options;
         }
 
         return rowTypes.Count > 0
-            ? new ContextClass(classSymbol, rowTypes, generatorOptions)
+            ? new ContextClass(classSymbol, rowTypes, compilationTypes, generatorOptions)
             : null;
     }
 
@@ -176,11 +148,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return true;
     }
 
-    private static TypePropertiesInfo AnalyzeTypeProperties(Compilation compilation, ITypeSymbol classType)
+    private static TypePropertiesInfo AnalyzeTypeProperties(Compilation compilation, CompilationTypes compilationTypes, ITypeSymbol classType)
     {
-        // TODO: Is this the correct place to do this?
-        var columnOrderAttribute = GetColumnOrderAttributeType(compilation)!;
-
         var implicitOrderPropertyNames = new List<string>();
         var explicitOrderPropertyNames = new SortedDictionary<int, string>();
         var unsupportedPropertyNames = new List<IPropertySymbol>();
@@ -203,7 +172,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 continue;
             }
 
-            if (!TryGetExplicitColumnOrder(p, columnOrderAttribute, out var columnOrder))
+            if (!TryGetExplicitColumnOrder(p, compilationTypes.ColumnOrderAttribute, out var columnOrder))
             {
                 implicitOrderPropertyNames.Add(p.Name);
             }
@@ -343,7 +312,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             sb.AppendLine(2, $"private WorksheetRowTypeInfo<{rowTypeFullName}>? _{rowTypeName};");
             sb.AppendLine(2, $"public WorksheetRowTypeInfo<{rowTypeFullName}> {rowTypeName} => _{rowTypeName} ??= WorksheetRowMetadataServices.CreateObjectInfo<{rowTypeFullName}>(AddAsRowAsync, AddRangeAsRowsAsync);");
 
-            var info = AnalyzeTypeProperties(compilation, rowType);
+            var info = AnalyzeTypeProperties(compilation, contextClass.CompilationTypes, rowType);
             ReportDiagnostics(info, rowType, location, contextClass.Options, context);
 
             var propertyNames = info.PropertyNames.Values;
