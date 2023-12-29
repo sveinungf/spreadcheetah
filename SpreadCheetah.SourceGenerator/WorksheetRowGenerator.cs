@@ -148,7 +148,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return true;
     }
 
-    private static TypePropertiesInfo AnalyzeTypeProperties(Compilation compilation, CompilationTypes compilationTypes, ITypeSymbol classType)
+    private static TypePropertiesInfo AnalyzeTypeProperties(Compilation compilation, CompilationTypes compilationTypes,
+        ITypeSymbol classType, SourceProductionContext context)
     {
         var implicitOrderPropertyNames = new List<string>();
         var explicitOrderPropertyNames = new SortedDictionary<int, string>();
@@ -172,18 +173,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 continue;
             }
 
-            if (!TryGetExplicitColumnOrder(p, compilationTypes.ColumnOrderAttribute, out var columnOrder))
-            {
+            if (!TryGetExplicitColumnOrder(p, compilationTypes.ColumnOrderAttribute, context.CancellationToken, out var columnOrder, out var location))
                 implicitOrderPropertyNames.Add(p.Name);
-            }
-            else if (explicitOrderPropertyNames.ContainsKey(columnOrder))
-            {
-                // TODO: Fail
-            }
-            else
-            {
+            else if (!explicitOrderPropertyNames.ContainsKey(columnOrder))
                 explicitOrderPropertyNames.Add(columnOrder, p.Name);
-            }
+            else
+                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.DuplicateColumnOrder, location, classType.Name));
         }
 
         explicitOrderPropertyNames.AddWithImplicitKeys(implicitOrderPropertyNames);
@@ -191,14 +186,19 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return new TypePropertiesInfo(explicitOrderPropertyNames, unsupportedPropertyNames);
     }
 
-    private static bool TryGetExplicitColumnOrder(IPropertySymbol property, INamedTypeSymbol columnOrderAttribute, out int columnOrder)
+    private static bool TryGetExplicitColumnOrder(IPropertySymbol property, INamedTypeSymbol columnOrderAttribute,
+        CancellationToken token, out int columnOrder, out Location? location)
     {
         columnOrder = 0;
+        location = null;
 
         foreach (var attribute in property.GetAttributes())
         {
-            if (TryParseColumnOrderAttribute(attribute, columnOrderAttribute, out columnOrder))
-                return true;
+            if (!TryParseColumnOrderAttribute(attribute, columnOrderAttribute, out columnOrder))
+                continue;
+
+            location = attribute.ApplicationSyntaxReference?.GetSyntax(token).GetLocation();
+            return true;
         }
 
         return false;
@@ -312,7 +312,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             sb.AppendLine(2, $"private WorksheetRowTypeInfo<{rowTypeFullName}>? _{rowTypeName};");
             sb.AppendLine(2, $"public WorksheetRowTypeInfo<{rowTypeFullName}> {rowTypeName} => _{rowTypeName} ??= WorksheetRowMetadataServices.CreateObjectInfo<{rowTypeFullName}>(AddAsRowAsync, AddRangeAsRowsAsync);");
 
-            var info = AnalyzeTypeProperties(compilation, contextClass.CompilationTypes, rowType);
+            var info = AnalyzeTypeProperties(compilation, contextClass.CompilationTypes, rowType, context);
             ReportDiagnostics(info, rowType, location, contextClass.Options, context);
 
             var propertyNames = info.PropertyNames.Values;

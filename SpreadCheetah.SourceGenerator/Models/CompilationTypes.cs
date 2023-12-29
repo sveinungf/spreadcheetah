@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis;
 
 namespace SpreadCheetah.SourceGenerator.Models;
 
-internal record CompilationTypes(
+internal sealed record CompilationTypes(
     INamedTypeSymbol WorksheetRowAttribute,
     INamedTypeSymbol WorksheetRowGenerationOptionsAttribute,
     INamedTypeSymbol ColumnOrderAttribute,
