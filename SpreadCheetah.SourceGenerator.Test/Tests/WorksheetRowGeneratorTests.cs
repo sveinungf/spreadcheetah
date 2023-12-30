@@ -1,5 +1,6 @@
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models;
 using SpreadCheetah.SourceGenerator.Test.Models.Contexts;
 using Xunit;
@@ -46,14 +47,11 @@ public class WorksheetRowGeneratorTests
         }
 
         // Assert
-        stream.Position = 0;
-        using var actual = SpreadsheetDocument.Open(stream, false);
-        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
-        var cells = sheetPart.Worksheet.Descendants<OpenXmlCell>().ToList();
-        Assert.Equal(firstName, cells[0].InnerText);
-        Assert.Equal(lastName, cells[1].InnerText);
-        Assert.Equal(age.ToString(), cells[2].InnerText);
-        Assert.Equal(3, cells.Count);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(firstName, sheet["A", 1].StringValue);
+        Assert.Equal(lastName, sheet["B", 1].StringValue);
+        Assert.Equal(age, sheet["C", 1].IntValue);
+        Assert.Equal(3, sheet.CellCount);
     }
 
     [Theory]
