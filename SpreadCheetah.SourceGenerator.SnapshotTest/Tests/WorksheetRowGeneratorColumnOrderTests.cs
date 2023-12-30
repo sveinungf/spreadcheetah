@@ -13,14 +13,11 @@ public class WorksheetRowGeneratorColumnOrderTests
         const string source = """
             using SpreadCheetah.SourceGeneration;
             using SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering;
-            using System;
 
             namespace MyNamespace;
             
             [WorksheetRow(typeof(ClassWithColumnOrderForAllProperties))]
-            public partial class MyGenRowContext : WorksheetRowContext
-            {
-            }
+            public partial class MyGenRowContext : WorksheetRowContext;
             """;
 
         // Act & Assert
@@ -34,14 +31,11 @@ public class WorksheetRowGeneratorColumnOrderTests
         const string source = """
             using SpreadCheetah.SourceGeneration;
             using SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering;
-            using System;
 
             namespace MyNamespace;
             
             [WorksheetRow(typeof(ClassWithColumnOrderForSomeProperties))]
-            public partial class MyGenRowContext : WorksheetRowContext
-            {
-            }
+            public partial class MyGenRowContext : WorksheetRowContext;
             """;
 
         // Act & Assert
@@ -54,7 +48,6 @@ public class WorksheetRowGeneratorColumnOrderTests
         // Arrange
         const string source = """
             using SpreadCheetah.SourceGeneration;
-            using System;
 
             namespace MyNamespace;
 
@@ -67,9 +60,7 @@ public class WorksheetRowGeneratorColumnOrderTests
             }
             
             [WorksheetRow(typeof(ClassWithDuplicateColumnOrdering))]
-            public partial class MyGenRowContext : WorksheetRowContext
-            {
-            }
+            public partial class MyGenRowContext : WorksheetRowContext;
             """;
 
         // Act & Assert
