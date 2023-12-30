@@ -130,9 +130,25 @@ Intel Core i5-8600K CPU 3.60GHz (Coffee Lake), 1 CPU, 6 logical and 6 physical c
 InvocationCount=1  UnrollFactor=1  
 ```
 
-The code executed in the benchmark creates a worksheet of 20 000 rows and 10 columns filled with string values. The same use case has been implemented in other spreadsheet libraries for comparison.
-Some of these libraries have multiple ways of achieving the same result, but to make this a fair comparison the idea is to use the most efficient approach for each library. The code is available [in the Benchmark project](https://github.com/sveinungf/spreadcheetah/blob/main/SpreadCheetah.Benchmark/Benchmarks/StringCells.cs).
+These libraries have been used in the comparison benchmarks:
+| Library                                                | Version |
+|--------------------------------------------------------|--------:|
+| SpreadCheetah                                          |  1.12.0 |
+| [Open XML SDK](https://github.com/dotnet/Open-XML-SDK) |  2.20.0 |
+| [ClosedXML](https://github.com/ClosedXML/ClosedXML)    | 0.102.1 |
+| [EPPlusFree](https://github.com/rimland/EPPlus)        | 4.5.3.8 |
 
+> Disclaimer: The libraries have different feature sets compared to each other.
+> SpreadCheetah can only create spreadsheets, while the other libraries used in this comparison
+> can also open spreadsheets. SpreadCheetah is also a newer library and has been designed from
+> the ground up to utilize many of the newer performance related features in .NET. The other
+> libraries have longer history and need to take backwards compatibility into account.
+> Keep this in mind when evaluating the results.
+
+The code executed in the benchmark creates a worksheet of 20 000 rows and 10 columns filled
+with string values. Some of these libraries have multiple ways of achieving the same result,
+but to make this a fair comparison the idea is to use the most efficient approach for each library.
+The code is available [in the Benchmark project](https://github.com/sveinungf/spreadcheetah/blob/main/SpreadCheetah.Benchmark/Benchmarks/StringCells.cs).
 
 ### .NET Framework 4.8
 
