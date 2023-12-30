@@ -119,49 +119,65 @@ The source generator can generate rows from classes, records, and structs. It ca
 The benchmark results here have been collected using [BenchmarkDotNet](https://github.com/dotnet/benchmarkdotnet) with the following system configuration:
 
 ``` ini
-BenchmarkDotNet=v0.13.2, OS=Windows 10 (10.0.19043.2251/21H1/May2021Update)
+BenchmarkDotNet v0.13.11, Windows 10 (10.0.19045.3803/22H2/2022Update)
 Intel Core i5-8600K CPU 3.60GHz (Coffee Lake), 1 CPU, 6 logical and 6 physical cores
-.NET SDK=7.0.100
-  [Host]             : .NET 7.0.0 (7.0.22.51805), X64 RyuJIT AVX2
-  .NET 6.0           : .NET 6.0.11 (6.0.1122.52304), X64 RyuJIT AVX2
-  .NET 7.0           : .NET 7.0.0 (7.0.22.51805), X64 RyuJIT AVX2
-  .NET Framework 4.8 : .NET Framework 4.8 (4.8.4515.0), X64 RyuJIT VectorSize=256
+.NET SDK 8.0.100
+  [Host]             : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
+  .NET 6.0           : .NET 6.0.25 (6.0.2523.51912), X64 RyuJIT AVX2
+  .NET 8.0           : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
+  .NET Framework 4.8 : .NET Framework 4.8.1 (4.8.9181.0), X64 RyuJIT VectorSize=256
 
-InvocationCount=1  UnrollFactor=1
+InvocationCount=1  UnrollFactor=1  
 ```
 
-The code executed in the benchmark creates a worksheet of 20 000 rows and 10 columns filled with string values. The same use case has been implemented in other spreadsheet libraries for comparison.
-Some of these libraries have multiple ways of achieving the same result, but to make this a fair comparison the idea is to use the most efficient approach for each library. The code is available [in the Benchmark project](https://github.com/sveinungf/spreadcheetah/blob/main/SpreadCheetah.Benchmark/Benchmarks/StringCells.cs).
+These libraries have been used in the comparison benchmarks:
+| Library                                                | Version |
+|--------------------------------------------------------|--------:|
+| SpreadCheetah                                          |  1.12.0 |
+| [Open XML SDK](https://github.com/dotnet/Open-XML-SDK) |  2.20.0 |
+| [ClosedXML](https://github.com/ClosedXML/ClosedXML)    | 0.102.1 |
+| [EPPlusFree](https://github.com/rimland/EPPlus)        | 4.5.3.8 |
 
+> Disclaimer: The libraries have different feature sets compared to each other.
+> SpreadCheetah can only create spreadsheets, while the other libraries used in this comparison
+> can also open spreadsheets. SpreadCheetah is also a newer library and has been designed from
+> the ground up to utilize many of the newer performance related features in .NET. The other
+> libraries have longer history and need to take backwards compatibility into account.
+> Keep this in mind when evaluating the results.
+
+The code executed in the benchmark creates a worksheet of 20 000 rows and 10 columns filled
+with string values. Some of these libraries have multiple ways of achieving the same result,
+but to make this a fair comparison the idea is to use the most efficient approach for each library.
+The code is available [in the Benchmark project](https://github.com/sveinungf/spreadcheetah/blob/main/SpreadCheetah.Benchmark/Benchmarks/StringCells.cs).
 
 ### .NET Framework 4.8
 
-|                    Library |         Mean |        Error |       StdDev |     Allocated |
-|----------------------------|-------------:|-------------:|-------------:|--------------:|
-|          **SpreadCheetah** | **68.67 ms** | **0.283 ms** | **0.251 ms** | **152.23 KB** |
-|    Open XML (SAX approach) |    438.22 ms |     1.161 ms |     1.086 ms |  43 317.24 KB |
-|                  EPPlus v4 |    609.98 ms |     6.626 ms |     5.874 ms | 286 142.58 KB |
-|    Open XML (DOM approach) |  1,098.52 ms |     9.419 ms |     8.811 ms | 161 123.16 KB |
-|                  ClosedXML |  1,618.57 ms |     7.088 ms |     6.630 ms | 565 074.91 KB |
+|                    Library |         Mean |     Allocated |
+|----------------------------|-------------:|--------------:|
+|          **SpreadCheetah** | **65.54 ms** | **152.23 KB** |
+|    Open XML (SAX approach) |    402.34 ms |  43 317.24 KB |
+|                 EPPlusFree |    621.00 ms | 286 145.93 KB |
+|    Open XML (DOM approach) |  1,051.95 ms | 161 059.22 KB |
+|                  ClosedXML |  1,310.59 ms | 509 205.80 KB |
 
 
 ### .NET 6
 
-|                    Library |         Mean |        Error |       StdDev |     Allocated |
-|----------------------------|-------------:|-------------:|-------------:|--------------:|
-|          **SpreadCheetah** | **28.53 ms** | **0.079 ms** | **0.070 ms** |   **6.48 KB** |
-|    Open XML (SAX approach) |    250.65 ms |     0.541 ms |     0.480 ms |  66 049.91 KB |
-|                  EPPlus v4 |    405.90 ms |     1.782 ms |     1.579 ms | 195 790.25 KB |
-|    Open XML (DOM approach) |    775.74 ms |    14.404 ms |    14.147 ms | 182 926.06 KB |
-|                  ClosedXML |  1,262.92 ms |    19.825 ms |    18.544 ms | 524 913.50 KB |
+|                    Library |         Mean |     Allocated |
+|----------------------------|-------------:|--------------:|
+|          **SpreadCheetah** | **25.58 ms** |   **6.63 KB** |
+|    Open XML (SAX approach) |    237.28 ms |  66 055.02 KB |
+|                 EPPlusFree |    408.78 ms | 195 791.84 KB |
+|    Open XML (DOM approach) |    802.89 ms | 182 926.09 KB |
+|                  ClosedXML |    891.17 ms | 529 852.29 KB |
 
 
-### .NET 7
+### .NET 8
 
-|                    Library |         Mean |        Error |       StdDev |     Allocated |
-|----------------------------|-------------:|-------------:|-------------:|--------------:|
-|          **SpreadCheetah** | **25.14 ms** | **0.148 ms** | **0.138 ms** |   **6.48 KB** |
-|    Open XML (SAX approach) |    239.72 ms |     0.231 ms |     0.216 ms |  66 046.48 KB |
-|                  EPPlus v4 |    406.69 ms |     1.852 ms |     1.642 ms | 195 792.41 KB |
-|    Open XML (DOM approach) |    831.68 ms |    10.446 ms |     9.771 ms | 182 926.04 KB |
-|                  ClosedXML |  1,171.07 ms |     8.106 ms |     7.186 ms | 524 846.85 KB |
+|                    Library |         Mean |     Allocated |
+|----------------------------|-------------:|--------------:|
+|          **SpreadCheetah** | **23.07 ms** |   **6.44 KB** |
+|    Open XML (SAX approach) |    184.94 ms |  66 041.63 KB |
+|                  EPPlus v4 |    370.07 ms | 195 610.91 KB |
+|    Open XML (DOM approach) |    700.73 ms | 182 916.73 KB |
+|                  ClosedXML |    754.83 ms | 529 203.20 KB |
