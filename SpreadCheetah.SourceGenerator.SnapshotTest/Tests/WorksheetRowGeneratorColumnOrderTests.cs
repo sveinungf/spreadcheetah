@@ -28,6 +28,27 @@ public class WorksheetRowGeneratorColumnOrderTests
     }
 
     [Fact]
+    public Task WorksheetRowGenerator_Generate_ClassWithColumnOrderForSomeProperties()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering;
+            using System;
+
+            namespace MyNamespace;
+            
+            [WorksheetRow(typeof(ClassWithColumnOrderForSomeProperties))]
+            public partial class MyGenRowContext : WorksheetRowContext
+            {
+            }
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
+
+    [Fact]
     public Task WorksheetRowGenerator_Generate_ClassWithDuplicateColumnOrdering()
     {
         // Arrange
