@@ -14,12 +14,7 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests;
 public class WorksheetRowGeneratorTests
 {
     [Theory]
-    [InlineData(ObjectType.Class)]
-    [InlineData(ObjectType.RecordClass)]
-    [InlineData(ObjectType.Struct)]
-    [InlineData(ObjectType.RecordStruct)]
-    [InlineData(ObjectType.ReadOnlyStruct)]
-    [InlineData(ObjectType.ReadOnlyRecordStruct)]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddAsRow_ObjectWithMultipleProperties(ObjectType type)
     {
         // Arrange
@@ -58,12 +53,7 @@ public class WorksheetRowGeneratorTests
     }
 
     [Theory]
-    [InlineData(ObjectType.Class)]
-    [InlineData(ObjectType.RecordClass)]
-    [InlineData(ObjectType.Struct)]
-    [InlineData(ObjectType.RecordStruct)]
-    [InlineData(ObjectType.ReadOnlyStruct)]
-    [InlineData(ObjectType.ReadOnlyRecordStruct)]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddAsRow_ObjectWithNoProperties(ObjectType type)
     {
         // Arrange
@@ -238,12 +228,7 @@ public class WorksheetRowGeneratorTests
     }
 
     [Theory]
-    [InlineData(ObjectType.Class)]
-    [InlineData(ObjectType.RecordClass)]
-    [InlineData(ObjectType.Struct)]
-    [InlineData(ObjectType.RecordStruct)]
-    [InlineData(ObjectType.ReadOnlyStruct)]
-    [InlineData(ObjectType.ReadOnlyRecordStruct)]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddRangeAsRows_ObjectWithMultipleProperties(ObjectType type)
     {
         // Arrange
@@ -305,12 +290,7 @@ public class WorksheetRowGeneratorTests
     }
 
     [Theory]
-    [InlineData(ObjectType.Class)]
-    [InlineData(ObjectType.RecordClass)]
-    [InlineData(ObjectType.Struct)]
-    [InlineData(ObjectType.RecordStruct)]
-    [InlineData(ObjectType.ReadOnlyStruct)]
-    [InlineData(ObjectType.ReadOnlyRecordStruct)]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddRangeAsRows_ObjectWithNoProperties(ObjectType type)
     {
         // Arrange
@@ -347,12 +327,7 @@ public class WorksheetRowGeneratorTests
     }
 
     [Theory]
-    [InlineData(ObjectType.Class)]
-    [InlineData(ObjectType.RecordClass)]
-    [InlineData(ObjectType.Struct)]
-    [InlineData(ObjectType.RecordStruct)]
-    [InlineData(ObjectType.ReadOnlyStruct)]
-    [InlineData(ObjectType.ReadOnlyRecordStruct)]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddRangeAsRows_EmptyEnumerable(ObjectType type)
     {
         // Arrange
