@@ -2,7 +2,10 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models;
+using SpreadCheetah.SourceGenerator.Test.Models.Accessibility;
 using SpreadCheetah.SourceGenerator.Test.Models.Contexts;
+using SpreadCheetah.SourceGenerator.Test.Models.MultipleProperties;
+using SpreadCheetah.SourceGenerator.Test.Models.NoProperties;
 using Xunit;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
