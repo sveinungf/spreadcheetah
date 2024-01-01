@@ -28,19 +28,38 @@ internal sealed class OpenXmlAssertSheet(SpreadsheetDocument document, Worksheet
         get
         {
             if (!SpreadsheetUtility.TryParseColumnName(columnName.AsSpan(), out var columnNumber))
-                throw new ArgumentException($"{columnName} is not a valid column name");
+                throw new InvalidOperationException($"{columnName} is not a valid column name");
 
             if (Cells.ElementAtOrDefault(rowNumber - 1) is not { } row)
-                throw new ArgumentException($"Could not find row number {rowNumber}");
+                throw new InvalidOperationException($"Could not find row number {rowNumber}");
 
             if (row.ElementAtOrDefault(columnNumber - 1) is not { } cell)
-                throw new ArgumentException($"Could not find cell with reference {columnName}{rowNumber}");
+                throw new InvalidOperationException($"Could not find cell with reference {columnName}{rowNumber}");
 
             return new OpenXmlAssertCell(cell);
         }
     }
 
+    public IEnumerable<ISpreadsheetAssertCell> this[string columnName]
+    {
+        get
+        {
+            if (!SpreadsheetUtility.TryParseColumnName(columnName.AsSpan(), out var columnNumber))
+                throw new InvalidOperationException($"{columnName} is not a valid column name");
+
+            foreach (var (row, index) in Cells.Select((x, i) => (x, i)))
+            {
+                var rowNumber = index + 1;
+                if (row.ElementAtOrDefault(columnNumber - 1) is not { } cell)
+                    throw new InvalidOperationException($"Could not find cell with reference {columnName}{rowNumber}");
+
+                yield return new OpenXmlAssertCell(cell);
+            }
+        }
+    }
+
     public int CellCount => Cells.Sum(x => x.Count);
+    public int RowCount => Cells.Count;
 
     public void Dispose()
     {
