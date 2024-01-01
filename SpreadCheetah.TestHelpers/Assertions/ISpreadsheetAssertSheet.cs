@@ -1,6 +1,6 @@
-namespace SpreadCheetah.SourceGenerator.Test.Helpers;
+namespace SpreadCheetah.TestHelpers.Assertions;
 
-internal interface ISpreadsheetAssertSheet : IDisposable
+public interface ISpreadsheetAssertSheet : IDisposable
 {
     ISpreadsheetAssertCell this[string columnName, int rowNumber] { get; }
     IEnumerable<ISpreadsheetAssertCell> this[string columnName] { get; }

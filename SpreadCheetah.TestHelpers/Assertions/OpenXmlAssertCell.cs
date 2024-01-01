@@ -1,7 +1,7 @@
 using System.Globalization;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
-namespace SpreadCheetah.SourceGenerator.Test.Helpers.OpenXml;
+namespace SpreadCheetah.TestHelpers.Assertions;
 
 internal sealed class OpenXmlAssertCell(OpenXmlCell cell) : ISpreadsheetAssertCell
 {

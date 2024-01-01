@@ -1,6 +1,6 @@
-namespace SpreadCheetah.SourceGenerator.Test.Helpers;
+namespace SpreadCheetah.TestHelpers.Assertions;
 
-internal interface ISpreadsheetAssertCell
+public interface ISpreadsheetAssertCell
 {
     int? IntValue { get; }
     decimal? DecimalValue { get; }

@@ -1,9 +1,8 @@
 using DocumentFormat.OpenXml.Packaging;
-using SpreadCheetah.SourceGenerator.Test.Helpers.OpenXml;
 
-namespace SpreadCheetah.SourceGenerator.Test.Helpers;
+namespace SpreadCheetah.TestHelpers.Assertions;
 
-internal static class SpreadsheetAssert
+public static class SpreadsheetAssert
 {
     public static ISpreadsheetAssertSheet SingleSheet(Stream stream)
     {

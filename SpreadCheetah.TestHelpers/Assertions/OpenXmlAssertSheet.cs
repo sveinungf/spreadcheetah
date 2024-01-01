@@ -2,7 +2,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
-namespace SpreadCheetah.SourceGenerator.Test.Helpers.OpenXml;
+namespace SpreadCheetah.TestHelpers.Assertions;
 
 internal sealed class OpenXmlAssertSheet(SpreadsheetDocument document, Worksheet worksheet)
     : ISpreadsheetAssertSheet
