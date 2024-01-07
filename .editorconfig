@@ -205,7 +205,7 @@ dotnet_diagnostic.MA0076.severity = warning
 [{AutoFilterOptions.cs,ColumnOptions.cs,RowOptions.cs,SpreadCheetahOptions.cs,WorksheetOptions.cs,WorksheetRowGenerator.cs}]
 dotnet_diagnostic.MA0053.severity = none
 
-[{*Test,*.Benchmark}/**.cs]
+[{*Test,*TestHelpers,*.Benchmark}/**.cs]
 # MA0004: Use .ConfigureAwait(false)
 dotnet_diagnostic.MA0004.severity = none
 # MA0011: IFormatProvider is missing
