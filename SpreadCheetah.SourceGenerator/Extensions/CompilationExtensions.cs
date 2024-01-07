@@ -6,6 +6,7 @@ namespace SpreadCheetah.SourceGenerator.Extensions;
 
 internal static class CompilationExtensions
 {
+    [ExcludeFromCodeCoverage]
     public static bool TryGetCompilationTypes(
         this Compilation compilation,
         [NotNullWhen(true)] out CompilationTypes? result)
