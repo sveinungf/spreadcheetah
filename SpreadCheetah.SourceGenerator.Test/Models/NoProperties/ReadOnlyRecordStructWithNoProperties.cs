@@ -1,3 +1,3 @@
-namespace SpreadCheetah.SourceGenerator.Test.Models;
+namespace SpreadCheetah.SourceGenerator.Test.Models.NoProperties;
 
 public readonly record struct ReadOnlyRecordStructWithNoProperties;

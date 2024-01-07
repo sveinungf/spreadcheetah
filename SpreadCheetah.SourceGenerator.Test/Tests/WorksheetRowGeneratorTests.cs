@@ -1,7 +1,13 @@
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models;
+using SpreadCheetah.SourceGenerator.Test.Models.Accessibility;
+using SpreadCheetah.SourceGenerator.Test.Models.ColumnOrdering;
 using SpreadCheetah.SourceGenerator.Test.Models.Contexts;
+using SpreadCheetah.SourceGenerator.Test.Models.MultipleProperties;
+using SpreadCheetah.SourceGenerator.Test.Models.NoProperties;
+using SpreadCheetah.TestHelpers.Assertions;
 using Xunit;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
@@ -10,12 +16,7 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests;
 public class WorksheetRowGeneratorTests
 {
     [Theory]
-    [InlineData(ObjectType.Class)]
-    [InlineData(ObjectType.RecordClass)]
-    [InlineData(ObjectType.Struct)]
-    [InlineData(ObjectType.RecordStruct)]
-    [InlineData(ObjectType.ReadOnlyStruct)]
-    [InlineData(ObjectType.ReadOnlyRecordStruct)]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddAsRow_ObjectWithMultipleProperties(ObjectType type)
     {
         // Arrange
@@ -46,23 +47,15 @@ public class WorksheetRowGeneratorTests
         }
 
         // Assert
-        stream.Position = 0;
-        using var actual = SpreadsheetDocument.Open(stream, false);
-        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
-        var cells = sheetPart.Worksheet.Descendants<OpenXmlCell>().ToList();
-        Assert.Equal(firstName, cells[0].InnerText);
-        Assert.Equal(lastName, cells[1].InnerText);
-        Assert.Equal(age.ToString(), cells[2].InnerText);
-        Assert.Equal(3, cells.Count);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(firstName, sheet["A", 1].StringValue);
+        Assert.Equal(lastName, sheet["B", 1].StringValue);
+        Assert.Equal(age, sheet["C", 1].IntValue);
+        Assert.Equal(3, sheet.CellCount);
     }
 
     [Theory]
-    [InlineData(ObjectType.Class)]
-    [InlineData(ObjectType.RecordClass)]
-    [InlineData(ObjectType.Struct)]
-    [InlineData(ObjectType.RecordStruct)]
-    [InlineData(ObjectType.ReadOnlyStruct)]
-    [InlineData(ObjectType.ReadOnlyRecordStruct)]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddAsRow_ObjectWithNoProperties(ObjectType type)
     {
         // Arrange
@@ -237,12 +230,7 @@ public class WorksheetRowGeneratorTests
     }
 
     [Theory]
-    [InlineData(ObjectType.Class)]
-    [InlineData(ObjectType.RecordClass)]
-    [InlineData(ObjectType.Struct)]
-    [InlineData(ObjectType.RecordStruct)]
-    [InlineData(ObjectType.ReadOnlyStruct)]
-    [InlineData(ObjectType.ReadOnlyRecordStruct)]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddRangeAsRows_ObjectWithMultipleProperties(ObjectType type)
     {
         // Arrange
@@ -304,12 +292,49 @@ public class WorksheetRowGeneratorTests
     }
 
     [Theory]
-    [InlineData(ObjectType.Class)]
-    [InlineData(ObjectType.RecordClass)]
-    [InlineData(ObjectType.Struct)]
-    [InlineData(ObjectType.RecordStruct)]
-    [InlineData(ObjectType.ReadOnlyStruct)]
-    [InlineData(ObjectType.ReadOnlyRecordStruct)]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRangeAsRows_ObjectWithColumnOrdering(ObjectType type)
+    {
+        // Arrange
+        var values = new (string FirstName, string LastName, decimal Gpa, int Age)[]
+        {
+            ("Ola", "Nordmann", 3.2m, 30),
+            ("Ingrid", "Hansen", 3.4m, 28),
+            ("Oskar", "Berg", 2.8m, 29)
+        };
+
+        var ctx = ColumnOrderingContext.Default;
+
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream);
+        await s.StartWorksheetAsync("Sheet");
+
+        // Act
+        var task = type switch
+        {
+            ObjectType.Class => s.AddRangeAsRowsAsync(values.Select(x => new ClassWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.ClassWithColumnOrdering),
+            ObjectType.RecordClass => s.AddRangeAsRowsAsync(values.Select(x => new RecordClassWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.RecordClassWithColumnOrdering),
+            ObjectType.Struct => s.AddRangeAsRowsAsync(values.Select(x => new StructWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.StructWithColumnOrdering),
+            ObjectType.RecordStruct => s.AddRangeAsRowsAsync(values.Select(x => new RecordStructWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.RecordStructWithColumnOrdering),
+            ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync(values.Select(x => new ReadOnlyStructWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.ReadOnlyStructWithColumnOrdering),
+            ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync(values.Select(x => new ReadOnlyRecordStructWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.ReadOnlyRecordStructWithColumnOrdering),
+            _ => throw new NotImplementedException()
+        };
+
+        await task;
+        await s.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(values.Select(x => x.LastName), sheet["A"].Select(x => x.StringValue));
+        Assert.Equal(values.Select(x => x.FirstName), sheet["B"].Select(x => x.StringValue));
+        Assert.Equal(values.Select(x => x.Age), sheet["C"].Select(x => x.IntValue ?? -1));
+        Assert.Equal(values.Select(x => x.Gpa), sheet["D"].Select(x => x.DecimalValue ?? -1));
+        Assert.Equal(3, sheet.RowCount);
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddRangeAsRows_ObjectWithNoProperties(ObjectType type)
     {
         // Arrange
@@ -346,12 +371,7 @@ public class WorksheetRowGeneratorTests
     }
 
     [Theory]
-    [InlineData(ObjectType.Class)]
-    [InlineData(ObjectType.RecordClass)]
-    [InlineData(ObjectType.Struct)]
-    [InlineData(ObjectType.RecordStruct)]
-    [InlineData(ObjectType.ReadOnlyStruct)]
-    [InlineData(ObjectType.ReadOnlyRecordStruct)]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddRangeAsRows_EmptyEnumerable(ObjectType type)
     {
         // Arrange
