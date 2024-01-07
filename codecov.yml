@@ -1,2 +1,3 @@
 ignore:
   - "SpreadCheetah.Benchmark"
+  - "SpreadCheetah.TestHelpers"
