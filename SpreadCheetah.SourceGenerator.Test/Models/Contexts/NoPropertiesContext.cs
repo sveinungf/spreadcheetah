@@ -1,4 +1,5 @@
 using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.Test.Models.NoProperties;
 
 namespace SpreadCheetah.SourceGenerator.Test.Models.Contexts;
 

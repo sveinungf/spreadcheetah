@@ -4,10 +4,10 @@ using SpreadCheetah.SourceGenerators;
 namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 
 [UsesVerify]
-public class WorksheetRowSourceGeneratorTests
+public class WorksheetRowGeneratorTests
 {
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_ClassWithSingleProperty()
+    public Task WorksheetRowGenerator_Generate_ClassWithSingleProperty()
     {
         // Arrange
         const string source = """
@@ -29,7 +29,7 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_InternalClassWithSingleProperty()
+    public Task WorksheetRowGenerator_Generate_InternalClassWithSingleProperty()
     {
         // Arrange
         const string source = """
@@ -55,7 +55,7 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_ClassWithAllSupportedTypes()
+    public Task WorksheetRowGenerator_Generate_ClassWithAllSupportedTypes()
     {
         // Arrange
         const string source = """
@@ -77,7 +77,7 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_ClassWithMultipleProperties()
+    public Task WorksheetRowGenerator_Generate_ClassWithMultipleProperties()
     {
         // Arrange
         const string source = """
@@ -99,7 +99,7 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_ClassWithNoProperties()
+    public Task WorksheetRowGenerator_Generate_ClassWithNoProperties()
     {
         // Arrange
         const string source = """
@@ -121,7 +121,7 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_ClassWithNoPropertiesAndWarningsSuppressed()
+    public Task WorksheetRowGenerator_Generate_ClassWithNoPropertiesAndWarningsSuppressed()
     {
         // Arrange
         const string source = """
@@ -144,7 +144,7 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_ClassWithUnsupportedProperty()
+    public Task WorksheetRowGenerator_Generate_ClassWithUnsupportedProperty()
     {
         // Arrange
         const string source = """
@@ -166,7 +166,7 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_ClassWithUnsupportedPropertyAndWarningsSuppressed()
+    public Task WorksheetRowGenerator_Generate_ClassWithUnsupportedPropertyAndWarningsSuppressed()
     {
         // Arrange
         const string source = """
@@ -189,7 +189,29 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_RecordClassWithSingleProperty()
+    public Task WorksheetRowGenerator_Generate_ClassWithInheritance()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
+
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(ClassWithInheritance))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
+
+    [Fact]
+    public Task WorksheetRowGenerator_Generate_RecordClassWithSingleProperty()
     {
         // Arrange
         const string source = """
@@ -211,7 +233,7 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_StructWithSingleProperty()
+    public Task WorksheetRowGenerator_Generate_StructWithSingleProperty()
     {
         // Arrange
         const string source = """
@@ -233,7 +255,7 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_RecordStructWithSingleProperty()
+    public Task WorksheetRowGenerator_Generate_RecordStructWithSingleProperty()
     {
         // Arrange
         const string source = """
@@ -255,7 +277,7 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_ReadOnlyStructWithSingleProperty()
+    public Task WorksheetRowGenerator_Generate_ReadOnlyStructWithSingleProperty()
     {
         // Arrange
         const string source = """
@@ -277,7 +299,7 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_ReadOnlyRecordStructWithSingleProperty()
+    public Task WorksheetRowGenerator_Generate_ReadOnlyRecordStructWithSingleProperty()
     {
         // Arrange
         const string source = """
@@ -299,7 +321,29 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_ContextWithTwoWorksheetRowAttributes()
+    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritance()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
+
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(RecordClassWithInheritance))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
+
+    [Fact]
+    public Task WorksheetRowGenerator_Generate_ContextWithTwoWorksheetRowAttributes()
     {
         // Arrange
         const string source = """
@@ -322,7 +366,7 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_ContextWithTwoSimilarWorksheetRowAttributes()
+    public Task WorksheetRowGenerator_Generate_ContextWithTwoSimilarWorksheetRowAttributes()
     {
         // Arrange
         const string source = """
@@ -344,7 +388,7 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_ContextClassWithInternalAccessibility()
+    public Task WorksheetRowGenerator_Generate_ContextClassWithInternalAccessibility()
     {
         // Arrange
         const string source = """
@@ -366,7 +410,7 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_ContextClassWithDefaultAccessibility()
+    public Task WorksheetRowGenerator_Generate_ContextClassWithDefaultAccessibility()
     {
         // Arrange
         const string source = """
@@ -388,7 +432,7 @@ public class WorksheetRowSourceGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowSourceGenerator_Generate_TwoContextClasses()
+    public Task WorksheetRowGenerator_Generate_TwoContextClasses()
     {
         // Arrange
         const string source = """

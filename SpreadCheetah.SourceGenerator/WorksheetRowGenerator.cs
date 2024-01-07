@@ -2,7 +2,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SpreadCheetah.SourceGenerator;
+using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Helpers;
+using SpreadCheetah.SourceGenerator.Models;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -32,21 +34,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         BaseList.Types.Count: > 0
     };
 
-    private static INamedTypeSymbol? GetWorksheetRowAttributeType(Compilation compilation)
-    {
-        return compilation.GetTypeByMetadataName("SpreadCheetah.SourceGeneration.WorksheetRowAttribute");
-    }
-
-    private static INamedTypeSymbol? GetGenerationOptionsAttributeType(Compilation compilation)
-    {
-        return compilation.GetTypeByMetadataName("SpreadCheetah.SourceGeneration.WorksheetRowGenerationOptionsAttribute");
-    }
-
-    private static INamedTypeSymbol? GetContextBaseType(Compilation compilation)
-    {
-        return compilation.GetTypeByMetadataName("SpreadCheetah.SourceGeneration.WorksheetRowContext");
-    }
-
     private static ContextClass? GetSemanticTargetForGeneration(GeneratorSyntaxContext context, CancellationToken token)
     {
         if (context.Node is not ClassDeclarationSyntax classDeclaration)
@@ -56,29 +43,13 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             return null;
 
         var classSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration, token);
-        if (classSymbol is null)
+        if (classSymbol is not { IsStatic: false, BaseType: { } baseType })
             return null;
 
-        if (classSymbol.IsStatic)
+        if (!context.SemanticModel.Compilation.TryGetCompilationTypes(out var compilationTypes))
             return null;
 
-        var baseType = classSymbol.BaseType;
-        if (baseType is null)
-            return null;
-
-        var baseContext = GetContextBaseType(context.SemanticModel.Compilation);
-        if (baseContext is null)
-            return null;
-
-        if (!SymbolEqualityComparer.Default.Equals(baseContext, baseType))
-            return null;
-
-        var worksheetRowAttribute = GetWorksheetRowAttributeType(context.SemanticModel.Compilation);
-        if (worksheetRowAttribute is null)
-            return null;
-
-        var optionsAttribute = GetGenerationOptionsAttributeType(context.SemanticModel.Compilation);
-        if (optionsAttribute is null)
+        if (!SymbolEqualityComparer.Default.Equals(compilationTypes.WorksheetRowContext, baseType))
             return null;
 
         var rowTypes = new Dictionary<INamedTypeSymbol, Location>(SymbolEqualityComparer.Default);
@@ -86,19 +57,19 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var attribute in classSymbol.GetAttributes())
         {
-            if (TryParseWorksheetRowAttribute(attribute, worksheetRowAttribute, token, out var typeSymbol, out var location)
+            if (TryParseWorksheetRowAttribute(attribute, compilationTypes.WorksheetRowAttribute, token, out var typeSymbol, out var location)
                 && !rowTypes.ContainsKey(typeSymbol))
             {
                 rowTypes[typeSymbol] = location;
                 continue;
             }
 
-            if (TryParseOptionsAttribute(attribute, optionsAttribute, out var options))
+            if (TryParseOptionsAttribute(attribute, compilationTypes.WorksheetRowGenerationOptionsAttribute, out var options))
                 generatorOptions = options;
         }
 
         return rowTypes.Count > 0
-            ? new ContextClass(classSymbol, rowTypes, generatorOptions)
+            ? new ContextClass(classSymbol, rowTypes, compilationTypes, generatorOptions)
             : null;
     }
 
@@ -116,10 +87,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             return false;
 
         var args = attribute.ConstructorArguments;
-        if (args.Length != 1)
-            return false;
-
-        if (args[0].Value is not INamedTypeSymbol symbol)
+        if (args is not [{ Value: INamedTypeSymbol symbol }])
             return false;
 
         if (symbol.Kind == SymbolKind.ErrorType)
@@ -162,9 +130,29 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return false;
     }
 
-    private static TypePropertiesInfo AnalyzeTypeProperties(Compilation compilation, ITypeSymbol classType)
+    private static bool TryParseColumnOrderAttribute(
+        AttributeData attribute,
+        INamedTypeSymbol expectedAttribute,
+        out int order)
     {
-        var propertyNames = new List<string>();
+        order = 0;
+
+        if (!SymbolEqualityComparer.Default.Equals(expectedAttribute, attribute.AttributeClass))
+            return false;
+
+        var args = attribute.ConstructorArguments;
+        if (args is not [{ Value: int attributeValue }])
+            return false;
+
+        order = attributeValue;
+        return true;
+    }
+
+    private static TypePropertiesInfo AnalyzeTypeProperties(Compilation compilation, CompilationTypes compilationTypes,
+        ITypeSymbol classType, SourceProductionContext context)
+    {
+        var implicitOrderPropertyNames = new List<string>();
+        var explicitOrderPropertyNames = new SortedDictionary<int, string>();
         var unsupportedPropertyNames = new List<IPropertySymbol>();
 
         foreach (var member in classType.GetMembers())
@@ -179,19 +167,48 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 continue;
             }
 
-            if (p.Type.SpecialType == SpecialType.System_String
-                || SupportedPrimitiveTypes.Contains(p.Type.SpecialType)
-                || IsSupportedNullableType(compilation, p.Type))
-            {
-                propertyNames.Add(p.Name);
-            }
-            else
+            if (!IsSupportedType(p.Type, compilation))
             {
                 unsupportedPropertyNames.Add(p);
+                continue;
             }
+
+            if (!TryGetExplicitColumnOrder(p, compilationTypes.ColumnOrderAttribute, context.CancellationToken, out var columnOrder, out var location))
+                implicitOrderPropertyNames.Add(p.Name);
+            else if (!explicitOrderPropertyNames.ContainsKey(columnOrder))
+                explicitOrderPropertyNames.Add(columnOrder, p.Name);
+            else
+                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.DuplicateColumnOrder, location, classType.Name));
         }
 
-        return new TypePropertiesInfo(propertyNames, unsupportedPropertyNames);
+        explicitOrderPropertyNames.AddWithImplicitKeys(implicitOrderPropertyNames);
+
+        return new TypePropertiesInfo(explicitOrderPropertyNames, unsupportedPropertyNames);
+    }
+
+    private static bool TryGetExplicitColumnOrder(IPropertySymbol property, INamedTypeSymbol columnOrderAttribute,
+        CancellationToken token, out int columnOrder, out Location? location)
+    {
+        columnOrder = 0;
+        location = null;
+
+        foreach (var attribute in property.GetAttributes())
+        {
+            if (!TryParseColumnOrderAttribute(attribute, columnOrderAttribute, out columnOrder))
+                continue;
+
+            location = attribute.ApplicationSyntaxReference?.GetSyntax(token).GetLocation();
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsSupportedType(ITypeSymbol type, Compilation compilation)
+    {
+        return type.SpecialType == SpecialType.System_String
+            || SupportedPrimitiveTypes.Contains(type.SpecialType)
+            || IsSupportedNullableType(compilation, type);
     }
 
     private static bool IsSupportedNullableType(Compilation compilation, ITypeSymbol type)
@@ -215,7 +232,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     }
 
     private static readonly SpecialType[] SupportedPrimitiveTypes =
-    {
+    [
         SpecialType.System_Boolean,
         SpecialType.System_DateTime,
         SpecialType.System_Decimal,
@@ -223,7 +240,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         SpecialType.System_Int32,
         SpecialType.System_Int64,
         SpecialType.System_Single
-    };
+    ];
 
     private static void Execute(Compilation compilation, ImmutableArray<ContextClass?> classes, SourceProductionContext context)
     {
@@ -295,11 +312,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             sb.AppendLine(2, $"private WorksheetRowTypeInfo<{rowTypeFullName}>? _{rowTypeName};");
             sb.AppendLine(2, $"public WorksheetRowTypeInfo<{rowTypeFullName}> {rowTypeName} => _{rowTypeName} ??= WorksheetRowMetadataServices.CreateObjectInfo<{rowTypeFullName}>(AddAsRowAsync, AddRangeAsRowsAsync);");
 
-            var info = AnalyzeTypeProperties(compilation, rowType);
+            var info = AnalyzeTypeProperties(compilation, contextClass.CompilationTypes, rowType, context);
             ReportDiagnostics(info, rowType, location, contextClass.Options, context);
 
-            GenerateAddAsRow(sb, 2, rowType, info.PropertyNames);
-            GenerateAddRangeAsRows(sb, 2, rowType, info.PropertyNames);
+            var propertyNames = info.PropertyNames.Values;
+            GenerateAddAsRow(sb, 2, rowType, propertyNames);
+            GenerateAddRangeAsRows(sb, 2, rowType, propertyNames);
 
             if (info.PropertyNames.Count == 0)
             {
@@ -307,10 +325,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 continue;
             }
 
-            GenerateAddAsRowInternal(sb, 2, rowTypeFullName, info.PropertyNames);
-            GenerateAddRangeAsRowsInternal(sb, rowType, info.PropertyNames);
+            GenerateAddAsRowInternal(sb, 2, rowTypeFullName, propertyNames);
+            GenerateAddRangeAsRowsInternal(sb, rowType, propertyNames);
             GenerateAddEnumerableAsRows(sb, 2, rowType);
-            GenerateAddCellsAsRow(sb, 2, rowType, info.PropertyNames);
+            GenerateAddCellsAsRow(sb, 2, rowType, propertyNames);
         }
 
         sb.AppendLine("    }");
@@ -328,7 +346,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location, rowType.Name, unsupportedProperty.Type.Name));
     }
 
-    private static void GenerateAddAsRow(StringBuilder sb, int indent, INamedTypeSymbol rowType, List<string> propertyNames)
+    private static void GenerateAddAsRow(StringBuilder sb, int indent, INamedTypeSymbol rowType, IReadOnlyCollection<string> propertyNames)
     {
         sb.AppendLine()
             .AppendIndentation(indent)
@@ -357,7 +375,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "}");
     }
 
-    private static void GenerateAddAsRowInternal(StringBuilder sb, int indent, string rowTypeFullname, List<string> propertyNames)
+    private static void GenerateAddAsRowInternal(StringBuilder sb, int indent, string rowTypeFullname, IReadOnlyCollection<string> propertyNames)
     {
         sb.AppendLine();
         sb.AppendLine(indent, $"private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, {rowTypeFullname} obj, CancellationToken token)");
@@ -374,7 +392,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "}");
     }
 
-    private static void GenerateAddRangeAsRows(StringBuilder sb, int indent, INamedTypeSymbol rowType, List<string> propertyNames)
+    private static void GenerateAddRangeAsRows(StringBuilder sb, int indent, INamedTypeSymbol rowType, IReadOnlyCollection<string> propertyNames)
     {
         sb.AppendLine()
             .AppendIndentation(indent)
@@ -412,7 +430,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "}");
     }
 
-    private static void GenerateAddRangeAsRowsInternal(StringBuilder sb, INamedTypeSymbol rowType, List<string> propertyNames)
+    private static void GenerateAddRangeAsRowsInternal(StringBuilder sb, INamedTypeSymbol rowType, IReadOnlyCollection<string> propertyNames)
     {
         var typeString = rowType.ToTypeString();
         sb.Append($$"""
@@ -449,7 +467,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "}");
     }
 
-    private static void GenerateAddCellsAsRow(StringBuilder sb, int indent, INamedTypeSymbol rowType, List<string> propertyNames)
+    private static void GenerateAddCellsAsRow(StringBuilder sb, int indent, INamedTypeSymbol rowType, IReadOnlyCollection<string> propertyNames)
     {
         sb.AppendLine()
             .AppendIndentation(indent)
@@ -466,13 +484,13 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             sb.AppendLine();
         }
 
-        for (var i = 0; i < propertyNames.Count; ++i)
+        foreach (var (propertyName, index) in propertyNames.Select((x, i) => (x, i)))
         {
             sb.AppendIndentation(indent + 1)
                 .Append("cells[")
-                .Append(i)
+                .Append(index)
                 .Append("] = new DataCell(obj.")
-                .Append(propertyNames[i])
+                .Append(propertyName)
                 .AppendLine(");");
         }
 
