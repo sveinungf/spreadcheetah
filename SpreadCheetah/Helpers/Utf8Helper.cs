@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace SpreadCheetah.Helpers;
@@ -15,4 +16,10 @@ internal static class Utf8Helper
 #endif
 
     public static bool TryGetBytes(ReadOnlySpan<char> chars, Span<byte> bytes, out int bytesWritten) => Utf8NoBom.TryGetBytesInternal(chars, bytes, out bytesWritten);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool DestinationCanFitTranscodedString(ReadOnlySpan<char> chars, Span<byte> bytes)
+    {
+        return bytes.Length >= chars.Length * MaxBytePerChar || bytes.Length >= Utf8NoBom.GetByteCount(chars);
+    }
 }
