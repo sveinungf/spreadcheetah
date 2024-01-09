@@ -28,13 +28,13 @@ internal abstract class NullValueWriterBase : CellValueWriter
         {
             return buffer.TryWrite(
                 $"{StyledCellHelper.BeginStyledNumberCell}{style}{FormulaCellHelper.EndQuoteBeginFormula}" +
-                $"{formulaText}" +
+                $"{new RawString(formulaText)}" +
                 $"{EndFormulaEndCell}");
         }
 
         return buffer.TryWrite(
             $"{FormulaCellHelper.BeginNumberFormulaCell}" +
-            $"{formulaText}" +
+            $"{new RawString(formulaText)}" +
             $"{EndFormulaEndCell}");
     }
 
