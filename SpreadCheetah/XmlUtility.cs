@@ -1,72 +1,58 @@
 using SpreadCheetah.Helpers;
-using System.Buffers;
-#if NET8_0_OR_GREATER
-using System.Collections.Frozen;
-#endif
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace SpreadCheetah;
 
 public static class XmlUtility
 {
-#if !NET8_0_OR_GREATER
-    public static string XmlEncode(string value) => "";
-    public static bool TryXmlEncodeToUtf8(ReadOnlySpan<char> source, Span<byte> destination, out int bytesWritten) { bytesWritten = 0; return false; }
-#else
-    private static readonly SearchValues<char> SearchCharacters;
-    private static readonly FrozenDictionary<char, string> Replacements;
-    private static readonly FrozenDictionary<char, byte[]> ByteReplacements;
-
-    static XmlUtility()
-    {
-        List<KeyValuePair<char, string>> replacements =
-        [
-            new('<', "&lt;"),
-            new('>', "&gt;"),
-            new('&', "&amp;"),
-            new('"', "&quot;"),
-            new('\'', "&apos;"),
-        ];
-
-        for (var i = 0; i < 32; ++i)
-        {
-            var character = (char)i;
-            if (character is not ('\t' or '\n' or '\r'))
-                replacements.Add(new KeyValuePair<char, string>(character, ""));
-        }
-
-        Replacements = replacements.ToFrozenDictionary();
-        ByteReplacements = replacements.Select(x => KeyValuePair.Create(x.Key, Utf8NoBom.GetBytes(x.Value))).ToFrozenDictionary();
-        SearchCharacters = SearchValues.Create(replacements.Select(x => x.Key).ToArray());
-    }
-
-    public static string XmlEncode(string value)
-    {
-        var index = value.AsSpan().IndexOfAny(SearchCharacters);
-        if (index == -1)
-            return value;
-
-        var remainingValue = value.AsSpan();
-        var sb = new StringBuilder();
-        while (index != -1)
-        {
-            if (index > 0)
-                sb.Append(remainingValue.Slice(0, index));
-
-            var characterToReplace = remainingValue[index];
-            var replacement = Replacements[characterToReplace];
-            sb.Append(replacement);
-
-            remainingValue = remainingValue.Slice(index + 1);
-            index = remainingValue.IndexOfAny(SearchCharacters);
-        }
-
-        sb.Append(remainingValue);
-        return sb.ToString();
-    }
-
     private static readonly UTF8Encoding Utf8NoBom = new(false);
 
+    private static ReadOnlySpan<char> CharsToEscapeSpan =>
+    [
+        '\x00',
+        '\x01',
+        '\x02',
+        '\x03',
+        '\x04',
+        '\x05',
+        '\x06',
+        '\x07',
+        '\x08',
+        '\x0b',
+        '\x0c',
+        '\x0e',
+        '\x0f',
+        '\x10',
+        '\x11',
+        '\x12',
+        '\x13',
+        '\x14',
+        '\x15',
+        '\x16',
+        '\x17',
+        '\x18',
+        '\x19',
+        '\x1a',
+        '\x1b',
+        '\x1c',
+        '\x1d',
+        '\x1e',
+        '\x1f',
+        '"',
+        '&',
+        '\'',
+        '<',
+        '>'
+    ];
+
+#if NET8_0_OR_GREATER
+    private static readonly System.Buffers.SearchValues<char> CharsToEscape = System.Buffers.SearchValues.Create(CharsToEscapeSpan);
+#else
+    private static ReadOnlySpan<char> CharsToEscape => CharsToEscapeSpan;
+#endif
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryXmlEncodeToUtf8(ReadOnlySpan<char> source, Span<byte> destination, out int bytesWritten)
     {
         if (!Utf8Helper.DestinationCanFitTranscodedString(source, destination))
@@ -75,13 +61,19 @@ public static class XmlUtility
             return false;
         }
 
-        var index = source.IndexOfAny(SearchCharacters);
+        var index = source.IndexOfAny(CharsToEscape);
         if (index == -1)
         {
             bytesWritten = Utf8NoBom.GetBytes(source, destination);
             return true;
         }
 
+        bytesWritten = XmlEncodeToUtf8(source, destination, index);
+        return true;
+    }
+
+    private static int XmlEncodeToUtf8(ReadOnlySpan<char> source, Span<byte> destination, int index)
+    {
         var initialDestinationLength = destination.Length;
 
         while (index != -1)
@@ -93,22 +85,27 @@ public static class XmlUtility
                 destination = destination.Slice(written);
             }
 
-            var characterToReplace = source[0];
-            source = source.Slice(1);
+            var replacement = source[0] switch
+            {
+                '"' => "&quot;"u8,
+                '&' => "&amp;"u8,
+                '\'' => "&apos;"u8,
+                '<' => "&lt;"u8,
+                '>' => "&gt;"u8,
+                _ => []
+            };
 
-            var replacement = ByteReplacements.GetValueOrDefault(characterToReplace, []);
             if (replacement.Length > 0)
             {
                 replacement.CopyTo(destination);
                 destination = destination.Slice(replacement.Length);
             }
 
-            index = source.IndexOfAny(SearchCharacters);
+            source = source.Slice(1);
+            index = source.IndexOfAny(CharsToEscape);
         }
 
         var finalWritten = Utf8NoBom.GetBytes(source, destination);
-        bytesWritten = initialDestinationLength - destination.Length + finalWritten;
-        return true;
+        return initialDestinationLength - destination.Length + finalWritten;
     }
-#endif
 }
