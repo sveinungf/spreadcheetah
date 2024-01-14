@@ -153,7 +153,7 @@ internal sealed class SpreadsheetBuffer(byte[] buffer)
 
         public bool AppendFormatted(RawString value)
         {
-            if (XmlUtility.TryXmlEncodeToUtf8(value.Value.AsSpan(), GetSpan(), out var bytesWritten))
+            if (Utf8Helper.TryXmlEncodeToUtf8(value.Value.AsSpan(), GetSpan(), out var bytesWritten))
             {
                 _pos += bytesWritten;
                 return true;
@@ -270,7 +270,7 @@ internal sealed class SpreadsheetBuffer(byte[] buffer)
 
         public bool AppendFormatted(string? value)
         {
-            if (XmlUtility.TryXmlEncodeToUtf8(value.AsSpan(), GetSpan(), out var bytesWritten))
+            if (Utf8Helper.TryXmlEncodeToUtf8(value.AsSpan(), GetSpan(), out var bytesWritten))
             {
                 _pos += bytesWritten;
                 return true;

@@ -18,15 +18,18 @@
     <PackageTags>spreadsheet;excel;xlsx;openxml;sourcegenerator;performance;nativeaot</PackageTags>
     <PackageReleaseNotes>https://github.com/sveinungf/spreadcheetah/releases/tag/v1.12.0</PackageReleaseNotes>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    
-    <!-- Strong name -->
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>spreadcheetahKey.snk</AssemblyOriginatorKeyFile>
 
     <!-- Symbol package -->
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <!-- Strong name -->
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>spreadcheetahKey.snk</AssemblyOriginatorKeyFile>
 
     <!-- Package validation -->
     <EnablePackageValidation>true</EnablePackageValidation>
@@ -47,6 +50,10 @@
 
   <ItemGroup>
     <PackageReference Include="ErrorProne.NET.Structs">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Polyfill">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

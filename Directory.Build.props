@@ -9,14 +9,6 @@
     <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(MSBuildProjectName)' != 'SpreadCheetah.SourceGenerator' And '$(MSBuildProjectName)' != 'SpreadCheetah.SourceGenerator.CSharp8Test'">
-    <PackageReference Include="Polyfill">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <NoWarn>MA0048</NoWarn>
-    </PackageReference>
-  </ItemGroup>
-
   <ItemGroup>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)/BannedSymbols.txt" Visible="false" />
   </ItemGroup>

@@ -1,9 +1,12 @@
+#if DEBUG
+using SpreadCheetah.Helpers;
 using System.Text;
 using Xunit;
 
 namespace SpreadCheetah.Test.Tests;
 
-public static class XmlUtilityTests
+public static class Utf8HelperTests
+
 {
     [Theory]
     [InlineData("", "")]
@@ -17,13 +20,13 @@ public static class XmlUtilityTests
     [InlineData("\u0001Handling\u0002Invalid\u0003Control\u0004Characters\u0005", "HandlingInvalidControlCharacters")]
     [InlineData("\u0006", "")]
     [InlineData("\u0007\u0008", "")]
-    public static void XmlUtility_TryXmlEncodeToUtf8_Success(string value, string expected)
+    public static void Utf8Helper_TryXmlEncodeToUtf8_Success(string value, string expected)
     {
         // Arrange
         var buffer = new byte[value.Length * 6];
 
         // Act
-        var result = XmlUtility.TryXmlEncodeToUtf8(value.AsSpan(), buffer, out var bytesWritten);
+        var result = Utf8Helper.TryXmlEncodeToUtf8(value.AsSpan(), buffer, out var bytesWritten);
 
         // Assert
         Assert.True(result);
@@ -33,3 +36,4 @@ public static class XmlUtilityTests
         Assert.Equal(expected, actual);
     }
 }
+#endif
