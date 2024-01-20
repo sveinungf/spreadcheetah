@@ -105,4 +105,45 @@ internal static class XmlUtility
         var finalWritten = Utf8Helper.Utf8NoBom.GetBytes(source, destination);
         return initialDestinationLength - destination.Length + finalWritten;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string XmlEncode(string value)
+    {
+        var index = value.AsSpan().IndexOfAny(CharsToEscape);
+        if (index == -1)
+            return value;
+
+        return XmlEncode(value, index);
+    }
+
+    private static string XmlEncode(string value, int index)
+    {
+        var source = value.AsSpan();
+        var sb = new StringBuilder();
+
+        while (index != -1)
+        {
+            if (index > 0)
+            {
+                sb.Append(source.Slice(0, index));
+                source = source.Slice(index);
+            }
+
+            _ = source[0] switch
+            {
+                '"' => sb.Append("&quot;"),
+                '&' => sb.Append("&amp;"),
+                '\'' => sb.Append("&apos;"),
+                '<' => sb.Append("&lt;"),
+                '>' => sb.Append("&gt;"),
+                _ => sb
+            };
+
+            source = source.Slice(1);
+            index = source.IndexOfAny(CharsToEscape);
+        }
+
+        sb.Append(source);
+        return sb.ToString();
+    }
 }
