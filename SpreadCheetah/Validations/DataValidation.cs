@@ -1,7 +1,6 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.Text;
 
 #if !NET6_0_OR_GREATER
@@ -187,7 +186,7 @@ public sealed class DataValidation
         worksheetName = worksheetName.Replace("'", "''");
 #pragma warning restore CA1307, MA0074 // Specify StringComparison for clarity
 
-        var value = $"&apos;{WebUtility.HtmlEncode(worksheetName)}&apos;!{cellReference.Reference}";
+        var value = $"&apos;{XmlUtility.XmlEncode(worksheetName)}&apos;!{cellReference.Reference}";
         return ListValuesInternal(value, showDropdown);
     }
 
@@ -255,7 +254,7 @@ public sealed class DataValidation
                 ++combinedLength;
             }
 
-            sb.Append(WebUtility.HtmlEncode(value));
+            sb.Append(XmlUtility.XmlEncode(value));
             first = false;
 
             // Character length (and not the encoded character length) is used to calculate the combined length.

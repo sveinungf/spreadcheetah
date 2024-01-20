@@ -121,7 +121,7 @@ internal struct DataValidationXml
     {
         if (string.IsNullOrEmpty(value)) return true;
 
-        var encodedValue = WebUtility.HtmlEncode(value);
+        var encodedValue = XmlUtility.XmlEncode(value);
         if (!SpanHelper.TryWriteLongString(encodedValue, ref _nextIndex, bytes, ref bytesWritten)) return false;
 
         _nextIndex = 0;

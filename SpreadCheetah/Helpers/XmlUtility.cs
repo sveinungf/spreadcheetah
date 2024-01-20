@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -106,9 +107,13 @@ internal static class XmlUtility
         return initialDestinationLength - destination.Length + finalWritten;
     }
 
+    [return: NotNullIfNotNull(nameof(value))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string XmlEncode(string value)
+    public static string? XmlEncode(string? value)
     {
+        if (value is null)
+            return null;
+
         var index = value.AsSpan().IndexOfAny(CharsToEscape);
         if (index == -1)
             return value;

@@ -81,7 +81,7 @@ internal static class SpanHelper
     }
 
 #if NETSTANDARD2_0
-    public static bool TryWriteLongString(string value, ref int valueIndex, Span<byte> bytes, ref int bytesWritten)
+    public static bool TryWriteLongString(string? value, ref int valueIndex, Span<byte> bytes, ref int bytesWritten)
         => TryWriteLongString(value.AsSpan(), ref valueIndex, bytes, ref bytesWritten);
 #endif
 
