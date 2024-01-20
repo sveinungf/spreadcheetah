@@ -5,7 +5,7 @@ using Xunit;
 
 namespace SpreadCheetah.Test.Tests;
 
-public static class Utf8HelperTests
+public static class XmlUtilityTests
 
 {
     [Theory]
@@ -20,13 +20,13 @@ public static class Utf8HelperTests
     [InlineData("\u0001Handling\u0002Invalid\u0003Control\u0004Characters\u0005", "HandlingInvalidControlCharacters")]
     [InlineData("\u0006", "")]
     [InlineData("\u0007\u0008", "")]
-    public static void Utf8Helper_TryXmlEncodeToUtf8_Success(string value, string expected)
+    public static void XmlUtility_TryXmlEncodeToUtf8_Success(string value, string expected)
     {
         // Arrange
         var buffer = new byte[value.Length * 6];
 
         // Act
-        var result = Utf8Helper.TryXmlEncodeToUtf8(value.AsSpan(), buffer, out var bytesWritten);
+        var result = XmlUtility.TryXmlEncodeToUtf8(value.AsSpan(), buffer, out var bytesWritten);
 
         // Assert
         Assert.True(result);
