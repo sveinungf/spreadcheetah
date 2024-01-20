@@ -14,7 +14,6 @@ internal sealed class SpreadsheetBuffer(byte[] buffer)
     private int _index;
 
     public Span<byte> GetSpan() => _buffer.AsSpan(_index);
-    public int FreeCapacity => _buffer.Length - _index;
     public void Advance(int bytes) => _index += bytes;
 
     public bool WriteLongString(ReadOnlySpan<char> value, ref int valueIndex)
