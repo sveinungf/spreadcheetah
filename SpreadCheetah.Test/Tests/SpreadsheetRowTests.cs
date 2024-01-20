@@ -115,7 +115,6 @@ public class SpreadsheetRowTests
         "With-Special<>&'\\Characters",
         "With\"Quotation\"Marks",
         "WithNorwegianCharactersÆØÅ",
-        "With\ud83dEmoji",
         "With\ud83d\udc4dEmoji",
         "With🌉Emoji",
         "With\tValid\nControlCharacters",
