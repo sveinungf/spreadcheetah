@@ -11,11 +11,18 @@ internal static class Utf8Helper
 
     public static int GetBytes(ReadOnlySpan<char> chars, Span<byte> bytes) => Utf8NoBom.GetBytes(chars, bytes);
 
-#if NETSTANDARD2_0
-    public static bool TryGetBytes(string? chars, Span<byte> bytes, out int bytesWritten) => TryGetBytes(chars.AsSpan(), bytes, out bytesWritten);
-#endif
+    public static bool TryGetBytes(ReadOnlySpan<char> chars, Span<byte> bytes, out int bytesWritten)
+    {
+        // Try first with an approximate value length, then try with a more accurate value length
+        if (DestinationCanFitTranscodedString(chars, bytes))
+        {
+            bytesWritten = Utf8NoBom.GetBytes(chars, bytes);
+            return true;
+        }
 
-    public static bool TryGetBytes(ReadOnlySpan<char> chars, Span<byte> bytes, out int bytesWritten) => Utf8NoBom.TryGetBytesInternal(chars, bytes, out bytesWritten);
+        bytesWritten = 0;
+        return false;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool DestinationCanFitTranscodedString(ReadOnlySpan<char> chars, Span<byte> bytes)
