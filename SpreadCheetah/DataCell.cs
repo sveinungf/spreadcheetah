@@ -17,7 +17,7 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(string? value)
     {
-        StringValue = value ?? string.Empty;
+        StringValue = value;
         Type = value != null ? CellWriterType.String : CellWriterType.Null;
     }
 

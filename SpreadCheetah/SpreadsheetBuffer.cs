@@ -129,6 +129,9 @@ internal sealed class SpreadsheetBuffer(byte[] buffer)
 
         public bool AppendFormatted(string? value)
         {
+            if (value is null)
+                return true;
+
             if (XmlUtility.TryXmlEncodeToUtf8(value.AsSpan(), GetSpan(), out var bytesWritten))
             {
                 _pos += bytesWritten;
