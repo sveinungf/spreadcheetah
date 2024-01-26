@@ -17,7 +17,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var filtered = context.SyntaxProvider
-            .CreateSyntaxProvider(
+            .ForAttributeWithMetadataName(
+                "SpreadCheetah.SourceGeneration.WorksheetRowAttribute",
                 static (s, _) => IsSyntaxTargetForGeneration(s),
                 static (ctx, token) => GetSemanticTargetForGeneration(ctx, token))
             .Where(static x => x is not null)
@@ -30,13 +31,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
     private static bool IsSyntaxTargetForGeneration(SyntaxNode syntaxNode) => syntaxNode is ClassDeclarationSyntax
     {
-        AttributeLists.Count: > 0,
         BaseList.Types.Count: > 0
     };
 
-    private static ContextClass? GetSemanticTargetForGeneration(GeneratorSyntaxContext context, CancellationToken token)
+    private static ContextClass? GetSemanticTargetForGeneration(GeneratorAttributeSyntaxContext context, CancellationToken token)
     {
-        if (context.Node is not ClassDeclarationSyntax classDeclaration)
+        if (context.TargetNode is not ClassDeclarationSyntax classDeclaration)
             return null;
 
         if (!classDeclaration.Modifiers.Any(static x => x.IsKind(SyntaxKind.PartialKeyword)))
@@ -55,36 +55,35 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var rowTypes = new Dictionary<INamedTypeSymbol, Location>(SymbolEqualityComparer.Default);
         GeneratorOptions? generatorOptions = null;
 
-        foreach (var attribute in classSymbol.GetAttributes())
+        foreach (var worksheetRowAttribute in context.Attributes)
         {
-            if (TryParseWorksheetRowAttribute(attribute, compilationTypes.WorksheetRowAttribute, token, out var typeSymbol, out var location)
+            if (TryParseWorksheetRowAttribute(worksheetRowAttribute, token, out var typeSymbol, out var location)
                 && !rowTypes.ContainsKey(typeSymbol))
             {
                 rowTypes[typeSymbol] = location;
-                continue;
             }
+        }
 
+        if (rowTypes.Count == 0)
+            return null;
+
+        foreach (var attribute in classSymbol.GetAttributes())
+        {
             if (TryParseOptionsAttribute(attribute, compilationTypes.WorksheetRowGenerationOptionsAttribute, out var options))
                 generatorOptions = options;
         }
 
-        return rowTypes.Count > 0
-            ? new ContextClass(classSymbol, rowTypes, compilationTypes, generatorOptions)
-            : null;
+        return new ContextClass(classSymbol, rowTypes, compilationTypes, generatorOptions);
     }
 
     private static bool TryParseWorksheetRowAttribute(
         AttributeData attribute,
-        INamedTypeSymbol expectedAttribute,
         CancellationToken token,
         [NotNullWhen(true)] out INamedTypeSymbol? typeSymbol,
         [NotNullWhen(true)] out Location? location)
     {
         typeSymbol = null;
         location = null;
-
-        if (!SymbolEqualityComparer.Default.Equals(expectedAttribute, attribute.AttributeClass))
-            return false;
 
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: INamedTypeSymbol symbol }])
