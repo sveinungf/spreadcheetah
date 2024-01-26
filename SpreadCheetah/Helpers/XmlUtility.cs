@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Tracing;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -6,7 +7,8 @@ namespace SpreadCheetah.Helpers;
 
 internal static class XmlUtility
 {
-    private static ReadOnlySpan<char> CharsToEscapeSpan =>
+#if NET8_0_OR_GREATER
+    private static ReadOnlySpan<char> CharsToEscape =>
     [
         '\x00',
         '\x01',
@@ -44,10 +46,44 @@ internal static class XmlUtility
         '>'
     ];
 
-#if NET8_0_OR_GREATER
-    private static readonly System.Buffers.SearchValues<char> CharsToEscape = System.Buffers.SearchValues.Create(CharsToEscapeSpan);
+    private static readonly System.Buffers.SearchValues<char> CharsToEscapeSearchValues = System.Buffers.SearchValues.Create(CharsToEscape);
+
+    private static int IndexOfCharToEscape(ReadOnlySpan<char> source) => source.IndexOfAny(CharsToEscapeSearchValues);
 #else
-    private static ReadOnlySpan<char> CharsToEscape => CharsToEscapeSpan;
+    private static int IndexOfCharToEscape(ReadOnlySpan<char> source)
+    {
+        for (var i = 0; i < source.Length; ++i)
+        {
+            var c = source[i];
+            if (c > '>')
+                continue;
+
+            if (c <= '\x1f')
+            {
+                switch (c)
+                {
+                    case '\t':
+                    case '\n':
+                    case '\r':
+                        continue;
+                }
+
+                return i;
+            }
+
+            switch (c)
+            {
+                case '"':
+                case '&':
+                case '\'':
+                case '<':
+                case '>':
+                    return i;
+            }
+        }
+
+        return -1;
+    }
 #endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -59,7 +95,7 @@ internal static class XmlUtility
             return false;
         }
 
-        var index = source.IndexOfAny(CharsToEscape);
+        var index = IndexOfCharToEscape(source);
         if (index == -1)
         {
             bytesWritten = Utf8Helper.Utf8NoBom.GetBytes(source, destination);
@@ -100,7 +136,7 @@ internal static class XmlUtility
             }
 
             source = source.Slice(1);
-            index = source.IndexOfAny(CharsToEscape);
+            index = IndexOfCharToEscape(source);
         }
 
         var finalWritten = Utf8Helper.Utf8NoBom.GetBytes(source, destination);
@@ -114,7 +150,7 @@ internal static class XmlUtility
         if (value is null)
             return null;
 
-        var index = value.AsSpan().IndexOfAny(CharsToEscape);
+        var index = IndexOfCharToEscape(value.AsSpan());
         if (index == -1)
             return value;
 
@@ -145,7 +181,7 @@ internal static class XmlUtility
             };
 
             source = source.Slice(1);
-            index = source.IndexOfAny(CharsToEscape);
+            index = IndexOfCharToEscape(source);
         }
 
         sb.Append(source);
