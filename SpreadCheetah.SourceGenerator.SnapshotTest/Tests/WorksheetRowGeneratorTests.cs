@@ -3,7 +3,6 @@ using SpreadCheetah.SourceGenerators;
 
 namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 
-[UsesVerify]
 public class WorksheetRowGeneratorTests
 {
     [Fact]
