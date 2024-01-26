@@ -1,2 +1,3 @@
 M:System.IO.Compression.ZipArchive.CreateEntry(System.String);Pass CompressionLevel parameter
+M:System.Net.WebUtility.HtmlEncode(System.String);Use XmlUtility.XmlEncode
 P:System.Nullable`1.Value;GetValueOrDefault() or the coalesce operator do less work

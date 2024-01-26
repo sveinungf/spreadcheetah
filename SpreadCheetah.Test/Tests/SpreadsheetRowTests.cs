@@ -111,10 +111,14 @@ public class SpreadsheetRowTests
         "With whitespace",
         "With trailing whitespace ",
         " With leading whitespace",
-        "With-Special-Characters!#¤%&",
+        "With-Special!#¤%Characters",
+        "With-Special<>&'\\Characters",
         "With\"Quotation\"Marks",
         "WithNorwegianCharactersÆØÅ",
-        "WithEmoji\ud83d\udc4d",
+        "With\ud83d\udc4dEmoji",
+        "With🌉Emoji",
+        "With\tValid\nControlCharacters",
+        "WithCharacters\u00a0\u00c9\u00ffBetween160And255",
         "",
         null);
 
@@ -142,6 +146,30 @@ public class SpreadsheetRowTests
         CellValues? expectedDataType = value is null ? null : CellValues.InlineString;
         Assert.Equal(expectedDataType, actualCell.DataType?.Value);
         Assert.Equal(value ?? string.Empty, actualCell.InnerText);
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_CellWithInvalidControlCharacterStringValue(CellType type, RowCollectionType rowType)
+    {
+        // Arrange
+        const string value = "With\u0000Control\u0010\u001fCharacters";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var cell = CellFactory.Create(type, value);
+
+        // Act
+        await spreadsheet.AddRowAsync(cell, rowType);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var actual = SpreadsheetDocument.Open(stream, true);
+        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
+        var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
+        Assert.Equal(CellValues.InlineString, actualCell.DataType?.Value);
+        Assert.Equal("WithControlCharacters", actualCell.InnerText);
     }
 
     public static IEnumerable<object?[]> StringLengths() => TestData.CombineWithCellTypes(

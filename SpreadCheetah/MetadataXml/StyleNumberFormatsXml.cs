@@ -1,5 +1,4 @@
 using SpreadCheetah.Helpers;
-using System.Net;
 
 namespace SpreadCheetah.MetadataXml;
 
@@ -62,7 +61,7 @@ internal struct StyleNumberFormatsXml
             if (!SpanHelper.TryWrite(format.Value, span, ref written)) return false;
             if (!"\" formatCode=\""u8.TryCopyTo(span, ref written)) return false;
 
-            var numberFormat = WebUtility.HtmlEncode(format.Key);
+            var numberFormat = XmlUtility.XmlEncode(format.Key);
             if (!SpanHelper.TryWrite(numberFormat, span, ref written)) return false;
             if (!"\"/>"u8.TryCopyTo(span, ref written)) return false;
 

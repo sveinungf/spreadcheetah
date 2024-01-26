@@ -7,12 +7,6 @@ namespace SpreadCheetah.Helpers;
 
 internal static class SpanHelper
 {
-    public static int GetBytes(ReadOnlySpan<byte> source, Span<byte> destination)
-    {
-        source.CopyTo(destination);
-        return source.Length;
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryCopyTo(this ReadOnlySpan<byte> source, Span<byte> bytes, ref int bytesWritten)
     {
@@ -81,7 +75,7 @@ internal static class SpanHelper
     }
 
 #if NETSTANDARD2_0
-    public static bool TryWriteLongString(string value, ref int valueIndex, Span<byte> bytes, ref int bytesWritten)
+    public static bool TryWriteLongString(string? value, ref int valueIndex, Span<byte> bytes, ref int bytesWritten)
         => TryWriteLongString(value.AsSpan(), ref valueIndex, bytes, ref bytesWritten);
 #endif
 

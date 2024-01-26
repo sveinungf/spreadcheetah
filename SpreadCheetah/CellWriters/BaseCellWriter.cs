@@ -277,9 +277,10 @@ internal abstract class BaseCellWriter<T>
         // Write the "</f><v>" part
         if (cellValueIndex < cachedValueStartIndex)
         {
-            var separator = FormulaCellHelper.EndFormulaBeginCachedValue;
-            if (separator.Length > Buffer.FreeCapacity) return false;
-            Buffer.Advance(SpanHelper.GetBytes(separator, Buffer.GetSpan()));
+            if (!FormulaCellHelper.EndFormulaBeginCachedValue.TryCopyTo(Buffer.GetSpan()))
+                return false;
+
+            Buffer.Advance(FormulaCellHelper.EndFormulaBeginCachedValue.Length);
             cellValueIndex = cachedValueStartIndex;
         }
 

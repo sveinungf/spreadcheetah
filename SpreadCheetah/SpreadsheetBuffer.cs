@@ -14,7 +14,6 @@ internal sealed class SpreadsheetBuffer(byte[] buffer)
     private int _index;
 
     public Span<byte> GetSpan() => _buffer.AsSpan(_index);
-    public int FreeCapacity => _buffer.Length - _index;
     public void Advance(int bytes) => _index += bytes;
 
     public bool WriteLongString(ReadOnlySpan<char> value, ref int valueIndex)
@@ -73,7 +72,7 @@ internal sealed class SpreadsheetBuffer(byte[] buffer)
         {
             Debug.Fail("Use ReadOnlySpan<byte> instead of string literals");
 
-            if (value is not null && Utf8Helper.TryGetBytes(value, GetSpan(), out var bytesWritten))
+            if (value is not null && Utf8Helper.TryGetBytes(value.AsSpan(), GetSpan(), out var bytesWritten))
             {
                 _pos += bytesWritten;
                 return true;
@@ -129,7 +128,10 @@ internal sealed class SpreadsheetBuffer(byte[] buffer)
 
         public bool AppendFormatted(string? value)
         {
-            if (Utf8Helper.TryGetBytes(value, GetSpan(), out int bytesWritten))
+            if (value is null)
+                return true;
+
+            if (XmlUtility.TryXmlEncodeToUtf8(value.AsSpan(), GetSpan(), out var bytesWritten))
             {
                 _pos += bytesWritten;
                 return true;

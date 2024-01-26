@@ -1,7 +1,6 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using System.IO.Compression;
-using System.Net;
 
 namespace SpreadCheetah.MetadataXml;
 
@@ -80,7 +79,7 @@ internal struct CommentsXml : IXmlWriter
                 if (!SpanHelper.TryWriteCellReference(cellRef.Column, cellRef.Row, span, ref written)) return false;
                 if (!CommentAfterRef.TryCopyTo(span, ref written)) return false;
 
-                _currentXmlEncodedNote = WebUtility.HtmlEncode(note);
+                _currentXmlEncodedNote = XmlUtility.XmlEncode(note);
                 _currentXmlEncodedNoteIndex = 0;
             }
 

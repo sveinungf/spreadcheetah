@@ -1,5 +1,3 @@
-using System.Net;
-
 namespace SpreadCheetah;
 
 /// <summary>
@@ -15,6 +13,6 @@ public readonly record struct Formula
     /// </summary>
     public Formula(string? formulaText)
     {
-        FormulaText = formulaText != null ? WebUtility.HtmlEncode(formulaText) : string.Empty;
+        FormulaText = formulaText ?? "";
     }
 }

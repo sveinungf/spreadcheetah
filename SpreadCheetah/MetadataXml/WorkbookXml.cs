@@ -1,7 +1,6 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Worksheets;
 using System.IO.Compression;
-using System.Net;
 
 namespace SpreadCheetah.MetadataXml;
 
@@ -85,7 +84,7 @@ internal struct WorkbookXml : IXmlWriter
 
             if (!"<sheet name=\""u8.TryCopyTo(span, ref written)) return false;
 
-            var name = WebUtility.HtmlEncode(sheet.Name);
+            var name = XmlUtility.XmlEncode(sheet.Name);
             if (!SpanHelper.TryWrite(name, span, ref written)) return false;
             if (!"\" sheetId=\""u8.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(index + 1, span, ref written)) return false;

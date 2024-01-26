@@ -1,5 +1,4 @@
 using SpreadCheetah.CellValueWriters;
-using System.Net;
 
 namespace SpreadCheetah;
 
@@ -18,7 +17,7 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(string? value)
     {
-        StringValue = value != null ? WebUtility.HtmlEncode(value) : string.Empty;
+        StringValue = value;
         Type = value != null ? CellWriterType.String : CellWriterType.Null;
     }
 
