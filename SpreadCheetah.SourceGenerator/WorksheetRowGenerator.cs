@@ -114,12 +114,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         if (attribute.NamedArguments.IsDefaultOrEmpty)
             return false;
 
-        foreach (var arg in attribute.NamedArguments)
+        foreach (var (key, value) in attribute.NamedArguments)
         {
-            if (!string.Equals(arg.Key, "SuppressWarnings", StringComparison.Ordinal))
+            if (!string.Equals(key, "SuppressWarnings", StringComparison.Ordinal))
                 continue;
 
-            if (arg.Value.Value is bool suppressWarnings)
+            if (value.Value is bool suppressWarnings)
             {
                 options = new GeneratorOptions(suppressWarnings);
                 return true;
@@ -297,42 +297,47 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         var rowTypeNames = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (var keyValue in contextClass.RowTypes)
+        foreach (var (rowType, location) in contextClass.RowTypes)
         {
-            var rowType = keyValue.Key;
             var rowTypeName = rowType.Name;
             if (!rowTypeNames.Add(rowTypeName))
                 continue;
 
-            var rowTypeFullName = rowType.ToString();
-            var location = keyValue.Value;
-
-            sb.AppendLine();
-            sb.AppendLine(2, $"private WorksheetRowTypeInfo<{rowTypeFullName}>? _{rowTypeName};");
-            sb.AppendLine(2, $"public WorksheetRowTypeInfo<{rowTypeFullName}> {rowTypeName} => _{rowTypeName} ??= WorksheetRowMetadataServices.CreateObjectInfo<{rowTypeFullName}>(AddAsRowAsync, AddRangeAsRowsAsync);");
-
-            var info = AnalyzeTypeProperties(compilation, contextClass.CompilationTypes, rowType, context);
-            ReportDiagnostics(info, rowType, location, contextClass.Options, context);
-
-            var propertyNames = info.PropertyNames.Values.ToList();
-            GenerateAddHeaderRow(sb, rowType, propertyNames);
-            GenerateAddAsRow(sb, 2, rowType, propertyNames);
-            GenerateAddRangeAsRows(sb, 2, rowType, propertyNames);
-
-            if (info.PropertyNames.Count == 0)
-            {
-                GenerateAddRangeAsEmptyRows(sb, 2, rowType);
-                continue;
-            }
-
-            GenerateAddAsRowInternal(sb, 2, rowTypeFullName, propertyNames);
-            GenerateAddRangeAsRowsInternal(sb, rowType, propertyNames);
-            GenerateAddEnumerableAsRows(sb, 2, rowType);
-            GenerateAddCellsAsRow(sb, 2, rowType, propertyNames);
+            GenerateCodeForType(sb, rowType, location, contextClass, compilation, context);
         }
 
         sb.AppendLine("    }");
         sb.AppendLine("}");
+    }
+
+    private static void GenerateCodeForType(StringBuilder sb, INamedTypeSymbol rowType, Location location,
+        ContextClass contextClass, Compilation compilation, SourceProductionContext context)
+    {
+        var rowTypeName = rowType.Name;
+        var rowTypeFullName = rowType.ToString();
+
+        sb.AppendLine();
+        sb.AppendLine(2, $"private WorksheetRowTypeInfo<{rowTypeFullName}>? _{rowTypeName};");
+        sb.AppendLine(2, $"public WorksheetRowTypeInfo<{rowTypeFullName}> {rowTypeName} => _{rowTypeName} ??= WorksheetRowMetadataServices.CreateObjectInfo<{rowTypeFullName}>(AddAsRowAsync, AddRangeAsRowsAsync);");
+
+        var info = AnalyzeTypeProperties(compilation, contextClass.CompilationTypes, rowType, context);
+        ReportDiagnostics(info, rowType, location, contextClass.Options, context);
+
+        var propertyNames = info.PropertyNames.Values.ToList();
+        GenerateAddHeaderRow(sb, rowType, propertyNames);
+        GenerateAddAsRow(sb, 2, rowType, propertyNames);
+        GenerateAddRangeAsRows(sb, 2, rowType, propertyNames);
+
+        if (info.PropertyNames.Count == 0)
+        {
+            GenerateAddRangeAsEmptyRows(sb, 2, rowType);
+            return;
+        }
+
+        GenerateAddAsRowInternal(sb, 2, rowTypeFullName, propertyNames);
+        GenerateAddRangeAsRowsInternal(sb, rowType, propertyNames);
+        GenerateAddEnumerableAsRows(sb, 2, rowType);
+        GenerateAddCellsAsRow(sb, 2, rowType, propertyNames);
     }
 
     private static void ReportDiagnostics(TypePropertiesInfo info, INamedTypeSymbol rowType, Location location, GeneratorOptions? options, SourceProductionContext context)
