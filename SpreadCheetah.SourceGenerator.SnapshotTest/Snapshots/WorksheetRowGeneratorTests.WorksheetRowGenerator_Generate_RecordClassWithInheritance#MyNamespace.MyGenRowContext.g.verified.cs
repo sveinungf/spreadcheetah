@@ -23,6 +23,21 @@ namespace MyNamespace
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.RecordClassWithInheritance>? _RecordClassWithInheritance;
         public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.RecordClassWithInheritance> RecordClassWithInheritance => _RecordClassWithInheritance ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.RecordClassWithInheritance>(AddAsRowAsync, AddRangeAsRowsAsync);
 
+        private static async ValueTask AddHeaderRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.RecordClassWithInheritance _, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
+        {
+            var cells = ArrayPool<StyledCell>.Shared.Rent(2);
+            try
+            {
+                cells[0] = new StyledCell("Name", styleId);
+                cells[1] = new StyledCell("Age", styleId);
+                await spreadsheet.AddRowAsync(cells.AsMemory(0, 2), token);
+            }
+            finally
+            {
+                ArrayPool<StyledCell>.Shared.Return(cells, true);
+            }
+        }
+
         private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.RecordClassWithInheritance? obj, CancellationToken token)
         {
             if (spreadsheet is null)

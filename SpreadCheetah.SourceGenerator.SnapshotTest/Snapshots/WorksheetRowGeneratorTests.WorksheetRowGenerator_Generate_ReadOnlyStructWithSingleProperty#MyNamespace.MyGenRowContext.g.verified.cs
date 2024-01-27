@@ -23,6 +23,20 @@ namespace MyNamespace
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ReadOnlyStructWithSingleProperty>? _ReadOnlyStructWithSingleProperty;
         public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ReadOnlyStructWithSingleProperty> ReadOnlyStructWithSingleProperty => _ReadOnlyStructWithSingleProperty ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ReadOnlyStructWithSingleProperty>(AddAsRowAsync, AddRangeAsRowsAsync);
 
+        private static async ValueTask AddHeaderRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ReadOnlyStructWithSingleProperty _, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
+        {
+            var cells = ArrayPool<StyledCell>.Shared.Rent(1);
+            try
+            {
+                cells[0] = new StyledCell("Value", styleId);
+                await spreadsheet.AddRowAsync(cells.AsMemory(0, 1), token);
+            }
+            finally
+            {
+                ArrayPool<StyledCell>.Shared.Return(cells, true);
+            }
+        }
+
         private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ReadOnlyStructWithSingleProperty obj, CancellationToken token)
         {
             if (spreadsheet is null)

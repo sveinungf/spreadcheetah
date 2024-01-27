@@ -314,7 +314,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             var info = AnalyzeTypeProperties(compilation, contextClass.CompilationTypes, rowType, context);
             ReportDiagnostics(info, rowType, location, contextClass.Options, context);
 
-            var propertyNames = info.PropertyNames.Values;
+            var propertyNames = info.PropertyNames.Values.ToList();
+            GenerateAddHeaderRow(sb, rowType, propertyNames);
             GenerateAddAsRow(sb, 2, rowType, propertyNames);
             GenerateAddRangeAsRows(sb, 2, rowType, propertyNames);
 
@@ -343,6 +344,52 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         if (info.UnsupportedProperties.FirstOrDefault() is { } unsupportedProperty)
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location, rowType.Name, unsupportedProperty.Type.Name));
+    }
+
+    private static void GenerateAddHeaderRow(StringBuilder sb, INamedTypeSymbol rowType, IReadOnlyList<string> propertyNames)
+    {
+        var returnType = propertyNames.Count == 0
+            ? "ValueTask"
+            : "async ValueTask";
+
+        sb.AppendLine().AppendLine($$"""
+                private static {{returnType}} AddHeaderRowAsync(SpreadCheetah.Spreadsheet spreadsheet, {{rowType}} _, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
+                {
+        """);
+
+        if (propertyNames.Count == 0)
+        {
+            sb.AppendLine("""
+                        return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
+                    }
+            """);
+
+            return;
+        }
+
+        sb.AppendLine($$"""
+                    var cells = ArrayPool<StyledCell>.Shared.Rent({{propertyNames.Count}});
+                    try
+                    {
+        """);
+
+        for (var i = 0; i < propertyNames.Count; i++)
+        {
+            var propertyName = propertyNames[i];
+            sb.AppendLine(FormattableString.Invariant($"""
+                            cells[{i}] = new StyledCell("{propertyName}", styleId);
+            """));
+        }
+
+        sb.AppendLine($$"""
+                        await spreadsheet.AddRowAsync(cells.AsMemory(0, {{propertyNames.Count}}), token);
+                    }
+                    finally
+                    {
+                        ArrayPool<StyledCell>.Shared.Return(cells, true);
+                    }
+                }
+        """);
     }
 
     private static void GenerateAddAsRow(StringBuilder sb, int indent, INamedTypeSymbol rowType, IReadOnlyCollection<string> propertyNames)

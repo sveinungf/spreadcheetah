@@ -23,6 +23,20 @@ namespace MyNamespace
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty>? _ClassWithSingleProperty;
         public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty> ClassWithSingleProperty => _ClassWithSingleProperty ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty>(AddAsRowAsync, AddRangeAsRowsAsync);
 
+        private static async ValueTask AddHeaderRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty _, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
+        {
+            var cells = ArrayPool<StyledCell>.Shared.Rent(1);
+            try
+            {
+                cells[0] = new StyledCell("Name", styleId);
+                await spreadsheet.AddRowAsync(cells.AsMemory(0, 1), token);
+            }
+            finally
+            {
+                ArrayPool<StyledCell>.Shared.Return(cells, true);
+            }
+        }
+
         private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty? obj, CancellationToken token)
         {
             if (spreadsheet is null)

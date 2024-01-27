@@ -23,6 +23,11 @@ namespace MyNamespace
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties>? _ClassWithNoProperties;
         public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties> ClassWithNoProperties => _ClassWithNoProperties ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties>(AddAsRowAsync, AddRangeAsRowsAsync);
 
+        private static ValueTask AddHeaderRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties _, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
+        {
+            return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
+        }
+
         private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties? obj, CancellationToken token)
         {
             if (spreadsheet is null)

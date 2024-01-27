@@ -23,6 +23,35 @@ namespace MyNamespace
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithAllSupportedTypes>? _ClassWithAllSupportedTypes;
         public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithAllSupportedTypes> ClassWithAllSupportedTypes => _ClassWithAllSupportedTypes ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithAllSupportedTypes>(AddAsRowAsync, AddRangeAsRowsAsync);
 
+        private static async ValueTask AddHeaderRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithAllSupportedTypes _, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
+        {
+            var cells = ArrayPool<StyledCell>.Shared.Rent(16);
+            try
+            {
+                cells[0] = new StyledCell("StringValue", styleId);
+                cells[1] = new StyledCell("NullableStringValue", styleId);
+                cells[2] = new StyledCell("IntValue", styleId);
+                cells[3] = new StyledCell("NullableIntValue", styleId);
+                cells[4] = new StyledCell("LongValue", styleId);
+                cells[5] = new StyledCell("NullableLongValue", styleId);
+                cells[6] = new StyledCell("FloatValue", styleId);
+                cells[7] = new StyledCell("NullableFloatValue", styleId);
+                cells[8] = new StyledCell("DoubleValue", styleId);
+                cells[9] = new StyledCell("NullableDoubleValue", styleId);
+                cells[10] = new StyledCell("DecimalValue", styleId);
+                cells[11] = new StyledCell("NullableDecimalValue", styleId);
+                cells[12] = new StyledCell("DateTimeValue", styleId);
+                cells[13] = new StyledCell("NullableDateTimeValue", styleId);
+                cells[14] = new StyledCell("BoolValue", styleId);
+                cells[15] = new StyledCell("NullableBoolValue", styleId);
+                await spreadsheet.AddRowAsync(cells.AsMemory(0, 16), token);
+            }
+            finally
+            {
+                ArrayPool<StyledCell>.Shared.Return(cells, true);
+            }
+        }
+
         private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithAllSupportedTypes? obj, CancellationToken token)
         {
             if (spreadsheet is null)

@@ -23,6 +23,20 @@ namespace MyNamespace
         private WorksheetRowTypeInfo<MyNamespace.ClassWithDuplicateColumnOrdering>? _ClassWithDuplicateColumnOrdering;
         public WorksheetRowTypeInfo<MyNamespace.ClassWithDuplicateColumnOrdering> ClassWithDuplicateColumnOrdering => _ClassWithDuplicateColumnOrdering ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithDuplicateColumnOrdering>(AddAsRowAsync, AddRangeAsRowsAsync);
 
+        private static async ValueTask AddHeaderRowAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithDuplicateColumnOrdering _, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
+        {
+            var cells = ArrayPool<StyledCell>.Shared.Rent(1);
+            try
+            {
+                cells[0] = new StyledCell("PropertyA", styleId);
+                await spreadsheet.AddRowAsync(cells.AsMemory(0, 1), token);
+            }
+            finally
+            {
+                ArrayPool<StyledCell>.Shared.Return(cells, true);
+            }
+        }
+
         private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithDuplicateColumnOrdering? obj, CancellationToken token)
         {
             if (spreadsheet is null)
