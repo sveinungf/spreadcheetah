@@ -21,9 +21,10 @@ namespace MyNamespace
         }
 
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ReadOnlyRecordStructWithSingleProperty>? _ReadOnlyRecordStructWithSingleProperty;
-        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ReadOnlyRecordStructWithSingleProperty> ReadOnlyRecordStructWithSingleProperty => _ReadOnlyRecordStructWithSingleProperty ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ReadOnlyRecordStructWithSingleProperty>(AddAsRowAsync, AddRangeAsRowsAsync);
+        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ReadOnlyRecordStructWithSingleProperty> ReadOnlyRecordStructWithSingleProperty => _ReadOnlyRecordStructWithSingleProperty
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ReadOnlyRecordStructWithSingleProperty>(AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync);
 
-        private static async ValueTask AddHeaderRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ReadOnlyRecordStructWithSingleProperty _, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
+        private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
             var cells = ArrayPool<StyledCell>.Shared.Rent(1);
             try

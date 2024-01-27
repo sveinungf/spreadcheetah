@@ -321,7 +321,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine().AppendLine(FormattableString.Invariant($$"""
                 private WorksheetRowTypeInfo<{{rowTypeFullName}}>? _{{rowTypeName}};
                 public WorksheetRowTypeInfo<{{rowTypeFullName}}> {{rowTypeName}} => _{{rowTypeName}}
-                    ??= WorksheetRowMetadataServices.CreateObjectInfo<{{rowTypeFullName}}>(AddHeaderRowAsync{{typeIndex}}, AddAsRowAsync, AddRangeAsRowsAsync);
+                    ??= WorksheetRowMetadataServices.CreateObjectInfo<{{rowTypeFullName}}>(AddHeaderRow{{typeIndex}}Async, AddAsRowAsync, AddRangeAsRowsAsync);
         """));
 
         var info = AnalyzeTypeProperties(compilation, contextClass.CompilationTypes, rowType, context);
@@ -362,7 +362,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             : "async ValueTask";
 
         sb.AppendLine().AppendLine(FormattableString.Invariant($$"""
-                private static {{returnType}} AddHeaderRowAsync{{typeIndex}}(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
+                private static {{returnType}} AddHeaderRow{{typeIndex}}Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
                 {
         """));
 

@@ -21,9 +21,10 @@ namespace MyNamespace
         }
 
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.RecordClassWithSingleProperty>? _RecordClassWithSingleProperty;
-        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.RecordClassWithSingleProperty> RecordClassWithSingleProperty => _RecordClassWithSingleProperty ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.RecordClassWithSingleProperty>(AddAsRowAsync, AddRangeAsRowsAsync);
+        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.RecordClassWithSingleProperty> RecordClassWithSingleProperty => _RecordClassWithSingleProperty
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.RecordClassWithSingleProperty>(AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync);
 
-        private static async ValueTask AddHeaderRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.RecordClassWithSingleProperty _, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
+        private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
             var cells = ArrayPool<StyledCell>.Shared.Rent(1);
             try

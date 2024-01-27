@@ -21,9 +21,10 @@ namespace MyNamespace
         }
 
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForAllProperties>? _ClassWithColumnOrderForAllProperties;
-        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForAllProperties> ClassWithColumnOrderForAllProperties => _ClassWithColumnOrderForAllProperties ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForAllProperties>(AddAsRowAsync, AddRangeAsRowsAsync);
+        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForAllProperties> ClassWithColumnOrderForAllProperties => _ClassWithColumnOrderForAllProperties
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForAllProperties>(AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync);
 
-        private static async ValueTask AddHeaderRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForAllProperties _, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
+        private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
             var cells = ArrayPool<StyledCell>.Shared.Rent(6);
             try

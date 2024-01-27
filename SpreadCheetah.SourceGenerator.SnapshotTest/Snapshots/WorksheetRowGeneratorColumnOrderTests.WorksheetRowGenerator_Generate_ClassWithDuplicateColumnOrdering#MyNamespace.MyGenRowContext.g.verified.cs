@@ -21,9 +21,10 @@ namespace MyNamespace
         }
 
         private WorksheetRowTypeInfo<MyNamespace.ClassWithDuplicateColumnOrdering>? _ClassWithDuplicateColumnOrdering;
-        public WorksheetRowTypeInfo<MyNamespace.ClassWithDuplicateColumnOrdering> ClassWithDuplicateColumnOrdering => _ClassWithDuplicateColumnOrdering ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithDuplicateColumnOrdering>(AddAsRowAsync, AddRangeAsRowsAsync);
+        public WorksheetRowTypeInfo<MyNamespace.ClassWithDuplicateColumnOrdering> ClassWithDuplicateColumnOrdering => _ClassWithDuplicateColumnOrdering
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithDuplicateColumnOrdering>(AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync);
 
-        private static async ValueTask AddHeaderRowAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithDuplicateColumnOrdering _, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
+        private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
             var cells = ArrayPool<StyledCell>.Shared.Rent(1);
             try
