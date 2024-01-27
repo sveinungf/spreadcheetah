@@ -297,34 +297,38 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         var rowTypeNames = new HashSet<string>(StringComparer.Ordinal);
 
+        var typeIndex = 0;
         foreach (var (rowType, location) in contextClass.RowTypes)
         {
             var rowTypeName = rowType.Name;
             if (!rowTypeNames.Add(rowTypeName))
                 continue;
 
-            GenerateCodeForType(sb, rowType, location, contextClass, compilation, context);
+            GenerateCodeForType(sb, typeIndex, rowType, location, contextClass, compilation, context);
+            ++typeIndex;
         }
 
         sb.AppendLine("    }");
         sb.AppendLine("}");
     }
 
-    private static void GenerateCodeForType(StringBuilder sb, INamedTypeSymbol rowType, Location location,
+    private static void GenerateCodeForType(StringBuilder sb, int typeIndex, INamedTypeSymbol rowType, Location location,
         ContextClass contextClass, Compilation compilation, SourceProductionContext context)
     {
         var rowTypeName = rowType.Name;
         var rowTypeFullName = rowType.ToString();
 
-        sb.AppendLine();
-        sb.AppendLine(2, $"private WorksheetRowTypeInfo<{rowTypeFullName}>? _{rowTypeName};");
-        sb.AppendLine(2, $"public WorksheetRowTypeInfo<{rowTypeFullName}> {rowTypeName} => _{rowTypeName} ??= WorksheetRowMetadataServices.CreateObjectInfo<{rowTypeFullName}>(AddAsRowAsync, AddRangeAsRowsAsync);");
+        sb.AppendLine().AppendLine(FormattableString.Invariant($$"""
+                private WorksheetRowTypeInfo<{{rowTypeFullName}}>? _{{rowTypeName}};
+                public WorksheetRowTypeInfo<{{rowTypeFullName}}> {{rowTypeName}} => _{{rowTypeName}}
+                    ??= WorksheetRowMetadataServices.CreateObjectInfo<{{rowTypeFullName}}>(AddHeaderRowAsync{{typeIndex}}, AddAsRowAsync, AddRangeAsRowsAsync);
+        """));
 
         var info = AnalyzeTypeProperties(compilation, contextClass.CompilationTypes, rowType, context);
         ReportDiagnostics(info, rowType, location, contextClass.Options, context);
 
         var propertyNames = info.PropertyNames.Values.ToList();
-        GenerateAddHeaderRow(sb, rowType, propertyNames);
+        GenerateAddHeaderRow(sb, typeIndex, propertyNames);
         GenerateAddAsRow(sb, 2, rowType, propertyNames);
         GenerateAddRangeAsRows(sb, 2, rowType, propertyNames);
 
@@ -351,16 +355,16 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location, rowType.Name, unsupportedProperty.Type.Name));
     }
 
-    private static void GenerateAddHeaderRow(StringBuilder sb, INamedTypeSymbol rowType, IReadOnlyList<string> propertyNames)
+    private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, IReadOnlyList<string> propertyNames)
     {
         var returnType = propertyNames.Count == 0
             ? "ValueTask"
             : "async ValueTask";
 
-        sb.AppendLine().AppendLine($$"""
-                private static {{returnType}} AddHeaderRowAsync(SpreadCheetah.Spreadsheet spreadsheet, {{rowType}} _, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
+        sb.AppendLine().AppendLine(FormattableString.Invariant($$"""
+                private static {{returnType}} AddHeaderRowAsync{{typeIndex}}(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
                 {
-        """);
+        """));
 
         if (propertyNames.Count == 0)
         {

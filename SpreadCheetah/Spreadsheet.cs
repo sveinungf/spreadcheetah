@@ -320,6 +320,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             : Worksheet.AddRowAsync(cells, options, token);
     }
 
+    public ValueTask AddHeaderRowAsync<T>(WorksheetRowTypeInfo<T> typeInfo, StyleId? styleId = null, CancellationToken token = default)
+    {
+        ArgumentNullException.ThrowIfNull(typeInfo);
+        return typeInfo.HeaderHandler(this, styleId, token);
+    }
+
     /// <summary>
     /// Add object as a row in the active worksheet.
     /// Each property with a public getter on the object will be added as a cell in the row.
