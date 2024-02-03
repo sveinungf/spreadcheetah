@@ -14,18 +14,15 @@ internal sealed class ClosedXmlAssertSheet(XLWorkbook workbook, IXLWorksheet she
         }
     }
 
-    public IEnumerable<ISpreadsheetAssertCell> this[string columnName]
-    {
-        get
-        {
-            var cells = sheet.Column(columnName).CellsUsed();
-            return cells.Select(x => new ClosedXmlAssertCell(x));
-        }
-    }
-
     public int CellCount => sheet.CellsUsed().Count();
 
     public int RowCount => sheet.RowsUsed().Count();
+
+    public IEnumerable<ISpreadsheetAssertCell> Column(string columnName)
+    {
+        var cells = sheet.Column(columnName).CellsUsed();
+        return cells.Select(x => new ClosedXmlAssertCell(x));
+    }
 
     public IEnumerable<ISpreadsheetAssertCell> Row(int rowNumber)
     {

@@ -327,10 +327,10 @@ public class WorksheetRowGeneratorTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(values.Select(x => x.LastName), sheet["A"].Select(x => x.StringValue));
-        Assert.Equal(values.Select(x => x.FirstName), sheet["B"].Select(x => x.StringValue));
-        Assert.Equal(values.Select(x => x.Age), sheet["C"].Select(x => x.IntValue ?? -1));
-        Assert.Equal(values.Select(x => x.Gpa), sheet["D"].Select(x => x.DecimalValue ?? -1));
+        Assert.Equal(values.Select(x => x.LastName), sheet.Column("A").Select(x => x.StringValue));
+        Assert.Equal(values.Select(x => x.FirstName), sheet.Column("B").Select(x => x.StringValue));
+        Assert.Equal(values.Select(x => x.Age), sheet.Column("C").Select(x => x.IntValue ?? -1));
+        Assert.Equal(values.Select(x => x.Gpa), sheet.Column("D").Select(x => x.DecimalValue ?? -1));
         Assert.Equal(3, sheet.RowCount);
     }
 
