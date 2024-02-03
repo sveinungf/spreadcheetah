@@ -442,6 +442,37 @@ public class WorksheetRowGeneratorTests
         Assert.Equal(3, sheet.CellCount);
     }
 
+    [Theory]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddHeaderRow_ObjectWithNoProperties(ObjectType type)
+    {
+        // Arrange
+        var ctx = NoPropertiesContext.Default;
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream);
+        await s.StartWorksheetAsync("Sheet");
+
+        // Act
+        var task = type switch
+        {
+            ObjectType.Class => s.AddAsRowAsync(new ClassWithNoProperties(), ctx.ClassWithNoProperties),
+            ObjectType.RecordClass => s.AddAsRowAsync(new RecordClassWithNoProperties(), ctx.RecordClassWithNoProperties),
+            ObjectType.Struct => s.AddAsRowAsync(new StructWithNoProperties(), ctx.StructWithNoProperties),
+            ObjectType.RecordStruct => s.AddAsRowAsync(new RecordStructWithNoProperties(), ctx.RecordStructWithNoProperties),
+            ObjectType.ReadOnlyStruct => s.AddAsRowAsync(new ReadOnlyStructWithNoProperties(), ctx.ReadOnlyStructWithNoProperties),
+            ObjectType.ReadOnlyRecordStruct => s.AddAsRowAsync(new ReadOnlyRecordStructWithNoProperties(), ctx.ReadOnlyRecordStructWithNoProperties),
+            _ => throw new NotImplementedException(),
+        };
+
+        await task;
+        await s.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Empty(sheet.Row(1));
+        Assert.Equal(0, sheet.CellCount);
+    }
+
     [Fact]
     public async Task Spreadsheet_AddHeaderRow_Styling()
     {
