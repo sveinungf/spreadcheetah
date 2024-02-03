@@ -6,8 +6,16 @@ using ArgumentNullException = SpreadCheetah.Helpers.Backporting.ArgumentNullExce
 
 namespace SpreadCheetah.SourceGeneration;
 
+/// <summary>
+/// Used by the SpreadCheetah source generator for types without valid publicly visible getters.
+/// Should not be used directly.
+/// </summary>
 public static class EmptyWorksheetRowContext
 {
+    /// <summary>
+    /// Creates metadata for a type without valid publicly visible getters.
+    /// Should not be used directly.
+    /// </summary>
     public static WorksheetRowTypeInfo<T> CreateTypeInfo<T>() => WorksheetRowMetadataServices.CreateObjectInfo<T>(AddHeaderRowAsync, AddAsRowAsync, AddRangeAsRowsAsync);
 
     private static ValueTask AddHeaderRowAsync(Spreadsheet spreadsheet, StyleId? _, CancellationToken token)
