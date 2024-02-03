@@ -1,5 +1,6 @@
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models;
 using SpreadCheetah.SourceGenerator.Test.Models.Accessibility;
@@ -500,5 +501,30 @@ public class WorksheetRowGeneratorTests
         Assert.Equal("Age", sheet["C", 1].StringValue);
         Assert.Equal("Gpa", sheet["D", 1].StringValue);
         Assert.Equal(4, sheet.CellCount);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddHeaderRow_NullTypeInfo()
+    {
+        // Arrange
+        WorksheetRowTypeInfo<ClassWithMultipleProperties> typeInfo = null!;
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentNullException>(() => spreadsheet.AddHeaderRowAsync(typeInfo).AsTask());
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddHeaderRow_ThrowsWhenNoWorksheet()
+    {
+        // Arrange
+        var typeInfo = MultiplePropertiesContext.Default.ClassWithMultipleProperties;
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<SpreadCheetahException>(() => spreadsheet.AddHeaderRowAsync(typeInfo).AsTask());
     }
 }
