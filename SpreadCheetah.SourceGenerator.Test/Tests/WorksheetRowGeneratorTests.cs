@@ -385,12 +385,12 @@ public class WorksheetRowGeneratorTests
             // Act
             var task = type switch
             {
-                ObjectType.Class => s.AddRangeAsRowsAsync(Enumerable.Empty<ClassWithMultipleProperties>(), ctx.ClassWithMultipleProperties),
-                ObjectType.RecordClass => s.AddRangeAsRowsAsync(Enumerable.Empty<RecordClassWithMultipleProperties>(), ctx.RecordClassWithMultipleProperties),
-                ObjectType.Struct => s.AddRangeAsRowsAsync(Enumerable.Empty<StructWithMultipleProperties>(), ctx.StructWithMultipleProperties),
-                ObjectType.RecordStruct => s.AddRangeAsRowsAsync(Enumerable.Empty<RecordStructWithMultipleProperties>(), ctx.RecordStructWithMultipleProperties),
-                ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync(Enumerable.Empty<ReadOnlyStructWithMultipleProperties>(), ctx.ReadOnlyStructWithMultipleProperties),
-                ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync(Enumerable.Empty<ReadOnlyRecordStructWithMultipleProperties>(), ctx.ReadOnlyRecordStructWithMultipleProperties),
+                ObjectType.Class => s.AddRangeAsRowsAsync([], ctx.ClassWithMultipleProperties),
+                ObjectType.RecordClass => s.AddRangeAsRowsAsync([], ctx.RecordClassWithMultipleProperties),
+                ObjectType.Struct => s.AddRangeAsRowsAsync([], ctx.StructWithMultipleProperties),
+                ObjectType.RecordStruct => s.AddRangeAsRowsAsync([], ctx.RecordStructWithMultipleProperties),
+                ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync([], ctx.ReadOnlyStructWithMultipleProperties),
+                ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync([], ctx.ReadOnlyRecordStructWithMultipleProperties),
                 _ => throw new NotImplementedException(),
             };
 
@@ -404,5 +404,39 @@ public class WorksheetRowGeneratorTests
         var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
         var rows = sheetPart.Worksheet.Descendants<Row>();
         Assert.Empty(rows);
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddHeaderRow_ObjectWithMultipleProperties(ObjectType type)
+    {
+        // Arrange
+        var ctx = MultiplePropertiesContext.Default;
+
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream);
+        await s.StartWorksheetAsync("Sheet");
+
+        // Act
+        var task = type switch
+        {
+            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassWithMultipleProperties),
+            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassWithMultipleProperties),
+            ObjectType.Struct => s.AddHeaderRowAsync(ctx.StructWithMultipleProperties),
+            ObjectType.RecordStruct => s.AddHeaderRowAsync(ctx.RecordStructWithMultipleProperties),
+            ObjectType.ReadOnlyStruct => s.AddHeaderRowAsync(ctx.ReadOnlyStructWithMultipleProperties),
+            ObjectType.ReadOnlyRecordStruct => s.AddHeaderRowAsync(ctx.ReadOnlyRecordStructWithMultipleProperties),
+            _ => throw new NotImplementedException(),
+        };
+
+        await task;
+        await s.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal("FirstName", sheet["A", 1].StringValue);
+        Assert.Equal("LastName", sheet["B", 1].StringValue);
+        Assert.Equal("Age", sheet["C", 1].StringValue);
+        Assert.Equal(3, sheet.CellCount);
     }
 }
