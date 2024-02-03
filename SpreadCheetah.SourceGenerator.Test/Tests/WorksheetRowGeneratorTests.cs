@@ -7,6 +7,7 @@ using SpreadCheetah.SourceGenerator.Test.Models.ColumnOrdering;
 using SpreadCheetah.SourceGenerator.Test.Models.Contexts;
 using SpreadCheetah.SourceGenerator.Test.Models.MultipleProperties;
 using SpreadCheetah.SourceGenerator.Test.Models.NoProperties;
+using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
 using Xunit;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
@@ -437,6 +438,32 @@ public class WorksheetRowGeneratorTests
         Assert.Equal("FirstName", sheet["A", 1].StringValue);
         Assert.Equal("LastName", sheet["B", 1].StringValue);
         Assert.Equal("Age", sheet["C", 1].StringValue);
+        Assert.Equal(3, sheet.CellCount);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddHeaderRow_Styling()
+    {
+        // Arrange
+        var ctx = MultiplePropertiesContext.Default;
+
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream);
+        await s.StartWorksheetAsync("Sheet");
+
+        var style = new Style { Font = { Bold = true } };
+        var styleId = s.AddStyle(style);
+
+        // Act
+        await s.AddHeaderRowAsync(ctx.ClassWithMultipleProperties, styleId);
+        await s.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal("FirstName", sheet["A", 1].StringValue);
+        Assert.Equal("LastName", sheet["B", 1].StringValue);
+        Assert.Equal("Age", sheet["C", 1].StringValue);
+        Assert.All(sheet.Row(1), x => Assert.True(x.Style.Font.Bold));
         Assert.Equal(3, sheet.CellCount);
     }
 }
