@@ -1,4 +1,4 @@
-using DocumentFormat.OpenXml.Packaging;
+using ClosedXML.Excel;
 
 namespace SpreadCheetah.TestHelpers.Assertions;
 
@@ -11,9 +11,9 @@ public static class SpreadsheetAssert
 
         stream.Position = 0;
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        var document = SpreadsheetDocument.Open(stream, false);
+        var workbook = new XLWorkbook(stream);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-        var sheetPart = document.WorkbookPart!.WorksheetParts.Single();
-        return new OpenXmlAssertSheet(document, sheetPart.Worksheet);
+        var sheet = workbook.Worksheets.Single();
+        return new ClosedXmlAssertSheet(workbook, sheet);
     }
 }
