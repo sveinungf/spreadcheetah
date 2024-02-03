@@ -1,5 +1,6 @@
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models;
 using SpreadCheetah.SourceGenerator.Test.Models.Accessibility;
@@ -7,6 +8,7 @@ using SpreadCheetah.SourceGenerator.Test.Models.ColumnOrdering;
 using SpreadCheetah.SourceGenerator.Test.Models.Contexts;
 using SpreadCheetah.SourceGenerator.Test.Models.MultipleProperties;
 using SpreadCheetah.SourceGenerator.Test.Models.NoProperties;
+using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
 using Xunit;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
@@ -326,10 +328,10 @@ public class WorksheetRowGeneratorTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(values.Select(x => x.LastName), sheet["A"].Select(x => x.StringValue));
-        Assert.Equal(values.Select(x => x.FirstName), sheet["B"].Select(x => x.StringValue));
-        Assert.Equal(values.Select(x => x.Age), sheet["C"].Select(x => x.IntValue ?? -1));
-        Assert.Equal(values.Select(x => x.Gpa), sheet["D"].Select(x => x.DecimalValue ?? -1));
+        Assert.Equal(values.Select(x => x.LastName), sheet.Column("A").Select(x => x.StringValue));
+        Assert.Equal(values.Select(x => x.FirstName), sheet.Column("B").Select(x => x.StringValue));
+        Assert.Equal(values.Select(x => x.Age), sheet.Column("C").Select(x => x.IntValue ?? -1));
+        Assert.Equal(values.Select(x => x.Gpa), sheet.Column("D").Select(x => x.DecimalValue ?? -1));
         Assert.Equal(3, sheet.RowCount);
     }
 
@@ -385,12 +387,12 @@ public class WorksheetRowGeneratorTests
             // Act
             var task = type switch
             {
-                ObjectType.Class => s.AddRangeAsRowsAsync(Enumerable.Empty<ClassWithMultipleProperties>(), ctx.ClassWithMultipleProperties),
-                ObjectType.RecordClass => s.AddRangeAsRowsAsync(Enumerable.Empty<RecordClassWithMultipleProperties>(), ctx.RecordClassWithMultipleProperties),
-                ObjectType.Struct => s.AddRangeAsRowsAsync(Enumerable.Empty<StructWithMultipleProperties>(), ctx.StructWithMultipleProperties),
-                ObjectType.RecordStruct => s.AddRangeAsRowsAsync(Enumerable.Empty<RecordStructWithMultipleProperties>(), ctx.RecordStructWithMultipleProperties),
-                ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync(Enumerable.Empty<ReadOnlyStructWithMultipleProperties>(), ctx.ReadOnlyStructWithMultipleProperties),
-                ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync(Enumerable.Empty<ReadOnlyRecordStructWithMultipleProperties>(), ctx.ReadOnlyRecordStructWithMultipleProperties),
+                ObjectType.Class => s.AddRangeAsRowsAsync([], ctx.ClassWithMultipleProperties),
+                ObjectType.RecordClass => s.AddRangeAsRowsAsync([], ctx.RecordClassWithMultipleProperties),
+                ObjectType.Struct => s.AddRangeAsRowsAsync([], ctx.StructWithMultipleProperties),
+                ObjectType.RecordStruct => s.AddRangeAsRowsAsync([], ctx.RecordStructWithMultipleProperties),
+                ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync([], ctx.ReadOnlyStructWithMultipleProperties),
+                ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync([], ctx.ReadOnlyRecordStructWithMultipleProperties),
                 _ => throw new NotImplementedException(),
             };
 
@@ -404,5 +406,156 @@ public class WorksheetRowGeneratorTests
         var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
         var rows = sheetPart.Worksheet.Descendants<Row>();
         Assert.Empty(rows);
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddHeaderRow_ObjectWithMultipleProperties(ObjectType type)
+    {
+        // Arrange
+        var ctx = MultiplePropertiesContext.Default;
+
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream);
+        await s.StartWorksheetAsync("Sheet");
+
+        // Act
+        var task = type switch
+        {
+            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassWithMultipleProperties),
+            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassWithMultipleProperties),
+            ObjectType.Struct => s.AddHeaderRowAsync(ctx.StructWithMultipleProperties),
+            ObjectType.RecordStruct => s.AddHeaderRowAsync(ctx.RecordStructWithMultipleProperties),
+            ObjectType.ReadOnlyStruct => s.AddHeaderRowAsync(ctx.ReadOnlyStructWithMultipleProperties),
+            ObjectType.ReadOnlyRecordStruct => s.AddHeaderRowAsync(ctx.ReadOnlyRecordStructWithMultipleProperties),
+            _ => throw new NotImplementedException(),
+        };
+
+        await task;
+        await s.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal("FirstName", sheet["A", 1].StringValue);
+        Assert.Equal("LastName", sheet["B", 1].StringValue);
+        Assert.Equal("Age", sheet["C", 1].StringValue);
+        Assert.Equal(3, sheet.CellCount);
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddHeaderRow_ObjectWithNoProperties(ObjectType type)
+    {
+        // Arrange
+        var ctx = NoPropertiesContext.Default;
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream);
+        await s.StartWorksheetAsync("Sheet");
+
+        // Act
+        var task = type switch
+        {
+            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassWithNoProperties),
+            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassWithNoProperties),
+            ObjectType.Struct => s.AddHeaderRowAsync(ctx.StructWithNoProperties),
+            ObjectType.RecordStruct => s.AddHeaderRowAsync(ctx.RecordStructWithNoProperties),
+            ObjectType.ReadOnlyStruct => s.AddHeaderRowAsync(ctx.ReadOnlyStructWithNoProperties),
+            ObjectType.ReadOnlyRecordStruct => s.AddHeaderRowAsync(ctx.ReadOnlyRecordStructWithNoProperties),
+            _ => throw new NotImplementedException(),
+        };
+
+        await task;
+        await s.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Empty(sheet.Row(1));
+        Assert.Equal(0, sheet.CellCount);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddHeaderRow_Styling()
+    {
+        // Arrange
+        var ctx = MultiplePropertiesContext.Default;
+
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream);
+        await s.StartWorksheetAsync("Sheet");
+
+        var style = new Style { Font = { Bold = true } };
+        var styleId = s.AddStyle(style);
+
+        // Act
+        await s.AddHeaderRowAsync(ctx.ClassWithMultipleProperties, styleId);
+        await s.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal("FirstName", sheet["A", 1].StringValue);
+        Assert.Equal("LastName", sheet["B", 1].StringValue);
+        Assert.Equal("Age", sheet["C", 1].StringValue);
+        Assert.All(sheet.Row(1), x => Assert.True(x.Style.Font.Bold));
+        Assert.Equal(3, sheet.CellCount);
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddHeaderRow_ObjectWithColumnOrdering(ObjectType type)
+    {
+        // Arrange
+        var ctx = ColumnOrderingContext.Default;
+
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream);
+        await s.StartWorksheetAsync("Sheet");
+
+        // Act
+        var task = type switch
+        {
+            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassWithColumnOrdering),
+            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassWithColumnOrdering),
+            ObjectType.Struct => s.AddHeaderRowAsync(ctx.StructWithColumnOrdering),
+            ObjectType.RecordStruct => s.AddHeaderRowAsync(ctx.RecordStructWithColumnOrdering),
+            ObjectType.ReadOnlyStruct => s.AddHeaderRowAsync(ctx.ReadOnlyStructWithColumnOrdering),
+            ObjectType.ReadOnlyRecordStruct => s.AddHeaderRowAsync(ctx.ReadOnlyRecordStructWithColumnOrdering),
+            _ => throw new NotImplementedException()
+        };
+
+        await task;
+        await s.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal("LastName", sheet["A", 1].StringValue);
+        Assert.Equal("FirstName", sheet["B", 1].StringValue);
+        Assert.Equal("Age", sheet["C", 1].StringValue);
+        Assert.Equal("Gpa", sheet["D", 1].StringValue);
+        Assert.Equal(4, sheet.CellCount);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddHeaderRow_NullTypeInfo()
+    {
+        // Arrange
+        WorksheetRowTypeInfo<ClassWithMultipleProperties> typeInfo = null!;
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentNullException>(() => spreadsheet.AddHeaderRowAsync(typeInfo).AsTask());
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddHeaderRow_ThrowsWhenNoWorksheet()
+    {
+        // Arrange
+        var typeInfo = MultiplePropertiesContext.Default.ClassWithMultipleProperties;
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<SpreadCheetahException>(() => spreadsheet.AddHeaderRowAsync(typeInfo).AsTask());
     }
 }

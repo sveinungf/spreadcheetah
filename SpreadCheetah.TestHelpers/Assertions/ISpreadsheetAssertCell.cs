@@ -5,4 +5,5 @@ public interface ISpreadsheetAssertCell
     int? IntValue { get; }
     decimal? DecimalValue { get; }
     string? StringValue { get; }
+    ISpreadsheetAssertStyle Style { get; }
 }

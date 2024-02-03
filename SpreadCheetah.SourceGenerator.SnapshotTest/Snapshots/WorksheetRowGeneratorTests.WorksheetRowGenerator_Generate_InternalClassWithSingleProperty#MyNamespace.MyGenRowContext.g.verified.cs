@@ -21,7 +21,22 @@ namespace MyNamespace
         }
 
         private WorksheetRowTypeInfo<MyNamespace.InternalClassWithSingleProperty>? _InternalClassWithSingleProperty;
-        public WorksheetRowTypeInfo<MyNamespace.InternalClassWithSingleProperty> InternalClassWithSingleProperty => _InternalClassWithSingleProperty ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.InternalClassWithSingleProperty>(AddAsRowAsync, AddRangeAsRowsAsync);
+        public WorksheetRowTypeInfo<MyNamespace.InternalClassWithSingleProperty> InternalClassWithSingleProperty => _InternalClassWithSingleProperty
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.InternalClassWithSingleProperty>(AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync);
+
+        private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
+        {
+            var cells = ArrayPool<StyledCell>.Shared.Rent(1);
+            try
+            {
+                cells[0] = new StyledCell("Name", styleId);
+                await spreadsheet.AddRowAsync(cells.AsMemory(0, 1), token).ConfigureAwait(false);
+            }
+            finally
+            {
+                ArrayPool<StyledCell>.Shared.Return(cells, true);
+            }
+        }
 
         private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.InternalClassWithSingleProperty? obj, CancellationToken token)
         {

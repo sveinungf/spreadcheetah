@@ -6,6 +6,7 @@ using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Helpers;
 using SpreadCheetah.SourceGenerator.Models;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
@@ -17,7 +18,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var filtered = context.SyntaxProvider
-            .CreateSyntaxProvider(
+            .ForAttributeWithMetadataName(
+                "SpreadCheetah.SourceGeneration.WorksheetRowAttribute",
                 static (s, _) => IsSyntaxTargetForGeneration(s),
                 static (ctx, token) => GetSemanticTargetForGeneration(ctx, token))
             .Where(static x => x is not null)
@@ -30,13 +32,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
     private static bool IsSyntaxTargetForGeneration(SyntaxNode syntaxNode) => syntaxNode is ClassDeclarationSyntax
     {
-        AttributeLists.Count: > 0,
         BaseList.Types.Count: > 0
     };
 
-    private static ContextClass? GetSemanticTargetForGeneration(GeneratorSyntaxContext context, CancellationToken token)
+    private static ContextClass? GetSemanticTargetForGeneration(GeneratorAttributeSyntaxContext context, CancellationToken token)
     {
-        if (context.Node is not ClassDeclarationSyntax classDeclaration)
+        if (context.TargetNode is not ClassDeclarationSyntax classDeclaration)
             return null;
 
         if (!classDeclaration.Modifiers.Any(static x => x.IsKind(SyntaxKind.PartialKeyword)))
@@ -55,36 +56,35 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var rowTypes = new Dictionary<INamedTypeSymbol, Location>(SymbolEqualityComparer.Default);
         GeneratorOptions? generatorOptions = null;
 
-        foreach (var attribute in classSymbol.GetAttributes())
+        foreach (var worksheetRowAttribute in context.Attributes)
         {
-            if (TryParseWorksheetRowAttribute(attribute, compilationTypes.WorksheetRowAttribute, token, out var typeSymbol, out var location)
+            if (TryParseWorksheetRowAttribute(worksheetRowAttribute, token, out var typeSymbol, out var location)
                 && !rowTypes.ContainsKey(typeSymbol))
             {
                 rowTypes[typeSymbol] = location;
-                continue;
             }
+        }
 
+        if (rowTypes.Count == 0)
+            return null;
+
+        foreach (var attribute in classSymbol.GetAttributes())
+        {
             if (TryParseOptionsAttribute(attribute, compilationTypes.WorksheetRowGenerationOptionsAttribute, out var options))
                 generatorOptions = options;
         }
 
-        return rowTypes.Count > 0
-            ? new ContextClass(classSymbol, rowTypes, compilationTypes, generatorOptions)
-            : null;
+        return new ContextClass(classSymbol, rowTypes, compilationTypes, generatorOptions);
     }
 
     private static bool TryParseWorksheetRowAttribute(
         AttributeData attribute,
-        INamedTypeSymbol expectedAttribute,
         CancellationToken token,
         [NotNullWhen(true)] out INamedTypeSymbol? typeSymbol,
         [NotNullWhen(true)] out Location? location)
     {
         typeSymbol = null;
         location = null;
-
-        if (!SymbolEqualityComparer.Default.Equals(expectedAttribute, attribute.AttributeClass))
-            return false;
 
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: INamedTypeSymbol symbol }])
@@ -115,12 +115,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         if (attribute.NamedArguments.IsDefaultOrEmpty)
             return false;
 
-        foreach (var arg in attribute.NamedArguments)
+        foreach (var (key, value) in attribute.NamedArguments)
         {
-            if (!string.Equals(arg.Key, "SuppressWarnings", StringComparison.Ordinal))
+            if (!string.Equals(key, "SuppressWarnings", StringComparison.Ordinal))
                 continue;
 
-            if (arg.Value.Value is bool suppressWarnings)
+            if (value.Value is bool suppressWarnings)
             {
                 options = new GeneratorOptions(suppressWarnings);
                 return true;
@@ -298,41 +298,56 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         var rowTypeNames = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (var keyValue in contextClass.RowTypes)
+        var typeIndex = 0;
+        foreach (var (rowType, location) in contextClass.RowTypes)
         {
-            var rowType = keyValue.Key;
             var rowTypeName = rowType.Name;
             if (!rowTypeNames.Add(rowTypeName))
                 continue;
 
-            var rowTypeFullName = rowType.ToString();
-            var location = keyValue.Value;
-
-            sb.AppendLine();
-            sb.AppendLine(2, $"private WorksheetRowTypeInfo<{rowTypeFullName}>? _{rowTypeName};");
-            sb.AppendLine(2, $"public WorksheetRowTypeInfo<{rowTypeFullName}> {rowTypeName} => _{rowTypeName} ??= WorksheetRowMetadataServices.CreateObjectInfo<{rowTypeFullName}>(AddAsRowAsync, AddRangeAsRowsAsync);");
-
-            var info = AnalyzeTypeProperties(compilation, contextClass.CompilationTypes, rowType, context);
-            ReportDiagnostics(info, rowType, location, contextClass.Options, context);
-
-            var propertyNames = info.PropertyNames.Values;
-            GenerateAddAsRow(sb, 2, rowType, propertyNames);
-            GenerateAddRangeAsRows(sb, 2, rowType, propertyNames);
-
-            if (info.PropertyNames.Count == 0)
-            {
-                GenerateAddRangeAsEmptyRows(sb, 2, rowType);
-                continue;
-            }
-
-            GenerateAddAsRowInternal(sb, 2, rowTypeFullName, propertyNames);
-            GenerateAddRangeAsRowsInternal(sb, rowType, propertyNames);
-            GenerateAddEnumerableAsRows(sb, 2, rowType);
-            GenerateAddCellsAsRow(sb, 2, rowType, propertyNames);
+            GenerateCodeForType(sb, typeIndex, rowType, location, contextClass, compilation, context);
+            ++typeIndex;
         }
 
         sb.AppendLine("    }");
         sb.AppendLine("}");
+    }
+
+    private static void GenerateCodeForType(StringBuilder sb, int typeIndex, INamedTypeSymbol rowType, Location location,
+        ContextClass contextClass, Compilation compilation, SourceProductionContext context)
+    {
+        var rowTypeName = rowType.Name;
+        var rowTypeFullName = rowType.ToString();
+
+        var info = AnalyzeTypeProperties(compilation, contextClass.CompilationTypes, rowType, context);
+        ReportDiagnostics(info, rowType, location, contextClass.Options, context);
+
+        sb.AppendLine().AppendLine(FormattableString.Invariant($$"""
+                private WorksheetRowTypeInfo<{{rowTypeFullName}}>? _{{rowTypeName}};
+                public WorksheetRowTypeInfo<{{rowTypeFullName}}> {{rowTypeName}} => _{{rowTypeName}}
+        """));
+
+        if (info.PropertyNames.Count == 0)
+        {
+            sb.AppendLine($$"""
+                        ??= EmptyWorksheetRowContext.CreateTypeInfo<{{rowTypeFullName}}>();
+            """);
+
+            return;
+        }
+
+        sb.AppendLine(FormattableString.Invariant($$"""
+                        ??= WorksheetRowMetadataServices.CreateObjectInfo<{{rowTypeFullName}}>(AddHeaderRow{{typeIndex}}Async, AddAsRowAsync, AddRangeAsRowsAsync);
+            """));
+
+        var propertyNames = info.PropertyNames.Values.ToList();
+        GenerateAddHeaderRow(sb, typeIndex, propertyNames);
+        GenerateAddAsRow(sb, 2, rowType);
+        GenerateAddRangeAsRows(sb, 2, rowType);
+        GenerateAddAsRowInternal(sb, 2, rowTypeFullName, propertyNames);
+        GenerateAddRangeAsRowsInternal(sb, rowType, propertyNames);
+        GenerateAddEnumerableAsRows(sb, 2, rowType);
+        GenerateAddCellsAsRow(sb, 2, rowType, propertyNames);
     }
 
     private static void ReportDiagnostics(TypePropertiesInfo info, INamedTypeSymbol rowType, Location location, GeneratorOptions? options, SourceProductionContext context)
@@ -346,7 +361,38 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location, rowType.Name, unsupportedProperty.Type.Name));
     }
 
-    private static void GenerateAddAsRow(StringBuilder sb, int indent, INamedTypeSymbol rowType, IReadOnlyCollection<string> propertyNames)
+    private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, IReadOnlyList<string> propertyNames)
+    {
+        Debug.Assert(propertyNames.Count > 0);
+
+        sb.AppendLine().AppendLine(FormattableString.Invariant($$"""
+                private static async ValueTask AddHeaderRow{{typeIndex}}Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
+                {
+                    var cells = ArrayPool<StyledCell>.Shared.Rent({{propertyNames.Count}});
+                    try
+                    {
+        """));
+
+        for (var i = 0; i < propertyNames.Count; i++)
+        {
+            var propertyName = propertyNames[i];
+            sb.AppendLine(FormattableString.Invariant($"""
+                            cells[{i}] = new StyledCell("{propertyName}", styleId);
+            """));
+        }
+
+        sb.AppendLine($$"""
+                        await spreadsheet.AddRowAsync(cells.AsMemory(0, {{propertyNames.Count}}), token).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        ArrayPool<StyledCell>.Shared.Return(cells, true);
+                    }
+                }
+        """);
+    }
+
+    private static void GenerateAddAsRow(StringBuilder sb, int indent, INamedTypeSymbol rowType)
     {
         sb.AppendLine()
             .AppendIndentation(indent)
@@ -357,13 +403,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "{");
         sb.AppendLine(indent, "    if (spreadsheet is null)");
         sb.AppendLine(indent, "        throw new ArgumentNullException(nameof(spreadsheet));");
-
-        if (propertyNames.Count == 0)
-        {
-            sb.AppendLine(indent, "    return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);");
-            sb.AppendLine(indent, "}");
-            return;
-        }
 
         if (rowType.IsReferenceType)
         {
@@ -377,6 +416,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
     private static void GenerateAddAsRowInternal(StringBuilder sb, int indent, string rowTypeFullname, IReadOnlyCollection<string> propertyNames)
     {
+        Debug.Assert(propertyNames.Count > 0);
+
         sb.AppendLine();
         sb.AppendLine(indent, $"private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, {rowTypeFullname} obj, CancellationToken token)");
         sb.AppendLine(indent, "{");
@@ -392,7 +433,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "}");
     }
 
-    private static void GenerateAddRangeAsRows(StringBuilder sb, int indent, INamedTypeSymbol rowType, IReadOnlyCollection<string> propertyNames)
+    private static void GenerateAddRangeAsRows(StringBuilder sb, int indent, INamedTypeSymbol rowType)
     {
         sb.AppendLine()
             .AppendIndentation(indent)
@@ -405,33 +446,14 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "        throw new ArgumentNullException(nameof(spreadsheet));");
         sb.AppendLine(indent, "    if (objs is null)");
         sb.AppendLine(indent, "        throw new ArgumentNullException(nameof(objs));");
-
-        if (propertyNames.Count == 0)
-            sb.AppendLine(indent, "    return AddRangeAsEmptyRowsAsync(spreadsheet, objs, token);");
-        else
-            sb.AppendLine(indent, "    return AddRangeAsRowsInternalAsync(spreadsheet, objs, token);");
-
-        sb.AppendLine(indent, "}");
-    }
-
-    private static void GenerateAddRangeAsEmptyRows(StringBuilder sb, int indent, INamedTypeSymbol rowType)
-    {
-        sb.AppendLine()
-            .AppendIndentation(indent)
-            .Append("private static async ValueTask AddRangeAsEmptyRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<")
-            .AppendType(rowType)
-            .AppendLine("> objs, CancellationToken token)");
-
-        sb.AppendLine(indent, "{");
-        sb.AppendLine(indent, "    foreach (var _ in objs)");
-        sb.AppendLine(indent, "    {");
-        sb.AppendLine(indent, "        await spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);");
-        sb.AppendLine(indent, "    }");
+        sb.AppendLine(indent, "    return AddRangeAsRowsInternalAsync(spreadsheet, objs, token);");
         sb.AppendLine(indent, "}");
     }
 
     private static void GenerateAddRangeAsRowsInternal(StringBuilder sb, INamedTypeSymbol rowType, IReadOnlyCollection<string> propertyNames)
     {
+        Debug.Assert(propertyNames.Count > 0);
+
         var typeString = rowType.ToTypeString();
         sb.Append($$"""
 
@@ -469,6 +491,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
     private static void GenerateAddCellsAsRow(StringBuilder sb, int indent, INamedTypeSymbol rowType, IReadOnlyCollection<string> propertyNames)
     {
+        Debug.Assert(propertyNames.Count > 0);
+
         sb.AppendLine()
             .AppendIndentation(indent)
             .Append("private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, ")

@@ -16,8 +16,6 @@ internal static class CompilationExtensions
 
         if (!compilation.TryGetType($"{ns}.ColumnOrderAttribute", out var columnOrder))
             return false;
-        if (!compilation.TryGetType($"{ns}.WorksheetRowAttribute", out var row))
-            return false;
         if (!compilation.TryGetType($"{ns}.WorksheetRowContext", out var context))
             return false;
         if (!compilation.TryGetType($"{ns}.WorksheetRowGenerationOptionsAttribute", out var options))
@@ -25,7 +23,6 @@ internal static class CompilationExtensions
 
         result = new CompilationTypes(
             ColumnOrderAttribute: columnOrder,
-            WorksheetRowAttribute: row,
             WorksheetRowContext: context,
             WorksheetRowGenerationOptionsAttribute: options);
 

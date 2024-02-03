@@ -21,7 +21,27 @@ namespace MyNamespace
         }
 
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForAllProperties>? _ClassWithColumnOrderForAllProperties;
-        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForAllProperties> ClassWithColumnOrderForAllProperties => _ClassWithColumnOrderForAllProperties ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForAllProperties>(AddAsRowAsync, AddRangeAsRowsAsync);
+        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForAllProperties> ClassWithColumnOrderForAllProperties => _ClassWithColumnOrderForAllProperties
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForAllProperties>(AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync);
+
+        private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
+        {
+            var cells = ArrayPool<StyledCell>.Shared.Rent(6);
+            try
+            {
+                cells[0] = new StyledCell("LastName", styleId);
+                cells[1] = new StyledCell("FirstName", styleId);
+                cells[2] = new StyledCell("MiddleName", styleId);
+                cells[3] = new StyledCell("Employed", styleId);
+                cells[4] = new StyledCell("Age", styleId);
+                cells[5] = new StyledCell("Score", styleId);
+                await spreadsheet.AddRowAsync(cells.AsMemory(0, 6), token).ConfigureAwait(false);
+            }
+            finally
+            {
+                ArrayPool<StyledCell>.Shared.Return(cells, true);
+            }
+        }
 
         private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForAllProperties? obj, CancellationToken token)
         {
