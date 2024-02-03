@@ -466,4 +466,39 @@ public class WorksheetRowGeneratorTests
         Assert.All(sheet.Row(1), x => Assert.True(x.Style.Font.Bold));
         Assert.Equal(3, sheet.CellCount);
     }
+
+    [Theory]
+    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddHeaderRow_ObjectWithColumnOrdering(ObjectType type)
+    {
+        // Arrange
+        var ctx = ColumnOrderingContext.Default;
+
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream);
+        await s.StartWorksheetAsync("Sheet");
+
+        // Act
+        var task = type switch
+        {
+            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassWithColumnOrdering),
+            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassWithColumnOrdering),
+            ObjectType.Struct => s.AddHeaderRowAsync(ctx.StructWithColumnOrdering),
+            ObjectType.RecordStruct => s.AddHeaderRowAsync(ctx.RecordStructWithColumnOrdering),
+            ObjectType.ReadOnlyStruct => s.AddHeaderRowAsync(ctx.ReadOnlyStructWithColumnOrdering),
+            ObjectType.ReadOnlyRecordStruct => s.AddHeaderRowAsync(ctx.ReadOnlyRecordStructWithColumnOrdering),
+            _ => throw new NotImplementedException()
+        };
+
+        await task;
+        await s.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal("LastName", sheet["A", 1].StringValue);
+        Assert.Equal("FirstName", sheet["B", 1].StringValue);
+        Assert.Equal("Age", sheet["C", 1].StringValue);
+        Assert.Equal("Gpa", sheet["D", 1].StringValue);
+        Assert.Equal(4, sheet.CellCount);
+    }
 }
