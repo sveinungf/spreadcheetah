@@ -382,7 +382,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         }
 
         sb.AppendLine($$"""
-                        await spreadsheet.AddRowAsync(cells.AsMemory(0, {{propertyNames.Count}}), token);
+                        await spreadsheet.AddRowAsync(cells.AsMemory(0, {{propertyNames.Count}}), token).ConfigureAwait(false);
                     }
                     finally
                     {

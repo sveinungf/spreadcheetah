@@ -45,7 +45,7 @@ namespace MyNamespace
                 cells[13] = new StyledCell("NullableDateTimeValue", styleId);
                 cells[14] = new StyledCell("BoolValue", styleId);
                 cells[15] = new StyledCell("NullableBoolValue", styleId);
-                await spreadsheet.AddRowAsync(cells.AsMemory(0, 16), token);
+                await spreadsheet.AddRowAsync(cells.AsMemory(0, 16), token).ConfigureAwait(false);
             }
             finally
             {

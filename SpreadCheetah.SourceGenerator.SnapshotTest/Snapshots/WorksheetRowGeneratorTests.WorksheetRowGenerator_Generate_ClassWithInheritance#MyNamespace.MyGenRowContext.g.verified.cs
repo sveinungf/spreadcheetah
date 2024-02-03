@@ -31,7 +31,7 @@ namespace MyNamespace
             {
                 cells[0] = new StyledCell("Address", styleId);
                 cells[1] = new StyledCell("Country", styleId);
-                await spreadsheet.AddRowAsync(cells.AsMemory(0, 2), token);
+                await spreadsheet.AddRowAsync(cells.AsMemory(0, 2), token).ConfigureAwait(false);
             }
             finally
             {

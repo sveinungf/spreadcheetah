@@ -30,7 +30,7 @@ namespace MyNamespace
             try
             {
                 cells[0] = new StyledCell("Name", styleId);
-                await spreadsheet.AddRowAsync(cells.AsMemory(0, 1), token);
+                await spreadsheet.AddRowAsync(cells.AsMemory(0, 1), token).ConfigureAwait(false);
             }
             finally
             {
@@ -114,7 +114,7 @@ namespace MyNamespace
                 cells[3] = new StyledCell("Age", styleId);
                 cells[4] = new StyledCell("Employed", styleId);
                 cells[5] = new StyledCell("Score", styleId);
-                await spreadsheet.AddRowAsync(cells.AsMemory(0, 6), token);
+                await spreadsheet.AddRowAsync(cells.AsMemory(0, 6), token).ConfigureAwait(false);
             }
             finally
             {
