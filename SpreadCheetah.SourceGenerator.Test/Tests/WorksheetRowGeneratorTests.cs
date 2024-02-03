@@ -455,12 +455,12 @@ public class WorksheetRowGeneratorTests
         // Act
         var task = type switch
         {
-            ObjectType.Class => s.AddAsRowAsync(new ClassWithNoProperties(), ctx.ClassWithNoProperties),
-            ObjectType.RecordClass => s.AddAsRowAsync(new RecordClassWithNoProperties(), ctx.RecordClassWithNoProperties),
-            ObjectType.Struct => s.AddAsRowAsync(new StructWithNoProperties(), ctx.StructWithNoProperties),
-            ObjectType.RecordStruct => s.AddAsRowAsync(new RecordStructWithNoProperties(), ctx.RecordStructWithNoProperties),
-            ObjectType.ReadOnlyStruct => s.AddAsRowAsync(new ReadOnlyStructWithNoProperties(), ctx.ReadOnlyStructWithNoProperties),
-            ObjectType.ReadOnlyRecordStruct => s.AddAsRowAsync(new ReadOnlyRecordStructWithNoProperties(), ctx.ReadOnlyRecordStructWithNoProperties),
+            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassWithNoProperties),
+            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassWithNoProperties),
+            ObjectType.Struct => s.AddHeaderRowAsync(ctx.StructWithNoProperties),
+            ObjectType.RecordStruct => s.AddHeaderRowAsync(ctx.RecordStructWithNoProperties),
+            ObjectType.ReadOnlyStruct => s.AddHeaderRowAsync(ctx.ReadOnlyStructWithNoProperties),
+            ObjectType.ReadOnlyRecordStruct => s.AddHeaderRowAsync(ctx.ReadOnlyRecordStructWithNoProperties),
             _ => throw new NotImplementedException(),
         };
 
