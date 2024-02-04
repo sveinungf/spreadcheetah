@@ -14,6 +14,8 @@ internal static class CompilationExtensions
         result = null;
         const string ns = "SpreadCheetah.SourceGeneration";
 
+        if (!compilation.TryGetType($"{ns}.ColumnHeaderAttribute", out var columnHeader))
+            return false;
         if (!compilation.TryGetType($"{ns}.ColumnOrderAttribute", out var columnOrder))
             return false;
         if (!compilation.TryGetType($"{ns}.WorksheetRowContext", out var context))
@@ -22,6 +24,7 @@ internal static class CompilationExtensions
             return false;
 
         result = new CompilationTypes(
+            ColumnHeaderAttribute: columnHeader,
             ColumnOrderAttribute: columnOrder,
             WorksheetRowContext: context,
             WorksheetRowGenerationOptionsAttribute: options);

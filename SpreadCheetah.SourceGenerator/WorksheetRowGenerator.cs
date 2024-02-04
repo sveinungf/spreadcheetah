@@ -20,8 +20,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var filtered = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 "SpreadCheetah.SourceGeneration.WorksheetRowAttribute",
-                static (s, _) => IsSyntaxTargetForGeneration(s),
-                static (ctx, token) => GetSemanticTargetForGeneration(ctx, token))
+                IsSyntaxTargetForGeneration,
+                GetSemanticTargetForGeneration)
             .Where(static x => x is not null)
             .Collect();
 
@@ -30,7 +30,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(source, static (spc, source) => Execute(source.Left, source.Right, spc));
     }
 
-    private static bool IsSyntaxTargetForGeneration(SyntaxNode syntaxNode) => syntaxNode is ClassDeclarationSyntax
+    private static bool IsSyntaxTargetForGeneration(SyntaxNode syntaxNode, CancellationToken _) => syntaxNode is ClassDeclarationSyntax
     {
         BaseList.Types.Count: > 0
     };
