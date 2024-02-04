@@ -1,4 +1,4 @@
-﻿using Xunit;
+using Xunit;
 
 namespace SpreadCheetah.SourceGenerator.Test.Helpers;
 

@@ -26,8 +26,10 @@ internal sealed class ClosedXmlAssertSheet(XLWorkbook workbook, IXLWorksheet she
 
     public IEnumerable<ISpreadsheetAssertCell> Row(int rowNumber)
     {
-        var cells = sheet.Row(rowNumber).CellsUsed();
-        return cells.Select(x => new ClosedXmlAssertCell(x));
+        var row = sheet.Row(rowNumber);
+        return row.IsEmpty()
+            ? []
+            : row.Cells(false).Select(x => new ClosedXmlAssertCell(x));
     }
 
     public void Dispose() => workbook.Dispose();

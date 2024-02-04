@@ -13,7 +13,7 @@ public class ClassWithSpecialCharacterColumnHeaders
     [ColumnHeader("Nationality (escaped characters \", \', \\)")]
     public string? Nationality { get; set; }
 
-    [ColumnHeader("Address line 1 (escaped characters \n, \r\n, \t)")]
+    [ColumnHeader("Address line 1 (escaped characters \r\n, \t)")]
     public string? AddressLine1 { get; set; }
 
     [ColumnHeader(@"Address line 2 (verbatim

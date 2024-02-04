@@ -133,18 +133,18 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     private static bool TryParseColumnHeaderAttribute(
         AttributeData attribute,
         INamedTypeSymbol expectedAttribute,
-        out string header)
+        out TypedConstant attributeArg)
     {
-        header = "";
+        attributeArg = default;
 
         if (!SymbolEqualityComparer.Default.Equals(expectedAttribute, attribute.AttributeClass))
             return false;
 
         var args = attribute.ConstructorArguments;
-        if (args is not [{ Value: string attributeValue }])
+        if (args is not [{ Value: string } arg])
             return false;
 
-        header = attributeValue;
+        attributeArg = arg;
         return true;
     }
 
@@ -211,11 +211,11 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     {
         foreach (var attribute in property.GetAttributes())
         {
-            if (TryParseColumnHeaderAttribute(attribute, columnHeaderAttribute, out var columnHeader))
-                return columnHeader;
+            if (TryParseColumnHeaderAttribute(attribute, columnHeaderAttribute, out var arg))
+                return arg.ToCSharpString();
         }
 
-        return property.Name;
+        return @$"""{property.Name}""";
     }
 
     private static bool TryGetExplicitColumnOrder(IPropertySymbol property, INamedTypeSymbol columnOrderAttribute,
@@ -408,9 +408,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         for (var i = 0; i < properties.Count; i++)
         {
             var property = properties[i];
-            // TODO: Handle special characters, such as '"'
             sb.AppendLine(FormattableString.Invariant($"""
-                            cells[{i}] = new StyledCell("{property.ColumnHeader}", styleId);
+                            cells[{i}] = new StyledCell({property.ColumnHeader}, styleId);
             """));
         }
 
