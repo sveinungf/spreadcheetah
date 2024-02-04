@@ -1,7 +1,7 @@
 using Microsoft.CodeAnalysis;
+using SpreadCheetah.SourceGenerator.Models;
 
 namespace SpreadCheetah.SourceGenerator.Helpers;
-
 internal sealed record TypePropertiesInfo(
-    SortedDictionary<int, string> PropertyNames,
+    SortedDictionary<int, ColumnProperty> Properties,
     List<IPropertySymbol> UnsupportedProperties);
