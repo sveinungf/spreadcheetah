@@ -77,7 +77,13 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 generatorOptions = options;
         }
 
-        return new ContextClass(classSymbol, rowTypes, compilationTypes, generatorOptions);
+        return new ContextClass(
+            DeclaredAccessibility: classSymbol.DeclaredAccessibility,
+            Namespace: classSymbol.ContainingNamespace is { IsGlobalNamespace: false } ns ? ns.ToString() : null,
+            Name: classSymbol.Name,
+            RowTypes: rowTypes,
+            CompilationTypes: compilationTypes,
+            Options: generatorOptions);
     }
 
     private static bool TryParseWorksheetRowAttribute(
@@ -292,7 +298,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
             sb.Clear();
             GenerateCode(sb, item, compilation, context);
-            context.AddSource($"{item.ContextClassType}.g.cs", sb.ToString());
+
+            var hintName = item.Namespace is { } ns
+                ? $"{ns}.{item.Name}.g.cs"
+                : $"{item.Name}.g.cs";
+
+            context.AddSource(hintName, sb.ToString());
         }
     }
 
@@ -314,20 +325,18 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     {
         GenerateHeader(sb);
 
-        var contextType = contextClass.ContextClassType;
-        var contextTypeNamespace = contextType.ContainingNamespace;
-        if (contextTypeNamespace is { IsGlobalNamespace: false })
-            sb.AppendLine($"namespace {contextTypeNamespace}");
+        if (contextClass.Namespace is { } ns)
+            sb.AppendLine($"namespace {ns}");
 
-        var accessibility = SyntaxFacts.GetText(contextType.DeclaredAccessibility);
+        var accessibility = SyntaxFacts.GetText(contextClass.DeclaredAccessibility);
 
         sb.AppendLine("{");
-        sb.AppendLine($"    {accessibility} partial class {contextType.Name}");
+        sb.AppendLine($"    {accessibility} partial class {contextClass.Name}");
         sb.AppendLine("    {");
-        sb.AppendLine($"        private static {contextType.Name}? _default;");
-        sb.AppendLine($"        public static {contextType.Name} Default => _default ??= new {contextType.Name}();");
+        sb.AppendLine($"        private static {contextClass.Name}? _default;");
+        sb.AppendLine($"        public static {contextClass.Name} Default => _default ??= new {contextClass.Name}();");
         sb.AppendLine();
-        sb.AppendLine($"        public {contextType.Name}()");
+        sb.AppendLine($"        public {contextClass.Name}()");
         sb.AppendLine("        {");
         sb.AppendLine("        }");
 

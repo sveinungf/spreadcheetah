@@ -4,7 +4,9 @@ using SpreadCheetah.SourceGenerator.Models;
 namespace SpreadCheetah.SourceGenerator.Helpers;
 
 internal sealed record ContextClass(
-    ITypeSymbol ContextClassType,
-    Dictionary<INamedTypeSymbol, Location> RowTypes,
+    string Name,
+    Accessibility DeclaredAccessibility,
+    string? Namespace,
+    Dictionary<INamedTypeSymbol, Location> RowTypes, // TODO: Don't use INamedTypeSymbol
     CompilationTypes CompilationTypes,
     GeneratorOptions? Options);
