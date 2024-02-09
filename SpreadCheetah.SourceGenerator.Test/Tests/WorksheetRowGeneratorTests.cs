@@ -4,7 +4,9 @@ using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models;
 using SpreadCheetah.SourceGenerator.Test.Models.Accessibility;
+using SpreadCheetah.SourceGenerator.Test.Models.ColumnHeader;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnOrdering;
+using SpreadCheetah.SourceGenerator.Test.Models.Combinations;
 using SpreadCheetah.SourceGenerator.Test.Models.Contexts;
 using SpreadCheetah.SourceGenerator.Test.Models.MultipleProperties;
 using SpreadCheetah.SourceGenerator.Test.Models.NoProperties;
@@ -557,5 +559,70 @@ public class WorksheetRowGeneratorTests
 
         // Act & Assert
         await Assert.ThrowsAsync<SpreadCheetahException>(() => spreadsheet.AddHeaderRowAsync(typeInfo).AsTask());
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddHeaderRow_SpecialCharacterColumnHeaders()
+    {
+        // Arrange
+        var ctx = ColumnHeaderContext.Default;
+
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream);
+        await s.StartWorksheetAsync("Sheet");
+
+        IList<string> expectedValues =
+        [
+            "First name",
+            "",
+            "Nationality (escaped characters \", \', \\)",
+            "Address line 1 (escaped characters \r\n, \t)",
+            @"Address line 2 (verbatim
+string: "", \)",
+            """
+                Age (
+                    raw
+                    string
+                    literal
+                )
+            """,
+            "Note (unicode escape sequence 🌉, \ud83d\udc4d, \xE7)",
+            "Note 2 (constant interpolated string: This is a constant)"
+        ];
+
+        // Act
+        await s.AddHeaderRowAsync(ctx.ClassWithSpecialCharacterColumnHeaders);
+        await s.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(expectedValues, sheet.Row(1).Select(x => x.StringValue));
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddHeaderRow_ObjectWithMultipleColumnAttributes()
+    {
+        // Arrange
+        var ctx = ColumnAttributesContext.Default;
+
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream);
+        await s.StartWorksheetAsync("Sheet");
+
+        IList<string> expectedValues =
+        [
+            "Year",
+            "The make",
+            "Model",
+            "kW"
+        ];
+
+        // Act
+        await s.AddHeaderRowAsync(ctx.ClassWithColumnAttributes);
+        await s.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(expectedValues, sheet.Row(1).Select(x => x.StringValue));
     }
 }

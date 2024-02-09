@@ -20,8 +20,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var filtered = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 "SpreadCheetah.SourceGeneration.WorksheetRowAttribute",
-                static (s, _) => IsSyntaxTargetForGeneration(s),
-                static (ctx, token) => GetSemanticTargetForGeneration(ctx, token))
+                IsSyntaxTargetForGeneration,
+                GetSemanticTargetForGeneration)
             .Where(static x => x is not null)
             .Collect();
 
@@ -30,7 +30,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(source, static (spc, source) => Execute(source.Left, source.Right, spc));
     }
 
-    private static bool IsSyntaxTargetForGeneration(SyntaxNode syntaxNode) => syntaxNode is ClassDeclarationSyntax
+    private static bool IsSyntaxTargetForGeneration(SyntaxNode syntaxNode, CancellationToken _) => syntaxNode is ClassDeclarationSyntax
     {
         BaseList.Types.Count: > 0
     };
@@ -130,6 +130,24 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return false;
     }
 
+    private static bool TryParseColumnHeaderAttribute(
+        AttributeData attribute,
+        INamedTypeSymbol expectedAttribute,
+        out TypedConstant attributeArg)
+    {
+        attributeArg = default;
+
+        if (!SymbolEqualityComparer.Default.Equals(expectedAttribute, attribute.AttributeClass))
+            return false;
+
+        var args = attribute.ConstructorArguments;
+        if (args is not [{ Value: string } arg])
+            return false;
+
+        attributeArg = arg;
+        return true;
+    }
+
     private static bool TryParseColumnOrderAttribute(
         AttributeData attribute,
         INamedTypeSymbol expectedAttribute,
@@ -151,8 +169,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     private static TypePropertiesInfo AnalyzeTypeProperties(Compilation compilation, CompilationTypes compilationTypes,
         ITypeSymbol classType, SourceProductionContext context)
     {
-        var implicitOrderPropertyNames = new List<string>();
-        var explicitOrderPropertyNames = new SortedDictionary<int, string>();
+        var implicitOrderProperties = new List<ColumnProperty>();
+        var explicitOrderProperties = new SortedDictionary<int, ColumnProperty>();
         var unsupportedPropertyNames = new List<IPropertySymbol>();
 
         foreach (var member in classType.GetMembers())
@@ -173,17 +191,31 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 continue;
             }
 
+            var columnHeader = GetColumnHeader(p, compilationTypes.ColumnHeaderAttribute);
+            var columnProperty = new ColumnProperty(p.Name, columnHeader);
+
             if (!TryGetExplicitColumnOrder(p, compilationTypes.ColumnOrderAttribute, context.CancellationToken, out var columnOrder, out var location))
-                implicitOrderPropertyNames.Add(p.Name);
-            else if (!explicitOrderPropertyNames.ContainsKey(columnOrder))
-                explicitOrderPropertyNames.Add(columnOrder, p.Name);
+                implicitOrderProperties.Add(columnProperty);
+            else if (!explicitOrderProperties.ContainsKey(columnOrder))
+                explicitOrderProperties.Add(columnOrder, columnProperty);
             else
                 context.ReportDiagnostic(Diagnostic.Create(Diagnostics.DuplicateColumnOrder, location, classType.Name));
         }
 
-        explicitOrderPropertyNames.AddWithImplicitKeys(implicitOrderPropertyNames);
+        explicitOrderProperties.AddWithImplicitKeys(implicitOrderProperties);
 
-        return new TypePropertiesInfo(explicitOrderPropertyNames, unsupportedPropertyNames);
+        return new TypePropertiesInfo(explicitOrderProperties, unsupportedPropertyNames);
+    }
+
+    private static string GetColumnHeader(IPropertySymbol property, INamedTypeSymbol columnHeaderAttribute)
+    {
+        foreach (var attribute in property.GetAttributes())
+        {
+            if (TryParseColumnHeaderAttribute(attribute, columnHeaderAttribute, out var arg))
+                return arg.ToCSharpString();
+        }
+
+        return @$"""{property.Name}""";
     }
 
     private static bool TryGetExplicitColumnOrder(IPropertySymbol property, INamedTypeSymbol columnOrderAttribute,
@@ -327,7 +359,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 public WorksheetRowTypeInfo<{{rowTypeFullName}}> {{rowTypeName}} => _{{rowTypeName}}
         """));
 
-        if (info.PropertyNames.Count == 0)
+        if (info.Properties.Count == 0)
         {
             sb.AppendLine($$"""
                         ??= EmptyWorksheetRowContext.CreateTypeInfo<{{rowTypeFullName}}>();
@@ -340,49 +372,49 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                         ??= WorksheetRowMetadataServices.CreateObjectInfo<{{rowTypeFullName}}>(AddHeaderRow{{typeIndex}}Async, AddAsRowAsync, AddRangeAsRowsAsync);
             """));
 
-        var propertyNames = info.PropertyNames.Values.ToList();
-        GenerateAddHeaderRow(sb, typeIndex, propertyNames);
+        var properties = info.Properties.Values.ToList();
+        GenerateAddHeaderRow(sb, typeIndex, properties);
         GenerateAddAsRow(sb, 2, rowType);
         GenerateAddRangeAsRows(sb, 2, rowType);
-        GenerateAddAsRowInternal(sb, 2, rowTypeFullName, propertyNames);
-        GenerateAddRangeAsRowsInternal(sb, rowType, propertyNames);
+        GenerateAddAsRowInternal(sb, 2, rowTypeFullName, properties);
+        GenerateAddRangeAsRowsInternal(sb, rowType, properties);
         GenerateAddEnumerableAsRows(sb, 2, rowType);
-        GenerateAddCellsAsRow(sb, 2, rowType, propertyNames);
+        GenerateAddCellsAsRow(sb, 2, rowType, properties);
     }
 
     private static void ReportDiagnostics(TypePropertiesInfo info, INamedTypeSymbol rowType, Location location, GeneratorOptions? options, SourceProductionContext context)
     {
         if (options?.SuppressWarnings ?? false) return;
 
-        if (info.PropertyNames.Count == 0)
+        if (info.Properties.Count == 0)
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.NoPropertiesFound, location, rowType.Name));
 
         if (info.UnsupportedProperties.FirstOrDefault() is { } unsupportedProperty)
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location, rowType.Name, unsupportedProperty.Type.Name));
     }
 
-    private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, IReadOnlyList<string> propertyNames)
+    private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, IReadOnlyList<ColumnProperty> properties)
     {
-        Debug.Assert(propertyNames.Count > 0);
+        Debug.Assert(properties.Count > 0);
 
         sb.AppendLine().AppendLine(FormattableString.Invariant($$"""
                 private static async ValueTask AddHeaderRow{{typeIndex}}Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
                 {
-                    var cells = ArrayPool<StyledCell>.Shared.Rent({{propertyNames.Count}});
+                    var cells = ArrayPool<StyledCell>.Shared.Rent({{properties.Count}});
                     try
                     {
         """));
 
-        for (var i = 0; i < propertyNames.Count; i++)
+        for (var i = 0; i < properties.Count; i++)
         {
-            var propertyName = propertyNames[i];
+            var property = properties[i];
             sb.AppendLine(FormattableString.Invariant($"""
-                            cells[{i}] = new StyledCell("{propertyName}", styleId);
+                            cells[{i}] = new StyledCell({property.ColumnHeader}, styleId);
             """));
         }
 
         sb.AppendLine($$"""
-                        await spreadsheet.AddRowAsync(cells.AsMemory(0, {{propertyNames.Count}}), token).ConfigureAwait(false);
+                        await spreadsheet.AddRowAsync(cells.AsMemory(0, {{properties.Count}}), token).ConfigureAwait(false);
                     }
                     finally
                     {
@@ -414,14 +446,14 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "}");
     }
 
-    private static void GenerateAddAsRowInternal(StringBuilder sb, int indent, string rowTypeFullname, IReadOnlyCollection<string> propertyNames)
+    private static void GenerateAddAsRowInternal(StringBuilder sb, int indent, string rowTypeFullname, IReadOnlyCollection<ColumnProperty> properties)
     {
-        Debug.Assert(propertyNames.Count > 0);
+        Debug.Assert(properties.Count > 0);
 
         sb.AppendLine();
         sb.AppendLine(indent, $"private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, {rowTypeFullname} obj, CancellationToken token)");
         sb.AppendLine(indent, "{");
-        sb.AppendLine(indent, $"    var cells = ArrayPool<DataCell>.Shared.Rent({propertyNames.Count});");
+        sb.AppendLine(indent, $"    var cells = ArrayPool<DataCell>.Shared.Rent({properties.Count});");
         sb.AppendLine(indent, "    try");
         sb.AppendLine(indent, "    {");
         sb.AppendLine(indent, "        await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);");
@@ -450,16 +482,16 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "}");
     }
 
-    private static void GenerateAddRangeAsRowsInternal(StringBuilder sb, INamedTypeSymbol rowType, IReadOnlyCollection<string> propertyNames)
+    private static void GenerateAddRangeAsRowsInternal(StringBuilder sb, INamedTypeSymbol rowType, IReadOnlyCollection<ColumnProperty> properties)
     {
-        Debug.Assert(propertyNames.Count > 0);
+        Debug.Assert(properties.Count > 0);
 
         var typeString = rowType.ToTypeString();
         sb.Append($$"""
 
                 private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<{{typeString}}> objs, CancellationToken token)
                 {
-                    var cells = ArrayPool<DataCell>.Shared.Rent({{propertyNames.Count}});
+                    var cells = ArrayPool<DataCell>.Shared.Rent({{properties.Count}});
                     try
                     {
                         await AddEnumerableAsRowsAsync(spreadsheet, objs, cells, token).ConfigureAwait(false);
@@ -489,9 +521,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "}");
     }
 
-    private static void GenerateAddCellsAsRow(StringBuilder sb, int indent, INamedTypeSymbol rowType, IReadOnlyCollection<string> propertyNames)
+    private static void GenerateAddCellsAsRow(StringBuilder sb, int indent, INamedTypeSymbol rowType, IReadOnlyList<ColumnProperty> properties)
     {
-        Debug.Assert(propertyNames.Count > 0);
+        Debug.Assert(properties.Count > 0);
 
         sb.AppendLine()
             .AppendIndentation(indent)
@@ -508,17 +540,17 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             sb.AppendLine();
         }
 
-        foreach (var (propertyName, index) in propertyNames.Select((x, i) => (x, i)))
+        for (var i = 0;  i < properties.Count; i++)
         {
             sb.AppendIndentation(indent + 1)
                 .Append("cells[")
-                .Append(index)
+                .Append(i)
                 .Append("] = new DataCell(obj.")
-                .Append(propertyName)
+                .Append(properties[i].PropertyName)
                 .AppendLine(");");
         }
 
-        sb.AppendLine(indent, $"    return spreadsheet.AddRowAsync(cells.AsMemory(0, {propertyNames.Count}), token);");
+        sb.AppendLine(indent, $"    return spreadsheet.AddRowAsync(cells.AsMemory(0, {properties.Count}), token);");
         sb.AppendLine(indent, "}");
     }
 }
