@@ -1,3 +1,5 @@
+using FluentAssertions;
+using FluentAssertions.Execution;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Helpers;
 using SpreadCheetah.SourceGenerators;
 
@@ -5,6 +7,37 @@ namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 
 public class WorksheetRowGeneratorTests
 {
+    private static readonly string[] AllTrackingNames = ["InitialExtraction", "Transform"];
+
+    [Fact]
+    public void WorksheetRowGenerator_Generate_CachingCorrectly()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
+
+            namespace MyNamespace
+            {
+                [WorksheetRow(typeof(ClassWithSingleProperty))]
+                public partial class MyGenRowContext : WorksheetRowContext
+                {
+                }
+            }
+            """;
+
+        const string expected = """... not shown for brevity...""";
+
+        // Act
+        var (diagnostics, output) = TestHelper.GetGeneratedTrees<WorksheetRowGenerator>([source], AllTrackingNames);
+
+        // Assert the output
+        using var s = new AssertionScope();
+        diagnostics.Should().BeEmpty();
+        output.Should().OnlyContain(x => x == expected);
+    }
+
     [Fact]
     public Task WorksheetRowGenerator_Generate_ClassWithSingleProperty()
     {

@@ -23,9 +23,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 IsSyntaxTargetForGeneration,
                 GetSemanticTargetForGeneration)
             .Where(static x => x is not null)
-            .Collect();
+            .Collect()
+            .WithTrackingName(TrackingNames.InitialExtraction);
 
-        var source = context.CompilationProvider.Combine(filtered);
+        var source = context.CompilationProvider
+            .Combine(filtered)
+            .WithTrackingName(TrackingNames.Transform);
 
         context.RegisterSourceOutput(source, static (spc, source) => Execute(source.Left, source.Right, spc));
     }
@@ -540,7 +543,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             sb.AppendLine();
         }
 
-        for (var i = 0;  i < properties.Count; i++)
+        for (var i = 0; i < properties.Count; i++)
         {
             sb.AppendIndentation(indent + 1)
                 .Append("cells[")
