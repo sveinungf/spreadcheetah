@@ -82,7 +82,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             Namespace: classSymbol.ContainingNamespace is { IsGlobalNamespace: false } ns ? ns.ToString() : null,
             Name: classSymbol.Name,
             RowTypes: rowTypes,
-            CompilationTypes: compilationTypes,
             Options: generatorOptions);
     }
 
@@ -288,6 +287,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         if (classes.IsDefaultOrEmpty)
             return;
 
+        if (!compilation.TryGetCompilationTypes(out var compilationTypes))
+            return;
+
         var sb = new StringBuilder();
 
         foreach (var item in classes)
@@ -297,7 +299,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             context.CancellationToken.ThrowIfCancellationRequested();
 
             sb.Clear();
-            GenerateCode(sb, item, compilation, context);
+            GenerateCode(sb, item, compilation, compilationTypes, context);
 
             var hintName = item.Namespace is { } ns
                 ? $"{ns}.{item.Name}.g.cs"
@@ -321,7 +323,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine();
     }
 
-    private static void GenerateCode(StringBuilder sb, ContextClass contextClass, Compilation compilation, SourceProductionContext context)
+    private static void GenerateCode(StringBuilder sb, ContextClass contextClass, Compilation compilation, CompilationTypes compilationTypes, SourceProductionContext context)
     {
         GenerateHeader(sb);
 
@@ -349,7 +351,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             if (!rowTypeNames.Add(rowTypeName))
                 continue;
 
-            GenerateCodeForType(sb, typeIndex, rowType, location, contextClass, compilation, context);
+            GenerateCodeForType(sb, typeIndex, rowType, location, contextClass, compilation, compilationTypes, context);
             ++typeIndex;
         }
 
@@ -358,12 +360,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     }
 
     private static void GenerateCodeForType(StringBuilder sb, int typeIndex, INamedTypeSymbol rowType, Location location,
-        ContextClass contextClass, Compilation compilation, SourceProductionContext context)
+        ContextClass contextClass, Compilation compilation, CompilationTypes compilationTypes, SourceProductionContext context)
     {
         var rowTypeName = rowType.Name;
         var rowTypeFullName = rowType.ToString();
 
-        var info = AnalyzeTypeProperties(compilation, contextClass.CompilationTypes, rowType, context);
+        var info = AnalyzeTypeProperties(compilation, compilationTypes, rowType, context);
         ReportDiagnostics(info, rowType, location, contextClass.Options, context);
 
         sb.AppendLine().AppendLine(FormattableString.Invariant($$"""
