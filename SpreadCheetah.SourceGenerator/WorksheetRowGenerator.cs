@@ -50,10 +50,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         if (classSymbol is not { IsStatic: false, BaseType: { } baseType })
             return null;
 
-        if (!context.SemanticModel.Compilation.TryGetCompilationTypes(out var compilationTypes))
-            return null;
-
-        if (!SymbolEqualityComparer.Default.Equals(compilationTypes.WorksheetRowContext, baseType))
+        if (!string.Equals("SpreadCheetah.SourceGeneration.WorksheetRowContext", baseType.ToDisplayString(), StringComparison.Ordinal))
             return null;
 
         var rowTypes = new Dictionary<INamedTypeSymbol, Location>(SymbolEqualityComparer.Default);
@@ -73,7 +70,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var attribute in classSymbol.GetAttributes())
         {
-            if (TryParseOptionsAttribute(attribute, compilationTypes.WorksheetRowGenerationOptionsAttribute, out var options))
+            if (TryParseOptionsAttribute(attribute, out var options))
                 generatorOptions = options;
         }
 
@@ -112,12 +109,11 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
     private static bool TryParseOptionsAttribute(
         AttributeData attribute,
-        INamedTypeSymbol expectedAttribute,
         [NotNullWhen(true)] out GeneratorOptions? options)
     {
         options = null;
 
-        if (!SymbolEqualityComparer.Default.Equals(expectedAttribute, attribute.AttributeClass))
+        if (!string.Equals(Attributes.GenerationOptions, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
             return false;
 
         if (attribute.NamedArguments.IsDefaultOrEmpty)
