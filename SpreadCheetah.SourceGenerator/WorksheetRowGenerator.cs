@@ -158,12 +158,11 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
     private static bool TryParseColumnOrderAttribute(
         AttributeData attribute,
-        INamedTypeSymbol expectedAttribute,
         out int order)
     {
         order = 0;
 
-        if (!SymbolEqualityComparer.Default.Equals(expectedAttribute, attribute.AttributeClass))
+        if (!string.Equals(attribute.AttributeClass?.ToDisplayString(), Attributes.ColumnOrder, StringComparison.Ordinal))
             return false;
 
         var args = attribute.ConstructorArguments;
@@ -202,7 +201,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             var columnHeader = GetColumnHeader(p, compilationTypes.ColumnHeaderAttribute);
             var columnProperty = new ColumnProperty(p.Name, columnHeader);
 
-            if (!TryGetExplicitColumnOrder(p, compilationTypes.ColumnOrderAttribute, context.CancellationToken, out var columnOrder, out var location))
+            if (!TryGetExplicitColumnOrder(p, context.CancellationToken, out var columnOrder, out var location))
                 implicitOrderProperties.Add(columnProperty);
             else if (!explicitOrderProperties.ContainsKey(columnOrder))
                 explicitOrderProperties.Add(columnOrder, columnProperty);
@@ -226,7 +225,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return @$"""{property.Name}""";
     }
 
-    private static bool TryGetExplicitColumnOrder(IPropertySymbol property, INamedTypeSymbol columnOrderAttribute,
+    private static bool TryGetExplicitColumnOrder(IPropertySymbol property,
         CancellationToken token, out int columnOrder, out Location? location)
     {
         columnOrder = 0;
@@ -234,7 +233,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var attribute in property.GetAttributes())
         {
-            if (!TryParseColumnOrderAttribute(attribute, columnOrderAttribute, out columnOrder))
+            if (!TryParseColumnOrderAttribute(attribute, out columnOrder))
                 continue;
 
             location = attribute.ApplicationSyntaxReference?.GetSyntax(token).GetLocation();
