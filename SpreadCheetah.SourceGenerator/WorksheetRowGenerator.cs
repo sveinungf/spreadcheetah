@@ -140,12 +140,11 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
     private static bool TryParseColumnHeaderAttribute(
         AttributeData attribute,
-        INamedTypeSymbol expectedAttribute,
         out TypedConstant attributeArg)
     {
         attributeArg = default;
 
-        if (!SymbolEqualityComparer.Default.Equals(expectedAttribute, attribute.AttributeClass))
+        if (!string.Equals(Attributes.ColumnHeader, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
             return false;
 
         var args = attribute.ConstructorArguments;
@@ -162,7 +161,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     {
         order = 0;
 
-        if (!string.Equals(attribute.AttributeClass?.ToDisplayString(), Attributes.ColumnOrder, StringComparison.Ordinal))
+        if (!string.Equals(Attributes.ColumnOrder, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
             return false;
 
         var args = attribute.ConstructorArguments;
@@ -173,7 +172,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return true;
     }
 
-    private static TypePropertiesInfo AnalyzeTypeProperties(Compilation compilation, CompilationTypes compilationTypes,
+    private static TypePropertiesInfo AnalyzeTypeProperties(Compilation compilation,
         ITypeSymbol classType, SourceProductionContext context)
     {
         var implicitOrderProperties = new List<ColumnProperty>();
@@ -198,7 +197,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 continue;
             }
 
-            var columnHeader = GetColumnHeader(p, compilationTypes.ColumnHeaderAttribute);
+            var columnHeader = GetColumnHeader(p);
             var columnProperty = new ColumnProperty(p.Name, columnHeader);
 
             if (!TryGetExplicitColumnOrder(p, context.CancellationToken, out var columnOrder, out var location))
@@ -214,11 +213,11 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return new TypePropertiesInfo(explicitOrderProperties, unsupportedPropertyNames);
     }
 
-    private static string GetColumnHeader(IPropertySymbol property, INamedTypeSymbol columnHeaderAttribute)
+    private static string GetColumnHeader(IPropertySymbol property)
     {
         foreach (var attribute in property.GetAttributes())
         {
-            if (TryParseColumnHeaderAttribute(attribute, columnHeaderAttribute, out var arg))
+            if (TryParseColumnHeaderAttribute(attribute, out var arg))
                 return arg.ToCSharpString();
         }
 
@@ -286,9 +285,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         if (classes.IsDefaultOrEmpty)
             return;
 
-        if (!compilation.TryGetCompilationTypes(out var compilationTypes))
-            return;
-
         var sb = new StringBuilder();
 
         foreach (var item in classes)
@@ -298,7 +294,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             context.CancellationToken.ThrowIfCancellationRequested();
 
             sb.Clear();
-            GenerateCode(sb, item, compilation, compilationTypes, context);
+            GenerateCode(sb, item, compilation, context);
 
             var hintName = item.Namespace is { } ns
                 ? $"{ns}.{item.Name}.g.cs"
@@ -322,7 +318,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine();
     }
 
-    private static void GenerateCode(StringBuilder sb, ContextClass contextClass, Compilation compilation, CompilationTypes compilationTypes, SourceProductionContext context)
+    private static void GenerateCode(StringBuilder sb, ContextClass contextClass, Compilation compilation, SourceProductionContext context)
     {
         GenerateHeader(sb);
 
@@ -350,7 +346,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             if (!rowTypeNames.Add(rowTypeName))
                 continue;
 
-            GenerateCodeForType(sb, typeIndex, rowType, location, contextClass, compilation, compilationTypes, context);
+            GenerateCodeForType(sb, typeIndex, rowType, location, contextClass, compilation, context);
             ++typeIndex;
         }
 
@@ -359,12 +355,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     }
 
     private static void GenerateCodeForType(StringBuilder sb, int typeIndex, INamedTypeSymbol rowType, Location location,
-        ContextClass contextClass, Compilation compilation, CompilationTypes compilationTypes, SourceProductionContext context)
+        ContextClass contextClass, Compilation compilation, SourceProductionContext context)
     {
         var rowTypeName = rowType.Name;
         var rowTypeFullName = rowType.ToString();
 
-        var info = AnalyzeTypeProperties(compilation, compilationTypes, rowType, context);
+        var info = AnalyzeTypeProperties(compilation, rowType, context);
         ReportDiagnostics(info, rowType, location, contextClass.Options, context);
 
         sb.AppendLine().AppendLine(FormattableString.Invariant($$"""
