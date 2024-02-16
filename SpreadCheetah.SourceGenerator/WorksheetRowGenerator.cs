@@ -375,7 +375,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                         ??= WorksheetRowMetadataServices.CreateObjectInfo<{{rowType.FullName}}>(AddHeaderRow{{typeIndex}}Async, AddAsRowAsync, AddRangeAsRowsAsync);
             """));
 
-        var properties = info.Properties.Values.ToList();
+        var properties = info.Properties.Values;
         GenerateAddHeaderRow(sb, typeIndex, properties);
         GenerateAddAsRow(sb, 2, rowType);
         GenerateAddRangeAsRows(sb, 2, rowType);
@@ -396,7 +396,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location.ToLocation(), rowType.Name, unsupportedPropertyTypeName));
     }
 
-    private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, IReadOnlyList<RowTypeProperty> properties)
+    private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, IReadOnlyCollection<RowTypeProperty> properties)
     {
         Debug.Assert(properties.Count > 0);
 
@@ -408,9 +408,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                     {
         """));
 
-        for (var i = 0; i < properties.Count; i++)
+        foreach (var (i, property) in properties.Index())
         {
-            var property = properties[i];
             sb.AppendLine(FormattableString.Invariant($"""
                             cells[{i}] = new StyledCell({property.ColumnHeader}, styleId);
             """));
@@ -524,7 +523,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "}");
     }
 
-    private static void GenerateAddCellsAsRow(StringBuilder sb, int indent, RowType rowType, IReadOnlyList<RowTypeProperty> properties)
+    private static void GenerateAddCellsAsRow(StringBuilder sb, int indent, RowType rowType, IReadOnlyCollection<RowTypeProperty> properties)
     {
         Debug.Assert(properties.Count > 0);
 
@@ -543,13 +542,13 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             sb.AppendLine();
         }
 
-        for (var i = 0; i < properties.Count; i++)
+        foreach (var (i, property) in properties.Index())
         {
             sb.AppendIndentation(indent + 1)
                 .Append("cells[")
                 .Append(i)
                 .Append("] = new DataCell(obj.")
-                .Append(properties[i].Name)
+                .Append(property.Name)
                 .AppendLine(");");
         }
 
