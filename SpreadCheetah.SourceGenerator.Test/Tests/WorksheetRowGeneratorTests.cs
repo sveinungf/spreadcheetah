@@ -2,6 +2,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Helpers;
+using SpreadCheetah.SourceGenerator.Test.Helpers.Backporting;
 using SpreadCheetah.SourceGenerator.Test.Models;
 using SpreadCheetah.SourceGenerator.Test.Models.Accessibility;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnHeader;
@@ -596,7 +597,7 @@ string: "", \)",
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(expectedValues, sheet.Row(1).Select(x => x.StringValue));
+        Assert.Equal(expectedValues.Select(x => x.ReplaceLineEndings()), sheet.Row(1).Select(x => x.StringValue?.ReplaceLineEndings()));
     }
 
     [Fact]
