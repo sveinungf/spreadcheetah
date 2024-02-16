@@ -211,11 +211,15 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
             var rowTypeProperty = new RowTypeProperty(
                 Name: p.Name,
+                TypeName: p.Type.Name,
+                TypeFullName: p.Type.ToDisplayString(),
+                TypeNullableAnnotation: p.NullableAnnotation,
+                TypeSpecialType: p.Type.SpecialType,
                 ColumnHeaderAttributeValue: columnHeaderAttributeValue);
 
-            if (!IsSupportedType(p.Type, supportedNullableTypes))
+            if (!IsSupportedType(rowTypeProperty, supportedNullableTypes))
             {
-                unsupportedPropertyTypeNames.Add(p.Type.Name);
+                unsupportedPropertyTypeNames.Add(rowTypeProperty.TypeName);
                 continue;
             }
 
@@ -258,17 +262,17 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return new EquatableArray<string>(result.ToArray());
     }
 
-    private static bool IsSupportedType(ITypeSymbol type, EquatableArray<string> supportedNullableTypes)
+    private static bool IsSupportedType(RowTypeProperty typeProperty, EquatableArray<string> supportedNullableTypes)
     {
-        return type.SpecialType == SpecialType.System_String
-            || SupportedPrimitiveTypes.Contains(type.SpecialType)
-            || IsSupportedNullableType(type, supportedNullableTypes);
+        return typeProperty.TypeSpecialType == SpecialType.System_String
+            || SupportedPrimitiveTypes.Contains(typeProperty.TypeSpecialType)
+            || IsSupportedNullableType(typeProperty, supportedNullableTypes);
     }
 
-    private static bool IsSupportedNullableType(ITypeSymbol type, EquatableArray<string> supportedNullableTypes)
+    private static bool IsSupportedNullableType(RowTypeProperty typeProperty, EquatableArray<string> supportedNullableTypes)
     {
-        return type.NullableAnnotation == NullableAnnotation.Annotated
-            && supportedNullableTypes.Contains(type.ToDisplayString(), StringComparer.Ordinal);
+        return typeProperty.TypeNullableAnnotation == NullableAnnotation.Annotated
+            && supportedNullableTypes.Contains(typeProperty.TypeFullName, StringComparer.Ordinal);
     }
 
     private static readonly SpecialType[] SupportedPrimitiveTypes =
