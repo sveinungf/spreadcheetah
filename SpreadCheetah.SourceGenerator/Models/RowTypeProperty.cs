@@ -8,4 +8,4 @@ internal sealed record RowTypeProperty(
     string TypeFullName,
     NullableAnnotation TypeNullableAnnotation,
     SpecialType TypeSpecialType,
-    TypedConstant? ColumnHeaderAttributeValue);
+    string ColumnHeader);

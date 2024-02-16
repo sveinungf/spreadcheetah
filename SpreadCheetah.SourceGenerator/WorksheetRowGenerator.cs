@@ -175,8 +175,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     private static TypePropertiesInfo AnalyzeTypeProperties(EquatableArray<string> supportedNullableTypes,
         ITypeSymbol classType, SourceProductionContext context)
     {
-        var implicitOrderProperties = new List<ColumnProperty>();
-        var explicitOrderProperties = new SortedDictionary<int, ColumnProperty>();
+        var implicitOrderProperties = new List<RowTypeProperty>();
+        var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
         var unsupportedPropertyTypeNames = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var member in classType.GetMembers())
@@ -209,13 +209,17 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 }
             }
 
+            var columnHeader = columnHeaderAttributeValue is { } value
+                ? value.ToCSharpString()
+                : @$"""{p.Name}""";
+
             var rowTypeProperty = new RowTypeProperty(
                 Name: p.Name,
                 TypeName: p.Type.Name,
                 TypeFullName: p.Type.ToDisplayString(),
                 TypeNullableAnnotation: p.NullableAnnotation,
                 TypeSpecialType: p.Type.SpecialType,
-                ColumnHeaderAttributeValue: columnHeaderAttributeValue);
+                ColumnHeader: columnHeader);
 
             if (!IsSupportedType(rowTypeProperty, supportedNullableTypes))
             {
@@ -223,13 +227,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 continue;
             }
 
-            var columnHeader = GetColumnHeader(rowTypeProperty);
-            var columnProperty = new ColumnProperty(rowTypeProperty.Name, columnHeader);
-
             if (columnOrderValue is not { } columnOrder)
-                implicitOrderProperties.Add(columnProperty);
+                implicitOrderProperties.Add(rowTypeProperty);
             else if (!explicitOrderProperties.ContainsKey(columnOrder))
-                explicitOrderProperties.Add(columnOrder, columnProperty);
+                explicitOrderProperties.Add(columnOrder, rowTypeProperty);
             else
                 context.ReportDiagnostic(Diagnostic.Create(Diagnostics.DuplicateColumnOrder, columnOrderAttributeLocation, classType.Name));
         }
@@ -237,13 +238,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         explicitOrderProperties.AddWithImplicitKeys(implicitOrderProperties);
 
         return new TypePropertiesInfo(explicitOrderProperties, new EquatableArray<string>(unsupportedPropertyTypeNames.ToArray()));
-    }
-
-    private static string GetColumnHeader(RowTypeProperty property)
-    {
-        return property.ColumnHeaderAttributeValue is { } attributeValue
-            ? attributeValue.ToCSharpString()
-            : @$"""{property.Name}""";
     }
 
     private static EquatableArray<string> GetSupportedNullableTypes(Compilation compilation)
@@ -402,7 +396,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location.ToLocation(), rowType.Name, unsupportedPropertyTypeName));
     }
 
-    private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, IReadOnlyList<ColumnProperty> properties)
+    private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, IReadOnlyList<RowTypeProperty> properties)
     {
         Debug.Assert(properties.Count > 0);
 
@@ -455,7 +449,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "}");
     }
 
-    private static void GenerateAddAsRowInternal(StringBuilder sb, int indent, string rowTypeFullname, IReadOnlyCollection<ColumnProperty> properties)
+    private static void GenerateAddAsRowInternal(StringBuilder sb, int indent, string rowTypeFullname, IReadOnlyCollection<RowTypeProperty> properties)
     {
         Debug.Assert(properties.Count > 0);
 
@@ -491,7 +485,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "}");
     }
 
-    private static void GenerateAddRangeAsRowsInternal(StringBuilder sb, RowType rowType, IReadOnlyCollection<ColumnProperty> properties)
+    private static void GenerateAddRangeAsRowsInternal(StringBuilder sb, RowType rowType, IReadOnlyCollection<RowTypeProperty> properties)
     {
         Debug.Assert(properties.Count > 0);
 
@@ -530,7 +524,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(indent, "}");
     }
 
-    private static void GenerateAddCellsAsRow(StringBuilder sb, int indent, RowType rowType, IReadOnlyList<ColumnProperty> properties)
+    private static void GenerateAddCellsAsRow(StringBuilder sb, int indent, RowType rowType, IReadOnlyList<RowTypeProperty> properties)
     {
         Debug.Assert(properties.Count > 0);
 
@@ -555,7 +549,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 .Append("cells[")
                 .Append(i)
                 .Append("] = new DataCell(obj.")
-                .Append(properties[i].PropertyName)
+                .Append(properties[i].Name)
                 .AppendLine(");");
         }
 
