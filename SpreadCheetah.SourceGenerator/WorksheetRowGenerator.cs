@@ -17,9 +17,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // TODO: Add tracking name (if it can't be hardcoded)
-        var supportedNullableTypes = context.CompilationProvider.Select(static (c, _) => GetSupportedNullableTypes(c));
-
         var contextClasses = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 "SpreadCheetah.SourceGeneration.WorksheetRowAttribute",
@@ -28,11 +25,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             .Where(static x => x is not null)
             .WithTrackingName(TrackingNames.InitialExtraction);
 
-        var combined = contextClasses
-            .Combine(supportedNullableTypes)
-            .WithTrackingName(TrackingNames.Transform);
-
-        context.RegisterSourceOutput(combined, static (spc, source) => Execute(source.Left, source.Right, spc));
+        context.RegisterSourceOutput(contextClasses, static (spc, source) => Execute(source, spc));
     }
 
     private static bool IsSyntaxTargetForGeneration(SyntaxNode syntaxNode, CancellationToken _) => syntaxNode is ClassDeclarationSyntax
@@ -172,8 +165,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return true;
     }
 
-    private static TypePropertiesInfo AnalyzeTypeProperties(EquatableArray<string> supportedNullableTypes,
-        ITypeSymbol classType, CancellationToken token)
+    private static TypePropertiesInfo AnalyzeTypeProperties(ITypeSymbol classType, CancellationToken token)
     {
         var implicitOrderProperties = new List<RowTypeProperty>();
         var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
@@ -225,7 +217,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 TypeSpecialType: p.Type.SpecialType,
                 ColumnHeader: columnHeader);
 
-            if (!IsSupportedType(rowTypeProperty, supportedNullableTypes))
+            if (!IsSupportedType(rowTypeProperty))
             {
                 unsupportedPropertyTypeNames.Add(rowTypeProperty.TypeName);
                 continue;
@@ -247,33 +239,17 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             DiagnosticInfos: diagnosticInfos.ToEquatableArray());
     }
 
-    private static EquatableArray<string> GetSupportedNullableTypes(Compilation compilation)
-    {
-        var result = new List<string>();
-        var nullableT = compilation.GetTypeByMetadataName("System.Nullable`1");
-
-        // TODO: Could be hardcoded?
-        foreach (var primitiveType in SupportedPrimitiveTypes)
-        {
-            var nullableType = nullableT?.Construct(compilation.GetSpecialType(primitiveType));
-            if (nullableType is not null)
-                result.Add(nullableType.ToDisplayString());
-        }
-
-        return result.ToEquatableArray();
-    }
-
-    private static bool IsSupportedType(RowTypeProperty typeProperty, EquatableArray<string> supportedNullableTypes)
+    private static bool IsSupportedType(RowTypeProperty typeProperty)
     {
         return typeProperty.TypeSpecialType == SpecialType.System_String
             || SupportedPrimitiveTypes.Contains(typeProperty.TypeSpecialType)
-            || IsSupportedNullableType(typeProperty, supportedNullableTypes);
+            || IsSupportedNullableType(typeProperty);
     }
 
-    private static bool IsSupportedNullableType(RowTypeProperty typeProperty, EquatableArray<string> supportedNullableTypes)
+    private static bool IsSupportedNullableType(RowTypeProperty typeProperty)
     {
         return typeProperty.TypeNullableAnnotation == NullableAnnotation.Annotated
-            && supportedNullableTypes.Contains(typeProperty.TypeFullName, StringComparer.Ordinal);
+            && SupportedNullableTypes.Contains(typeProperty.TypeFullName, StringComparer.Ordinal);
     }
 
     private static readonly SpecialType[] SupportedPrimitiveTypes =
@@ -287,13 +263,24 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         SpecialType.System_Single
     ];
 
-    private static void Execute(ContextClass? contextClass, EquatableArray<string> supportedNullableTypes, SourceProductionContext context)
+    private static readonly string[] SupportedNullableTypes =
+    [
+        "bool?",
+        "decimal?",
+        "double?",
+        "float?",
+        "int?",
+        "long?",
+        "System.DateTime?"
+    ];
+
+    private static void Execute(ContextClass? contextClass, SourceProductionContext context)
     {
         if (contextClass is null)
             return;
 
         var sb = new StringBuilder();
-        GenerateCode(sb, contextClass, supportedNullableTypes, context);
+        GenerateCode(sb, contextClass, context);
 
         var hintName = contextClass.Namespace is { } ns
             ? $"{ns}.{contextClass.Name}.g.cs"
@@ -316,7 +303,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine();
     }
 
-    private static void GenerateCode(StringBuilder sb, ContextClass contextClass, EquatableArray<string> supportedNullableTypes, SourceProductionContext context)
+    private static void GenerateCode(StringBuilder sb, ContextClass contextClass, SourceProductionContext context)
     {
         GenerateHeader(sb);
 
@@ -344,7 +331,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             if (!rowTypeNames.Add(rowTypeName))
                 continue;
 
-            GenerateCodeForType(sb, typeIndex, rowType, location, contextClass, supportedNullableTypes, context);
+            GenerateCodeForType(sb, typeIndex, rowType, location, contextClass, context);
             ++typeIndex;
         }
 
@@ -353,7 +340,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     }
 
     private static void GenerateCodeForType(StringBuilder sb, int typeIndex, INamedTypeSymbol rowTypeOld, LocationInfo location,
-        ContextClass contextClass, EquatableArray<string> supportedNullableTypes, SourceProductionContext context)
+        ContextClass contextClass, SourceProductionContext context)
     {
         var rowType = new RowType(
             Name: rowTypeOld.Name,
@@ -361,7 +348,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             FullNameWithNullableAnnotation: rowTypeOld.IsReferenceType ? $"{rowTypeOld}?" : rowTypeOld.ToString(),
             IsReferenceType: rowTypeOld.IsReferenceType);
 
-        var info = AnalyzeTypeProperties(supportedNullableTypes, rowTypeOld, context.CancellationToken);
+        var info = AnalyzeTypeProperties(rowTypeOld, context.CancellationToken);
         ReportDiagnostics(info, rowType, location, contextClass.Options, context);
 
         sb.AppendLine().AppendLine(FormattableString.Invariant($$"""
