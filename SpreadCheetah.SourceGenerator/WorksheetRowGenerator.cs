@@ -173,11 +173,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     }
 
     private static TypePropertiesInfo AnalyzeTypeProperties(EquatableArray<string> supportedNullableTypes,
-        ITypeSymbol classType, SourceProductionContext context)
+        ITypeSymbol classType, CancellationToken token)
     {
         var implicitOrderProperties = new List<RowTypeProperty>();
         var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
         var unsupportedPropertyTypeNames = new HashSet<string>(StringComparer.Ordinal);
+        var diagnosticInfos = new List<DiagnosticInfo>();
 
         foreach (var member in classType.GetMembers())
         {
@@ -193,7 +194,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
             TypedConstant? columnHeaderAttributeValue = null;
             int? columnOrderValue = null;
-            Location? columnOrderAttributeLocation = null;
+            LocationInfo? columnOrderAttributeLocation = null;
 
             foreach (var attribute in p.GetAttributes())
             {
@@ -205,7 +206,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 if (columnOrderValue is null && TryParseColumnOrderAttribute(attribute, out var order))
                 {
                     columnOrderValue = order;
-                    columnOrderAttributeLocation = attribute.ApplicationSyntaxReference?.GetSyntax(context.CancellationToken).GetLocation();
+                    columnOrderAttributeLocation = attribute.ApplicationSyntaxReference?
+                        .GetSyntax(token)
+                        .GetLocation()
+                        .ToLocationInfo();
                 }
             }
 
@@ -232,12 +236,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             else if (!explicitOrderProperties.ContainsKey(columnOrder))
                 explicitOrderProperties.Add(columnOrder, rowTypeProperty);
             else
-                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.DuplicateColumnOrder, columnOrderAttributeLocation, classType.Name));
+                diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.DuplicateColumnOrder, columnOrderAttributeLocation, new([classType.Name])));
         }
 
         explicitOrderProperties.AddWithImplicitKeys(implicitOrderProperties);
 
-        return new TypePropertiesInfo(explicitOrderProperties, unsupportedPropertyTypeNames.ToEquatableArray());
+        return new TypePropertiesInfo(explicitOrderProperties, unsupportedPropertyTypeNames.ToEquatableArray(), diagnosticInfos.ToEquatableArray());
     }
 
     private static EquatableArray<string> GetSupportedNullableTypes(Compilation compilation)
@@ -354,7 +358,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             FullNameWithNullableAnnotation: rowTypeOld.IsReferenceType ? $"{rowTypeOld}?" : rowTypeOld.ToString(),
             IsReferenceType: rowTypeOld.IsReferenceType);
 
-        var info = AnalyzeTypeProperties(supportedNullableTypes, rowTypeOld, context);
+        var info = AnalyzeTypeProperties(supportedNullableTypes, rowTypeOld, context.CancellationToken);
         ReportDiagnostics(info, rowType, location, contextClass.Options, context);
 
         sb.AppendLine().AppendLine(FormattableString.Invariant($$"""
@@ -394,6 +398,11 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         if (info.UnsupportedPropertyTypeNames.FirstOrDefault() is { } unsupportedPropertyTypeName)
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location.ToLocation(), rowType.Name, unsupportedPropertyTypeName));
+
+        foreach (var diagnosticInfo in info.DiagnosticInfos)
+        {
+            context.ReportDiagnostic(diagnosticInfo.ToDiagnostic());
+        }
     }
 
     private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, IReadOnlyCollection<RowTypeProperty> properties)

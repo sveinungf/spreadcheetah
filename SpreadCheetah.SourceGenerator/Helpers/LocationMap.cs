@@ -3,7 +3,7 @@ using SpreadCheetah.SourceGenerator.Models;
 
 namespace SpreadCheetah.SourceGenerator.Helpers;
 
-internal static class DiagnosticInfoMap
+internal static class LocationMap
 {
     public static Location ToLocation(this LocationInfo info)
     {
