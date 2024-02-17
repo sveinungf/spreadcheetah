@@ -7,7 +7,7 @@ namespace SpreadCheetah.SourceGenerator.Helpers;
 /// https://github.com/CommunityToolkit/dotnet/blob/main/src/CommunityToolkit.Mvvm.SourceGenerators/Helpers/EquatableArray%7BT%7D.cs
 /// </summary>
 internal readonly struct EquatableArray<T>(T[] underlyingArray)
-    : IEquatable<EquatableArray<T>>, IEnumerable<T>
+    : IEquatable<EquatableArray<T>>, IReadOnlyCollection<T>
     where T : IEquatable<T>
 {
     public static readonly EquatableArray<T> Empty = new([]);

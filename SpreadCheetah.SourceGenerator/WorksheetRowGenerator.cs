@@ -241,7 +241,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         explicitOrderProperties.AddWithImplicitKeys(implicitOrderProperties);
 
-        return new TypePropertiesInfo(explicitOrderProperties, unsupportedPropertyTypeNames.ToEquatableArray(), diagnosticInfos.ToEquatableArray());
+        return new TypePropertiesInfo(
+            Properties: explicitOrderProperties.Values.ToEquatableArray(),
+            UnsupportedPropertyTypeNames: unsupportedPropertyTypeNames.ToEquatableArray(),
+            DiagnosticInfos: diagnosticInfos.ToEquatableArray());
     }
 
     private static EquatableArray<string> GetSupportedNullableTypes(Compilation compilation)
@@ -379,14 +382,13 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                         ??= WorksheetRowMetadataServices.CreateObjectInfo<{{rowType.FullName}}>(AddHeaderRow{{typeIndex}}Async, AddAsRowAsync, AddRangeAsRowsAsync);
             """));
 
-        var properties = info.Properties.Values;
-        GenerateAddHeaderRow(sb, typeIndex, properties);
+        GenerateAddHeaderRow(sb, typeIndex, info.Properties);
         GenerateAddAsRow(sb, 2, rowType);
         GenerateAddRangeAsRows(sb, 2, rowType);
-        GenerateAddAsRowInternal(sb, 2, rowType.FullName, properties);
-        GenerateAddRangeAsRowsInternal(sb, rowType, properties);
+        GenerateAddAsRowInternal(sb, 2, rowType.FullName, info.Properties);
+        GenerateAddRangeAsRowsInternal(sb, rowType, info.Properties);
         GenerateAddEnumerableAsRows(sb, 2, rowType);
-        GenerateAddCellsAsRow(sb, 2, rowType, properties);
+        GenerateAddCellsAsRow(sb, 2, rowType, info.Properties);
     }
 
     private static void ReportDiagnostics(TypePropertiesInfo info, RowType rowType, LocationInfo location, GeneratorOptions? options, SourceProductionContext context)
