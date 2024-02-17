@@ -1,5 +1,3 @@
-using FluentAssertions;
-using FluentAssertions.Execution;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Helpers;
 using SpreadCheetah.SourceGenerators;
 
@@ -10,7 +8,7 @@ public class WorksheetRowGeneratorTests
     private static readonly string[] AllTrackingNames = ["InitialExtraction", "Transform"];
 
     [Fact]
-    public void WorksheetRowGenerator_Generate_CachingCorrectly()
+    public Task WorksheetRowGenerator_Generate_CachingCorrectly()
     {
         // Arrange
         const string source = """
@@ -27,15 +25,16 @@ public class WorksheetRowGeneratorTests
             }
             """;
 
-        const string expected = """... not shown for brevity...""";
-
         // Act
         var (diagnostics, output) = TestHelper.GetGeneratedTrees<WorksheetRowGenerator>([source], AllTrackingNames);
 
-        // Assert the output
-        using var s = new AssertionScope();
-        diagnostics.Should().BeEmpty();
-        output.Should().OnlyContain(x => x == expected);
+        // Assert
+        Assert.Empty(diagnostics);
+        var outputSource = Assert.Single(output);
+
+        var settings = new VerifySettings();
+        settings.UseDirectory("../Snapshots");
+        return Verify(outputSource, settings);
     }
 
     [Fact]
