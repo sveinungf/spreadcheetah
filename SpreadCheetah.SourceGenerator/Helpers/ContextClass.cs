@@ -7,5 +7,5 @@ internal sealed record ContextClass(
     string Name,
     Accessibility DeclaredAccessibility,
     string? Namespace,
-    Dictionary<INamedTypeSymbol, LocationInfo> RowTypes, // TODO: Don't use INamedTypeSymbol
+    EquatableArray<RowType> RowTypes,
     GeneratorOptions? Options);

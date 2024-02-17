@@ -48,22 +48,22 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         if (!string.Equals("SpreadCheetah.SourceGeneration.WorksheetRowContext", baseType.ToDisplayString(), StringComparison.Ordinal))
             return null;
 
-        var rowTypes = new Dictionary<INamedTypeSymbol, LocationInfo>(SymbolEqualityComparer.Default);
-        GeneratorOptions? generatorOptions = null;
+        var rowTypes = new List<RowType>();
 
         foreach (var worksheetRowAttribute in context.Attributes)
         {
-            if (TryParseWorksheetRowAttribute(worksheetRowAttribute, token, out var typeSymbol, out var location)
-                && !rowTypes.ContainsKey(typeSymbol))
-            {
-                var locationInfo = location.ToLocationInfo();
-                if (locationInfo is not null)
-                    rowTypes[typeSymbol] = locationInfo;
-            }
+            if (!TryParseWorksheetRowAttribute(worksheetRowAttribute, token, out var typeSymbol, out var location))
+                continue;
+
+            var rowType = AnalyzeTypeProperties(typeSymbol, location.ToLocationInfo(), token);
+            if (!rowTypes.Exists(x => string.Equals(x.FullName, rowType.FullName, StringComparison.Ordinal)))
+                rowTypes.Add(rowType);
         }
 
         if (rowTypes.Count == 0)
             return null;
+
+        GeneratorOptions? generatorOptions = null;
 
         foreach (var attribute in classSymbol.GetAttributes())
         {
@@ -75,7 +75,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             DeclaredAccessibility: classSymbol.DeclaredAccessibility,
             Namespace: classSymbol.ContainingNamespace is { IsGlobalNamespace: false } ns ? ns.ToString() : null,
             Name: classSymbol.Name,
-            RowTypes: rowTypes,
+            RowTypes: rowTypes.ToEquatableArray(),
             Options: generatorOptions);
     }
 
@@ -165,7 +165,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return true;
     }
 
-    private static RowType AnalyzeTypeProperties(ITypeSymbol classType, LocationInfo worksheetRowAttributeLocation, CancellationToken token)
+    private static RowType AnalyzeTypeProperties(ITypeSymbol classType, LocationInfo? worksheetRowAttributeLocation, CancellationToken token)
     {
         var implicitOrderProperties = new List<RowTypeProperty>();
         var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
@@ -330,13 +330,13 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var rowTypeNames = new HashSet<string>(StringComparer.Ordinal);
 
         var typeIndex = 0;
-        foreach (var (rowType, location) in contextClass.RowTypes)
+        foreach (var rowType in contextClass.RowTypes)
         {
             var rowTypeName = rowType.Name;
             if (!rowTypeNames.Add(rowTypeName))
                 continue;
 
-            GenerateCodeForType(sb, typeIndex, rowType, location, contextClass, context);
+            GenerateCodeForType(sb, typeIndex, rowType, contextClass, context);
             ++typeIndex;
         }
 
@@ -344,11 +344,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine("}");
     }
 
-    private static void GenerateCodeForType(StringBuilder sb, int typeIndex, INamedTypeSymbol rowTypeOld, LocationInfo location,
+    private static void GenerateCodeForType(StringBuilder sb, int typeIndex, RowType rowType,
         ContextClass contextClass, SourceProductionContext context)
     {
-        var rowType = AnalyzeTypeProperties(rowTypeOld, location, context.CancellationToken);
-        ReportDiagnostics(rowType, location, contextClass.Options, context);
+        ReportDiagnostics(rowType, rowType.WorksheetRowAttributeLocation, contextClass.Options, context);
 
         sb.AppendLine().AppendLine(FormattableString.Invariant($$"""
                 private WorksheetRowTypeInfo<{{rowType.FullName}}>? _{{rowType.Name}};
@@ -377,7 +376,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         GenerateAddCellsAsRow(sb, 2, rowType, rowType.Properties);
     }
 
-    private static void ReportDiagnostics(RowType rowType, LocationInfo location, GeneratorOptions? options, SourceProductionContext context)
+    private static void ReportDiagnostics(RowType rowType, LocationInfo? locationInfo, GeneratorOptions? options, SourceProductionContext context)
     {
         var suppressWarnings = options?.SuppressWarnings ?? false;
 
@@ -392,11 +391,13 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         if (suppressWarnings) return;
 
+        var location = locationInfo?.ToLocation();
+
         if (rowType.Properties.Count == 0)
-            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.NoPropertiesFound, location.ToLocation(), rowType.Name));
+            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.NoPropertiesFound, location, rowType.Name));
 
         if (rowType.UnsupportedPropertyTypeNames.FirstOrDefault() is { } unsupportedPropertyTypeName)
-            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location.ToLocation(), rowType.Name, unsupportedPropertyTypeName));
+            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location, rowType.Name, unsupportedPropertyTypeName));
     }
 
     private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, IReadOnlyCollection<RowTypeProperty> properties)

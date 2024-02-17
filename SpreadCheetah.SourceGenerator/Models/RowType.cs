@@ -7,7 +7,7 @@ internal sealed record RowType(
     string FullName,
     string FullNameWithNullableAnnotation,
     bool IsReferenceType,
-    LocationInfo WorksheetRowAttributeLocation,
+    LocationInfo? WorksheetRowAttributeLocation,
     EquatableArray<RowTypeProperty> Properties,
     EquatableArray<string> UnsupportedPropertyTypeNames,
     EquatableArray<DiagnosticInfo> DiagnosticInfos);
