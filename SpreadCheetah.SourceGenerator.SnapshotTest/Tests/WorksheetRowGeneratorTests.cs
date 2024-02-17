@@ -5,8 +5,6 @@ namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 
 public class WorksheetRowGeneratorTests
 {
-    private static readonly string[] AllTrackingNames = ["InitialExtraction", "Transform"];
-
     [Fact]
     public Task WorksheetRowGenerator_Generate_CachingCorrectly()
     {
@@ -26,7 +24,7 @@ public class WorksheetRowGeneratorTests
             """;
 
         // Act
-        var (diagnostics, output) = TestHelper.GetGeneratedTrees<WorksheetRowGenerator>(source, AllTrackingNames);
+        var (diagnostics, output) = TestHelper.GetGeneratedTrees<WorksheetRowGenerator>(source, ["Transform"]);
 
         // Assert
         Assert.Empty(diagnostics);

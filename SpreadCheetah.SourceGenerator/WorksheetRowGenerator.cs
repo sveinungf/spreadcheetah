@@ -23,7 +23,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 IsSyntaxTargetForGeneration,
                 GetSemanticTargetForGeneration)
             .Where(static x => x is not null)
-            .WithTrackingName(TrackingNames.InitialExtraction);
+            .WithTrackingName(TrackingNames.Transform);
 
         context.RegisterSourceOutput(contextClasses, static (spc, source) => Execute(source, spc));
     }
