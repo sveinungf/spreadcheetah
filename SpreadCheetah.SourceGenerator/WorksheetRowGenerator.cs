@@ -165,7 +165,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return true;
     }
 
-    private static TypePropertiesInfo AnalyzeTypeProperties(ITypeSymbol classType, CancellationToken token)
+    private static RowType AnalyzeTypeProperties(ITypeSymbol classType, LocationInfo worksheetRowAttributeLocation, CancellationToken token)
     {
         var implicitOrderProperties = new List<RowTypeProperty>();
         var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
@@ -233,7 +233,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         explicitOrderProperties.AddWithImplicitKeys(implicitOrderProperties);
 
-        return new TypePropertiesInfo(
+        return new RowType(
+            Name: classType.Name,
+            FullName: classType.ToString(),
+            FullNameWithNullableAnnotation: classType.IsReferenceType ? $"{classType}?" : classType.ToString(),
+            IsReferenceType: classType.IsReferenceType,
+            WorksheetRowAttributeLocation: worksheetRowAttributeLocation,
             Properties: explicitOrderProperties.Values.ToEquatableArray(),
             UnsupportedPropertyTypeNames: unsupportedPropertyTypeNames.ToEquatableArray(),
             DiagnosticInfos: diagnosticInfos.ToEquatableArray());
@@ -342,21 +347,15 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     private static void GenerateCodeForType(StringBuilder sb, int typeIndex, INamedTypeSymbol rowTypeOld, LocationInfo location,
         ContextClass contextClass, SourceProductionContext context)
     {
-        var rowType = new RowType(
-            Name: rowTypeOld.Name,
-            FullName: rowTypeOld.ToString(),
-            FullNameWithNullableAnnotation: rowTypeOld.IsReferenceType ? $"{rowTypeOld}?" : rowTypeOld.ToString(),
-            IsReferenceType: rowTypeOld.IsReferenceType);
-
-        var info = AnalyzeTypeProperties(rowTypeOld, context.CancellationToken);
-        ReportDiagnostics(info, rowType, location, contextClass.Options, context);
+        var rowType = AnalyzeTypeProperties(rowTypeOld, location, context.CancellationToken);
+        ReportDiagnostics(rowType, location, contextClass.Options, context);
 
         sb.AppendLine().AppendLine(FormattableString.Invariant($$"""
                 private WorksheetRowTypeInfo<{{rowType.FullName}}>? _{{rowType.Name}};
                 public WorksheetRowTypeInfo<{{rowType.FullName}}> {{rowType.Name}} => _{{rowType.Name}}
         """));
 
-        if (info.Properties.Count == 0)
+        if (rowType.Properties.Count == 0)
         {
             sb.AppendLine($$"""
                         ??= EmptyWorksheetRowContext.CreateTypeInfo<{{rowType.FullName}}>();
@@ -369,20 +368,20 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                         ??= WorksheetRowMetadataServices.CreateObjectInfo<{{rowType.FullName}}>(AddHeaderRow{{typeIndex}}Async, AddAsRowAsync, AddRangeAsRowsAsync);
             """));
 
-        GenerateAddHeaderRow(sb, typeIndex, info.Properties);
+        GenerateAddHeaderRow(sb, typeIndex, rowType.Properties);
         GenerateAddAsRow(sb, 2, rowType);
         GenerateAddRangeAsRows(sb, 2, rowType);
-        GenerateAddAsRowInternal(sb, 2, rowType.FullName, info.Properties);
-        GenerateAddRangeAsRowsInternal(sb, rowType, info.Properties);
+        GenerateAddAsRowInternal(sb, 2, rowType.FullName, rowType.Properties);
+        GenerateAddRangeAsRowsInternal(sb, rowType, rowType.Properties);
         GenerateAddEnumerableAsRows(sb, 2, rowType);
-        GenerateAddCellsAsRow(sb, 2, rowType, info.Properties);
+        GenerateAddCellsAsRow(sb, 2, rowType, rowType.Properties);
     }
 
-    private static void ReportDiagnostics(TypePropertiesInfo info, RowType rowType, LocationInfo location, GeneratorOptions? options, SourceProductionContext context)
+    private static void ReportDiagnostics(RowType rowType, LocationInfo location, GeneratorOptions? options, SourceProductionContext context)
     {
         var suppressWarnings = options?.SuppressWarnings ?? false;
 
-        foreach (var diagnosticInfo in info.DiagnosticInfos)
+        foreach (var diagnosticInfo in rowType.DiagnosticInfos)
         {
             var isWarning = diagnosticInfo.Descriptor.DefaultSeverity == DiagnosticSeverity.Warning;
             if (isWarning && suppressWarnings)
@@ -393,10 +392,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         if (suppressWarnings) return;
 
-        if (info.Properties.Count == 0)
+        if (rowType.Properties.Count == 0)
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.NoPropertiesFound, location.ToLocation(), rowType.Name));
 
-        if (info.UnsupportedPropertyTypeNames.FirstOrDefault() is { } unsupportedPropertyTypeName)
+        if (rowType.UnsupportedPropertyTypeNames.FirstOrDefault() is { } unsupportedPropertyTypeName)
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location.ToLocation(), rowType.Name, unsupportedPropertyTypeName));
     }
 
