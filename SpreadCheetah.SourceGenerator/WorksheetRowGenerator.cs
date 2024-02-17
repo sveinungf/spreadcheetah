@@ -391,18 +391,24 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
     private static void ReportDiagnostics(TypePropertiesInfo info, RowType rowType, LocationInfo location, GeneratorOptions? options, SourceProductionContext context)
     {
-        if (options?.SuppressWarnings ?? false) return;
+        var suppressWarnings = options?.SuppressWarnings ?? false;
+
+        foreach (var diagnosticInfo in info.DiagnosticInfos)
+        {
+            var isWarning = diagnosticInfo.Descriptor.DefaultSeverity == DiagnosticSeverity.Warning;
+            if (isWarning && suppressWarnings)
+                continue;
+
+            context.ReportDiagnostic(diagnosticInfo.ToDiagnostic());
+        }
+
+        if (suppressWarnings) return;
 
         if (info.Properties.Count == 0)
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.NoPropertiesFound, location.ToLocation(), rowType.Name));
 
         if (info.UnsupportedPropertyTypeNames.FirstOrDefault() is { } unsupportedPropertyTypeName)
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location.ToLocation(), rowType.Name, unsupportedPropertyTypeName));
-
-        foreach (var diagnosticInfo in info.DiagnosticInfos)
-        {
-            context.ReportDiagnostic(diagnosticInfo.ToDiagnostic());
-        }
     }
 
     private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, IReadOnlyCollection<RowTypeProperty> properties)
