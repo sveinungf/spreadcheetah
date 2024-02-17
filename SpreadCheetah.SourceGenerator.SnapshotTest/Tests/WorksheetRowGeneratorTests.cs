@@ -26,7 +26,7 @@ public class WorksheetRowGeneratorTests
             """;
 
         // Act
-        var (diagnostics, output) = TestHelper.GetGeneratedTrees<WorksheetRowGenerator>([source], AllTrackingNames);
+        var (diagnostics, output) = TestHelper.GetGeneratedTrees<WorksheetRowGenerator>(source, AllTrackingNames);
 
         // Assert
         Assert.Empty(diagnostics);

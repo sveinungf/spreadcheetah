@@ -10,14 +10,12 @@ namespace SpreadCheetah.SourceGenerator.SnapshotTest.Helpers;
 
 internal static class TestHelper
 {
-    public static SettingsTask CompileAndVerify<T>(string source, params object?[] parameters) where T : IIncrementalGenerator, new()
+    private static PortableExecutableReference[] GetAssemblyReferences()
     {
-        var syntaxTree = CSharpSyntaxTree.ParseText(source);
-
         var dotNetAssemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location) ?? throw new InvalidOperationException();
 
-        var references = new[]
-        {
+        return
+        [
             MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "mscorlib.dll")),
             MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "netstandard.dll")),
             MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.dll")),
@@ -26,8 +24,13 @@ internal static class TestHelper
             MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.Runtime.dll")),
             MetadataReference.CreateFromFile(typeof(WorksheetRowAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(TestHelper).Assembly.Location)
-        };
+        ];
+    }
 
+    public static SettingsTask CompileAndVerify<T>(string source, params object?[] parameters) where T : IIncrementalGenerator, new()
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(source);
+        var references = GetAssemblyReferences();
         var compilation = CSharpCompilation.Create("Tests", [syntaxTree], references);
 
         var generator = new T();
@@ -47,46 +50,18 @@ internal static class TestHelper
     }
 
     public static (ImmutableArray<Diagnostic> Diagnostics, string[] Output) GetGeneratedTrees<T>(
-        string[] sources, // C# source code 
-        string[] stages,  // The tracking stages we expect
-        bool assertOutputs = true) // You can disable cacheability checking during dev
-        where T : IIncrementalGenerator, new() // T is your generator
+        string source,
+        string[] trackingStages,
+        bool assertOutputs = true)
+        where T : IIncrementalGenerator, new()
     {
-        // Convert the source files to SyntaxTrees
-        IEnumerable<SyntaxTree> syntaxTrees = sources.Select(static x => CSharpSyntaxTree.ParseText(x));
-
-        // Configure the assembly references you need
-        // This will vary depending on your generator and requirements
-        //var references = AppDomain.CurrentDomain.GetAssemblies()
-        //    .Where(_ => !_.IsDynamic && !string.IsNullOrWhiteSpace(_.Location))
-        //    .Select(_ => MetadataReference.CreateFromFile(_.Location))
-        //    .Concat(new[] { MetadataReference.CreateFromFile(typeof(T).Assembly.Location) });
-
-        var dotNetAssemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location) ?? throw new InvalidOperationException();
-
-        var references = new[]
-{
-            MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "mscorlib.dll")),
-            MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "netstandard.dll")),
-            MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.dll")),
-            MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.Core.dll")),
-            MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.Private.CoreLib.dll")),
-            MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.Runtime.dll")),
-            MetadataReference.CreateFromFile(typeof(WorksheetRowAttribute).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(TestHelper).Assembly.Location)
-        };
-
-        // Create a Compilation object
-        // You may want to specify other results here
-        CSharpCompilation compilation = CSharpCompilation.Create(
-            "SpreadCheetah.Generated",
-            syntaxTrees,
-            references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        var syntaxTree = CSharpSyntaxTree.ParseText(source);
+        var references = GetAssemblyReferences();
+        var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        var compilation = CSharpCompilation.Create("SpreadCheetah.Generated", [syntaxTree], references, options);
 
         // Run the generator, get the results, and assert cacheability if applicable
-        GeneratorDriverRunResult runResult = RunGeneratorAndAssertOutput<T>(
-            compilation, stages, assertOutputs);
+        var runResult = RunGeneratorAndAssertOutput<T>(compilation, trackingStages, assertOutputs);
 
         // Return the generator diagnostics and generated sources
         return (runResult.Diagnostics, runResult.GeneratedTrees.Select(x => x.ToString()).ToArray());
@@ -95,7 +70,7 @@ internal static class TestHelper
     private static GeneratorDriverRunResult RunGeneratorAndAssertOutput<T>(CSharpCompilation compilation, string[] trackingNames, bool assertOutput = true)
         where T : IIncrementalGenerator, new()
     {
-        ISourceGenerator generator = new T().AsSourceGenerator();
+        var generator = new T().AsSourceGenerator();
 
         // ⚠ Tell the driver to track all the incremental generator outputs
         // without this, you'll have no tracked outputs!
@@ -116,20 +91,20 @@ internal static class TestHelper
         if (assertOutput)
         {
             // Run again, using the same driver, with a clone of the compilation
-            GeneratorDriverRunResult runResult2 = driver
-                                                  .RunGenerators(clone)
-                                                  .GetRunResult();
+            var runResult2 = driver.RunGenerators(clone).GetRunResult();
 
             // Compare all the tracked outputs, throw if there's a failure
             AssertRunsEqual(runResult, runResult2, trackingNames);
 
             // verify the second run only generated cached source outputs
-            runResult2.Results[0]
-                        .TrackedOutputSteps
-                        .SelectMany(x => x.Value) // step executions
-                        .SelectMany(x => x.Outputs) // execution results
-                        .Should()
-                        .OnlyContain(x => x.Reason == IncrementalStepRunReason.Cached);
+            var outputs = runResult2
+                .Results[0]
+                .TrackedOutputSteps
+                .SelectMany(x => x.Value) // step executions
+                .SelectMany(x => x.Outputs); // execution results
+
+            var output = Assert.Single(outputs);
+            Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
         }
 
         return runResult;
@@ -147,10 +122,8 @@ internal static class TestHelper
         var trackedSteps2 = GetTrackedSteps(runResult2, trackingNames);
 
         // Both runs should have the same tracked steps
-        trackedSteps1.Should()
-                     .NotBeEmpty()
-                     .And.HaveSameCount(trackedSteps2)
-                     .And.ContainKeys(trackedSteps2.Keys);
+        var trackedSteps1Keys = trackedSteps1.Keys.ToHashSet(StringComparer.Ordinal);
+        Assert.True(trackedSteps1Keys.SetEquals(trackedSteps2.Keys));
 
         // Get the IncrementalGeneratorRunStep collection for each run
         foreach (var (trackingName, runSteps1) in trackedSteps1)
@@ -160,14 +133,15 @@ internal static class TestHelper
             AssertEqual(runSteps1, runSteps2, trackingName);
         }
 
-        // Local function that extracts the tracked steps
         static Dictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> GetTrackedSteps(
             GeneratorDriverRunResult runResult, string[] trackingNames)
-            => runResult
-                    .Results[0] // We're only running a single generator, so this is safe
-                    .TrackedSteps // Get the pipeline outputs
-                    .Where(step => trackingNames.Contains(step.Key)) // filter to known steps
-                    .ToDictionary(x => x.Key, x => x.Value); // Convert to a dictionary
+        {
+            return runResult
+                .Results[0] // We're only running a single generator, so this is safe
+                .TrackedSteps // Get the pipeline outputs
+                .Where(step => trackingNames.Contains(step.Key, StringComparer.Ordinal))
+                .ToDictionary(x => x.Key, x => x.Value, StringComparer.Ordinal);
+        }
     }
 
     private static void AssertEqual(
@@ -175,27 +149,20 @@ internal static class TestHelper
         ImmutableArray<IncrementalGeneratorRunStep> runSteps2,
         string stepName)
     {
-        runSteps1.Should().HaveSameCount(runSteps2);
+        Assert.Equal(runSteps1.Length, runSteps2.Length);
 
-        for (var i = 0; i < runSteps1.Length; i++)
+        foreach (var (runStep1, runStep2) in runSteps1.Zip(runSteps2))
         {
-            var runStep1 = runSteps1[i];
-            var runStep2 = runSteps2[i];
-
             // The outputs should be equal between different runs
-            IEnumerable<object> outputs1 = runStep1.Outputs.Select(x => x.Value);
-            IEnumerable<object> outputs2 = runStep2.Outputs.Select(x => x.Value);
+            var outputs1 = runStep1.Outputs.Select(x => x.Value);
+            var outputs2 = runStep2.Outputs.Select(x => x.Value);
 
-            outputs1.Should()
-                    .Equal(outputs2, $"because {stepName} should produce cacheable outputs");
+            Assert.True(outputs1.SequenceEqual(outputs2), $"Step {stepName} did not produce cacheable outputs");
 
             // Therefore, on the second run the results should always be cached or unchanged!
             // - Unchanged is when the _input_ has changed, but the output hasn't
             // - Cached is when the the input has not changed, so the cached output is used 
-            runStep2.Outputs.Should()
-                .OnlyContain(
-                    x => x.Reason == IncrementalStepRunReason.Cached || x.Reason == IncrementalStepRunReason.Unchanged,
-                    $"{stepName} expected to have reason {IncrementalStepRunReason.Cached} or {IncrementalStepRunReason.Unchanged}");
+            Assert.All(runStep2.Outputs, x => Assert.True(x.Reason is IncrementalStepRunReason.Cached or IncrementalStepRunReason.Unchanged));
 
             // Make sure we're not using anything we shouldn't
             AssertObjectGraph(runStep1, stepName);
