@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using SpreadCheetah.SourceGeneration;
@@ -165,14 +164,12 @@ internal static class TestHelper
             Assert.All(runStep2.Outputs, x => Assert.True(x.Reason is IncrementalStepRunReason.Cached or IncrementalStepRunReason.Unchanged));
 
             // Make sure we're not using anything we shouldn't
-            AssertObjectGraph(runStep1, stepName);
+            AssertObjectGraph(runStep1);
         }
     }
 
-    private static void AssertObjectGraph(IncrementalGeneratorRunStep runStep, string stepName)
+    private static void AssertObjectGraph(IncrementalGeneratorRunStep runStep)
     {
-        // Including the stepName in error messages to make it easy to isolate issues
-        var because = $"{stepName} shouldn't contain banned symbols";
         var visited = new HashSet<object>();
 
         // Check all of the outputs - probably overkill, but why not
@@ -181,26 +178,21 @@ internal static class TestHelper
             Visit(obj);
         }
 
-        void Visit(object node)
+        void Visit(object? node)
         {
             // If we've already seen this object, or it's null, stop.
             if (node is null || !visited.Add(node))
-            {
                 return;
-            }
 
             // Make sure it's not a banned type
-            node.Should()
-                .NotBeOfType<Compilation>(because)
-                .And.NotBeOfType<ISymbol>(because)
-                .And.NotBeOfType<SyntaxNode>(because);
+            Assert.IsNotAssignableFrom<Compilation>(node);
+            Assert.IsNotAssignableFrom<ISymbol>(node);
+            Assert.IsNotAssignableFrom<SyntaxNode>(node);
 
             // Examine the object
-            Type type = node.GetType();
+            var type = node.GetType();
             if (type.IsPrimitive || type.IsEnum || type == typeof(string))
-            {
                 return;
-            }
 
             // If the object is a collection, check each of the values
             if (node is IEnumerable collection and not string)
@@ -215,9 +207,9 @@ internal static class TestHelper
             }
 
             // Recursively check each field in the object
-            foreach (FieldInfo field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
-                object fieldValue = field.GetValue(node);
+                var fieldValue = field.GetValue(node);
                 Visit(fieldValue);
             }
         }
