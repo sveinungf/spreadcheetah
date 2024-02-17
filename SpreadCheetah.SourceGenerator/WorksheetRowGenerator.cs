@@ -237,7 +237,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         explicitOrderProperties.AddWithImplicitKeys(implicitOrderProperties);
 
-        return new TypePropertiesInfo(explicitOrderProperties, new EquatableArray<string>(unsupportedPropertyTypeNames.ToArray()));
+        return new TypePropertiesInfo(explicitOrderProperties, unsupportedPropertyTypeNames.ToEquatableArray());
     }
 
     private static EquatableArray<string> GetSupportedNullableTypes(Compilation compilation)
@@ -253,7 +253,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 result.Add(nullableType.ToDisplayString());
         }
 
-        return new EquatableArray<string>(result.ToArray());
+        return result.ToEquatableArray();
     }
 
     private static bool IsSupportedType(RowTypeProperty typeProperty, EquatableArray<string> supportedNullableTypes)
