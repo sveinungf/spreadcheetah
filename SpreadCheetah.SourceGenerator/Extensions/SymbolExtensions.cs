@@ -68,10 +68,6 @@ internal static class SymbolExtensions
 
         return new RowTypeProperty(
             ColumnHeader: columnHeader,
-            Name: p.Name,
-            TypeFullName: p.Type.ToDisplayString(),
-            TypeName: p.Type.Name,
-            TypeNullableAnnotation: p.NullableAnnotation,
-            TypeSpecialType: p.Type.SpecialType);
+            Name: p.Name);
     }
 }

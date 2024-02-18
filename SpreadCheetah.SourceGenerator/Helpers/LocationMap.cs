@@ -10,11 +10,6 @@ internal static class LocationMap
         return Location.Create(info.FilePath, info.TextSpan, info.LineSpan);
     }
 
-    public static LocationInfo? ToLocationInfo(this SyntaxNode node)
-    {
-        return node.GetLocation().ToLocationInfo();
-    }
-
     public static LocationInfo? ToLocationInfo(this Location location)
     {
         if (location.SourceTree is null)

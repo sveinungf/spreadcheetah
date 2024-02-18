@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SpreadCheetah.SourceGenerator.Helpers;
 
@@ -6,6 +7,7 @@ namespace SpreadCheetah.SourceGenerator.Helpers;
 /// Based on the implementation from:
 /// https://github.com/CommunityToolkit/dotnet/blob/main/src/CommunityToolkit.Mvvm.SourceGenerators/Helpers/EquatableArray%7BT%7D.cs
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal readonly struct EquatableArray<T>(T[] underlyingArray)
     : IEquatable<EquatableArray<T>>, IReadOnlyCollection<T>
     where T : IEquatable<T>

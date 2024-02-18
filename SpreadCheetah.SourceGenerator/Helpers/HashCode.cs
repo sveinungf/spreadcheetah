@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -10,6 +11,7 @@ namespace SpreadCheetah.SourceGenerator.Helpers;
 /// https://github.com/CommunityToolkit/dotnet/blob/7b53ae23dfc6a7fb12d0fc058b89b6e948f48448/src/CommunityToolkit.Mvvm.SourceGenerators/Helpers/HashCode.cs
 /// </summary>
 [StructLayout(LayoutKind.Auto)]
+[ExcludeFromCodeCoverage]
 #pragma warning disable CA1066 // Implement IEquatable when overriding Object.Equals
 internal struct HashCode
 #pragma warning restore CA1066 // Implement IEquatable when overriding Object.Equals
