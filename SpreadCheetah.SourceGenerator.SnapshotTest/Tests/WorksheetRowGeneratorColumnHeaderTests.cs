@@ -38,6 +38,6 @@ public class WorksheetRowGeneratorColumnHeaderTests
             """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, replaceLineEndings: true);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, replaceEscapedLineEndings: true);
     }
 }

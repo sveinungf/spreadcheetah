@@ -26,7 +26,7 @@ internal static class TestHelper
         ];
     }
 
-    public static SettingsTask CompileAndVerify<T>(string source, bool replaceLineEndings = false, params object?[] parameters) where T : IIncrementalGenerator, new()
+    public static SettingsTask CompileAndVerify<T>(string source, bool replaceEscapedLineEndings = false, params object?[] parameters) where T : IIncrementalGenerator, new()
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
         var references = GetAssemblyReferences();
@@ -41,8 +41,8 @@ internal static class TestHelper
         var settings = new VerifySettings();
         settings.UseDirectory("../Snapshots");
 
-        if (replaceLineEndings)
-            settings.ScrubLinesWithReplace(x => x.Replace("\r\n", "\n", StringComparison.Ordinal));
+        if (replaceEscapedLineEndings)
+            settings.ScrubLinesWithReplace(x => x.Replace("\\r\\n", "\\n", StringComparison.Ordinal));
 
         var task = Verify(target, settings);
 
