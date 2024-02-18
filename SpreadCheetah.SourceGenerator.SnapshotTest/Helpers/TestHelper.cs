@@ -48,6 +48,10 @@ internal static class TestHelper
             : task;
     }
 
+    /// <summary>
+    /// Based on the implementation from:
+    /// https://andrewlock.net/creating-a-source-generator-part-10-testing-your-incremental-generator-pipeline-outputs-are-cacheable/
+    /// </summary>
     public static (ImmutableArray<Diagnostic> Diagnostics, string[] Output) GetGeneratedTrees<T>(
         string source,
         string[] trackingStages,

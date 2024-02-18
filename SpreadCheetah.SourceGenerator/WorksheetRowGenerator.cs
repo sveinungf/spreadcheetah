@@ -5,9 +5,7 @@ using SpreadCheetah.SourceGenerator;
 using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Helpers;
 using SpreadCheetah.SourceGenerator.Models;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace SpreadCheetah.SourceGenerators;
@@ -50,9 +48,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         var rowTypes = new List<RowType>();
 
-        foreach (var worksheetRowAttribute in context.Attributes)
+        foreach (var attribute in context.Attributes)
         {
-            if (!TryParseWorksheetRowAttribute(worksheetRowAttribute, token, out var typeSymbol, out var location))
+            if (!attribute.TryParseWorksheetRowAttribute(token, out var typeSymbol, out var location))
                 continue;
 
             var rowType = AnalyzeTypeProperties(typeSymbol, location.ToLocationInfo(), token);
@@ -67,7 +65,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var attribute in classSymbol.GetAttributes())
         {
-            if (TryParseOptionsAttribute(attribute, out var options))
+            if (attribute.TryParseOptionsAttribute(out var options))
                 generatorOptions = options;
         }
 
@@ -79,92 +77,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             Options: generatorOptions);
     }
 
-    private static bool TryParseWorksheetRowAttribute(
-        AttributeData attribute,
-        CancellationToken token,
-        [NotNullWhen(true)] out INamedTypeSymbol? typeSymbol,
-        [NotNullWhen(true)] out Location? location)
-    {
-        typeSymbol = null;
-        location = null;
-
-        var args = attribute.ConstructorArguments;
-        if (args is not [{ Value: INamedTypeSymbol symbol }])
-            return false;
-
-        if (symbol.Kind == SymbolKind.ErrorType)
-            return false;
-
-        var syntaxReference = attribute.ApplicationSyntaxReference;
-        if (syntaxReference is null)
-            return false;
-
-        location = syntaxReference.GetSyntax(token).GetLocation();
-        typeSymbol = symbol;
-        return true;
-    }
-
-    private static bool TryParseOptionsAttribute(
-        AttributeData attribute,
-        [NotNullWhen(true)] out GeneratorOptions? options)
-    {
-        options = null;
-
-        if (!string.Equals(Attributes.GenerationOptions, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
-            return false;
-
-        if (attribute.NamedArguments.IsDefaultOrEmpty)
-            return false;
-
-        foreach (var (key, value) in attribute.NamedArguments)
-        {
-            if (!string.Equals(key, "SuppressWarnings", StringComparison.Ordinal))
-                continue;
-
-            if (value.Value is bool suppressWarnings)
-            {
-                options = new GeneratorOptions(suppressWarnings);
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static bool TryParseColumnHeaderAttribute(
-        AttributeData attribute,
-        out TypedConstant attributeArg)
-    {
-        attributeArg = default;
-
-        if (!string.Equals(Attributes.ColumnHeader, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
-            return false;
-
-        var args = attribute.ConstructorArguments;
-        if (args is not [{ Value: string } arg])
-            return false;
-
-        attributeArg = arg;
-        return true;
-    }
-
-    private static bool TryParseColumnOrderAttribute(
-        AttributeData attribute,
-        out int order)
-    {
-        order = 0;
-
-        if (!string.Equals(Attributes.ColumnOrder, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
-            return false;
-
-        var args = attribute.ConstructorArguments;
-        if (args is not [{ Value: int attributeValue }])
-            return false;
-
-        order = attributeValue;
-        return true;
-    }
-
     private static RowType AnalyzeTypeProperties(ITypeSymbol classType, LocationInfo? worksheetRowAttributeLocation, CancellationToken token)
     {
         var implicitOrderProperties = new List<RowTypeProperty>();
@@ -174,13 +86,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var member in classType.GetMembers())
         {
-            if (member is not IPropertySymbol
-                {
-                    DeclaredAccessibility: Accessibility.Public,
-                    IsStatic: false,
-                    IsWriteOnly: false
-                } p)
+            if (!member.IsPropertyWithPublicGetter(out var p))
+                continue;
+
+            if (!p.Type.IsSupportedType())
             {
+                unsupportedPropertyTypeNames.Add(p.Type.Name);
                 continue;
             }
 
@@ -190,12 +101,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
             foreach (var attribute in p.GetAttributes())
             {
-                if (columnHeaderAttributeValue is null && TryParseColumnHeaderAttribute(attribute, out var arg))
+                if (columnHeaderAttributeValue is null && attribute.TryParseColumnHeaderAttribute(out var arg))
                 {
                     columnHeaderAttributeValue = arg;
                 }
 
-                if (columnOrderValue is null && TryParseColumnOrderAttribute(attribute, out var order))
+                if (columnOrderValue is null && attribute.TryParseColumnOrderAttribute(out var order))
                 {
                     columnOrderValue = order;
                     columnOrderAttributeLocation = attribute.ApplicationSyntaxReference?
@@ -217,12 +128,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 TypeSpecialType: p.Type.SpecialType,
                 ColumnHeader: columnHeader);
 
-            if (!IsSupportedType(rowTypeProperty))
-            {
-                unsupportedPropertyTypeNames.Add(rowTypeProperty.TypeName);
-                continue;
-            }
-
             if (columnOrderValue is not { } columnOrder)
                 implicitOrderProperties.Add(rowTypeProperty);
             else if (!explicitOrderProperties.ContainsKey(columnOrder))
@@ -243,41 +148,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             UnsupportedPropertyTypeNames: unsupportedPropertyTypeNames.ToEquatableArray(),
             DiagnosticInfos: diagnosticInfos.ToEquatableArray());
     }
-
-    private static bool IsSupportedType(RowTypeProperty typeProperty)
-    {
-        return typeProperty.TypeSpecialType == SpecialType.System_String
-            || SupportedPrimitiveTypes.Contains(typeProperty.TypeSpecialType)
-            || IsSupportedNullableType(typeProperty);
-    }
-
-    private static bool IsSupportedNullableType(RowTypeProperty typeProperty)
-    {
-        return typeProperty.TypeNullableAnnotation == NullableAnnotation.Annotated
-            && SupportedNullableTypes.Contains(typeProperty.TypeFullName, StringComparer.Ordinal);
-    }
-
-    private static readonly SpecialType[] SupportedPrimitiveTypes =
-    [
-        SpecialType.System_Boolean,
-        SpecialType.System_DateTime,
-        SpecialType.System_Decimal,
-        SpecialType.System_Double,
-        SpecialType.System_Int32,
-        SpecialType.System_Int64,
-        SpecialType.System_Single
-    ];
-
-    private static readonly string[] SupportedNullableTypes =
-    [
-        "bool?",
-        "decimal?",
-        "double?",
-        "float?",
-        "int?",
-        "long?",
-        "System.DateTime?"
-    ];
 
     private static void Execute(ContextClass? contextClass, SourceProductionContext context)
     {
