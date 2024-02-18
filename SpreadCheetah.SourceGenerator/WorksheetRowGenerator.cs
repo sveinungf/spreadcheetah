@@ -66,7 +66,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         foreach (var attribute in classSymbol.GetAttributes())
         {
             if (attribute.TryParseOptionsAttribute(out var options))
+            {
                 generatorOptions = options;
+                break;
+            }
         }
 
         return new ContextClass(
@@ -96,57 +99,37 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             }
 
             TypedConstant? columnHeaderAttributeValue = null;
-            int? columnOrderValue = null;
-            LocationInfo? columnOrderAttributeLocation = null;
+            ColumnOrder? columnOrder = null;
 
             foreach (var attribute in p.GetAttributes())
             {
                 if (columnHeaderAttributeValue is null && attribute.TryParseColumnHeaderAttribute(out var arg))
-                {
                     columnHeaderAttributeValue = arg;
-                }
 
-                if (columnOrderValue is null && attribute.TryParseColumnOrderAttribute(out var order))
-                {
-                    columnOrderValue = order;
-                    columnOrderAttributeLocation = attribute.ApplicationSyntaxReference?
-                        .GetSyntax(token)
-                        .GetLocation()
-                        .ToLocationInfo();
-                }
+                if (columnOrder is null && attribute.TryParseColumnOrderAttribute(token, out var orderArg))
+                    columnOrder = orderArg;
             }
 
-            var columnHeader = columnHeaderAttributeValue is { } value
-                ? value.ToCSharpString()
-                : @$"""{p.Name}""";
+            var rowTypeProperty = p.ToRowTypeProperty(columnHeaderAttributeValue);
 
-            var rowTypeProperty = new RowTypeProperty(
-                Name: p.Name,
-                TypeName: p.Type.Name,
-                TypeFullName: p.Type.ToDisplayString(),
-                TypeNullableAnnotation: p.NullableAnnotation,
-                TypeSpecialType: p.Type.SpecialType,
-                ColumnHeader: columnHeader);
-
-            if (columnOrderValue is not { } columnOrder)
+            if (columnOrder is not { } order)
                 implicitOrderProperties.Add(rowTypeProperty);
-            else if (!explicitOrderProperties.ContainsKey(columnOrder))
-                explicitOrderProperties.Add(columnOrder, rowTypeProperty);
+            else if (!explicitOrderProperties.ContainsKey(order.Value))
+                explicitOrderProperties.Add(order.Value, rowTypeProperty);
             else
-                diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.DuplicateColumnOrder, columnOrderAttributeLocation, new([classType.Name])));
+                diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.DuplicateColumnOrder, order.Location, new([classType.Name])));
         }
 
         explicitOrderProperties.AddWithImplicitKeys(implicitOrderProperties);
 
         return new RowType(
-            Name: classType.Name,
+            DiagnosticInfos: diagnosticInfos.ToEquatableArray(),
             FullName: classType.ToString(),
-            FullNameWithNullableAnnotation: classType.IsReferenceType ? $"{classType}?" : classType.ToString(),
             IsReferenceType: classType.IsReferenceType,
-            WorksheetRowAttributeLocation: worksheetRowAttributeLocation,
+            Name: classType.Name,
             Properties: explicitOrderProperties.Values.ToEquatableArray(),
             UnsupportedPropertyTypeNames: unsupportedPropertyTypeNames.ToEquatableArray(),
-            DiagnosticInfos: diagnosticInfos.ToEquatableArray());
+            WorksheetRowAttributeLocation: worksheetRowAttributeLocation);
     }
 
     private static void Execute(ContextClass? contextClass, SourceProductionContext context)

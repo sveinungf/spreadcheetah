@@ -1,4 +1,6 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using SpreadCheetah.SourceGenerator.Models;
 using System.Diagnostics.CodeAnalysis;
 
 namespace SpreadCheetah.SourceGenerator.Extensions;
@@ -56,5 +58,20 @@ internal static class SymbolExtensions
 
         property = null;
         return false;
+    }
+
+    public static RowTypeProperty ToRowTypeProperty(
+        this IPropertySymbol p,
+        TypedConstant? columnHeaderAttributeValue)
+    {
+        var columnHeader = columnHeaderAttributeValue?.ToCSharpString() ?? @$"""{p.Name}""";
+
+        return new RowTypeProperty(
+            ColumnHeader: columnHeader,
+            Name: p.Name,
+            TypeFullName: p.Type.ToDisplayString(),
+            TypeName: p.Type.Name,
+            TypeNullableAnnotation: p.NullableAnnotation,
+            TypeSpecialType: p.Type.SpecialType);
     }
 }

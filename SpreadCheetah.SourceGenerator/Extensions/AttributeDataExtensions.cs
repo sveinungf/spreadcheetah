@@ -1,5 +1,6 @@
 using Microsoft.CodeAnalysis;
 using SpreadCheetah.SourceGenerator.Helpers;
+using SpreadCheetah.SourceGenerator.Models;
 using System.Diagnostics.CodeAnalysis;
 
 namespace SpreadCheetah.SourceGenerator.Extensions;
@@ -77,9 +78,10 @@ internal static class AttributeDataExtensions
 
     public static bool TryParseColumnOrderAttribute(
         this AttributeData attribute,
-        out int order)
+        CancellationToken token,
+        [NotNullWhen(true)] out ColumnOrder? order)
     {
-        order = 0;
+        order = null;
 
         if (!string.Equals(Attributes.ColumnOrder, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
             return false;
@@ -88,7 +90,13 @@ internal static class AttributeDataExtensions
         if (args is not [{ Value: int attributeValue }])
             return false;
 
-        order = attributeValue;
+        var location = attribute
+            .ApplicationSyntaxReference?
+            .GetSyntax(token)
+            .GetLocation()
+            .ToLocationInfo();
+
+        order = new ColumnOrder(attributeValue, location);
         return true;
     }
 }
