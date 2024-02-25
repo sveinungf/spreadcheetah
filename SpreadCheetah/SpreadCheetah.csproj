@@ -16,7 +16,7 @@
     <PackageProjectUrl>https://github.com/sveinungf/spreadcheetah</PackageProjectUrl>
     <RepositoryUrl>https://github.com/sveinungf/spreadcheetah</RepositoryUrl>
     <PackageTags>spreadsheet;excel;xlsx;openxml;sourcegenerator;performance;nativeaot</PackageTags>
-    <PackageReleaseNotes>https://github.com/sveinungf/spreadcheetah/releases/tag/v1.12.0</PackageReleaseNotes>
+    <PackageReleaseNotes>https://github.com/sveinungf/spreadcheetah/releases</PackageReleaseNotes>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <!-- Symbol package -->
