@@ -417,6 +417,26 @@ public class WorksheetRowGeneratorTests
     }
 
     [Fact]
+    public Task WorksheetRowGenerator_Generate_ContextWithTwoWorksheetRowAttributesWhenTheFirstTypeEmitsWarning()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using System;
+
+            namespace MyNamespace;
+
+            [WorksheetRow(typeof(ClassWithUnsupportedProperty))]
+            [WorksheetRow(typeof(ClassWithSingleProperty))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
+
+    [Fact]
     public Task WorksheetRowGenerator_Generate_ContextClassWithInternalAccessibility()
     {
         // Arrange
