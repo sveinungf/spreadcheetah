@@ -10,13 +10,14 @@
     <!-- NuGet package -->
     <PackageId>SpreadCheetah</PackageId>
     <Version>1.13.0</Version>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>sveinungf</Authors>
     <Description>SpreadCheetah is a high-performance .NET library for generating spreadsheet (Microsoft Excel XLSX) files.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/sveinungf/spreadcheetah</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/sveinungf/spreadcheetah</RepositoryUrl>
-    <PackageTags>spreadsheet;excel;xlsx;openxml;sourcegenerator;performance;nativeaot</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>https://github.com/sveinungf/spreadcheetah/releases</PackageReleaseNotes>
+    <PackageTags>spreadsheet;excel;xlsx;openxml;sourcegenerator;performance;nativeaot</PackageTags>
+    <RepositoryUrl>https://github.com/sveinungf/spreadcheetah</RepositoryUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <!-- Symbol package -->
@@ -70,6 +71,10 @@
   <ItemGroup>
     <!-- Package the source generator in the analyzer directory of the nuget package -->
     <None Include="$(OutputPath)/netstandard2.0/SpreadCheetah.SourceGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
