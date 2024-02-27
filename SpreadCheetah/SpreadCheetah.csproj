@@ -9,7 +9,7 @@
 
     <!-- NuGet package -->
     <PackageId>SpreadCheetah</PackageId>
-    <Version>1.13.0</Version>
+    <Version>1.13.1</Version>
     <Authors>sveinungf</Authors>
     <Description>SpreadCheetah is a high-performance .NET library for generating spreadsheet (Microsoft Excel XLSX) files.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -34,7 +34,7 @@
 
     <!-- Package validation -->
     <EnablePackageValidation>true</EnablePackageValidation>
-    <PackageValidationBaselineVersion>1.12.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.13.0</PackageValidationBaselineVersion>
     <EnableStrictModeForCompatibleTfms>true</EnableStrictModeForCompatibleTfms>
     <EnableStrictModeForCompatibleFrameworksInPackage>true</EnableStrictModeForCompatibleFrameworksInPackage>
   </PropertyGroup>

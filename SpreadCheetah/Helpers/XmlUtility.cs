@@ -89,7 +89,8 @@ internal static class XmlUtility
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryXmlEncodeToUtf8(ReadOnlySpan<char> source, Span<byte> destination, out int bytesWritten)
     {
-        if (!Utf8Helper.DestinationCanFitTranscodedString(source, destination))
+        // Worst case: " becomes &quot; (1 character becomes 6 bytes)
+        if (destination.Length < source.Length * 6)
         {
             bytesWritten = 0;
             return false;
