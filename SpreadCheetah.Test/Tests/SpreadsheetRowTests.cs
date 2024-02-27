@@ -580,6 +580,35 @@ public class SpreadsheetRowTests
     }
 
     [Theory]
+    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
+    public async Task Spreadsheet_AddRow_MultipleRowsWithCharactersToEscape(CellType type, RowCollectionType rowType)
+    {
+        // Arrange
+        const string cellValue = "'This \" text & has & &&&&&&' characters < that > needs & to & be & escaped!'";
+        var values = Enumerable.Repeat(cellValue, 1000);
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act
+        foreach (var value in values)
+        {
+            await spreadsheet.AddRowAsync(CellFactory.Create(type, value), rowType);
+        }
+
+        await spreadsheet.FinishAsync();
+        
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualValues = worksheet.Cells(true).Select(x => x.Value.GetText());
+        Assert.All(actualValues, x => Assert.Equal(cellValue, x));
+    }
+
+    [Theory]
     [MemberData(nameof(TestData.CellAndValueTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddRow_ExplicitCellReferences(CellValueType valueType, bool isNull, CellType cellType, RowCollectionType rowType)
     {
