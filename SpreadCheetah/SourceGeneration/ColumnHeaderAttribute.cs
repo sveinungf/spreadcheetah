@@ -6,4 +6,13 @@ namespace SpreadCheetah.SourceGeneration;
 /// Header names are written to a worksheet with <see cref="Spreadsheet.AddHeaderRowAsync"/>.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-public sealed class ColumnHeaderAttribute(string name) : Attribute;
+public sealed class ColumnHeaderAttribute : Attribute
+{
+    public ColumnHeaderAttribute(string name)
+    {
+    }
+
+    public ColumnHeaderAttribute(Type type, string propertyName)
+    {
+    }
+}
