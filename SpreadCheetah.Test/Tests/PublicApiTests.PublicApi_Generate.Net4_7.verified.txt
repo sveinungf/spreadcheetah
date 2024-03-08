@@ -177,6 +177,7 @@ namespace SpreadCheetah.SourceGeneration
     public sealed class ColumnHeaderAttribute : System.Attribute
     {
         public ColumnHeaderAttribute(string name) { }
+        public ColumnHeaderAttribute(System.Type type, string propertyName) { }
     }
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class ColumnOrderAttribute : System.Attribute
