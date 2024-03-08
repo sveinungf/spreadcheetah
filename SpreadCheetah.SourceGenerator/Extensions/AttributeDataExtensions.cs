@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using SpreadCheetah.SourceGenerator.Helpers;
 using SpreadCheetah.SourceGenerator.Models;
 using System.Diagnostics.CodeAnalysis;
@@ -59,36 +60,32 @@ internal static class AttributeDataExtensions
         return false;
     }
 
-    public static bool TryParseColumnHeaderAttribute(
-        this AttributeData attribute,
-        out TypedConstant attributeArg)
+    public static ColumnHeader? TryGetColumnHeaderAttribute(this AttributeData attribute)
     {
-        attributeArg = default;
-
         if (!string.Equals(Attributes.ColumnHeader, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
-            return false;
+            return null;
 
         var args = attribute.ConstructorArguments;
-        if (args is not [{ Value: string } arg])
-            return false;
 
-        attributeArg = arg;
-        return true;
+        // TODO: Test for when the arguments are in the opposite order (by using named arguments)
+        // TODO: Check that "type" has a public static property called "propertyName"
+
+        return args switch
+        {
+            [{ Value: string } arg] => new ColumnHeader(arg.ToCSharpString()),
+            [{ Value: Type type }, { Value: string propertyName }] => new ColumnHeader(type, propertyName),
+            _ => null
+        };
     }
 
-    public static bool TryParseColumnOrderAttribute(
-        this AttributeData attribute,
-        CancellationToken token,
-        [NotNullWhen(true)] out ColumnOrder? order)
+    public static ColumnOrder? TryGetColumnOrderAttribute(this AttributeData attribute, CancellationToken token)
     {
-        order = null;
-
         if (!string.Equals(Attributes.ColumnOrder, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
-            return false;
+            return null;
 
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: int attributeValue }])
-            return false;
+            return null;
 
         var location = attribute
             .ApplicationSyntaxReference?
@@ -96,7 +93,6 @@ internal static class AttributeDataExtensions
             .GetLocation()
             .ToLocationInfo();
 
-        order = new ColumnOrder(attributeValue, location);
-        return true;
+        return new ColumnOrder(attributeValue, location);
     }
 }

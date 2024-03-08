@@ -98,19 +98,16 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 continue;
             }
 
-            TypedConstant? columnHeaderAttributeValue = null;
+            ColumnHeader? columnHeader = null;
             ColumnOrder? columnOrder = null;
 
             foreach (var attribute in p.GetAttributes())
             {
-                if (columnHeaderAttributeValue is null && attribute.TryParseColumnHeaderAttribute(out var arg))
-                    columnHeaderAttributeValue = arg;
-
-                if (columnOrder is null && attribute.TryParseColumnOrderAttribute(token, out var orderArg))
-                    columnOrder = orderArg;
+                columnHeader ??= attribute.TryGetColumnHeaderAttribute();
+                columnOrder ??= attribute.TryGetColumnOrderAttribute(token);
             }
 
-            var rowTypeProperty = p.ToRowTypeProperty(columnHeaderAttributeValue);
+            var rowTypeProperty = new RowTypeProperty(p.Name, columnHeader);
 
             if (columnOrder is not { } order)
                 implicitOrderProperties.Add(rowTypeProperty);
@@ -273,8 +270,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var (i, property) in properties.Index())
         {
+            // TODO: Handle ColumnHeader.TypeProperty
+            var header = property.ColumnHeader?.RawString ?? @$"""{property.Name}""";
             sb.AppendLine(FormattableString.Invariant($"""
-                            cells[{i}] = new StyledCell({property.ColumnHeader}, styleId);
+                            cells[{i}] = new StyledCell({header}, styleId);
             """));
         }
 
