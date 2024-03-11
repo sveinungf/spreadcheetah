@@ -412,6 +412,33 @@ public class SpreadsheetTests
     }
 
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Spreadsheet_StartWorksheet_ColumnHidden(bool hidden)
+    {
+        // Arrange
+        var worksheetOptions = new WorksheetOptions();
+        var columnOptions = worksheetOptions.Column(1);
+        columnOptions.Hidden = hidden;
+        var expectedHidden = hidden;
+
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            // Act
+            await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var package = new ExcelPackage(stream);
+        var worksheet = package.Workbook.Worksheets.Single();
+        var actualHidden = worksheet.Column(1).Hidden;
+        Assert.Equal(expectedHidden, actualHidden);
+    }
+
+    [Theory]
     [InlineData(1, null)]
     [InlineData(3, null)]
     [InlineData(null, 1)]

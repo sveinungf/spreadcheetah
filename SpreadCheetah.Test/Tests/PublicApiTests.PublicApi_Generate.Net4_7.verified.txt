@@ -435,6 +435,7 @@ namespace SpreadCheetah.Worksheets
     public class ColumnOptions
     {
         public ColumnOptions() { }
+        public bool Hidden { get; set; }
         public double? Width { get; set; }
     }
     public class RowOptions

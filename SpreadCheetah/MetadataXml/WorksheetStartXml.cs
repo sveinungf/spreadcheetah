@@ -121,7 +121,7 @@ internal struct WorksheetStartXml : IXmlWriter
         for (; _nextIndex < columns.Count; ++_nextIndex)
         {
             var (columnIndex, options) = columns[_nextIndex];
-            if (options.Width is not { } width)
+            if (options.Width is null && !options.Hidden)
                 continue;
 
             var span = bytes.Slice(bytesWritten);
@@ -137,9 +137,18 @@ internal struct WorksheetStartXml : IXmlWriter
             if (!SpanHelper.TryWrite(columnIndex, span, ref written)) return false;
             if (!"\" max=\""u8.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(columnIndex, span, ref written)) return false;
-            if (!"\" width=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(width, span, ref written)) return false;
-            if (!"\" customWidth=\"1\" />"u8.TryCopyTo(span, ref written)) return false;
+            if (!"\""u8.TryCopyTo(span, ref written)) return false;
+            if (options.Width.HasValue)
+            {
+                if (!" width=\""u8.TryCopyTo(span, ref written)) return false;
+                if (!SpanHelper.TryWrite(options.Width.GetValueOrDefault(), span, ref written)) return false;
+                if (!"\" customWidth=\"1\""u8.TryCopyTo(span, ref written)) return false;
+            }
+            if (options.Hidden)
+            {
+                if (!" hidden=\"1\""u8.TryCopyTo(span, ref written)) return false;
+            }
+            if (!" />"u8.TryCopyTo(span, ref written)) return false;
 
             _anyColumnWritten = anyColumnWritten;
             bytesWritten += written;
