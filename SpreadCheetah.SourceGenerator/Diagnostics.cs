@@ -29,4 +29,12 @@ internal static class Diagnostics
         category: Category,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor InvalidColumnHeaderPropertyReference = new(
+        id: "SPCH1004",
+        title: "Invalid ColumnHeader property reference",
+        messageFormat: "'{0}' is not a static property with a public getter on type '{1}'",
+        category: Category,
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }
