@@ -60,7 +60,7 @@ internal static class AttributeDataExtensions
         return false;
     }
 
-    public static ColumnHeader? TryGetColumnHeaderAttribute(this AttributeData attribute)
+    public static ColumnHeader? TryGetColumnHeaderAttribute(this AttributeData attribute, ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
     {
         if (!string.Equals(Attributes.ColumnHeader, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
             return null;
@@ -69,15 +69,18 @@ internal static class AttributeDataExtensions
 
         // TODO: Test for when the arguments are in the opposite order (by using named arguments)
 
-        return args switch
-        {
-            [{ Value: string } arg] => new ColumnHeader(arg.ToCSharpString()),
-            [{ Value: INamedTypeSymbol type }, { Value: string propertyName }] => TryGetColumnHeaderAttributeWithStaticPropertyReference(type, propertyName),
-            _ => null
-        };
+        if (args is [{ Value: string } arg])
+            return new ColumnHeader(arg.ToCSharpString());
+
+        if (args is [{ Value: INamedTypeSymbol type }, { Value: string propertyName }])
+            return TryGetColumnHeaderWithPropertyReference(type, propertyName, attribute, diagnosticInfos, token);
+
+        return null;
     }
 
-    private static ColumnHeader? TryGetColumnHeaderAttributeWithStaticPropertyReference(INamedTypeSymbol type, string propertyName)
+    private static ColumnHeader? TryGetColumnHeaderWithPropertyReference(
+        INamedTypeSymbol type, string propertyName, AttributeData attribute,
+        ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
     {
         // TODO: Test that an error is emitted when:
         // TODO: - Property doesn't exist on the type (recommend to use nameof)
@@ -89,23 +92,25 @@ internal static class AttributeDataExtensions
         // TODO: - Property is not returning string
         // TODO: - Property might return null, what then?
 
+        var typeFullName = type.ToDisplayString();
+
         foreach (var member in type.GetMembers())
         {
             if (!string.Equals(member.Name, propertyName, StringComparison.Ordinal))
                 continue;
 
-            // TODO: Should emit an error here
             if (!member.IsStaticPropertyWithPublicGetter(out var p))
-                return null;
+                break;
 
-            // TODO: Should emit an error here
             if (p.Type.SpecialType != SpecialType.System_String)
-                return null;
+                break;
 
-            return new ColumnHeader(type.ToDisplayString(), propertyName);
+            var propertyReference = new ColumnHeaderPropertyReference(typeFullName, propertyName);
+            return new ColumnHeader(propertyReference);
         }
 
-        // TODO: Should emit an error here
+        var location = attribute.GetLocation(token);
+        diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.InvalidColumnHeaderPropertyReference, location, new([propertyName, typeFullName])));
         return null;
     }
 
@@ -118,12 +123,16 @@ internal static class AttributeDataExtensions
         if (args is not [{ Value: int attributeValue }])
             return null;
 
-        var location = attribute
+        var location = attribute.GetLocation(token);
+        return new ColumnOrder(attributeValue, location);
+    }
+
+    private static LocationInfo? GetLocation(this AttributeData attribute, CancellationToken token)
+    {
+        return attribute
             .ApplicationSyntaxReference?
             .GetSyntax(token)
             .GetLocation()
             .ToLocationInfo();
-
-        return new ColumnOrder(attributeValue, location);
     }
 }
