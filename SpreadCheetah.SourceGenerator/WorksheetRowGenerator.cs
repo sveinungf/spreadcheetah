@@ -270,8 +270,13 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var (i, property) in properties.Index())
         {
-            // TODO: Handle ColumnHeader.TypeProperty
-            var header = property.ColumnHeader?.RawString ?? @$"""{property.Name}""";
+            var header = property.ColumnHeader switch
+            {
+                { RawString: { } rawString } => rawString,
+                { TypeProperty: (string fullName, string propertyName) } => $"{fullName}.{propertyName}",
+                _ => @$"""{property.Name}"""
+            };
+
             sb.AppendLine(FormattableString.Invariant($"""
                             cells[{i}] = new StyledCell({header}, styleId);
             """));

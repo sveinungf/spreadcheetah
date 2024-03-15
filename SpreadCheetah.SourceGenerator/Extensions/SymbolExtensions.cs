@@ -43,10 +43,31 @@ internal static class SymbolExtensions
         this ISymbol symbol,
         [NotNullWhen(true)] out IPropertySymbol? property)
     {
+        // TODO: Does this include a public property with an internal (or less visible) getter?
         if (symbol is IPropertySymbol
             {
                 DeclaredAccessibility: Accessibility.Public,
                 IsStatic: false,
+                IsWriteOnly: false
+            } p)
+        {
+            property = p;
+            return true;
+        }
+
+        property = null;
+        return false;
+    }
+
+    public static bool IsStaticPropertyWithPublicGetter(
+        this ISymbol symbol,
+        [NotNullWhen(true)] out IPropertySymbol? property)
+    {
+        // TODO: Does this include a public property with an internal (or less visible) getter?
+        if (symbol is IPropertySymbol
+            {
+                DeclaredAccessibility: Accessibility.Public,
+                IsStatic: true,
                 IsWriteOnly: false
             } p)
         {

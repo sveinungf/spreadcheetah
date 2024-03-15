@@ -68,14 +68,45 @@ internal static class AttributeDataExtensions
         var args = attribute.ConstructorArguments;
 
         // TODO: Test for when the arguments are in the opposite order (by using named arguments)
-        // TODO: Check that "type" has a public static property called "propertyName"
 
         return args switch
         {
             [{ Value: string } arg] => new ColumnHeader(arg.ToCSharpString()),
-            [{ Value: Type type }, { Value: string propertyName }] => new ColumnHeader(type, propertyName),
+            [{ Value: INamedTypeSymbol type }, { Value: string propertyName }] => TryGetColumnHeaderAttributeWithStaticPropertyReference(type, propertyName),
             _ => null
         };
+    }
+
+    private static ColumnHeader? TryGetColumnHeaderAttributeWithStaticPropertyReference(INamedTypeSymbol type, string propertyName)
+    {
+        // TODO: Test that an error is emitted when:
+        // TODO: - Property doesn't exist on the type (recommend to use nameof)
+        // TODO: - PropertyName has incorrect casing (recommend to use nameof)
+        // TODO: - Property is not static
+        // TODO: - Property is not public
+        // TODO: - Property doesn't have getter
+        // TODO: - Property doesn't have public getter
+        // TODO: - Property is not returning string
+        // TODO: - Property might return null, what then?
+
+        foreach (var member in type.GetMembers())
+        {
+            if (!string.Equals(member.Name, propertyName, StringComparison.Ordinal))
+                continue;
+
+            // TODO: Should emit an error here
+            if (!member.IsStaticPropertyWithPublicGetter(out var p))
+                return null;
+
+            // TODO: Should emit an error here
+            if (p.Type.SpecialType != SpecialType.System_String)
+                return null;
+
+            return new ColumnHeader(type.ToDisplayString(), propertyName);
+        }
+
+        // TODO: Should emit an error here
+        return null;
     }
 
     public static ColumnOrder? TryGetColumnOrderAttribute(this AttributeData attribute, CancellationToken token)
