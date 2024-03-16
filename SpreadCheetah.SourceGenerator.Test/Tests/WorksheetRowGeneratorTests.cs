@@ -2,7 +2,6 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Helpers;
-using SpreadCheetah.SourceGenerator.Test.Helpers.Backporting;
 using SpreadCheetah.SourceGenerator.Test.Models;
 using SpreadCheetah.SourceGenerator.Test.Models.Accessibility;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnHeader;
@@ -13,6 +12,7 @@ using SpreadCheetah.SourceGenerator.Test.Models.MultipleProperties;
 using SpreadCheetah.SourceGenerator.Test.Models.NoProperties;
 using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
+using System.Globalization;
 using Xunit;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
@@ -598,6 +598,40 @@ string: "", \)",
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.Equal(expectedValues.Select(x => x.ReplaceLineEndings()), sheet.Row(1).Select(x => x.StringValue?.ReplaceLineEndings()));
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddHeaderRow_PropertyReferenceColumnHeaders()
+    {
+        // Arrange
+        var ctx = ColumnHeaderContext.Default;
+
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream);
+        await s.StartWorksheetAsync("Sheet");
+
+        IList<string?> expectedValues =
+        [
+            "Fornavn",
+            "Last name",
+            "The nationality",
+            "Address line 1",
+            null,
+            $"Age (in {DateTime.UtcNow.Year})"
+        ];
+
+        var originalCulture = CultureInfo.CurrentUICulture;
+
+        // Act
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("nb-NO");
+        await s.AddHeaderRowAsync(ctx.ClassWithPropertyReferenceColumnHeaders);
+        CultureInfo.CurrentUICulture = originalCulture;
+
+        await s.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(expectedValues, sheet.Row(1).Select(x => x.StringValue));
     }
 
     [Fact]
