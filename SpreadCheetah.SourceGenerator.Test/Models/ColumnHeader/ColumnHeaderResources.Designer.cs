@@ -77,5 +77,14 @@ namespace SpreadCheetah.SourceGenerator.Test.Models.ColumnHeader {
                 return ResourceManager.GetString("Header_LastName", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Length (in cm).
+        /// </summary>
+        public static string Header_Length {
+            get {
+                return ResourceManager.GetString("Header_Length", resourceCulture);
+            }
+        }
     }
 }

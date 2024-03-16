@@ -16,6 +16,10 @@ using System.Globalization;
 using Xunit;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
+#if NET472
+using SpreadCheetah.SourceGenerator.Test.Helpers.Backporting;
+#endif
+
 namespace SpreadCheetah.SourceGenerator.Test.Tests;
 
 public class WorksheetRowGeneratorTests
@@ -649,7 +653,8 @@ string: "", \)",
             "Year",
             "The make",
             "Model",
-            "kW"
+            "kW",
+            "Length (in cm)"
         ];
 
         // Act

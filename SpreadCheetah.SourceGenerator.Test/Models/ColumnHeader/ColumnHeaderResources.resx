@@ -123,4 +123,7 @@
   <data name="Header_LastName" xml:space="preserve">
     <value>Last name</value>
   </data>
+  <data name="Header_Length" xml:space="preserve">
+    <value>Length (in cm)</value>
+  </data>
 </root>
