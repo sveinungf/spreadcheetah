@@ -40,4 +40,22 @@ public class WorksheetRowGeneratorColumnHeaderTests
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, replaceEscapedLineEndings: true);
     }
+
+    [Fact]
+    public Task WorksheetRowGenerator_Generate_ClassWithPropertyReferenceColumnHeaders()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader;
+
+            namespace MyNamespace;
+            
+            [WorksheetRow(typeof(ClassWithPropertyReferenceColumnHeaders))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
 }
