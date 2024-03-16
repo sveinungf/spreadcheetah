@@ -1,0 +1,64 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: SPCH1004,
+      Title: Invalid ColumnHeader property reference,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (15,5)-(15,63),
+      MessageFormat: '{0}' on type '{1}' is not a valid property reference. It must be a static property, have a public getter, and the return type must be a string (or string?).,
+      Message: 'NonExistingProperty' on type 'MyNamespace.ColumnHeaders' is not a valid property reference. It must be a static property, have a public getter, and the return type must be a string (or string?).,
+      Category: SpreadCheetah.SourceGenerator
+    },
+    {
+      Id: SPCH1004,
+      Title: Invalid ColumnHeader property reference,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (17,5)-(17,48),
+      MessageFormat: '{0}' on type '{1}' is not a valid property reference. It must be a static property, have a public getter, and the return type must be a string (or string?).,
+      Message: 'name' on type 'MyNamespace.ColumnHeaders' is not a valid property reference. It must be a static property, have a public getter, and the return type must be a string (or string?).,
+      Category: SpreadCheetah.SourceGenerator
+    },
+    {
+      Id: SPCH1004,
+      Title: Invalid ColumnHeader property reference,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (19,5)-(19,81),
+      MessageFormat: '{0}' on type '{1}' is not a valid property reference. It must be a static property, have a public getter, and the return type must be a string (or string?).,
+      Message: 'WriteOnlyProperty' on type 'MyNamespace.ColumnHeaders' is not a valid property reference. It must be a static property, have a public getter, and the return type must be a string (or string?).,
+      Category: SpreadCheetah.SourceGenerator
+    },
+    {
+      Id: SPCH1004,
+      Title: Invalid ColumnHeader property reference,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (21,5)-(21,81),
+      MessageFormat: '{0}' on type '{1}' is not a valid property reference. It must be a static property, have a public getter, and the return type must be a string (or string?).,
+      Message: 'NonStringProperty' on type 'MyNamespace.ColumnHeaders' is not a valid property reference. It must be a static property, have a public getter, and the return type must be a string (or string?).,
+      Category: SpreadCheetah.SourceGenerator
+    },
+    {
+      Id: SPCH1004,
+      Title: Invalid ColumnHeader property reference,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (23,5)-(23,80),
+      MessageFormat: '{0}' on type '{1}' is not a valid property reference. It must be a static property, have a public getter, and the return type must be a string (or string?).,
+      Message: 'InternalProperty' on type 'MyNamespace.ColumnHeaders' is not a valid property reference. It must be a static property, have a public getter, and the return type must be a string (or string?).,
+      Category: SpreadCheetah.SourceGenerator
+    },
+    {
+      Id: SPCH1004,
+      Title: Invalid ColumnHeader property reference,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (25,5)-(25,81),
+      MessageFormat: '{0}' on type '{1}' is not a valid property reference. It must be a static property, have a public getter, and the return type must be a string (or string?).,
+      Message: 'NonStaticProperty' on type 'MyNamespace.ColumnHeaders' is not a valid property reference. It must be a static property, have a public getter, and the return type must be a string (or string?).,
+      Category: SpreadCheetah.SourceGenerator
+    }
+  ]
+}

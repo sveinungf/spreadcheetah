@@ -58,4 +58,46 @@ public class WorksheetRowGeneratorColumnHeaderTests
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
+
+    [Fact]
+    public Task WorksheetRowGenerator_Generate_ClassWithInvalidPropertyReferenceColumnHeaders()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            public class ColumnHeaders
+            {
+                public static string Name => "The name";
+                public static string WriteOnlyProperty { set => _ = value; }
+                public static int NonStringProperty => 2024;
+                internal static string InternalProperty => "Internal property";
+                public string NonStaticProperty => "Non static property";
+            }
+
+            public class ClassWithInvalidPropertyReferenceColumnHeaders
+            {
+                [ColumnHeader(typeof(ColumnHeaders), "NonExistingProperty")]
+                public string PropertyA { get; set; }
+                [ColumnHeader(typeof(ColumnHeaders), "name")]
+                public string PropertyB { get; set; }
+                [ColumnHeader(typeof(ColumnHeaders), nameof(ColumnHeaders.WriteOnlyProperty))]
+                public string PropertyC { get; set; }
+                [ColumnHeader(typeof(ColumnHeaders), nameof(ColumnHeaders.NonStringProperty))]
+                public string PropertyD { get; set; }
+                [ColumnHeader(typeof(ColumnHeaders), nameof(ColumnHeaders.InternalProperty))]
+                public string PropertyE { get; set; }
+                [ColumnHeader(typeof(ColumnHeaders), nameof(ColumnHeaders.NonStaticProperty))]
+                public string PropertyF { get; set; }
+            }
+            
+            [WorksheetRow(typeof(ClassWithInvalidPropertyReferenceColumnHeaders))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
 }

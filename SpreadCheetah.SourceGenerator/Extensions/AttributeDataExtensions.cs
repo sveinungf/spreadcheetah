@@ -82,16 +82,6 @@ internal static class AttributeDataExtensions
         INamedTypeSymbol type, string propertyName, AttributeData attribute,
         ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
     {
-        // TODO: Test that an error is emitted when:
-        // TODO: - Property doesn't exist on the type (recommend to use nameof)
-        // TODO: - PropertyName has incorrect casing (recommend to use nameof)
-        // TODO: - Property is not static
-        // TODO: - Property is not public
-        // TODO: - Property doesn't have getter
-        // TODO: - Property doesn't have public getter
-        // TODO: - Property is not returning string
-        // TODO: - Property might return null, what then?
-
         var typeFullName = type.ToDisplayString();
 
         foreach (var member in type.GetMembers())

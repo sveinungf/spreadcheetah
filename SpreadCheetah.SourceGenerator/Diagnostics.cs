@@ -33,7 +33,7 @@ internal static class Diagnostics
     public static readonly DiagnosticDescriptor InvalidColumnHeaderPropertyReference = new(
         id: "SPCH1004",
         title: "Invalid ColumnHeader property reference",
-        messageFormat: "'{0}' is not a static property with a public getter on type '{1}'",
+        messageFormat: "'{0}' on type '{1}' is not a valid property reference. It must be a static property, have a public getter, and the return type must be a string (or string?).",
         category: Category,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
