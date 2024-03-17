@@ -6,4 +6,24 @@ namespace SpreadCheetah.SourceGeneration;
 /// Header names are written to a worksheet with <see cref="Spreadsheet.AddHeaderRowAsync"/>.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-public sealed class ColumnHeaderAttribute(string name) : Attribute;
+public sealed class ColumnHeaderAttribute : Attribute
+{
+    /// <summary>
+    /// Use the value of <c>name</c> as the header name for the column.
+    /// </summary>
+    public ColumnHeaderAttribute(string name)
+    {
+    }
+
+    /// <summary>
+    /// Get the header name from a property. The property must:
+    /// <list type="bullet">
+    ///   <item><description>Be a <see langword="static"/> property.</description></item>
+    ///   <item><description>Have a public getter.</description></item>
+    ///   <item><description>Have a return type of <see langword="string"/> (or <see langword="string?"/>).</description></item>
+    /// </list>
+    /// </summary>
+    public ColumnHeaderAttribute(Type type, string propertyName)
+    {
+    }
+}

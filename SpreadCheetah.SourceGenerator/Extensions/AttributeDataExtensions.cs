@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using SpreadCheetah.SourceGenerator.Helpers;
 using SpreadCheetah.SourceGenerator.Models;
 using System.Diagnostics.CodeAnalysis;
@@ -59,44 +60,67 @@ internal static class AttributeDataExtensions
         return false;
     }
 
-    public static bool TryParseColumnHeaderAttribute(
-        this AttributeData attribute,
-        out TypedConstant attributeArg)
+    public static ColumnHeader? TryGetColumnHeaderAttribute(this AttributeData attribute, ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
     {
-        attributeArg = default;
-
         if (!string.Equals(Attributes.ColumnHeader, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
-            return false;
+            return null;
 
         var args = attribute.ConstructorArguments;
-        if (args is not [{ Value: string } arg])
-            return false;
 
-        attributeArg = arg;
-        return true;
+        if (args is [{ Value: string } arg])
+            return new ColumnHeader(arg.ToCSharpString());
+
+        if (args is [{ Value: INamedTypeSymbol type }, { Value: string propertyName }])
+            return TryGetColumnHeaderWithPropertyReference(type, propertyName, attribute, diagnosticInfos, token);
+
+        return null;
     }
 
-    public static bool TryParseColumnOrderAttribute(
-        this AttributeData attribute,
-        CancellationToken token,
-        [NotNullWhen(true)] out ColumnOrder? order)
+    private static ColumnHeader? TryGetColumnHeaderWithPropertyReference(
+        INamedTypeSymbol type, string propertyName, AttributeData attribute,
+        ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
     {
-        order = null;
+        var typeFullName = type.ToDisplayString();
 
+        foreach (var member in type.GetMembers())
+        {
+            if (!string.Equals(member.Name, propertyName, StringComparison.Ordinal))
+                continue;
+
+            if (!member.IsStaticPropertyWithPublicGetter(out var p))
+                break;
+
+            if (p.Type.SpecialType != SpecialType.System_String)
+                break;
+
+            var propertyReference = new ColumnHeaderPropertyReference(typeFullName, propertyName);
+            return new ColumnHeader(propertyReference);
+        }
+
+        var location = attribute.GetLocation(token);
+        diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.InvalidColumnHeaderPropertyReference, location, new([propertyName, typeFullName])));
+        return null;
+    }
+
+    public static ColumnOrder? TryGetColumnOrderAttribute(this AttributeData attribute, CancellationToken token)
+    {
         if (!string.Equals(Attributes.ColumnOrder, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
-            return false;
+            return null;
 
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: int attributeValue }])
-            return false;
+            return null;
 
-        var location = attribute
+        var location = attribute.GetLocation(token);
+        return new ColumnOrder(attributeValue, location);
+    }
+
+    private static LocationInfo? GetLocation(this AttributeData attribute, CancellationToken token)
+    {
+        return attribute
             .ApplicationSyntaxReference?
             .GetSyntax(token)
             .GetLocation()
             .ToLocationInfo();
-
-        order = new ColumnOrder(attributeValue, location);
-        return true;
     }
 }

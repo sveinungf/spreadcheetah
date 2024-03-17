@@ -31,4 +31,19 @@
     <ProjectReference Include="..\SpreadCheetah.TestHelpers\SpreadCheetah.TestHelpers.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Models\ColumnHeader\ColumnHeaderResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ColumnHeaderResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Models\ColumnHeader\ColumnHeaderResources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>ColumnHeaderResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>
