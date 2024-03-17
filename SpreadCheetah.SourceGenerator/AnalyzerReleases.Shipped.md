@@ -20,3 +20,11 @@ SPCH1002 | SpreadCheetah.SourceGenerator | Warning  | UnsupportedTypeForCellValu
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 SPCH1003 | SpreadCheetah.SourceGenerator | Error | DuplicateColumnOrder
+
+
+## Release 1.14.0
+
+### New Rules
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+SPCH1004 | SpreadCheetah.SourceGenerator | Error | InvalidColumnHeaderPropertyReference
