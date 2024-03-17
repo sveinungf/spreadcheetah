@@ -115,7 +115,7 @@ private static async ValueTask AddAsRowInternalAsync(Spreadsheet spreadsheet, My
 ```
 
 The source generator can generate rows from classes, records, and structs. It can be used in all supported .NET versions, including .NET Framework, however the C# version must be 8.0 or greater.
-
+More features of the source generator can be seen in the [sample project](https://github.com/sveinungf/spreadcheetah-samples/blob/main/SpreadCheetahSamples/SourceGenerator.cs).
 
 ## Benchmarks
 The benchmark results here have been collected using [BenchmarkDotNet](https://github.com/dotnet/benchmarkdotnet) with the following system configuration:
