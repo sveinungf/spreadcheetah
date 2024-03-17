@@ -43,7 +43,6 @@ internal static class SymbolExtensions
         this ISymbol symbol,
         [NotNullWhen(true)] out IPropertySymbol? property)
     {
-        // TODO: Does this include a public property with an internal (or less visible) getter?
         if (symbol is IPropertySymbol
             {
                 DeclaredAccessibility: Accessibility.Public,
@@ -63,7 +62,6 @@ internal static class SymbolExtensions
         this ISymbol symbol,
         [NotNullWhen(true)] out IPropertySymbol? property)
     {
-        // TODO: What about a static internal class?
         if (symbol is IPropertySymbol
             {
                 DeclaredAccessibility: Accessibility.Public,
