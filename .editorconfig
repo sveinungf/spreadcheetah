@@ -230,6 +230,10 @@ dotnet_diagnostic.MA0076.severity = none
 # RCS1163: Unused parameter
 dotnet_diagnostic.RCS1163.severity = warning
 
+[{ColumnHeaderAttribute.cs,ColumnOrderAttribute.cs,WorksheetRowAttribute.cs}]
+# RCS1163: Unused parameter
+dotnet_diagnostic.RCS1163.severity = none
+
 ###############################
 # SonarAnalyzer Options       #
 ###############################
