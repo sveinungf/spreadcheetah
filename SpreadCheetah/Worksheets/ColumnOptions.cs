@@ -18,4 +18,9 @@ public class ColumnOptions
     }
 
     private double? _width;
+
+    /// <summary>
+    /// Is the column hidden or not.  Defaults to false.
+    /// </summary>
+    public bool Hidden { get; set; }
 }
