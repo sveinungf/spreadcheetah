@@ -5,17 +5,17 @@
   </PropertyGroup>
   <ItemGroup>
     <GlobalPackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.4.0-beta.1" />
-    <GlobalPackageReference Include="Meziantou.Analyzer" Version="2.0.145" />
+    <GlobalPackageReference Include="Meziantou.Analyzer" Version="2.0.146" />
     <GlobalPackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" />
     <GlobalPackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.9.28" />
     <GlobalPackageReference Include="Roslynator.Analyzers" Version="4.11.0" />
-    <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="9.20.0.85982" />
+    <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="9.21.0.86780" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="BenchmarkDotNet" Version="0.13.12" />
-    <PackageVersion Include="Bogus" Version="35.4.0" />
+    <PackageVersion Include="Bogus" Version="35.5.0" />
     <PackageVersion Include="ClosedXML" Version="0.102.2" />
-    <PackageVersion Include="coverlet.collector" Version="6.0.1" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
     <PackageVersion Include="DocumentFormat.OpenXml" Version="2.20.0" />
     <PackageVersion Include="EPPlusFree" Version="4.5.3.8" />
     <PackageVersion Include="ErrorProne.NET.Structs" Version="0.4.0-beta.1" />
@@ -32,7 +32,7 @@
     <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="Verify.SourceGenerators" Version="2.2.0" />
-    <PackageVersion Include="Verify.Xunit" Version="23.2.1" />
+    <PackageVersion Include="Verify.Xunit" Version="23.5.2" />
     <PackageVersion Include="xunit" Version="2.7.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.7" />
   </ItemGroup>
