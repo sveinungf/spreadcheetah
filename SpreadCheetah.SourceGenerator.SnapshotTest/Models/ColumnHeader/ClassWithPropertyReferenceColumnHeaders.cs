@@ -7,7 +7,7 @@ public class ClassWithPropertyReferenceColumnHeaders
     [ColumnHeader(typeof(ColumnHeaderResources), nameof(ColumnHeaderResources.Header_FirstName))]
     public string? FirstName { get; set; }
 
-    [ColumnHeader(typeof(ColumnHeaderResources), nameof(ColumnHeaderResources.Header_LastName))]
+    [ColumnHeader(propertyName: nameof(ColumnHeaderResources.Header_LastName), type: typeof(ColumnHeaderResources))]
     public string? LastName { get; set; }
 
     [ColumnHeader(typeof(ColumnHeaders), nameof(ColumnHeaders.HeaderNationality))]

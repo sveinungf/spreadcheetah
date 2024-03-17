@@ -67,8 +67,6 @@ internal static class AttributeDataExtensions
 
         var args = attribute.ConstructorArguments;
 
-        // TODO: Test for when the arguments are in the opposite order (by using named arguments)
-
         if (args is [{ Value: string } arg])
             return new ColumnHeader(arg.ToCSharpString());
 
