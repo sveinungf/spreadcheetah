@@ -26,7 +26,7 @@ namespace MyNamespace
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
-            var cells = ArrayPool<StyledCell>.Shared.Rent(6);
+            var cells = ArrayPool<StyledCell>.Shared.Rent(7);
             try
             {
                 cells[0] = new StyledCell("PropertyA", styleId);
@@ -35,7 +35,8 @@ namespace MyNamespace
                 cells[3] = new StyledCell("PropertyD", styleId);
                 cells[4] = new StyledCell("PropertyE", styleId);
                 cells[5] = new StyledCell("PropertyF", styleId);
-                await spreadsheet.AddRowAsync(cells.AsMemory(0, 6), token).ConfigureAwait(false);
+                cells[6] = new StyledCell("PropertyG", styleId);
+                await spreadsheet.AddRowAsync(cells.AsMemory(0, 7), token).ConfigureAwait(false);
             }
             finally
             {
@@ -63,7 +64,7 @@ namespace MyNamespace
 
         private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithInvalidPropertyReferenceColumnHeaders obj, CancellationToken token)
         {
-            var cells = ArrayPool<DataCell>.Shared.Rent(6);
+            var cells = ArrayPool<DataCell>.Shared.Rent(7);
             try
             {
                 await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);
@@ -76,7 +77,7 @@ namespace MyNamespace
 
         private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<MyNamespace.ClassWithInvalidPropertyReferenceColumnHeaders?> objs, CancellationToken token)
         {
-            var cells = ArrayPool<DataCell>.Shared.Rent(6);
+            var cells = ArrayPool<DataCell>.Shared.Rent(7);
             try
             {
                 await AddEnumerableAsRowsAsync(spreadsheet, objs, cells, token).ConfigureAwait(false);
@@ -106,7 +107,8 @@ namespace MyNamespace
             cells[3] = new DataCell(obj.PropertyD);
             cells[4] = new DataCell(obj.PropertyE);
             cells[5] = new DataCell(obj.PropertyF);
-            return spreadsheet.AddRowAsync(cells.AsMemory(0, 6), token);
+            cells[6] = new DataCell(obj.PropertyG);
+            return spreadsheet.AddRowAsync(cells.AsMemory(0, 7), token);
         }
     }
 }

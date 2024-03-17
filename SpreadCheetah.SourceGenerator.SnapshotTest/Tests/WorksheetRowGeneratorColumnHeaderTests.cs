@@ -71,6 +71,7 @@ public class WorksheetRowGeneratorColumnHeaderTests
             public class ColumnHeaders
             {
                 public static string Name => "The name";
+                public static string PrivateGetterProperty { private get; set; } = "Private getter property";
                 public static string WriteOnlyProperty { set => _ = value; }
                 public static int NonStringProperty => 2024;
                 internal static string InternalProperty => "Internal property";
@@ -83,14 +84,16 @@ public class WorksheetRowGeneratorColumnHeaderTests
                 public string PropertyA { get; set; }
                 [ColumnHeader(typeof(ColumnHeaders), "name")]
                 public string PropertyB { get; set; }
-                [ColumnHeader(typeof(ColumnHeaders), nameof(ColumnHeaders.WriteOnlyProperty))]
+                [ColumnHeader(typeof(ColumnHeaders), nameof(ColumnHeaders.PrivateGetterProperty))]
                 public string PropertyC { get; set; }
-                [ColumnHeader(typeof(ColumnHeaders), nameof(ColumnHeaders.NonStringProperty))]
+                [ColumnHeader(typeof(ColumnHeaders), nameof(ColumnHeaders.WriteOnlyProperty))]
                 public string PropertyD { get; set; }
-                [ColumnHeader(typeof(ColumnHeaders), nameof(ColumnHeaders.InternalProperty))]
+                [ColumnHeader(typeof(ColumnHeaders), nameof(ColumnHeaders.NonStringProperty))]
                 public string PropertyE { get; set; }
-                [ColumnHeader(typeof(ColumnHeaders), nameof(ColumnHeaders.NonStaticProperty))]
+                [ColumnHeader(typeof(ColumnHeaders), nameof(ColumnHeaders.InternalProperty))]
                 public string PropertyF { get; set; }
+                [ColumnHeader(typeof(ColumnHeaders), nameof(ColumnHeaders.NonStaticProperty))]
+                public string PropertyG { get; set; }
             }
             
             [WorksheetRow(typeof(ClassWithInvalidPropertyReferenceColumnHeaders))]
