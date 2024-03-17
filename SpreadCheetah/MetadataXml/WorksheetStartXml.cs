@@ -144,10 +144,8 @@ internal struct WorksheetStartXml : IXmlWriter
                 if (!SpanHelper.TryWrite(options.Width.GetValueOrDefault(), span, ref written)) return false;
                 if (!"\" customWidth=\"1\""u8.TryCopyTo(span, ref written)) return false;
             }
-            if (options.Hidden)
-            {
-                if (!" hidden=\"1\""u8.TryCopyTo(span, ref written)) return false;
-            }
+
+            if (options.Hidden && !" hidden=\"1\""u8.TryCopyTo(span, ref written)) return false;
             if (!" />"u8.TryCopyTo(span, ref written)) return false;
 
             _anyColumnWritten = anyColumnWritten;
