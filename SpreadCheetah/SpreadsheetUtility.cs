@@ -59,7 +59,7 @@ public static class SpreadsheetUtility
 
     /// <summary>
     /// Try to write the UTF8 column name from a column number into the specified span. E.g. column number 1 results in column name 'A'.
-    /// Returns <c>true</c> if the column name was written into the span, and <c>false</c> otherwise.
+    /// Returns <see langword="true"/> if the column name was written into the span, and <see langword="false"/> otherwise.
     /// </summary>
     public static bool TryGetColumnNameUtf8(int columnNumber, Span<byte> destination, out int bytesWritten)
     {
@@ -106,7 +106,7 @@ public static class SpreadsheetUtility
 
     /// <summary>
     /// Try to parse the column number from a column name. E.g. column name 'A' can be parsed to column number 1.
-    /// Returns <c>true</c> if the column number was parsed successfully, and <c>false</c> otherwise.
+    /// Returns <see langword="true"/> if the column number was parsed successfully, and <see langword="false"/> otherwise.
     /// </summary>
     public static bool TryParseColumnName(ReadOnlySpan<char> columnName, out int columnNumber)
     {

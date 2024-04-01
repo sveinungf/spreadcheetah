@@ -9,7 +9,7 @@
     <GlobalPackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" />
     <GlobalPackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.9.28" />
     <GlobalPackageReference Include="Roslynator.Analyzers" Version="4.12.0" />
-    <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="9.21.0.86780" />
+    <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="9.23.0.88079" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="BenchmarkDotNet" Version="0.13.12" />

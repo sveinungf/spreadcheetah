@@ -20,7 +20,7 @@ public class ColumnOptions
     private double? _width;
 
     /// <summary>
-    /// Is the column hidden or not.  Defaults to false.
+    /// Is the column hidden or not. Defaults to <see langword="false"/>.
     /// </summary>
     public bool Hidden { get; set; }
 }

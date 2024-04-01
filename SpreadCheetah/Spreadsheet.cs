@@ -432,7 +432,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     ///   <item><term><c>A1:A1048576</c></term><description>References all cells in column A.</description></item>
     ///   <item><term><c>A5:XFD5</c></term><description>References all cells in row 5.</description></item>
     /// </list>
-    /// Note that there can be max 65534 data validations in a worksheet. This method returns <c>false</c> if attempting to add more than that.
+    /// Note that there can be max 65534 data validations in a worksheet. This method returns <see langword="false"/> if attempting to add more than that.
     /// </summary>
     public bool TryAddDataValidation(string reference, DataValidation validation)
     {

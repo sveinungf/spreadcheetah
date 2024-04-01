@@ -13,7 +13,7 @@ public readonly record struct DataCell
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a text value.
-    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// </summary>
     public DataCell(string? value)
     {
@@ -32,7 +32,7 @@ public readonly record struct DataCell
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with an integer value.
-    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// </summary>
     public DataCell(int? value)
     {
@@ -50,7 +50,7 @@ public readonly record struct DataCell
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a long integer value.
-    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// Note that Open XML limits the precision to 15 significant digits for numbers. This could potentially lead to a loss of precision.
     /// </summary>
     public DataCell(long? value) : this((double?)value)
@@ -68,7 +68,7 @@ public readonly record struct DataCell
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a floating-point value.
-    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// </summary>
     public DataCell(float? value)
     {
@@ -88,7 +88,7 @@ public readonly record struct DataCell
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a double-precision floating-point value.
-    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// Note that Open XML limits the precision to 15 significant digits for numbers. This could potentially lead to a loss of precision.
     /// </summary>
     public DataCell(double? value)
@@ -107,7 +107,7 @@ public readonly record struct DataCell
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a decimal floating-point value.
-    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// Note that Open XML limits the precision to 15 significant digits for numbers. This could potentially lead to a loss of precision.
     /// </summary>
     public DataCell(decimal? value) : this(value != null ? decimal.ToDouble(value.GetValueOrDefault()) : null)
@@ -127,7 +127,7 @@ public readonly record struct DataCell
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a <see cref="DateTime"/> value.
     /// Will be displayed in the number format from <see cref="SpreadCheetahOptions.DefaultDateTimeFormat"/>.
-    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// </summary>
     public DataCell(DateTime? value)
     {
@@ -145,7 +145,7 @@ public readonly record struct DataCell
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a boolean value.
-    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// </summary>
     public DataCell(bool? value)
     {

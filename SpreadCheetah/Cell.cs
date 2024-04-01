@@ -19,7 +19,7 @@ public readonly record struct Cell
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Cell"/> struct with a text value and an optional style.
-    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// </summary>
     public Cell(string? value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
     {
@@ -34,7 +34,7 @@ public readonly record struct Cell
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Cell"/> struct with an integer value and an optional style.
-    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// </summary>
     public Cell(int? value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
     {
@@ -50,7 +50,7 @@ public readonly record struct Cell
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Cell"/> struct with a long integer value and an optional style.
-    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// Note that Open XML limits the precision to 15 significant digits for numbers. This could potentially lead to a loss of precision.
     /// </summary>
     public Cell(long? value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
@@ -66,7 +66,7 @@ public readonly record struct Cell
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Cell"/> struct with a floating point value and an optional style.
-    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// </summary>
     public Cell(float? value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
     {
@@ -82,7 +82,7 @@ public readonly record struct Cell
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Cell"/> struct with a double-precision floating-point value and an optional style.
-    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// Note that Open XML limits the precision to 15 significant digits for numbers. This could potentially lead to a loss of precision.
     /// </summary>
     public Cell(double? value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
@@ -99,7 +99,7 @@ public readonly record struct Cell
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Cell"/> struct with a decimal floating-point value and an optional style.
-    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// Note that Open XML limits the precision to 15 significant digits for numbers. This could potentially lead to a loss of precision.
     /// </summary>
     public Cell(decimal? value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
@@ -119,7 +119,7 @@ public readonly record struct Cell
     /// Initializes a new instance of the <see cref="StyledCell"/> struct with a <see cref="DateTime"/> value and an optional style.
     /// Will be displayed in the number format from <see cref="Style.Format"/> if set,
     /// otherwise <see cref="SpreadCheetahOptions.DefaultDateTimeFormat"/> will be used instead.
-    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// </summary>
     public Cell(DateTime? value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
     {
@@ -134,7 +134,7 @@ public readonly record struct Cell
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Cell"/> struct with a boolean value and an optional style.
-    /// If <c>value</c> is <c>null</c>, the cell will be empty.
+    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// </summary>
     public Cell(bool? value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
     {

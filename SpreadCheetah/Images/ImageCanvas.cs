@@ -101,8 +101,8 @@ public readonly record struct ImageCanvas
     /// The <paramref name="moveWithCells"/> parameter decides whether or not the image should move when
     /// cells further up or left change size.
     /// The <paramref name="resizeWithCells"/> parameter decides whether or not the image should resize when
-    /// the cell is being resized. <paramref name="resizeWithCells"/> can only be set to <c>true</c>
-    /// if <paramref name="moveWithCells"/> is also set to <c>true</c>.
+    /// the cell is being resized. <paramref name="resizeWithCells"/> can only be set to <see langword="true"/>
+    /// if <paramref name="moveWithCells"/> is also set to <see langword="true"/>.
     /// </summary>
     public static ImageCanvas FillCell(ReadOnlySpan<char> cellReference, bool moveWithCells = true, bool resizeWithCells = true)
     {
@@ -119,8 +119,8 @@ public readonly record struct ImageCanvas
     /// The <paramref name="moveWithCells"/> parameter decides whether or not the image should move when
     /// cells further up or left change size.
     /// The <paramref name="resizeWithCells"/> parameter decides whether or not the image should resize when
-    /// the cell range is being resized. <paramref name="resizeWithCells"/> can only be set to <c>true</c>
-    /// if <paramref name="moveWithCells"/> is also set to <c>true</c>.
+    /// the cell range is being resized. <paramref name="resizeWithCells"/> can only be set to <see langword="true"/>
+    /// if <paramref name="moveWithCells"/> is also set to <see langword="true"/>.
     /// </summary>
     public static ImageCanvas FillCells(ReadOnlySpan<char> upperLeftReference, ReadOnlySpan<char> lowerRightReference, bool moveWithCells = true, bool resizeWithCells = true)
     {

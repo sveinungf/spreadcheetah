@@ -202,6 +202,8 @@ dotnet_diagnostic.MA0053.severity = warning
 MA0053.public_class_should_be_sealed = true
 # MA0076: Do not use implicit culture-sensitive ToString in interpolated strings
 dotnet_diagnostic.MA0076.severity = warning
+# MA0154: Use langword in XML comment
+dotnet_diagnostic.MA0154.severity = warning
 
 # Disable MA0053 (sealing class) for types that have been publicly exposed in a previous version
 [{AutoFilterOptions.cs,ColumnOptions.cs,RowOptions.cs,SpreadCheetahOptions.cs,WorksheetOptions.cs,WorksheetRowGenerator.cs}]

@@ -37,11 +37,11 @@ public sealed class DataValidation
         Value2 = value2;
     }
 
-    /// <summary>Ignore cells without values. Defaults to <c>true</c>.</summary>
+    /// <summary>Ignore cells without values. Defaults to <see langword="true"/>.</summary>
     public bool IgnoreBlank { get; set; } = true;
-    /// <summary>Show an error alert for invalid values. Defaults to <c>true</c>.</summary>
+    /// <summary>Show an error alert for invalid values. Defaults to <see langword="true"/>.</summary>
     public bool ShowErrorAlert { get; set; } = true;
-    /// <summary>Show the input message box. Defaults to <c>true</c>.</summary>
+    /// <summary>Show the input message box. Defaults to <see langword="true"/>.</summary>
     public bool ShowInputMessage { get; set; } = true;
 
     /// <summary>Title for error alerts. Maximum 32 characters.</summary>
@@ -219,7 +219,7 @@ public sealed class DataValidation
     ///   <item><description>The values can't contain commas.</description></item>
     ///   <item><description>The combined length of the values (including required comma separators) can't exceed 255 characters.</description></item>
     /// </list>
-    /// Returns <c>false</c> if any of these requirements are not met.
+    /// Returns <see langword="false"/> if any of these requirements are not met.
     /// </summary>
     public static bool TryCreateListValues(IEnumerable<string> values, bool showDropdown, [NotNullWhen(true)] out DataValidation? dataValidation)
     {

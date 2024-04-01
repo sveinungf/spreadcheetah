@@ -19,13 +19,13 @@ public sealed record Font
         set => _name = XmlUtility.XmlEncode(value.WithEnsuredMaxLength(31));
     }
 
-    /// <summary>Bold font weight. Defaults to <c>false</c>.</summary>
+    /// <summary>Bold font weight. Defaults to <see langword="false"/>.</summary>
     public bool Bold { get; set; }
 
-    /// <summary>Italic font type. Defaults to <c>false</c>.</summary>
+    /// <summary>Italic font type. Defaults to <see langword="false"/>.</summary>
     public bool Italic { get; set; }
 
-    /// <summary>Adds a horizontal line through the center of the characters. Defaults to <c>false</c>.</summary>
+    /// <summary>Adds a horizontal line through the center of the characters. Defaults to <see langword="false"/>.</summary>
     public bool Strikethrough { get; set; }
 
     /// <summary>Font size. Defaults to 11.</summary>

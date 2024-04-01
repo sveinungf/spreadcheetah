@@ -60,7 +60,7 @@ public class SpreadCheetahOptions
     ///   <item>Microsoft Spreadsheet Compare tool.</item>
     /// </list>
     /// Writing the attribute will slightly affect the performance of writing cells, and will also increase the resulting file size.
-    /// Defaults to <c>false</c>.
+    /// Defaults to <see langword="false"/>.
     /// </summary>
     public bool WriteCellReferenceAttributes { get; set; }
 }
