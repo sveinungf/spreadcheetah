@@ -39,6 +39,17 @@ internal sealed class SpreadsheetBuffer(byte[] buffer)
 #endif
     }
 
+    public bool TryWrite(scoped ReadOnlySpan<byte> utf8Value)
+    {
+        if (utf8Value.TryCopyTo(GetSpan()))
+        {
+            Advance(utf8Value.Length);
+            return true;
+        }
+
+        return false;
+    }
+
     public bool TryWrite([InterpolatedStringHandlerArgument("")] ref TryWriteInterpolatedStringHandler handler)
     {
         if (handler._success)

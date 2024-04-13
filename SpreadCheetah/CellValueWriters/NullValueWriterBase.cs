@@ -14,7 +14,7 @@ internal abstract class NullValueWriterBase : CellValueWriter
 
     protected static bool TryWriteCell(SpreadsheetBuffer buffer)
     {
-        return buffer.TryWrite($"{NullDataCell}");
+        return buffer.TryWrite(NullDataCell);
     }
 
     protected static bool TryWriteCell(int styleId, SpreadsheetBuffer buffer)
@@ -78,14 +78,14 @@ internal abstract class NullValueWriterBase : CellValueWriter
 
     public override bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer)
     {
-        return cell.Formula is null || buffer.TryWrite($"{EndFormulaEndCell}");
+        return cell.Formula is null || buffer.TryWrite(EndFormulaEndCell);
     }
 
     protected static bool WriteFormulaStartElement(int? styleId, SpreadsheetBuffer buffer)
     {
         return styleId is { } style
             ? buffer.TryWrite($"{StyledCellHelper.BeginStyledNumberCell}{style}{FormulaCellHelper.EndQuoteBeginFormula}")
-            : buffer.TryWrite($"{FormulaCellHelper.BeginNumberFormulaCell}");
+            : buffer.TryWrite(FormulaCellHelper.BeginNumberFormulaCell);
     }
 
     protected static bool WriteFormulaStartElementWithReference(int? styleId, CellWriterState state)

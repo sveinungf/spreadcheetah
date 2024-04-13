@@ -122,8 +122,7 @@ internal abstract class BaseCellWriter<T>
         return TryWriteRowEnd();
     }
 
-    private static ReadOnlySpan<byte> RowEnd => "</row>"u8;
-    private bool TryWriteRowEnd() => Buffer.TryWrite($"{RowEnd}");
+    private bool TryWriteRowEnd() => Buffer.TryWrite("</row>"u8);
 
     private async ValueTask WriteRowEndAsync(Stream stream, CancellationToken token)
     {
