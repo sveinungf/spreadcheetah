@@ -1,10 +1,9 @@
-using SpreadCheetah.Helpers;
 using SpreadCheetah.Worksheets;
 using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct WorkbookXml : IXmlWriter
+internal struct WorkbookXml : IBufferXmlWriter
 {
     public static ValueTask WriteAsync(
         ZipArchive archive,
@@ -15,7 +14,7 @@ internal struct WorkbookXml : IXmlWriter
     {
         var entry = archive.CreateEntry("xl/workbook.xml", compressionLevel);
         var writer = new WorkbookXml(worksheets);
-        return writer.WriteAsync(entry, buffer, token);
+        return writer.WriteToBufferAsync(entry, buffer, token);
     }
 
     private static ReadOnlySpan<byte> Header =>
@@ -32,15 +31,13 @@ internal struct WorkbookXml : IXmlWriter
 
     private WorkbookXml(List<WorksheetMetadata> worksheets) => _worksheets = worksheets;
 
-    public bool TryWrite(Span<byte> bytes, out int bytesWritten)
+    public bool TryWrite(SpreadsheetBuffer buffer)
     {
-        bytesWritten = 0;
-
-        if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
-        if (_next == Element.BookViews && !Advance(TryWriteBookViews(bytes, ref bytesWritten))) return false;
-        if (_next == Element.SheetsStart && !Advance(SheetsStart.TryCopyTo(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Sheets && !Advance(TryWriteWorksheets(bytes, ref bytesWritten))) return false;
-        if (_next == Element.SheetsEnd && !Advance(SheetsEnd.TryCopyTo(bytes, ref bytesWritten))) return false;
+        if (_next == Element.Header && !Advance(buffer.TryWrite(Header))) return false;
+        if (_next == Element.BookViews && !Advance(TryWriteBookViews(buffer))) return false;
+        if (_next == Element.SheetsStart && !Advance(buffer.TryWrite(SheetsStart))) return false;
+        if (_next == Element.Sheets && !Advance(TryWriteWorksheets(buffer))) return false;
+        if (_next == Element.SheetsEnd && !Advance(buffer.TryWrite(SheetsEnd))) return false;
 
         return true;
     }
@@ -53,25 +50,21 @@ internal struct WorkbookXml : IXmlWriter
         return success;
     }
 
-    private readonly bool TryWriteBookViews(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteBookViews(SpreadsheetBuffer buffer)
     {
         var firstVisibleWorksheetId = _worksheets.FindIndex(static x => x.Visibility == WorksheetVisibility.Visible);
-        if (firstVisibleWorksheetId <= 0) return true;
+        if (firstVisibleWorksheetId <= 0)
+            return true;
 
-        var written = 0;
-        var span = bytes.Slice(bytesWritten);
-
-        if (!"<bookViews><workbookView firstSheet=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(firstVisibleWorksheetId, span, ref written)) return false;
-        if (!"\" activeTab=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(firstVisibleWorksheetId, span, ref written)) return false;
-        if (!"\"/></bookViews>"u8.TryCopyTo(span, ref written)) return false;
-
-        bytesWritten += written;
-        return true;
+        return buffer.TryWrite(
+            $"{"<bookViews><workbookView firstSheet=\""u8}" +
+            $"{firstVisibleWorksheetId}" +
+            $"{"\" activeTab=\""u8}" +
+            $"{firstVisibleWorksheetId}" +
+            $"{"\"/></bookViews>"u8}");
     }
 
-    private bool TryWriteWorksheets(Span<byte> bytes, ref int bytesWritten)
+    private bool TryWriteWorksheets(SpreadsheetBuffer buffer)
     {
         var worksheets = _worksheets;
 
@@ -79,25 +72,22 @@ internal struct WorkbookXml : IXmlWriter
         {
             var index = _nextWorksheetIndex;
             var sheet = worksheets[index];
-            var span = bytes.Slice(bytesWritten);
-            var written = 0;
 
-            if (!"<sheet name=\""u8.TryCopyTo(span, ref written)) return false;
+            var visibilitySpan = sheet.Visibility switch
+            {
+                WorksheetVisibility.Hidden => "\" state=\"hidden"u8,
+                WorksheetVisibility.VeryHidden => "\" state=\"veryHidden"u8,
+                _ => []
+            };
 
-            if (!XmlUtility.TryXmlEncodeToUtf8(sheet.Name.AsSpan(), span.Slice(written), out var nameLength)) return false;
-            written += nameLength;
+            var ok = buffer.TryWrite(
+                $"{"<sheet name=\""u8}{sheet.Name}" +
+                $"{"\" sheetId=\""u8}{index + 1}" +
+                $"{visibilitySpan}" +
+                $"{"\" r:id=\"rId"u8}{index + 1}{"\" />"u8}");
 
-            if (!"\" sheetId=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(index + 1, span, ref written)) return false;
-
-            if (sheet.Visibility == WorksheetVisibility.Hidden && !"\" state=\"hidden"u8.TryCopyTo(span, ref written)) return false;
-            if (sheet.Visibility == WorksheetVisibility.VeryHidden && !"\" state=\"veryHidden"u8.TryCopyTo(span, ref written)) return false;
-
-            if (!"\" r:id=\"rId"u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(index + 1, span, ref written)) return false;
-            if (!"\" />"u8.TryCopyTo(span, ref written)) return false;
-
-            bytesWritten += written;
+            if (!ok)
+                return false;
         }
 
         return true;
