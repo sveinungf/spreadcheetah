@@ -2,21 +2,16 @@ using SpreadCheetah.CellValueWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Worksheets;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah.CellWriters;
 
-internal abstract class BaseCellWriter<T>
+internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling? defaultStyling)
 {
-    protected readonly DefaultStyling? DefaultStyling;
-    protected readonly SpreadsheetBuffer Buffer;
-    protected readonly CellWriterState State;
-
-    protected BaseCellWriter(CellWriterState state, DefaultStyling? defaultStyling)
-    {
-        Buffer = state.Buffer;
-        DefaultStyling = defaultStyling;
-        State = state;
-    }
+    protected readonly DefaultStyling? DefaultStyling = defaultStyling;
+    protected readonly SpreadsheetBuffer Buffer = state.Buffer;
+    protected readonly CellWriterState State = state;
 
     protected abstract bool TryWriteCell(in T cell);
     protected abstract bool WriteStartElement(in T cell);
@@ -137,13 +132,7 @@ internal abstract class BaseCellWriter<T>
     {
         // If we get here that means that the next cell didn't fit in the buffer, so just flush right away.
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-        if (State.Column == -1)
-        {
-            CellRowHelper.TryWriteRowStart(rowIndex, Buffer);
-            State.Column = 0;
-        }
-
+        EnsureRowStartIsWritten(rowIndex);
         await AddRowCellsAsync(cells, stream, token).ConfigureAwait(false);
     }
 
@@ -151,13 +140,7 @@ internal abstract class BaseCellWriter<T>
     {
         // If we get here that means that the next cell didn't fit in the buffer, so just flush right away.
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-        if (State.Column == -1)
-        {
-            CellRowHelper.TryWriteRowStart(rowIndex, Buffer);
-            State.Column = 0;
-        }
-
+        EnsureRowStartIsWritten(rowIndex);
         await AddRowCellsAsync(cells, stream, token).ConfigureAwait(false);
     }
 
@@ -165,13 +148,7 @@ internal abstract class BaseCellWriter<T>
     {
         // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-        if (State.Column == -1)
-        {
-            CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer);
-            State.Column = 0;
-        }
-
+        EnsureRowStartIsWritten(rowIndex, options);
         await AddRowCellsAsync(cells, stream, token).ConfigureAwait(false);
     }
 
@@ -179,14 +156,30 @@ internal abstract class BaseCellWriter<T>
     {
         // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        EnsureRowStartIsWritten(rowIndex, options);
+        await AddRowCellsAsync(cells, stream, token).ConfigureAwait(false);
+    }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void EnsureRowStartIsWritten(uint rowIndex)
+    {
         if (State.Column == -1)
         {
-            CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer);
+            var result = CellRowHelper.TryWriteRowStart(rowIndex, Buffer);
+            Debug.Assert(result);
             State.Column = 0;
         }
+    }
 
-        await AddRowCellsAsync(cells, stream, token).ConfigureAwait(false);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void EnsureRowStartIsWritten(uint rowIndex, RowOptions options)
+    {
+        if (State.Column == -1)
+        {
+            var result = CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer);
+            Debug.Assert(result);
+            State.Column = 0;
+        }
     }
 
     private async ValueTask AddRowCellsAsync(ReadOnlyMemory<T> cells, Stream stream, CancellationToken token)
