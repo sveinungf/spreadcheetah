@@ -84,8 +84,9 @@ internal struct WorkbookXml : IXmlWriter
 
             if (!"<sheet name=\""u8.TryCopyTo(span, ref written)) return false;
 
-            var name = XmlUtility.XmlEncode(sheet.Name);
-            if (!SpanHelper.TryWrite(name, span, ref written)) return false;
+            if (!XmlUtility.TryXmlEncodeToUtf8(sheet.Name.AsSpan(), span.Slice(written), out var nameLength)) return false;
+            written += nameLength;
+
             if (!"\" sheetId=\""u8.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(index + 1, span, ref written)) return false;
 
