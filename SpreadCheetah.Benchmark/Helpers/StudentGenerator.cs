@@ -3,15 +3,15 @@ namespace SpreadCheetah.Benchmark.Helpers;
 internal static class StudentGenerator
 {
     private static readonly string[] Firstnames =
-    {
-            "Ada", "Aksel", "Ella", "Emil", "Emma", "Filip", "Henrik", "Ingrid", "Jakob",
-            "Lucas", "Maja", "Noah", "Nora", "Olivia", "Oskar", "Sara", "Sofie", "William"
-        };
+    [
+        "Ada", "Aksel", "Ella", "Emil", "Emma", "Filip", "Henrik", "Ingrid", "Jakob",
+        "Lucas", "Maja", "Noah", "Nora", "Olivia", "Oskar", "Sara", "Sofie", "William"
+    ];
 
     private static readonly string[] Lastnames =
-    {
-            "Berg", "Dahl", "Eide", "Haugen", "Hansen", "Holm", "Johannessen", "Nguyen", "Nordmann", "Solberg", "Strand"
-        };
+    [
+        "Berg", "Dahl", "Eide", "Haugen", "Hansen", "Holm", "Johannessen", "Nguyen", "Nordmann", "Solberg", "Strand"
+    ];
 
     public static List<Student> Generate(int count)
     {

@@ -89,7 +89,7 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
         }
 #endif
 
-        span = ReadOnlySpan<T>.Empty;
+        span = [];
         return false;
     }
 
@@ -128,62 +128,13 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
         TryWriteRowEnd();
     }
 
-    public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, uint rowIndex, Stream stream, CancellationToken token)
-    {
-        // If we get here that means that the next cell didn't fit in the buffer, so just flush right away.
-        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        EnsureRowStartIsWritten(rowIndex);
-        await AddRowCellsAsync(cells, stream, token).ConfigureAwait(false);
-    }
-
-    public async ValueTask AddRowAsync(IList<T> cells, uint rowIndex, Stream stream, CancellationToken token)
-    {
-        // If we get here that means that the next cell didn't fit in the buffer, so just flush right away.
-        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        EnsureRowStartIsWritten(rowIndex);
-        await AddRowCellsAsync(cells, stream, token).ConfigureAwait(false);
-    }
-
-    public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, uint rowIndex, RowOptions options, Stream stream, CancellationToken token)
+    public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, uint rowIndex, RowOptions? options, Stream stream, CancellationToken token)
     {
         // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
         await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+
         EnsureRowStartIsWritten(rowIndex, options);
-        await AddRowCellsAsync(cells, stream, token).ConfigureAwait(false);
-    }
 
-    public async ValueTask AddRowAsync(IList<T> cells, uint rowIndex, RowOptions options, Stream stream, CancellationToken token)
-    {
-        // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
-        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        EnsureRowStartIsWritten(rowIndex, options);
-        await AddRowCellsAsync(cells, stream, token).ConfigureAwait(false);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void EnsureRowStartIsWritten(uint rowIndex)
-    {
-        if (State.Column == -1)
-        {
-            var result = CellRowHelper.TryWriteRowStart(rowIndex, Buffer);
-            Debug.Assert(result);
-            State.Column = 0;
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void EnsureRowStartIsWritten(uint rowIndex, RowOptions options)
-    {
-        if (State.Column == -1)
-        {
-            var result = CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer);
-            Debug.Assert(result);
-            State.Column = 0;
-        }
-    }
-
-    private async ValueTask AddRowCellsAsync(ReadOnlyMemory<T> cells, Stream stream, CancellationToken token)
-    {
         while (State.Column < cells.Length)
         {
             // Attempt to add row cells again
@@ -205,8 +156,13 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
         await WriteRowEndAsync(stream, token).ConfigureAwait(false);
     }
 
-    private async ValueTask AddRowCellsAsync(IList<T> cells, Stream stream, CancellationToken token)
+    public async ValueTask AddRowAsync(IList<T> cells, uint rowIndex, RowOptions? options, Stream stream, CancellationToken token)
     {
+        // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
+        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+
+        EnsureRowStartIsWritten(rowIndex, options);
+
         while (State.Column < cells.Count)
         {
             // Attempt to add row cells again
@@ -227,6 +183,20 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
         }
 
         await WriteRowEndAsync(stream, token).ConfigureAwait(false);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void EnsureRowStartIsWritten(uint rowIndex, RowOptions? options)
+    {
+        if (State.Column == -1)
+        {
+            var result = options is null
+                ? CellRowHelper.TryWriteRowStart(rowIndex, Buffer)
+                : CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer);
+
+            Debug.Assert(result);
+            State.Column = 0;
+        }
     }
 
     private async ValueTask WriteCellPieceByPieceAsync(T cell, Stream stream, CancellationToken token)
