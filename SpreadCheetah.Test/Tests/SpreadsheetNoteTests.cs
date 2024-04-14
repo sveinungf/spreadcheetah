@@ -4,7 +4,6 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using SpreadCheetah.Test.Helpers;
 using System.IO.Compression;
 using System.Text;
-using Xunit;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -40,7 +39,8 @@ public class SpreadsheetNoteTests
         var actualNote = noteCell.GetComment();
         Assert.Equal(noteText, actualNote.Text);
         var p = actualNote.Position;
-        Assert.Equal(expectedPosition, new[] { p.Column, p.ColumnOffset, p.Row, p.RowOffset });
+        double[] actualPosition = [p.Column, p.ColumnOffset, p.Row, p.RowOffset];
+        Assert.Equal(expectedPosition, actualPosition);
     }
 
     [Theory]

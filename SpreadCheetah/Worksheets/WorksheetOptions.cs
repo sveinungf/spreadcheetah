@@ -55,7 +55,7 @@ public class WorksheetOptions
     /// </summary>
     public AutoFilterOptions? AutoFilter { get; set; }
 
-    internal SortedDictionary<int, ColumnOptions> ColumnOptions { get; } = new SortedDictionary<int, ColumnOptions>();
+    internal SortedDictionary<int, ColumnOptions> ColumnOptions { get; } = [];
 
     /// <summary>
     /// Get options for a column in the worksheet. The first column has column number 1.

@@ -11,7 +11,7 @@ internal readonly struct PooledArray<T> : IDisposable
 
     public PooledArray()
     {
-        _array = Array.Empty<T>();
+        _array = [];
         _count = 0;
     }
 

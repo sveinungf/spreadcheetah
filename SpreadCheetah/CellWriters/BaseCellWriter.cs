@@ -89,7 +89,7 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
         }
 #endif
 
-        span = ReadOnlySpan<T>.Empty;
+        span = [];
         return false;
     }
 

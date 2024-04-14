@@ -108,7 +108,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public bool TryAddDataValidation(string reference, DataValidation validation)
     {
-        _validations ??= new Dictionary<SingleCellOrCellRangeReference, DataValidation>();
+        _validations ??= [];
 
         if (_validations.Count >= SpreadsheetConstants.MaxNumberOfDataValidations)
             return false;
@@ -125,7 +125,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         if (Images is null)
         {
             firstImage = true;
-            Images = new List<WorksheetImage>();
+            Images = [];
         }
 
         Images.Add(image);
@@ -139,7 +139,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         if (Notes is null)
         {
             firstNote = true;
-            Notes = new Dictionary<SingleCellRelativeReference, string>();
+            Notes = [];
         }
 
         Notes[reference] = noteText;
@@ -147,7 +147,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public void MergeCells(CellRangeRelativeReference cellRange)
     {
-        _cellMerges ??= new HashSet<CellRangeRelativeReference>();
+        _cellMerges ??= [];
         _cellMerges.Add(cellRange);
     }
 

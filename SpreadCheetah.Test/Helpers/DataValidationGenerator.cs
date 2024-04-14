@@ -22,7 +22,7 @@ internal static class DataValidationGenerator
     }
 
     private static readonly Func<Faker, DataValidation>[] Factories =
-    {
+    [
         f => DataValidation.DecimalBetween(f.Random.SimpleDoublePair(out var max), max),
         f => DataValidation.DecimalEqualTo(f.Random.SimpleDouble()),
         f => DataValidation.DecimalGreaterThan(f.Random.SimpleDouble()),
@@ -50,5 +50,5 @@ internal static class DataValidationGenerator
         f => DataValidation.TextLengthLessThanOrEqualTo(f.Random.Int()),
         f => DataValidation.TextLengthNotBetween(f.Random.IntPair(out var max), max),
         f => DataValidation.TextLengthNotEqualTo(f.Random.Int()),
-    };
+    ];
 }
