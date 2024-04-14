@@ -61,6 +61,7 @@ internal struct StyleNumberFormatsXml
             if (!SpanHelper.TryWrite(format.Value, span, ref written)) return false;
             if (!"\" formatCode=\""u8.TryCopyTo(span, ref written)) return false;
 
+            // TODO: This can be longer than the minimum buffer length. Should use the "long string" approach
             var numberFormat = XmlUtility.XmlEncode(format.Key);
             if (!SpanHelper.TryWrite(numberFormat, span, ref written)) return false;
             if (!"\"/>"u8.TryCopyTo(span, ref written)) return false;

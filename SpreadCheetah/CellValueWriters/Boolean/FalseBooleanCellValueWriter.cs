@@ -14,7 +14,7 @@ internal sealed class FalseBooleanCellValueWriter : BooleanCellValueWriter
 
     protected override bool TryWriteCell(SpreadsheetBuffer buffer)
     {
-        return buffer.TryWrite($"{FalseBooleanCell}");
+        return buffer.TryWrite(FalseBooleanCell);
     }
 
     protected override bool TryWriteCell(StyleId styleId, SpreadsheetBuffer buffer)
@@ -63,6 +63,6 @@ internal sealed class FalseBooleanCellValueWriter : BooleanCellValueWriter
 
     public override bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer)
     {
-        return cell.Formula is null || buffer.TryWrite($"{EndFormulaFalseBooleanValue}");
+        return cell.Formula is null || buffer.TryWrite(EndFormulaFalseBooleanValue);
     }
 }

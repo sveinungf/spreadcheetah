@@ -43,7 +43,7 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
     {
         return styleId is { } style
             ? buffer.TryWrite($"{BeginStyledBooleanCell}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}")
-            : buffer.TryWrite($"{BeginBooleanFormulaCell}");
+            : buffer.TryWrite(BeginBooleanFormulaCell);
     }
 
     public override bool WriteFormulaStartElementWithReference(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)

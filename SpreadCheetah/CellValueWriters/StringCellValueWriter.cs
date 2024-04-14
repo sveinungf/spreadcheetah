@@ -86,21 +86,21 @@ internal sealed class StringCellValueWriter : CellValueWriter
 
     public override bool TryWriteEndElement(SpreadsheetBuffer buffer)
     {
-        return buffer.TryWrite($"{EndStringCell}");
+        return buffer.TryWrite(EndStringCell);
     }
 
     public override bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer)
     {
         return cell.Formula is null
             ? TryWriteEndElement(buffer)
-            : buffer.TryWrite($"{FormulaCellHelper.EndCachedValueEndCell}");
+            : buffer.TryWrite(FormulaCellHelper.EndCachedValueEndCell);
     }
 
     public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
         return styleId is { } style
             ? buffer.TryWrite($"{BeginStyledStringCell}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}")
-            : buffer.TryWrite($"{BeginStringFormulaCell}");
+            : buffer.TryWrite(BeginStringFormulaCell);
     }
 
     public override bool WriteFormulaStartElementWithReference(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
@@ -112,7 +112,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
 
     public override bool WriteStartElement(SpreadsheetBuffer buffer)
     {
-        return buffer.TryWrite($"{BeginStringCell}");
+        return buffer.TryWrite(BeginStringCell);
     }
 
     public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer)
