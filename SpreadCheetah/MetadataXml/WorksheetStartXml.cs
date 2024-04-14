@@ -21,7 +21,7 @@ internal struct WorksheetStartXml : IXmlWriter
     public WorksheetStartXml(WorksheetOptions? options)
     {
         _options = options;
-        _columns = options?.ColumnOptions.ToList();
+        _columns = options is not null ? [.. options.ColumnOptions] : null;
     }
 
     public bool TryWrite(Span<byte> bytes, out int bytesWritten)

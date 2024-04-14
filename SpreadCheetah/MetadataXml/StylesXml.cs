@@ -15,7 +15,7 @@ internal struct StylesXml : IXmlWriter
         CancellationToken token)
     {
         var entry = archive.CreateEntry("xl/styles.xml", compressionLevel);
-        var writer = new StylesXml(styles.Keys.ToList());
+        var writer = new StylesXml([.. styles.Keys]);
 #pragma warning disable EPS06 // Hidden struct copy operation
         return writer.WriteAsync(entry, buffer, token);
 #pragma warning restore EPS06 // Hidden struct copy operation
@@ -51,10 +51,10 @@ internal struct StylesXml : IXmlWriter
         _borders = CreateBorderDictionary(styles);
         _fills = CreateFillDictionary(styles);
         _fonts = CreateFontDictionary(styles);
-        _numberFormatsXml = new StyleNumberFormatsXml(_customNumberFormats?.ToList());
-        _bordersXml = new StyleBordersXml(_borders.Keys.ToList());
-        _fillsXml = new StyleFillsXml(_fills.Keys.ToList());
-        _fontsXml = new StyleFontsXml(_fonts.Keys.ToList());
+        _numberFormatsXml = new StyleNumberFormatsXml(_customNumberFormats is { } formats ? [.. formats] : null);
+        _bordersXml = new StyleBordersXml([.. _borders.Keys]);
+        _fillsXml = new StyleFillsXml([.. _fills.Keys]);
+        _fontsXml = new StyleFontsXml([.. _fonts.Keys]);
         _styles = styles;
     }
 

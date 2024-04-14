@@ -153,6 +153,8 @@ dotnet_diagnostic.IDE0028.severity = warning
 dotnet_diagnostic.IDE0300.severity = warning
 # IDE0301: Use collection expression for empty
 dotnet_diagnostic.IDE0301.severity = warning
+# IDE0305: Use collection expression for fluent
+dotnet_diagnostic.IDE0305.severity = warning
 
 [{ColumnHeaderAttribute.cs,ColumnOrderAttribute.cs,WorksheetRowAttribute.cs}]
 # CA1019: Define accessors for attribute arguments
