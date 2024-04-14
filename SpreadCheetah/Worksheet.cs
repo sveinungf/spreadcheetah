@@ -82,11 +82,11 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public bool TryAddRow(ReadOnlySpan<StyledCell> cells, RowOptions options)
         => _styledCellWriter.TryAddRow(cells, _state.NextRowIndex++, options);
     public ValueTask AddRowAsync(IList<Cell> cells, CancellationToken ct)
-        => _cellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, _stream, ct);
+        => _cellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, null, _stream, ct);
     public ValueTask AddRowAsync(IList<DataCell> cells, CancellationToken ct)
-        => _dataCellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, _stream, ct);
+        => _dataCellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, null, _stream, ct);
     public ValueTask AddRowAsync(IList<StyledCell> cells, CancellationToken ct)
-        => _styledCellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, _stream, ct);
+        => _styledCellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, null, _stream, ct);
     public ValueTask AddRowAsync(IList<Cell> cells, RowOptions options, CancellationToken ct)
         => _cellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, options, _stream, ct);
     public ValueTask AddRowAsync(IList<DataCell> cells, RowOptions options, CancellationToken ct)
@@ -94,11 +94,11 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public ValueTask AddRowAsync(IList<StyledCell> cells, RowOptions options, CancellationToken ct)
         => _styledCellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, options, _stream, ct);
     public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, CancellationToken ct)
-        => _cellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, _stream, ct);
+        => _cellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, null, _stream, ct);
     public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, CancellationToken ct)
-        => _dataCellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, _stream, ct);
+        => _dataCellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, null, _stream, ct);
     public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, CancellationToken ct)
-        => _styledCellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, _stream, ct);
+        => _styledCellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, null, _stream, ct);
     public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, RowOptions options, CancellationToken ct)
         => _cellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, options, _stream, ct);
     public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, RowOptions options, CancellationToken ct)
