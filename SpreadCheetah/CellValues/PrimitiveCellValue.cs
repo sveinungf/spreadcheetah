@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace SpreadCheetah;
+namespace SpreadCheetah.CellValues;
 
 [StructLayout(LayoutKind.Explicit)]
 internal readonly struct PrimitiveCellValue
