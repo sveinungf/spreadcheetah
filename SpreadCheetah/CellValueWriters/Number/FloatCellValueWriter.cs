@@ -9,14 +9,14 @@ internal sealed class FloatCellValueWriter : NumberCellValueWriter
 {
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
-        return buffer.TryWrite($"{BeginDataCell}{cell.NumberValue.FloatValue}{EndDefaultCell}");
+        return buffer.TryWrite($"{BeginDataCell}{cell.Value.StringOrPrimitive.PrimitiveValue.FloatValue}{EndDefaultCell}");
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
         return buffer.TryWrite(
             $"{StyledCellHelper.BeginStyledNumberCell}{styleId.Id}{EndQuoteBeginValue}" +
-            $"{cell.NumberValue.FloatValue}" +
+            $"{cell.Value.StringOrPrimitive.PrimitiveValue.FloatValue}" +
             $"{EndDefaultCell}");
     }
 
@@ -28,7 +28,7 @@ internal sealed class FloatCellValueWriter : NumberCellValueWriter
                 $"{StyledCellHelper.BeginStyledNumberCell}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
-                $"{cachedValue.NumberValue.FloatValue}" +
+                $"{cachedValue.Value.StringOrPrimitive.PrimitiveValue.FloatValue}" +
                 $"{FormulaCellHelper.EndCachedValueEndCell}");
         }
 
@@ -36,7 +36,7 @@ internal sealed class FloatCellValueWriter : NumberCellValueWriter
             $"{FormulaCellHelper.BeginNumberFormulaCell}" +
             $"{formulaText}" +
             $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
-            $"{cachedValue.NumberValue.FloatValue}" +
+            $"{cachedValue.Value.StringOrPrimitive.PrimitiveValue.FloatValue}" +
             $"{FormulaCellHelper.EndCachedValueEndCell}");
     }
 
@@ -44,7 +44,7 @@ internal sealed class FloatCellValueWriter : NumberCellValueWriter
     {
         return state.Buffer.TryWrite(
             $"{state}{EndQuoteBeginValue}" +
-            $"{cell.NumberValue.FloatValue}" +
+            $"{cell.Value.StringOrPrimitive.PrimitiveValue.FloatValue}" +
             $"{EndDefaultCell}");
     }
 
@@ -52,7 +52,7 @@ internal sealed class FloatCellValueWriter : NumberCellValueWriter
     {
         return state.Buffer.TryWrite(
             $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{styleId.Id}{EndQuoteBeginValue}" +
-            $"{cell.NumberValue.FloatValue}" +
+            $"{cell.Value.StringOrPrimitive.PrimitiveValue.FloatValue}" +
             $"{EndDefaultCell}");
     }
 
@@ -64,7 +64,7 @@ internal sealed class FloatCellValueWriter : NumberCellValueWriter
                 $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
-                $"{cachedValue.NumberValue.FloatValue}" +
+                $"{cachedValue.Value.StringOrPrimitive.PrimitiveValue.FloatValue}" +
                 $"{FormulaCellHelper.EndCachedValueEndCell}");
         }
 
@@ -72,12 +72,12 @@ internal sealed class FloatCellValueWriter : NumberCellValueWriter
             $"{state}{FormulaCellHelper.EndQuoteBeginFormula}" +
             $"{formulaText}" +
             $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
-            $"{cachedValue.NumberValue.FloatValue}" +
+            $"{cachedValue.Value.StringOrPrimitive.PrimitiveValue.FloatValue}" +
             $"{FormulaCellHelper.EndCachedValueEndCell}");
     }
 
     public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)
     {
-        return buffer.TryWrite($"{cell.NumberValue.FloatValue}");
+        return buffer.TryWrite($"{cell.Value.StringOrPrimitive.PrimitiveValue.FloatValue}");
     }
 }
