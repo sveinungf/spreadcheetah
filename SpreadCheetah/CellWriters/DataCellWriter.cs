@@ -23,6 +23,6 @@ internal sealed class DataCellWriter(CellWriterState state, DefaultStyling? defa
 
     protected override bool FinishWritingCellValue(in DataCell cell, ref int cellValueIndex)
     {
-        return Buffer.WriteLongString(cell.StringValue, ref cellValueIndex);
+        return Buffer.WriteLongString(cell.Value.StringOrPrimitive.StringValue, ref cellValueIndex);
     }
 }

@@ -9,7 +9,6 @@ namespace SpreadCheetah;
 public readonly record struct DataCell
 {
     internal CellValue Value { get; }
-    internal string? StringValue { get; }
     internal CellWriterType Type { get; }
 
     /// <summary>
@@ -18,7 +17,7 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(string? value)
     {
-        StringValue = value;
+        Value = new CellValue(new StringOrPrimitiveCellValue(value));
         Type = value != null ? CellWriterType.String : CellWriterType.Null;
     }
 

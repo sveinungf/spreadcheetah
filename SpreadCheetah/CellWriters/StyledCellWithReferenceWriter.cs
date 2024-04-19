@@ -30,6 +30,6 @@ internal sealed class StyledCellWithReferenceWriter(CellWriterState state, Defau
 
     protected override bool FinishWritingCellValue(in StyledCell cell, ref int cellValueIndex)
     {
-        return Buffer.WriteLongString(cell.DataCell.StringValue, ref cellValueIndex);
+        return Buffer.WriteLongString(cell.DataCell.Value.StringOrPrimitive.StringValue, ref cellValueIndex);
     }
 }

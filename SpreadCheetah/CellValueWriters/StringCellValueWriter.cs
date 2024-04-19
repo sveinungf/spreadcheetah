@@ -20,14 +20,14 @@ internal sealed class StringCellValueWriter : CellValueWriter
 
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
-        return buffer.TryWrite($"{BeginStringCell}{cell.StringValue}{EndStringCell}");
+        return buffer.TryWrite($"{BeginStringCell}{cell.Value.StringOrPrimitive.StringValue}{EndStringCell}");
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
         return buffer.TryWrite(
             $"{BeginStyledStringCell}{styleId.Id}{EndStyleBeginInlineString}" +
-            $"{cell.StringValue}" +
+            $"{cell.Value.StringOrPrimitive.StringValue}" +
             $"{EndStringCell}");
     }
 
@@ -39,7 +39,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
                 $"{BeginStyledStringFormulaCell}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
-                $"{cachedValue.StringValue}" +
+                $"{cachedValue.Value.StringOrPrimitive.StringValue}" +
                 $"{FormulaCellHelper.EndCachedValueEndCell}");
         }
 
@@ -47,20 +47,20 @@ internal sealed class StringCellValueWriter : CellValueWriter
             $"{BeginStringFormulaCell}" +
             $"{formulaText}" +
             $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
-            $"{cachedValue.StringValue}" +
+            $"{cachedValue.Value.StringOrPrimitive.StringValue}" +
             $"{FormulaCellHelper.EndCachedValueEndCell}");
     }
 
     public override bool TryWriteCellWithReference(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
     {
-        return state.Buffer.TryWrite($"{state}{EndReferenceBeginString}{cell.StringValue}{EndStringCell}");
+        return state.Buffer.TryWrite($"{state}{EndReferenceBeginString}{cell.Value.StringOrPrimitive.StringValue}{EndStringCell}");
     }
 
     public override bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state)
     {
         return state.Buffer.TryWrite(
             $"{state}{EndReferenceBeginStyle}{styleId.Id}{EndStyleBeginInlineString}" +
-            $"{cell.StringValue}" +
+            $"{cell.Value.StringOrPrimitive.StringValue}" +
             $"{EndStringCell}");
     }
 
@@ -72,7 +72,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
                 $"{state}{EndReferenceBeginFormulaCellStyle}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
-                $"{cachedValue.StringValue}" +
+                $"{cachedValue.Value.StringOrPrimitive.StringValue}" +
                 $"{FormulaCellHelper.EndCachedValueEndCell}");
         }
 
@@ -80,7 +80,7 @@ internal sealed class StringCellValueWriter : CellValueWriter
             $"{state}{EndReferenceBeginFormula}" +
             $"{formulaText}" +
             $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
-            $"{cachedValue.StringValue}" +
+            $"{cachedValue.Value.StringOrPrimitive.StringValue}" +
             $"{FormulaCellHelper.EndCachedValueEndCell}");
     }
 
@@ -134,6 +134,6 @@ internal sealed class StringCellValueWriter : CellValueWriter
 
     public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)
     {
-        return buffer.WriteLongString(cell.StringValue, ref valueIndex);
+        return buffer.WriteLongString(cell.Value.StringOrPrimitive.StringValue, ref valueIndex);
     }
 }
