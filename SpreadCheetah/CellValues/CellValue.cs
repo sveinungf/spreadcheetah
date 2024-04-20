@@ -8,15 +8,13 @@ internal readonly struct CellValue
     [FieldOffset(0)] public readonly StringOrPrimitiveCellValue StringOrPrimitive;
     [FieldOffset(0)] public readonly ReadOnlyMemory<char> Memory;
 
-    public CellValue(StringOrPrimitiveCellValue value)
+    public CellValue()
     {
-        // TODO: Unsafe.SkipInit?
-        StringOrPrimitive = value;
+#if NET5_0_OR_GREATER
+        System.Runtime.CompilerServices.Unsafe.SkipInit(out this);
+#endif
     }
 
-    public CellValue(ReadOnlyMemory<char> value)
-    {
-        // TODO: Unsafe.SkipInit?
-        Memory = value;
-    }
+    public CellValue(StringOrPrimitiveCellValue value) : this() => StringOrPrimitive = value;
+    public CellValue(ReadOnlyMemory<char> value) : this() => Memory = value;
 }

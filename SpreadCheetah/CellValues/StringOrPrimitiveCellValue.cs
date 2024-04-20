@@ -5,15 +5,13 @@ internal readonly struct StringOrPrimitiveCellValue
     public readonly string? StringValue;
     public readonly PrimitiveCellValue PrimitiveValue;
 
-    public StringOrPrimitiveCellValue(string? value)
+    public StringOrPrimitiveCellValue()
     {
-        // TODO: Unsafe.SkipInit?
-        StringValue = value;
+#if NET5_0_OR_GREATER
+        System.Runtime.CompilerServices.Unsafe.SkipInit(out this);
+#endif
     }
 
-    public StringOrPrimitiveCellValue(PrimitiveCellValue value)
-    {
-        // TODO: Unsafe.SkipInit?
-        PrimitiveValue = value;
-    }
+    public StringOrPrimitiveCellValue(string? value) : this() => StringValue = value;
+    public StringOrPrimitiveCellValue(PrimitiveCellValue value) : this() => PrimitiveValue = value;
 }
