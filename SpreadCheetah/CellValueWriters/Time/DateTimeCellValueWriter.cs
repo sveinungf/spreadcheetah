@@ -14,7 +14,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
     {
         return defaultStyling?.DateTimeStyleId is { } styleId
             ? TryWriteDateTimeCell(cell, styleId, buffer)
-            : buffer.TryWrite($"{BeginDataCell}{cell.NumberValue.DoubleValue}{EndDefaultCell}");
+            : buffer.TryWrite($"{BeginDataCell}{cell.Value.StringOrPrimitive.PrimitiveValue.DoubleValue}{EndDefaultCell}");
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
@@ -31,7 +31,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
                 $"{StyledCellHelper.BeginStyledNumberCell}{style}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
-                $"{cachedValue.NumberValue.DoubleValue}" +
+                $"{cachedValue.Value.StringOrPrimitive.PrimitiveValue.DoubleValue}" +
                 $"{FormulaCellHelper.EndCachedValueEndCell}");
         }
 
@@ -39,7 +39,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
             $"{FormulaCellHelper.BeginNumberFormulaCell}" +
             $"{formulaText}" +
             $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
-            $"{cachedValue.NumberValue.DoubleValue}" +
+            $"{cachedValue.Value.StringOrPrimitive.PrimitiveValue.DoubleValue}" +
             $"{FormulaCellHelper.EndCachedValueEndCell}");
     }
 
@@ -47,7 +47,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
     {
         return buffer.TryWrite(
             $"{StyledCellHelper.BeginStyledNumberCell}{styleId}{EndQuoteBeginValue}" +
-            $"{cell.NumberValue.DoubleValue}" +
+            $"{cell.Value.StringOrPrimitive.PrimitiveValue.DoubleValue}" +
             $"{EndDefaultCell}");
     }
 
@@ -58,7 +58,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
 
         return state.Buffer.TryWrite(
             $"{state}{EndQuoteBeginValue}" +
-            $"{cell.NumberValue.DoubleValue}" +
+            $"{cell.Value.StringOrPrimitive.PrimitiveValue.DoubleValue}" +
             $"{EndDefaultCell}");
     }
 
@@ -76,7 +76,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
                 $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{style}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
-                $"{cachedValue.NumberValue.DoubleValue}" +
+                $"{cachedValue.Value.StringOrPrimitive.PrimitiveValue.DoubleValue}" +
                 $"{FormulaCellHelper.EndCachedValueEndCell}");
         }
 
@@ -84,7 +84,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
             $"{state}{FormulaCellHelper.EndQuoteBeginFormula}" +
             $"{formulaText}" +
             $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
-            $"{cachedValue.NumberValue.DoubleValue}" +
+            $"{cachedValue.Value.StringOrPrimitive.PrimitiveValue.DoubleValue}" +
             $"{FormulaCellHelper.EndCachedValueEndCell}");
     }
 
@@ -92,7 +92,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
     {
         return state.Buffer.TryWrite(
             $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{styleId}{EndQuoteBeginValue}" +
-            $"{cell.NumberValue.DoubleValue}" +
+            $"{cell.Value.StringOrPrimitive.PrimitiveValue.DoubleValue}" +
             $"{EndDefaultCell}");
     }
 
@@ -110,6 +110,6 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
 
     public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)
     {
-        return buffer.TryWrite($"{cell.NumberValue.DoubleValue}");
+        return buffer.TryWrite($"{cell.Value.StringOrPrimitive.PrimitiveValue.DoubleValue}");
     }
 }

@@ -1,14 +1,16 @@
+using SpreadCheetah.CellValues;
 using SpreadCheetah.CellValueWriters;
+using System.Runtime.InteropServices;
 
 namespace SpreadCheetah;
 
 /// <summary>
 /// Represents the value and data type for a worksheet cell.
 /// </summary>
+[StructLayout(LayoutKind.Auto)]
 public readonly record struct DataCell
 {
-    internal CellValue NumberValue { get; }
-    internal string? StringValue { get; }
+    internal CellValue Value { get; }
     internal CellWriterType Type { get; }
 
     /// <summary>
@@ -17,8 +19,8 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(string? value)
     {
-        StringValue = value;
-        Type = value != null ? CellWriterType.String : CellWriterType.Null;
+        Type = (CellWriterType)(value != null ? 1 : 0); // Branchless on .NET 8+
+        Value = new CellValue(new StringOrPrimitiveCellValue(value));
     }
 
     /// <summary>
@@ -26,8 +28,8 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(int value)
     {
-        NumberValue = new CellValue(value);
         Type = CellWriterType.Integer;
+        Value = new CellValue(new StringOrPrimitiveCellValue(new PrimitiveCellValue(value)));
     }
 
     /// <summary>
@@ -36,8 +38,8 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(int? value)
     {
-        NumberValue = value is null ? new CellValue() : new CellValue(value.GetValueOrDefault());
-        Type = value is null ? CellWriterType.Null : CellWriterType.Integer;
+        Type = (CellWriterType)((value.HasValue ? 1 : 0) << 1);
+        Value = new CellValue(new StringOrPrimitiveCellValue(new PrimitiveCellValue(value.GetValueOrDefault())));
     }
 
     /// <summary>
@@ -62,8 +64,8 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(float value)
     {
-        NumberValue = new CellValue(value);
         Type = CellWriterType.Float;
+        Value = new CellValue(new StringOrPrimitiveCellValue(new PrimitiveCellValue(value)));
     }
 
     /// <summary>
@@ -72,8 +74,8 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(float? value)
     {
-        NumberValue = value is null ? new CellValue() : new CellValue(value.GetValueOrDefault());
         Type = value is null ? CellWriterType.Null : CellWriterType.Float;
+        Value = new CellValue(new StringOrPrimitiveCellValue(new PrimitiveCellValue(value.GetValueOrDefault())));
     }
 
     /// <summary>
@@ -82,8 +84,8 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(double value)
     {
-        NumberValue = new CellValue(value);
         Type = CellWriterType.Double;
+        Value = new CellValue(new StringOrPrimitiveCellValue(new PrimitiveCellValue(value)));
     }
 
     /// <summary>
@@ -93,8 +95,8 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(double? value)
     {
-        NumberValue = value is null ? new CellValue() : new CellValue(value.GetValueOrDefault());
-        Type = value is null ? CellWriterType.Null : CellWriterType.Double;
+        Type = (CellWriterType)((value.HasValue ? 1 : 0) << 2);
+        Value = new CellValue(new StringOrPrimitiveCellValue(new PrimitiveCellValue(value.GetValueOrDefault())));
     }
 
     /// <summary>
@@ -120,8 +122,8 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(DateTime value)
     {
-        NumberValue = new CellValue(value.ToOADate());
         Type = CellWriterType.DateTime;
+        Value = new CellValue(new StringOrPrimitiveCellValue(new PrimitiveCellValue(value.ToOADate())));
     }
 
     /// <summary>
@@ -131,8 +133,8 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(DateTime? value)
     {
-        NumberValue = value is null ? new CellValue() : new CellValue(value.GetValueOrDefault().ToOADate());
-        Type = value is null ? CellWriterType.NullDateTime : CellWriterType.DateTime;
+        Type = (CellWriterType)((value.HasValue ? 1 : 0) + 5);
+        Value = new CellValue(new StringOrPrimitiveCellValue(new PrimitiveCellValue(value.GetValueOrDefault().ToOADate())));
     }
 
     /// <summary>
@@ -141,6 +143,9 @@ public readonly record struct DataCell
     public DataCell(bool value)
     {
         Type = GetBooleanWriter(value);
+#if NET5_0_OR_GREATER
+        System.Runtime.CompilerServices.Unsafe.SkipInit(out this);
+#endif
     }
 
     /// <summary>
@@ -150,7 +155,10 @@ public readonly record struct DataCell
     public DataCell(bool? value)
     {
         Type = value is null ? CellWriterType.Null : GetBooleanWriter(value.GetValueOrDefault());
+#if NET5_0_OR_GREATER
+        System.Runtime.CompilerServices.Unsafe.SkipInit(out this);
+#endif
     }
 
-    private static CellWriterType GetBooleanWriter(bool value) => value ? CellWriterType.TrueBoolean : CellWriterType.FalseBoolean;
+    private static CellWriterType GetBooleanWriter(bool value) => (CellWriterType)((value ? 1 : 0) + 7);
 }

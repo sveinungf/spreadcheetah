@@ -7,6 +7,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using OfficeOpenXml;
 using System.IO.Packaging;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
+using OpenXmlCellValue = DocumentFormat.OpenXml.Spreadsheet.CellValues;
 
 namespace SpreadCheetah.Benchmark.Benchmarks;
 
@@ -185,7 +186,7 @@ public class StringCells : IDisposable
             {
                 var inlineString = new InlineString();
                 inlineString.AppendChild(new Text(rowValues[col]));
-                var cell = new OpenXmlCell { DataType = CellValues.InlineString };
+                var cell = new OpenXmlCell { DataType = OpenXmlCellValue.InlineString };
                 cell.AppendChild(inlineString);
                 cells[col] = cell;
             }

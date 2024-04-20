@@ -18,6 +18,9 @@ public class MixedDataTypeCells
     [GlobalSetup]
     public void GlobalSetup()
     {
+        var random = new Random(42);
+        var baseDateTime = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         _rows = Enumerable.Range(0, NumberOfRows)
             .Select(row =>
             {
@@ -25,25 +28,25 @@ public class MixedDataTypeCells
                 return new RowItem(
                     row,
                     "Ola-" + row,
-                    row + "-Nordmann",
-                    1950 + row / 1000,
+                    random.NextBoolean() ? row + "-Nordmann" : null,
+                    random.NextBoolean() ? null : 1950 + row / 1000,
                     5.67 + row % 10,
                     even,
                     even ? "Norway" : "Sweden",
                     !even,
-                    0.991f + row / 10000.0,
-                    even ? -23 : 23);
+                    random.NextBoolean() ? 0.991f + row / 10000.0 : null,
+                    even ? -23 : 23,
+                    random.NextBoolean() ? baseDateTime.AddSeconds(random.Next()) : null);
             }).ToArray();
     }
 
     [Benchmark]
     public async Task SpreadCheetah()
     {
-        var options = new SpreadCheetahOptions { DefaultDateTimeFormat = null };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, options);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
         await spreadsheet.StartWorksheetAsync("Book1");
 
-        var cells = new DataCell[10];
+        var cells = new DataCell[11];
         var rows = _rows;
 
         for (var row = 0; row < rows.Length; ++row)
@@ -59,6 +62,7 @@ public class MixedDataTypeCells
             cells[7] = new DataCell(rowItem.H);
             cells[8] = new DataCell(rowItem.I);
             cells[9] = new DataCell(rowItem.J);
+            cells[10] = new DataCell(rowItem.K);
 
             await spreadsheet.AddRowAsync(cells);
         }

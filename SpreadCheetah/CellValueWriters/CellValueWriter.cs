@@ -13,14 +13,14 @@ internal abstract class CellValueWriter
     private static readonly CellValueWriter[] Writers =
     [
         new NullValueWriter(),
+        new StringCellValueWriter(),
         new IntegerCellValueWriter(),
         new FloatCellValueWriter(),
         new DoubleCellValueWriter(),
-        new DateTimeCellValueWriter(),
         new NullDateTimeCellValueWriter(),
-        new TrueBooleanCellValueWriter(),
+        new DateTimeCellValueWriter(),
         new FalseBooleanCellValueWriter(),
-        new StringCellValueWriter()
+        new TrueBooleanCellValueWriter()
     ];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

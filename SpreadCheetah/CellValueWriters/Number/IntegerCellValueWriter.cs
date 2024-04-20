@@ -9,14 +9,14 @@ internal sealed class IntegerCellValueWriter : NumberCellValueWriter
 {
     public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
-        return buffer.TryWrite($"{BeginDataCell}{cell.NumberValue.IntValue}{EndDefaultCell}");
+        return buffer.TryWrite($"{BeginDataCell}{cell.Value.StringOrPrimitive.PrimitiveValue.IntValue}{EndDefaultCell}");
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
         return buffer.TryWrite(
             $"{StyledCellHelper.BeginStyledNumberCell}{styleId.Id}{EndQuoteBeginValue}" +
-            $"{cell.NumberValue.IntValue}" +
+            $"{cell.Value.StringOrPrimitive.PrimitiveValue.IntValue}" +
             $"{EndDefaultCell}");
     }
 
@@ -28,7 +28,7 @@ internal sealed class IntegerCellValueWriter : NumberCellValueWriter
                 $"{StyledCellHelper.BeginStyledNumberCell}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
-                $"{cachedValue.NumberValue.IntValue}" +
+                $"{cachedValue.Value.StringOrPrimitive.PrimitiveValue.IntValue}" +
                 $"{FormulaCellHelper.EndCachedValueEndCell}");
         }
 
@@ -36,7 +36,7 @@ internal sealed class IntegerCellValueWriter : NumberCellValueWriter
             $"{FormulaCellHelper.BeginNumberFormulaCell}" +
             $"{formulaText}" +
             $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
-            $"{cachedValue.NumberValue.IntValue}" +
+            $"{cachedValue.Value.StringOrPrimitive.PrimitiveValue.IntValue}" +
             $"{FormulaCellHelper.EndCachedValueEndCell}");
     }
 
@@ -44,7 +44,7 @@ internal sealed class IntegerCellValueWriter : NumberCellValueWriter
     {
         return state.Buffer.TryWrite(
             $"{state}{EndQuoteBeginValue}" +
-            $"{cell.NumberValue.IntValue}" +
+            $"{cell.Value.StringOrPrimitive.PrimitiveValue.IntValue}" +
             $"{EndDefaultCell}");
     }
 
@@ -52,7 +52,7 @@ internal sealed class IntegerCellValueWriter : NumberCellValueWriter
     {
         return state.Buffer.TryWrite(
             $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{styleId.Id}{EndQuoteBeginValue}" +
-            $"{cell.NumberValue.IntValue}" +
+            $"{cell.Value.StringOrPrimitive.PrimitiveValue.IntValue}" +
             $"{EndDefaultCell}");
     }
 
@@ -64,7 +64,7 @@ internal sealed class IntegerCellValueWriter : NumberCellValueWriter
                 $"{state}{StyledCellHelper.EndReferenceBeginStyleId}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
-                $"{cachedValue.NumberValue.IntValue}" +
+                $"{cachedValue.Value.StringOrPrimitive.PrimitiveValue.IntValue}" +
                 $"{FormulaCellHelper.EndCachedValueEndCell}");
         }
 
@@ -72,12 +72,12 @@ internal sealed class IntegerCellValueWriter : NumberCellValueWriter
             $"{state}{FormulaCellHelper.EndQuoteBeginFormula}" +
             $"{formulaText}" +
             $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
-            $"{cachedValue.NumberValue.IntValue}" +
+            $"{cachedValue.Value.StringOrPrimitive.PrimitiveValue.IntValue}" +
             $"{FormulaCellHelper.EndCachedValueEndCell}");
     }
 
     public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)
     {
-        return buffer.TryWrite($"{cell.NumberValue.IntValue}");
+        return buffer.TryWrite($"{cell.Value.StringOrPrimitive.PrimitiveValue.IntValue}");
     }
 }
