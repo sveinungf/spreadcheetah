@@ -350,7 +350,7 @@ public class WorksheetRowGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritance()
+    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritanceAndWithoutInheritanceAttribute()
     {
         // Arrange
         const string source = """
@@ -366,6 +366,50 @@ public class WorksheetRowGeneratorTests
                 }
             }
             """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
+    
+    [Fact]
+    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritanceAndWithStartFromInheritedProperties()
+    {
+        // Arrange
+        const string source = """
+                              using SpreadCheetah.SourceGeneration;
+                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+                              using System;
+
+                              namespace MyNamespace
+                              {
+                                  [WorksheetRow(typeof(RecordClassWithInheritanceAndStartFromInheritedProperties))]
+                                  public partial class MyGenRowContext : WorksheetRowContext
+                                  {
+                                  }
+                              }
+                              """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
+    
+    [Fact]
+    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritanceAndWithStartFromClassProperties()
+    {
+        // Arrange
+        const string source = """
+                              using SpreadCheetah.SourceGeneration;
+                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+                              using System;
+
+                              namespace MyNamespace
+                              {
+                                  [WorksheetRow(typeof(RecordClassWithInheritanceAndStartFromClassProperties))]
+                                  public partial class MyGenRowContext : WorksheetRowContext
+                                  {
+                                  }
+                              }
+                              """;
 
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);

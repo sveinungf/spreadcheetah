@@ -86,28 +86,28 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
         var unsupportedPropertyTypeNames = new HashSet<string>(StringComparer.Ordinal);
         var diagnosticInfos = new List<DiagnosticInfo>();
-
-        foreach (var member in classType.GetMembers())
+        
+        foreach (var property in GetClassProperties(classType))
         {
-            if (!member.IsPropertyWithPublicGetter(out var p))
+            if (property.IsWriteOnly || property.IsStatic || property.DeclaredAccessibility != Accessibility.Public )
                 continue;
 
-            if (!p.Type.IsSupportedType())
+            if (!property.Type.IsSupportedType())
             {
-                unsupportedPropertyTypeNames.Add(p.Type.Name);
+                unsupportedPropertyTypeNames.Add(property.Type.Name);
                 continue;
             }
 
             ColumnHeader? columnHeader = null;
             ColumnOrder? columnOrder = null;
 
-            foreach (var attribute in p.GetAttributes())
+            foreach (var attribute in property.GetAttributes())
             {
                 columnHeader ??= attribute.TryGetColumnHeaderAttribute(diagnosticInfos, token);
                 columnOrder ??= attribute.TryGetColumnOrderAttribute(token);
             }
 
-            var rowTypeProperty = new RowTypeProperty(p.Name, columnHeader?.ToColumnHeaderInfo());
+            var rowTypeProperty = new RowTypeProperty(property.Name, columnHeader?.ToColumnHeaderInfo());
 
             if (columnOrder is not { } order)
                 implicitOrderProperties.Add(rowTypeProperty);
@@ -127,6 +127,30 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             Properties: explicitOrderProperties.Values.ToEquatableArray(),
             UnsupportedPropertyTypeNames: unsupportedPropertyTypeNames.ToEquatableArray(),
             WorksheetRowAttributeLocation: worksheetRowAttributeLocation);
+    }
+
+    private static IEnumerable<IPropertySymbol> GetClassProperties(ITypeSymbol classType)
+    {
+        var inheritedColumnOrderStrategy = classType.GetAttributes()
+            .Where(data => data.TryGetInheritedColumnOrderingAttribute().HasValue)
+            .Select(data => data.TryGetInheritedColumnOrderingAttribute().GetValueOrDefault())
+            .FirstOrDefault();
+
+        var classProperties = classType.GetMembers().OfType<IPropertySymbol>();
+
+        if (inheritedColumnOrderStrategy == InheritedColumnsOrderingStrategy.IgnoreInheritedProperties)
+        {
+            return classProperties;
+        }
+
+        var inheritedProperties = classType.BaseType?.GetMembers().OfType<IPropertySymbol>() ?? [];
+
+        return inheritedColumnOrderStrategy switch
+        {
+            InheritedColumnsOrderingStrategy.StartFromInheritedProperties => inheritedProperties.Concat(classProperties),
+            InheritedColumnsOrderingStrategy.StartFromClassProperties => classProperties.Concat(inheritedProperties),
+            _ => throw new ArgumentOutOfRangeException(nameof(classType), "Unsupported inheritance strategy type")
+        };
     }
 
     private static void Execute(ContextClass? contextClass, SourceProductionContext context)

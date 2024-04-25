@@ -59,6 +59,14 @@ internal static class AttributeDataExtensions
 
         return false;
     }
+    
+    public static InheritedColumnsOrderingStrategy? TryGetInheritedColumnOrderingAttribute(this AttributeData attribute)
+    {
+        if (!string.Equals(Attributes.InheritedColumnOrderStrategy, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
+            return null;
+
+        return (InheritedColumnsOrderingStrategy)attribute.ConstructorArguments[0].Value!;
+    }
 
     public static ColumnHeader? TryGetColumnHeaderAttribute(this AttributeData attribute, ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
     {
