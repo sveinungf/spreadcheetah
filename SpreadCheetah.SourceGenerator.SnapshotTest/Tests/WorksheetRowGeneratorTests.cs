@@ -372,7 +372,7 @@ public class WorksheetRowGeneratorTests
     }
     
     [Fact]
-    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritanceAndWithStartFromInheritedProperties()
+    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritanceAndInheritedColumnsFirst()
     {
         // Arrange
         const string source = """
@@ -394,7 +394,7 @@ public class WorksheetRowGeneratorTests
     }
     
     [Fact]
-    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritanceAndWithStartFromClassProperties()
+    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritanceAndInheritedColumnsLast()
     {
         // Arrange
         const string source = """

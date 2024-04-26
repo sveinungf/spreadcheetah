@@ -87,7 +87,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var unsupportedPropertyTypeNames = new HashSet<string>(StringComparer.Ordinal);
         var diagnosticInfos = new List<DiagnosticInfo>();
         
-        foreach (var property in GetClassProperties(classType))
+        foreach (var property in GetClassAndParentClassesProperties(classType))
         {
             if (property.IsWriteOnly || property.IsStatic || property.DeclaredAccessibility != Accessibility.Public)
                 continue;
@@ -129,8 +129,13 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             WorksheetRowAttributeLocation: worksheetRowAttributeLocation);
     }
 
-    private static IEnumerable<IPropertySymbol> GetClassProperties(ITypeSymbol classType)
+    private static IEnumerable<IPropertySymbol> GetClassAndParentClassesProperties(ITypeSymbol? classType)
     {
+        if (classType is null || string.Equals(classType.Name, "Object", StringComparison.Ordinal))
+        {
+            return [];
+        }
+        
         var inheritedColumnOrderStrategy = classType.GetAttributes()
             .Where(data => data.TryGetInheritedColumnOrderingAttribute().HasValue)
             .Select(data => data.TryGetInheritedColumnOrderingAttribute())
@@ -142,7 +147,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         {
             return classProperties;
         }
-
+        
         var inheritedProperties = classType.BaseType?.GetMembers().OfType<IPropertySymbol>() ?? [];
 
         return inheritedColumnOrderStrategy switch
