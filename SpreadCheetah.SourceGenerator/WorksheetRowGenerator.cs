@@ -148,7 +148,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             return classProperties;
         }
         
-        var inheritedProperties = classType.BaseType?.GetMembers().OfType<IPropertySymbol>() ?? [];
+        var inheritedProperties = GetClassAndParentClassesProperties(classType.BaseType);
 
         return inheritedColumnOrderStrategy switch
         {

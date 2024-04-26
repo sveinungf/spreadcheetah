@@ -350,7 +350,7 @@ public class WorksheetRowGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritanceAndWithoutInheritanceAttribute()
+    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritance_WithoutInheritanceAttribute()
     {
         // Arrange
         const string source = """
@@ -360,7 +360,7 @@ public class WorksheetRowGeneratorTests
 
             namespace MyNamespace
             {
-                [WorksheetRow(typeof(RecordClassWithInheritance))]
+                [WorksheetRow(typeof(RecordClassWithIgnoreInheritance))]
                 public partial class MyGenRowContext : WorksheetRowContext
                 {
                 }
@@ -371,8 +371,9 @@ public class WorksheetRowGeneratorTests
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
     
+    
     [Fact]
-    public Task WorksheetRowGenerator_Generate_RecordClassWith2LevelOfInheritanceAndWithoutInheritanceAttribute()
+    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritance_InheritedColumnsFirst()
     {
         // Arrange
         const string source = """
@@ -382,7 +383,7 @@ public class WorksheetRowGeneratorTests
 
                               namespace MyNamespace
                               {
-                                  [WorksheetRow(typeof(RecordClassWith2LevelOfInheritanceAndWithoutAttribute))]
+                                  [WorksheetRow(typeof(RecordClassWithInheritedColumnsFirst))]
                                   public partial class MyGenRowContext : WorksheetRowContext
                                   {
                                   }
@@ -394,7 +395,7 @@ public class WorksheetRowGeneratorTests
     }
     
     [Fact]
-    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritanceAndInheritedColumnsFirst()
+    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritance_InheritedColumnsLast()
     {
         // Arrange
         const string source = """
@@ -404,29 +405,7 @@ public class WorksheetRowGeneratorTests
 
                               namespace MyNamespace
                               {
-                                  [WorksheetRow(typeof(RecordClassWithInheritanceAndStartFromInheritedProperties))]
-                                  public partial class MyGenRowContext : WorksheetRowContext
-                                  {
-                                  }
-                              }
-                              """;
-
-        // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
-    }
-    
-    [Fact]
-    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritanceAndInheritedColumnsLast()
-    {
-        // Arrange
-        const string source = """
-                              using SpreadCheetah.SourceGeneration;
-                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-                              using System;
-
-                              namespace MyNamespace
-                              {
-                                  [WorksheetRow(typeof(RecordClassWithInheritanceAndStartFromClassProperties))]
+                                  [WorksheetRow(typeof(RecordClassWithInheritedColumnsLast))]
                                   public partial class MyGenRowContext : WorksheetRowContext
                                   {
                                   }

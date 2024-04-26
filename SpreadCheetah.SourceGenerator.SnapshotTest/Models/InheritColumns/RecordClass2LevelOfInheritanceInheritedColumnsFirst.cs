@@ -1,0 +1,3 @@
+namespace SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns;
+
+public record RecordClass2LevelOfInheritanceInheritedColumnsFirst;
