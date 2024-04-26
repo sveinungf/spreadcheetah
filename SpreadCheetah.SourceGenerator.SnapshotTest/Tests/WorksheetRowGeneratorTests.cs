@@ -372,6 +372,28 @@ public class WorksheetRowGeneratorTests
     }
     
     [Fact]
+    public Task WorksheetRowGenerator_Generate_RecordClassWith2LevelOfInheritanceAndWithoutInheritanceAttribute()
+    {
+        // Arrange
+        const string source = """
+                              using SpreadCheetah.SourceGeneration;
+                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+                              using System;
+
+                              namespace MyNamespace
+                              {
+                                  [WorksheetRow(typeof(RecordClassWith2LevelOfInheritanceAndWithoutAttribute))]
+                                  public partial class MyGenRowContext : WorksheetRowContext
+                                  {
+                                  }
+                              }
+                              """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
+    
+    [Fact]
     public Task WorksheetRowGenerator_Generate_RecordClassWithInheritanceAndInheritedColumnsFirst()
     {
         // Arrange
