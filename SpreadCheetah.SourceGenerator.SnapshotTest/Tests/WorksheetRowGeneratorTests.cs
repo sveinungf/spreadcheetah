@@ -355,7 +355,7 @@ public class WorksheetRowGeneratorTests
         // Arrange
         const string source = """
             using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+            using SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns;
             using System;
 
             namespace MyNamespace
@@ -371,6 +371,28 @@ public class WorksheetRowGeneratorTests
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
     
+    [Fact]
+    public Task WorksheetRowGenerator_Generate_RecordClassWith_2LevelOfInheritance_InheritedColumnsFirst_ParentIgnore_Inheritance()
+    {
+        // Arrange
+        const string source = """
+                              using SpreadCheetah.SourceGeneration;
+                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns;
+                              using System;
+
+                              namespace MyNamespace
+                              {
+                                  [WorksheetRow(typeof(RecordClass2LevelOfInheritanceInheritedColumnsFirst))]
+                                  public partial class MyGenRowContext : WorksheetRowContext
+                                  {
+                                  }
+                              }
+                              """;
+
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
     
     [Fact]
     public Task WorksheetRowGenerator_Generate_RecordClassWithInheritance_InheritedColumnsFirst()
@@ -378,7 +400,7 @@ public class WorksheetRowGeneratorTests
         // Arrange
         const string source = """
                               using SpreadCheetah.SourceGeneration;
-                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns;
                               using System;
 
                               namespace MyNamespace
@@ -400,7 +422,7 @@ public class WorksheetRowGeneratorTests
         // Arrange
         const string source = """
                               using SpreadCheetah.SourceGeneration;
-                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
+                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns;
                               using System;
 
                               namespace MyNamespace
