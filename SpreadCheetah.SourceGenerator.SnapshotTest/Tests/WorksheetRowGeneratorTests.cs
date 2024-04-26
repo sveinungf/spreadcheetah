@@ -506,6 +506,28 @@ public class WorksheetRowGeneratorTests
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
+    
+    [Fact]
+    public Task WorksheetRowGenerator_Generate_RecordClassWith_2LevelOfInheritance_InheritedColumnsLast_ParentInheritColumnsLast()
+    {
+        // Arrange
+        const string source = """
+                              using SpreadCheetah.SourceGeneration;
+                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns;
+                              using System;
+
+                              namespace MyNamespace
+                              {
+                                  [WorksheetRow(typeof(RecordClass2LevelOfInheritanceInheritedColumnsFirstParentInheritColumnsLast))]
+                                  public partial class MyGenRowContext : WorksheetRowContext
+                                  {
+                                  }
+                              }
+                              """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
 
     [Fact]
     public Task WorksheetRowGenerator_Generate_ContextWithTwoWorksheetRowAttributes()
