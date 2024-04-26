@@ -89,7 +89,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         
         foreach (var property in GetClassProperties(classType))
         {
-            if (property.IsWriteOnly || property.IsStatic || property.DeclaredAccessibility != Accessibility.Public )
+            if (property.IsWriteOnly || property.IsStatic || property.DeclaredAccessibility != Accessibility.Public)
                 continue;
 
             if (!property.Type.IsSupportedType())
@@ -133,12 +133,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     {
         var inheritedColumnOrderStrategy = classType.GetAttributes()
             .Where(data => data.TryGetInheritedColumnOrderingAttribute().HasValue)
-            .Select(data => data.TryGetInheritedColumnOrderingAttribute().GetValueOrDefault())
+            .Select(data => data.TryGetInheritedColumnOrderingAttribute())
             .FirstOrDefault();
 
         var classProperties = classType.GetMembers().OfType<IPropertySymbol>();
 
-        if (inheritedColumnOrderStrategy == InheritedColumnsOrderingStrategy.IgnoreInheritedProperties)
+        if (inheritedColumnOrderStrategy is null)
         {
             return classProperties;
         }
@@ -147,8 +147,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         return inheritedColumnOrderStrategy switch
         {
-            InheritedColumnsOrderingStrategy.StartFromInheritedProperties => inheritedProperties.Concat(classProperties),
-            InheritedColumnsOrderingStrategy.StartFromClassProperties => classProperties.Concat(inheritedProperties),
+            InheritedColumnOrder.InheritedColumnsFirst => inheritedProperties.Concat(classProperties),
+            InheritedColumnOrder.InheritedColumnsLast => classProperties.Concat(inheritedProperties),
             _ => throw new ArgumentOutOfRangeException(nameof(classType), "Unsupported inheritance strategy type")
         };
     }
