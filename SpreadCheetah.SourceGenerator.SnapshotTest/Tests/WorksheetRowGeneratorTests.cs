@@ -382,7 +382,7 @@ public class WorksheetRowGeneratorTests
 
                               namespace MyNamespace
                               {
-                                  [WorksheetRow(typeof(RecordClass2LevelOfInheritanceInheritedColumnsFirst))]
+                                  [WorksheetRow(typeof(RecordClass2LevelOfInheritanceInheritedColumnsFirstParentIgnoreInheritance))]
                                   public partial class MyGenRowContext : WorksheetRowContext
                                   {
                                   }

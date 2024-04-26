@@ -20,9 +20,9 @@ namespace MyNamespace
         {
         }
 
-        private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirst>? _RecordClass2LevelOfInheritanceInheritedColumnsFirst;
-        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirst> RecordClass2LevelOfInheritanceInheritedColumnsFirst => _RecordClass2LevelOfInheritanceInheritedColumnsFirst
-            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirst>(AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync);
+        private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirstParentIgnoreInheritance>? _RecordClass2LevelOfInheritanceInheritedColumnsFirstParentIgnoreInheritance;
+        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirstParentIgnoreInheritance> RecordClass2LevelOfInheritanceInheritedColumnsFirstParentIgnoreInheritance => _RecordClass2LevelOfInheritanceInheritedColumnsFirstParentIgnoreInheritance
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirstParentIgnoreInheritance>(AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync);
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
@@ -40,7 +40,7 @@ namespace MyNamespace
             }
         }
 
-        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirst? obj, CancellationToken token)
+        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirstParentIgnoreInheritance? obj, CancellationToken token)
         {
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
@@ -49,7 +49,7 @@ namespace MyNamespace
             return AddAsRowInternalAsync(spreadsheet, obj, token);
         }
 
-        private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirst?> objs, CancellationToken token)
+        private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirstParentIgnoreInheritance?> objs, CancellationToken token)
         {
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
@@ -58,7 +58,7 @@ namespace MyNamespace
             return AddRangeAsRowsInternalAsync(spreadsheet, objs, token);
         }
 
-        private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirst obj, CancellationToken token)
+        private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirstParentIgnoreInheritance obj, CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(3);
             try
@@ -71,7 +71,7 @@ namespace MyNamespace
             }
         }
 
-        private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirst?> objs, CancellationToken token)
+        private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirstParentIgnoreInheritance?> objs, CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(3);
             try
@@ -84,7 +84,7 @@ namespace MyNamespace
             }
         }
 
-        private static async ValueTask AddEnumerableAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirst?> objs, DataCell[] cells, CancellationToken token)
+        private static async ValueTask AddEnumerableAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirstParentIgnoreInheritance?> objs, DataCell[] cells, CancellationToken token)
         {
             foreach (var obj in objs)
             {
@@ -92,7 +92,7 @@ namespace MyNamespace
             }
         }
 
-        private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirst? obj, DataCell[] cells, CancellationToken token)
+        private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns.RecordClass2LevelOfInheritanceInheritedColumnsFirstParentIgnoreInheritance? obj, DataCell[] cells, CancellationToken token)
         {
             if (obj is null)
                 return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
