@@ -48,6 +48,7 @@ namespace SpreadCheetah
         public DataCell(double value) { }
         public DataCell(int value) { }
         public DataCell(long value) { }
+        public DataCell(System.ReadOnlyMemory<char> value) { }
         public DataCell(float value) { }
         public DataCell(bool? value) { }
         public DataCell(decimal? value) { }

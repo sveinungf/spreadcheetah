@@ -24,6 +24,15 @@ public readonly record struct DataCell
     }
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="DataCell"/> struct with a text value.
+    /// </summary>
+    public DataCell(ReadOnlyMemory<char> value)
+    {
+        Type = CellWriterType.ReadOnlyMemoryOfChar;
+        Value = new CellValue(value);
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="DataCell"/> struct with an integer value.
     /// </summary>
     public DataCell(int value)

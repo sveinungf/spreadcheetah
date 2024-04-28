@@ -1,4 +1,5 @@
 using SpreadCheetah.CellValueWriters.Boolean;
+using SpreadCheetah.CellValueWriters.Characters;
 using SpreadCheetah.CellValueWriters.Number;
 using SpreadCheetah.CellValueWriters.Time;
 using SpreadCheetah.CellWriters;
@@ -20,7 +21,8 @@ internal abstract class CellValueWriter
         new NullDateTimeCellValueWriter(),
         new DateTimeCellValueWriter(),
         new FalseBooleanCellValueWriter(),
-        new TrueBooleanCellValueWriter()
+        new TrueBooleanCellValueWriter(),
+        new ReadOnlyMemoryOfCharCellValueWriter()
     ];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
