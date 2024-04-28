@@ -9,6 +9,7 @@ using System.Globalization;
 using CellType = SpreadCheetah.Test.Helpers.CellType;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 using OpenXmlCellValue = DocumentFormat.OpenXml.Spreadsheet.CellValues;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -117,7 +118,7 @@ public class SpreadsheetRowTests
         "WithNorwegianCharactersÆØÅ",
         "With\ud83d\udc4dEmoji",
         "With🌉Emoji",
-        "With\tValid\nControlCharacters",
+        "With\tValid\r\nControlCharacters",
         "WithCharacters\u00a0\u00c9\u00ffBetween160And255",
         "",
         null);
@@ -128,24 +129,17 @@ public class SpreadsheetRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet");
-            var cell = CellFactory.Create(type, value);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var cell = CellFactory.Create(type, value);
 
-            // Act
-            await spreadsheet.AddRowAsync(cell, rowType);
-            await spreadsheet.FinishAsync();
-        }
+        // Act
+        await spreadsheet.AddRowAsync(cell, rowType);
+        await spreadsheet.FinishAsync();
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var actual = SpreadsheetDocument.Open(stream, true);
-        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
-        var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
-        OpenXmlCellValue? expectedDataType = value is null ? null : OpenXmlCellValue.InlineString;
-        Assert.Equal(expectedDataType, actualCell.DataType?.Value);
-        Assert.Equal(value ?? string.Empty, actualCell.InnerText);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(value, sheet["A1"].StringValue);
     }
 
     [Theory]
