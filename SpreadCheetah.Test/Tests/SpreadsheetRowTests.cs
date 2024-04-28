@@ -143,6 +143,25 @@ public class SpreadsheetRowTests
     }
 
     [Theory]
+    [MemberData(nameof(Strings))]
+    public async Task Spreadsheet_AddRow_CellWithReadOnlyMemoryOfCharValue(string? value, CellType type, RowCollectionType rowType)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var cell = CellFactory.Create(type, value.AsMemory());
+
+        // Act
+        await spreadsheet.AddRowAsync(cell, rowType);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(value ?? "", sheet["A1"].StringValue);
+    }
+
+    [Theory]
     [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddRow_CellWithInvalidControlCharacterStringValue(CellType type, RowCollectionType rowType)
     {

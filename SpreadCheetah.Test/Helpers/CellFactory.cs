@@ -83,6 +83,14 @@ internal static class CellFactory
         _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
     };
 
+    public static object Create(CellType type, ReadOnlyMemory<char> value) => type switch
+    {
+        CellType.Cell => new Cell(value),
+        CellType.DataCell => new DataCell(value),
+        CellType.StyledCell => new StyledCell(value, null),
+        _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+    };
+
     public static object Create(CellType type, string? value, StyleId? styleId) => type switch
     {
         CellType.Cell => new Cell(value, styleId),
