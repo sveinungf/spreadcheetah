@@ -3,15 +3,19 @@ namespace SpreadCheetah.SourceGeneration;
 /// <summary>
 /// Instructs the SpreadCheetah source generator how to handle inherited properties.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 public sealed class InheritColumnsAttribute : Attribute
 {
     /// <summary>
     /// Set default order for inherited properties.
     /// </summary>
-    /// <param name="defaultOrder"></param>
-    public InheritColumnsAttribute(InheritedColumnOrder defaultOrder = InheritedColumnOrder.InheritedColumnsFirst)
+    public InheritColumnsAttribute()
     {
-
+        InheritedColumnOrder = InheritedColumnOrder.InheritedColumnsFirst;
     }
+
+    /// <summary>
+    /// Specify the order of inherited properties.
+    /// </summary>
+    public InheritedColumnOrder InheritedColumnOrder { get; set; }
 }
