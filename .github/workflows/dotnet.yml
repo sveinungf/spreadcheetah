@@ -15,6 +15,8 @@ jobs:
     runs-on: windows-latest
 
     steps:
+    - name: Configure Git to allow long paths
+      run: git config --system core.longpaths true
     - uses: actions/checkout@v3
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
