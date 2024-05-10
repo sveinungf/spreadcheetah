@@ -14,6 +14,7 @@ namespace SpreadCheetah
         public Cell(double value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(int value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(long value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(System.ReadOnlyMemory<char> value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(float value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(bool? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(decimal? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
@@ -29,6 +30,7 @@ namespace SpreadCheetah
         public Cell(SpreadCheetah.Formula formula, double cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, int cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, long cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, System.ReadOnlyMemory<char> cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, float cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, bool? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, decimal? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
@@ -47,6 +49,7 @@ namespace SpreadCheetah
         public DataCell(double value) { }
         public DataCell(int value) { }
         public DataCell(long value) { }
+        public DataCell(System.ReadOnlyMemory<char> value) { }
         public DataCell(float value) { }
         public DataCell(bool? value) { }
         public DataCell(decimal? value) { }
@@ -136,6 +139,7 @@ namespace SpreadCheetah
         public StyledCell(double value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(int value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(long value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(System.ReadOnlyMemory<char> value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(float value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(bool? value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(decimal? value, SpreadCheetah.Styling.StyleId? styleId) { }

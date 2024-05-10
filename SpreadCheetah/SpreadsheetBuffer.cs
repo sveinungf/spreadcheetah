@@ -137,12 +137,14 @@ internal sealed class SpreadsheetBuffer(byte[] buffer)
             return AppendFormatted(s);
         }
 
-        public bool AppendFormatted(string? value)
+        public bool AppendFormatted(string? value) => AppendFormatted(value.AsSpan());
+
+        public bool AppendFormatted(scoped ReadOnlySpan<char> value)
         {
-            if (value is null)
+            if (value.IsEmpty)
                 return true;
 
-            if (XmlUtility.TryXmlEncodeToUtf8(value.AsSpan(), GetSpan(), out var bytesWritten))
+            if (XmlUtility.TryXmlEncodeToUtf8(value, GetSpan(), out var bytesWritten))
             {
                 _pos += bytesWritten;
                 return true;

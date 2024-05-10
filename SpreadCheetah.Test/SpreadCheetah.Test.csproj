@@ -49,6 +49,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SpreadCheetah.TestHelpers\SpreadCheetah.TestHelpers.csproj" />
     <ProjectReference Include="..\SpreadCheetah\SpreadCheetah.csproj" />
   </ItemGroup>
 

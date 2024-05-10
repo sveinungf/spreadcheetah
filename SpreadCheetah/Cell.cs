@@ -26,6 +26,13 @@ public readonly record struct Cell
     }
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="Cell"/> struct with a text value and an optional style.
+    /// </summary>
+    public Cell(ReadOnlyMemory<char> value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
+    {
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Cell"/> struct with an integer value and an optional style.
     /// </summary>
     public Cell(int value, StyleId? styleId = null) : this(new DataCell(value), null, styleId)
@@ -151,6 +158,13 @@ public readonly record struct Cell
     /// Initializes a new instance of the <see cref="Cell"/> struct with a text formula, a cached value for the formula, and an optional style.
     /// </summary>
     public Cell(Formula formula, string? cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Cell"/> struct with a text formula, a cached value for the formula, and an optional style.
+    /// </summary>
+    public Cell(Formula formula, ReadOnlyMemory<char> cachedValue, StyleId? styleId = null) : this(new DataCell(cachedValue), formula, styleId)
     {
     }
 

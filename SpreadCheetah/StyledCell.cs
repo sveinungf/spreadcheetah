@@ -23,6 +23,15 @@ public readonly record struct StyledCell
     }
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="StyledCell"/> struct with a text value and an optional style.
+    /// </summary>
+    public StyledCell(ReadOnlyMemory<char> value, StyleId? styleId)
+    {
+        DataCell = new DataCell(value);
+        StyleId = styleId;
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="StyledCell"/> struct with an integer value and an optional style.
     /// </summary>
     public StyledCell(int value, StyleId? styleId)
