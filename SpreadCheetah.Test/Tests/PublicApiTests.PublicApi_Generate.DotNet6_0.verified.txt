@@ -193,6 +193,17 @@ namespace SpreadCheetah.SourceGeneration
     {
         public static SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> CreateTypeInfo<T>() { }
     }
+    [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple=false, Inherited=false)]
+    public sealed class InheritColumnsAttribute : System.Attribute
+    {
+        public InheritColumnsAttribute() { }
+        public SpreadCheetah.SourceGeneration.InheritedColumnOrder InheritedColumnOrder { get; set; }
+    }
+    public enum InheritedColumnOrder
+    {
+        InheritedColumnsFirst = 0,
+        InheritedColumnsLast = 1,
+    }
     [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple=true)]
     public sealed class WorksheetRowAttribute : System.Attribute
     {
