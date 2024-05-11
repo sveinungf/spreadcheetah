@@ -1,17 +1,17 @@
 namespace SpreadCheetah.SourceGeneration;
 
 /// <summary>
-/// Specifies the strategy in which the columns will be generated.
+/// Specifies the order for <see cref="InheritColumnsAttribute"/>.
 /// </summary>
 public enum InheritedColumnOrder
 {
     /// <summary>
-    /// Column generation will start with the properties of the parent class.
+    /// Columns from the base class will be ordered before columns from the derived class.
     /// </summary>
     InheritedColumnsFirst,
 
     /// <summary>
-    /// Column generation will start with the properties of the child class.
+    /// Columns from the derived class will be ordered before columns from the base class.
     /// </summary>
     InheritedColumnsLast
 }
