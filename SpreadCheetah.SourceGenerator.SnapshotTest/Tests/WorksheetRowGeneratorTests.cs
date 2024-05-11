@@ -32,6 +32,7 @@ public class WorksheetRowGeneratorTests
 
         var settings = new VerifySettings();
         settings.UseDirectory("../Snapshots");
+        settings.UseTypeName("G");
         return Verify(outputSource, settings);
     }
 

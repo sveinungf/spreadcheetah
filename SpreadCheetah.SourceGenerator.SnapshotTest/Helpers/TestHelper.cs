@@ -40,6 +40,7 @@ internal static class TestHelper
 
         var settings = new VerifySettings();
         settings.UseDirectory("../Snapshots");
+        settings.UseTypeName("G");
 
         if (replaceEscapedLineEndings)
             settings.ScrubLinesWithReplace(x => x.Replace("\\r\\n", "\\n", StringComparison.Ordinal));
