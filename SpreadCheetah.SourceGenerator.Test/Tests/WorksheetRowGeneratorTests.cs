@@ -534,11 +534,42 @@ public class WorksheetRowGeneratorTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal("LastName", sheet["A", 1].StringValue);
-        Assert.Equal("FirstName", sheet["B", 1].StringValue);
-        Assert.Equal("Age", sheet["C", 1].StringValue);
-        Assert.Equal("Gpa", sheet["D", 1].StringValue);
+        Assert.Equal("LastName", sheet["A1"].StringValue);
+        Assert.Equal("FirstName", sheet["B1"].StringValue);
+        Assert.Equal("Age", sheet["C1"].StringValue);
+        Assert.Equal("Gpa", sheet["D1"].StringValue);
         Assert.Equal(4, sheet.CellCount);
+    }
+
+    [Theory]
+    [InlineData(ObjectType.Class)]
+    [InlineData(ObjectType.RecordClass)]
+    public async Task Spreadsheet_AddHeaderRow_ObjectWithInheritance(ObjectType type)
+    {
+        // Arrange
+        var ctx = InheritanceContext.Default;
+
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream);
+        await s.StartWorksheetAsync("Sheet");
+
+        // Act
+        var task = type switch
+        {
+            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassDog),
+            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassDog),
+            _ => throw new NotImplementedException()
+        };
+
+        await task;
+        await s.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal("CanWalk", sheet["A1"].StringValue);
+        Assert.Equal("DateOfBirth", sheet["B1"].StringValue);
+        Assert.Equal("Breed", sheet["C1"].StringValue);
+        Assert.Equal(3, sheet.CellCount);
     }
 
     [Fact]
