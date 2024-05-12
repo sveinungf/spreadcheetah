@@ -3,6 +3,12 @@
 <Suppressions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:SpreadCheetah.SourceGeneration.InheritedColumnsOrder</Target>
+    <Left>lib/net7.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:SpreadCheetah.SpreadCheetahCompressionLevel</Target>
     <Left>lib/net7.0/SpreadCheetah.dll</Left>
     <Right>lib/net8.0/SpreadCheetah.dll</Right>
