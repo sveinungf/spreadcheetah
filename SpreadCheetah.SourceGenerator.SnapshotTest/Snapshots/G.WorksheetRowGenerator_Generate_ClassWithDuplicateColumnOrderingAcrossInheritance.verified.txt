@@ -1,0 +1,14 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: SPCH1003,
+      Title: Duplicate column ordering,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (7,5)-(7,19),
+      MessageFormat: The type '{0}' has two or more properties with the same column order,
+      Message: The type 'ClassWithDuplicateColumnOrdering' has two or more properties with the same column order,
+      Category: SpreadCheetah.SourceGenerator
+    }
+  ]
+}

@@ -65,4 +65,34 @@ public class WorksheetRowGeneratorColumnOrderTests
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
+
+    [Fact]
+    public Task WorksheetRowGenerator_Generate_ClassWithDuplicateColumnOrderingAcrossInheritance()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            [InheritColumns]
+            public class ClassWithDuplicateColumnOrdering : ClassWithDuplicateColumnOrderingBase
+            {
+                [ColumnOrder(1)]
+                public string PropertyA { get; set; }
+            }
+
+            public class ClassWithDuplicateColumnOrderingBase
+            {
+                [ColumnOrder(1)]
+                public string PropertyB { get; set; }
+            }
+            
+            [WorksheetRow(typeof(ClassWithDuplicateColumnOrdering))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
 }
