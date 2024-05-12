@@ -197,9 +197,9 @@ namespace SpreadCheetah.SourceGeneration
     public sealed class InheritColumnsAttribute : System.Attribute
     {
         public InheritColumnsAttribute() { }
-        public SpreadCheetah.SourceGeneration.InheritedColumnOrder InheritedColumnOrder { get; set; }
+        public SpreadCheetah.SourceGeneration.InheritedColumnsOrder DefaultColumnOrder { get; set; }
     }
-    public enum InheritedColumnOrder
+    public enum InheritedColumnsOrder
     {
         InheritedColumnsFirst = 0,
         InheritedColumnsLast = 1,
