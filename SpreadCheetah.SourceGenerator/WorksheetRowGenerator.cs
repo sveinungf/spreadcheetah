@@ -86,7 +86,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
         var unsupportedPropertyTypeNames = new HashSet<string>(StringComparer.Ordinal);
         var diagnosticInfos = new List<DiagnosticInfo>();
-        
+
         foreach (var property in GetClassAndBaseClassProperties(classType))
         {
             if (property.IsWriteOnly || property.IsStatic || property.DeclaredAccessibility != Accessibility.Public)
@@ -135,7 +135,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         {
             return [];
         }
-        
+
         var inheritedColumnOrderStrategy = classType.GetAttributes()
             .Where(data => data.TryGetInheritedColumnOrderingAttribute().HasValue)
             .Select(data => data.TryGetInheritedColumnOrderingAttribute())
@@ -147,7 +147,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         {
             return classProperties;
         }
-        
+
         var inheritedProperties = GetClassAndBaseClassProperties(classType.BaseType);
 
         return inheritedColumnOrderStrategy switch
@@ -285,7 +285,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location, rowType.Name, unsupportedPropertyTypeName));
     }
 
-    private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, IReadOnlyCollection<RowTypeProperty> properties)
+    private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)
     {
         Debug.Assert(properties.Count > 0);
 
