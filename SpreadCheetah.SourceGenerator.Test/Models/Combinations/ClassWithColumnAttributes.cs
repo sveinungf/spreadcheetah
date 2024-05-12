@@ -3,7 +3,9 @@ using SpreadCheetah.SourceGenerator.Test.Models.ColumnHeader;
 
 namespace SpreadCheetah.SourceGenerator.Test.Models.Combinations;
 
-public class ClassWithColumnAttributes(string model, string make, int year, decimal kW, decimal length)
+[InheritColumns]
+public class ClassWithColumnAttributes(string id, string countryOfOrigin, string model, string make, int year, decimal kW, decimal length)
+    : ClassWithColumnAttributesBase(id, countryOfOrigin)
 {
     public string Model { get; } = model;
 
@@ -20,4 +22,13 @@ public class ClassWithColumnAttributes(string model, string make, int year, deci
 
     [ColumnHeader(typeof(ColumnHeaderResources), nameof(ColumnHeaderResources.Header_Length))]
     public decimal Length { get; } = length;
+}
+
+public abstract class ClassWithColumnAttributesBase(string id, string countryOfOrigin)
+{
+    [ColumnOrder(1000)]
+    public string Id { get; } = id;
+
+    [ColumnHeader("Country of origin")]
+    public string CountryOfOrigin { get; } = countryOfOrigin;
 }

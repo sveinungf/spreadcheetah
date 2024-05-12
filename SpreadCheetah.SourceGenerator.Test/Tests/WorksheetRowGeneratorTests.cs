@@ -683,9 +683,11 @@ string: "", \)",
         [
             "Year",
             "The make",
+            "Country of origin",
             "Model",
             "kW",
-            "Length (in cm)"
+            "Length (in cm)",
+            "Id"
         ];
 
         // Act
