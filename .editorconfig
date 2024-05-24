@@ -156,7 +156,7 @@ dotnet_diagnostic.IDE0301.severity = warning
 # IDE0305: Use collection expression for fluent
 dotnet_diagnostic.IDE0305.severity = warning
 
-[{ColumnHeaderAttribute.cs,ColumnOrderAttribute.cs,WorksheetRowAttribute.cs}]
+[{CellValueLengthLimitAttribute.cs,ColumnHeaderAttribute.cs,ColumnOrderAttribute.cs,WorksheetRowAttribute.cs}]
 # CA1019: Define accessors for attribute arguments
 dotnet_diagnostic.CA1019.severity = none
 # CS9113: Parameter is unread
