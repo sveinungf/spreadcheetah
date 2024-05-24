@@ -100,14 +100,16 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
             ColumnHeader? columnHeader = null;
             ColumnOrder? columnOrder = null;
+            CellValueLengthLimit? cellValueLengthLimit = null;
 
             foreach (var attribute in property.GetAttributes())
             {
                 columnHeader ??= attribute.TryGetColumnHeaderAttribute(diagnosticInfos, token);
                 columnOrder ??= attribute.TryGetColumnOrderAttribute(token);
+                cellValueLengthLimit ??= attribute.TryGetCellValueLengthLimitAttribute(property.Type, diagnosticInfos, token);
             }
 
-            var rowTypeProperty = new RowTypeProperty(property.Name, columnHeader?.ToColumnHeaderInfo());
+            var rowTypeProperty = new RowTypeProperty(property.Name, columnHeader?.ToColumnHeaderInfo(), cellValueLengthLimit);
 
             if (columnOrder is not { } order)
                 implicitOrderProperties.Add(rowTypeProperty);

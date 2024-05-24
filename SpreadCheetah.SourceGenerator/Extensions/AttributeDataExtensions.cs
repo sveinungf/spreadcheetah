@@ -59,7 +59,7 @@ internal static class AttributeDataExtensions
 
         return false;
     }
-    
+
     public static InheritedColumnOrder? TryGetInheritedColumnOrderingAttribute(this AttributeData attribute)
     {
         if (!string.Equals(Attributes.InheritColumns, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
@@ -69,7 +69,7 @@ internal static class AttributeDataExtensions
         {
             return InheritedColumnOrder.InheritedColumnsFirst;
         }
-        
+
         return (InheritedColumnOrder)attribute.NamedArguments[0].Value.Value!;
     }
 
@@ -79,7 +79,6 @@ internal static class AttributeDataExtensions
             return null;
 
         var args = attribute.ConstructorArguments;
-
         if (args is [{ Value: string } arg])
             return new ColumnHeader(arg.ToCSharpString());
 
@@ -126,6 +125,27 @@ internal static class AttributeDataExtensions
 
         var location = attribute.GetLocation(token);
         return new ColumnOrder(attributeValue, location);
+    }
+
+    public static CellValueLengthLimit? TryGetCellValueLengthLimitAttribute(this AttributeData attribute, ITypeSymbol propertyType,
+        ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
+    {
+        if (!string.Equals(Attributes.CellValueLengthLimit, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
+            return null;
+
+        if (propertyType.SpecialType != SpecialType.System_String)
+        {
+            var location = attribute.GetLocation(token);
+            var typeFullName = propertyType.ToDisplayString();
+            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.UnsupportedTypeForCellValueLengthLimit, location, new([typeFullName])));
+            return null;
+        }
+
+        var args = attribute.ConstructorArguments;
+        if (args is not [{ Value: int attributeValue }])
+            return null;
+
+        return new CellValueLengthLimit(attributeValue);
     }
 
     private static LocationInfo? GetLocation(this AttributeData attribute, CancellationToken token)
