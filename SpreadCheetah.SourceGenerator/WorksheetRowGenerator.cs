@@ -441,9 +441,19 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var (i, property) in properties.Index())
         {
-            sb.AppendLine(FormattableString.Invariant($$"""
-                        cells[{{i}}] = new DataCell(obj.{{property.Name}});
-            """));
+            if (property.CellValueLengthLimit?.Value is { } limit)
+            {
+                sb.AppendLine(FormattableString.Invariant($$"""
+                            var p{{i}} = obj.{{property.Name}};
+                            cells[{{i}}] = p{{i}} is null || p{{i}}.Length <= {{limit}} ? new DataCell(p{{i}}) : new DataCell(p{{i}}.AsMemory(0, {{limit}}));
+                """));
+            }
+            else
+            {
+                sb.AppendLine(FormattableString.Invariant($$"""
+                            cells[{{i}}] = new DataCell(obj.{{property.Name}});
+                """));
+            }
         }
 
         sb.AppendLine($$"""
