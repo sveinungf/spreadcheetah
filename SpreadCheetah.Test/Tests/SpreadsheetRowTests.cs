@@ -253,7 +253,7 @@ public class SpreadsheetRowTests
         Assert.Equal(value?.ToString() ?? string.Empty, actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> Longs() => TestData.CombineWithCellTypes<long?, string>(
+    public static IEnumerable<object?[]> Longs() => TestData.CombineTuplesWithCellTypes<long?, string>(
         (1234L, "1234"),
         (0L, "0"),
         (-1234L, "-1234"),
@@ -292,7 +292,7 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedValue, actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> Floats() => TestData.CombineWithCellTypes<float?, string>(
+    public static IEnumerable<object?[]> Floats() => TestData.CombineTuplesWithCellTypes<float?, string>(
         (1234f, "1234"),
         (0.1f, "0.1"),
         (0.0f, "0"),
@@ -328,7 +328,7 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedValue, actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> Doubles() => TestData.CombineWithCellTypes<double?, string>(
+    public static IEnumerable<object?[]> Doubles() => TestData.CombineTuplesWithCellTypes<double?, string>(
         (1234d, "1234"),
         (0.1, "0.1"),
         (0.0, "0"),
@@ -369,7 +369,7 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedValue, actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> Decimals() => TestData.CombineWithCellTypes(
+    public static IEnumerable<object?[]> Decimals() => TestData.CombineTuplesWithCellTypes(
         ("1234", "1234"),
         ("0.1", "0.1"),
         ("0.0", "0"),
@@ -485,7 +485,7 @@ public class SpreadsheetRowTests
     }
 #pragma warning restore CS0618 // Type or member is obsolete
 
-    public static IEnumerable<object?[]> Booleans() => TestData.CombineWithCellTypes<bool?, string>(
+    public static IEnumerable<object?[]> Booleans() => TestData.CombineTuplesWithCellTypes<bool?, string>(
         (true, "1"),
         (false, "0"),
         (null, ""));

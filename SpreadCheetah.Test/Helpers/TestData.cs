@@ -45,7 +45,7 @@ internal static class TestData
         }
     }
 
-    public static IEnumerable<object?[]> CombineWithCellTypes<TFirst, TSecond>(params (TFirst?, TSecond?)[] values)
+    public static IEnumerable<object?[]> CombineTuplesWithCellTypes<TFirst, TSecond>(params (TFirst?, TSecond?)[] values)
     {
         foreach (var (firstValue, secondValue) in values)
         {
