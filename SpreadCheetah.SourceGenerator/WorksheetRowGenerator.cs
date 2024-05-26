@@ -441,11 +441,11 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var (i, property) in properties.Index())
         {
-            if (property.CellValueLengthLimit?.Value is { } limit)
+            if (property.CellValueTruncate?.Value is { } truncateLength)
             {
                 sb.AppendLine(FormattableString.Invariant($$"""
                             var p{{i}} = obj.{{property.Name}};
-                            cells[{{i}}] = p{{i}} is null || p{{i}}.Length <= {{limit}} ? new DataCell(p{{i}}) : new DataCell(p{{i}}.AsMemory(0, {{limit}}));
+                            cells[{{i}}] = p{{i}} is null || p{{i}}.Length <= {{truncateLength}} ? new DataCell(p{{i}}) : new DataCell(p{{i}}.AsMemory(0, {{truncateLength}}));
                 """));
             }
             else
