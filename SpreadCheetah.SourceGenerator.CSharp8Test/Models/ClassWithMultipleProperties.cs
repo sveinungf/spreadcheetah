@@ -2,15 +2,18 @@ using SpreadCheetah.SourceGeneration;
 
 namespace SpreadCheetah.SourceGenerator.CSharp8Test.Models
 {
-    public class ClassWithMultipleProperties
+    [InheritColumns]
+    public class ClassWithMultipleProperties : BaseClass
     {
         [ColumnHeader("Last name")]
+        [CellValueTruncate(20)]
         public string LastName { get; }
         [ColumnOrder(1)]
         public string FirstName { get; }
         public int Age { get; }
 
-        public ClassWithMultipleProperties(string firstName, string lastName, int age)
+        public ClassWithMultipleProperties(string id, string firstName, string lastName, int age)
+            : base(id)
         {
             FirstName = firstName;
             LastName = lastName;
