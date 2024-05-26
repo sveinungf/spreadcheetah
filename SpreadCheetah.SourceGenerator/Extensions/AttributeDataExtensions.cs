@@ -126,7 +126,7 @@ internal static class AttributeDataExtensions
         return new ColumnOrder(attributeValue, location);
     }
 
-    public static CellValueLengthLimit? TryGetCellValueLengthLimitAttribute(this AttributeData attribute, ITypeSymbol propertyType,
+    public static CellValueTruncate? TryGetCellValueTruncateAttribute(this AttributeData attribute, ITypeSymbol propertyType,
         ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
     {
         if (!string.Equals(Attributes.CellValueTruncate, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
@@ -152,7 +152,7 @@ internal static class AttributeDataExtensions
             return null;
         }
 
-        return new CellValueLengthLimit(attributeValue);
+        return new CellValueTruncate(attributeValue);
     }
 
     private static LocationInfo? GetLocation(this AttributeData attribute, CancellationToken token)
