@@ -1,0 +1,14 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: SPCH1005,
+      Title: Unsupported type for CellValueLengthLimit attribute,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (6,5)-(6,26),
+      MessageFormat: The CellValueLengthLimit attribute is not supported on properties of type '{0}',
+      Message: The CellValueLengthLimit attribute is not supported on properties of type 'int',
+      Category: SpreadCheetah.SourceGenerator
+    }
+  ]
+}
