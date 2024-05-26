@@ -191,6 +191,7 @@ public class WorksheetRowGeneratorTests
     [InlineData("Short value")]
     [InlineData("Exact length!!!")]
     [InlineData("Long value that will be truncated")]
+    [InlineData("A couple 👨‍👩‍👧‍👦 with kids")]
     [InlineData("")]
     [InlineData(null)]
     public async Task Spreadsheet_AddAsRow_ObjectWithCellValueTruncateAttribute(string? originalValue)
