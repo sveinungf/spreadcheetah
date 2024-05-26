@@ -217,6 +217,24 @@ public class WorksheetRowGeneratorTests
     }
 
     [Fact]
+    public async Task Spreadsheet_AddAsRow_ObjectWithCellValueTruncateAttributeForSingleAccessProperty()
+    {
+        // Arrange
+        var obj = new ClassWithSingleAccessProperty("The value");
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act
+        await spreadsheet.AddAsRowAsync(obj, TruncationContext.Default.ClassWithSingleAccessProperty);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal("T", sheet["A1"].StringValue);
+    }
+
+    [Fact]
     public async Task Spreadsheet_AddAsRow_NullObject()
     {
         // Arrange
