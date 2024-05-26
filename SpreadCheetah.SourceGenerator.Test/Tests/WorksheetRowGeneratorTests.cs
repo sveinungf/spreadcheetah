@@ -721,8 +721,6 @@ string: "", \)",
     public async Task Spreadsheet_AddHeaderRow_ObjectWithMultipleColumnAttributes()
     {
         // Arrange
-        var ctx = ColumnAttributesContext.Default;
-
         using var stream = new MemoryStream();
         await using var s = await Spreadsheet.CreateNewAsync(stream);
         await s.StartWorksheetAsync("Sheet");
@@ -739,11 +737,43 @@ string: "", \)",
         ];
 
         // Act
-        await s.AddHeaderRowAsync(ctx.ClassWithColumnAttributes);
+        await s.AddHeaderRowAsync(ColumnAttributesContext.Default.ClassWithColumnAttributes);
         await s.FinishAsync();
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.Equal(expectedValues, sheet.Row(1).Select(x => x.StringValue));
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddAsRow_ObjectWithMultipleColumnAttributes()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream);
+        await s.StartWorksheetAsync("Sheet");
+
+        var obj = new ClassWithColumnAttributes(
+            id: Guid.NewGuid().ToString(),
+            countryOfOrigin: "Germany",
+            model: "Golf",
+            make: "Volkswagen",
+            year: 1990,
+            kW: 96,
+            length: 428.4m);
+
+        // Act
+        await s.AddAsRowAsync(obj, ColumnAttributesContext.Default.ClassWithColumnAttributes);
+        await s.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(obj.Year, sheet["A1"].IntValue);
+        Assert.Equal(obj.Make[..8], sheet["B1"].StringValue);
+        Assert.Equal(obj.CountryOfOrigin, sheet["C1"].StringValue);
+        Assert.Equal(obj.Model, sheet["D1"].StringValue);
+        Assert.Equal(obj.kW, sheet["E1"].DecimalValue);
+        Assert.Equal(obj.Length, sheet["F1"].DecimalValue);
+        Assert.Equal(obj.Id, sheet["G1"].StringValue);
     }
 }
