@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using SpreadCheetah.SourceGenerator.Helpers;
 using SpreadCheetah.SourceGenerator.Models;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 
 namespace SpreadCheetah.SourceGenerator.Extensions;
 
@@ -59,18 +60,16 @@ internal static class AttributeDataExtensions
 
         return false;
     }
-    
+
     public static InheritedColumnOrder? TryGetInheritedColumnOrderingAttribute(this AttributeData attribute)
     {
         if (!string.Equals(Attributes.InheritColumns, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
             return null;
 
-        if (attribute.NamedArguments.Length == 0)
-        {
-            return InheritedColumnOrder.InheritedColumnsFirst;
-        }
-        
-        return (InheritedColumnOrder)attribute.NamedArguments[0].Value.Value!;
+        if (attribute.NamedArguments is [{ Value.Value: { } arg }] && Enum.IsDefined(typeof(InheritedColumnOrder), arg))
+            return (InheritedColumnOrder)arg;
+
+        return InheritedColumnOrder.InheritedColumnsFirst;
     }
 
     public static ColumnHeader? TryGetColumnHeaderAttribute(this AttributeData attribute, ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
@@ -79,7 +78,6 @@ internal static class AttributeDataExtensions
             return null;
 
         var args = attribute.ConstructorArguments;
-
         if (args is [{ Value: string } arg])
             return new ColumnHeader(arg.ToCSharpString());
 
@@ -126,6 +124,35 @@ internal static class AttributeDataExtensions
 
         var location = attribute.GetLocation(token);
         return new ColumnOrder(attributeValue, location);
+    }
+
+    public static CellValueTruncate? TryGetCellValueTruncateAttribute(this AttributeData attribute, ITypeSymbol propertyType,
+        ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
+    {
+        if (!string.Equals(Attributes.CellValueTruncate, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
+            return null;
+
+        if (propertyType.SpecialType != SpecialType.System_String)
+        {
+            var location = attribute.GetLocation(token);
+            var typeFullName = propertyType.ToDisplayString();
+            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.UnsupportedTypeForCellValueLengthLimit, location, new([typeFullName])));
+            return null;
+        }
+
+        var args = attribute.ConstructorArguments;
+        if (args is not [{ Value: int attributeValue }])
+            return null;
+
+        if (attributeValue <= 0)
+        {
+            var location = attribute.GetLocation(token);
+            var stringValue = attributeValue.ToString(CultureInfo.InvariantCulture);
+            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.InvalidAttributeArgument, location, new([stringValue, Attributes.CellValueTruncate])));
+            return null;
+        }
+
+        return new CellValueTruncate(attributeValue);
     }
 
     private static LocationInfo? GetLocation(this AttributeData attribute, CancellationToken token)

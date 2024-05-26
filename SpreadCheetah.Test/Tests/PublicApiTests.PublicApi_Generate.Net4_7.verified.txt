@@ -178,6 +178,11 @@ namespace SpreadCheetah.Images
 namespace SpreadCheetah.SourceGeneration
 {
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
+    public sealed class CellValueTruncateAttribute : System.Attribute
+    {
+        public CellValueTruncateAttribute(int length) { }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class ColumnHeaderAttribute : System.Attribute
     {
         public ColumnHeaderAttribute(string name) { }

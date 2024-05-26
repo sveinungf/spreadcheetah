@@ -1,10 +1,9 @@
-using DocumentFormat.OpenXml.Packaging;
 using SpreadCheetah.SourceGenerator.CSharp8Test.Models;
+using SpreadCheetah.TestHelpers.Assertions;
+using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
-using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
 namespace SpreadCheetah.SourceGenerator.CSharp8Test.Tests
 {
@@ -14,10 +13,11 @@ namespace SpreadCheetah.SourceGenerator.CSharp8Test.Tests
         public async Task Spreadsheet_AddAsRow_ClassWithMultipleProperties()
         {
             // Arrange
-            const string firstName = "Ola";
-            const string lastName = "Nordmann";
-            const int age = 30;
-            var obj = new ClassWithMultipleProperties(firstName, lastName, age);
+            var obj = new ClassWithMultipleProperties(
+                id: Guid.NewGuid().ToString(),
+                firstName: "Ola",
+                lastName: "Nordmann",
+                age: 30);
 
             using var stream = new MemoryStream();
             await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
@@ -31,14 +31,12 @@ namespace SpreadCheetah.SourceGenerator.CSharp8Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
-            using var actual = SpreadsheetDocument.Open(stream, false);
-            var sheetPart = actual.WorkbookPart.WorksheetParts.Single();
-            var cells = sheetPart.Worksheet.Descendants<OpenXmlCell>().ToList();
-            Assert.Equal(firstName, cells[0].InnerText);
-            Assert.Equal(lastName, cells[1].InnerText);
-            Assert.Equal(age.ToString(), cells[2].InnerText);
-            Assert.Equal(3, cells.Count);
+            using var sheet = SpreadsheetAssert.SingleSheet(stream);
+            Assert.Equal(obj.FirstName, sheet["A1"].StringValue);
+            Assert.Equal(obj.Id, sheet["B1"].StringValue);
+            Assert.Equal(obj.LastName, sheet["C1"].StringValue);
+            Assert.Equal(obj.Age, sheet["D1"].IntValue);
+            Assert.Equal(4, sheet.CellCount);
         }
 
         [Fact]
@@ -59,10 +57,8 @@ namespace SpreadCheetah.SourceGenerator.CSharp8Test.Tests
             }
 
             // Assert
-            stream.Position = 0;
-            using var actual = SpreadsheetDocument.Open(stream, false);
-            var sheetPart = actual.WorkbookPart?.WorksheetParts.Single();
-            Assert.Empty(sheetPart?.Worksheet.Descendants<OpenXmlCell>());
+            using var sheet = SpreadsheetAssert.SingleSheet(stream);
+            Assert.Equal(0, sheet.CellCount);
         }
     }
 }

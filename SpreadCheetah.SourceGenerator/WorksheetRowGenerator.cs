@@ -100,14 +100,16 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
             ColumnHeader? columnHeader = null;
             ColumnOrder? columnOrder = null;
+            CellValueTruncate? cellValueTruncate = null;
 
             foreach (var attribute in property.GetAttributes())
             {
                 columnHeader ??= attribute.TryGetColumnHeaderAttribute(diagnosticInfos, token);
                 columnOrder ??= attribute.TryGetColumnOrderAttribute(token);
+                cellValueTruncate ??= attribute.TryGetCellValueTruncateAttribute(property.Type, diagnosticInfos, token);
             }
 
-            var rowTypeProperty = new RowTypeProperty(property.Name, columnHeader?.ToColumnHeaderInfo());
+            var rowTypeProperty = new RowTypeProperty(property.Name, columnHeader?.ToColumnHeaderInfo(), cellValueTruncate);
 
             if (columnOrder is not { } order)
                 implicitOrderProperties.Add(rowTypeProperty);
@@ -439,9 +441,19 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var (i, property) in properties.Index())
         {
-            sb.AppendLine(FormattableString.Invariant($$"""
-                        cells[{{i}}] = new DataCell(obj.{{property.Name}});
-            """));
+            if (property.CellValueTruncate?.Value is { } truncateLength)
+            {
+                sb.AppendLine(FormattableString.Invariant($$"""
+                            var p{{i}} = obj.{{property.Name}};
+                            cells[{{i}}] = p{{i}} is null || p{{i}}.Length <= {{truncateLength}} ? new DataCell(p{{i}}) : new DataCell(p{{i}}.AsMemory(0, {{truncateLength}}));
+                """));
+            }
+            else
+            {
+                sb.AppendLine(FormattableString.Invariant($$"""
+                            cells[{{i}}] = new DataCell(obj.{{property.Name}});
+                """));
+            }
         }
 
         sb.AppendLine($$"""

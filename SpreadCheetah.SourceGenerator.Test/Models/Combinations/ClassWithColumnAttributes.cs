@@ -11,6 +11,7 @@ public class ClassWithColumnAttributes(string id, string countryOfOrigin, string
 
     [ColumnOrder(2)]
     [ColumnHeader("The make")]
+    [CellValueTruncate(8)]
     public string Make { get; } = make;
 
     [ColumnOrder(1)]

@@ -11,7 +11,7 @@ internal static class Diagnostics
         title: "Missing properties with public getters",
         messageFormat: "The type '{0}' has no properties with public getters. This will cause an empty row to be added.",
         category: Category,
-        DiagnosticSeverity.Warning,
+        defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor UnsupportedTypeForCellValue = new(
@@ -19,7 +19,7 @@ internal static class Diagnostics
         title: "Unsupported type for cell value",
         messageFormat: "The type '{0}' has a property of type '{1}' which is not supported as a cell value. The property will be ignored when creating the row.",
         category: Category,
-        DiagnosticSeverity.Warning,
+        defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor DuplicateColumnOrder = new(
@@ -27,7 +27,7 @@ internal static class Diagnostics
         title: "Duplicate column ordering",
         messageFormat: "The type '{0}' has two or more properties with the same column order",
         category: Category,
-        DiagnosticSeverity.Error,
+        defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor InvalidColumnHeaderPropertyReference = new(
@@ -35,6 +35,22 @@ internal static class Diagnostics
         title: "Invalid ColumnHeader property reference",
         messageFormat: "'{0}' on type '{1}' is not a valid property reference. It must be a static property, have a public getter, and the return type must be a string (or string?).",
         category: Category,
-        DiagnosticSeverity.Error,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor UnsupportedTypeForCellValueLengthLimit = new(
+        id: "SPCH1005",
+        title: "Unsupported type for CellValueLengthLimit attribute",
+        messageFormat: "The CellValueLengthLimit attribute is not supported on properties of type '{0}'",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor InvalidAttributeArgument = new(
+        id: "SPCH1006",
+        title: "Invalid attribute argument",
+        messageFormat: "'{0}' is an invalid argument for attribute '{1}'",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 }
