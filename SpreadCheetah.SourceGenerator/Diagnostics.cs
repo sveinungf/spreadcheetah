@@ -45,4 +45,12 @@ internal static class Diagnostics
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor InvalidAttributeArgument = new(
+        id: "SPCH1006",
+        title: "Invalid attribute argument",
+        messageFormat: "'{0}' is an invalid argument for attribute '{1}'",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }
