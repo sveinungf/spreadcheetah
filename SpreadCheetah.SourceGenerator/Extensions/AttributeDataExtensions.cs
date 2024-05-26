@@ -69,7 +69,6 @@ internal static class AttributeDataExtensions
             return (InheritedColumnOrder)arg;
 
         return InheritedColumnOrder.InheritedColumnsFirst;
-
     }
 
     public static ColumnHeader? TryGetColumnHeaderAttribute(this AttributeData attribute, ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
