@@ -65,12 +65,11 @@ internal static class AttributeDataExtensions
         if (!string.Equals(Attributes.InheritColumns, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
             return null;
 
-        if (attribute.NamedArguments.Length == 0)
-        {
-            return InheritedColumnOrder.InheritedColumnsFirst;
-        }
+        if (attribute.NamedArguments is [{ Value.Value: { } arg }] && Enum.IsDefined(typeof(InheritedColumnOrder), arg))
+            return (InheritedColumnOrder)arg;
 
-        return (InheritedColumnOrder)attribute.NamedArguments[0].Value.Value!;
+        return InheritedColumnOrder.InheritedColumnsFirst;
+
     }
 
     public static ColumnHeader? TryGetColumnHeaderAttribute(this AttributeData attribute, ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
