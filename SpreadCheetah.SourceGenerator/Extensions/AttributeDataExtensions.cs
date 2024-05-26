@@ -130,7 +130,7 @@ internal static class AttributeDataExtensions
     public static CellValueLengthLimit? TryGetCellValueLengthLimitAttribute(this AttributeData attribute, ITypeSymbol propertyType,
         ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
     {
-        if (!string.Equals(Attributes.CellValueLengthLimit, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
+        if (!string.Equals(Attributes.CellValueTruncate, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
             return null;
 
         if (propertyType.SpecialType != SpecialType.System_String)
