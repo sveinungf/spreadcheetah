@@ -4,6 +4,7 @@ using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models;
 using SpreadCheetah.SourceGenerator.Test.Models.Accessibility;
+using SpreadCheetah.SourceGenerator.Test.Models.CellValueTruncation;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnHeader;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnOrdering;
 using SpreadCheetah.SourceGenerator.Test.Models.Combinations;
@@ -184,6 +185,34 @@ public class WorksheetRowGeneratorTests
         var cells = sheetPart.Worksheet.Descendants<OpenXmlCell>().ToList();
         var actualCell = Assert.Single(cells);
         Assert.Equal(value, actualCell.InnerText);
+    }
+
+    [Theory]
+    [InlineData("Short value")]
+    [InlineData("Exact length!!!")]
+    [InlineData("Long value that will be truncated")]
+    [InlineData("")]
+    [InlineData(null)]
+    public async Task Spreadsheet_AddAsRow_ObjectWithCellValueTruncateAttribute(string? originalValue)
+    {
+        // Arrange
+        const int truncateLength = 15;
+        var expectedValue = originalValue is { Length: > truncateLength }
+            ? originalValue[..truncateLength]
+            : originalValue;
+
+        var obj = new ClassWithTruncation { Value = originalValue };
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act
+        await spreadsheet.AddAsRowAsync(obj, TruncationContext.Default.ClassWithTruncation);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(expectedValue, sheet["A1"].StringValue);
     }
 
     [Fact]
