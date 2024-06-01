@@ -60,15 +60,15 @@ public class WorksheetOptions
     /// <summary>
     /// Get options for a column in the worksheet. The first column has column number 1.
     /// </summary>
-    /// <param name="columnNumber"></param>
     public ColumnOptions Column(int columnNumber)
     {
-        if (columnNumber < 1) throw new ArgumentOutOfRangeException(nameof(columnNumber), "Column number can't be less than 1.");
+        if (columnNumber is < 1 or > SpreadsheetConstants.MaxNumberOfColumns)
+            ThrowHelper.ColumnNumberInvalid(nameof(columnNumber), columnNumber);
 
         if (!ColumnOptions.TryGetValue(columnNumber, out var options))
         {
             options = new ColumnOptions();
-            ColumnOptions.Add(columnNumber, options);
+            ColumnOptions[columnNumber] = options;
         }
 
         return options;
