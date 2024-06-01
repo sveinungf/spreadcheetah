@@ -55,7 +55,7 @@ public class WorksheetOptions
     /// </summary>
     public AutoFilterOptions? AutoFilter { get; set; }
 
-    internal SortedDictionary<int, ColumnOptions> ColumnOptions { get; } = [];
+    internal SortedDictionary<int, ColumnOptions>? ColumnOptions { get; private set; }
 
     /// <summary>
     /// Get options for a column in the worksheet. The first column has column number 1.
@@ -65,6 +65,7 @@ public class WorksheetOptions
         if (columnNumber is < 1 or > SpreadsheetConstants.MaxNumberOfColumns)
             ThrowHelper.ColumnNumberInvalid(nameof(columnNumber), columnNumber);
 
+        ColumnOptions ??= [];
         if (!ColumnOptions.TryGetValue(columnNumber, out var options))
         {
             options = new ColumnOptions();
