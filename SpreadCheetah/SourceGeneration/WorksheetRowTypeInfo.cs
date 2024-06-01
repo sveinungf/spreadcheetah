@@ -1,4 +1,5 @@
 using SpreadCheetah.Styling;
+using SpreadCheetah.Worksheets;
 
 namespace SpreadCheetah.SourceGeneration;
 
@@ -8,6 +9,17 @@ namespace SpreadCheetah.SourceGeneration;
 /// </summary>
 public abstract class WorksheetRowTypeInfo<T>
 {
+    private readonly Func<WorksheetOptions>? _worksheetOptionsFactory;
+    private WorksheetOptions? _worksheetOptionsInstance;
+
+    /// <summary>
+    /// A cached instance of <see cref="WorksheetOptions"/>. The instance should not be mutated.
+    /// It is only accessible internally because the type is mutable.
+    /// </summary>
+    internal WorksheetOptions WorksheetOptionsInstance => _worksheetOptionsInstance ??= CreateWorksheetOptions();
+
+    public WorksheetOptions CreateWorksheetOptions() => _worksheetOptionsFactory?.Invoke() ?? new();
+
     /// <summary>
     /// Method for adding a header to a worksheet from a type.
     /// </summary>
@@ -26,10 +38,12 @@ public abstract class WorksheetRowTypeInfo<T>
     private protected WorksheetRowTypeInfo(
         Func<Spreadsheet, StyleId?, CancellationToken, ValueTask> headerHandler,
         Func<Spreadsheet, T, CancellationToken, ValueTask> rowHandler,
-        Func<Spreadsheet, IEnumerable<T>, CancellationToken, ValueTask> rowRangeHandler)
+        Func<Spreadsheet, IEnumerable<T>, CancellationToken, ValueTask> rowRangeHandler,
+        Func<WorksheetOptions>? worksheetOptionsFactory)
     {
         HeaderHandler = headerHandler;
         RowHandler = rowHandler;
         RowRangeHandler = rowRangeHandler;
+        _worksheetOptionsFactory = worksheetOptionsFactory;
     }
 }

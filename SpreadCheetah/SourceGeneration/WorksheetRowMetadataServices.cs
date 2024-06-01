@@ -1,5 +1,6 @@
 using SpreadCheetah.SourceGeneration.Internal;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Worksheets;
 
 namespace SpreadCheetah.SourceGeneration;
 
@@ -14,6 +15,7 @@ public static class WorksheetRowMetadataServices
     public static WorksheetRowTypeInfo<T> CreateObjectInfo<T>(
         Func<Spreadsheet, StyleId?, CancellationToken, ValueTask> headerHandler,
         Func<Spreadsheet, T, CancellationToken, ValueTask> rowHandler,
-        Func<Spreadsheet, IEnumerable<T>, CancellationToken, ValueTask> rowRangeHandler)
-        => new WorksheetRowTypeInfoInternal<T>(headerHandler, rowHandler, rowRangeHandler);
+        Func<Spreadsheet, IEnumerable<T>, CancellationToken, ValueTask> rowRangeHandler,
+        Func<WorksheetOptions>? worksheetOptionsFactory = null)
+        => new WorksheetRowTypeInfoInternal<T>(headerHandler, rowHandler, rowRangeHandler, worksheetOptionsFactory);
 }

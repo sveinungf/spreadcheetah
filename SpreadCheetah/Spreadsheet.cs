@@ -122,6 +122,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return StartWorksheetInternalAsync(name, options, token);
     }
 
+    public ValueTask StartWorksheetAsync<T>(string name, WorksheetRowTypeInfo<T> typeInfo, CancellationToken token = default)
+    {
+        ArgumentNullException.ThrowIfNull(typeInfo);
+        return StartWorksheetAsync(name, typeInfo.WorksheetOptionsInstance, token);
+    }
+
     private async ValueTask StartWorksheetInternalAsync(string name, WorksheetOptions? options, CancellationToken token)
     {
         await FinishAndDisposeWorksheetAsync(token).ConfigureAwait(false);
