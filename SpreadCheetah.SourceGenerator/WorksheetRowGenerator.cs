@@ -188,7 +188,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             #nullable enable
             using SpreadCheetah;
             using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.Worksheets;
             using System;
             using System.Buffers;
             using System.Collections.Generic;
@@ -308,9 +307,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         sb.AppendLine(FormattableString.Invariant($$"""
 
-                    private static WorksheetOptions CreateWorksheetOptions{{typeIndex}}()
+                    private static SpreadCheetah.Worksheets.WorksheetOptions CreateWorksheetOptions{{typeIndex}}()
                     {
-                        var options = new WorksheetOptions();
+                        var options = new SpreadCheetah.Worksheets.WorksheetOptions();
             """));
 
         foreach (var (i, property) in properties.Index())
