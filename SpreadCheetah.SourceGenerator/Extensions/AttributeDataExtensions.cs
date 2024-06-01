@@ -133,7 +133,7 @@ internal static class AttributeDataExtensions
             return null;
 
         var args = attribute.ConstructorArguments;
-        if (args is not [{ Value: int attributeValue }])
+        if (args is not [{ Value: double attributeValue }])
             return null;
 
         // TODO: Emit error if width is too low or too high
