@@ -188,6 +188,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             #nullable enable
             using SpreadCheetah;
             using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.Worksheets;
             using System;
             using System.Buffers;
             using System.Collections.Generic;
@@ -256,9 +257,17 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             return;
         }
 
+        var doGenerateCreateWorksheetOptions = rowType.Properties.Any(static x => x.ColumnWidth is not null);
+        var optionalParams = doGenerateCreateWorksheetOptions
+            ? FormattableString.Invariant($", CreateWorksheetOptions{typeIndex}")
+            : "";
+
         sb.AppendLine(FormattableString.Invariant($$"""
-                        ??= WorksheetRowMetadataServices.CreateObjectInfo<{{rowType.FullName}}>(AddHeaderRow{{typeIndex}}Async, AddAsRowAsync, AddRangeAsRowsAsync);
+                        ??= WorksheetRowMetadataServices.CreateObjectInfo<{{rowType.FullName}}>(AddHeaderRow{{typeIndex}}Async, AddAsRowAsync, AddRangeAsRowsAsync{{optionalParams}});
             """));
+
+        if (doGenerateCreateWorksheetOptions)
+            GenerateCreateWorksheetOptions(sb, typeIndex, rowType.Properties);
 
         GenerateAddHeaderRow(sb, typeIndex, rowType.Properties);
         GenerateAddAsRow(sb, rowType);
@@ -293,11 +302,42 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedTypeForCellValue, location, rowType.Name, unsupportedPropertyTypeName));
     }
 
+    private static void GenerateCreateWorksheetOptions(StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)
+    {
+        Debug.Assert(properties.Any(static x => x.ColumnWidth is not null));
+
+        sb.AppendLine(FormattableString.Invariant($$"""
+
+                    private static WorksheetOptions CreateWorksheetOptions{{typeIndex}}()
+                    {
+                        var options = new WorksheetOptions();
+            """));
+
+        foreach (var (i, property) in properties.Index())
+        {
+            if (property.ColumnWidth is not { } columnWidth)
+                continue;
+
+            var width = columnWidth.Width;
+            var columnNumber = i + 1;
+
+            sb.AppendLine(FormattableString.Invariant($"""
+                        options.Column({columnNumber}).Width = {width};
+            """));
+        }
+
+        sb.AppendLine("""
+                        return options;
+                    }
+            """);
+    }
+
     private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)
     {
         Debug.Assert(properties.Count > 0);
 
-        sb.AppendLine().AppendLine(FormattableString.Invariant($$"""
+        sb.AppendLine(FormattableString.Invariant($$"""
+
                     private static async ValueTask AddHeaderRow{{typeIndex}}Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
                     {
                         var cells = ArrayPool<StyledCell>.Shared.Rent({{properties.Count}});
