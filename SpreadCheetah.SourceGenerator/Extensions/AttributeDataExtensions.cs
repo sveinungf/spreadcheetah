@@ -126,6 +126,20 @@ internal static class AttributeDataExtensions
         return new ColumnOrder(attributeValue, location);
     }
 
+    public static ColumnWidth? TryGetColumnWidthAttribute(this AttributeData attribute,
+        ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
+    {
+        if (!string.Equals(Attributes.ColumnWidth, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
+            return null;
+
+        var args = attribute.ConstructorArguments;
+        if (args is not [{ Value: int attributeValue }])
+            return null;
+
+        // TODO: Emit error if width is too low or too high
+        return new ColumnWidth(attributeValue);
+    }
+
     public static CellValueTruncate? TryGetCellValueTruncateAttribute(this AttributeData attribute, ITypeSymbol propertyType,
         ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
     {
