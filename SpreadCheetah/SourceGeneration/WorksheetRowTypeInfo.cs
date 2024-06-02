@@ -18,6 +18,9 @@ public abstract class WorksheetRowTypeInfo<T>
     /// </summary>
     internal WorksheetOptions WorksheetOptionsInstance => _worksheetOptionsInstance ??= CreateWorksheetOptions();
 
+    /// <summary>
+    /// Creates a new instance of <see cref="WorksheetOptions"/> with column widths set by <see cref="ColumnWidthAttribute"/>.
+    /// </summary>
     public WorksheetOptions CreateWorksheetOptions() => _worksheetOptionsFactory?.Invoke() ?? new();
 
     /// <summary>
