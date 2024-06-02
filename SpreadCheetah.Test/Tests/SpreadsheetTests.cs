@@ -7,10 +7,10 @@ using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
 using System.IO.Compression;
-using Xunit;
 using Color = System.Drawing.Color;
 using DataValidation = SpreadCheetah.Validations.DataValidation;
 using Fill = SpreadCheetah.Styling.Fill;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -404,11 +404,8 @@ public class SpreadsheetTests
         }
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var package = new ExcelPackage(stream);
-        var worksheet = package.Workbook.Worksheets.Single();
-        var actualWidth = worksheet.Column(1).Width;
-        Assert.Equal(expectedWidth, actualWidth, 5);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(expectedWidth, sheet.Column("A").Width, 5);
     }
 
     [Theory]
