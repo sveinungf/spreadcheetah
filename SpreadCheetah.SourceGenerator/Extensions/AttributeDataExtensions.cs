@@ -136,7 +136,14 @@ internal static class AttributeDataExtensions
         if (args is not [{ Value: double attributeValue }])
             return null;
 
-        // TODO: Emit error if width is too low or too high
+        if (attributeValue is <= 0 or > 255)
+        {
+            var location = attribute.GetLocation(token);
+            var stringValue = attributeValue.ToString(CultureInfo.InvariantCulture);
+            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.InvalidAttributeArgument, location, new([stringValue, Attributes.ColumnWidth])));
+            return null;
+        }
+
         return new ColumnWidth(attributeValue);
     }
 
