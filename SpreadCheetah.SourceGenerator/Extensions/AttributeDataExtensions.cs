@@ -126,6 +126,27 @@ internal static class AttributeDataExtensions
         return new ColumnOrder(attributeValue, location);
     }
 
+    public static ColumnWidth? TryGetColumnWidthAttribute(this AttributeData attribute,
+        ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
+    {
+        if (!string.Equals(Attributes.ColumnWidth, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
+            return null;
+
+        var args = attribute.ConstructorArguments;
+        if (args is not [{ Value: double attributeValue }])
+            return null;
+
+        if (attributeValue is <= 0 or > 255)
+        {
+            var location = attribute.GetLocation(token);
+            var stringValue = attributeValue.ToString(CultureInfo.InvariantCulture);
+            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.InvalidAttributeArgument, location, new([stringValue, Attributes.ColumnWidth])));
+            return null;
+        }
+
+        return new ColumnWidth(attributeValue);
+    }
+
     public static CellValueTruncate? TryGetCellValueTruncateAttribute(this AttributeData attribute, ITypeSymbol propertyType,
         ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
     {

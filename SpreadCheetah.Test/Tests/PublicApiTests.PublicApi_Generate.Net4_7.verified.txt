@@ -121,6 +121,7 @@ namespace SpreadCheetah
         public System.Threading.Tasks.ValueTask FinishAsync(System.Threading.CancellationToken token = default) { }
         public void MergeCells(string cellRange) { }
         public System.Threading.Tasks.ValueTask StartWorksheetAsync(string name, SpreadCheetah.Worksheets.WorksheetOptions? options = null, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask StartWorksheetAsync<T>(string name, SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> typeInfo, System.Threading.CancellationToken token = default) { }
         public bool TryAddDataValidation(string reference, SpreadCheetah.Validations.DataValidation validation) { }
         public static System.Threading.Tasks.ValueTask<SpreadCheetah.Spreadsheet> CreateNewAsync(System.IO.Stream stream, SpreadCheetah.SpreadCheetahOptions? options = null, System.Threading.CancellationToken cancellationToken = default) { }
     }
@@ -193,6 +194,11 @@ namespace SpreadCheetah.SourceGeneration
     {
         public ColumnOrderAttribute(int order) { }
     }
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
+    public sealed class ColumnWidthAttribute : System.Attribute
+    {
+        public ColumnWidthAttribute(double width) { }
+    }
     public static class EmptyWorksheetRowContext
     {
         public static SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> CreateTypeInfo<T>() { }
@@ -225,13 +231,14 @@ namespace SpreadCheetah.SourceGeneration
     }
     public static class WorksheetRowMetadataServices
     {
-        public static SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> CreateObjectInfo<T>(System.Func<SpreadCheetah.Spreadsheet, SpreadCheetah.Styling.StyleId?, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> headerHandler, System.Func<SpreadCheetah.Spreadsheet, T, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> rowHandler, System.Func<SpreadCheetah.Spreadsheet, System.Collections.Generic.IEnumerable<T>, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> rowRangeHandler) { }
+        public static SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> CreateObjectInfo<T>(System.Func<SpreadCheetah.Spreadsheet, SpreadCheetah.Styling.StyleId?, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> headerHandler, System.Func<SpreadCheetah.Spreadsheet, T, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> rowHandler, System.Func<SpreadCheetah.Spreadsheet, System.Collections.Generic.IEnumerable<T>, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> rowRangeHandler, System.Func<SpreadCheetah.Worksheets.WorksheetOptions>? worksheetOptionsFactory = null) { }
     }
     public abstract class WorksheetRowTypeInfo<T>
     {
         public System.Func<SpreadCheetah.Spreadsheet, SpreadCheetah.Styling.StyleId?, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> HeaderHandler { get; }
         public System.Func<SpreadCheetah.Spreadsheet, T, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> RowHandler { get; }
         public System.Func<SpreadCheetah.Spreadsheet, System.Collections.Generic.IEnumerable<T>, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> RowRangeHandler { get; }
+        public SpreadCheetah.Worksheets.WorksheetOptions CreateWorksheetOptions() { }
     }
 }
 namespace SpreadCheetah.Styling
