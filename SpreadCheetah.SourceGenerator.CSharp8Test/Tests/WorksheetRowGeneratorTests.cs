@@ -19,13 +19,14 @@ namespace SpreadCheetah.SourceGenerator.CSharp8Test.Tests
                 lastName: "Nordmann",
                 age: 30);
 
+            var ctx = ClassWithMultiplePropertiesContext.Default.ClassWithMultipleProperties;
             using var stream = new MemoryStream();
             await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
-                await spreadsheet.StartWorksheetAsync("Sheet");
+                await spreadsheet.StartWorksheetAsync("Sheet", ctx);
 
                 // Act
-                await spreadsheet.AddAsRowAsync(obj, ClassWithMultiplePropertiesContext.Default.ClassWithMultipleProperties);
+                await spreadsheet.AddAsRowAsync(obj, ctx);
 
                 await spreadsheet.FinishAsync();
             }
@@ -37,6 +38,7 @@ namespace SpreadCheetah.SourceGenerator.CSharp8Test.Tests
             Assert.Equal(obj.LastName, sheet["C1"].StringValue);
             Assert.Equal(obj.Age, sheet["D1"].IntValue);
             Assert.Equal(4, sheet.CellCount);
+            Assert.Equal(5, sheet.Column("D").Width, 4);
         }
 
         [Fact]
