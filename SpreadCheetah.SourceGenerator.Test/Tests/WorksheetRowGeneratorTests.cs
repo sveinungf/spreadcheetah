@@ -7,6 +7,7 @@ using SpreadCheetah.SourceGenerator.Test.Models.Accessibility;
 using SpreadCheetah.SourceGenerator.Test.Models.CellValueTruncation;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnHeader;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnOrdering;
+using SpreadCheetah.SourceGenerator.Test.Models.ColumnWidth;
 using SpreadCheetah.SourceGenerator.Test.Models.Combinations;
 using SpreadCheetah.SourceGenerator.Test.Models.Contexts;
 using SpreadCheetah.SourceGenerator.Test.Models.MultipleProperties;
@@ -749,9 +750,10 @@ string: "", \)",
     public async Task Spreadsheet_AddAsRow_ObjectWithMultipleColumnAttributes()
     {
         // Arrange
+        var ctx = ColumnAttributesContext.Default.ClassWithColumnAttributes;
         using var stream = new MemoryStream();
         await using var s = await Spreadsheet.CreateNewAsync(stream);
-        await s.StartWorksheetAsync("Sheet");
+        await s.StartWorksheetAsync("Sheet", ctx);
 
         var obj = new ClassWithColumnAttributes(
             id: Guid.NewGuid().ToString(),
@@ -763,7 +765,7 @@ string: "", \)",
             length: 428.4m);
 
         // Act
-        await s.AddAsRowAsync(obj, ColumnAttributesContext.Default.ClassWithColumnAttributes);
+        await s.AddAsRowAsync(obj, ctx);
         await s.FinishAsync();
 
         // Assert
@@ -775,5 +777,36 @@ string: "", \)",
         Assert.Equal(obj.kW, sheet["E1"].DecimalValue);
         Assert.Equal(obj.Length, sheet["F1"].DecimalValue);
         Assert.Equal(obj.Id, sheet["G1"].StringValue);
+
+        Assert.Equal(10, sheet.Column("A").Width, 4);
+        Assert.Equal(40, sheet.Column("C").Width, 4);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Spreadsheet_StartWorksheet_ColumnWidthFromAttribute(bool createWorksheetOptions)
+    {
+        // Arrange
+        var ctx = ColumnWidthContext.Default.ClassWithColumnWidth;
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream);
+
+        // Act
+        if (createWorksheetOptions)
+        {
+            var worksheetOptions = ctx.CreateWorksheetOptions();
+            await s.StartWorksheetAsync("Sheet", worksheetOptions);
+        }
+        else
+        {
+            await s.StartWorksheetAsync("Sheet", ctx);
+        }
+
+        await s.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(20d, sheet.Column("A").Width, 4);
     }
 }

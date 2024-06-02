@@ -15,6 +15,7 @@ public class ClassWithColumnAttributes(string id, string countryOfOrigin, string
     public string Make { get; } = make;
 
     [ColumnOrder(1)]
+    [ColumnWidth(10)]
     public int Year { get; } = year;
 
 #pragma warning disable IDE1006 // Naming Styles
@@ -31,5 +32,6 @@ public abstract class ClassWithColumnAttributesBase(string id, string countryOfO
     public string Id { get; } = id;
 
     [ColumnHeader("Country of origin")]
+    [ColumnWidth(40)]
     public string CountryOfOrigin { get; } = countryOfOrigin;
 }
