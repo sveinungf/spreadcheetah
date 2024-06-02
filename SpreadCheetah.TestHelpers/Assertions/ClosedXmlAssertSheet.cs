@@ -31,10 +31,9 @@ internal sealed class ClosedXmlAssertSheet(XLWorkbook workbook, IXLWorksheet she
 
     public int RowCount => sheet.RowsUsed().Count();
 
-    public IEnumerable<ISpreadsheetAssertCell> Column(string columnName)
+    public ISpreadsheetAssertColumn Column(string columnName)
     {
-        var cells = sheet.Column(columnName).CellsUsed();
-        return cells.Select(x => new ClosedXmlAssertCell(x));
+        return new ClosedXmlAssertColumn(sheet.Column(columnName));
     }
 
     public IEnumerable<ISpreadsheetAssertCell> Row(int rowNumber)
