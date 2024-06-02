@@ -1,5 +1,6 @@
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
+using System.Buffers;
 using System.Buffers.Text;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -8,11 +9,12 @@ using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah;
 
-internal sealed class SpreadsheetBuffer(byte[] buffer)
+internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 {
-    private readonly byte[] _buffer = buffer;
+    private readonly byte[] _buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
     private int _index;
 
+    public void Dispose() => ArrayPool<byte>.Shared.Return(_buffer, true);
     public Span<byte> GetSpan() => _buffer.AsSpan(_index);
     public void Advance(int bytes) => _index += bytes;
 

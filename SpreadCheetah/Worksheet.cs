@@ -12,7 +12,9 @@ namespace SpreadCheetah;
 internal sealed class Worksheet : IDisposable, IAsyncDisposable
 {
     private readonly Stream _stream;
+#pragma warning disable CA2213 // Disposed by Spreadsheet
     private readonly SpreadsheetBuffer _buffer;
+#pragma warning restore CA2213 // Disposed by Spreadsheet
     private readonly BaseCellWriter<Cell> _cellWriter;
     private readonly BaseCellWriter<DataCell> _dataCellWriter;
     private readonly BaseCellWriter<StyledCell> _styledCellWriter;

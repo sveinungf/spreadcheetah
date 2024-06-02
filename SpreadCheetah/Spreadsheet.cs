@@ -8,7 +8,6 @@ using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
-using System.Buffers;
 using System.Diagnostics;
 using System.IO.Compression;
 
@@ -29,7 +28,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly CompressionLevel _compressionLevel;
     private readonly SpreadsheetBuffer _buffer;
     private readonly bool _writeCellReferenceAttributes;
-    private readonly byte[] _arrayPoolBuffer;
     private readonly NumberFormat? _defaultDateTimeFormat;
     private DefaultStyling? _defaultStyling;
     private Dictionary<ImmutableStyle, int>? _styles;
@@ -51,8 +49,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         _archive = archive;
         _compressionLevel = compressionLevel;
-        _arrayPoolBuffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-        _buffer = new SpreadsheetBuffer(_arrayPoolBuffer);
+        _buffer = new SpreadsheetBuffer(bufferSize);
         _defaultDateTimeFormat = defaultDateTimeFormat;
         _writeCellReferenceAttributes = writeCellReferenceAttributes;
     }
@@ -638,7 +635,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (_worksheet != null)
             await _worksheet.DisposeAsync().ConfigureAwait(false);
 
-        ArrayPool<byte>.Shared.Return(_arrayPoolBuffer, true);
+        _buffer.Dispose();
     }
 
     /// <inheritdoc/>
@@ -647,6 +644,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (_disposed) return;
         _disposed = true;
         _worksheet?.Dispose();
-        ArrayPool<byte>.Shared.Return(_arrayPoolBuffer, true);
+        _buffer.Dispose();
     }
 }
