@@ -24,6 +24,7 @@
     <PackageReference Include="EPPlusFree" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="PublicApiGenerator" />
+    <PackageReference Include="TngTech.ArchUnitNET.xUnit" />
     <PackageReference Include="Verify.Xunit" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
@@ -50,7 +51,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SpreadCheetah.TestHelpers\SpreadCheetah.TestHelpers.csproj" />
-    <ProjectReference Include="..\SpreadCheetah\SpreadCheetah.csproj" />
   </ItemGroup>
 
 </Project>
