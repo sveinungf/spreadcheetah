@@ -9,12 +9,6 @@ internal readonly struct PooledArray<T> : IDisposable
 
     public ReadOnlyMemory<T> Memory => _array.AsMemory(0, _count);
 
-    public PooledArray()
-    {
-        _array = [];
-        _count = 0;
-    }
-
     private PooledArray(T[] array, int count)
     {
         _array = array;
@@ -24,7 +18,7 @@ internal readonly struct PooledArray<T> : IDisposable
     public static PooledArray<T> Create(ICollection<T> collection)
     {
         if (collection.Count == 0)
-            return new PooledArray<T>();
+            return new PooledArray<T>([], 0);
 
         var array = ArrayPool<T>.Shared.Rent(collection.Count);
 
