@@ -16,6 +16,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
     public void Dispose() => ArrayPool<byte>.Shared.Return(_buffer, true);
     public Span<byte> GetSpan() => _buffer.AsSpan(_index);
+    private Span<byte> GetSpan(int start) => _buffer.AsSpan(_index + start);
     public void Advance(int bytes) => _index += bytes;
 
     public bool WriteLongString(ReadOnlySpan<char> value, ref int valueIndex)
@@ -69,11 +70,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         internal int _pos;
         internal bool _success = true;
 
-        private readonly Span<byte> GetSpan()
-        {
-            var local = buffer;
-            return local._buffer.AsSpan(local._index + _pos);
-        }
+        private readonly Span<byte> GetSpan() => buffer.GetSpan(_pos);
 
         [ExcludeFromCodeCoverage]
         public bool AppendLiteral(string value)
