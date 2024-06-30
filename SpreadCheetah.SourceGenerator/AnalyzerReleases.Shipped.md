@@ -28,3 +28,12 @@ SPCH1003 | SpreadCheetah.SourceGenerator | Error | DuplicateColumnOrder
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 SPCH1004 | SpreadCheetah.SourceGenerator | Error | InvalidColumnHeaderPropertyReference
+
+
+## Release 1.16.0
+
+### New Rules
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+SPCH1005 | SpreadCheetah.SourceGenerator | Error | UnsupportedTypeForCellValueLengthLimit
+SPCH1006 | SpreadCheetah.SourceGenerator | Error | InvalidAttributeArgument

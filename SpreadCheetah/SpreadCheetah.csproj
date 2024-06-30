@@ -9,7 +9,7 @@
 
     <!-- NuGet package -->
     <PackageId>SpreadCheetah</PackageId>
-    <Version>1.15.0</Version>
+    <Version>1.16.0</Version>
     <Authors>sveinungf</Authors>
     <Description>SpreadCheetah is a high-performance .NET library for generating spreadsheet (Microsoft Excel XLSX) files.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
