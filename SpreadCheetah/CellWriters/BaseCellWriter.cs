@@ -68,29 +68,14 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
 
     private bool TryAddRowCells(IList<T> cells)
     {
-        return TryGetSpan(cells, out var span)
-            ? TryAddRowCellsForSpan(span)
-            : TryAddRowCellsForList(cells);
-    }
-
-    private static bool TryGetSpan(IList<T> cells, out ReadOnlySpan<T> span)
-    {
-        if (cells is T[] cellArray)
+        return cells switch
         {
-            span = cellArray.AsSpan();
-            return true;
-        }
-
+            T[] cellArray => TryAddRowCellsForSpan(cellArray),
 #if NET5_0_OR_GREATER
-        if (cells is List<T> cellList)
-        {
-            span = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(cellList);
-            return true;
-        }
+            List<T> cellList => TryAddRowCellsForSpan(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(cellList)),
 #endif
-
-        span = [];
-        return false;
+            _ => TryAddRowCellsForList(cells)
+        };
     }
 
     private bool TryAddRowCellsForSpan(ReadOnlySpan<T> cells)
