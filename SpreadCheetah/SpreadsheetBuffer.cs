@@ -55,9 +55,10 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
     public bool TryWrite([InterpolatedStringHandlerArgument("")] ref TryWriteInterpolatedStringHandler handler)
     {
-        if (handler._success)
+        var pos = handler._pos;
+        if (pos != 0)
         {
-            Advance(handler._pos);
+            Advance(pos);
             return true;
         }
 
@@ -68,7 +69,6 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
     public ref struct TryWriteInterpolatedStringHandler(int literalLength, int formattedCount, SpreadsheetBuffer buffer)
     {
         internal int _pos;
-        internal bool _success = true;
 
         private readonly Span<byte> GetSpan() => buffer.GetSpan(_pos);
 
@@ -183,7 +183,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         private bool Fail()
         {
-            _success = false;
+            _pos = 0;
             return false;
         }
     }
