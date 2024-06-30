@@ -66,7 +66,9 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
     }
 
     [InterpolatedStringHandler]
+#pragma warning disable CS9113 // Parameter is unread.
     public ref struct TryWriteInterpolatedStringHandler(int literalLength, int formattedCount, SpreadsheetBuffer buffer)
+#pragma warning restore CS9113 // Parameter is unread.
     {
         internal int _pos;
 
