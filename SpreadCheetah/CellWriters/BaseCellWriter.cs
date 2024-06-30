@@ -95,11 +95,14 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
 
     private bool TryAddRowCellsForSpan(ReadOnlySpan<T> cells)
     {
-        for (; State.Column < cells.Length; ++State.Column)
+        var writerState = State;
+        var column = writerState.Column;
+        while (column < cells.Length)
         {
-            // Write cell if it fits in the buffer
-            if (!TryWriteCell(cells[State.Column]))
+            if (!TryWriteCell(cells[column]))
                 return false;
+
+            writerState.Column = ++column;
         }
 
         return TryWriteRowEnd();
@@ -107,11 +110,14 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
 
     private bool TryAddRowCellsForList(IList<T> cells)
     {
-        for (; State.Column < cells.Count; ++State.Column)
+        var writerState = State;
+        var column = writerState.Column;
+        while (column < cells.Count)
         {
-            // Write cell if it fits in the buffer
-            if (!TryWriteCell(cells[State.Column]))
+            if (!TryWriteCell(cells[column]))
                 return false;
+
+            writerState.Column = ++column;
         }
 
         return TryWriteRowEnd();
