@@ -14,13 +14,12 @@ SpreadCheetah is a high-performance .NET library for generating spreadsheet (Mic
 - Targeting .NET Standard 2.0 for .NET Framework and earlier versions of .NET Core
 - Targeting .NET 6 and newer for more optimizations
 - Trimmable and native AOT compatible
-- MIT license
 
 SpreadCheetah is designed to create spreadsheet files in a forward-only manner.
 That means worksheets from left to right, rows from top to bottom, and row cells from left to right.
 This allows for creating spreadsheet files in a streaming manner, while also keeping a low memory footprint.
 
-Most basic spreadsheet functionality is supported, such as cells with different data types, basic styling, and formulas. More advanced functionality is planned for future releases. See the list of currently supported spreadsheet functionality [in the wiki](https://github.com/sveinungf/spreadcheetah/wiki#supported-spreadsheet-functionality).
+Most basic spreadsheet functionality is supported, such as cells with different data types, basic styling, and formulas. More advanced functionality will be added in future releases. See the list of currently supported spreadsheet functionality [in the wiki](https://github.com/sveinungf/spreadcheetah/wiki#supported-spreadsheet-functionality).
 
 See [Releases](https://github.com/sveinungf/spreadcheetah/releases) for release notes.
 
@@ -155,29 +154,8 @@ with string values. Some of these libraries have multiple ways of achieving the 
 but to make this a fair comparison the idea is to use the most efficient approach for each library.
 The code is available [in the Benchmark project](https://github.com/sveinungf/spreadcheetah/blob/main/SpreadCheetah.Benchmark/Benchmarks/StringCells.cs).
 
-### .NET Framework 4.8
-
-|                    Library |         Mean |     Allocated |
-|----------------------------|-------------:|--------------:|
-|          **SpreadCheetah** | **65.54 ms** | **152.23 KB** |
-|    Open XML (SAX approach) |    402.34 ms |  43 317.24 KB |
-|                 EPPlusFree |    621.00 ms | 286 145.93 KB |
-|    Open XML (DOM approach) |  1,051.95 ms | 161 059.22 KB |
-|                  ClosedXML |  1,310.59 ms | 509 205.80 KB |
-
-
-### .NET 6
-
-|                    Library |         Mean |     Allocated |
-|----------------------------|-------------:|--------------:|
-|          **SpreadCheetah** | **25.58 ms** |   **6.63 KB** |
-|    Open XML (SAX approach) |    237.28 ms |  66 055.02 KB |
-|                 EPPlusFree |    408.78 ms | 195 791.84 KB |
-|    Open XML (DOM approach) |    802.89 ms | 182 926.09 KB |
-|                  ClosedXML |    891.17 ms | 529 852.29 KB |
-
-
-### .NET 8
+<details open>
+<summary><h3>.NET 8</h3></summary>
 
 |                    Library |         Mean |     Allocated |
 |----------------------------|-------------:|--------------:|
@@ -186,3 +164,30 @@ The code is available [in the Benchmark project](https://github.com/sveinungf/sp
 |                 EPPlusFree |    370.07 ms | 195 610.91 KB |
 |    Open XML (DOM approach) |    700.73 ms | 182 916.73 KB |
 |                  ClosedXML |    754.83 ms | 529 203.20 KB |
+</details>
+
+
+<details>
+<summary><h3>.NET 6</h3></summary>
+
+|                    Library |         Mean |     Allocated |
+|----------------------------|-------------:|--------------:|
+|          **SpreadCheetah** | **25.58 ms** |   **6.63 KB** |
+|    Open XML (SAX approach) |    237.28 ms |  66 055.02 KB |
+|                 EPPlusFree |    408.78 ms | 195 791.84 KB |
+|    Open XML (DOM approach) |    802.89 ms | 182 926.09 KB |
+|                  ClosedXML |    891.17 ms | 529 852.29 KB |
+</details>
+
+
+<details>
+<summary><h3>.NET Framework 4.8</h3></summary>
+
+|                    Library |         Mean |     Allocated |
+|----------------------------|-------------:|--------------:|
+|          **SpreadCheetah** | **65.54 ms** | **152.23 KB** |
+|    Open XML (SAX approach) |    402.34 ms |  43 317.24 KB |
+|                 EPPlusFree |    621.00 ms | 286 145.93 KB |
+|    Open XML (DOM approach) |  1,051.95 ms | 161 059.22 KB |
+|                  ClosedXML |  1,310.59 ms | 509 205.80 KB |
+</details>
