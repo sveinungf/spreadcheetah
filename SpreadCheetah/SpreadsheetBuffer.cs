@@ -64,21 +64,16 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
     }
 
     [InterpolatedStringHandler]
-    public ref struct TryWriteInterpolatedStringHandler
+    public ref struct TryWriteInterpolatedStringHandler(int literalLength, int formattedCount, SpreadsheetBuffer buffer)
     {
-        private readonly SpreadsheetBuffer _buffer;
         internal int _pos;
-        internal bool _success;
+        internal bool _success = true;
 
-        public TryWriteInterpolatedStringHandler(int literalLength, int formattedCount, SpreadsheetBuffer buffer)
+        private readonly Span<byte> GetSpan()
         {
-            _ = literalLength;
-            _ = formattedCount;
-            _buffer = buffer;
-            _success = true;
+            var local = buffer;
+            return local._buffer.AsSpan(local._index + _pos);
         }
-
-        private readonly Span<byte> GetSpan() => _buffer._buffer.AsSpan(_buffer._index + _pos);
 
         [ExcludeFromCodeCoverage]
         public bool AppendLiteral(string value)
@@ -95,6 +90,17 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         }
 
         public bool AppendFormatted(int value)
+        {
+            if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
+            {
+                _pos += bytesWritten;
+                return true;
+            }
+
+            return Fail();
+        }
+
+        public bool AppendFormatted(uint value)
         {
             if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
             {
