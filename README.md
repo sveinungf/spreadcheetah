@@ -155,7 +155,8 @@ with string values. Some of these libraries have multiple ways of achieving the 
 but to make this a fair comparison the idea is to use the most efficient approach for each library.
 The code is available [in the Benchmark project](https://github.com/sveinungf/spreadcheetah/blob/main/SpreadCheetah.Benchmark/Benchmarks/StringCells.cs).
 
-### .NET Framework 4.8
+<details>
+<summary><h3>.NET Framework 4.8</h3></summary>
 
 |                    Library |         Mean |     Allocated |
 |----------------------------|-------------:|--------------:|
@@ -164,6 +165,7 @@ The code is available [in the Benchmark project](https://github.com/sveinungf/sp
 |                 EPPlusFree |    621.00 ms | 286 145.93 KB |
 |    Open XML (DOM approach) |  1,051.95 ms | 161 059.22 KB |
 |                  ClosedXML |  1,310.59 ms | 509 205.80 KB |
+</details>
 
 
 ### .NET 6
