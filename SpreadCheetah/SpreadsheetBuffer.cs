@@ -16,6 +16,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
     public void Dispose() => ArrayPool<byte>.Shared.Return(_buffer, true);
     public Span<byte> GetSpan() => _buffer.AsSpan(_index);
+    private Span<byte> GetSpan(int start) => _buffer.AsSpan(_index + start);
     public void Advance(int bytes) => _index += bytes;
 
     public bool WriteLongString(ReadOnlySpan<char> value, ref int valueIndex)
@@ -54,9 +55,10 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
     public bool TryWrite([InterpolatedStringHandlerArgument("")] ref TryWriteInterpolatedStringHandler handler)
     {
-        if (handler._success)
+        var pos = handler._pos;
+        if (pos != 0)
         {
-            Advance(handler._pos);
+            Advance(pos);
             return true;
         }
 
@@ -64,21 +66,13 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
     }
 
     [InterpolatedStringHandler]
-    public ref struct TryWriteInterpolatedStringHandler
+#pragma warning disable CS9113 // Parameter is unread.
+    public ref struct TryWriteInterpolatedStringHandler(int literalLength, int formattedCount, SpreadsheetBuffer buffer)
+#pragma warning restore CS9113 // Parameter is unread.
     {
-        private readonly SpreadsheetBuffer _buffer;
         internal int _pos;
-        internal bool _success;
 
-        public TryWriteInterpolatedStringHandler(int literalLength, int formattedCount, SpreadsheetBuffer buffer)
-        {
-            _ = literalLength;
-            _ = formattedCount;
-            _buffer = buffer;
-            _success = true;
-        }
-
-        private readonly Span<byte> GetSpan() => _buffer._buffer.AsSpan(_buffer._index + _pos);
+        private readonly Span<byte> GetSpan() => buffer.GetSpan(_pos);
 
         [ExcludeFromCodeCoverage]
         public bool AppendLiteral(string value)
@@ -95,6 +89,17 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         }
 
         public bool AppendFormatted(int value)
+        {
+            if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
+            {
+                _pos += bytesWritten;
+                return true;
+            }
+
+            return Fail();
+        }
+
+        public bool AppendFormatted(uint value)
         {
             if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
             {
@@ -180,7 +185,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         private bool Fail()
         {
-            _success = false;
+            _pos = 0;
             return false;
         }
     }
