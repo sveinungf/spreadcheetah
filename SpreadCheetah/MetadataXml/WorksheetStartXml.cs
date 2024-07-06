@@ -49,7 +49,7 @@ internal struct WorksheetStartXml
     {
         var destination = _buffer.GetSpan();
 
-        (Current, var bytesWritten) = _next switch
+        (var current, var bytesWritten) = _next switch
         {
             Element.Header => Header.MyCopyTo(destination),
             Element.SheetViews => TryWriteSheetViews(destination),
@@ -58,7 +58,8 @@ internal struct WorksheetStartXml
             _ => (true, 0)
         };
 
-        if (Current)
+        Current = current;
+        if (current)
         {
             _buffer.Advance(bytesWritten);
             ++_next;
