@@ -16,6 +16,17 @@ internal static class SpanHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static (bool, int) MyCopyTo(this ReadOnlySpan<byte> source, Span<byte> bytes)
+    {
+        if (source.TryCopyTo(bytes))
+        {
+            return (true, source.Length);
+        }
+
+        return (false, 0);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryWrite(int value, Span<byte> bytes, ref int bytesWritten, StandardFormat format = default)
     {
         if (!Utf8Formatter.TryFormat(value, bytes.Slice(bytesWritten), out var length, format)) return false;
