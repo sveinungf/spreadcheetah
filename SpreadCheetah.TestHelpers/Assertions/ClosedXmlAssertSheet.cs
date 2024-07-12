@@ -5,6 +5,8 @@ namespace SpreadCheetah.TestHelpers.Assertions;
 internal sealed class ClosedXmlAssertSheet(XLWorkbook workbook, IXLWorksheet sheet)
     : ISpreadsheetAssertSheet
 {
+    public string Name => sheet.Name;
+
     public ISpreadsheetAssertCell this[string reference]
     {
         get

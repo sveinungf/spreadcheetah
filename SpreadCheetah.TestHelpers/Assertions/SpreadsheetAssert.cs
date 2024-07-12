@@ -21,6 +21,19 @@ public static class SpreadsheetAssert
         return new ClosedXmlAssertSheet(workbook, sheet);
     }
 
+    public static IReadOnlyList<ISpreadsheetAssertSheet> Sheets(Stream stream)
+    {
+        if (stream is null)
+            throw new ArgumentNullException(nameof(stream));
+
+        Valid(stream);
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        var workbook = new XLWorkbook(stream);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+        return [.. workbook.Worksheets.Select(x => new ClosedXmlAssertSheet(workbook, x))];
+    }
+
     public static void Valid(Stream stream)
     {
         if (stream is null)

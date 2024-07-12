@@ -324,27 +324,23 @@ public class SpreadsheetTests
         // Arrange
         var sheetNames = Enumerable.Range(1, count).Select(x => "Sheet " + x).ToList();
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize }))
-        {
-            // Act
-            foreach (var name in sheetNames)
-            {
-                await spreadsheet.StartWorksheetAsync(name);
-                await spreadsheet.AddRowAsync(new DataCell(name));
-            }
+        var spreadsheetOptions = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, spreadsheetOptions);
 
-            await spreadsheet.FinishAsync();
+        // Act
+        foreach (var name in sheetNames)
+        {
+            await spreadsheet.StartWorksheetAsync(name);
+            await spreadsheet.AddRowAsync(new DataCell(name));
         }
 
+        await spreadsheet.FinishAsync();
+
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var actual = SpreadsheetDocument.Open(stream, true);
-        var sheets = actual.WorkbookPart!.Workbook.Sheets!.Cast<Sheet>().ToList();
-        var worksheets = actual.WorkbookPart.WorksheetParts.Select(x => x.Worksheet);
-        var cells = worksheets.Select(x => x.Descendants<DocumentFormat.OpenXml.Spreadsheet.Cell>().Single());
+        var sheets = SpreadsheetAssert.Sheets(stream); // TODO: using (Disposable list type)
         Assert.Equal(count, sheets.Count);
-        Assert.Equal(sheetNames, sheets.Select(x => x.Name?.Value));
-        Assert.Equal(sheetNames, cells.Select(x => x.InnerText));
+        Assert.Equal(sheetNames, sheets.Select(x => x.Name));
+        Assert.Equal(sheetNames, sheets.Select(x => x["A1"].StringValue));
     }
 
     [Theory]
