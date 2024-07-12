@@ -57,12 +57,7 @@ internal struct WorksheetStartXml
         };
 
         Current = current;
-        if (current)
-        {
-            ++_next;
-        }
-
-        return _next < Element.Done;
+        return current && ++_next < Element.Done;
     }
 
     private readonly bool TryWriteSheetViews(SpreadsheetBuffer buffer)
@@ -137,8 +132,6 @@ internal struct WorksheetStartXml
     {
         if (_columns is not { } columns) return true;
 
-        var span = buffer.GetSpan();
-        var bytesWritten = 0;
         var anyColumnWritten = _anyColumnWritten;
 
         for (; _nextIndex < columns.Count; ++_nextIndex)
@@ -147,6 +140,7 @@ internal struct WorksheetStartXml
             if (options.Width is null && !options.Hidden)
                 continue;
 
+            var span = buffer.GetSpan();
             var written = 0;
 
             if (!anyColumnWritten)
@@ -171,19 +165,14 @@ internal struct WorksheetStartXml
             if (!" />"u8.TryCopyTo(span, ref written)) return false;
 
             _anyColumnWritten = anyColumnWritten;
-            bytesWritten += written;
+
+            buffer.Advance(written);
         }
 
         if (!anyColumnWritten)
             return true;
 
-        if ("</cols>"u8.TryCopyTo(span, ref bytesWritten))
-        {
-            buffer.Advance(bytesWritten);
-            return true;
-        }
-
-        return false;
+        return buffer.TryWrite("</cols>"u8);
     }
 
     private enum Element
