@@ -5,6 +5,8 @@ namespace SpreadCheetah.TestHelpers.Assertions;
 internal sealed class ClosedXmlAssertSheet(XLWorkbook workbook, IXLWorksheet sheet)
     : ISpreadsheetAssertSheet
 {
+    public string Name => sheet.Name;
+
     public ISpreadsheetAssertCell this[string reference]
     {
         get
@@ -35,6 +37,9 @@ internal sealed class ClosedXmlAssertSheet(XLWorkbook workbook, IXLWorksheet she
     {
         return new ClosedXmlAssertColumn(sheet.Column(columnName));
     }
+
+    private IReadOnlyList<ISpreadsheetAssertColumn>? _columns;
+    public IReadOnlyList<ISpreadsheetAssertColumn> Columns => _columns ??= [.. sheet.Columns().Select(x => new ClosedXmlAssertColumn(x))];
 
     public IEnumerable<ISpreadsheetAssertCell> Row(int rowNumber)
     {

@@ -50,8 +50,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public async ValueTask WriteHeadAsync(WorksheetOptions? options, CancellationToken token)
     {
-        var writer = new WorksheetStartXml(options);
-        await writer.WriteAsync(_stream, _buffer, token).ConfigureAwait(false);
+        await WorksheetStartXml.WriteAsync(options, _buffer, _stream, token).ConfigureAwait(false);
 
         if (options?.AutoFilter is not null)
         {
