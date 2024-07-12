@@ -1,6 +1,5 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Worksheets;
-using System.IO;
 
 namespace SpreadCheetah.MetadataXml;
 
