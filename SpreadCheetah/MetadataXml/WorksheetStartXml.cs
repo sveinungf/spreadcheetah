@@ -46,7 +46,7 @@ internal struct WorksheetStartXml
 
     public bool MoveNext()
     {
-        var current = _next switch
+        Current = _next switch
         {
             Element.Header => _buffer.TryWrite(Header),
             Element.SheetViews => TryWriteSheetViews(_buffer),
@@ -54,8 +54,10 @@ internal struct WorksheetStartXml
             _ => _buffer.TryWrite(SheetDataBegin)
         };
 
-        Current = current;
-        return current && ++_next < Element.Done;
+        if (Current)
+            ++_next;
+
+        return _next < Element.Done;
     }
 
     private readonly bool TryWriteSheetViews(SpreadsheetBuffer buffer)

@@ -10,6 +10,6 @@ public interface ISpreadsheetAssertSheet : IDisposable
     int RowCount { get; }
 
     ISpreadsheetAssertColumn Column(string columnName);
-    IEnumerable<ISpreadsheetAssertColumn> Columns { get; }
+    IReadOnlyList<ISpreadsheetAssertColumn> Columns { get; }
     IEnumerable<ISpreadsheetAssertCell> Row(int rowNumber);
 }

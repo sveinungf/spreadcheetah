@@ -348,7 +348,7 @@ public class SpreadsheetTests
     [InlineData(10)]
     [InlineData(100)]
     [InlineData(2000)]
-    [InlineData(16384)]
+    [InlineData(16383)]
     public async Task Spreadsheet_StartWorksheet_WorksheetWithMultipleColumnOptions(int count)
     {
         // Arrange
@@ -369,6 +369,7 @@ public class SpreadsheetTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(columnWidths.Count, sheet.Columns.Count);
         Assert.Equal(columnWidths, sheet.Columns.Select(x => x.Width), new DoubleEqualityComparer(0.01d));
     }
 
