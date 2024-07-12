@@ -344,6 +344,35 @@ public class SpreadsheetTests
     }
 
     [Theory]
+    [InlineData(2)]
+    [InlineData(10)]
+    [InlineData(100)]
+    [InlineData(2000)]
+    [InlineData(16384)]
+    public async Task Spreadsheet_StartWorksheet_WorksheetWithMultipleColumnOptions(int count)
+    {
+        // Arrange
+        var columnWidths = Enumerable.Range(1, count).Select(x => 20d + (x % 100)).ToList();
+        using var stream = new MemoryStream();
+        var spreadsheetOptions = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, spreadsheetOptions);
+        var options = new WorksheetOptions();
+
+        // Act
+        foreach (var (i, columnWidth) in columnWidths.Index())
+        {
+            options.Column(i + 1).Width = columnWidth;
+        }
+
+        await spreadsheet.StartWorksheetAsync("Sheet", options);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(columnWidths, sheet.Columns.Select(x => x.Width), new DoubleEqualityComparer(0.01d));
+    }
+
+    [Theory]
     [InlineData(false, WorksheetVisibility.Hidden)]
     [InlineData(false, WorksheetVisibility.VeryHidden)]
     [InlineData(true, WorksheetVisibility.Hidden)]

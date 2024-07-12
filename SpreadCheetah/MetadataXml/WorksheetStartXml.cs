@@ -51,8 +51,7 @@ internal struct WorksheetStartXml
             Element.Header => _buffer.TryWrite(Header),
             Element.SheetViews => TryWriteSheetViews(_buffer),
             Element.Columns => TryWriteColumns(_buffer),
-            Element.SheetDataBegin => _buffer.TryWrite(SheetDataBegin),
-            _ => true
+            _ => _buffer.TryWrite(SheetDataBegin)
         };
 
         Current = current;

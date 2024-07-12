@@ -38,6 +38,8 @@ internal sealed class ClosedXmlAssertSheet(XLWorkbook workbook, IXLWorksheet she
         return new ClosedXmlAssertColumn(sheet.Column(columnName));
     }
 
+    public IEnumerable<ISpreadsheetAssertColumn> Columns => sheet.Columns().Select(x => new ClosedXmlAssertColumn(x));
+
     public IEnumerable<ISpreadsheetAssertCell> Row(int rowNumber)
     {
         var row = sheet.Row(rowNumber);
