@@ -337,7 +337,7 @@ public class SpreadsheetTests
         await spreadsheet.FinishAsync();
 
         // Assert
-        var sheets = SpreadsheetAssert.Sheets(stream); // TODO: using (Disposable list type)
+        using var sheets = SpreadsheetAssert.Sheets(stream);
         Assert.Equal(count, sheets.Count);
         Assert.Equal(sheetNames, sheets.Select(x => x.Name));
         Assert.Equal(sheetNames, sheets.Select(x => x["A1"].StringValue));

@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
+using SpreadCheetah.TestHelpers.Collections;
 using Xunit;
 
 namespace SpreadCheetah.TestHelpers.Assertions;
@@ -21,7 +22,7 @@ public static class SpreadsheetAssert
         return new ClosedXmlAssertSheet(workbook, sheet);
     }
 
-    public static IReadOnlyList<ISpreadsheetAssertSheet> Sheets(Stream stream)
+    public static IWorksheetList Sheets(Stream stream)
     {
         if (stream is null)
             throw new ArgumentNullException(nameof(stream));
@@ -31,7 +32,7 @@ public static class SpreadsheetAssert
 #pragma warning disable CA2000 // Dispose objects before losing scope
         var workbook = new XLWorkbook(stream);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-        return [.. workbook.Worksheets.Select(x => new ClosedXmlAssertSheet(workbook, x))];
+        return new ClosedXmlWorksheetList(workbook);
     }
 
     public static void Valid(Stream stream)
