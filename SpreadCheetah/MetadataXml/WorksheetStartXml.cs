@@ -47,46 +47,43 @@ internal struct WorksheetStartXml
 
     public bool MoveNext()
     {
-        var destination = _buffer.GetSpan();
-
-        (var current, var bytesWritten) = _next switch
+        var current = _next switch
         {
-            Element.Header => Header.MyCopyTo(destination),
-            Element.SheetViews => TryWriteSheetViews(destination),
-            Element.Columns => TryWriteColumns(destination),
-            Element.SheetDataBegin => SheetDataBegin.MyCopyTo(destination),
-            _ => (true, 0)
+            Element.Header => _buffer.TryWrite(Header),
+            Element.SheetViews => TryWriteSheetViews(_buffer),
+            Element.Columns => TryWriteColumns(_buffer),
+            Element.SheetDataBegin => _buffer.TryWrite(SheetDataBegin),
+            _ => true
         };
 
         Current = current;
         if (current)
         {
-            _buffer.Advance(bytesWritten);
             ++_next;
         }
-        
 
         return _next < Element.Done;
     }
 
-    private readonly (bool, int) TryWriteSheetViews(Span<byte> span)
+    private readonly bool TryWriteSheetViews(SpreadsheetBuffer buffer)
     {
         var options = _options;
         if (options?.FrozenColumns is null && options?.FrozenRows is null)
-            return (true, 0);
+            return true;
 
+        var span = buffer.GetSpan();
         var written = 0;
 
-        if (!"<sheetViews><sheetView workbookViewId=\"0\"><pane "u8.TryCopyTo(span, ref written)) return (false, 0);
-        if (!TryWritexSplit(span, ref written)) return (false, 0);
-        if (!TryWriteySplit(span, ref written)) return (false, 0);
-        if (!"topLeftCell=\""u8.TryCopyTo(span, ref written)) return (false, 0);
+        if (!"<sheetViews><sheetView workbookViewId=\"0\"><pane "u8.TryCopyTo(span, ref written)) return false;
+        if (!TryWritexSplit(span, ref written)) return false;
+        if (!TryWriteySplit(span, ref written)) return false;
+        if (!"topLeftCell=\""u8.TryCopyTo(span, ref written)) return false;
 
         var column = (options.FrozenColumns ?? 0) + 1;
         var row = (options.FrozenRows ?? 0) + 1;
-        if (!SpanHelper.TryWriteCellReference(column, (uint)row, span, ref written)) return (false, 0);
+        if (!SpanHelper.TryWriteCellReference(column, (uint)row, span, ref written)) return false;
 
-        if (!"\" activePane=\""u8.TryCopyTo(span, ref written)) return (false, 0);
+        if (!"\" activePane=\""u8.TryCopyTo(span, ref written)) return false;
 
         var activePane = options switch
         {
@@ -95,24 +92,25 @@ internal struct WorksheetStartXml
             _ => "bottomLeft"u8
         };
 
-        if (!activePane.TryCopyTo(span, ref written)) return (false, 0);
-        if (!"\" state=\"frozen\"/>"u8.TryCopyTo(span, ref written)) return (false, 0);
+        if (!activePane.TryCopyTo(span, ref written)) return false;
+        if (!"\" state=\"frozen\"/>"u8.TryCopyTo(span, ref written)) return false;
 
         var bottomRight = """<selection pane="bottomRight"/>"""u8;
         if (options is { FrozenColumns: not null, FrozenRows: not null } && !bottomRight.TryCopyTo(span, ref written))
-            return (false, 0);
+            return false;
 
         var bottomLeft = """<selection pane="bottomLeft"/>"""u8;
         if (options.FrozenRows is not null && !bottomLeft.TryCopyTo(span, ref written))
-            return (false, 0);
+            return false;
 
         var topRight = """<selection pane="topRight"/>"""u8;
         if (options.FrozenColumns is not null && !topRight.TryCopyTo(span, ref written))
-            return (false, 0);
+            return false;
 
-        if (!"</sheetView></sheetViews>"u8.TryCopyTo(span, ref written)) return (false, 0);
+        if (!"</sheetView></sheetViews>"u8.TryCopyTo(span, ref written)) return false;
 
-        return (true, written);
+        _buffer.Advance(written);
+        return true;
     }
 
     private readonly bool TryWritexSplit(Span<byte> bytes, ref int bytesWritten)
@@ -135,10 +133,11 @@ internal struct WorksheetStartXml
         return "\" "u8.TryCopyTo(bytes, ref bytesWritten);
     }
 
-    private (bool, int) TryWriteColumns(Span<byte> span)
+    private bool TryWriteColumns(SpreadsheetBuffer buffer)
     {
-        if (_columns is not { } columns) return (true, 0);
+        if (_columns is not { } columns) return true;
 
+        var span = buffer.GetSpan();
         var bytesWritten = 0;
         var anyColumnWritten = _anyColumnWritten;
 
@@ -152,33 +151,39 @@ internal struct WorksheetStartXml
 
             if (!anyColumnWritten)
             {
-                if (!"<cols>"u8.TryCopyTo(span, ref written)) return (false, bytesWritten);
+                if (!"<cols>"u8.TryCopyTo(span, ref written)) return false;
                 anyColumnWritten = true;
             }
 
-            if (!"<col min=\""u8.TryCopyTo(span, ref written)) return (false, bytesWritten);
-            if (!SpanHelper.TryWrite(columnIndex, span, ref written)) return (false, bytesWritten);
-            if (!"\" max=\""u8.TryCopyTo(span, ref written)) return (false, bytesWritten);
-            if (!SpanHelper.TryWrite(columnIndex, span, ref written)) return (false, bytesWritten);
-            if (!"\""u8.TryCopyTo(span, ref written)) return (false, bytesWritten);
+            if (!"<col min=\""u8.TryCopyTo(span, ref written)) return false;
+            if (!SpanHelper.TryWrite(columnIndex, span, ref written)) return false;
+            if (!"\" max=\""u8.TryCopyTo(span, ref written)) return false;
+            if (!SpanHelper.TryWrite(columnIndex, span, ref written)) return false;
+            if (!"\""u8.TryCopyTo(span, ref written)) return false;
             if (options.Width.HasValue)
             {
-                if (!" width=\""u8.TryCopyTo(span, ref written)) return (false, bytesWritten);
-                if (!SpanHelper.TryWrite(options.Width.GetValueOrDefault(), span, ref written)) return (false, bytesWritten);
-                if (!"\" customWidth=\"1\""u8.TryCopyTo(span, ref written)) return (false, bytesWritten);
+                if (!" width=\""u8.TryCopyTo(span, ref written)) return false;
+                if (!SpanHelper.TryWrite(options.Width.GetValueOrDefault(), span, ref written)) return false;
+                if (!"\" customWidth=\"1\""u8.TryCopyTo(span, ref written)) return false;
             }
 
-            if (options.Hidden && !" hidden=\"1\""u8.TryCopyTo(span, ref written)) return (false, bytesWritten);
-            if (!" />"u8.TryCopyTo(span, ref written)) return (false, bytesWritten);
+            if (options.Hidden && !" hidden=\"1\""u8.TryCopyTo(span, ref written)) return false;
+            if (!" />"u8.TryCopyTo(span, ref written)) return false;
 
             _anyColumnWritten = anyColumnWritten;
             bytesWritten += written;
         }
 
         if (!anyColumnWritten)
-            return (true, bytesWritten);
+            return true;
 
-        return ("</cols>"u8.TryCopyTo(span, ref bytesWritten), bytesWritten);
+        if ("</cols>"u8.TryCopyTo(span, ref bytesWritten))
+        {
+            buffer.Advance(bytesWritten);
+            return true;
+        }
+
+        return false;
     }
 
     private enum Element
