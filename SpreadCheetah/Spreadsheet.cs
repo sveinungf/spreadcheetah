@@ -31,6 +31,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly NumberFormat? _defaultDateTimeFormat;
     private DefaultStyling? _defaultStyling;
     private Dictionary<ImmutableStyle, int>? _styles;
+    private Dictionary<string, (StyleId, StyleNameVisibility?)>? _namedStyles;
     private FileCounter? _fileCounter;
     private Worksheet? _worksheet;
     private bool _disposed;
@@ -394,6 +395,22 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return AddStyle(ImmutableStyle.From(style));
     }
 
+    public StyleId AddStyle(Style style, string name, StyleNameVisibility? styleNameVisibility = null)
+    {
+        ArgumentNullException.ThrowIfNull(style);
+        ArgumentNullException.ThrowIfNull(name);
+
+        // TODO: Validate name length
+        // TODO: Validate uniqueness of name (does case sensitivity matter?)
+
+        var styleId = AddStyle(style);
+
+        _namedStyles ??= [];
+        _namedStyles[name] = (styleId, styleNameVisibility);
+
+        return styleId;
+    }
+
     private void AddDefaultStyle()
     {
         var defaultFont = new ImmutableFont(null, false, false, false, Font.DefaultSize, null);
@@ -615,6 +632,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, token).ConfigureAwait(false);
 
+        // TODO: Pass named styles
         if (_styles is not null)
             await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styles, token).ConfigureAwait(false);
 
