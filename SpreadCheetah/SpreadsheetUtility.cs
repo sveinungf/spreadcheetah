@@ -14,31 +14,31 @@ public static class SpreadsheetUtility
     /// </summary>
     public static string GetColumnName(int columnNumber)
     {
-        if (columnNumber is < 1 or > SpreadsheetConstants.MaxNumberOfColumns)
+        var colNum = columnNumber - 1;
+        if ((uint)colNum >= SpreadsheetConstants.MaxNumberOfColumns)
             ThrowHelper.ColumnNumberInvalid(nameof(columnNumber), columnNumber);
 
-        if (columnNumber <= 26)
-            return Alphabet[columnNumber - 1];
+        if (colNum < 26)
+            return Alphabet[colNum];
 
-        if (columnNumber <= 702)
+        var quotient1 = Math.DivRem(colNum, 26, out var remainder1);
+        if (colNum < 702)
         {
-            var quotient = Math.DivRem(columnNumber - 1, 26, out var remainder);
 #if NET8_0_OR_GREATER
             return new string(
             [
-                (char)('A' - 1 + quotient),
-                (char)('A' + remainder)
+                (char)('A' - 1 + quotient1),
+                (char)('A' + remainder1)
             ]);
 #else
             return stackalloc char[2]
             {
-                (char)('A' - 1 + quotient),
-                (char)('A' + remainder)
+                (char)('A' - 1 + quotient1),
+                (char)('A' + remainder1)
             }.ToString();
 #endif
         }
 
-        var quotient1 = Math.DivRem(columnNumber - 1, 26, out var remainder1);
         var quotient2 = Math.DivRem(quotient1 - 1, 26, out var remainder2);
 #if NET8_0_OR_GREATER
         return new string(
