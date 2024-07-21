@@ -63,23 +63,24 @@ public static class SpreadsheetUtility
     /// </summary>
     public static bool TryGetColumnNameUtf8(int columnNumber, Span<byte> destination, out int bytesWritten)
     {
-        if (columnNumber is < 1 or > SpreadsheetConstants.MaxNumberOfColumns)
+        var colNum = columnNumber - 1;
+        if ((uint)colNum >= SpreadsheetConstants.MaxNumberOfColumns)
             ThrowHelper.ColumnNumberInvalid(nameof(columnNumber), columnNumber);
 
-        if (columnNumber <= 26)
+        if (colNum < 26)
         {
             if (destination.Length > 0)
             {
-                destination[0] = (byte)(columnNumber + 'A' - 1);
+                destination[0] = (byte)(colNum + 'A');
                 bytesWritten = 1;
                 return true;
             }
         }
-        else if (columnNumber <= 702)
+        else if (colNum < 702)
         {
             if (destination.Length > 1)
             {
-                var quotient = Math.DivRem(columnNumber - 1, 26, out var remainder);
+                var quotient = Math.DivRem(colNum, 26, out var remainder);
                 destination[0] = (byte)('A' - 1 + quotient);
                 destination[1] = (byte)('A' + remainder);
                 bytesWritten = 2;
@@ -90,7 +91,7 @@ public static class SpreadsheetUtility
         {
             if (destination.Length > 2)
             {
-                var quotient1 = Math.DivRem(columnNumber - 1, 26, out var remainder1);
+                var quotient1 = Math.DivRem(colNum, 26, out var remainder1);
                 var quotient2 = Math.DivRem(quotient1 - 1, 26, out var remainder2);
                 destination[0] = (byte)('A' - 1 + quotient2);
                 destination[1] = (byte)('A' + remainder2);
