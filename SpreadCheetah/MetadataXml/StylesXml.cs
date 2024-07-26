@@ -198,8 +198,7 @@ internal struct StylesXml : IXmlWriter
 
             if (!" xfId=\"0\""u8.TryCopyTo(span, ref written)) return false;
 
-            var defaultAlignment = new ImmutableAlignment();
-            if (style.Alignment == defaultAlignment)
+            if (style.Alignment == default)
             {
                 if (!"/>"u8.TryCopyTo(span, ref written)) return false;
             }
