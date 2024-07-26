@@ -400,13 +400,16 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(style);
         ArgumentNullException.ThrowIfNull(name);
 
-        // TODO: Validate name length
-        // TODO: Validate uniqueness of name (does case sensitivity matter?)
+        if (name.Length > 255)
+            ThrowHelper.StyleNameTooLong(nameof(name));
+
+        // TODO: Validate uniqueness of name (does case sensitivity matter? does whitespace matter?)
+        var namedStyles = _namedStyles ??= [];
+        if (namedStyles.ContainsKey(name))
+            ThrowHelper.StyleNameAlreadyExists(nameof(name));
 
         var styleId = AddStyle(style);
-
-        _namedStyles ??= [];
-        _namedStyles[name] = (styleId, styleNameVisibility);
+        namedStyles[name] = (styleId, styleNameVisibility);
 
         return styleId;
     }
@@ -459,7 +462,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (_namedStyles is { } namedStyles && namedStyles.TryGetValue(name, out var value))
             return value.Item1;
 
-        ThrowHelper.StyleNotFound(name);
+        ThrowHelper.StyleNameNotFound(name);
         return null; // Unreachable
     }
 
