@@ -74,6 +74,9 @@ internal static class ThrowHelper
     public static void StreamContentNotSupportedImageType(string? paramName) => throw new ArgumentException("The stream content is not a supported image type. Currently only PNG images are supported.", nameof(paramName));
 
     [DoesNotReturn]
+    public static void StyleNotFound(string name) => throw new SpreadCheetahException($"Style with name '{name}' was not found. Make sure the style is first added to the spreadsheet by calling {nameof(Spreadsheet.AddStyle)} with a name argument.");
+
+    [DoesNotReturn]
     public static void ValueIsNegative<T>(string? paramName, T value) => throw new ArgumentOutOfRangeException(paramName, value, "The value can not be negative.");
 
     [DoesNotReturn]

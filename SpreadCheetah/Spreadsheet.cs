@@ -448,6 +448,22 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
+    /// Get the <see cref="StyleId"/> from a named style.
+    /// The named style must have previously been added to the spreadsheet with <see cref="AddStyle(Style, string, StyleNameVisibility?)"/>.
+    /// If the named style is not found, a <see cref="SpreadCheetahException"/> is thrown.
+    /// </summary>
+    public StyleId GetStyleId(string name)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+
+        if (_namedStyles is { } namedStyles && namedStyles.TryGetValue(name, out var value))
+            return value.Item1;
+
+        ThrowHelper.StyleNotFound(name);
+        return null; // Unreachable
+    }
+
+    /// <summary>
     /// Adds data validation for a cell or a range of cells. The reference must be in the A1 reference style. Some examples:
     /// <list type="bullet">
     ///   <item><term><c>A1</c></term><description>References the top left cell.</description></item>
