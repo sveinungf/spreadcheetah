@@ -4,41 +4,46 @@ using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct StyleFontsXml
+internal struct StyleFontsXml(List<ImmutableFont> fonts, SpreadsheetBuffer buffer)
 {
-    private readonly List<ImmutableFont> _fonts;
     private Element _next;
     private int _nextIndex;
 
-    public StyleFontsXml(List<ImmutableFont> fonts)
+    public bool TryWrite()
     {
-        _fonts = fonts;
-    }
-
-    public bool TryWrite(Span<byte> bytes, ref int bytesWritten)
-    {
-        if (_next == Element.Header && !Advance(TryWriteHeader(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Fonts && !Advance(TryWriteFonts(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Footer && !Advance("</fonts>"u8.TryCopyTo(bytes, ref bytesWritten))) return false;
+        while (MoveNext())
+        {
+            if (!Current)
+                return false;
+        }
 
         return true;
     }
 
-    private bool Advance(bool success)
+    public bool Current { get; private set; }
+
+    public bool MoveNext()
     {
-        if (success)
+        Current = _next switch
+        {
+            Element.Header => TryWriteHeader(),
+            Element.Fonts => TryWriteFonts(),
+            _ => buffer.TryWrite("</fonts>"u8)
+        };
+
+        if (Current)
             ++_next;
 
-        return success;
+        return _next < Element.Done;
     }
 
-    private readonly bool TryWriteHeader(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteHeader()
     {
-        var span = bytes.Slice(bytesWritten);
+        var span = buffer.GetSpan();
         var written = 0;
 
         const int defaultCount = 1;
-        var totalCount = _fonts.Count + defaultCount - 1;
+        var totalCount = fonts.Count + defaultCount - 1;
 
         if (!"<fonts count=\""u8.TryCopyTo(span, ref written)) return false;
         if (!SpanHelper.TryWrite(totalCount, span, ref written)) return false;
@@ -48,21 +53,21 @@ internal struct StyleFontsXml
             """<font><sz val="11"/><name val="Calibri"/></font>"""u8;
         if (!defaultFont.TryCopyTo(span, ref written)) return false;
 
-        bytesWritten += written;
+        buffer.Advance(written);
         return true;
     }
 
-    private bool TryWriteFonts(Span<byte> bytes, ref int bytesWritten)
+    private bool TryWriteFonts()
     {
         var defaultFont = new ImmutableFont { Size = Font.DefaultSize };
-        var fonts = _fonts;
+        var fontsLocal = fonts;
 
-        for (; _nextIndex < fonts.Count; ++_nextIndex)
+        for (; _nextIndex < fontsLocal.Count; ++_nextIndex)
         {
             var font = fonts[_nextIndex];
             if (font.Equals(defaultFont)) continue;
 
-            var span = bytes.Slice(bytesWritten);
+            var span = buffer.GetSpan();
             var written = 0;
 
             if (!"<font>"u8.TryCopyTo(span, ref written)) return false;
@@ -85,7 +90,7 @@ internal struct StyleFontsXml
             if (!SpanHelper.TryWrite(fontName, span, ref written)) return false;
             if (!"\"/></font>"u8.TryCopyTo(span, ref written)) return false;
 
-            bytesWritten += written;
+            buffer.Advance(written);
         }
 
         return true;

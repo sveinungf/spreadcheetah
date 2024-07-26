@@ -3,41 +3,46 @@ using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct StyleFillsXml
+internal struct StyleFillsXml(List<ImmutableFill> fills, SpreadsheetBuffer buffer)
 {
-    private readonly List<ImmutableFill> _fills;
     private Element _next;
     private int _nextIndex;
 
-    public StyleFillsXml(List<ImmutableFill> fills)
+    public bool TryWrite()
     {
-        _fills = fills;
-    }
-
-    public bool TryWrite(Span<byte> bytes, ref int bytesWritten)
-    {
-        if (_next == Element.Header && !Advance(TryWriteHeader(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Fills && !Advance(TryWriteFills(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Footer && !Advance("</fills>"u8.TryCopyTo(bytes, ref bytesWritten))) return false;
+        while (MoveNext())
+        {
+            if (!Current)
+                return false;
+        }
 
         return true;
     }
 
-    private bool Advance(bool success)
+    public bool Current { get; private set; }
+
+    public bool MoveNext()
     {
-        if (success)
+        Current = _next switch
+        {
+            Element.Header => TryWriteHeader(),
+            Element.Fills => TryWriteFills(),
+            _ => buffer.TryWrite("</fills>"u8)
+        };
+
+        if (Current)
             ++_next;
 
-        return success;
+        return _next < Element.Done;
     }
 
-    private readonly bool TryWriteHeader(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteHeader()
     {
-        var span = bytes.Slice(bytesWritten);
+        var span = buffer.GetSpan();
         var written = 0;
 
         const int defaultCount = 2;
-        var totalCount = _fills.Count + defaultCount - 1;
+        var totalCount = fills.Count + defaultCount - 1;
 
         if (!"<fills count=\""u8.TryCopyTo(span, ref written)) return false;
         if (!SpanHelper.TryWrite(totalCount, span, ref written)) return false;
@@ -48,29 +53,28 @@ internal struct StyleFillsXml
             """<fill><patternFill patternType="gray125"/></fill>"""u8;
         if (!defaultFills.TryCopyTo(span, ref written)) return false;
 
-        bytesWritten += written;
+        buffer.Advance(written);
         return true;
     }
 
-    private bool TryWriteFills(Span<byte> bytes, ref int bytesWritten)
+    private bool TryWriteFills()
     {
-        var defaultFill = new ImmutableFill();
-        var fills = _fills;
+        var fillsLocal = fills;
 
-        for (; _nextIndex < fills.Count; ++_nextIndex)
+        for (; _nextIndex < fillsLocal.Count; ++_nextIndex)
         {
-            var fill = fills[_nextIndex];
-            if (fill.Equals(defaultFill)) continue;
+            var fill = fillsLocal[_nextIndex];
+            if (fill.Equals(default)) continue;
             if (fill.Color is not { } color) continue;
 
-            var span = bytes.Slice(bytesWritten);
+            var span = buffer.GetSpan();
             var written = 0;
 
             if (!"<fill><patternFill patternType=\"solid\"><fgColor rgb=\""u8.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(color, span, ref written)) return false;
             if (!"\"/></patternFill></fill>"u8.TryCopyTo(span, ref written)) return false;
 
-            bytesWritten += written;
+            buffer.Advance(written);
         }
 
         return true;

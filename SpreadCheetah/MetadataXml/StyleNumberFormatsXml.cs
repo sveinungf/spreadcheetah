@@ -2,59 +2,66 @@ using SpreadCheetah.Helpers;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct StyleNumberFormatsXml
+internal struct StyleNumberFormatsXml(
+    List<KeyValuePair<string, int>>? customNumberFormats,
+    SpreadsheetBuffer buffer)
 {
-    private readonly List<KeyValuePair<string, int>>? _customNumberFormats;
     private Element _next;
     private int _nextIndex;
 
-    public StyleNumberFormatsXml(List<KeyValuePair<string, int>>? customNumberFormats)
+    public bool TryWrite()
     {
-        _customNumberFormats = customNumberFormats;
-    }
-
-    public bool TryWrite(Span<byte> bytes, ref int bytesWritten)
-    {
-        if (_next == Element.Header && !Advance(TryWriteHeader(bytes, ref bytesWritten))) return false;
-        if (_next == Element.NumberFormats && !Advance(TryWriteNumberFormats(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Footer && !Advance(TryWriteFooter(bytes, ref bytesWritten))) return false;
+        while (MoveNext())
+        {
+            if (!Current)
+                return false;
+        }
 
         return true;
     }
 
-    private bool Advance(bool success)
+    public bool Current { get; private set; }
+
+    public bool MoveNext()
     {
-        if (success)
+        Current = _next switch
+        {
+            Element.Header => TryWriteHeader(),
+            Element.NumberFormats => TryWriteNumberFormats(),
+            _ => TryWriteFooter()
+        };
+
+        if (Current)
             ++_next;
 
-        return success;
+        return _next < Element.Done;
     }
 
-    private readonly bool TryWriteHeader(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteHeader()
     {
-        if (_customNumberFormats is not { } formats)
-            return """<numFmts count="0"/>"""u8.TryCopyTo(bytes, ref bytesWritten);
+        if (customNumberFormats is not { } formats)
+            return buffer.TryWrite("""<numFmts count="0"/>"""u8);
 
-        var span = bytes.Slice(bytesWritten);
+        var span = buffer.GetSpan();
         var written = 0;
 
         if (!"<numFmts count=\""u8.TryCopyTo(span, ref written)) return false;
         if (!SpanHelper.TryWrite(formats.Count, span, ref written)) return false;
         if (!"\">"u8.TryCopyTo(span, ref written)) return false;
 
-        bytesWritten += written;
+        buffer.Advance(written);
         return true;
     }
 
-    private bool TryWriteNumberFormats(Span<byte> bytes, ref int bytesWritten)
+    private bool TryWriteNumberFormats()
     {
-        if (_customNumberFormats is not { } formats)
+        if (customNumberFormats is not { } formats)
             return true;
 
         for (; _nextIndex < formats.Count; ++_nextIndex)
         {
             var format = formats[_nextIndex];
-            var span = bytes.Slice(bytesWritten);
+            var span = buffer.GetSpan();
             var written = 0;
 
             if (!"<numFmt numFmtId=\""u8.TryCopyTo(span, ref written)) return false;
@@ -66,14 +73,14 @@ internal struct StyleNumberFormatsXml
             if (!SpanHelper.TryWrite(numberFormat, span, ref written)) return false;
             if (!"\"/>"u8.TryCopyTo(span, ref written)) return false;
 
-            bytesWritten += written;
+            buffer.Advance(written);
         }
 
         return true;
     }
 
-    private readonly bool TryWriteFooter(Span<byte> bytes, ref int bytesWritten)
-        => _customNumberFormats is null || "</numFmts>"u8.TryCopyTo(bytes, ref bytesWritten);
+    private readonly bool TryWriteFooter()
+        => customNumberFormats is null || buffer.TryWrite("</numFmts>"u8);
 
     private enum Element
     {

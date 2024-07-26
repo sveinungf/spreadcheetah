@@ -5,9 +5,9 @@ using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct StylesXml : IXmlWriter
+internal struct StylesXml
 {
-    public static ValueTask WriteAsync(
+    public static async ValueTask WriteAsync(
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
@@ -15,10 +15,23 @@ internal struct StylesXml : IXmlWriter
         CancellationToken token)
     {
         var entry = archive.CreateEntry("xl/styles.xml", compressionLevel);
-        var writer = new StylesXml([.. styles.Keys]);
-#pragma warning disable EPS06 // Hidden struct copy operation
-        return writer.WriteAsync(entry, buffer, token);
-#pragma warning restore EPS06 // Hidden struct copy operation
+        var stream = entry.Open();
+#if NETSTANDARD2_0
+        using (stream)
+#else
+        await using (stream.ConfigureAwait(false))
+#endif
+        {
+            var writer = new StylesXml([.. styles.Keys], buffer);
+
+            foreach (var success in writer)
+            {
+                if (!success)
+                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            }
+
+            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        }
     }
 
     private static ReadOnlySpan<byte> Header =>
@@ -38,6 +51,7 @@ internal struct StylesXml : IXmlWriter
     private readonly Dictionary<ImmutableBorder, int> _borders;
     private readonly Dictionary<ImmutableFill, int> _fills;
     private readonly Dictionary<ImmutableFont, int> _fonts;
+    private readonly SpreadsheetBuffer _buffer;
     private StyleNumberFormatsXml _numberFormatsXml;
     private StyleBordersXml _bordersXml;
     private StyleFillsXml _fillsXml;
@@ -45,18 +59,22 @@ internal struct StylesXml : IXmlWriter
     private Element _next;
     private int _nextIndex;
 
-    private StylesXml(List<ImmutableStyle> styles)
+    private StylesXml(List<ImmutableStyle> styles, SpreadsheetBuffer buffer)
     {
         _customNumberFormats = CreateCustomNumberFormatDictionary(styles);
         _borders = CreateBorderDictionary(styles);
         _fills = CreateFillDictionary(styles);
         _fonts = CreateFontDictionary(styles);
-        _numberFormatsXml = new StyleNumberFormatsXml(_customNumberFormats is { } formats ? [.. formats] : null);
-        _bordersXml = new StyleBordersXml([.. _borders.Keys]);
-        _fillsXml = new StyleFillsXml([.. _fills.Keys]);
-        _fontsXml = new StyleFontsXml([.. _fonts.Keys]);
+        _buffer = buffer;
+        _numberFormatsXml = new StyleNumberFormatsXml(_customNumberFormats is { } formats ? [.. formats] : null, buffer);
+        _bordersXml = new StyleBordersXml([.. _borders.Keys], buffer);
+        _fillsXml = new StyleFillsXml([.. _fills.Keys], buffer);
+        _fontsXml = new StyleFontsXml([.. _fonts.Keys], buffer);
         _styles = styles;
     }
+
+    public readonly StylesXml GetEnumerator() => this;
+    public bool Current { get; private set; }
 
     private static Dictionary<string, int>? CreateCustomNumberFormatDictionary(List<ImmutableStyle> styles)
     {
@@ -128,33 +146,29 @@ internal struct StylesXml : IXmlWriter
         return uniqueFonts;
     }
 
-    public bool TryWrite(Span<byte> bytes, out int bytesWritten)
+    public bool MoveNext()
     {
-        bytesWritten = 0;
+        Current = _next switch
+        {
+            Element.Header => _buffer.TryWrite(Header),
+            Element.NumberFormats => _numberFormatsXml.TryWrite(),
+            Element.Fonts => _fontsXml.TryWrite(),
+            Element.Fills => _fillsXml.TryWrite(),
+            Element.Borders => _bordersXml.TryWrite(),
+            Element.CellXfsStart => TryWriteCellXfsStart(),
+            Element.Styles => TryWriteStyles(),
+            _ => _buffer.TryWrite(Footer),
+        };
 
-        if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
-        if (_next == Element.NumberFormats && !Advance(_numberFormatsXml.TryWrite(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Fonts && !Advance(_fontsXml.TryWrite(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Fills && !Advance(_fillsXml.TryWrite(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Borders && !Advance(_bordersXml.TryWrite(bytes, ref bytesWritten))) return false;
-        if (_next == Element.CellXfsStart && !Advance(TryWriteCellXfsStart(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Styles && !Advance(TryWriteStyles(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
-
-        return true;
-    }
-
-    private bool Advance(bool success)
-    {
-        if (success)
+        if (Current)
             ++_next;
 
-        return success;
+        return _next < Element.Done;
     }
 
-    private readonly bool TryWriteCellXfsStart(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteCellXfsStart()
     {
-        var span = bytes.Slice(bytesWritten);
+        var span = _buffer.GetSpan();
         var written = 0;
 
         ReadOnlySpan<byte> xml =
@@ -165,18 +179,18 @@ internal struct StylesXml : IXmlWriter
         if (!SpanHelper.TryWrite(_styles.Count, span, ref written)) return false;
         if (!"\">"u8.TryCopyTo(span, ref written)) return false;
 
-        bytesWritten += written;
+        _buffer.Advance(written);
         return true;
     }
 
-    private bool TryWriteStyles(Span<byte> bytes, ref int bytesWritten)
+    private bool TryWriteStyles()
     {
         var styles = _styles;
 
         for (; _nextIndex < styles.Count; ++_nextIndex)
         {
             var style = _styles[_nextIndex];
-            var span = bytes.Slice(bytesWritten);
+            var span = _buffer.GetSpan();
             var written = 0;
 
             var numberFormatId = GetNumberFormatId(style.Format, _customNumberFormats);
@@ -209,7 +223,7 @@ internal struct StylesXml : IXmlWriter
                 if (!"</xf>"u8.TryCopyTo(span, ref written)) return false;
             }
 
-            bytesWritten += written;
+            _buffer.Advance(written);
         }
 
         return true;
