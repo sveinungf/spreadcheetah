@@ -22,7 +22,10 @@ internal struct StylesXml
         await using (stream.ConfigureAwait(false))
 #endif
         {
-            var writer = new StylesXml([.. styles.Keys], buffer);
+            // The order of Dictionary.Keys is not guaranteed, so we make sure the styles are sorted by the StyleId here.
+            var orderedStyles = styles.OrderBy(x => x.Value).Select(x => x.Key).ToList();
+
+            var writer = new StylesXml(orderedStyles, buffer);
 
             foreach (var success in writer)
             {
