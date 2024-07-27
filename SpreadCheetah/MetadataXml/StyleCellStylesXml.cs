@@ -62,6 +62,7 @@ internal struct StyleCellStylesXml(
             var span = buffer.GetSpan();
             var written = 0;
 
+            // TODO: Handle "hidden"
             if (_currentXmlEncodedName is null)
             {
                 if (!"<cellStyle xfId=\""u8.TryCopyTo(span, ref written)) return false;

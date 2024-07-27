@@ -222,6 +222,9 @@ internal struct StylesXml
                 if (!"\" applyBorder=\"1\""u8.TryCopyTo(span, ref written)) return false;
             }
 
+            // TODO: For cellXfs entries which are normal styles, xfId should be 0
+            // TODO: For cellXfs entires which are named styles, xfId should be the index into cellStyleXfs
+            // TODO: For cellStyleXfs entries, there should not be xfId
             if (!" xfId=\"0\""u8.TryCopyTo(span, ref written)) return false;
 
             if (style.Alignment == default)
