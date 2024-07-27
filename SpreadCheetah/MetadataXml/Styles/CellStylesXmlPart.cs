@@ -3,7 +3,7 @@ using SpreadCheetah.Styling;
 
 namespace SpreadCheetah.MetadataXml.Styles;
 
-internal struct StyleCellStylesXml(
+internal struct CellStylesXmlPart(
     List<(string, StyleId, StyleNameVisibility)>? namedStyles,
     SpreadsheetBuffer buffer)
 {

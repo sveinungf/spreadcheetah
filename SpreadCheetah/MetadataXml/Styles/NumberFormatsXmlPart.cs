@@ -2,7 +2,7 @@ using SpreadCheetah.Helpers;
 
 namespace SpreadCheetah.MetadataXml.Styles;
 
-internal struct StyleNumberFormatsXml(
+internal struct NumberFormatsXmlPart(
     List<KeyValuePair<string, int>>? customNumberFormats,
     SpreadsheetBuffer buffer)
 {

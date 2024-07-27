@@ -4,7 +4,7 @@ using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.MetadataXml.Styles;
 
-internal struct StyleFontsXml(List<ImmutableFont> fonts, SpreadsheetBuffer buffer)
+internal struct FontsXmlPart(List<ImmutableFont> fonts, SpreadsheetBuffer buffer)
 {
     private Element _next;
     private int _nextIndex;

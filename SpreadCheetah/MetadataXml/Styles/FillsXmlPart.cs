@@ -3,7 +3,7 @@ using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.MetadataXml.Styles;
 
-internal struct StyleFillsXml(List<ImmutableFill> fills, SpreadsheetBuffer buffer)
+internal struct FillsXmlPart(List<ImmutableFill> fills, SpreadsheetBuffer buffer)
 {
     private Element _next;
     private int _nextIndex;

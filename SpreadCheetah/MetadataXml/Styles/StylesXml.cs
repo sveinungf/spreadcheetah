@@ -57,11 +57,11 @@ internal struct StylesXml
     private readonly Dictionary<ImmutableFill, int> _fills;
     private readonly Dictionary<ImmutableFont, int> _fonts;
     private readonly SpreadsheetBuffer _buffer;
-    private StyleNumberFormatsXml _numberFormatsXml;
-    private StyleBordersXml _bordersXml;
-    private StyleFillsXml _fillsXml;
-    private StyleFontsXml _fontsXml;
-    private StyleCellStylesXml _cellStylesXml;
+    private NumberFormatsXmlPart _numberFormatsXml;
+    private BordersXmlPart _bordersXml;
+    private FillsXmlPart _fillsXml;
+    private FontsXmlPart _fontsXml;
+    private CellStylesXmlPart _cellStylesXml;
     private Element _next;
     private int _nextIndex;
 
@@ -75,11 +75,11 @@ internal struct StylesXml
         _fills = CreateFillDictionary(styles);
         _fonts = CreateFontDictionary(styles);
         _buffer = buffer;
-        _numberFormatsXml = new StyleNumberFormatsXml(_customNumberFormats is { } formats ? [.. formats] : null, buffer);
-        _bordersXml = new StyleBordersXml([.. _borders.Keys], buffer);
-        _fillsXml = new StyleFillsXml([.. _fills.Keys], buffer);
-        _fontsXml = new StyleFontsXml([.. _fonts.Keys], buffer);
-        _cellStylesXml = new StyleCellStylesXml(namedStyles, buffer);
+        _numberFormatsXml = new NumberFormatsXmlPart(_customNumberFormats is { } formats ? [.. formats] : null, buffer);
+        _bordersXml = new BordersXmlPart([.. _borders.Keys], buffer);
+        _fillsXml = new FillsXmlPart([.. _fills.Keys], buffer);
+        _fontsXml = new FontsXmlPart([.. _fonts.Keys], buffer);
+        _cellStylesXml = new CellStylesXmlPart(namedStyles, buffer);
         _styles = styles;
     }
 
