@@ -2,7 +2,7 @@ using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 
-namespace SpreadCheetah.MetadataXml;
+namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct StyleFontsXml(List<ImmutableFont> fonts, SpreadsheetBuffer buffer)
 {

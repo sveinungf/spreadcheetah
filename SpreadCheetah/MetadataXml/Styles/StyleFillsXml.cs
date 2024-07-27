@@ -1,7 +1,7 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling.Internal;
 
-namespace SpreadCheetah.MetadataXml;
+namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct StyleFillsXml(List<ImmutableFill> fills, SpreadsheetBuffer buffer)
 {

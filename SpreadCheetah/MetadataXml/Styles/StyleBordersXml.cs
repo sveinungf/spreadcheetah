@@ -3,7 +3,7 @@ using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using System.Drawing;
 
-namespace SpreadCheetah.MetadataXml;
+namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct StyleBordersXml(List<ImmutableBorder> borders, SpreadsheetBuffer buffer)
 {

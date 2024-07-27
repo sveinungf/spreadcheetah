@@ -3,7 +3,7 @@ using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using System.IO.Compression;
 
-namespace SpreadCheetah.MetadataXml;
+namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct StylesXml
 {

@@ -3,6 +3,7 @@ using SpreadCheetah.Helpers;
 using SpreadCheetah.Images;
 using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml;
+using SpreadCheetah.MetadataXml.Styles;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;

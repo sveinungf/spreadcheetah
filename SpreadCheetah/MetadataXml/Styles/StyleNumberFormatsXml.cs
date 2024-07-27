@@ -1,6 +1,6 @@
 using SpreadCheetah.Helpers;
 
-namespace SpreadCheetah.MetadataXml;
+namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct StyleNumberFormatsXml(
     List<KeyValuePair<string, int>>? customNumberFormats,

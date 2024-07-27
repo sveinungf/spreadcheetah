@@ -1,7 +1,7 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 
-namespace SpreadCheetah.MetadataXml;
+namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct StyleCellStylesXml(
     List<(string, StyleId, StyleNameVisibility)>? namedStyles,
