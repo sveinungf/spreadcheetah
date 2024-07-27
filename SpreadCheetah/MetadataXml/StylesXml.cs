@@ -12,6 +12,7 @@ internal struct StylesXml
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
         Dictionary<ImmutableStyle, int> styles,
+        Dictionary<string, (StyleId, StyleNameVisibility?)>? namedStyles,
         CancellationToken token)
     {
         var entry = archive.CreateEntry("xl/styles.xml", compressionLevel);
@@ -25,7 +26,12 @@ internal struct StylesXml
             // The order of Dictionary.Keys is not guaranteed, so we make sure the styles are sorted by the StyleId here.
             var orderedStyles = styles.OrderBy(x => x.Value).Select(x => x.Key).ToList();
 
-            var writer = new StylesXml(orderedStyles, buffer);
+            var filteredNamedStyles = namedStyles?
+                .Where(x => x.Value.Item2 is not null)
+                .Select(x => (x.Key, x.Value.Item1, x.Value.Item2.GetValueOrDefault()))
+                .ToList();
+
+            var writer = new StylesXml(orderedStyles, filteredNamedStyles, buffer);
 
             foreach (var success in writer)
             {
@@ -42,10 +48,6 @@ internal struct StylesXml
         """<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">"""u8;
 
     private static ReadOnlySpan<byte> Footer =>
-        """</cellXfs>"""u8 +
-        """<cellStyles count="1">"""u8 +
-        """<cellStyle name="Normal" xfId="0" builtinId="0"/>"""u8 +
-        """</cellStyles>"""u8 +
         """<dxfs count="0"/>"""u8 +
         """</styleSheet>"""u8;
 
@@ -59,10 +61,14 @@ internal struct StylesXml
     private StyleBordersXml _bordersXml;
     private StyleFillsXml _fillsXml;
     private StyleFontsXml _fontsXml;
+    private StyleCellStylesXml _cellStylesXml;
     private Element _next;
     private int _nextIndex;
 
-    private StylesXml(List<ImmutableStyle> styles, SpreadsheetBuffer buffer)
+    private StylesXml(
+        List<ImmutableStyle> styles,
+        List<(string, StyleId, StyleNameVisibility)>? namedStyles,
+        SpreadsheetBuffer buffer)
     {
         _customNumberFormats = CreateCustomNumberFormatDictionary(styles);
         _borders = CreateBorderDictionary(styles);
@@ -73,6 +79,7 @@ internal struct StylesXml
         _bordersXml = new StyleBordersXml([.. _borders.Keys], buffer);
         _fillsXml = new StyleFillsXml([.. _fills.Keys], buffer);
         _fontsXml = new StyleFontsXml([.. _fonts.Keys], buffer);
+        _cellStylesXml = new StyleCellStylesXml(namedStyles, buffer);
         _styles = styles;
     }
 
@@ -160,6 +167,8 @@ internal struct StylesXml
             Element.Borders => _bordersXml.TryWrite(),
             Element.CellXfsStart => TryWriteCellXfsStart(),
             Element.Styles => TryWriteStyles(),
+            Element.CellXfsEnd => _buffer.TryWrite("</cellXfs>"u8),
+            Element.CellStyles => _cellStylesXml.TryWrite(),
             _ => _buffer.TryWrite(Footer),
         };
 
@@ -305,6 +314,8 @@ internal struct StylesXml
         Borders,
         CellXfsStart,
         Styles,
+        CellXfsEnd,
+        CellStyles,
         Footer,
         Done
     }

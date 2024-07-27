@@ -404,6 +404,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ThrowHelper.StyleNameTooLong(nameof(name));
 
         // TODO: Validate uniqueness of name (does case sensitivity matter? does whitespace matter?)
+        // TODO: Can the name "Normal" be used?
         var namedStyles = _namedStyles ??= [];
         if (namedStyles.ContainsKey(name))
             ThrowHelper.StyleNameAlreadyExists(nameof(name));
@@ -651,9 +652,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, token).ConfigureAwait(false);
 
-        // TODO: Pass named styles
         if (_styles is not null)
-            await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styles, token).ConfigureAwait(false);
+            await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styles, _namedStyles, token).ConfigureAwait(false);
 
         _finished = true;
 
