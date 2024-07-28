@@ -1,4 +1,3 @@
-using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using System.IO.Compression;
@@ -26,11 +25,7 @@ internal struct StylesXml
             // The order of Dictionary.Keys is not guaranteed, so we make sure the styles are sorted by the StyleId here.
             var orderedStyles = styles.OrderBy(x => x.Value).Select(x => x.Key).ToList();
 
-            var filteredNamedStyles = namedStyles?
-                .Where(x => x.Value.Item2 is not null)
-                .Select(x => (x.Key, x.Value.Item1, x.Value.Item2.GetValueOrDefault()))
-                .ToList();
-
+            var filteredNamedStyles = FilterNamedStyles(styles, namedStyles);
             var writer = new StylesXml(orderedStyles, filteredNamedStyles, buffer);
 
             foreach (var success in writer)
@@ -43,6 +38,34 @@ internal struct StylesXml
         }
     }
 
+    private static List<(string, ImmutableStyle, StyleNameVisibility)>? FilterNamedStyles(
+        Dictionary<ImmutableStyle, int> styles,
+        Dictionary<string, (StyleId StyleId, StyleNameVisibility? Visibility)>? namedStyles)
+    {
+        if (namedStyles is null)
+            return null;
+
+        List<(string, ImmutableStyle, StyleNameVisibility)>? result = null;
+        Dictionary<int, ImmutableStyle>? styleIdToStyle = null;
+
+        foreach (var (name, value) in namedStyles)
+        {
+            if (value.Visibility is not { } visibility)
+                continue;
+
+            styleIdToStyle ??= styles.ToDictionary(x => x.Value, x => x.Key);
+
+            var styleId = value.StyleId.Id;
+            if (!styleIdToStyle.TryGetValue(styleId, out var style))
+                continue;
+
+            result ??= [];
+            result.Add((name, style, visibility));
+        }
+
+        return result;
+    }
+
     private static ReadOnlySpan<byte> Header =>
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">"""u8;
@@ -52,6 +75,7 @@ internal struct StylesXml
         """</styleSheet>"""u8;
 
     private readonly List<ImmutableStyle> _styles;
+    private readonly List<(string, ImmutableStyle, StyleNameVisibility)>? _namedStyles;
     private readonly Dictionary<string, int>? _customNumberFormats;
     private readonly Dictionary<ImmutableBorder, int> _borders;
     private readonly Dictionary<ImmutableFill, int> _fills;
@@ -67,7 +91,7 @@ internal struct StylesXml
 
     private StylesXml(
         List<ImmutableStyle> styles,
-        List<(string, StyleId, StyleNameVisibility)>? namedStyles,
+        List<(string, ImmutableStyle, StyleNameVisibility)>? namedStyles,
         SpreadsheetBuffer buffer)
     {
         _customNumberFormats = CreateCustomNumberFormatDictionary(styles);
@@ -81,6 +105,7 @@ internal struct StylesXml
         _fontsXml = new FontsXmlPart([.. _fonts.Keys], buffer);
         _cellStylesXml = new CellStylesXmlPart(namedStyles, buffer);
         _styles = styles;
+        _namedStyles = namedStyles;
     }
 
     public readonly StylesXml GetEnumerator() => this;
@@ -165,8 +190,10 @@ internal struct StylesXml
             Element.Fonts => _fontsXml.TryWrite(),
             Element.Fills => _fillsXml.TryWrite(),
             Element.Borders => _bordersXml.TryWrite(),
+            Element.CellStyleXfsStart => TryWriteCellStyleXfsStart(),
+            Element.CellStyleXfsEntries => TryWriteCellStyleXfsEntries(),
             Element.CellXfsStart => TryWriteCellXfsStart(),
-            Element.Styles => TryWriteStyles(),
+            Element.CellXfsEntries => TryWriteCellXfsEntries(),
             Element.CellXfsEnd => _buffer.TryWrite("</cellXfs>"u8),
             Element.CellStyles => _cellStylesXml.TryWrite(),
             _ => _buffer.TryWrite(Footer),
@@ -178,24 +205,42 @@ internal struct StylesXml
         return _next < Element.Done;
     }
 
-    private readonly bool TryWriteCellXfsStart()
+    private readonly bool TryWriteCellStyleXfsStart()
     {
-        var span = _buffer.GetSpan();
-        var written = 0;
+        var count = (_namedStyles?.Count ?? 0) + 1;
+        return _buffer.TryWrite(
+            $"{"<cellStyleXfs count=\""u8}" +
+            $"{count}" +
+            $"{"\"><xf numFmtId=\"0\" fontId=\"0\"/>"u8}");
+    }
 
-        ReadOnlySpan<byte> xml =
-            """<cellStyleXfs count="1"><xf numFmtId="0" fontId="0"/></cellStyleXfs>"""u8 +
-            "<cellXfs count=\""u8;
+    private bool TryWriteCellStyleXfsEntries()
+    {
+        if (_namedStyles is not { } namedStyles)
+            return true;
 
-        if (!xml.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_styles.Count, span, ref written)) return false;
-        if (!"\">"u8.TryCopyTo(span, ref written)) return false;
+        var xfXml = new XfXmlPart(_buffer, _customNumberFormats, _borders, _fills, _fonts, false);
 
-        _buffer.Advance(written);
+        for (; _nextIndex < _namedStyles.Count; ++_nextIndex)
+        {
+            var (_, style, _) = namedStyles[_nextIndex];
+            if (!xfXml.TryWrite(style))
+                return false;
+        }
+
+        _nextIndex = 0;
         return true;
     }
 
-    private bool TryWriteStyles()
+    private readonly bool TryWriteCellXfsStart()
+    {
+        return _buffer.TryWrite(
+            $"{"</cellStyleXfs><cellXfs count=\""u8}" +
+            $"{_styles.Count}" +
+            $"{"\">"u8}");
+    }
+
+    private bool TryWriteCellXfsEntries()
     {
         var xfXml = new XfXmlPart(_buffer, _customNumberFormats, _borders, _fills, _fonts, true);
         var styles = _styles;
@@ -207,6 +252,7 @@ internal struct StylesXml
                 return false;
         }
 
+        _nextIndex = 0;
         return true;
     }
 
@@ -217,8 +263,10 @@ internal struct StylesXml
         Fonts,
         Fills,
         Borders,
+        CellStyleXfsStart,
+        CellStyleXfsEntries,
         CellXfsStart,
-        Styles,
+        CellXfsEntries,
         CellXfsEnd,
         CellStyles,
         Footer,

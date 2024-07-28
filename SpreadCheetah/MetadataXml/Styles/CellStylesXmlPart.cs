@@ -1,10 +1,11 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct CellStylesXmlPart(
-    List<(string, StyleId, StyleNameVisibility)>? namedStyles,
+    List<(string, ImmutableStyle, StyleNameVisibility)>? namedStyles,
     SpreadsheetBuffer buffer)
 {
     private string? _currentXmlEncodedName;

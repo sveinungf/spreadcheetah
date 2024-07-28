@@ -410,6 +410,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (namedStyles.ContainsKey(name))
             ThrowHelper.StyleNameAlreadyExists(nameof(name));
 
+        // TODO: When there is a default DateTime number format, two style IDs will be created.
+        // TODO: How should this be handled for a named style?
+        // TODO: Maybe the named style should only refer to the regular style, not the DateTime style.
         var styleId = AddStyle(style);
         namedStyles[name] = (styleId, styleNameVisibility);
 
