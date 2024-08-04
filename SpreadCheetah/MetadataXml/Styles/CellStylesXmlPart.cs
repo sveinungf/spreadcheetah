@@ -59,15 +59,16 @@ internal struct CellStylesXmlPart(
 
         for (; _nextIndex < namedStylesLocal.Count; ++_nextIndex)
         {
-            var (name, _, _) = namedStylesLocal[_nextIndex];
+            var (name, _, visibility) = namedStylesLocal[_nextIndex];
             var span = buffer.GetSpan();
             var written = 0;
 
-            // TODO: Handle "hidden"
+            // TODO: Ensure "hidden" works as expected in Excel/Calc
             if (_currentXmlEncodedName is null)
             {
                 if (!"<cellStyle xfId=\""u8.TryCopyTo(span, ref written)) return false;
                 if (!SpanHelper.TryWrite(_nextIndex + 1, span, ref written)) return false;
+                if (visibility == StyleNameVisibility.Hidden && !"\" hidden\"1"u8.TryCopyTo(span, ref written)) return false;
                 if (!"\" name=\""u8.TryCopyTo(span, ref written)) return false;
 
                 _currentXmlEncodedName = XmlUtility.XmlEncode(name);
