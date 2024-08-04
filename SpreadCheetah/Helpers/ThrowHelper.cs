@@ -50,6 +50,9 @@ internal static class ThrowHelper
     public static void ImageScaleTooSmall(string? paramName, float actualValue) => throw new ArgumentOutOfRangeException(paramName, actualValue, "The image scale must result in image width and height being at least 1 pixel.");
 
     [DoesNotReturn]
+    public static void NameEmptyOrWhiteSpace(string? paramName) => throw new ArgumentException("The name can not be empty or consist only of whitespace.", paramName);
+
+    [DoesNotReturn]
     public static void NoteTextTooLong(string? paramName) => throw new ArgumentException($"Note text can not exceed {SpreadsheetConstants.MaxNoteTextLength} characters.", paramName);
 
     [DoesNotReturn]
@@ -77,7 +80,13 @@ internal static class ThrowHelper
     public static void StyleNameAlreadyExists(string? paramName) => throw new ArgumentException("A style with the given name already exists.", paramName);
 
     [DoesNotReturn]
+    public static void StyleNameCanNotEqualNormal(string? paramName) => throw new ArgumentException("The name can not be equal to 'Normal', since that is the name of the default built-in style.", paramName);
+
+    [DoesNotReturn]
     public static void StyleNameNotFound(string name) => throw new SpreadCheetahException($"Style with name '{name}' was not found. Make sure the style is first added to the spreadsheet by calling {nameof(Spreadsheet.AddStyle)} with a name argument.");
+
+    [DoesNotReturn]
+    public static void StyleNameStartsOrEndsWithWhiteSpace(string? paramName) => throw new ArgumentException("The name can not start or end with white-space.", paramName);
 
     [DoesNotReturn]
     public static void StyleNameTooLong(string? paramName) => throw new ArgumentException("The name can not be more than 255 characters.", paramName);
@@ -87,9 +96,6 @@ internal static class ThrowHelper
 
     [DoesNotReturn]
     public static void WorksheetNameAlreadyExists(string? paramName) => throw new ArgumentException("A worksheet with the given name already exists.", paramName);
-
-    [DoesNotReturn]
-    public static void WorksheetNameEmptyOrWhiteSpace(string? paramName) => throw new ArgumentException("The name can not be empty or consist only of whitespace.", paramName);
 
     [DoesNotReturn]
     public static void WorksheetNameInvalidCharacters(string? paramName, string invalidChars) => throw new ArgumentException("The name can not contain any of the following characters: " + invalidChars, paramName);

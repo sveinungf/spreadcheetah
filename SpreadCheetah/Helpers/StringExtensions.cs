@@ -19,7 +19,7 @@ internal static class StringExtensions
     public static void EnsureValidWorksheetName(this string name, [CallerArgumentExpression(nameof(name))] string? paramName = null)
     {
         if (string.IsNullOrWhiteSpace(name))
-            ThrowHelper.WorksheetNameEmptyOrWhiteSpace(paramName);
+            ThrowHelper.NameEmptyOrWhiteSpace(paramName);
 
         if (name.Length > 31)
             ThrowHelper.WorksheetNameTooLong(paramName);

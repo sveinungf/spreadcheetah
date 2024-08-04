@@ -401,12 +401,17 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(style);
         ArgumentNullException.ThrowIfNull(name);
 
+        if (string.IsNullOrWhiteSpace(name))
+            ThrowHelper.NameEmptyOrWhiteSpace(nameof(name));
         if (name.Length > 255)
             ThrowHelper.StyleNameTooLong(nameof(name));
+        if (char.IsWhiteSpace(name[0]) || char.IsWhiteSpace(name[^1]))
+            ThrowHelper.StyleNameStartsOrEndsWithWhiteSpace(nameof(name));
+        if (name.Equals("Normal", StringComparison.OrdinalIgnoreCase))
+            ThrowHelper.StyleNameCanNotEqualNormal(nameof(name));
 
-        // TODO: Validate uniqueness of name (does case sensitivity matter? does whitespace matter?)
-        // TODO: Can the name "Normal" be used?
-        var namedStyles = _namedStyles ??= [];
+        // TODO: Test duplicate name but different casing
+        var namedStyles = _namedStyles ??= new(StringComparer.OrdinalIgnoreCase);
         if (namedStyles.ContainsKey(name))
             ThrowHelper.StyleNameAlreadyExists(nameof(name));
 
