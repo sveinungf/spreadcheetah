@@ -31,9 +31,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly bool _writeCellReferenceAttributes;
     private readonly NumberFormat? _defaultDateTimeFormat;
     private DefaultStyling? _defaultStyling;
-    private Dictionary<ImmutableStyle, int>? _styles;
-    private Dictionary<string, (StyleId, StyleNameVisibility?)>? _namedStyles;
     private FileCounter? _fileCounter;
+    private StyleManager? _styleManager;
     private Worksheet? _worksheet;
     private bool _disposed;
     private bool _finished;
@@ -390,7 +389,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(style);
 
         // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
-        if (_styles is null)
+        if (_styleManager is null)
             AddDefaultStyle();
 
         return AddStyle(ImmutableStyle.From(style));
@@ -411,15 +410,17 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ThrowHelper.StyleNameCanNotEqualNormal(nameof(name));
 
         // TODO: Test duplicate name but different casing
-        var namedStyles = _namedStyles ??= new(StringComparer.OrdinalIgnoreCase);
-        if (namedStyles.ContainsKey(name))
+        var styleManager = _styleManager ??= new();
+        if (styleManager.StyleNameExists(name))
             ThrowHelper.StyleNameAlreadyExists(nameof(name));
 
         // TODO: When there is a default DateTime number format, two style IDs will be created.
         // TODO: How should this be handled for a named style?
         // TODO: Maybe the named style should only refer to the regular style, not the DateTime style.
         var styleId = AddStyle(style);
-        namedStyles[name] = (styleId, styleNameVisibility);
+
+        // TODO: The styleManager can also handle the default style?
+        styleManager.AddNamedStyle(name, styleId, styleNameVisibility);
 
         return styleId;
     }
@@ -436,28 +437,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
     private StyleId AddStyle(in ImmutableStyle style)
     {
-        // Optionally add another style for DateTime when there is no explicit number format in the new style.
-        ImmutableStyle? dateTimeStyle = _defaultDateTimeFormat is not null && style.Format is null
-            ? style with { Format = _defaultDateTimeFormat }
-            : null;
-
-        _styles ??= [];
-        if (_styles.TryGetValue(style, out var id))
-        {
-            return dateTimeStyle is { } dtStyle && _styles.TryGetValue(dtStyle, out var dateTimeId)
-                ? new StyleId(id, dateTimeId)
-                : new StyleId(id, id);
-        }
-
-        var newId = _styles.Count;
-        _styles[style] = newId;
-
-        if (dateTimeStyle is not { } dateTimeStyleValue)
-            return new StyleId(newId, newId);
-
-        var newDateTimeId = newId + 1;
-        _styles[dateTimeStyleValue] = newDateTimeId;
-        return new StyleId(newId, newDateTimeId);
+        _styleManager ??= new();
+        return _styleManager.AddStyleIfNotExists(style, _defaultDateTimeFormat);
     }
 
     /// <summary>
@@ -469,8 +450,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(name);
 
-        if (_namedStyles is { } namedStyles && namedStyles.TryGetValue(name, out var value))
-            return value.Item1;
+        var styleId = _styleManager?.GetStyleIdOrDefault(name);
+        if (styleId is not null)
+            return styleId;
 
         ThrowHelper.StyleNameNotFound(name);
         return null; // Unreachable
@@ -655,14 +637,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         await FinishAndDisposeWorksheetAsync(token).ConfigureAwait(false);
 
-        var hasStyles = _styles != null;
+        var hasStyles = _styleManager is not null;
 
         await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, _fileCounter, hasStyles, token).ConfigureAwait(false);
         await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, token).ConfigureAwait(false);
 
-        if (_styles is not null)
-            await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styles, _namedStyles, token).ConfigureAwait(false);
+        if (_styleManager is not null)
+            await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styleManager, token).ConfigureAwait(false);
 
         _finished = true;
 

@@ -10,8 +10,7 @@ internal struct StylesXml
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
-        Dictionary<ImmutableStyle, int> styles,
-        Dictionary<string, (StyleId, StyleNameVisibility?)>? namedStyles,
+        StyleManager styleManager,
         CancellationToken token)
     {
         var entry = archive.CreateEntry("xl/styles.xml", compressionLevel);
@@ -22,11 +21,9 @@ internal struct StylesXml
         await using (stream.ConfigureAwait(false))
 #endif
         {
-            // The order of Dictionary.Keys is not guaranteed, so we make sure the styles are sorted by the StyleId here.
-            var orderedStyles = styles.OrderBy(x => x.Value).Select(x => x.Key).ToList();
-
-            var filteredNamedStyles = FilterNamedStyles(styles, namedStyles);
-            var writer = new StylesXml(orderedStyles, filteredNamedStyles, buffer);
+            var orderedStyles = styleManager.GetOrderedStyles();
+            var embeddedNamedStyles = styleManager.GetEmbeddedNamedStyles();
+            var writer = new StylesXml(orderedStyles, embeddedNamedStyles, buffer);
 
             foreach (var success in writer)
             {
@@ -36,34 +33,6 @@ internal struct StylesXml
 
             await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }
-    }
-
-    private static List<(string, ImmutableStyle, StyleNameVisibility)>? FilterNamedStyles(
-        Dictionary<ImmutableStyle, int> styles,
-        Dictionary<string, (StyleId StyleId, StyleNameVisibility? Visibility)>? namedStyles)
-    {
-        if (namedStyles is null)
-            return null;
-
-        List<(string, ImmutableStyle, StyleNameVisibility)>? result = null;
-        Dictionary<int, ImmutableStyle>? styleIdToStyle = null;
-
-        foreach (var (name, value) in namedStyles)
-        {
-            if (value.Visibility is not { } visibility)
-                continue;
-
-            styleIdToStyle ??= styles.ToDictionary(x => x.Value, x => x.Key);
-
-            var styleId = value.StyleId.Id;
-            if (!styleIdToStyle.TryGetValue(styleId, out var style))
-                continue;
-
-            result ??= [];
-            result.Add((name, style, visibility));
-        }
-
-        return result;
     }
 
     private static ReadOnlySpan<byte> Header =>
