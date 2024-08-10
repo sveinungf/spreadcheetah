@@ -1,6 +1,7 @@
 using OfficeOpenXml;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
+using System.Drawing;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -110,11 +111,45 @@ public class NamedStyleTests
         Assert.Equal(name, worksheet1.Cells["C1"].StyleName);
         Assert.Equal(name, worksheet1.Cells["A2"].StyleName);
 
-        var worksheet2 = package.Workbook.Worksheets[0];
+        var worksheet2 = package.Workbook.Worksheets[1];
         Assert.Equal(name, worksheet2.Cells["A1"].StyleName);
     }
 
-    // TODO: Multiple named styles
+    [Fact]
+    public async Task Spreadsheet_AddStyle_MultipleNamedStylesUsedByMultipleCells()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, SpreadCheetahOptions);
+        (string Name, Style Style)[] styles =
+        [
+            ("Bold", new Style { Font = { Bold = true } }),
+            ("Italic", new Style { Font = { Italic = true } }),
+            ("Red", new Style { Fill = { Color = Color.Red } }),
+            ("Blue", new Style { Fill = { Color = Color.Blue } })
+        ];
+
+        // Act
+        var styleIds = styles.Select(x => spreadsheet.AddStyle(x.Style, x.Name, StyleNameVisibility.Visible)).ToList();
+
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        await spreadsheet.AddRowAsync([new StyledCell("A1", styleIds[0]), new StyledCell(2, null), new StyledCell(3, styleIds[1])]);
+        await spreadsheet.AddRowAsync([new StyledCell("A2", styleIds[2])]);
+        await spreadsheet.StartWorksheetAsync("Sheet 2");
+        await spreadsheet.AddRowAsync([new StyledCell("A1", styleIds[3])]);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var package = new ExcelPackage(stream);
+        var worksheet1 = package.Workbook.Worksheets[0];
+        Assert.Equal(styles[0].Name, worksheet1.Cells["A1"].StyleName);
+        Assert.Equal(styles[1].Name, worksheet1.Cells["C1"].StyleName);
+        Assert.Equal(styles[2].Name, worksheet1.Cells["A2"].StyleName);
+
+        var worksheet2 = package.Workbook.Worksheets[1];
+        Assert.Equal(styles[3].Name, worksheet2.Cells["A1"].StyleName);
+    }
 
     [Theory]
     [InlineData(null)]
