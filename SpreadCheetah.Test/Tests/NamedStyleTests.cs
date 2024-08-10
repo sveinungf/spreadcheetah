@@ -151,6 +151,17 @@ public class NamedStyleTests
         Assert.Equal(styles[3].Name, worksheet2.Cells["A1"].StyleName);
     }
 
+    [Fact]
+    public async Task Spreadsheet_AddStyle_NamedStyleWithInvalidVisibility()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions);
+        var style = new Style { Font = { Bold = true } };
+
+        // Act & Assert
+        Assert.Throws<ArgumentOutOfRangeException>(() => spreadsheet.AddStyle(style, "Name", (StyleNameVisibility)3));
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]
