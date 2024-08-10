@@ -83,6 +83,39 @@ public class NamedStyleTests
         Assert.True(actualCell.Style.Font.Bold);
     }
 
+    [Fact]
+    public async Task Spreadsheet_AddStyle_NamedStyleUsedByMultipleCells()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, SpreadCheetahOptions);
+        var style = new Style { Font = { Bold = true } };
+        const string name = "My bold style";
+
+        // Act
+        var styleId = spreadsheet.AddStyle(style, name, StyleNameVisibility.Visible);
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        await spreadsheet.AddRowAsync([new StyledCell("A1", styleId), new StyledCell(2, null), new StyledCell(3, styleId)]);
+        await spreadsheet.AddRowAsync([new StyledCell("A2", styleId)]);
+        await spreadsheet.StartWorksheetAsync("Sheet 2");
+        await spreadsheet.AddRowAsync([new StyledCell("A1", styleId)]);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var package = new ExcelPackage(stream);
+        var worksheet1 = package.Workbook.Worksheets[0];
+        Assert.Equal(name, worksheet1.Cells["A1"].StyleName);
+        Assert.NotEqual(name, worksheet1.Cells["B2"].StyleName);
+        Assert.Equal(name, worksheet1.Cells["C1"].StyleName);
+        Assert.Equal(name, worksheet1.Cells["A2"].StyleName);
+
+        var worksheet2 = package.Workbook.Worksheets[0];
+        Assert.Equal(name, worksheet2.Cells["A1"].StyleName);
+    }
+
+    // TODO: Multiple named styles
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -149,7 +182,4 @@ public class NamedStyleTests
         // Act & Assert
         Assert.Throws<SpreadCheetahException>(() => spreadsheet.GetStyleId("Other style"));
     }
-
-    // TODO: Multiple named cells
-    // TODO: Test for DateTime stuff
 }
