@@ -402,7 +402,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (name.Equals("Normal", StringComparison.OrdinalIgnoreCase))
             ThrowHelper.StyleNameCanNotEqualNormal(nameof(name));
 
-        // TODO: Test duplicate name but different casing
         var styleManager = _styleManager ??= new(defaultDateTimeFormat: null);
         if (!styleManager.TryAddNamedStyle(name, style, nameVisibility, out var styleId))
             ThrowHelper.StyleNameAlreadyExists(nameof(name));
