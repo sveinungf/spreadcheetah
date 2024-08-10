@@ -63,7 +63,6 @@ internal struct CellStylesXmlPart(
             var span = buffer.GetSpan();
             var written = 0;
 
-            // TODO: Ensure "hidden" works as expected in Excel/Calc
             if (_currentXmlEncodedName is null)
             {
                 if (!"<cellStyle xfId=\""u8.TryCopyTo(span, ref written)) return false;
