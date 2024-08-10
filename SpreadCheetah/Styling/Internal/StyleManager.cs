@@ -81,10 +81,13 @@ internal sealed class StyleManager
 
     public StyleId? GetStyleIdOrDefault(string name) => _namedStyles?.GetValueOrDefault(name);
 
-    public List<ImmutableStyle> GetOrderedStyles()
+    public List<(ImmutableStyle Style, string? EmbeddedName)> GetOrderedStyles()
     {
         // The order of Dictionary.Keys is not guaranteed, so we make sure the styles are sorted by the StyleId here.
-        return _styles.OrderBy(x => x.Value.StyleId).Select(x => x.Key).ToList();
+        return _styles
+            .OrderBy(x => x.Value.StyleId)
+            .Select(x => (x.Key, x.Value.Name))
+            .ToList();
     }
 
     public List<(string, ImmutableStyle, StyleNameVisibility)>? GetEmbeddedNamedStyles()

@@ -43,9 +43,10 @@ internal struct StylesXml
         """<dxfs count="0"/>"""u8 +
         """</styleSheet>"""u8;
 
-    private readonly List<ImmutableStyle> _styles;
+    private readonly List<(ImmutableStyle Style, string? EmbeddedName)> _styles;
     private readonly List<(string, ImmutableStyle, StyleNameVisibility)>? _namedStyles;
     private readonly Dictionary<string, int>? _customNumberFormats;
+    private readonly Dictionary<string, int>? _embeddedNamedStyleIndexes;
     private readonly Dictionary<ImmutableBorder, int> _borders;
     private readonly Dictionary<ImmutableFill, int> _fills;
     private readonly Dictionary<ImmutableFont, int> _fonts;
@@ -59,11 +60,12 @@ internal struct StylesXml
     private int _nextIndex;
 
     private StylesXml(
-        List<ImmutableStyle> styles,
+        List<(ImmutableStyle Style, string? EmbeddedName)> styles,
         List<(string, ImmutableStyle, StyleNameVisibility)>? namedStyles,
         SpreadsheetBuffer buffer)
     {
         _customNumberFormats = CreateCustomNumberFormatDictionary(styles);
+        _embeddedNamedStyleIndexes = CreateEmbeddedStyleNameIndexesDictionary(styles, namedStyles);
         _borders = CreateBorderDictionary(styles);
         _fills = CreateFillDictionary(styles);
         _fonts = CreateFontDictionary(styles);
@@ -80,12 +82,12 @@ internal struct StylesXml
     public readonly StylesXml GetEnumerator() => this;
     public bool Current { get; private set; }
 
-    private static Dictionary<string, int>? CreateCustomNumberFormatDictionary(List<ImmutableStyle> styles)
+    private static Dictionary<string, int>? CreateCustomNumberFormatDictionary(List<(ImmutableStyle Style, string? EmbeddedName)> styles)
     {
         Dictionary<string, int>? dictionary = null;
         var numberFormatId = 165; // Custom formats start sequentially from this ID
 
-        foreach (var style in styles)
+        foreach (var (style, _) in styles)
         {
             var numberFormat = style.Format;
             if (numberFormat is not { } format) continue;
@@ -99,7 +101,7 @@ internal struct StylesXml
         return dictionary;
     }
 
-    private static Dictionary<ImmutableBorder, int> CreateBorderDictionary(List<ImmutableStyle> styles)
+    private static Dictionary<ImmutableBorder, int> CreateBorderDictionary(List<(ImmutableStyle Style, string? EmbeddedName)> styles)
     {
         var defaultBorder = new ImmutableBorder();
         const int defaultCount = 1;
@@ -107,7 +109,7 @@ internal struct StylesXml
         var uniqueBorders = new Dictionary<ImmutableBorder, int> { { defaultBorder, 0 } };
         var borderIndex = defaultCount;
 
-        foreach (var style in styles)
+        foreach (var (style, _) in styles)
         {
             if (uniqueBorders.TryAdd(style.Border, borderIndex))
                 ++borderIndex;
@@ -116,7 +118,7 @@ internal struct StylesXml
         return uniqueBorders;
     }
 
-    private static Dictionary<ImmutableFill, int> CreateFillDictionary(List<ImmutableStyle> styles)
+    private static Dictionary<ImmutableFill, int> CreateFillDictionary(List<(ImmutableStyle Style, string? EmbeddedName)> styles)
     {
         var defaultFill = new ImmutableFill();
         const int defaultCount = 2;
@@ -124,7 +126,7 @@ internal struct StylesXml
         var uniqueFills = new Dictionary<ImmutableFill, int> { { defaultFill, 0 } };
         var fillIndex = defaultCount;
 
-        foreach (var style in styles)
+        foreach (var (style, _) in styles)
         {
             if (uniqueFills.TryAdd(style.Fill, fillIndex))
                 ++fillIndex;
@@ -133,7 +135,7 @@ internal struct StylesXml
         return uniqueFills;
     }
 
-    private static Dictionary<ImmutableFont, int> CreateFontDictionary(List<ImmutableStyle> styles)
+    private static Dictionary<ImmutableFont, int> CreateFontDictionary(List<(ImmutableStyle Style, string? EmbeddedName)> styles)
     {
         var defaultFont = new ImmutableFont { Size = Font.DefaultSize };
         const int defaultCount = 1;
@@ -141,13 +143,34 @@ internal struct StylesXml
         var uniqueFonts = new Dictionary<ImmutableFont, int> { { defaultFont, 0 } };
         var fontIndex = defaultCount;
 
-        foreach (var style in styles)
+        foreach (var (style, _) in styles)
         {
             if (uniqueFonts.TryAdd(style.Font, fontIndex))
                 ++fontIndex;
         }
 
         return uniqueFonts;
+    }
+
+    private static Dictionary<string, int>? CreateEmbeddedStyleNameIndexesDictionary(
+        List<(ImmutableStyle Style, string? EmbeddedName)> styles,
+        List<(string, ImmutableStyle, StyleNameVisibility)>? namedStyles)
+    {
+        if (namedStyles is null)
+            return null;
+
+        Dictionary<string, int>? result = null;
+
+        foreach (var (_, name) in styles)
+        {
+            if (name is null)
+                continue;
+
+            result ??= new(StringComparer.OrdinalIgnoreCase);
+            result[name] = namedStyles.FindIndex(x => name.Equals(x.Item1, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return result;
     }
 
     public bool MoveNext()
@@ -193,7 +216,7 @@ internal struct StylesXml
         for (; _nextIndex < _namedStyles.Count; ++_nextIndex)
         {
             var (_, style, _) = namedStyles[_nextIndex];
-            if (!xfXml.TryWrite(style))
+            if (!xfXml.TryWrite(style, null))
                 return false;
         }
 
@@ -216,10 +239,12 @@ internal struct StylesXml
 
         for (; _nextIndex < styles.Count; ++_nextIndex)
         {
-            // TODO: For cellXfs entries which are named styles, xfId should be the index into cellStyleXfs
-            var style = _styles[_nextIndex];
-            // TODO: Should pass xfId to this method somehow
-            if (!xfXml.TryWrite(style))
+            var (style, embeddedName) = _styles[_nextIndex];
+            var embeddedStyleIndex = embeddedName is not null
+                ? _embeddedNamedStyleIndexes?.GetValueOrDefault(embeddedName)
+                : null;
+
+            if (!xfXml.TryWrite(style, embeddedStyleIndex))
                 return false;
         }
 

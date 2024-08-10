@@ -12,7 +12,7 @@ internal readonly struct XfXmlPart(
     Dictionary<ImmutableFont, int> fonts,
     bool cellXfsEntry)
 {
-    public bool TryWrite(in ImmutableStyle style)
+    public bool TryWrite(in ImmutableStyle style, int? embeddedNamedStyleIndex)
     {
         var span = buffer.GetSpan();
         var written = 0;
@@ -34,11 +34,12 @@ internal readonly struct XfXmlPart(
             if (!"\" applyBorder=\"1\""u8.TryCopyTo(span, ref written)) return false;
         }
 
-        // TODO: For cellXfs entries which are normal styles, xfId should be 0
-        // TODO: For cellXfs entires which are named styles, xfId should be the index into cellStyleXfs
-        // TODO: -> What about DateTime cells with a default style?
-        // TODO: For cellStyleXfs entries, there should not be xfId
-        if (cellXfsEntry && !" xfId=\"0\""u8.TryCopyTo(span, ref written)) return false;
+        if (cellXfsEntry)
+        {
+            if (!" xfId=\""u8.TryCopyTo(span, ref written)) return false;
+            if (!SpanHelper.TryWrite(embeddedNamedStyleIndex ?? 0, span, ref written)) return false;
+            if (!"\""u8.TryCopyTo(span, ref written)) return false;
+        }
 
         if (style.Alignment == default)
         {
