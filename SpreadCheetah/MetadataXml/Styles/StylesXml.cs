@@ -216,7 +216,9 @@ internal struct StylesXml
 
         for (; _nextIndex < styles.Count; ++_nextIndex)
         {
+            // TODO: For cellXfs entries which are named styles, xfId should be the index into cellStyleXfs
             var style = _styles[_nextIndex];
+            // TODO: Should pass xfId to this method somehow
             if (!xfXml.TryWrite(style))
                 return false;
         }

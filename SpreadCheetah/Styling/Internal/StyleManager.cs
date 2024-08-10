@@ -5,7 +5,8 @@ namespace SpreadCheetah.Styling.Internal;
 internal sealed class StyleManager
 {
     private readonly record struct StyleIdentifiers(
-        int StyleId);
+        int StyleId,
+        string? Name);
 
     private readonly record struct EmbeddedNamedStyle(
         StyleNameVisibility Visibility);
@@ -24,33 +25,36 @@ internal sealed class StyleManager
         // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
         var defaultFont = new ImmutableFont(null, false, false, false, Font.DefaultSize, null);
         var defaultStyle = new ImmutableStyle(new ImmutableAlignment(), new ImmutableBorder(), new ImmutableFill(), defaultFont, null);
-        var styleId = AddStyleIfNotExists(defaultStyle);
+        var styleId = AddStyleIfNotExists(defaultStyle, null);
 
         if (styleId.Id != styleId.DateTimeId)
             DefaultStyling = new DefaultStyling(styleId.DateTimeId);
     }
 
-    public StyleId AddStyleIfNotExists(in ImmutableStyle style)
+    public StyleId AddStyleIfNotExists(in ImmutableStyle style, string? name)
     {
-        var id = AddStyleIfNotExistsInternal(style);
+        var id = AddStyleIfNotExistsInternal(style, name);
 
         if (_defaultDateTimeFormat is null || style.Format is not null)
             return new StyleId(id, id);
 
         // Optionally add another style for DateTime when there is no explicit number format in the new style.
         var dateTimeStyle = style with { Format = _defaultDateTimeFormat };
-        var dateTimeId = AddStyleIfNotExistsInternal(dateTimeStyle);
+
+        // If there is a name it will only refer to the regular style, not the DateTime style.
+        var dateTimeId = AddStyleIfNotExistsInternal(dateTimeStyle, null);
 
         return new StyleId(id, dateTimeId);
     }
 
-    private int AddStyleIfNotExistsInternal(in ImmutableStyle style)
+    private int AddStyleIfNotExistsInternal(in ImmutableStyle style, string? name)
     {
+        // TODO: What to do here if the style already exists, but with a different name?
         if (_styles.TryGetValue(style, out var existingIdentifiers))
             return existingIdentifiers.StyleId;
 
         var id = _styles.Count;
-        _styles[style] = new StyleIdentifiers(id);
+        _styles[style] = new StyleIdentifiers(id, name);
         return id;
     }
 
@@ -63,10 +67,7 @@ internal sealed class StyleManager
         if (namedStyles.ContainsKey(name))
             return false;
 
-        // TODO: When there is a default DateTime number format, two style IDs will be created.
-        // TODO: How should this be handled for a named style?
-        // TODO: Maybe the named style should only refer to the regular style, not the DateTime style.
-        styleId = AddStyleIfNotExists(ImmutableStyle.From(style));
+        styleId = AddStyleIfNotExists(ImmutableStyle.From(style), name);
         namedStyles[name] = styleId;
 
         if (nameVisibility is { } visibility)
