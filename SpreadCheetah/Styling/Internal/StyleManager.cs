@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace SpreadCheetah.Styling.Internal;
 
 internal sealed class StyleManager
@@ -52,21 +54,28 @@ internal sealed class StyleManager
         return id;
     }
 
-    public bool StyleNameExists(string name)
+    public bool TryAddNamedStyle(string name, Style style, StyleNameVisibility? nameVisibility,
+        [NotNullWhen(true)] out StyleId? styleId)
     {
-        return _namedStyles is { } namedStyles && namedStyles.ContainsKey(name);
-    }
+        styleId = null;
 
-    public void AddNamedStyle(string name, StyleId styleId, StyleNameVisibility? visibility)
-    {
         var namedStyles = _namedStyles ??= new(StringComparer.OrdinalIgnoreCase);
+        if (namedStyles.ContainsKey(name))
+            return false;
+
+        // TODO: When there is a default DateTime number format, two style IDs will be created.
+        // TODO: How should this be handled for a named style?
+        // TODO: Maybe the named style should only refer to the regular style, not the DateTime style.
+        styleId = AddStyleIfNotExists(ImmutableStyle.From(style));
         namedStyles[name] = styleId;
 
-        if (visibility is { } vis)
+        if (nameVisibility is { } visibility)
         {
             var embeddedNamedStyles = _embeddedNamedStyles ??= new(StringComparer.OrdinalIgnoreCase);
-            embeddedNamedStyles[name] = new EmbeddedNamedStyle(vis);
+            embeddedNamedStyles[name] = new EmbeddedNamedStyle(visibility);
         }
+
+        return true;
     }
 
     public StyleId? GetStyleIdOrDefault(string name) => _namedStyles?.GetValueOrDefault(name);

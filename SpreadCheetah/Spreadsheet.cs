@@ -388,7 +388,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return styleManager.AddStyleIfNotExists(ImmutableStyle.From(style));
     }
 
-    public StyleId AddStyle(Style style, string name, StyleNameVisibility? styleNameVisibility = null)
+    public StyleId AddStyle(Style style, string name, StyleNameVisibility? nameVisibility = null)
     {
         ArgumentNullException.ThrowIfNull(style);
         ArgumentNullException.ThrowIfNull(name);
@@ -404,15 +404,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         // TODO: Test duplicate name but different casing
         var styleManager = _styleManager ??= new(defaultDateTimeFormat: null);
-        if (styleManager.StyleNameExists(name))
+        if (!styleManager.TryAddNamedStyle(name, style, nameVisibility, out var styleId))
             ThrowHelper.StyleNameAlreadyExists(nameof(name));
-
-        // TODO: When there is a default DateTime number format, two style IDs will be created.
-        // TODO: How should this be handled for a named style?
-        // TODO: Maybe the named style should only refer to the regular style, not the DateTime style.
-        var styleId = AddStyle(style);
-
-        styleManager.AddNamedStyle(name, styleId, styleNameVisibility);
 
         return styleId;
     }
