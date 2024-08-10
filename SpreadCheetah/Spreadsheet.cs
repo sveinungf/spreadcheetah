@@ -130,7 +130,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// The worksheet name must satisfy these requirements:
     /// <list type="bullet">
     ///   <item><description>Can not be empty or consist only of whitespace.</description></item>
-    ///   <item><description>Can not be more than 31 characters.</description></item>
+    ///   <item><description>Can not be longer than 31 characters.</description></item>
     ///   <item><description>Can not start or end with a single quote.</description></item>
     ///   <item><description>Can not contain these characters: / \ * ? [ ] </description></item>
     ///   <item><description>Must be unique across all worksheets.</description></item>
@@ -388,6 +388,26 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return styleManager.AddStyleIfNotExists(ImmutableStyle.From(style), null);
     }
 
+    /// <summary>
+    /// <para>
+    /// Adds a named style to the spreadsheet and returns a style ID.
+    /// This also allows for calling <see cref="GetStyleId(string)"/> with the name to get the style ID.
+    /// </para>
+    /// <para>
+    /// The <paramref name="nameVisibility"/> parameter determines whether or not the style name will be visible in the Excel UI.
+    /// If <paramref name="nameVisibility"/> is set to <see langword="null"/>, then the style name will not be part of the resulting XLSX file.
+    /// </para>
+    /// <para>
+    /// The style name must satisfy these requirements:
+    /// <list type="bullet">
+    ///   <item><description>Can not be empty or consist only of whitespace.</description></item>
+    ///   <item><description>Can not start or end with whitespace.</description></item>
+    ///   <item><description>Can not be longer than 255 characters.</description></item>
+    ///   <item><description>Can not be equal to "Normal", as that is the name of the default font.</description></item>
+    ///   <item><description>Must be unique for the spreadsheet.</description></item>
+    /// </list>
+    /// </para>
+    /// </summary>
     public StyleId AddStyle(Style style, string name, StyleNameVisibility? nameVisibility = null)
     {
         ArgumentNullException.ThrowIfNull(style);
@@ -401,6 +421,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ThrowHelper.StyleNameStartsOrEndsWithWhiteSpace(nameof(name));
         if (name.Equals("Normal", StringComparison.OrdinalIgnoreCase))
             ThrowHelper.StyleNameCanNotEqualNormal(nameof(name));
+        if (nameVisibility is { } visibility && !EnumHelper.IsDefined(visibility))
+            ThrowHelper.EnumValueInvalid(nameof(nameVisibility), nameVisibility);
 
         var styleManager = _styleManager ??= new(defaultDateTimeFormat: null);
         if (!styleManager.TryAddNamedStyle(name, style, nameVisibility, out var styleId))
