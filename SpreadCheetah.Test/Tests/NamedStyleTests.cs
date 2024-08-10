@@ -59,6 +59,30 @@ public class NamedStyleTests
         Assert.False(namedStyle.Style.Font.Bold);
     }
 
+    [Fact]
+    public async Task Spreadsheet_AddStyle_NamedStyleUsedByCell()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, SpreadCheetahOptions);
+        await spreadsheet.StartWorksheetAsync("My sheet");
+        var style = new Style { Font = { Bold = true } };
+        const string name = "My bold style";
+
+        // Act
+        var styleId = spreadsheet.AddStyle(style, name, StyleNameVisibility.Visible);
+        await spreadsheet.AddRowAsync([new StyledCell("My cell", styleId)]);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var package = new ExcelPackage(stream);
+        var worksheet = Assert.Single(package.Workbook.Worksheets);
+        var actualCell = Assert.Single(worksheet.Cells);
+        Assert.Equal(name, actualCell.StyleName);
+        Assert.True(actualCell.Style.Font.Bold);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -126,5 +150,6 @@ public class NamedStyleTests
         Assert.Throws<SpreadCheetahException>(() => spreadsheet.GetStyleId("Other style"));
     }
 
+    // TODO: Multiple named cells
     // TODO: Test for DateTime stuff
 }

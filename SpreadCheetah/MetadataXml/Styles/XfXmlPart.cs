@@ -34,12 +34,7 @@ internal readonly struct XfXmlPart(
             if (!"\" applyBorder=\"1\""u8.TryCopyTo(span, ref written)) return false;
         }
 
-        if (cellXfsEntry)
-        {
-            if (!" xfId=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(embeddedNamedStyleIndex ?? 0, span, ref written)) return false;
-            if (!"\""u8.TryCopyTo(span, ref written)) return false;
-        }
+        if (cellXfsEntry && !TryWriteXfId(embeddedNamedStyleIndex, span, ref written)) return false;
 
         if (style.Alignment == default)
         {
@@ -54,6 +49,14 @@ internal readonly struct XfXmlPart(
 
         buffer.Advance(written);
         return true;
+    }
+
+    private static bool TryWriteXfId(int? embeddedNamedStyleIndex, Span<byte> span, ref int written)
+    {
+        var xfId = (embeddedNamedStyleIndex + 1) ?? 0;
+        if (!" xfId=\""u8.TryCopyTo(span, ref written)) return false;
+        if (!SpanHelper.TryWrite(xfId, span, ref written)) return false;
+        return "\""u8.TryCopyTo(span, ref written);
     }
 
     private readonly bool TryWriteFont(ImmutableFont font, Span<byte> bytes, ref int bytesWritten)
