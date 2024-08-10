@@ -9,20 +9,34 @@ internal sealed class StyleManager
         StyleNameVisibility Visibility);
 
     private readonly Dictionary<ImmutableStyle, StyleIdentifiers> _styles = [];
+    private readonly NumberFormat? _defaultDateTimeFormat;
     private Dictionary<string, StyleId>? _namedStyles;
     private Dictionary<string, EmbeddedNamedStyle>? _embeddedNamedStyles;
 
-    public DefaultStyling? DefaultStyling { get; private set; }
+    public DefaultStyling? DefaultStyling { get; }
 
-    public StyleId AddStyleIfNotExists(in ImmutableStyle style, NumberFormat? defaultDateTimeFormat)
+    public StyleManager(NumberFormat? defaultDateTimeFormat)
+    {
+        _defaultDateTimeFormat = defaultDateTimeFormat;
+
+        // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
+        var defaultFont = new ImmutableFont(null, false, false, false, Font.DefaultSize, null);
+        var defaultStyle = new ImmutableStyle(new ImmutableAlignment(), new ImmutableBorder(), new ImmutableFill(), defaultFont, null);
+        var styleId = AddStyleIfNotExists(defaultStyle);
+
+        if (styleId.Id != styleId.DateTimeId)
+            DefaultStyling = new DefaultStyling(styleId.DateTimeId);
+    }
+
+    public StyleId AddStyleIfNotExists(in ImmutableStyle style)
     {
         var id = AddStyleIfNotExistsInternal(style);
 
-        if (defaultDateTimeFormat is null || style.Format is not null)
+        if (_defaultDateTimeFormat is null || style.Format is not null)
             return new StyleId(id, id);
 
         // Optionally add another style for DateTime when there is no explicit number format in the new style.
-        var dateTimeStyle = style with { Format = defaultDateTimeFormat };
+        var dateTimeStyle = style with { Format = _defaultDateTimeFormat };
         var dateTimeId = AddStyleIfNotExistsInternal(dateTimeStyle);
 
         return new StyleId(id, dateTimeId);
@@ -82,15 +96,5 @@ internal sealed class StyleManager
         }
 
         return result;
-    }
-
-    public void AddDefaultStyle(NumberFormat? defaultDateTimeFormat)
-    {
-        var defaultFont = new ImmutableFont(null, false, false, false, Font.DefaultSize, null);
-        var defaultStyle = new ImmutableStyle(new ImmutableAlignment(), new ImmutableBorder(), new ImmutableFill(), defaultFont, null);
-        var styleId = AddStyleIfNotExists(defaultStyle, defaultDateTimeFormat);
-
-        if (styleId.Id != styleId.DateTimeId)
-            DefaultStyling = new DefaultStyling(styleId.DateTimeId);
     }
 }

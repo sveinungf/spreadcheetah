@@ -29,7 +29,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly CompressionLevel _compressionLevel;
     private readonly SpreadsheetBuffer _buffer;
     private readonly bool _writeCellReferenceAttributes;
-    private readonly NumberFormat? _defaultDateTimeFormat;
     private FileCounter? _fileCounter;
     private StyleManager? _styleManager;
     private Worksheet? _worksheet;
@@ -50,8 +49,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _archive = archive;
         _compressionLevel = compressionLevel;
         _buffer = new SpreadsheetBuffer(bufferSize);
-        _defaultDateTimeFormat = defaultDateTimeFormat;
         _writeCellReferenceAttributes = writeCellReferenceAttributes;
+
+        // If no style is ever added to the spreadsheet, then we can skip creating the styles.xml file.
+        // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
+        if (defaultDateTimeFormat is { } format)
+            _styleManager = new(format);
     }
 
     /// <summary>
@@ -70,12 +73,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         var spreadsheet = new Spreadsheet(archive, compressionLevel, bufferSize, defaultDateTimeFormat, writeCellReferenceAttributes);
         await spreadsheet.InitializeAsync(cancellationToken).ConfigureAwait(false);
-
-        // If no style is ever added to the spreadsheet, then we can skip creating the styles.xml file.
-        // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
-        if (defaultDateTimeFormat is not null)
-            spreadsheet.AddDefaultStyle();
-
         return spreadsheet;
     }
 
@@ -387,11 +384,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(style);
 
-        // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
-        if (_styleManager is null)
-            AddDefaultStyle();
-
-        return AddStyle(ImmutableStyle.From(style));
+        var styleManager = _styleManager ?? new(defaultDateTimeFormat: null);
+        return styleManager.AddStyleIfNotExists(ImmutableStyle.From(style));
     }
 
     public StyleId AddStyle(Style style, string name, StyleNameVisibility? styleNameVisibility = null)
@@ -409,7 +403,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ThrowHelper.StyleNameCanNotEqualNormal(nameof(name));
 
         // TODO: Test duplicate name but different casing
-        var styleManager = _styleManager ??= new();
+        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null);
         if (styleManager.StyleNameExists(name))
             ThrowHelper.StyleNameAlreadyExists(nameof(name));
 
@@ -418,22 +412,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         // TODO: Maybe the named style should only refer to the regular style, not the DateTime style.
         var styleId = AddStyle(style);
 
-        // TODO: The styleManager can also handle the default style?
         styleManager.AddNamedStyle(name, styleId, styleNameVisibility);
 
         return styleId;
-    }
-
-    private void AddDefaultStyle()
-    {
-        var styleManager = _styleManager ??= new();
-        styleManager.AddDefaultStyle(_defaultDateTimeFormat);
-    }
-
-    private StyleId AddStyle(in ImmutableStyle style)
-    {
-        _styleManager ??= new();
-        return _styleManager.AddStyleIfNotExists(style, _defaultDateTimeFormat);
     }
 
     /// <summary>
