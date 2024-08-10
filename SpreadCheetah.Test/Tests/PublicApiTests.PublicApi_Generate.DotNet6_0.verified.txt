@@ -116,7 +116,7 @@ namespace SpreadCheetah
         public System.Threading.Tasks.ValueTask AddRowAsync(System.ReadOnlyMemory<SpreadCheetah.DataCell> cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
         public System.Threading.Tasks.ValueTask AddRowAsync(System.ReadOnlyMemory<SpreadCheetah.StyledCell> cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
         public SpreadCheetah.Styling.StyleId AddStyle(SpreadCheetah.Styling.Style style) { }
-        public SpreadCheetah.Styling.StyleId AddStyle(SpreadCheetah.Styling.Style style, string name, SpreadCheetah.Styling.StyleNameVisibility? styleNameVisibility = default) { }
+        public SpreadCheetah.Styling.StyleId AddStyle(SpreadCheetah.Styling.Style style, string name, SpreadCheetah.Styling.StyleNameVisibility? nameVisibility = default) { }
         public void Dispose() { }
         public System.Threading.Tasks.ValueTask DisposeAsync() { }
         public System.Threading.Tasks.ValueTask<SpreadCheetah.Images.EmbeddedImage> EmbedImageAsync(System.IO.Stream stream, System.Threading.CancellationToken token = default) { }
