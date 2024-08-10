@@ -68,7 +68,7 @@ internal struct CellStylesXmlPart(
             {
                 if (!"<cellStyle xfId=\""u8.TryCopyTo(span, ref written)) return false;
                 if (!SpanHelper.TryWrite(_nextIndex + 1, span, ref written)) return false;
-                if (visibility == StyleNameVisibility.Hidden && !"\" hidden\"1"u8.TryCopyTo(span, ref written)) return false;
+                if (visibility == StyleNameVisibility.Hidden && !"\" hidden=\"1"u8.TryCopyTo(span, ref written)) return false;
                 if (!"\" name=\""u8.TryCopyTo(span, ref written)) return false;
 
                 _currentXmlEncodedName = XmlUtility.XmlEncode(name);
