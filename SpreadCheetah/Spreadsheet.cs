@@ -30,7 +30,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly SpreadsheetBuffer _buffer;
     private readonly bool _writeCellReferenceAttributes;
     private readonly NumberFormat? _defaultDateTimeFormat;
-    private DefaultStyling? _defaultStyling;
     private FileCounter? _fileCounter;
     private StyleManager? _styleManager;
     private Worksheet? _worksheet;
@@ -154,7 +153,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var path = StringHelper.Invariant($"xl/worksheets/sheet{_worksheets.Count + 1}.xml");
         var entry = _archive.CreateEntry(path, _compressionLevel);
         var entryStream = entry.Open();
-        _worksheet = new Worksheet(entryStream, _defaultStyling, _buffer, _writeCellReferenceAttributes);
+        _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes);
         await _worksheet.WriteHeadAsync(options, token).ConfigureAwait(false);
         _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
     }
@@ -427,12 +426,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
     private void AddDefaultStyle()
     {
-        var defaultFont = new ImmutableFont(null, false, false, false, Font.DefaultSize, null);
-        var defaultStyle = new ImmutableStyle(new ImmutableAlignment(), new ImmutableBorder(), new ImmutableFill(), defaultFont, null);
-        var styleId = AddStyle(defaultStyle);
-
-        if (styleId.Id != styleId.DateTimeId)
-            _defaultStyling = new DefaultStyling(styleId.DateTimeId);
+        var styleManager = _styleManager ??= new();
+        styleManager.AddDefaultStyle(_defaultDateTimeFormat);
     }
 
     private StyleId AddStyle(in ImmutableStyle style)

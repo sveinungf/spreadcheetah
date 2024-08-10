@@ -12,6 +12,8 @@ internal sealed class StyleManager
     private Dictionary<string, StyleId>? _namedStyles;
     private Dictionary<string, EmbeddedNamedStyle>? _embeddedNamedStyles;
 
+    public DefaultStyling? DefaultStyling { get; private set; }
+
     public StyleId AddStyleIfNotExists(in ImmutableStyle style, NumberFormat? defaultDateTimeFormat)
     {
         var id = AddStyleIfNotExistsInternal(style);
@@ -80,5 +82,15 @@ internal sealed class StyleManager
         }
 
         return result;
+    }
+
+    public void AddDefaultStyle(NumberFormat? defaultDateTimeFormat)
+    {
+        var defaultFont = new ImmutableFont(null, false, false, false, Font.DefaultSize, null);
+        var defaultStyle = new ImmutableStyle(new ImmutableAlignment(), new ImmutableBorder(), new ImmutableFill(), defaultFont, null);
+        var styleId = AddStyleIfNotExists(defaultStyle, defaultDateTimeFormat);
+
+        if (styleId.Id != styleId.DateTimeId)
+            DefaultStyling = new DefaultStyling(styleId.DateTimeId);
     }
 }
