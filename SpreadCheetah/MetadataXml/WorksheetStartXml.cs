@@ -49,8 +49,8 @@ internal struct WorksheetStartXml
         Current = _next switch
         {
             Element.Header => _buffer.TryWrite(Header),
-            Element.SheetViews => TryWriteSheetViews(_buffer),
-            Element.Columns => TryWriteColumns(_buffer),
+            Element.SheetViews => TryWriteSheetViews(),
+            Element.Columns => TryWriteColumns(),
             _ => _buffer.TryWrite(SheetDataBegin)
         };
 
@@ -60,13 +60,13 @@ internal struct WorksheetStartXml
         return _next < Element.Done;
     }
 
-    private readonly bool TryWriteSheetViews(SpreadsheetBuffer buffer)
+    private readonly bool TryWriteSheetViews()
     {
         var options = _options;
         if (options?.FrozenColumns is null && options?.FrozenRows is null)
             return true;
 
-        var span = buffer.GetSpan();
+        var span = _buffer.GetSpan();
         var written = 0;
 
         if (!"<sheetViews><sheetView workbookViewId=\"0\"><pane "u8.TryCopyTo(span, ref written)) return false;
@@ -128,7 +128,7 @@ internal struct WorksheetStartXml
         return "\" "u8.TryCopyTo(bytes, ref bytesWritten);
     }
 
-    private bool TryWriteColumns(SpreadsheetBuffer buffer)
+    private bool TryWriteColumns()
     {
         if (_columns is not { } columns) return true;
 
@@ -140,7 +140,7 @@ internal struct WorksheetStartXml
             if (options.Width is null && !options.Hidden)
                 continue;
 
-            var span = buffer.GetSpan();
+            var span = _buffer.GetSpan();
             var written = 0;
 
             if (!anyColumnWritten)
@@ -166,13 +166,13 @@ internal struct WorksheetStartXml
 
             _anyColumnWritten = anyColumnWritten;
 
-            buffer.Advance(written);
+            _buffer.Advance(written);
         }
 
         if (!anyColumnWritten)
             return true;
 
-        return buffer.TryWrite("</cols>"u8);
+        return _buffer.TryWrite("</cols>"u8);
     }
 
     private enum Element

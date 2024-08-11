@@ -115,10 +115,12 @@ namespace SpreadCheetah
         public System.Threading.Tasks.ValueTask AddRowAsync(System.ReadOnlyMemory<SpreadCheetah.DataCell> cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
         public System.Threading.Tasks.ValueTask AddRowAsync(System.ReadOnlyMemory<SpreadCheetah.StyledCell> cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
         public SpreadCheetah.Styling.StyleId AddStyle(SpreadCheetah.Styling.Style style) { }
+        public SpreadCheetah.Styling.StyleId AddStyle(SpreadCheetah.Styling.Style style, string name, SpreadCheetah.Styling.StyleNameVisibility? nameVisibility = default) { }
         public void Dispose() { }
         public System.Threading.Tasks.ValueTask DisposeAsync() { }
         public System.Threading.Tasks.ValueTask<SpreadCheetah.Images.EmbeddedImage> EmbedImageAsync(System.IO.Stream stream, System.Threading.CancellationToken token = default) { }
         public System.Threading.Tasks.ValueTask FinishAsync(System.Threading.CancellationToken token = default) { }
+        public SpreadCheetah.Styling.StyleId GetStyleId(string name) { }
         public void MergeCells(string cellRange) { }
         public System.Threading.Tasks.ValueTask StartWorksheetAsync(string name, SpreadCheetah.Worksheets.WorksheetOptions? options = null, System.Threading.CancellationToken token = default) { }
         public System.Threading.Tasks.ValueTask StartWorksheetAsync<T>(string name, SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> typeInfo, System.Threading.CancellationToken token = default) { }
@@ -398,6 +400,11 @@ namespace SpreadCheetah.Styling
     public sealed class StyleId
     {
         public int Id { get; }
+    }
+    public enum StyleNameVisibility
+    {
+        Visible = 0,
+        Hidden = 1,
     }
     public enum VerticalAlignment
     {

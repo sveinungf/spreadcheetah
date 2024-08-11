@@ -3,6 +3,7 @@ using SpreadCheetah.Helpers;
 using SpreadCheetah.Images;
 using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml;
+using SpreadCheetah.MetadataXml.Styles;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
@@ -28,10 +29,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly CompressionLevel _compressionLevel;
     private readonly SpreadsheetBuffer _buffer;
     private readonly bool _writeCellReferenceAttributes;
-    private readonly NumberFormat? _defaultDateTimeFormat;
-    private DefaultStyling? _defaultStyling;
-    private Dictionary<ImmutableStyle, int>? _styles;
     private FileCounter? _fileCounter;
+    private StyleManager? _styleManager;
     private Worksheet? _worksheet;
     private bool _disposed;
     private bool _finished;
@@ -50,8 +49,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _archive = archive;
         _compressionLevel = compressionLevel;
         _buffer = new SpreadsheetBuffer(bufferSize);
-        _defaultDateTimeFormat = defaultDateTimeFormat;
         _writeCellReferenceAttributes = writeCellReferenceAttributes;
+
+        // If no style is ever added to the spreadsheet, then we can skip creating the styles.xml file.
+        // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
+        if (defaultDateTimeFormat is { } format)
+            _styleManager = new(format);
     }
 
     /// <summary>
@@ -70,12 +73,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         var spreadsheet = new Spreadsheet(archive, compressionLevel, bufferSize, defaultDateTimeFormat, writeCellReferenceAttributes);
         await spreadsheet.InitializeAsync(cancellationToken).ConfigureAwait(false);
-
-        // If no style is ever added to the spreadsheet, then we can skip creating the styles.xml file.
-        // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
-        if (defaultDateTimeFormat is not null)
-            spreadsheet.AddDefaultStyle();
-
         return spreadsheet;
     }
 
@@ -133,7 +130,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// The worksheet name must satisfy these requirements:
     /// <list type="bullet">
     ///   <item><description>Can not be empty or consist only of whitespace.</description></item>
-    ///   <item><description>Can not be more than 31 characters.</description></item>
+    ///   <item><description>Can not be longer than 31 characters.</description></item>
     ///   <item><description>Can not start or end with a single quote.</description></item>
     ///   <item><description>Can not contain these characters: / \ * ? [ ] </description></item>
     ///   <item><description>Must be unique across all worksheets.</description></item>
@@ -153,7 +150,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var path = StringHelper.Invariant($"xl/worksheets/sheet{_worksheets.Count + 1}.xml");
         var entry = _archive.CreateEntry(path, _compressionLevel);
         var entryStream = entry.Open();
-        _worksheet = new Worksheet(entryStream, _defaultStyling, _buffer, _writeCellReferenceAttributes);
+        _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes);
         await _worksheet.WriteHeadAsync(options, token).ConfigureAwait(false);
         _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
     }
@@ -387,47 +384,68 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(style);
 
-        // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
-        if (_styles is null)
-            AddDefaultStyle();
-
-        return AddStyle(ImmutableStyle.From(style));
+        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null);
+        return styleManager.AddStyleIfNotExists(ImmutableStyle.From(style));
     }
 
-    private void AddDefaultStyle()
+    /// <summary>
+    /// <para>
+    /// Adds a named style to the spreadsheet and returns a style ID.
+    /// This also allows for calling <see cref="GetStyleId(string)"/> with the name to get the style ID.
+    /// </para>
+    /// <para>
+    /// The <paramref name="nameVisibility"/> parameter determines whether or not the style name will be visible in the Excel UI.
+    /// If <paramref name="nameVisibility"/> is set to <see langword="null"/>, then the style name will not be part of the resulting XLSX file.
+    /// </para>
+    /// <para>
+    /// The style name must satisfy these requirements:
+    /// <list type="bullet">
+    ///   <item><description>Can not be empty or consist only of whitespace.</description></item>
+    ///   <item><description>Can not start or end with whitespace.</description></item>
+    ///   <item><description>Can not be longer than 255 characters.</description></item>
+    ///   <item><description>Can not be equal to "Normal", as that is the name of the default font.</description></item>
+    ///   <item><description>Must be unique for the spreadsheet.</description></item>
+    /// </list>
+    /// </para>
+    /// </summary>
+    public StyleId AddStyle(Style style, string name, StyleNameVisibility? nameVisibility = null)
     {
-        var defaultFont = new ImmutableFont(null, false, false, false, Font.DefaultSize, null);
-        var defaultStyle = new ImmutableStyle(new ImmutableAlignment(), new ImmutableBorder(), new ImmutableFill(), defaultFont, null);
-        var styleId = AddStyle(defaultStyle);
+        ArgumentNullException.ThrowIfNull(style);
+        ArgumentNullException.ThrowIfNull(name);
 
-        if (styleId.Id != styleId.DateTimeId)
-            _defaultStyling = new DefaultStyling(styleId.DateTimeId);
+        if (string.IsNullOrWhiteSpace(name))
+            ThrowHelper.NameEmptyOrWhiteSpace(nameof(name));
+        if (name.Length > 255)
+            ThrowHelper.StyleNameTooLong(nameof(name));
+        if (char.IsWhiteSpace(name[0]) || char.IsWhiteSpace(name[^1]))
+            ThrowHelper.StyleNameStartsOrEndsWithWhiteSpace(nameof(name));
+        if (name.Equals("Normal", StringComparison.OrdinalIgnoreCase))
+            ThrowHelper.StyleNameCanNotEqualNormal(nameof(name));
+        if (nameVisibility is { } visibility && !EnumHelper.IsDefined(visibility))
+            ThrowHelper.EnumValueInvalid(nameof(nameVisibility), nameVisibility);
+
+        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null);
+        if (!styleManager.TryAddNamedStyle(name, style, nameVisibility, out var styleId))
+            ThrowHelper.StyleNameAlreadyExists(nameof(name));
+
+        return styleId;
     }
 
-    private StyleId AddStyle(in ImmutableStyle style)
+    /// <summary>
+    /// Get the <see cref="StyleId"/> from a named style.
+    /// The named style must have previously been added to the spreadsheet with <see cref="AddStyle(Style, string, StyleNameVisibility?)"/>.
+    /// If the named style is not found, a <see cref="SpreadCheetahException"/> is thrown.
+    /// </summary>
+    public StyleId GetStyleId(string name)
     {
-        // Optionally add another style for DateTime when there is no explicit number format in the new style.
-        ImmutableStyle? dateTimeStyle = _defaultDateTimeFormat is not null && style.Format is null
-            ? style with { Format = _defaultDateTimeFormat }
-            : null;
+        ArgumentNullException.ThrowIfNull(name);
 
-        _styles ??= [];
-        if (_styles.TryGetValue(style, out var id))
-        {
-            return dateTimeStyle is { } dtStyle && _styles.TryGetValue(dtStyle, out var dateTimeId)
-                ? new StyleId(id, dateTimeId)
-                : new StyleId(id, id);
-        }
+        var styleId = _styleManager?.GetStyleIdOrDefault(name);
+        if (styleId is not null)
+            return styleId;
 
-        var newId = _styles.Count;
-        _styles[style] = newId;
-
-        if (dateTimeStyle is not { } dateTimeStyleValue)
-            return new StyleId(newId, newId);
-
-        var newDateTimeId = newId + 1;
-        _styles[dateTimeStyleValue] = newDateTimeId;
-        return new StyleId(newId, newDateTimeId);
+        ThrowHelper.StyleNameNotFound(name);
+        return null; // Unreachable
     }
 
     /// <summary>
@@ -609,14 +627,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         await FinishAndDisposeWorksheetAsync(token).ConfigureAwait(false);
 
-        var hasStyles = _styles != null;
+        var hasStyles = _styleManager is not null;
 
         await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, _fileCounter, hasStyles, token).ConfigureAwait(false);
         await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, token).ConfigureAwait(false);
 
-        if (_styles is not null)
-            await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styles, token).ConfigureAwait(false);
+        if (_styleManager is not null)
+            await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styleManager, token).ConfigureAwait(false);
 
         _finished = true;
 

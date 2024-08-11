@@ -3,43 +3,48 @@ using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using System.Drawing;
 
-namespace SpreadCheetah.MetadataXml;
+namespace SpreadCheetah.MetadataXml.Styles;
 
-internal struct StyleBordersXml
+internal struct BordersXmlPart(List<ImmutableBorder> borders, SpreadsheetBuffer buffer)
 {
-    private readonly List<ImmutableBorder> _borders;
     private Element _next;
     private int _nextIndex;
 
-    public StyleBordersXml(List<ImmutableBorder> borders)
+    public bool TryWrite()
     {
-        _borders = borders;
-    }
-
-    public bool TryWrite(Span<byte> bytes, ref int bytesWritten)
-    {
-        if (_next == Element.Header && !Advance(TryWriteHeader(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Borders && !Advance(TryWriteBorders(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Footer && !Advance("</borders>"u8.TryCopyTo(bytes, ref bytesWritten))) return false;
+        while (MoveNext())
+        {
+            if (!Current)
+                return false;
+        }
 
         return true;
     }
 
-    private bool Advance(bool success)
+    public bool Current { get; private set; }
+
+    public bool MoveNext()
     {
-        if (success)
+        Current = _next switch
+        {
+            Element.Header => TryWriteHeader(),
+            Element.Borders => TryWriteBorders(),
+            _ => buffer.TryWrite("</borders>"u8)
+        };
+
+        if (Current)
             ++_next;
 
-        return success;
+        return _next < Element.Done;
     }
 
-    private readonly bool TryWriteHeader(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteHeader()
     {
-        var span = bytes.Slice(bytesWritten);
+        var span = buffer.GetSpan();
         var written = 0;
 
         const int defaultCount = 1;
-        var totalCount = _borders.Count + defaultCount - 1;
+        var totalCount = borders.Count + defaultCount - 1;
 
         if (!"<borders count=\""u8.TryCopyTo(span, ref written)) return false;
         if (!SpanHelper.TryWrite(totalCount, span, ref written)) return false;
@@ -49,21 +54,20 @@ internal struct StyleBordersXml
             "<border><left/><right/><top/><bottom/><diagonal/></border>"u8;
         if (!defaultBorder.TryCopyTo(span, ref written)) return false;
 
-        bytesWritten += written;
+        buffer.Advance(written);
         return true;
     }
 
-    private bool TryWriteBorders(Span<byte> bytes, ref int bytesWritten)
+    private bool TryWriteBorders()
     {
-        var defaultBorder = new ImmutableBorder();
-        var borders = _borders;
+        var bordersLocal = borders;
 
-        for (; _nextIndex < borders.Count; ++_nextIndex)
+        for (; _nextIndex < bordersLocal.Count; ++_nextIndex)
         {
-            var border = borders[_nextIndex];
-            if (border.Equals(defaultBorder)) continue;
+            var border = bordersLocal[_nextIndex];
+            if (border.Equals(default)) continue;
 
-            var span = bytes.Slice(bytesWritten);
+            var span = buffer.GetSpan();
             var written = 0;
 
             var diag = border.Diagonal;
@@ -80,7 +84,7 @@ internal struct StyleBordersXml
 
             if (!"</border>"u8.TryCopyTo(span, ref written)) return false;
 
-            bytesWritten += written;
+            buffer.Advance(written);
         }
 
         return true;

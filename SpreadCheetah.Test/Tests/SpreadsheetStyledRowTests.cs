@@ -5,7 +5,6 @@ using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Test.Helpers.Backporting;
 using System.Globalization;
-using Xunit;
 using Alignment = SpreadCheetah.Styling.Alignment;
 using Border = SpreadCheetah.Styling.Border;
 using CellType = SpreadCheetah.Test.Helpers.CellType;
@@ -482,6 +481,39 @@ public class SpreadsheetStyledRowTests
         Assert.All(actualCells, x => Assert.Equal(cellValue, x.Value));
         Assert.All(actualCells, x => Assert.Equal(format.ToString(), x.Style.NumberFormat.Format));
         Assert.Equal(styles.Length, actualCells.Count());
+    }
+
+    [Theory]
+    [MemberData(nameof(TrueAndFalse))]
+    public async Task Spreadsheet_AddRow_DateTimeCell(bool withDefaultDateTimeFormat, CellType type, RowCollectionType rowType)
+    {
+        // Arrange
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        if (!withDefaultDateTimeFormat)
+            options.DefaultDateTimeFormat = null;
+
+        var value = new DateTime(2021, 2, 3, 4, 5, 6, DateTimeKind.Unspecified);
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        var style = new Style { Font = { Italic = true } };
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = CellFactory.Create(type, value, styleId);
+        var expectedNumberFormat = withDefaultDateTimeFormat ? @"yyyy\-mm\-dd\ hh:mm:ss" : "";
+
+        // Act
+        await spreadsheet.AddRowAsync(styledCell, rowType);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.Equal(value.ToOADate(), actualCell.Value.GetUnifiedNumber(), 0.0005);
+        Assert.Equal(expectedNumberFormat, actualCell.Style.NumberFormat.Format);
+        Assert.True(actualCell.Style.Font.Italic);
     }
 
     [Theory]
