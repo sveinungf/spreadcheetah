@@ -573,7 +573,7 @@ public class SpreadsheetTests
         await spreadsheet.StartWorksheetAsync("Book 1");
 
         var style1 = new Style { Fill = new Fill { Color = Color.Bisque } };
-        var style2 = new Style { Fill = new Fill { Color = Color.Bisque } };
+        var style2 = style1 with { };
 
         // Act
         var style1Id = spreadsheet.AddStyle(style1);

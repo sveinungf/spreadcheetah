@@ -210,6 +210,38 @@ public class NamedStyleTests
         Assert.Throws<ArgumentException>(() => spreadsheet.AddStyle(otherStyle, duplicateName));
     }
 
+    [Fact]
+    public async Task Spreadsheet_AddStyle_DuplicateNamedStylesReturnsDifferentStyleIds()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions);
+        var style1 = new Style { Font = { Bold = true } };
+        var style2 = style1 with { };
+
+        // Act
+        var styleId1 = spreadsheet.AddStyle(style1, "Style 1");
+        var styleId2 = spreadsheet.AddStyle(style2, "Style 2");
+
+        // Assert
+        Assert.NotEqual(styleId1.Id, styleId2.Id);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddStyle_NamedStyleDuplicateOfUnnamedStyleReturnsDifferentStyleIds()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions);
+        var style1 = new Style { Font = { Bold = true } };
+        var style2 = style1 with { };
+
+        // Act
+        var styleId1 = spreadsheet.AddStyle(style1);
+        var styleId2 = spreadsheet.AddStyle(style2, "Style 2");
+
+        // Assert
+        Assert.NotEqual(styleId1.Id, styleId2.Id);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
