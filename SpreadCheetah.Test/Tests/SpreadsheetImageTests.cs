@@ -92,6 +92,22 @@ public class SpreadsheetImageTests
         Assert.Contains(nameof(Spreadsheet.FinishAsync), concreteException.Message, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task Spreadsheet_EmbedImage_InvalidFile()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        var bytes = "Invalid file"u8.ToArray();
+        var imageStream = new MemoryStream(bytes);
+
+        // Act
+        var exception = await Record.ExceptionAsync(() => spreadsheet.EmbedImageAsync(imageStream).AsTask());
+
+        // Assert
+        var concreteException = Assert.IsType<ArgumentException>(exception);
+        Assert.Equal("stream", concreteException.ParamName);
+    }
+
     [Theory]
     [InlineData("red-1x1.png", 1, 1)]
     [InlineData("green-266x183.png", 266, 183)]
