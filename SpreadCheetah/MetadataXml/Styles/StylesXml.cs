@@ -21,9 +21,11 @@ internal struct StylesXml
         await using (stream.ConfigureAwait(false))
 #endif
         {
-            var orderedStyles = styleManager.StyleElements;
-            var embeddedNamedStyles = styleManager.GetEmbeddedNamedStyles();
-            var writer = new StylesXml(orderedStyles, embeddedNamedStyles, buffer);
+            var writer = new StylesXml(
+                styles: styleManager.StyleElements,
+                namedStyles: styleManager.GetEmbeddedNamedStyles(),
+                namedStylesDictionary: styleManager.NamedStyles,
+                buffer: buffer);
 
             foreach (var success in writer)
             {
@@ -46,7 +48,7 @@ internal struct StylesXml
     private readonly List<StyleElement> _styles;
     private readonly List<(string, ImmutableStyle, StyleNameVisibility)>? _namedStyles;
     private readonly Dictionary<string, int>? _customNumberFormats;
-    private readonly Dictionary<string, int>? _embeddedNamedStyleIndexes;
+    private readonly Dictionary<string, (StyleId StyleId, int NamedStyleIndex)>? _namedStylesDictionary;
     private readonly Dictionary<ImmutableBorder, int> _borders;
     private readonly Dictionary<ImmutableFill, int> _fills;
     private readonly Dictionary<ImmutableFont, int> _fonts;
@@ -62,10 +64,10 @@ internal struct StylesXml
     private StylesXml(
         List<StyleElement> styles,
         List<(string, ImmutableStyle, StyleNameVisibility)>? namedStyles,
+        Dictionary<string, (StyleId StyleId, int NamedStyleIndex)>? namedStylesDictionary,
         SpreadsheetBuffer buffer)
     {
         _customNumberFormats = CreateCustomNumberFormatDictionary(styles);
-        _embeddedNamedStyleIndexes = CreateEmbeddedStyleNameIndexesDictionary(styles, namedStyles); // TODO: Maybe not needed anymore?
         _borders = CreateBorderDictionary(styles);
         _fills = CreateFillDictionary(styles);
         _fonts = CreateFontDictionary(styles);
@@ -77,6 +79,7 @@ internal struct StylesXml
         _cellStylesXml = new CellStylesXmlPart(namedStyles, buffer);
         _styles = styles;
         _namedStyles = namedStyles;
+        _namedStylesDictionary = namedStylesDictionary;
     }
 
     public readonly StylesXml GetEnumerator() => this;
@@ -152,27 +155,6 @@ internal struct StylesXml
         return uniqueFonts;
     }
 
-    private static Dictionary<string, int>? CreateEmbeddedStyleNameIndexesDictionary(
-        List<StyleElement> styles,
-        List<(string, ImmutableStyle, StyleNameVisibility)>? namedStyles)
-    {
-        if (namedStyles is null)
-            return null;
-
-        Dictionary<string, int>? result = null;
-
-        foreach (var (_, name, _) in styles)
-        {
-            if (name is null)
-                continue;
-
-            result ??= new(StringComparer.OrdinalIgnoreCase);
-            result[name] = namedStyles.FindIndex(x => name.Equals(x.Item1, StringComparison.OrdinalIgnoreCase));
-        }
-
-        return result;
-    }
-
     public bool MoveNext()
     {
         Current = _next switch
@@ -239,12 +221,13 @@ internal struct StylesXml
 
         for (; _nextIndex < styles.Count; ++_nextIndex)
         {
-            var (style, embeddedName, _) = _styles[_nextIndex];
-            var embeddedStyleIndex = embeddedName is not null
-                ? _embeddedNamedStyleIndexes?.GetValueOrDefault(embeddedName)
+            var (style, name, visibility) = _styles[_nextIndex];
+            int? embeddedNamedStyleIndex = name is not null && visibility is not null
+                && _namedStylesDictionary is { } namedStyles && namedStyles.TryGetValue(name, out var value)
+                ? value.NamedStyleIndex
                 : null;
 
-            if (!xfXml.TryWrite(style, embeddedStyleIndex))
+            if (!xfXml.TryWrite(style, embeddedNamedStyleIndex))
                 return false;
         }
 

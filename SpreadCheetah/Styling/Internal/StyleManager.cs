@@ -6,10 +6,10 @@ internal sealed class StyleManager
 {
     private readonly NumberFormat? _defaultDateTimeFormat;
     private readonly Dictionary<ImmutableStyle, int> _styleDictionary = [];
-    private Dictionary<string, StyleId>? _namedStyleDictionary;
 
-    public List<StyleElement> StyleElements { get; } = [];
     public DefaultStyling? DefaultStyling { get; }
+    public List<StyleElement> StyleElements { get; } = [];
+    public Dictionary<string, (StyleId StyleId, int NamedStyleIndex)>? NamedStyles { get; private set; }
 
     public StyleManager(NumberFormat? defaultDateTimeFormat)
     {
@@ -54,7 +54,7 @@ internal sealed class StyleManager
     {
         styleId = null;
 
-        var namedStyles = _namedStyleDictionary ??= new(StringComparer.OrdinalIgnoreCase);
+        var namedStyles = NamedStyles ??= new(StringComparer.OrdinalIgnoreCase);
         if (namedStyles.ContainsKey(name))
             return false;
 
@@ -74,15 +74,20 @@ internal sealed class StyleManager
         }
 
         styleId = new StyleId(id, dateTimeId);
-        namedStyles[name] = styleId;
+        namedStyles[name] = (styleId, namedStyles.Count);
         return true;
     }
 
-    public StyleId? GetStyleIdOrDefault(string name) => _namedStyleDictionary?.GetValueOrDefault(name);
+    public StyleId? GetStyleIdOrDefault(string name)
+    {
+        return NamedStyles is { } namedStyles && namedStyles.TryGetValue(name, out var value)
+            ? value.StyleId
+            : null;
+    }
 
     public List<(string, ImmutableStyle, StyleNameVisibility)>? GetEmbeddedNamedStyles()
     {
-        if (_namedStyleDictionary is null)
+        if (NamedStyles is null)
             return null;
 
         List<(string, ImmutableStyle, StyleNameVisibility)>? result = null;
