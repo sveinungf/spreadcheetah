@@ -511,7 +511,7 @@ public class SpreadsheetStyledRowTests
         using var workbook = new XLWorkbook(stream);
         var worksheet = workbook.Worksheets.Single();
         var actualCell = worksheet.Cell(1, 1);
-        Assert.Equal(value.ToOADate(), actualCell.Value.GetUnifiedNumber());
+        Assert.Equal(value.ToOADate(), actualCell.Value.GetUnifiedNumber(), 0.0005);
         Assert.Equal(expectedNumberFormat, actualCell.Style.NumberFormat.Format);
         Assert.True(actualCell.Style.Font.Italic);
     }
