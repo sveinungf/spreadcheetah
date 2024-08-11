@@ -142,12 +142,12 @@ public class NamedStyleTests
         // Assert
         SpreadsheetAssert.Valid(stream);
         using var package = new ExcelPackage(stream);
-        var worksheet1 = package.Workbook.Worksheets[0];
+        var worksheet1 = package.Workbook.Worksheets["Sheet 1"];
         Assert.Equal(styles[0].Name, worksheet1.Cells["A1"].StyleName);
         Assert.Equal(styles[1].Name, worksheet1.Cells["C1"].StyleName);
         Assert.Equal(styles[2].Name, worksheet1.Cells["A2"].StyleName);
 
-        var worksheet2 = package.Workbook.Worksheets[1];
+        var worksheet2 = package.Workbook.Worksheets["Sheet 2"];
         Assert.Equal(styles[3].Name, worksheet2.Cells["A1"].StyleName);
     }
 
