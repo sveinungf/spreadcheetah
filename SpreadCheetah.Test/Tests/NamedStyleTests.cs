@@ -60,12 +60,18 @@ public class NamedStyleTests
         Assert.False(namedStyle.Style.Font.Bold);
     }
 
-    [Fact]
-    public async Task Spreadsheet_AddStyle_NamedStyleUsedByCell()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Spreadsheet_AddStyle_NamedStyleUsedByCell(bool withDefaultDateTimeFormat)
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, SpreadCheetahOptions);
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        if (!withDefaultDateTimeFormat)
+            options.DefaultDateTimeFormat = null;
+
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
         await spreadsheet.StartWorksheetAsync("My sheet");
         var style = new Style { Font = { Bold = true } };
         const string name = "My bold style";
