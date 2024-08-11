@@ -385,7 +385,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(style);
 
         var styleManager = _styleManager ?? new(defaultDateTimeFormat: null);
-        return styleManager.AddStyleIfNotExists(ImmutableStyle.From(style), null);
+        return styleManager.AddStyleIfNotExists(ImmutableStyle.From(style));
     }
 
     /// <summary>

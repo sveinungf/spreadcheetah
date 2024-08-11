@@ -4,18 +4,11 @@ namespace SpreadCheetah.Styling.Internal;
 
 internal sealed class StyleManager
 {
-    private readonly record struct StyleIdentifiers(
-        int StyleId,
-        string? Name);
-
-    private readonly record struct EmbeddedNamedStyle(
-        StyleNameVisibility Visibility);
-
-    private readonly Dictionary<ImmutableStyle, StyleIdentifiers> _styles = [];
     private readonly NumberFormat? _defaultDateTimeFormat;
-    private Dictionary<string, StyleId>? _namedStyles;
-    private Dictionary<string, EmbeddedNamedStyle>? _embeddedNamedStyles;
+    private readonly Dictionary<ImmutableStyle, int> _styleDictionary = [];
+    private Dictionary<string, StyleId>? _namedStyleDictionary;
 
+    public List<StyleElement> StyleElements { get; } = [];
     public DefaultStyling? DefaultStyling { get; }
 
     public StyleManager(NumberFormat? defaultDateTimeFormat)
@@ -25,87 +18,82 @@ internal sealed class StyleManager
         // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
         var defaultFont = new ImmutableFont(null, false, false, false, Font.DefaultSize, null);
         var defaultStyle = new ImmutableStyle(new ImmutableAlignment(), new ImmutableBorder(), new ImmutableFill(), defaultFont, null);
-        var styleId = AddStyleIfNotExists(defaultStyle, null);
+        var styleId = AddStyleIfNotExists(defaultStyle);
 
         if (styleId.Id != styleId.DateTimeId)
             DefaultStyling = new DefaultStyling(styleId.DateTimeId);
     }
 
-    public StyleId AddStyleIfNotExists(in ImmutableStyle style, string? name)
+    public StyleId AddStyleIfNotExists(in ImmutableStyle style)
     {
-        var id = AddStyleIfNotExistsInternal(style, name);
+        var id = AddStyleIfNotExistsInternal(style);
 
         if (_defaultDateTimeFormat is null || style.Format is not null)
             return new StyleId(id, id);
 
         // Optionally add another style for DateTime when there is no explicit number format in the new style.
         var dateTimeStyle = style with { Format = _defaultDateTimeFormat };
-
-        // If there is a name it will only refer to the regular style, not the DateTime style.
-        var dateTimeId = AddStyleIfNotExistsInternal(dateTimeStyle, null);
+        var dateTimeId = AddStyleIfNotExistsInternal(dateTimeStyle);
 
         return new StyleId(id, dateTimeId);
     }
 
-    private int AddStyleIfNotExistsInternal(in ImmutableStyle style, string? name)
+    private int AddStyleIfNotExistsInternal(in ImmutableStyle style)
     {
-        // TODO: What to do here if the style already exists, but with a different name?
-        if (_styles.TryGetValue(style, out var existingIdentifiers))
-            return existingIdentifiers.StyleId;
+        if (_styleDictionary.TryGetValue(style, out var id))
+            return id;
 
-        var id = _styles.Count;
-        _styles[style] = new StyleIdentifiers(id, name);
-        return id;
+        var newId = StyleElements.Count;
+        StyleElements.Add(new StyleElement(style, null, null));
+        _styleDictionary[style] = newId;
+        return newId;
     }
 
-    public bool TryAddNamedStyle(string name, Style style, StyleNameVisibility? nameVisibility,
+    public bool TryAddNamedStyle(string name, Style style, StyleNameVisibility? visibility,
         [NotNullWhen(true)] out StyleId? styleId)
     {
         styleId = null;
 
-        var namedStyles = _namedStyles ??= new(StringComparer.OrdinalIgnoreCase);
+        var namedStyles = _namedStyleDictionary ??= new(StringComparer.OrdinalIgnoreCase);
         if (namedStyles.ContainsKey(name))
             return false;
 
-        styleId = AddStyleIfNotExists(ImmutableStyle.From(style), name);
-        namedStyles[name] = styleId;
+        var immutableStyle = ImmutableStyle.From(style);
 
-        if (nameVisibility is { } visibility)
+        var id = StyleElements.Count;
+        StyleElements.Add(new StyleElement(immutableStyle, name, visibility));
+        var dateTimeId = id;
+
+        if (_defaultDateTimeFormat is not null && style.Format is null)
         {
-            var embeddedNamedStyles = _embeddedNamedStyles ??= new(StringComparer.OrdinalIgnoreCase);
-            embeddedNamedStyles[name] = new EmbeddedNamedStyle(visibility);
+            var dateTimeStyle = immutableStyle with { Format = _defaultDateTimeFormat };
+
+            // Style names only refer to the regular style, not the DateTime style.
+            // Since the DateTime style doesn't have a name, it can be reused like regular styles.
+            dateTimeId = AddStyleIfNotExistsInternal(dateTimeStyle);
         }
 
+        styleId = new StyleId(id, dateTimeId);
+        namedStyles[name] = styleId;
         return true;
     }
 
-    public StyleId? GetStyleIdOrDefault(string name) => _namedStyles?.GetValueOrDefault(name);
-
-    public List<(ImmutableStyle Style, string? EmbeddedName)> GetOrderedStyles()
-    {
-        // The order of Dictionary.Keys is not guaranteed, so we make sure the styles are sorted by the StyleId here.
-        return _styles
-            .OrderBy(x => x.Value.StyleId)
-            .Select(x => (x.Key, x.Value.Name))
-            .ToList();
-    }
+    public StyleId? GetStyleIdOrDefault(string name) => _namedStyleDictionary?.GetValueOrDefault(name);
 
     public List<(string, ImmutableStyle, StyleNameVisibility)>? GetEmbeddedNamedStyles()
     {
-        if (_embeddedNamedStyles is null || _namedStyles is null)
+        if (_namedStyleDictionary is null)
             return null;
 
-        var result = new List<(string, ImmutableStyle, StyleNameVisibility)>(_embeddedNamedStyles.Count);
-        var styleIdToStyle = _styles.ToDictionary(x => x.Value.StyleId, x => x.Key);
+        List<(string, ImmutableStyle, StyleNameVisibility)>? result = null;
 
-        foreach (var (name, embeddedNameStyle) in _embeddedNamedStyles)
+        foreach (var (style, name, visibility) in StyleElements)
         {
-            if (!_namedStyles.TryGetValue(name, out var styleId))
-                continue;
-            if (!styleIdToStyle.TryGetValue(styleId.Id, out var style))
-                continue;
+            if (name is null) continue;
+            if (visibility is not { } nameVisibility) continue;
 
-            result.Add((name, style, embeddedNameStyle.Visibility));
+            result ??= [];
+            result.Add((name, style, nameVisibility));
         }
 
         return result;
