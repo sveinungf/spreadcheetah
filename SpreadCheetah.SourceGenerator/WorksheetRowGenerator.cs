@@ -373,9 +373,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         if (rowType.IsReferenceType)
         {
-            sb.AppendLine("""
+            sb.AppendLine($"""
                         if (obj is null)
-                            return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
+                            return spreadsheet.AddRowAsync(ReadOnlyMemory<{rowType.CellType}>.Empty, token);
             """);
         }
 
@@ -394,14 +394,14 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
                 private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, {{rowType.FullName}} obj, CancellationToken token)
                 {
-                    var cells = ArrayPool<DataCell>.Shared.Rent({{properties.Count}});
+                    var cells = ArrayPool<{{rowType.CellType}}>.Shared.Rent({{properties.Count}});
                     try
                     {
                         await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);
                     }
                     finally
                     {
-                        ArrayPool<DataCell>.Shared.Return(cells, true);
+                        ArrayPool<{{rowType.CellType}}>.Shared.Return(cells, true);
                     }
                 }
         """);
@@ -431,7 +431,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
                 private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<{{rowType.FullNameWithNullableAnnotation}}> objs, CancellationToken token)
                 {
-                    var cells = ArrayPool<DataCell>.Shared.Rent({{properties.Count}});
+                    var cells = ArrayPool<{{rowType.CellType}}>.Shared.Rent({{properties.Count}});
                     try
                     {
                         foreach (var obj in objs)
@@ -441,7 +441,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                     }
                     finally
                     {
-                        ArrayPool<DataCell>.Shared.Return(cells, true);
+                        ArrayPool<{{rowType.CellType}}>.Shared.Return(cells, true);
                     }
                 }
 
@@ -455,15 +455,15 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         sb.AppendLine($$"""
 
-                    private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, {{rowType.FullNameWithNullableAnnotation}} obj, DataCell[] cells, CancellationToken token)
+                    private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, {{rowType.FullNameWithNullableAnnotation}} obj, {{rowType.CellType}}[] cells, CancellationToken token)
                     {
             """);
 
         if (rowType.IsReferenceType)
         {
-            sb.AppendLine("""
+            sb.AppendLine($"""
                         if (obj is null)
-                            return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
+                            return spreadsheet.AddRowAsync(ReadOnlyMemory<{rowType.CellType}>.Empty, token);
 
             """);
         }
@@ -474,13 +474,13 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             {
                 sb.AppendLine(FormattableString.Invariant($$"""
                             var p{{i}} = obj.{{property.Name}};
-                            cells[{{i}}] = p{{i}} is null || p{{i}}.Length <= {{truncateLength}} ? new DataCell(p{{i}}) : new DataCell(p{{i}}.AsMemory(0, {{truncateLength}}));
+                            cells[{{i}}] = p{{i}} is null || p{{i}}.Length <= {{truncateLength}} ? new {{rowType.CellType}}(p{{i}}) : new {{rowType.CellType}}(p{{i}}.AsMemory(0, {{truncateLength}}));
                 """));
             }
             else
             {
                 sb.AppendLine(FormattableString.Invariant($$"""
-                            cells[{{i}}] = new DataCell(obj.{{property.Name}});
+                            cells[{{i}}] = new {{rowType.CellType}}(obj.{{property.Name}});
                 """));
             }
         }

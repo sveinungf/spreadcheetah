@@ -12,5 +12,6 @@ internal sealed record RowType(
     EquatableArray<string> UnsupportedPropertyTypeNames,
     EquatableArray<DiagnosticInfo> DiagnosticInfos)
 {
+    public string CellType { get; } = HasStyleAttribute ? "StyledCell" : "DataCell";
     public string FullNameWithNullableAnnotation => IsReferenceType ? $"{FullName}?" : FullName;
 }
