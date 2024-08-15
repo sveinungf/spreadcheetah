@@ -23,10 +23,18 @@ internal static class AttributeDataExtensions
 
         foreach (var attribute in attributes)
         {
-            columnHeader ??= attribute.TryGetColumnHeaderAttribute(diagnosticInfos, token);
-            columnOrder ??= attribute.TryGetColumnOrderAttribute(token);
-            columnWidth ??= attribute.TryGetColumnWidthAttribute(diagnosticInfos, token);
-            cellValueTruncate ??= attribute.TryGetCellValueTruncateAttribute(propertyType, diagnosticInfos, token);
+            var displayString = attribute.AttributeClass?.ToDisplayString();
+            if (displayString is null)
+                continue;
+
+            _ = displayString switch
+            {
+                Attributes.CellValueTruncate => attribute.TryGetCellValueTruncateAttribute(propertyType, diagnosticInfos, token, ref cellValueTruncate),
+                Attributes.ColumnHeader => attribute.TryGetColumnHeaderAttribute(diagnosticInfos, token, ref columnHeader),
+                Attributes.ColumnOrder => attribute.TryGetColumnOrderAttribute(token, ref columnOrder),
+                Attributes.ColumnWidth => attribute.TryGetColumnWidthAttribute(diagnosticInfos, token, ref columnWidth),
+                _ => false
+            };
         }
 
         return new PropertyAttributeData(columnHeader, columnOrder, columnWidth, cellValueTruncate);
@@ -95,20 +103,19 @@ internal static class AttributeDataExtensions
         return InheritedColumnOrder.InheritedColumnsFirst;
     }
 
-    private static ColumnHeader? TryGetColumnHeaderAttribute(this AttributeData attribute,
-        List<DiagnosticInfo> diagnosticInfos, CancellationToken token)
+    private static bool TryGetColumnHeaderAttribute(this AttributeData attribute,
+        List<DiagnosticInfo> diagnosticInfos, CancellationToken token, ref ColumnHeader? result)
     {
-        if (!string.Equals(Attributes.ColumnHeader, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
-            return null;
+        if (result is not null)
+            return false;
 
         var args = attribute.ConstructorArguments;
         if (args is [{ Value: string } arg])
-            return new ColumnHeader(arg.ToCSharpString());
+            result = new ColumnHeader(arg.ToCSharpString());
+        else if (args is [{ Value: INamedTypeSymbol type }, { Value: string propertyName }])
+            result = TryGetColumnHeaderWithPropertyReference(type, propertyName, attribute, diagnosticInfos, token);
 
-        if (args is [{ Value: INamedTypeSymbol type }, { Value: string propertyName }])
-            return TryGetColumnHeaderWithPropertyReference(type, propertyName, attribute, diagnosticInfos, token);
-
-        return null;
+        return result is not null;
     }
 
     private static ColumnHeader? TryGetColumnHeaderWithPropertyReference(
@@ -137,67 +144,70 @@ internal static class AttributeDataExtensions
         return null;
     }
 
-    private static ColumnOrder? TryGetColumnOrderAttribute(this AttributeData attribute, CancellationToken token)
+    private static bool TryGetColumnOrderAttribute(this AttributeData attribute, CancellationToken token, ref ColumnOrder? result)
     {
-        if (!string.Equals(Attributes.ColumnOrder, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
-            return null;
+        if (result is not null)
+            return false;
 
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: int attributeValue }])
-            return null;
+            return false;
 
         var location = attribute.GetLocation(token);
-        return new ColumnOrder(attributeValue, location);
+        result = new ColumnOrder(attributeValue, location);
+        return true;
     }
 
-    private static ColumnWidth? TryGetColumnWidthAttribute(this AttributeData attribute,
-        List<DiagnosticInfo> diagnosticInfos, CancellationToken token)
+    private static bool TryGetColumnWidthAttribute(this AttributeData attribute,
+        List<DiagnosticInfo> diagnosticInfos, CancellationToken token, ref ColumnWidth? result)
     {
-        if (!string.Equals(Attributes.ColumnWidth, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
-            return null;
+        if (result is not null)
+            return false;
 
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: double attributeValue }])
-            return null;
+            return false;
 
         if (attributeValue is <= 0 or > 255)
         {
             var location = attribute.GetLocation(token);
             var stringValue = attributeValue.ToString(CultureInfo.InvariantCulture);
             diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.InvalidAttributeArgument, location, new([stringValue, Attributes.ColumnWidth])));
-            return null;
+            return false;
         }
 
-        return new ColumnWidth(attributeValue);
+        result = new ColumnWidth(attributeValue);
+        return true;
     }
 
-    private static CellValueTruncate? TryGetCellValueTruncateAttribute(this AttributeData attribute, ITypeSymbol propertyType,
-        List<DiagnosticInfo> diagnosticInfos, CancellationToken token)
+    private static bool TryGetCellValueTruncateAttribute(this AttributeData attribute, ITypeSymbol propertyType,
+        List<DiagnosticInfo> diagnosticInfos, CancellationToken token, ref CellValueTruncate? result)
     {
-        if (!string.Equals(Attributes.CellValueTruncate, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
-            return null;
+        if (result is not null)
+            return false;
 
         if (propertyType.SpecialType != SpecialType.System_String)
         {
             var location = attribute.GetLocation(token);
             var typeFullName = propertyType.ToDisplayString();
             diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.UnsupportedTypeForCellValueLengthLimit, location, new([typeFullName])));
-            return null;
+            return false;
         }
 
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: int attributeValue }])
-            return null;
+            return false;
 
         if (attributeValue <= 0)
         {
             var location = attribute.GetLocation(token);
             var stringValue = attributeValue.ToString(CultureInfo.InvariantCulture);
             diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.InvalidAttributeArgument, location, new([stringValue, Attributes.CellValueTruncate])));
-            return null;
+            return false;
         }
 
-        return new CellValueTruncate(attributeValue);
+        result = new CellValueTruncate(attributeValue);
+        return true;
     }
 
     private static LocationInfo? GetLocation(this AttributeData attribute, CancellationToken token)
