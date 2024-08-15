@@ -197,6 +197,11 @@ namespace SpreadCheetah.SourceGeneration
         public ColumnOrderAttribute(int order) { }
     }
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
+    public sealed class ColumnStyleAttribute : System.Attribute
+    {
+        public ColumnStyleAttribute(string styleName) { }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class ColumnWidthAttribute : System.Attribute
     {
         public ColumnWidthAttribute(double width) { }
