@@ -86,7 +86,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
         var unsupportedPropertyTypeNames = new HashSet<string>(StringComparer.Ordinal);
         var diagnosticInfos = new List<DiagnosticInfo>();
-        var hasStyleAttribute = false;
+        var propertiesWithStyleAttributes = 0;
 
         foreach (var property in GetClassAndBaseClassProperties(classType))
         {
@@ -103,7 +103,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 .GetAttributes()
                 .MapToPropertyAttributeData(property.Type, diagnosticInfos, token);
 
-            hasStyleAttribute = hasStyleAttribute || data.ColumnStyle is not null;
+            if (data.ColumnStyle is not null)
+                propertiesWithStyleAttributes++;
 
             var rowTypeProperty = new RowTypeProperty(
                 Name: property.Name,
@@ -125,10 +126,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return new RowType(
             DiagnosticInfos: diagnosticInfos.ToEquatableArray(),
             FullName: classType.ToString(),
-            HasStyleAttribute: hasStyleAttribute,
             IsReferenceType: classType.IsReferenceType,
             Name: classType.Name,
             Properties: explicitOrderProperties.Values.ToEquatableArray(),
+            PropertiesWithStyleAttributes: propertiesWithStyleAttributes,
             UnsupportedPropertyTypeNames: unsupportedPropertyTypeNames.ToEquatableArray(),
             WorksheetRowAttributeLocation: worksheetRowAttributeLocation);
     }
@@ -184,6 +185,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             #nullable enable
             using SpreadCheetah;
             using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.Styling;
             using System;
             using System.Buffers;
             using System.Collections.Generic;
@@ -385,6 +387,55 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             """);
     }
 
+    private static void GenerateArrayPoolRentPart(StringBuilder sb, RowType rowType)
+    {
+        var properties = rowType.Properties;
+        Debug.Assert(properties.Count > 0);
+
+        sb.AppendLine($$"""
+                        var cells = ArrayPool<{{rowType.CellType}}>.Shared.Rent({{properties.Count}});
+            """);
+
+        if (rowType.PropertiesWithStyleAttributes > 0)
+        {
+            sb.AppendLine(FormattableString.Invariant($$"""
+                        var styleIds = ArrayPool<StyleId>.Shared.Rent({{rowType.PropertiesWithStyleAttributes}});
+            """));
+        }
+        else
+        {
+            sb.AppendLine("""
+                        var styleIds = Array.Empty<StyleId>();
+            """);
+        }
+
+        sb.AppendLine($$"""
+                        try
+                        {
+            """);
+    }
+
+    private static void GenerateArrayPoolReturnPart(StringBuilder sb, RowType rowType)
+    {
+        sb.AppendLine($$"""
+                        }
+                        finally
+                        {
+                            ArrayPool<{{rowType.CellType}}>.Shared.Return(cells, true);
+            """);
+
+        if (rowType.PropertiesWithStyleAttributes > 0)
+        {
+            sb.AppendLine("""
+                            ArrayPool<StyleId>.Shared.Return(styleIds, true);
+            """);
+        }
+
+        sb.AppendLine("""
+                        }
+            """);
+    }
+
     private static void GenerateAddAsRowInternal(StringBuilder sb, RowType rowType)
     {
         var properties = rowType.Properties;
@@ -392,17 +443,21 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         sb.AppendLine($$"""
 
-                private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, {{rowType.FullName}} obj, CancellationToken token)
+                private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
+                    {{rowType.FullName}} obj,
+                    CancellationToken token)
                 {
-                    var cells = ArrayPool<{{rowType.CellType}}>.Shared.Rent({{properties.Count}});
-                    try
-                    {
-                        await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        ArrayPool<{{rowType.CellType}}>.Shared.Return(cells, true);
-                    }
+        """);
+
+        GenerateArrayPoolRentPart(sb, rowType);
+
+        sb.AppendLine("""
+                        await AddCellsAsRowAsync(spreadsheet, obj, cells, styleIds, token).ConfigureAwait(false);
+        """);
+
+        GenerateArrayPoolReturnPart(sb, rowType);
+
+        sb.AppendLine("""
                 }
         """);
     }
@@ -411,7 +466,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     {
         sb.AppendLine($$"""
 
-                private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<{{rowType.FullNameWithNullableAnnotation}}> objs, CancellationToken token)
+                private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet,
+                    IEnumerable<{{rowType.FullNameWithNullableAnnotation}}> objs,
+                    CancellationToken token)
                 {
                     if (spreadsheet is null)
                         throw new ArgumentNullException(nameof(spreadsheet));
@@ -427,22 +484,26 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var properties = rowType.Properties;
         Debug.Assert(properties.Count > 0);
 
-        sb.Append($$"""
+        sb.AppendLine($$"""
 
-                private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<{{rowType.FullNameWithNullableAnnotation}}> objs, CancellationToken token)
+                private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
+                    IEnumerable<{{rowType.FullNameWithNullableAnnotation}}> objs,
+                    CancellationToken token)
                 {
-                    var cells = ArrayPool<{{rowType.CellType}}>.Shared.Rent({{properties.Count}});
-                    try
-                    {
+        """);
+
+        GenerateArrayPoolRentPart(sb, rowType);
+
+        sb.AppendLine("""
                         foreach (var obj in objs)
                         {
-                            await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);
+                            await AddCellsAsRowAsync(spreadsheet, obj, cells, styleIds, token).ConfigureAwait(false);
                         }
-                    }
-                    finally
-                    {
-                        ArrayPool<{{rowType.CellType}}>.Shared.Return(cells, true);
-                    }
+        """);
+
+        GenerateArrayPoolReturnPart(sb, rowType);
+
+        sb.AppendLine("""
                 }
 
         """);
@@ -455,7 +516,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         sb.AppendLine($$"""
 
-                    private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, {{rowType.FullNameWithNullableAnnotation}} obj, {{rowType.CellType}}[] cells, CancellationToken token)
+                    private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet,
+                        {{rowType.FullNameWithNullableAnnotation}} obj,
+                        {{rowType.CellType}}[] cells, StyleId[] styleIds, CancellationToken token)
                     {
             """);
 
