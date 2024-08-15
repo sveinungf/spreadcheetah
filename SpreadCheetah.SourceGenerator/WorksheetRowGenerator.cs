@@ -269,7 +269,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         GenerateAddRangeAsRows(sb, rowType);
         GenerateAddAsRowInternal(sb, rowType);
         GenerateAddRangeAsRowsInternal(sb, rowType);
-        GenerateAddEnumerableAsRows(sb, rowType);
         GenerateAddCellsAsRow(sb, rowType);
     }
 
@@ -435,7 +434,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                     var cells = ArrayPool<DataCell>.Shared.Rent({{properties.Count}});
                     try
                     {
-                        await AddEnumerableAsRowsAsync(spreadsheet, objs, cells, token).ConfigureAwait(false);
+                        foreach (var obj in objs)
+                        {
+                            await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);
+                        }
                     }
                     finally
                     {
@@ -443,20 +445,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                     }
                 }
 
-        """);
-    }
-
-    private static void GenerateAddEnumerableAsRows(StringBuilder sb, RowType rowType)
-    {
-        sb.AppendLine($$"""
-
-                private static async ValueTask AddEnumerableAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<{{rowType.FullNameWithNullableAnnotation}}> objs, DataCell[] cells, CancellationToken token)
-                {
-                    foreach (var obj in objs)
-                    {
-                        await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);
-                    }
-                }
         """);
     }
 
