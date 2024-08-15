@@ -18,6 +18,7 @@ internal static class AttributeDataExtensions
     {
         ColumnHeader? columnHeader = null;
         ColumnOrder? columnOrder = null;
+        ColumnStyle? columnStyle = null;
         ColumnWidth? columnWidth = null;
         CellValueTruncate? cellValueTruncate = null;
 
@@ -32,6 +33,7 @@ internal static class AttributeDataExtensions
                 Attributes.CellValueTruncate => attribute.TryGetCellValueTruncateAttribute(propertyType, diagnosticInfos, token, ref cellValueTruncate),
                 Attributes.ColumnHeader => attribute.TryGetColumnHeaderAttribute(diagnosticInfos, token, ref columnHeader),
                 Attributes.ColumnOrder => attribute.TryGetColumnOrderAttribute(token, ref columnOrder),
+                Attributes.ColumnStyle => attribute.TryGetColumnStyleAttribute(ref columnStyle),
                 Attributes.ColumnWidth => attribute.TryGetColumnWidthAttribute(diagnosticInfos, token, ref columnWidth),
                 _ => false
             };
@@ -155,6 +157,19 @@ internal static class AttributeDataExtensions
 
         var location = attribute.GetLocation(token);
         result = new ColumnOrder(attributeValue, location);
+        return true;
+    }
+
+    private static bool TryGetColumnStyleAttribute(this AttributeData attribute, ref ColumnStyle? result)
+    {
+        if (result is not null)
+            return false;
+
+        var args = attribute.ConstructorArguments;
+        if (args is not [{ Value: string } arg])
+            return false;
+
+        result = new ColumnStyle(arg.ToCSharpString());
         return true;
     }
 
