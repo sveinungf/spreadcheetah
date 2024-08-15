@@ -16,11 +16,7 @@ internal static class AttributeDataExtensions
         List<DiagnosticInfo> diagnosticInfos,
         CancellationToken token)
     {
-        ColumnHeader? columnHeader = null;
-        ColumnOrder? columnOrder = null;
-        ColumnStyle? columnStyle = null;
-        ColumnWidth? columnWidth = null;
-        CellValueTruncate? cellValueTruncate = null;
+        var result = new PropertyAttributeData();
 
         foreach (var attribute in attributes)
         {
@@ -30,16 +26,16 @@ internal static class AttributeDataExtensions
 
             _ = displayString switch
             {
-                Attributes.CellValueTruncate => attribute.TryGetCellValueTruncateAttribute(propertyType, diagnosticInfos, token, ref cellValueTruncate),
-                Attributes.ColumnHeader => attribute.TryGetColumnHeaderAttribute(diagnosticInfos, token, ref columnHeader),
-                Attributes.ColumnOrder => attribute.TryGetColumnOrderAttribute(token, ref columnOrder),
-                Attributes.ColumnStyle => attribute.TryGetColumnStyleAttribute(ref columnStyle),
-                Attributes.ColumnWidth => attribute.TryGetColumnWidthAttribute(diagnosticInfos, token, ref columnWidth),
+                Attributes.CellValueTruncate => attribute.TryGetCellValueTruncateAttribute(propertyType, diagnosticInfos, token, ref result),
+                Attributes.ColumnHeader => attribute.TryGetColumnHeaderAttribute(diagnosticInfos, token, ref result),
+                Attributes.ColumnOrder => attribute.TryGetColumnOrderAttribute(token, ref result),
+                Attributes.ColumnStyle => attribute.TryGetColumnStyleAttribute(ref result),
+                Attributes.ColumnWidth => attribute.TryGetColumnWidthAttribute(diagnosticInfos, token, ref result),
                 _ => false
             };
         }
 
-        return new PropertyAttributeData(columnHeader, columnOrder, columnWidth, cellValueTruncate);
+        return result;
     }
 
     public static bool TryParseWorksheetRowAttribute(
@@ -106,18 +102,18 @@ internal static class AttributeDataExtensions
     }
 
     private static bool TryGetColumnHeaderAttribute(this AttributeData attribute,
-        List<DiagnosticInfo> diagnosticInfos, CancellationToken token, ref ColumnHeader? result)
+        List<DiagnosticInfo> diagnosticInfos, CancellationToken token, ref PropertyAttributeData result)
     {
-        if (result is not null)
+        if (result.ColumnHeader is not null)
             return false;
 
         var args = attribute.ConstructorArguments;
         if (args is [{ Value: string } arg])
-            result = new ColumnHeader(arg.ToCSharpString());
+            result.ColumnHeader = new ColumnHeader(arg.ToCSharpString());
         else if (args is [{ Value: INamedTypeSymbol type }, { Value: string propertyName }])
-            result = TryGetColumnHeaderWithPropertyReference(type, propertyName, attribute, diagnosticInfos, token);
+            result.ColumnHeader = TryGetColumnHeaderWithPropertyReference(type, propertyName, attribute, diagnosticInfos, token);
 
-        return result is not null;
+        return result.ColumnHeader is not null;
     }
 
     private static ColumnHeader? TryGetColumnHeaderWithPropertyReference(
@@ -146,9 +142,9 @@ internal static class AttributeDataExtensions
         return null;
     }
 
-    private static bool TryGetColumnOrderAttribute(this AttributeData attribute, CancellationToken token, ref ColumnOrder? result)
+    private static bool TryGetColumnOrderAttribute(this AttributeData attribute, CancellationToken token, ref PropertyAttributeData result)
     {
-        if (result is not null)
+        if (result.ColumnOrder is not null)
             return false;
 
         var args = attribute.ConstructorArguments;
@@ -156,27 +152,27 @@ internal static class AttributeDataExtensions
             return false;
 
         var location = attribute.GetLocation(token);
-        result = new ColumnOrder(attributeValue, location);
+        result.ColumnOrder = new ColumnOrder(attributeValue, location);
         return true;
     }
 
-    private static bool TryGetColumnStyleAttribute(this AttributeData attribute, ref ColumnStyle? result)
+    private static bool TryGetColumnStyleAttribute(this AttributeData attribute, ref PropertyAttributeData result)
     {
-        if (result is not null)
+        if (result.ColumnStyle is not null)
             return false;
 
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: string } arg])
             return false;
 
-        result = new ColumnStyle(arg.ToCSharpString());
+        result.ColumnStyle = new ColumnStyle(arg.ToCSharpString());
         return true;
     }
 
     private static bool TryGetColumnWidthAttribute(this AttributeData attribute,
-        List<DiagnosticInfo> diagnosticInfos, CancellationToken token, ref ColumnWidth? result)
+        List<DiagnosticInfo> diagnosticInfos, CancellationToken token, ref PropertyAttributeData result)
     {
-        if (result is not null)
+        if (result.ColumnWidth is not null)
             return false;
 
         var args = attribute.ConstructorArguments;
@@ -191,14 +187,14 @@ internal static class AttributeDataExtensions
             return false;
         }
 
-        result = new ColumnWidth(attributeValue);
+        result.ColumnWidth = new ColumnWidth(attributeValue);
         return true;
     }
 
     private static bool TryGetCellValueTruncateAttribute(this AttributeData attribute, ITypeSymbol propertyType,
-        List<DiagnosticInfo> diagnosticInfos, CancellationToken token, ref CellValueTruncate? result)
+        List<DiagnosticInfo> diagnosticInfos, CancellationToken token, ref PropertyAttributeData data)
     {
-        if (result is not null)
+        if (data.CellValueTruncate is not null)
             return false;
 
         if (propertyType.SpecialType != SpecialType.System_String)
@@ -221,7 +217,7 @@ internal static class AttributeDataExtensions
             return false;
         }
 
-        result = new CellValueTruncate(attributeValue);
+        data.CellValueTruncate = new CellValueTruncate(attributeValue);
         return true;
     }
 
