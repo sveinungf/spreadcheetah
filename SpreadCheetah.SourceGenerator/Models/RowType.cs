@@ -6,6 +6,7 @@ internal sealed record RowType(
     string Name,
     string FullName,
     bool IsReferenceType,
+    bool HasStyleAttribute,
     LocationInfo? WorksheetRowAttributeLocation,
     EquatableArray<RowTypeProperty> Properties,
     EquatableArray<string> UnsupportedPropertyTypeNames,

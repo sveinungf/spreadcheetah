@@ -86,6 +86,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
         var unsupportedPropertyTypeNames = new HashSet<string>(StringComparer.Ordinal);
         var diagnosticInfos = new List<DiagnosticInfo>();
+        var hasStyleAttribute = false;
 
         foreach (var property in GetClassAndBaseClassProperties(classType))
         {
@@ -102,9 +103,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 .GetAttributes()
                 .MapToPropertyAttributeData(property.Type, diagnosticInfos, token);
 
+            hasStyleAttribute = hasStyleAttribute || data.ColumnStyle is not null;
+
             var rowTypeProperty = new RowTypeProperty(
                 Name: property.Name,
                 ColumnHeader: data.ColumnHeader?.ToColumnHeaderInfo(),
+                ColumnStyle: data.ColumnStyle,
                 ColumnWidth: data.ColumnWidth,
                 CellValueTruncate: data.CellValueTruncate);
 
@@ -121,6 +125,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return new RowType(
             DiagnosticInfos: diagnosticInfos.ToEquatableArray(),
             FullName: classType.ToString(),
+            HasStyleAttribute: hasStyleAttribute,
             IsReferenceType: classType.IsReferenceType,
             Name: classType.Name,
             Properties: explicitOrderProperties.Values.ToEquatableArray(),
