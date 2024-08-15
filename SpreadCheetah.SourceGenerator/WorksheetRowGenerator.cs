@@ -98,26 +98,17 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 continue;
             }
 
-            ColumnHeader? columnHeader = null;
-            ColumnOrder? columnOrder = null;
-            ColumnWidth? columnWidth = null;
-            CellValueTruncate? cellValueTruncate = null;
-
-            foreach (var attribute in property.GetAttributes())
-            {
-                columnHeader ??= attribute.TryGetColumnHeaderAttribute(diagnosticInfos, token);
-                columnOrder ??= attribute.TryGetColumnOrderAttribute(token);
-                columnWidth ??= attribute.TryGetColumnWidthAttribute(diagnosticInfos, token);
-                cellValueTruncate ??= attribute.TryGetCellValueTruncateAttribute(property.Type, diagnosticInfos, token);
-            }
+            var data = property
+                .GetAttributes()
+                .MapToPropertyAttributeData(property.Type, diagnosticInfos, token);
 
             var rowTypeProperty = new RowTypeProperty(
                 Name: property.Name,
-                ColumnHeader: columnHeader?.ToColumnHeaderInfo(),
-                ColumnWidth: columnWidth,
-                CellValueTruncate: cellValueTruncate);
+                ColumnHeader: data.ColumnHeader?.ToColumnHeaderInfo(),
+                ColumnWidth: data.ColumnWidth,
+                CellValueTruncate: data.CellValueTruncate);
 
-            if (columnOrder is not { } order)
+            if (data.ColumnOrder is not { } order)
                 implicitOrderProperties.Add(rowTypeProperty);
             else if (!explicitOrderProperties.ContainsKey(order.Value))
                 explicitOrderProperties.Add(order.Value, rowTypeProperty);

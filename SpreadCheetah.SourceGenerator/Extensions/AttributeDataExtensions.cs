@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using SpreadCheetah.SourceGenerator.Helpers;
 using SpreadCheetah.SourceGenerator.Models;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
@@ -9,6 +10,28 @@ namespace SpreadCheetah.SourceGenerator.Extensions;
 
 internal static class AttributeDataExtensions
 {
+    public static PropertyAttributeData MapToPropertyAttributeData(
+        this ImmutableArray<AttributeData> attributes,
+        ITypeSymbol propertyType,
+        List<DiagnosticInfo> diagnosticInfos,
+        CancellationToken token)
+    {
+        ColumnHeader? columnHeader = null;
+        ColumnOrder? columnOrder = null;
+        ColumnWidth? columnWidth = null;
+        CellValueTruncate? cellValueTruncate = null;
+
+        foreach (var attribute in attributes)
+        {
+            columnHeader ??= attribute.TryGetColumnHeaderAttribute(diagnosticInfos, token);
+            columnOrder ??= attribute.TryGetColumnOrderAttribute(token);
+            columnWidth ??= attribute.TryGetColumnWidthAttribute(diagnosticInfos, token);
+            cellValueTruncate ??= attribute.TryGetCellValueTruncateAttribute(propertyType, diagnosticInfos, token);
+        }
+
+        return new PropertyAttributeData(columnHeader, columnOrder, columnWidth, cellValueTruncate);
+    }
+
     public static bool TryParseWorksheetRowAttribute(
         this AttributeData attribute,
         CancellationToken token,
@@ -72,7 +95,8 @@ internal static class AttributeDataExtensions
         return InheritedColumnOrder.InheritedColumnsFirst;
     }
 
-    public static ColumnHeader? TryGetColumnHeaderAttribute(this AttributeData attribute, ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
+    private static ColumnHeader? TryGetColumnHeaderAttribute(this AttributeData attribute,
+        List<DiagnosticInfo> diagnosticInfos, CancellationToken token)
     {
         if (!string.Equals(Attributes.ColumnHeader, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
             return null;
@@ -89,7 +113,7 @@ internal static class AttributeDataExtensions
 
     private static ColumnHeader? TryGetColumnHeaderWithPropertyReference(
         INamedTypeSymbol type, string propertyName, AttributeData attribute,
-        ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
+        List<DiagnosticInfo> diagnosticInfos, CancellationToken token)
     {
         var typeFullName = type.ToDisplayString();
 
@@ -113,7 +137,7 @@ internal static class AttributeDataExtensions
         return null;
     }
 
-    public static ColumnOrder? TryGetColumnOrderAttribute(this AttributeData attribute, CancellationToken token)
+    private static ColumnOrder? TryGetColumnOrderAttribute(this AttributeData attribute, CancellationToken token)
     {
         if (!string.Equals(Attributes.ColumnOrder, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
             return null;
@@ -126,8 +150,8 @@ internal static class AttributeDataExtensions
         return new ColumnOrder(attributeValue, location);
     }
 
-    public static ColumnWidth? TryGetColumnWidthAttribute(this AttributeData attribute,
-        ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
+    private static ColumnWidth? TryGetColumnWidthAttribute(this AttributeData attribute,
+        List<DiagnosticInfo> diagnosticInfos, CancellationToken token)
     {
         if (!string.Equals(Attributes.ColumnWidth, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
             return null;
@@ -147,8 +171,8 @@ internal static class AttributeDataExtensions
         return new ColumnWidth(attributeValue);
     }
 
-    public static CellValueTruncate? TryGetCellValueTruncateAttribute(this AttributeData attribute, ITypeSymbol propertyType,
-        ICollection<DiagnosticInfo> diagnosticInfos, CancellationToken token)
+    private static CellValueTruncate? TryGetCellValueTruncateAttribute(this AttributeData attribute, ITypeSymbol propertyType,
+        List<DiagnosticInfo> diagnosticInfos, CancellationToken token)
     {
         if (!string.Equals(Attributes.CellValueTruncate, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
             return null;
