@@ -271,10 +271,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         GenerateAddRangeAsRows(sb, rowType);
         GenerateAddAsRowInternal(sb, rowType);
         GenerateAddRangeAsRowsInternal(sb, rowType);
-        GenerateAddCellsAsRow(sb, rowType);
 
-        if (rowType.PropertiesWithStyleAttributes > 0)
-            GenerateGetStyleIds(sb, rowType);
+        var columnStyleToStyleIdIndex = rowType.PropertiesWithStyleAttributes > 0
+            ? GenerateGetStyleIds(sb, rowType)
+            : [];
+
+        GenerateAddCellsAsRow(sb, rowType, columnStyleToStyleIdIndex);
     }
 
     private static void ReportDiagnostics(RowType rowType, LocationInfo? locationInfo, GeneratorOptions? options, SourceProductionContext context)
@@ -506,7 +508,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         if (rowType.PropertiesWithStyleAttributes > 0)
         {
-                sb.AppendLine("""
+            sb.AppendLine("""
                             GetStyleIds(spreadsheet, styleIds);
             """);
         }
@@ -525,7 +527,43 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             """);
     }
 
-    private static void GenerateAddCellsAsRow(StringBuilder sb, RowType rowType)
+    private static Dictionary<ColumnStyle, int> GenerateGetStyleIds(StringBuilder sb, RowType rowType)
+    {
+        var properties = rowType.Properties;
+        Debug.Assert(properties.Any(x => x.ColumnStyle is not null));
+
+        sb.AppendLine("""
+
+                    private static void GetStyleIds(SpreadCheetah.Spreadsheet spreadsheet, StyleId[] styleIds)
+                    {
+            """);
+
+        var columnStyleToStyleIdIndex = new Dictionary<ColumnStyle, int>();
+
+        foreach (var property in properties)
+        {
+            if (property.ColumnStyle is not { } style)
+                continue;
+
+            if (columnStyleToStyleIdIndex.ContainsKey(style))
+                continue;
+
+            var styleIdIndex = columnStyleToStyleIdIndex.Count;
+            columnStyleToStyleIdIndex[style] = styleIdIndex;
+
+            sb.AppendLine(FormattableString.Invariant($"""
+                        styleIds[{styleIdIndex}] = spreadsheet.GetStyleId({style.StyleNameRawString});
+            """));
+        }
+
+        sb.AppendLine("""
+                    }
+            """);
+
+        return columnStyleToStyleIdIndex;
+    }
+
+    private static void GenerateAddCellsAsRow(StringBuilder sb, RowType rowType, Dictionary<ColumnStyle, int> columnStyleToStyleIdIndex)
     {
         var properties = rowType.Properties;
         Debug.Assert(properties.Count > 0);
@@ -546,8 +584,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
             """);
         }
-
-        var styleIdIndex = 0;
 
         foreach (var (i, property) in properties.Index())
         {
@@ -575,43 +611,11 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         string ConstructCell(RowTypeProperty property, string value)
         {
-            if (property.ColumnStyle is null)
+            if (property.ColumnStyle is not { } columnStyle)
                 return $"new {rowType.CellType}({value})";
 
-            var result = FormattableString.Invariant($"new {rowType.CellType}({value}, styleIds[{styleIdIndex}])");
-            styleIdIndex++;
-            return result;
+            var styleIdIndex = columnStyleToStyleIdIndex[columnStyle];
+            return FormattableString.Invariant($"new {rowType.CellType}({value}, styleIds[{styleIdIndex}])");
         }
-    }
-
-    private static void GenerateGetStyleIds(StringBuilder sb, RowType rowType)
-    {
-        var properties = rowType.Properties;
-        Debug.Assert(properties.Count > 0);
-
-        sb.AppendLine("""
-
-                    private static void GetStyleIds(SpreadCheetah.Spreadsheet spreadsheet, StyleId[] styleIds)
-                    {
-            """);
-
-        var index = 0;
-        foreach (var property in properties)
-        {
-            if (property.ColumnStyle is not { } style)
-                continue;
-
-            // TODO: Avoid redundant calls to GetStyleId when a style is used on multiple columns
-            // TODO: Handle DateTime style
-            sb.AppendLine(FormattableString.Invariant($"""
-                        styleIds[{index}] = spreadsheet.GetStyleId({style.StyleNameRawString});
-            """));
-
-            index++;
-        }
-
-        sb.AppendLine("""
-                    }
-            """);
     }
 }
