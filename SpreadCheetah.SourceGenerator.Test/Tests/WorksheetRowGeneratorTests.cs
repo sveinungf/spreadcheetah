@@ -7,7 +7,6 @@ using SpreadCheetah.SourceGenerator.Test.Models.Accessibility;
 using SpreadCheetah.SourceGenerator.Test.Models.CellValueTruncation;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnHeader;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnOrdering;
-using SpreadCheetah.SourceGenerator.Test.Models.ColumnStyle;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnWidth;
 using SpreadCheetah.SourceGenerator.Test.Models.Combinations;
 using SpreadCheetah.SourceGenerator.Test.Models.Contexts;
@@ -18,6 +17,8 @@ using SpreadCheetah.TestHelpers.Assertions;
 using System.Globalization;
 using Xunit;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
+using SpreadCheetah.SourceGenerator.Test.Models.CellStyle;
+
 
 #if NET472
 using SpreadCheetah.SourceGenerator.Test.Helpers.Backporting;
@@ -237,11 +238,11 @@ public class WorksheetRowGeneratorTests
     }
 
     [Fact]
-    public async Task Spreadsheet_AddAsRow_ObjectWithColumnStyle()
+    public async Task Spreadsheet_AddAsRow_ObjectWithCellStyle()
     {
         // Arrange
         const decimal price = 199.90m;
-        var obj = new ClassWithColumnStyle { Price = price };
+        var obj = new ClassWithCellStyle { Price = price };
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
@@ -249,7 +250,7 @@ public class WorksheetRowGeneratorTests
         spreadsheet.AddStyle(style, "Price style");
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, ColumnStyleContext.Default.ClassWithColumnStyle);
+        await spreadsheet.AddAsRowAsync(obj, CellStyleContext.Default.ClassWithCellStyle);
         await spreadsheet.FinishAsync();
 
         // Assert
@@ -258,7 +259,7 @@ public class WorksheetRowGeneratorTests
         Assert.True(sheet["A1"].Style.Font.Bold);
     }
 
-    // TODO: Test with multiple column styles, with non-styled columns in between styled columns
+    // TODO: Test with multiple cell styles, with non-styled columns in between styled columns
 
     [Fact]
     public async Task Spreadsheet_AddAsRow_NullObject()

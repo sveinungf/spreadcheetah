@@ -26,10 +26,10 @@ internal static class AttributeDataExtensions
 
             _ = displayString switch
             {
+                Attributes.CellStyle => attribute.TryGetCellStyleAttribute(ref result),
                 Attributes.CellValueTruncate => attribute.TryGetCellValueTruncateAttribute(propertyType, diagnosticInfos, token, ref result),
                 Attributes.ColumnHeader => attribute.TryGetColumnHeaderAttribute(diagnosticInfos, token, ref result),
                 Attributes.ColumnOrder => attribute.TryGetColumnOrderAttribute(token, ref result),
-                Attributes.ColumnStyle => attribute.TryGetColumnStyleAttribute(ref result),
                 Attributes.ColumnWidth => attribute.TryGetColumnWidthAttribute(diagnosticInfos, token, ref result),
                 _ => false
             };
@@ -156,16 +156,16 @@ internal static class AttributeDataExtensions
         return true;
     }
 
-    private static bool TryGetColumnStyleAttribute(this AttributeData attribute, ref PropertyAttributeData result)
+    private static bool TryGetCellStyleAttribute(this AttributeData attribute, ref PropertyAttributeData result)
     {
-        if (result.ColumnStyle is not null)
+        if (result.CellStyle is not null)
             return false;
 
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: string } arg])
             return false;
 
-        result.ColumnStyle = new ColumnStyle(arg.ToCSharpString());
+        result.CellStyle = new CellStyle(arg.ToCSharpString());
         return true;
     }
 

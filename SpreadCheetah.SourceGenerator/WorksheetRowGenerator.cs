@@ -104,13 +104,13 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 .GetAttributes()
                 .MapToPropertyAttributeData(property.Type, diagnosticInfos, token);
 
-            if (data.ColumnStyle is not null)
+            if (data.CellStyle is not null)
                 propertiesWithStyleAttributes++;
 
             var rowTypeProperty = new RowTypeProperty(
                 Name: property.Name,
                 ColumnHeader: data.ColumnHeader?.ToColumnHeaderInfo(),
-                ColumnStyle: data.ColumnStyle,
+                CellStyle: data.CellStyle,
                 ColumnWidth: data.ColumnWidth,
                 CellValueTruncate: data.CellValueTruncate);
 
@@ -275,11 +275,11 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         GenerateAddAsRowInternal(sb, rowType);
         GenerateAddRangeAsRowsInternal(sb, rowType);
 
-        var columnStyleToStyleIdIndex = rowType.PropertiesWithStyleAttributes > 0
+        var cellStyleToStyleIdIndex = rowType.PropertiesWithStyleAttributes > 0
             ? GenerateGetStyleIds(sb, rowType)
             : [];
 
-        GenerateAddCellsAsRow(sb, rowType, columnStyleToStyleIdIndex);
+        GenerateAddCellsAsRow(sb, rowType, cellStyleToStyleIdIndex);
     }
 
     private static void ReportDiagnostics(RowType rowType, LocationInfo? locationInfo, GeneratorOptions? options, SourceProductionContext context)
@@ -530,10 +530,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             """);
     }
 
-    private static Dictionary<ColumnStyle, int> GenerateGetStyleIds(StringBuilder sb, RowType rowType)
+    private static Dictionary<CellStyle, int> GenerateGetStyleIds(StringBuilder sb, RowType rowType)
     {
         var properties = rowType.Properties;
-        Debug.Assert(properties.Any(x => x.ColumnStyle is not null));
+        Debug.Assert(properties.Any(x => x.CellStyle is not null));
 
         sb.AppendLine("""
 
@@ -541,18 +541,18 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                     {
             """);
 
-        var columnStyleToStyleIdIndex = new Dictionary<ColumnStyle, int>();
+        var cellStyleToStyleIdIndex = new Dictionary<CellStyle, int>();
 
         foreach (var property in properties)
         {
-            if (property.ColumnStyle is not { } style)
+            if (property.CellStyle is not { } style)
                 continue;
 
-            if (columnStyleToStyleIdIndex.ContainsKey(style))
+            if (cellStyleToStyleIdIndex.ContainsKey(style))
                 continue;
 
-            var styleIdIndex = columnStyleToStyleIdIndex.Count;
-            columnStyleToStyleIdIndex[style] = styleIdIndex;
+            var styleIdIndex = cellStyleToStyleIdIndex.Count;
+            cellStyleToStyleIdIndex[style] = styleIdIndex;
 
             sb.AppendLine(FormattableString.Invariant($"""
                         styleIds[{styleIdIndex}] = spreadsheet.GetStyleId({style.StyleNameRawString});
@@ -563,10 +563,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                     }
             """);
 
-        return columnStyleToStyleIdIndex;
+        return cellStyleToStyleIdIndex;
     }
 
-    private static void GenerateAddCellsAsRow(StringBuilder sb, RowType rowType, Dictionary<ColumnStyle, int> columnStyleToStyleIdIndex)
+    private static void GenerateAddCellsAsRow(StringBuilder sb, RowType rowType, Dictionary<CellStyle, int> cellStyleToStyleIdIndex)
     {
         var properties = rowType.Properties;
         Debug.Assert(properties.Count > 0);
@@ -602,8 +602,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         string ConstructCell(RowTypeProperty property, string value)
         {
-            int? styleIdIndex = property.ColumnStyle is { } columnStyle
-                ? columnStyleToStyleIdIndex[columnStyle]
+            int? styleIdIndex = property.CellStyle is { } cellStyle
+                ? cellStyleToStyleIdIndex[cellStyle]
                 : null;
 
             if (property.CellValueTruncate is { } cellValueTruncate)

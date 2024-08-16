@@ -182,6 +182,11 @@ namespace SpreadCheetah.Images
 namespace SpreadCheetah.SourceGeneration
 {
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
+    public sealed class CellStyleAttribute : System.Attribute
+    {
+        public CellStyleAttribute(string styleName) { }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class CellValueTruncateAttribute : System.Attribute
     {
         public CellValueTruncateAttribute(int length) { }
@@ -196,11 +201,6 @@ namespace SpreadCheetah.SourceGeneration
     public sealed class ColumnOrderAttribute : System.Attribute
     {
         public ColumnOrderAttribute(int order) { }
-    }
-    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
-    public sealed class ColumnStyleAttribute : System.Attribute
-    {
-        public ColumnStyleAttribute(string styleName) { }
     }
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class ColumnWidthAttribute : System.Attribute
