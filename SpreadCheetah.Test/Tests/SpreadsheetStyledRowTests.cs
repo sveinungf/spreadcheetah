@@ -13,6 +13,7 @@ using DiagonalBorder = SpreadCheetah.Styling.DiagonalBorder;
 using Fill = SpreadCheetah.Styling.Fill;
 using Font = SpreadCheetah.Styling.Font;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -58,26 +59,22 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Bold test";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
 
-            var style = new Style();
-            style.Font.Bold = bold;
-            var styleId = spreadsheet.AddStyle(style);
-            var styledCell = CellFactory.Create(type, cellValue, styleId);
+        var style = new Style();
+        style.Font.Bold = bold;
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = CellFactory.Create(type, cellValue, styleId);
 
-            // Act
-            await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync();
-        }
+        // Act
+        await spreadsheet.AddRowAsync(styledCell, rowType);
+        await spreadsheet.FinishAsync();
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
-        Assert.Equal(cellValue, actualCell.Value);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(cellValue, actualCell.StringValue);
         Assert.Equal(bold, actualCell.Style.Font.Bold);
     }
 
@@ -89,30 +86,26 @@ public class SpreadsheetStyledRowTests
         const string firstCellValue = "First";
         const string secondCellValue = "Second";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
 
-            var style = new Style();
-            style.Font.Bold = bold;
-            var styleId = spreadsheet.AddStyle(style);
+        var style = new Style();
+        style.Font.Bold = bold;
+        var styleId = spreadsheet.AddStyle(style);
 
-            var firstCell = CellFactory.Create(type, firstCellValue, styleId);
-            var secondCell = CellFactory.Create(type, secondCellValue, styleId);
+        var firstCell = CellFactory.Create(type, firstCellValue, styleId);
+        var secondCell = CellFactory.Create(type, secondCellValue, styleId);
 
-            // Act
-            await spreadsheet.AddRowAsync(new[] { firstCell, secondCell }, rowType);
-            await spreadsheet.FinishAsync();
-        }
+        // Act
+        await spreadsheet.AddRowAsync([firstCell, secondCell], rowType);
+        await spreadsheet.FinishAsync();
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualFirstCell = worksheet.Cell(1, 1);
-        var actualSecondCell = worksheet.Cell(1, 2);
-        Assert.Equal(firstCellValue, actualFirstCell.Value);
-        Assert.Equal(secondCellValue, actualSecondCell.Value);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualFirstCell = sheet["A1"];
+        var actualSecondCell = sheet["B1"];
+        Assert.Equal(firstCellValue, actualFirstCell.StringValue);
+        Assert.Equal(secondCellValue, actualSecondCell.StringValue);
         Assert.Equal(bold, actualFirstCell.Style.Font.Bold);
         Assert.Equal(bold, actualSecondCell.Style.Font.Bold);
     }
@@ -125,30 +118,26 @@ public class SpreadsheetStyledRowTests
         const string firstCellValue = "First";
         const string secondCellValue = "Second";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
 
-            var style = new Style();
-            style.Font.Bold = true;
-            var styleId = spreadsheet.AddStyle(style);
+        var style = new Style();
+        style.Font.Bold = true;
+        var styleId = spreadsheet.AddStyle(style);
 
-            var firstCell = CellFactory.Create(type, firstCellValue, firstCellBold ? styleId : null);
-            var secondCell = CellFactory.Create(type, secondCellValue, firstCellBold ? null : styleId);
+        var firstCell = CellFactory.Create(type, firstCellValue, firstCellBold ? styleId : null);
+        var secondCell = CellFactory.Create(type, secondCellValue, firstCellBold ? null : styleId);
 
-            // Act
-            await spreadsheet.AddRowAsync(new[] { firstCell, secondCell }, rowType);
-            await spreadsheet.FinishAsync();
-        }
+        // Act
+        await spreadsheet.AddRowAsync([firstCell, secondCell], rowType);
+        await spreadsheet.FinishAsync();
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualFirstCell = worksheet.Cell(1, 1);
-        var actualSecondCell = worksheet.Cell(1, 2);
-        Assert.Equal(firstCellValue, actualFirstCell.Value);
-        Assert.Equal(secondCellValue, actualSecondCell.Value);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualFirstCell = sheet["A1"];
+        var actualSecondCell = sheet["B1"];
+        Assert.Equal(firstCellValue, actualFirstCell.StringValue);
+        Assert.Equal(secondCellValue, actualSecondCell.StringValue);
         Assert.Equal(firstCellBold, actualFirstCell.Style.Font.Bold);
         Assert.Equal(!firstCellBold, actualSecondCell.Style.Font.Bold);
     }
@@ -1019,7 +1008,7 @@ public class SpreadsheetStyledRowTests
         using var workbook = new XLWorkbook(stream);
         var worksheet = workbook.Worksheets.Single();
         var actualStyles = worksheet.Cells().Select(x => x.Style).ToList();
-        Assert.All(styles.Zip(actualStyles), x => SpreadsheetAssert.EquivalentStyle(x.First, x.Second));
+        Assert.All(styles.Zip(actualStyles), x => SpreadCheetah.Test.Helpers.SpreadsheetAssert.EquivalentStyle(x.First, x.Second));
     }
 
     [Theory]
