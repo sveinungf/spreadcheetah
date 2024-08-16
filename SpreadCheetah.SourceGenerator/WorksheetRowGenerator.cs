@@ -522,7 +522,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         sb.AppendLine("""
                     }
-
             """);
     }
 
@@ -579,7 +578,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             if (property.ColumnStyle is null)
                 return $"new {rowType.CellType}({value})";
 
-            var result = FormattableString.Invariant($"new {rowType.CellType}({value}, {styleIdIndex})");
+            var result = FormattableString.Invariant($"new {rowType.CellType}({value}, styleIds[{styleIdIndex}])");
             styleIdIndex++;
             return result;
         }
@@ -602,6 +601,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             if (property.ColumnStyle is not { } style)
                 continue;
 
+            // TODO: Avoid redundant calls to GetStyleId when a style is used on multiple columns
             sb.AppendLine(FormattableString.Invariant($"""
                         styleIds[{index}] = spreadsheet.GetStyleId({style.StyleNameRawString});
             """));
