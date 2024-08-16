@@ -7,6 +7,7 @@ using SpreadCheetah.SourceGenerator.Test.Models.Accessibility;
 using SpreadCheetah.SourceGenerator.Test.Models.CellValueTruncation;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnHeader;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnOrdering;
+using SpreadCheetah.SourceGenerator.Test.Models.ColumnStyle;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnWidth;
 using SpreadCheetah.SourceGenerator.Test.Models.Combinations;
 using SpreadCheetah.SourceGenerator.Test.Models.Contexts;
@@ -234,6 +235,30 @@ public class WorksheetRowGeneratorTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.Equal("T", sheet["A1"].StringValue);
     }
+
+    [Fact]
+    public async Task Spreadsheet_AddAsRow_ObjectWithColumnStyle()
+    {
+        // Arrange
+        const decimal price = 199.90m;
+        var obj = new ClassWithColumnStyle { Price = price };
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var style = new Style { Font = { Bold = true } };
+        spreadsheet.AddStyle(style, "Price style");
+
+        // Act
+        await spreadsheet.AddAsRowAsync(obj, ColumnStyleContext.Default.ClassWithColumnStyle);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(price, sheet["A1"].DecimalValue);
+        Assert.True(sheet["A1"].Style.Font.Bold);
+    }
+
+    // TODO: Test with multiple column styles, with non-styled columns in between styled columns
 
     [Fact]
     public async Task Spreadsheet_AddAsRow_NullObject()

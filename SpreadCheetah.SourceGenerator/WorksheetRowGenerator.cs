@@ -602,6 +602,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 continue;
 
             // TODO: Avoid redundant calls to GetStyleId when a style is used on multiple columns
+            // TODO: Handle DateTime style
             sb.AppendLine(FormattableString.Invariant($"""
                         styleIds[{index}] = spreadsheet.GetStyleId({style.StyleNameRawString});
             """));
