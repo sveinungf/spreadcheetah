@@ -6,6 +6,7 @@ using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Helpers;
 using SpreadCheetah.SourceGenerator.Models;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 
 namespace SpreadCheetah.SourceGenerators;
@@ -228,6 +229,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             GenerateCodeForType(sb, typeIndex, rowType, contextClass, context);
             ++typeIndex;
         }
+
+        GenerateConstructTruncatedCells(sb);
 
         sb.AppendLine("""
                 }
@@ -587,21 +590,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var (i, property) in properties.Index())
         {
-            if (property.CellValueTruncate?.Value is { } truncateLength)
-            {
-                sb.AppendLine(FormattableString.Invariant($$"""
-                            var p{{i}} = obj.{{property.Name}};
-                            cells[{{i}}] = p{{i}} is null || p{{i}}.Length <= {{truncateLength}}
-                                ? {{ConstructCell(property, FormattableString.Invariant($"p{i}"))}}
-                                : {{ConstructCell(property, FormattableString.Invariant($"p{i}.AsMemory(0, {truncateLength})"))}};
-                """));
-            }
-            else
-            {
-                sb.AppendLine(FormattableString.Invariant($$"""
-                            cells[{{i}}] = {{ConstructCell(property, $"obj.{property.Name}")}};
-                """));
-            }
+            sb.AppendLine(FormattableString.Invariant($"""
+                        cells[{i}] = {ConstructCell(property, $"obj.{property.Name}")};
+            """));
         }
 
         sb.AppendLine($$"""
@@ -611,11 +602,42 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         string ConstructCell(RowTypeProperty property, string value)
         {
-            if (property.ColumnStyle is not { } columnStyle)
-                return $"new {rowType.CellType}({value})";
+            int? styleIdIndex = property.ColumnStyle is { } columnStyle
+                ? columnStyleToStyleIdIndex[columnStyle]
+                : null;
 
-            var styleIdIndex = columnStyleToStyleIdIndex[columnStyle];
-            return FormattableString.Invariant($"new {rowType.CellType}({value}, styleIds[{styleIdIndex}])");
+            if (property.CellValueTruncate is { } cellValueTruncate)
+            {
+                return styleIdIndex is { } i
+                    ? FormattableString.Invariant($"ConstructTruncated{rowType.CellType}({value}, {cellValueTruncate.Value}, styleIds[{i}])")
+                    : FormattableString.Invariant($"ConstructTruncated{rowType.CellType}({value}, {cellValueTruncate.Value})");
+            }
+            else
+            {
+                return styleIdIndex is { } i
+                    ? FormattableString.Invariant($"new {rowType.CellType}({value}, styleIds[{i}])")
+                    : FormattableString.Invariant($"new {rowType.CellType}({value})");
+            }
         }
+    }
+
+    private static void GenerateConstructTruncatedCells(StringBuilder sb)
+    {
+        sb.AppendLine("""
+
+                    private static DataCell ConstructTruncatedDataCell(string? value, int truncateLength)
+                    {
+                        return value is null || value.Length <= truncateLength
+                            ? new DataCell(value)
+                            : new DataCell(value.AsMemory(0, truncateLength));
+                    }
+
+                    private static StyledCell ConstructTruncatedStyledCell(string? value, int truncateLength, StyleId? styleId)
+                    {
+                        return value is null || value.Length <= truncateLength
+                            ? new StyledCell(value, styleId)
+                            : new StyledCell(value.AsMemory(0, truncateLength), styleId);
+                    }
+            """);
     }
 }
