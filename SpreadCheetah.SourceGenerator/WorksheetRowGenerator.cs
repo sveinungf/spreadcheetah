@@ -596,18 +596,17 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 ? cellStyleToStyleIdIndex[cellStyle]
                 : null;
 
-            if (property.CellValueTruncate is { } cellValueTruncate)
+            var styledCell = rowType.PropertiesWithStyleAttributes > 0;
+
+            return (property.CellValueTruncate, styledCell, styleIdIndex) switch
             {
-                return styleIdIndex is { } i
-                    ? FormattableString.Invariant($"ConstructTruncated{rowType.CellType}({value}, {cellValueTruncate.Value}, styleIds[{i}])")
-                    : FormattableString.Invariant($"ConstructTruncated{rowType.CellType}({value}, {cellValueTruncate.Value})");
-            }
-            else
-            {
-                return styleIdIndex is { } i
-                    ? FormattableString.Invariant($"new {rowType.CellType}({value}, styleIds[{i}])")
-                    : FormattableString.Invariant($"new {rowType.CellType}({value})");
-            }
+                ({ } truncate, true, { } i) => FormattableString.Invariant($"ConstructTruncatedStyledCell({value}, {truncate.Value}, styleIds[{i}])"),
+                ({ } truncate, true, null) => FormattableString.Invariant($"ConstructTruncatedStyledCell({value}, {truncate.Value}, null)"),
+                ({ } truncate, false, _) => FormattableString.Invariant($"ConstructTruncatedDataCell({value}, {truncate.Value})"),
+                (null, true, { } i) => FormattableString.Invariant($"new StyledCell({value}, styleIds[{i}])"),
+                (null, true, null) => FormattableString.Invariant($"new StyledCell({value}, null)"),
+                (null, false, _) => FormattableString.Invariant($"new DataCell({value})"),
+            };
         }
     }
 
