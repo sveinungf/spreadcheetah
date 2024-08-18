@@ -259,8 +259,6 @@ public class WorksheetRowGeneratorTests
         Assert.True(sheet["A1"].Style.Font.Bold);
     }
 
-    // TODO: Test with multiple cell styles, with non-styled columns in between styled columns
-
     [Fact]
     public async Task Spreadsheet_AddAsRow_NullObject()
     {

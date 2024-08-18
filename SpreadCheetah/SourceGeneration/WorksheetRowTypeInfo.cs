@@ -23,6 +23,8 @@ public abstract class WorksheetRowTypeInfo<T>
     /// </summary>
     public WorksheetOptions CreateWorksheetOptions() => _worksheetOptionsFactory?.Invoke() ?? new();
 
+    public Func<Spreadsheet, WorksheetRowDependencyInfo>? CreateWorksheetRowDependencyInfo { get; }
+
     /// <summary>
     /// Method for adding a header to a worksheet from a type.
     /// </summary>
@@ -42,11 +44,13 @@ public abstract class WorksheetRowTypeInfo<T>
         Func<Spreadsheet, StyleId?, CancellationToken, ValueTask> headerHandler,
         Func<Spreadsheet, T, CancellationToken, ValueTask> rowHandler,
         Func<Spreadsheet, IEnumerable<T>, CancellationToken, ValueTask> rowRangeHandler,
-        Func<WorksheetOptions>? worksheetOptionsFactory)
+        Func<WorksheetOptions>? worksheetOptionsFactory,
+        Func<Spreadsheet, WorksheetRowDependencyInfo>? createWorksheetRowDependencyInfo)
     {
+        _worksheetOptionsFactory = worksheetOptionsFactory;
+        CreateWorksheetRowDependencyInfo = createWorksheetRowDependencyInfo;
         HeaderHandler = headerHandler;
         RowHandler = rowHandler;
         RowRangeHandler = rowRangeHandler;
-        _worksheetOptionsFactory = worksheetOptionsFactory;
     }
 }

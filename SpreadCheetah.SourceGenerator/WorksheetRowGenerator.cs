@@ -6,7 +6,6 @@ using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Helpers;
 using SpreadCheetah.SourceGenerator.Models;
 using System.Diagnostics;
-using System.Globalization;
 using System.Text;
 
 namespace SpreadCheetah.SourceGenerators;
@@ -257,28 +256,37 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             return;
         }
 
-        var doGenerateCreateWorksheetOptions = rowType.Properties.Any(static x => x.ColumnWidth is not null);
-        var optionalParams = doGenerateCreateWorksheetOptions
-            ? FormattableString.Invariant($", CreateWorksheetOptions{typeIndex}")
-            : "";
+        var properties = rowType.Properties;
+        var doGenerateCreateWorksheetOptions = properties.Any(static x => x.ColumnWidth is not null);
+        var doGenerateCreateWorksheetRowDependencyInfo = properties.Any(static x => x.CellStyle is not null);
 
-        sb.AppendLine(FormattableString.Invariant($$"""
-                        ??= WorksheetRowMetadataServices.CreateObjectInfo<{{rowType.FullName}}>(AddHeaderRow{{typeIndex}}Async, AddAsRowAsync, AddRangeAsRowsAsync{{optionalParams}});
+        sb.Append(FormattableString.Invariant($$"""
+                        ??= WorksheetRowMetadataServices.CreateObjectInfo<{{rowType.FullName}}>(
+                            AddHeaderRow{{typeIndex}}Async, AddAsRowAsync, AddRangeAsRowsAsync
             """));
 
         if (doGenerateCreateWorksheetOptions)
-            GenerateCreateWorksheetOptions(sb, typeIndex, rowType.Properties);
+            sb.Append(", CreateWorksheetOptions").Append(typeIndex);
+        else
+            sb.Append(", null");
 
-        GenerateAddHeaderRow(sb, typeIndex, rowType.Properties);
+        if (doGenerateCreateWorksheetRowDependencyInfo)
+            sb.Append(", CreateWorksheetRowDependencyInfo").Append(typeIndex);
+
+        sb.AppendLine(");");
+
+        if (doGenerateCreateWorksheetOptions)
+            GenerateCreateWorksheetOptions(sb, typeIndex, properties);
+
+        var cellStyleToStyleIdIndex = doGenerateCreateWorksheetRowDependencyInfo
+            ? GenerateCreateWorksheetRowDependencyInfo(sb, typeIndex, properties)
+            : [];
+
+        GenerateAddHeaderRow(sb, typeIndex, properties);
         GenerateAddAsRow(sb, rowType);
         GenerateAddRangeAsRows(sb, rowType);
         GenerateAddAsRowInternal(sb, rowType);
         GenerateAddRangeAsRowsInternal(sb, rowType);
-
-        var cellStyleToStyleIdIndex = rowType.PropertiesWithStyleAttributes > 0
-            ? GenerateGetStyleIds(sb, rowType)
-            : [];
-
         GenerateAddCellsAsRow(sb, rowType, cellStyleToStyleIdIndex);
     }
 
@@ -334,6 +342,45 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                         return options;
                     }
             """);
+    }
+
+    private static Dictionary<CellStyle, int> GenerateCreateWorksheetRowDependencyInfo(
+        StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)
+    {
+        Debug.Assert(properties.Any(static x => x.CellStyle is not null));
+
+        sb.AppendLine(FormattableString.Invariant($$"""
+
+                    private static WorksheetRowDependencyInfo CreateWorksheetRowDependencyInfo{{typeIndex}}(Spreadsheet spreadsheet)
+                    {
+                        var styleIds = new[]
+                        {
+            """));
+
+        var cellStyleToStyleIdIndex = new Dictionary<CellStyle, int>();
+
+        foreach (var property in properties)
+        {
+            if (property.CellStyle is not { } style)
+                continue;
+
+            if (cellStyleToStyleIdIndex.ContainsKey(style))
+                continue;
+
+            cellStyleToStyleIdIndex[style] = cellStyleToStyleIdIndex.Count;
+
+            sb.AppendLine($"""
+                            spreadsheet.GetStyleId({style.StyleNameRawString}),
+            """);
+        }
+
+        sb.AppendLine("""
+                        };
+                        return new WorksheetRowDependencyInfo { StyleIds = styleIds };
+                    }
+            """);
+
+        return cellStyleToStyleIdIndex;
     }
 
     private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)
@@ -402,25 +449,26 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         sb.AppendLine($$"""
                         var cells = ArrayPool<{{rowType.CellType}}>.Shared.Rent({{properties.Count}});
+                        try
+                        {
             """);
+    }
 
+    private static void GenerateGetStyleIdsPart(StringBuilder sb, RowType rowType)
+    {
         if (rowType.PropertiesWithStyleAttributes > 0)
         {
-            sb.AppendLine(FormattableString.Invariant($$"""
-                        var styleIds = ArrayPool<StyleId>.Shared.Rent({{rowType.PropertiesWithStyleAttributes}});
-            """));
+            sb.AppendLine($"""
+                            var worksheetRowDependencyInfo = spreadsheet.GetOrCreateWorksheetRowDependencyInfo(Default.{rowType.Name});
+                            var styleIds = worksheetRowDependencyInfo.StyleIds;
+            """);
         }
         else
         {
             sb.AppendLine("""
-                        var styleIds = Array.Empty<StyleId>();
+                            var styleIds = Array.Empty<StyleId>();
             """);
         }
-
-        sb.AppendLine($$"""
-                        try
-                        {
-            """);
     }
 
     private static void GenerateArrayPoolReturnPart(StringBuilder sb, RowType rowType)
@@ -430,16 +478,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                         finally
                         {
                             ArrayPool<{{rowType.CellType}}>.Shared.Return(cells, true);
-            """);
-
-        if (rowType.PropertiesWithStyleAttributes > 0)
-        {
-            sb.AppendLine("""
-                            ArrayPool<StyleId>.Shared.Return(styleIds, true);
-            """);
-        }
-
-        sb.AppendLine("""
                         }
             """);
     }
@@ -458,13 +496,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             """);
 
         GenerateArrayPoolRentPart(sb, rowType);
-
-        if (rowType.PropertiesWithStyleAttributes > 0)
-        {
-            sb.AppendLine("""
-                            GetStyleIds(spreadsheet, styleIds);
-            """);
-        }
+        GenerateGetStyleIdsPart(sb, rowType);
 
         sb.AppendLine("""
                             await AddCellsAsRowAsync(spreadsheet, obj, cells, styleIds, token).ConfigureAwait(false);
@@ -508,13 +540,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             """);
 
         GenerateArrayPoolRentPart(sb, rowType);
-
-        if (rowType.PropertiesWithStyleAttributes > 0)
-        {
-            sb.AppendLine("""
-                            GetStyleIds(spreadsheet, styleIds);
-            """);
-        }
+        GenerateGetStyleIdsPart(sb, rowType);
 
         sb.AppendLine("""
                             foreach (var obj in objs)
@@ -530,42 +556,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             """);
     }
 
-    private static Dictionary<CellStyle, int> GenerateGetStyleIds(StringBuilder sb, RowType rowType)
-    {
-        var properties = rowType.Properties;
-        Debug.Assert(properties.Any(x => x.CellStyle is not null));
-
-        sb.AppendLine("""
-
-                    private static void GetStyleIds(SpreadCheetah.Spreadsheet spreadsheet, StyleId[] styleIds)
-                    {
-            """);
-
-        var cellStyleToStyleIdIndex = new Dictionary<CellStyle, int>();
-
-        foreach (var property in properties)
-        {
-            if (property.CellStyle is not { } style)
-                continue;
-
-            if (cellStyleToStyleIdIndex.ContainsKey(style))
-                continue;
-
-            var styleIdIndex = cellStyleToStyleIdIndex.Count;
-            cellStyleToStyleIdIndex[style] = styleIdIndex;
-
-            sb.AppendLine(FormattableString.Invariant($"""
-                        styleIds[{styleIdIndex}] = spreadsheet.GetStyleId({style.StyleNameRawString});
-            """));
-        }
-
-        sb.AppendLine("""
-                    }
-            """);
-
-        return cellStyleToStyleIdIndex;
-    }
-
     private static void GenerateAddCellsAsRow(StringBuilder sb, RowType rowType, Dictionary<CellStyle, int> cellStyleToStyleIdIndex)
     {
         var properties = rowType.Properties;
@@ -575,7 +565,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
                     private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet,
                         {{rowType.FullNameWithNullableAnnotation}} obj,
-                        {{rowType.CellType}}[] cells, StyleId[] styleIds, CancellationToken token)
+                        {{rowType.CellType}}[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
                     {
             """);
 
