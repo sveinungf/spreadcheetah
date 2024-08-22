@@ -5,11 +5,14 @@ using SpreadCheetah.SourceGenerator.Models;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Net.NetworkInformation;
 
 namespace SpreadCheetah.SourceGenerator.Extensions;
 
 internal static class AttributeDataExtensions
 {
+    private const string CellValueMapperInterfaceName = "ICellValueMapper";
+    
     public static PropertyAttributeData MapToPropertyAttributeData(
         this ImmutableArray<AttributeData> attributes,
         ITypeSymbol propertyType,
@@ -234,7 +237,7 @@ internal static class AttributeDataExtensions
 
         var cellValueMapperTypeSymbol = args[0].Value.Value as INamedTypeSymbol;
         if (cellValueMapperTypeSymbol!.AllInterfaces.Any(symbol =>
-                !string.Equals(symbol.Name, "ICellValueMapper", StringComparison.Ordinal)))
+                !string.Equals(symbol.Name, CellValueMapperInterfaceName, StringComparison.Ordinal)))
         {
             var errorLocation = attribute.GetLocation(token);
             var stringValue = cellValueMapperTypeSymbol.ToDisplayString();
