@@ -53,4 +53,12 @@ internal static class Diagnostics
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+    
+    public static readonly DiagnosticDescriptor CellValueMapperTypeNotImplementICellValueMapper = new(
+        id: "SPCH1007",
+        title: "The type provided for CellValueMapperAttribute must inherit ICellValueMapper<> interface",
+        messageFormat: "'{0}' is not implement ICellValueMapper<>",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

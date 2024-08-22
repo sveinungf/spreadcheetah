@@ -31,6 +31,7 @@ internal static class AttributeDataExtensions
                 Attributes.ColumnHeader => attribute.TryGetColumnHeaderAttribute(diagnosticInfos, token, ref result),
                 Attributes.ColumnOrder => attribute.TryGetColumnOrderAttribute(token, ref result),
                 Attributes.ColumnWidth => attribute.TryGetColumnWidthAttribute(diagnosticInfos, token, ref result),
+                Attributes.CellValueMapper => attribute.TryGetCellValueMapperAttribute(diagnosticInfos, token, ref result),
                 _ => false
             };
         }
@@ -218,6 +219,33 @@ internal static class AttributeDataExtensions
         }
 
         data.CellValueTruncate = new CellValueTruncate(attributeValue);
+        return true;
+    }
+
+    private static bool TryGetCellValueMapperAttribute(this AttributeData attribute, List<DiagnosticInfo> diagnosticInfos,CancellationToken 
+            token, ref PropertyAttributeData data)
+    {
+        if (!string.Equals(Attributes.CellValueMapper, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
+            return false;
+
+        var args = attribute.NamedArguments;
+        if (args.Length == 0)
+            return false;
+
+        var cellValueMapperTypeSymbol = args[0].Value.Value as INamedTypeSymbol;
+        if (cellValueMapperTypeSymbol!.AllInterfaces.Any(symbol =>
+                !string.Equals(symbol.Name, "ICellValueMapper", StringComparison.Ordinal)))
+        {
+            var errorLocation = attribute.GetLocation(token);
+            var stringValue = cellValueMapperTypeSymbol.ToDisplayString();
+            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.CellValueMapperTypeNotImplementICellValueMapper, errorLocation, new([stringValue, Attributes.CellValueTruncate])));
+
+            return false;
+        }
+  
+        var location = attribute.GetLocation(token)!;
+
+        data.CellValueMapper = new CellValueMapper(cellValueMapperTypeSymbol.ToDisplayString(), location);
         return true;
     }
 
