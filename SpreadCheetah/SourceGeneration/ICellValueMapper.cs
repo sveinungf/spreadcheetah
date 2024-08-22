@@ -10,7 +10,6 @@ public interface ICellValueMapper<in T>
     /// Map provided value to a cell.
     /// </summary>
     /// <param name="value">The value to wire in cell.</param>
-    /// <param name="styleName">The style name to apply.</param>
     /// <returns></returns>
-    Cell MapToCell(T value, string? styleName);
+    Cell MapToCell(T value);
 }
