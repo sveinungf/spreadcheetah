@@ -406,10 +406,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                             };                     
                     """));
         }
-        else
-        {
-            sb.AppendLine("private static ICellValueMapper[]? _cellValueMappers;");
-        }
     }
     
     private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)
