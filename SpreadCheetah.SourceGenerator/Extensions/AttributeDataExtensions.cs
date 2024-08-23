@@ -236,8 +236,10 @@ internal static class AttributeDataExtensions
             return false;
 
         var cellValueMapperTypeSymbol = args[0].Value.Value as INamedTypeSymbol;
-        if (cellValueMapperTypeSymbol!.AllInterfaces.Any(symbol =>
-                !string.Equals(symbol.Name, CellValueMapperInterfaceName, StringComparison.Ordinal)))
+        var cellValueMapperInterface = cellValueMapperTypeSymbol!.AllInterfaces.FirstOrDefault(symbol =>
+            string.Equals(symbol.Name, CellValueMapperInterfaceName, StringComparison.Ordinal));
+        
+        if (cellValueMapperInterface is null)
         {
             var errorLocation = attribute.GetLocation(token);
             var stringValue = cellValueMapperTypeSymbol.ToDisplayString();
@@ -245,10 +247,19 @@ internal static class AttributeDataExtensions
 
             return false;
         }
-  
+
+        var cellValueMapperInterfaceGenericArgument = cellValueMapperInterface.TypeArguments[0] as INamedTypeSymbol;
+
+        var genericArgumentName = cellValueMapperInterfaceGenericArgument!.Name;
+        if (string.Equals(genericArgumentName, "Nullable", StringComparison.Ordinal))
+        {
+            genericArgumentName = cellValueMapperInterfaceGenericArgument.TypeArguments[0].Name + "?";
+        }
+        
         var location = attribute.GetLocation(token)!;
 
-        data.CellValueMapper = new CellValueMapper(cellValueMapperTypeSymbol.ToDisplayString(), location);
+        data.CellValueMapper = new CellValueMapper(cellValueMapperTypeSymbol.ToDisplayString(),
+            genericArgumentName, location);
         return true;
     }
 

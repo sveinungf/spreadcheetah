@@ -3,7 +3,7 @@ namespace SpreadCheetah.SourceGeneration.Internal;
 /// <summary>
 /// Instructs the SpreadCheetah source generator to use specified cell mapper to create a cell.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
 public sealed class CellValueMapperAttribute : Attribute
 {
     /// <summary>

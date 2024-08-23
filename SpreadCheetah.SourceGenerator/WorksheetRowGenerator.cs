@@ -111,7 +111,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 ColumnHeader: data.ColumnHeader?.ToColumnHeaderInfo(),
                 CellStyle: data.CellStyle,
                 ColumnWidth: data.ColumnWidth,
-                CellValueTruncate: data.CellValueTruncate);
+                CellValueTruncate: data.CellValueTruncate,
+                PropertyCellValueMapper: data.CellValueMapper);
 
             if (data.ColumnOrder is not { } order)
                 implicitOrderProperties.Add(rowTypeProperty);
@@ -210,6 +211,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 {
                     private static {{contextClass.Name}}? _default;
                     public static {{contextClass.Name}} Default => _default ??= new {{contextClass.Name}}();
+                    
 
                     public {{contextClass.Name}}()
                     {
@@ -282,6 +284,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             ? GenerateCreateWorksheetRowDependencyInfo(sb, typeIndex, properties)
             : [];
 
+        GenerateCellValueMappersArray(sb, rowType);
         GenerateAddHeaderRow(sb, typeIndex, properties);
         GenerateAddAsRow(sb, rowType);
         GenerateAddRangeAsRows(sb, rowType);
@@ -383,6 +386,32 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return cellStyleToStyleIdIndex;
     }
 
+    private static void GenerateCellValueMappersArray(StringBuilder sb, RowType rowType)
+    {
+        if (rowType.Properties.Any(property => property.PropertyCellValueMapper.HasValue))
+        {
+             sb.AppendLine(FormattableString.Invariant($$"""
+                            private static ICellValueMapper[]? _cellValueMappers = new ICellValueMapper[]
+                            {
+                    """));
+
+            foreach (var cellMapper in rowType.Properties.Where(property => property.PropertyCellValueMapper.HasValue))
+            {
+                sb.AppendLine(FormattableString.Invariant($$"""
+                                new {{cellMapper.PropertyCellValueMapper.GetValueOrDefault().CellValueMapperTypeName}}(),
+                   """));
+            }
+
+            sb.AppendLine(FormattableString.Invariant($$"""
+                            };                     
+                    """));
+        }
+        else
+        {
+            sb.AppendLine("private static ICellValueMapper[]? _cellValueMappers;");
+        }
+    }
+    
     private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)
     {
         Debug.Assert(properties.Count > 0);
@@ -554,7 +583,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine("""
                     }
             """);
-    }
+    }   
 
     private static void GenerateAddCellsAsRow(StringBuilder sb, RowType rowType, Dictionary<CellStyle, int> cellStyleToStyleIdIndex)
     {
@@ -568,7 +597,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                         {{rowType.CellType}}[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
                     {
             """);
-
+        
         if (rowType.IsReferenceType)
         {
             sb.AppendLine($"""
@@ -581,7 +610,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         foreach (var (i, property) in properties.Index())
         {
             sb.AppendLine(FormattableString.Invariant($"""
-                        cells[{i}] = {ConstructCell(property, $"obj.{property.Name}")};
+                        cells[{i}] = {ConstructCell(property, $"obj.{property.Name}", i)};
             """));
         }
 
@@ -590,13 +619,19 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                     }
             """);
 
-        string ConstructCell(RowTypeProperty property, string value)
+        string ConstructCell(RowTypeProperty property, string value, int propertyIndex)
         {
             int? styleIdIndex = property.CellStyle is { } cellStyle
                 ? cellStyleToStyleIdIndex[cellStyle]
                 : null;
 
             var styledCell = rowType.PropertiesWithStyleAttributes > 0;
+
+            if (property.PropertyCellValueMapper.HasValue)
+            {
+                return FormattableString.Invariant(
+                    $"(_cellValueMappers[{propertyIndex}] as ICellValueMapper<{property.PropertyCellValueMapper.GetValueOrDefault().GenericName}>)!.MapToCell({value})");
+            }
 
             return (property.CellValueTruncate, styledCell, styleIdIndex) switch
             {

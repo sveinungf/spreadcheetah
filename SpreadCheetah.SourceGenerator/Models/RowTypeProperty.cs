@@ -5,4 +5,5 @@ internal sealed record RowTypeProperty(
     ColumnHeaderInfo? ColumnHeader,
     CellStyle? CellStyle,
     ColumnWidth? ColumnWidth,
-    CellValueTruncate? CellValueTruncate);
+    CellValueTruncate? CellValueTruncate,
+    CellValueMapper? PropertyCellValueMapper);
