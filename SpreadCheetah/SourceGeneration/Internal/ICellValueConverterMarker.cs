@@ -1,0 +1,3 @@
+namespace SpreadCheetah.SourceGeneration.Internal;
+
+internal interface ICellValueConverterMarker;

@@ -1,6 +1,6 @@
 namespace SpreadCheetah.SourceGenerator.Models;
 
-internal readonly record struct CellValueMapper(
-    string CellValueMapperTypeName,
+internal readonly record struct CellValueConverter(
+    string CellValueConverterTypeName,
     string GenericName,
     LocationInfo LocationInfo);

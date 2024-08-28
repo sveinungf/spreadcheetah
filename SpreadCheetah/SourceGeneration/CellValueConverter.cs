@@ -1,20 +1,19 @@
-namespace SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGeneration.Internal;
 
-/// <summary>
-/// Cell value mapper marker.
-/// </summary>
-public interface ICellValueMapper;
+namespace SpreadCheetah.SourceGeneration;
 
 /// <summary>
 /// Provide the ability to create a custom cell when using source generator.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public interface ICellValueMapper<in T> : ICellValueMapper
+#pragma warning disable S1694
+public abstract class CellValueConverter<T> : ICellValueConverterMarker
+#pragma warning restore S1694
 {
     /// <summary>
     /// Map provided value to a cell.
     /// </summary>
     /// <param name="value">The value to wire in cell.</param>
     /// <returns></returns>
-    Cell MapToCell(T value);
+    public abstract DataCell ConvertToCell(T value);
 }

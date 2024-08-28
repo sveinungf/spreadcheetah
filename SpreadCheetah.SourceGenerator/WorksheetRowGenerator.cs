@@ -112,7 +112,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 CellStyle: data.CellStyle,
                 ColumnWidth: data.ColumnWidth,
                 CellValueTruncate: data.CellValueTruncate,
-                PropertyCellValueMapper: data.CellValueMapper);
+                CellValueConverter: data.CellValueConverter);
 
             if (data.ColumnOrder is not { } order)
                 implicitOrderProperties.Add(rowTypeProperty);
@@ -284,7 +284,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             ? GenerateCreateWorksheetRowDependencyInfo(sb, typeIndex, properties)
             : [];
 
-        GenerateCellValueMappersArray(sb, rowType);
+        GenerateCellValueConvertersArray(sb, rowType);
         GenerateAddHeaderRow(sb, typeIndex, properties);
         GenerateAddAsRow(sb, rowType);
         GenerateAddRangeAsRows(sb, rowType);
@@ -386,19 +386,19 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return cellStyleToStyleIdIndex;
     }
 
-    private static void GenerateCellValueMappersArray(StringBuilder sb, RowType rowType)
+    private static void GenerateCellValueConvertersArray(StringBuilder sb, RowType rowType)
     {
-        if (rowType.Properties.Any(property => property.PropertyCellValueMapper.HasValue))
+        if (rowType.Properties.Any(property => property.CellValueConverter.HasValue))
         {
              sb.AppendLine(FormattableString.Invariant($$"""
-                            private static ICellValueMapper[]? _cellValueMappers = new ICellValueMapper[]
+                            private static CellValueConverter[]? _cellValueConverters = new CellValueConverter[]
                             {
                     """));
 
-            foreach (var cellMapper in rowType.Properties.Where(property => property.PropertyCellValueMapper.HasValue))
+            foreach (var cellMapper in rowType.Properties.Where(property => property.CellValueConverter.HasValue))
             {
                 sb.AppendLine(FormattableString.Invariant($$"""
-                                new {{cellMapper.PropertyCellValueMapper.GetValueOrDefault().CellValueMapperTypeName}}(),
+                                new {{cellMapper.CellValueConverter.GetValueOrDefault().CellValueConverterTypeName}}(),
                    """));
             }
 
@@ -623,10 +623,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
             var styledCell = rowType.PropertiesWithStyleAttributes > 0;
 
-            if (property.PropertyCellValueMapper.HasValue)
+            if (property.CellValueConverter.HasValue)
             {
                 return FormattableString.Invariant(
-                    $"(_cellValueMappers[{propertyIndex}] as ICellValueMapper<{property.PropertyCellValueMapper.GetValueOrDefault().GenericName}>)!.MapToCell({value})");
+                    $"(_cellValueConverters[{propertyIndex}] as CellValueConverter<{property.CellValueConverter.GetValueOrDefault().GenericName}>)!.ConvertToCell({value})");
             }
 
             return (property.CellValueTruncate, styledCell, styleIdIndex) switch

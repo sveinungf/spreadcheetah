@@ -5,21 +5,21 @@ using SpreadCheetah.SourceGenerators;
 
 namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 
-public class WorksheetRowGeneratorCellValueMapperTests
+public class WorksheetRowGeneratorCellValueConverterTests
 {
     [Fact]
-    public Task WorksheetRowGenerator_Generate_RecordClassWith_2LevelOfInheritance_InheritedColumnsFirst_ParentIgnore_Inheritance()
+    public Task WorksheetRowGenerator_Generate_Class_With_Different_Converters()
     {
 
         // Arrange
         const string source = """
                               using SpreadCheetah.SourceGeneration;
-                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueMapping;
+                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters;
                               using System;
                               
                               namespace MyNamespace;
                               
-                              [WorksheetRow(typeof(ClassWithCellValueMapper))]
+                              [WorksheetRow(typeof(ClassWithCellValueConverters))]
                               public partial class MyGenRowContext : WorksheetRowContext;
                               """;
 
