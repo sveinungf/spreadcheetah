@@ -114,6 +114,11 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 CellValueTruncate: data.CellValueTruncate,
                 CellValueConverter: data.CellValueConverter);
 
+            if (data is { CellValueConverter: not null, CellValueTruncate: not null })
+                diagnosticInfos.Add(
+                    new DiagnosticInfo(
+                        Diagnostics.UnsupportedCellValueConverterAttributeWithCellValueTruncateAttributeTogether,
+                        rowTypeProperty.CellValueConverter.GetValueOrDefault().Location, new([property.Name])));
             if (data.ColumnOrder is not { } order)
                 implicitOrderProperties.Add(rowTypeProperty);
             else if (!explicitOrderProperties.ContainsKey(order.Value))

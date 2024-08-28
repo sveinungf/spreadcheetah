@@ -61,4 +61,13 @@ internal static class Diagnostics
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+    
+    public static readonly DiagnosticDescriptor 
+        UnsupportedCellValueConverterAttributeWithCellValueTruncateAttributeTogether = new(
+        id: "SPCH1008",
+        title: "The type has CellValueConverterAttribute and TruncateValueAttribute which is not supported",
+        messageFormat: "'{0}' has CellValueConverterAttribute and TruncateValueAttribute, only one of this attribute on property allowed at once",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

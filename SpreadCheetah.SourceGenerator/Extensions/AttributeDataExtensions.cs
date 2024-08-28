@@ -5,7 +5,6 @@ using SpreadCheetah.SourceGenerator.Models;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Net.NetworkInformation;
 
 namespace SpreadCheetah.SourceGenerator.Extensions;
 
@@ -225,8 +224,9 @@ internal static class AttributeDataExtensions
         return true;
     }
 
-    private static bool TryGetCellValueConverterAttribute(this AttributeData attribute, List<DiagnosticInfo> diagnosticInfos,CancellationToken 
-            token, ref PropertyAttributeData data)
+    private static bool TryGetCellValueConverterAttribute(this AttributeData attribute,
+        List<DiagnosticInfo> diagnosticInfos, CancellationToken token,
+        ref PropertyAttributeData data)
     {
         if (!string.Equals(Attributes.CellValueConverter, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
             return false;
@@ -246,7 +246,7 @@ internal static class AttributeDataExtensions
 
             return false;
         }
-
+        
         var cellValueMapperInterfaceGenericArgument = cellValueConverterType.TypeArguments[0] as INamedTypeSymbol;
 
         var genericArgumentName = cellValueMapperInterfaceGenericArgument!.Name;
