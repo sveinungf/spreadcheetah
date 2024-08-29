@@ -1,5 +1,3 @@
-using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGeneration.Internal;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Helpers;
 using SpreadCheetah.SourceGenerators;
 
@@ -8,7 +6,7 @@ namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 public class WorksheetRowGeneratorCellValueConverterTests
 {
     [Fact]
-    public Task WorksheetRowGenerator_Generate_Class_With_Different_Converters()
+    public Task WorksheetRowGenerator_Generate_Class_With_Different_CellValueConverters_Should_Generate_All_Converters()
     {
 
         // Arrange
