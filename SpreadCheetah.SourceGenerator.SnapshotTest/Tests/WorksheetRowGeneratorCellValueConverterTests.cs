@@ -24,4 +24,24 @@ public class WorksheetRowGeneratorCellValueConverterTests
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
+    
+    [Fact]
+    public Task WorksheetRowGenerator_Generate_Class_With_Same_CellValueConverters_Should_Generate_Unique_Converters()
+    {
+
+        // Arrange
+        const string source = """
+                              using SpreadCheetah.SourceGeneration;
+                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters;
+                              using System;
+                              
+                              namespace MyNamespace;
+                              
+                              [WorksheetRow(typeof(ClassWithSameCellValueConverters))]
+                              public partial class MyGenRowContext : WorksheetRowContext;
+                              """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
 }
