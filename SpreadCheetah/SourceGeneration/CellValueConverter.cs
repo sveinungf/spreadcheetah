@@ -1,5 +1,3 @@
-using SpreadCheetah.SourceGeneration.Internal;
-
 namespace SpreadCheetah.SourceGeneration;
 
 /// <summary>
@@ -7,7 +5,7 @@ namespace SpreadCheetah.SourceGeneration;
 /// </summary>
 /// <typeparam name="T"></typeparam>
 #pragma warning disable S1694
-public abstract class CellValueConverter<T> : ICellValueConverterMarker
+public abstract class CellValueConverter<T>
 #pragma warning restore S1694
 {
     /// <summary>

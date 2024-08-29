@@ -396,15 +396,22 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         if (rowType.Properties.Any(property => property.CellValueConverter.HasValue))
         {
              sb.AppendLine(FormattableString.Invariant($$"""
-                            private static CellValueConverter[]? _cellValueConverters = new CellValueConverter[]
+                            private static Dictionary<string, object> _cellValueConverters = new Dictionary<string, object>
                             {
                     """));
 
-            foreach (var cellMapper in rowType.Properties.Where(property => property.CellValueConverter.HasValue))
+            var cellValueConvertersMap = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var cellConverter in rowType.Properties.Where(property => property.CellValueConverter.HasValue))
             {
+
+                var cellValueConverter = cellConverter.CellValueConverter.GetValueOrDefault();
+                if (cellValueConvertersMap.Contains(cellValueConverter.CellValueConverterTypeName)) 
+                    continue;
+                    
                 sb.AppendLine(FormattableString.Invariant($$"""
-                                new {{cellMapper.CellValueConverter.GetValueOrDefault().CellValueConverterTypeName}}(),
+                                ["{{cellValueConverter.CellValueConverterTypeName}}"] = new {{cellConverter.CellValueConverter.GetValueOrDefault().CellValueConverterTypeName}}(),
                    """));
+                cellValueConvertersMap.Add(cellValueConverter.CellValueConverterTypeName);
             }
 
             sb.AppendLine(FormattableString.Invariant($$"""
@@ -611,7 +618,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         foreach (var (i, property) in properties.Index())
         {
             sb.AppendLine(FormattableString.Invariant($"""
-                        cells[{i}] = {ConstructCell(property, $"obj.{property.Name}", i)};
+                        cells[{i}] = {ConstructCell(property, $"obj.{property.Name}")};
             """));
         }
 
@@ -620,7 +627,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                     }
             """);
 
-        string ConstructCell(RowTypeProperty property, string value, int propertyIndex)
+        string ConstructCell(RowTypeProperty property, string value)
         {
             int? styleIdIndex = property.CellStyle is { } cellStyle
                 ? cellStyleToStyleIdIndex[cellStyle]
@@ -630,8 +637,11 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
             if (property.CellValueConverter.HasValue)
             {
+                var converter = property.CellValueConverter.GetValueOrDefault();
                 return FormattableString.Invariant(
-                    $"(_cellValueConverters[{propertyIndex}] as CellValueConverter<{property.CellValueConverter.GetValueOrDefault().GenericName}>)!.ConvertToCell({value})");
+                    $"""
+                     (_cellValueConverters["{converter.CellValueConverterTypeName}"] as CellValueConverter<{converter.GenericName}>).ConvertToCell({value})
+                     """);
             }
 
             return (property.CellValueTruncate, styledCell, styleIdIndex) switch
