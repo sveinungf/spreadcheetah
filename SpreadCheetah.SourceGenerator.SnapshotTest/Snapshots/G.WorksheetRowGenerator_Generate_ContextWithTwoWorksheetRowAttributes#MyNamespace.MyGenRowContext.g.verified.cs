@@ -3,6 +3,7 @@
 #nullable enable
 using SpreadCheetah;
 using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.Styling;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -22,7 +23,8 @@ namespace MyNamespace
 
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty>? _ClassWithSingleProperty;
         public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty> ClassWithSingleProperty => _ClassWithSingleProperty
-            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty>(AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync);
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty>(
+                AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, null);
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
@@ -47,7 +49,9 @@ namespace MyNamespace
             return AddAsRowInternalAsync(spreadsheet, obj, token);
         }
 
-        private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty?> objs, CancellationToken token)
+        private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet,
+            IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty?> objs,
+            CancellationToken token)
         {
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
@@ -56,12 +60,15 @@ namespace MyNamespace
             return AddRangeAsRowsInternalAsync(spreadsheet, objs, token);
         }
 
-        private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty obj, CancellationToken token)
+        private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
+            SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty obj,
+            CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(1);
             try
             {
-                await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);
+                var styleIds = Array.Empty<StyleId>();
+                await AddCellsAsRowAsync(spreadsheet, obj, cells, styleIds, token).ConfigureAwait(false);
             }
             finally
             {
@@ -69,12 +76,18 @@ namespace MyNamespace
             }
         }
 
-        private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty?> objs, CancellationToken token)
+        private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
+            IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty?> objs,
+            CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(1);
             try
             {
-                await AddEnumerableAsRowsAsync(spreadsheet, objs, cells, token).ConfigureAwait(false);
+                var styleIds = Array.Empty<StyleId>();
+                foreach (var obj in objs)
+                {
+                    await AddCellsAsRowAsync(spreadsheet, obj, cells, styleIds, token).ConfigureAwait(false);
+                }
             }
             finally
             {
@@ -82,15 +95,9 @@ namespace MyNamespace
             }
         }
 
-        private static async ValueTask AddEnumerableAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty?> objs, DataCell[] cells, CancellationToken token)
-        {
-            foreach (var obj in objs)
-            {
-                await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);
-            }
-        }
-
-        private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty? obj, DataCell[] cells, CancellationToken token)
+        private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet,
+            SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty? obj,
+            DataCell[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
         {
             if (obj is null)
                 return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
@@ -101,7 +108,8 @@ namespace MyNamespace
 
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties>? _ClassWithMultipleProperties;
         public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties> ClassWithMultipleProperties => _ClassWithMultipleProperties
-            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties>(AddHeaderRow1Async, AddAsRowAsync, AddRangeAsRowsAsync);
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties>(
+                AddHeaderRow1Async, AddAsRowAsync, AddRangeAsRowsAsync, null);
 
         private static async ValueTask AddHeaderRow1Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
@@ -131,7 +139,9 @@ namespace MyNamespace
             return AddAsRowInternalAsync(spreadsheet, obj, token);
         }
 
-        private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties?> objs, CancellationToken token)
+        private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet,
+            IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties?> objs,
+            CancellationToken token)
         {
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
@@ -140,12 +150,15 @@ namespace MyNamespace
             return AddRangeAsRowsInternalAsync(spreadsheet, objs, token);
         }
 
-        private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties obj, CancellationToken token)
+        private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
+            SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties obj,
+            CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(6);
             try
             {
-                await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);
+                var styleIds = Array.Empty<StyleId>();
+                await AddCellsAsRowAsync(spreadsheet, obj, cells, styleIds, token).ConfigureAwait(false);
             }
             finally
             {
@@ -153,12 +166,18 @@ namespace MyNamespace
             }
         }
 
-        private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties?> objs, CancellationToken token)
+        private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
+            IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties?> objs,
+            CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(6);
             try
             {
-                await AddEnumerableAsRowsAsync(spreadsheet, objs, cells, token).ConfigureAwait(false);
+                var styleIds = Array.Empty<StyleId>();
+                foreach (var obj in objs)
+                {
+                    await AddCellsAsRowAsync(spreadsheet, obj, cells, styleIds, token).ConfigureAwait(false);
+                }
             }
             finally
             {
@@ -166,15 +185,9 @@ namespace MyNamespace
             }
         }
 
-        private static async ValueTask AddEnumerableAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties?> objs, DataCell[] cells, CancellationToken token)
-        {
-            foreach (var obj in objs)
-            {
-                await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);
-            }
-        }
-
-        private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties? obj, DataCell[] cells, CancellationToken token)
+        private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet,
+            SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithMultipleProperties? obj,
+            DataCell[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
         {
             if (obj is null)
                 return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
@@ -186,6 +199,13 @@ namespace MyNamespace
             cells[4] = new DataCell(obj.Employed);
             cells[5] = new DataCell(obj.Score);
             return spreadsheet.AddRowAsync(cells.AsMemory(0, 6), token);
+        }
+
+        private static DataCell ConstructTruncatedDataCell(string? value, int truncateLength)
+        {
+            return value is null || value.Length <= truncateLength
+                ? new DataCell(value)
+                : new DataCell(value.AsMemory(0, truncateLength));
         }
     }
 }
