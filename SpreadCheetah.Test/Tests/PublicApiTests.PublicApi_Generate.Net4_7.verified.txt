@@ -6,6 +6,7 @@ namespace SpreadCheetah
 {
     public readonly struct Cell : System.IEquatable<SpreadCheetah.Cell>
     {
+        public Cell(SpreadCheetah.DataCell value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(bool value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(System.DateTime value, SpreadCheetah.Styling.StyleId? styleId = null) { }
@@ -23,6 +24,7 @@ namespace SpreadCheetah
         public Cell(int? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(long? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(string? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, SpreadCheetah.DataCell cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, bool cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, System.DateTime cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, System.DateTime? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
@@ -135,6 +137,7 @@ namespace SpreadCheetah
     }
     public readonly struct StyledCell : System.IEquatable<SpreadCheetah.StyledCell>
     {
+        public StyledCell(SpreadCheetah.DataCell value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(bool value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(System.DateTime value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(System.DateTime? value, SpreadCheetah.Styling.StyleId? styleId) { }
