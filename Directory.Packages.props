@@ -5,12 +5,12 @@
   </PropertyGroup>
   <ItemGroup>
     <GlobalPackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.4.0-beta.1" />
-    <GlobalPackageReference Include="Meziantou.Analyzer" Version="2.0.161" />
+    <GlobalPackageReference Include="Meziantou.Analyzer" Version="2.0.163" />
     <GlobalPackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" />
-    <GlobalPackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.10.48" />
+    <GlobalPackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.11.20" />
     <GlobalPackageReference Include="PrimaryConstructorAnalyzer" Version="1.0.6" />
     <GlobalPackageReference Include="Roslynator.Analyzers" Version="4.12.4" />
-    <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="9.29.0.95321" />
+    <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="9.32.0.97167" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
