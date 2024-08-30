@@ -390,7 +390,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             return result;
 
         ArgumentNullException.ThrowIfNull(typeInfo);
-        result = typeInfo.CreateWorksheetRowDependencyInfo?.Invoke(this) ?? new();
+        result = typeInfo.CreateWorksheetRowDependencyInfo?.Invoke(this) ?? new([]);
         dictionary[typeof(T)] = result;
         return result;
     }

@@ -376,7 +376,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         sb.AppendLine("""
                         };
-                        return new WorksheetRowDependencyInfo { StyleIds = styleIds };
+                        return new WorksheetRowDependencyInfo(styleIds);
                     }
             """);
 
