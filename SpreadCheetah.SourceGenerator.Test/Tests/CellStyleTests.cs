@@ -185,4 +185,26 @@ public class CellStyleTests
         var actual = Assert.IsType<SpreadCheetahException>(exception);
         Assert.Contains(nameof(Spreadsheet.AddStyle), actual.Message, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public async Task CellStyle_WorksheetRowDependencyInfoCreatedOnlyOnce()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var style = new Style { Font = { Bold = true } };
+        spreadsheet.AddStyle(style, "Price style");
+        var typeInfo = CellStyleContext.Default.ClassWithCellStyle;
+        var initialDependencyInfo = spreadsheet.GetOrCreateWorksheetRowDependencyInfo(typeInfo);
+
+        // Act
+        await spreadsheet.AddAsRowAsync(new ClassWithCellStyle { Price = 10m }, typeInfo);
+        await spreadsheet.AddAsRowAsync(new ClassWithCellStyle { Price = 20m }, typeInfo);
+        await spreadsheet.AddAsRowAsync(new ClassWithCellStyle { Price = 30m }, typeInfo);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        var subsequentDependencyInfo = spreadsheet.GetOrCreateWorksheetRowDependencyInfo(typeInfo);
+        Assert.Same(initialDependencyInfo, subsequentDependencyInfo);
+    }
 }
