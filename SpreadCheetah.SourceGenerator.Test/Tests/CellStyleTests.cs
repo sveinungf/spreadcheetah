@@ -64,6 +64,68 @@ public class CellStyleTests
     }
 
     [Fact]
+    public async Task CellStyle_MultipleTypesWithAttributeInSameWorksheet()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var nameStyle = new Style { Font = { Italic = true } };
+        var priceStyle = new Style { Font = { Bold = true } };
+        spreadsheet.AddStyle(nameStyle, "Name style");
+        spreadsheet.AddStyle(priceStyle, "Price style");
+        var obj1 = new ClassWithCellStyle { Price = 199.90m };
+        var obj2 = new RecordWithCellStyle { Name = "Tom" };
+
+        // Act
+        await spreadsheet.AddAsRowAsync(obj1, CellStyleContext.Default.ClassWithCellStyle);
+        await spreadsheet.AddAsRowAsync(obj2, CellStyleContext.Default.RecordWithCellStyle);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(obj1.Price, sheet["A1"].DecimalValue);
+        Assert.Equal(obj2.Name, sheet["A2"].StringValue);
+        Assert.True(sheet["A1"].Style.Font.Bold);
+        Assert.True(sheet["A2"].Style.Font.Italic);
+    }
+
+    [Fact]
+    public async Task CellStyle_MultipleTypesWithAttributeInMultipleWorksheets()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        var priceStyle = new Style { Font = { Bold = true } };
+        spreadsheet.AddStyle(priceStyle, "Price style");
+        var obj1 = new ClassWithCellStyle { Price = 199.90m };
+        await spreadsheet.AddAsRowAsync(obj1, CellStyleContext.Default.ClassWithCellStyle);
+
+        await spreadsheet.StartWorksheetAsync("Sheet 2");
+        var nameStyle = new Style { Font = { Italic = true } };
+        spreadsheet.AddStyle(nameStyle, "Name style");
+        var obj2 = new RecordWithCellStyle { Name = "Tom" };
+        await spreadsheet.AddAsRowAsync(obj2, CellStyleContext.Default.RecordWithCellStyle);
+
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheets = SpreadsheetAssert.Sheets(stream);
+        Assert.Equal(2, sheets.Count);
+
+        var sheet1 = sheets[0];
+        Assert.Equal(obj1.Price, sheet1["A1"].DecimalValue);
+        Assert.True(sheet1["A1"].Style.Font.Bold);
+
+        var sheet2 = sheets[1];
+        Assert.Equal(obj2.Name, sheet2["A1"].StringValue);
+        Assert.True(sheet2["A1"].Style.Font.Italic);
+    }
+
+    [Fact]
     public async Task CellStyle_ClassWithMissingStyleName()
     {
         // Arrange
