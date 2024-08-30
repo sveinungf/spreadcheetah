@@ -63,6 +63,35 @@ public class CellStyleTests
         Assert.True(sheet["D1"].Style.Font.Italic);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task CellStyle_ClassWithAttributeOnDateTimeProperty(bool withDefaultDateTimeFormat)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var options = withDefaultDateTimeFormat
+            ? new SpreadCheetahOptions()
+            : new SpreadCheetahOptions { DefaultDateTimeFormat = null };
+
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var style = new Style { Font = { Bold = true } };
+        spreadsheet.AddStyle(style, "Created style");
+        var obj = new ClassWithCellStyleOnDateTimeProperty { CreatedDate = new DateTime(2022, 10, 23, 15, 16, 17, DateTimeKind.Utc) };
+
+        // Act
+        await spreadsheet.AddAsRowAsync(obj, CellStyleContext.Default.ClassWithCellStyleOnDateTimeProperty);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(obj.CreatedDate, sheet["A1"].DateTimeValue);
+        var actualStyle = sheet["A1"].Style;
+        Assert.True(actualStyle.Font.Bold);
+        Assert.Equal(withDefaultDateTimeFormat, actualStyle.NumberFormat.Format is not null);
+    }
+
     [Fact]
     public async Task CellStyle_MultipleTypesWithAttributeInSameWorksheet()
     {
