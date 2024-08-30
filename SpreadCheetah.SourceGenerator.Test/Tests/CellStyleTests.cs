@@ -93,6 +93,27 @@ public class CellStyleTests
     }
 
     [Fact]
+    public async Task CellStyle_ClassWithAttributeOnTruncatedProperty()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var style = new Style { Font = { Bold = true } };
+        spreadsheet.AddStyle(style, "Name style");
+        var obj = new ClassWithCellStyleOnTruncatedProperty { Name = "Ola Nordmann" };
+
+        // Act
+        await spreadsheet.AddAsRowAsync(obj, CellStyleContext.Default.ClassWithCellStyleOnTruncatedProperty);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(obj.Name[..10], sheet["A1"].StringValue);
+        Assert.True(sheet["A1"].Style.Font.Bold);
+    }
+
+    [Fact]
     public async Task CellStyle_MultipleTypesWithAttributeInSameWorksheet()
     {
         // Arrange
