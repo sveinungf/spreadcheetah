@@ -62,4 +62,36 @@ public class CellStyleTests
         Assert.False(sheet["D1"].Style.Font.Bold);
         Assert.True(sheet["D1"].Style.Font.Italic);
     }
+
+    [Fact]
+    public async Task CellStyle_ClassWithMissingStyleName()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var obj = new ClassWithCellStyle { Price = 199.90m };
+
+        // Act
+        var exception = await Record.ExceptionAsync(async () => await spreadsheet.AddAsRowAsync(obj, CellStyleContext.Default.ClassWithCellStyle));
+
+        // Assert
+        var actual = Assert.IsType<SpreadCheetahException>(exception);
+        Assert.Contains(nameof(Spreadsheet.AddStyle), actual.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task CellStyle_ClassWithInvalidCellStyleName()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var obj = new ClassWithInvalidCellStyleName { Name = "The name" };
+
+        // Act
+        var exception = await Record.ExceptionAsync(async () => await spreadsheet.AddAsRowAsync(obj, InvalidCellStyleContext.Default.ClassWithInvalidCellStyleName));
+
+        // Assert
+        var actual = Assert.IsType<SpreadCheetahException>(exception);
+        Assert.Contains(nameof(Spreadsheet.AddStyle), actual.Message, StringComparison.Ordinal);
+    }
 }
