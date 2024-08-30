@@ -229,7 +229,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             ++typeIndex;
         }
 
-        GenerateConstructTruncatedCells(sb);
+        GenerateConstructTruncatedDataCell(sb);
 
         sb.AppendLine("""
                 }
@@ -592,25 +592,26 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         string ConstructCell(RowTypeProperty property, string value)
         {
+            var constructDataCell = property.CellValueTruncate is { } truncate
+                ? FormattableString.Invariant($"ConstructTruncatedDataCell({value}, {truncate.Value})")
+                : $"new DataCell({value})";
+
             int? styleIdIndex = property.CellStyle is { } cellStyle
                 ? cellStyleToStyleIdIndex[cellStyle]
                 : null;
 
             var styledCell = rowType.PropertiesWithStyleAttributes > 0;
 
-            return (property.CellValueTruncate, styledCell, styleIdIndex) switch
+            return (styledCell, styleIdIndex) switch
             {
-                ({ } truncate, true, { } i) => FormattableString.Invariant($"ConstructTruncatedStyledCell({value}, {truncate.Value}, styleIds[{i}])"),
-                ({ } truncate, true, null) => FormattableString.Invariant($"ConstructTruncatedStyledCell({value}, {truncate.Value}, null)"),
-                ({ } truncate, false, _) => FormattableString.Invariant($"ConstructTruncatedDataCell({value}, {truncate.Value})"),
-                (null, true, { } i) => FormattableString.Invariant($"new StyledCell({value}, styleIds[{i}])"),
-                (null, true, null) => FormattableString.Invariant($"new StyledCell({value}, null)"),
-                (null, false, _) => FormattableString.Invariant($"new DataCell({value})"),
+                (true, { } i) => FormattableString.Invariant($"new StyledCell({constructDataCell}, styleIds[{i}])"),
+                (true, null) => $"new StyledCell({constructDataCell}, null)",
+                (false, _) => constructDataCell
             };
         }
     }
 
-    private static void GenerateConstructTruncatedCells(StringBuilder sb)
+    private static void GenerateConstructTruncatedDataCell(StringBuilder sb)
     {
         sb.AppendLine("""
 
@@ -619,13 +620,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                         return value is null || value.Length <= truncateLength
                             ? new DataCell(value)
                             : new DataCell(value.AsMemory(0, truncateLength));
-                    }
-
-                    private static StyledCell ConstructTruncatedStyledCell(string? value, int truncateLength, StyleId? styleId)
-                    {
-                        return value is null || value.Length <= truncateLength
-                            ? new StyledCell(value, styleId)
-                            : new StyledCell(value.AsMemory(0, truncateLength), styleId);
                     }
             """);
     }
