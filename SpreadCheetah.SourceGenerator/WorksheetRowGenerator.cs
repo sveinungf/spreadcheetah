@@ -86,6 +86,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
         var unsupportedPropertyTypeNames = new HashSet<string>(StringComparer.Ordinal);
         var diagnosticInfos = new List<DiagnosticInfo>();
+        var propertiesWithStyleAttributes = 0;
 
         foreach (var property in GetClassAndBaseClassProperties(classType))
         {
@@ -98,26 +99,21 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 continue;
             }
 
-            ColumnHeader? columnHeader = null;
-            ColumnOrder? columnOrder = null;
-            ColumnWidth? columnWidth = null;
-            CellValueTruncate? cellValueTruncate = null;
+            var data = property
+                .GetAttributes()
+                .MapToPropertyAttributeData(property.Type, diagnosticInfos, token);
 
-            foreach (var attribute in property.GetAttributes())
-            {
-                columnHeader ??= attribute.TryGetColumnHeaderAttribute(diagnosticInfos, token);
-                columnOrder ??= attribute.TryGetColumnOrderAttribute(token);
-                columnWidth ??= attribute.TryGetColumnWidthAttribute(diagnosticInfos, token);
-                cellValueTruncate ??= attribute.TryGetCellValueTruncateAttribute(property.Type, diagnosticInfos, token);
-            }
+            if (data.CellStyle is not null)
+                propertiesWithStyleAttributes++;
 
             var rowTypeProperty = new RowTypeProperty(
                 Name: property.Name,
-                ColumnHeader: columnHeader?.ToColumnHeaderInfo(),
-                ColumnWidth: columnWidth,
-                CellValueTruncate: cellValueTruncate);
+                ColumnHeader: data.ColumnHeader?.ToColumnHeaderInfo(),
+                CellStyle: data.CellStyle,
+                ColumnWidth: data.ColumnWidth,
+                CellValueTruncate: data.CellValueTruncate);
 
-            if (columnOrder is not { } order)
+            if (data.ColumnOrder is not { } order)
                 implicitOrderProperties.Add(rowTypeProperty);
             else if (!explicitOrderProperties.ContainsKey(order.Value))
                 explicitOrderProperties.Add(order.Value, rowTypeProperty);
@@ -133,6 +129,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             IsReferenceType: classType.IsReferenceType,
             Name: classType.Name,
             Properties: explicitOrderProperties.Values.ToEquatableArray(),
+            PropertiesWithStyleAttributes: propertiesWithStyleAttributes,
             UnsupportedPropertyTypeNames: unsupportedPropertyTypeNames.ToEquatableArray(),
             WorksheetRowAttributeLocation: worksheetRowAttributeLocation);
     }
@@ -188,6 +185,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             #nullable enable
             using SpreadCheetah;
             using SpreadCheetah.SourceGeneration;
+            using SpreadCheetah.Styling;
             using System;
             using System.Buffers;
             using System.Collections.Generic;
@@ -231,6 +229,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             ++typeIndex;
         }
 
+        GenerateConstructTruncatedDataCell(sb);
+
         sb.AppendLine("""
                 }
             }
@@ -256,25 +256,38 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             return;
         }
 
-        var doGenerateCreateWorksheetOptions = rowType.Properties.Any(static x => x.ColumnWidth is not null);
-        var optionalParams = doGenerateCreateWorksheetOptions
-            ? FormattableString.Invariant($", CreateWorksheetOptions{typeIndex}")
-            : "";
+        var properties = rowType.Properties;
+        var doGenerateCreateWorksheetOptions = properties.Any(static x => x.ColumnWidth is not null);
+        var doGenerateCreateWorksheetRowDependencyInfo = properties.Any(static x => x.CellStyle is not null);
 
-        sb.AppendLine(FormattableString.Invariant($$"""
-                        ??= WorksheetRowMetadataServices.CreateObjectInfo<{{rowType.FullName}}>(AddHeaderRow{{typeIndex}}Async, AddAsRowAsync, AddRangeAsRowsAsync{{optionalParams}});
+        sb.Append(FormattableString.Invariant($$"""
+                        ??= WorksheetRowMetadataServices.CreateObjectInfo<{{rowType.FullName}}>(
+                            AddHeaderRow{{typeIndex}}Async, AddAsRowAsync, AddRangeAsRowsAsync
             """));
 
         if (doGenerateCreateWorksheetOptions)
-            GenerateCreateWorksheetOptions(sb, typeIndex, rowType.Properties);
+            sb.Append(", CreateWorksheetOptions").Append(typeIndex);
+        else
+            sb.Append(", null");
 
-        GenerateAddHeaderRow(sb, typeIndex, rowType.Properties);
+        if (doGenerateCreateWorksheetRowDependencyInfo)
+            sb.Append(", CreateWorksheetRowDependencyInfo").Append(typeIndex);
+
+        sb.AppendLine(");");
+
+        if (doGenerateCreateWorksheetOptions)
+            GenerateCreateWorksheetOptions(sb, typeIndex, properties);
+
+        var cellStyleToStyleIdIndex = doGenerateCreateWorksheetRowDependencyInfo
+            ? GenerateCreateWorksheetRowDependencyInfo(sb, typeIndex, properties)
+            : [];
+
+        GenerateAddHeaderRow(sb, typeIndex, properties);
         GenerateAddAsRow(sb, rowType);
         GenerateAddRangeAsRows(sb, rowType);
         GenerateAddAsRowInternal(sb, rowType);
         GenerateAddRangeAsRowsInternal(sb, rowType);
-        GenerateAddEnumerableAsRows(sb, rowType);
-        GenerateAddCellsAsRow(sb, rowType);
+        GenerateAddCellsAsRow(sb, rowType, cellStyleToStyleIdIndex);
     }
 
     private static void ReportDiagnostics(RowType rowType, LocationInfo? locationInfo, GeneratorOptions? options, SourceProductionContext context)
@@ -331,6 +344,45 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             """);
     }
 
+    private static Dictionary<CellStyle, int> GenerateCreateWorksheetRowDependencyInfo(
+        StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)
+    {
+        Debug.Assert(properties.Any(static x => x.CellStyle is not null));
+
+        sb.AppendLine(FormattableString.Invariant($$"""
+
+                    private static WorksheetRowDependencyInfo CreateWorksheetRowDependencyInfo{{typeIndex}}(Spreadsheet spreadsheet)
+                    {
+                        var styleIds = new[]
+                        {
+            """));
+
+        var cellStyleToStyleIdIndex = new Dictionary<CellStyle, int>();
+
+        foreach (var property in properties)
+        {
+            if (property.CellStyle is not { } style)
+                continue;
+
+            if (cellStyleToStyleIdIndex.ContainsKey(style))
+                continue;
+
+            cellStyleToStyleIdIndex[style] = cellStyleToStyleIdIndex.Count;
+
+            sb.AppendLine($"""
+                            spreadsheet.GetStyleId({style.StyleNameRawString}),
+            """);
+        }
+
+        sb.AppendLine("""
+                        };
+                        return new WorksheetRowDependencyInfo(styleIds);
+                    }
+            """);
+
+        return cellStyleToStyleIdIndex;
+    }
+
     private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)
     {
         Debug.Assert(properties.Count > 0);
@@ -378,15 +430,55 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         if (rowType.IsReferenceType)
         {
-            sb.AppendLine("""
+            sb.AppendLine($"""
                         if (obj is null)
-                            return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
+                            return spreadsheet.AddRowAsync(ReadOnlyMemory<{rowType.CellType}>.Empty, token);
             """);
         }
 
         sb.AppendLine("""
                         return AddAsRowInternalAsync(spreadsheet, obj, token);
                     }
+            """);
+    }
+
+    private static void GenerateArrayPoolRentPart(StringBuilder sb, RowType rowType)
+    {
+        var properties = rowType.Properties;
+        Debug.Assert(properties.Count > 0);
+
+        sb.AppendLine($$"""
+                        var cells = ArrayPool<{{rowType.CellType}}>.Shared.Rent({{properties.Count}});
+                        try
+                        {
+            """);
+    }
+
+    private static void GenerateGetStyleIdsPart(StringBuilder sb, RowType rowType)
+    {
+        if (rowType.PropertiesWithStyleAttributes > 0)
+        {
+            sb.AppendLine($"""
+                            var worksheetRowDependencyInfo = spreadsheet.GetOrCreateWorksheetRowDependencyInfo(Default.{rowType.Name});
+                            var styleIds = worksheetRowDependencyInfo.StyleIds;
+            """);
+        }
+        else
+        {
+            sb.AppendLine("""
+                            var styleIds = Array.Empty<StyleId>();
+            """);
+        }
+    }
+
+    private static void GenerateArrayPoolReturnPart(StringBuilder sb, RowType rowType)
+    {
+        sb.AppendLine($$"""
+                        }
+                        finally
+                        {
+                            ArrayPool<{{rowType.CellType}}>.Shared.Return(cells, true);
+                        }
             """);
     }
 
@@ -397,26 +489,33 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         sb.AppendLine($$"""
 
-                private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, {{rowType.FullName}} obj, CancellationToken token)
-                {
-                    var cells = ArrayPool<DataCell>.Shared.Rent({{properties.Count}});
-                    try
+                    private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
+                        {{rowType.FullName}} obj,
+                        CancellationToken token)
                     {
-                        await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);
+            """);
+
+        GenerateArrayPoolRentPart(sb, rowType);
+        GenerateGetStyleIdsPart(sb, rowType);
+
+        sb.AppendLine("""
+                            await AddCellsAsRowAsync(spreadsheet, obj, cells, styleIds, token).ConfigureAwait(false);
+            """);
+
+        GenerateArrayPoolReturnPart(sb, rowType);
+
+        sb.AppendLine("""
                     }
-                    finally
-                    {
-                        ArrayPool<DataCell>.Shared.Return(cells, true);
-                    }
-                }
-        """);
+            """);
     }
 
     private static void GenerateAddRangeAsRows(StringBuilder sb, RowType rowType)
     {
         sb.AppendLine($$"""
 
-                private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<{{rowType.FullNameWithNullableAnnotation}}> objs, CancellationToken token)
+                private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet,
+                    IEnumerable<{{rowType.FullNameWithNullableAnnotation}}> objs,
+                    CancellationToken token)
                 {
                     if (spreadsheet is null)
                         throw new ArgumentNullException(nameof(spreadsheet));
@@ -432,77 +531,95 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var properties = rowType.Properties;
         Debug.Assert(properties.Count > 0);
 
-        sb.Append($$"""
-
-                private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<{{rowType.FullNameWithNullableAnnotation}}> objs, CancellationToken token)
-                {
-                    var cells = ArrayPool<DataCell>.Shared.Rent({{properties.Count}});
-                    try
-                    {
-                        await AddEnumerableAsRowsAsync(spreadsheet, objs, cells, token).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        ArrayPool<DataCell>.Shared.Return(cells, true);
-                    }
-                }
-
-        """);
-    }
-
-    private static void GenerateAddEnumerableAsRows(StringBuilder sb, RowType rowType)
-    {
         sb.AppendLine($$"""
 
-                private static async ValueTask AddEnumerableAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<{{rowType.FullNameWithNullableAnnotation}}> objs, DataCell[] cells, CancellationToken token)
-                {
-                    foreach (var obj in objs)
+                    private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
+                        IEnumerable<{{rowType.FullNameWithNullableAnnotation}}> objs,
+                        CancellationToken token)
                     {
-                        await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);
+            """);
+
+        GenerateArrayPoolRentPart(sb, rowType);
+        GenerateGetStyleIdsPart(sb, rowType);
+
+        sb.AppendLine("""
+                            foreach (var obj in objs)
+                            {
+                                await AddCellsAsRowAsync(spreadsheet, obj, cells, styleIds, token).ConfigureAwait(false);
+                            }
+            """);
+
+        GenerateArrayPoolReturnPart(sb, rowType);
+
+        sb.AppendLine("""
                     }
-                }
-        """);
+            """);
     }
 
-    private static void GenerateAddCellsAsRow(StringBuilder sb, RowType rowType)
+    private static void GenerateAddCellsAsRow(StringBuilder sb, RowType rowType, Dictionary<CellStyle, int> cellStyleToStyleIdIndex)
     {
         var properties = rowType.Properties;
         Debug.Assert(properties.Count > 0);
 
         sb.AppendLine($$"""
 
-                    private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, {{rowType.FullNameWithNullableAnnotation}} obj, DataCell[] cells, CancellationToken token)
+                    private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet,
+                        {{rowType.FullNameWithNullableAnnotation}} obj,
+                        {{rowType.CellType}}[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
                     {
             """);
 
         if (rowType.IsReferenceType)
         {
-            sb.AppendLine("""
+            sb.AppendLine($"""
                         if (obj is null)
-                            return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
+                            return spreadsheet.AddRowAsync(ReadOnlyMemory<{rowType.CellType}>.Empty, token);
 
             """);
         }
 
         foreach (var (i, property) in properties.Index())
         {
-            if (property.CellValueTruncate?.Value is { } truncateLength)
-            {
-                sb.AppendLine(FormattableString.Invariant($$"""
-                            var p{{i}} = obj.{{property.Name}};
-                            cells[{{i}}] = p{{i}} is null || p{{i}}.Length <= {{truncateLength}} ? new DataCell(p{{i}}) : new DataCell(p{{i}}.AsMemory(0, {{truncateLength}}));
-                """));
-            }
-            else
-            {
-                sb.AppendLine(FormattableString.Invariant($$"""
-                            cells[{{i}}] = new DataCell(obj.{{property.Name}});
-                """));
-            }
+            sb.AppendLine(FormattableString.Invariant($"""
+                        cells[{i}] = {ConstructCell(property, $"obj.{property.Name}")};
+            """));
         }
 
         sb.AppendLine($$"""
                         return spreadsheet.AddRowAsync(cells.AsMemory(0, {{properties.Count}}), token);
+                    }
+            """);
+
+        string ConstructCell(RowTypeProperty property, string value)
+        {
+            var constructDataCell = property.CellValueTruncate is { } truncate
+                ? FormattableString.Invariant($"ConstructTruncatedDataCell({value}, {truncate.Value})")
+                : $"new DataCell({value})";
+
+            int? styleIdIndex = property.CellStyle is { } cellStyle
+                ? cellStyleToStyleIdIndex[cellStyle]
+                : null;
+
+            var styledCell = rowType.PropertiesWithStyleAttributes > 0;
+
+            return (styledCell, styleIdIndex) switch
+            {
+                (true, { } i) => FormattableString.Invariant($"new StyledCell({constructDataCell}, styleIds[{i}])"),
+                (true, null) => $"new StyledCell({constructDataCell}, null)",
+                (false, _) => constructDataCell
+            };
+        }
+    }
+
+    private static void GenerateConstructTruncatedDataCell(StringBuilder sb)
+    {
+        sb.AppendLine("""
+
+                    private static DataCell ConstructTruncatedDataCell(string? value, int truncateLength)
+                    {
+                        return value is null || value.Length <= truncateLength
+                            ? new DataCell(value)
+                            : new DataCell(value.AsMemory(0, truncateLength));
                     }
             """);
     }

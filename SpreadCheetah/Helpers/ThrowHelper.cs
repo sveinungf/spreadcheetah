@@ -83,7 +83,7 @@ internal static class ThrowHelper
     public static void StyleNameCanNotEqualNormal(string? paramName) => throw new ArgumentException("The name can not be equal to 'Normal', since that is the name of the default built-in style.", paramName);
 
     [DoesNotReturn]
-    public static void StyleNameNotFound(string name) => throw new SpreadCheetahException($"Style with name '{name}' was not found. Make sure the style is first added to the spreadsheet by calling {nameof(Spreadsheet.AddStyle)} with a name argument.");
+    public static void StyleNameNotFound(string name) => throw new SpreadCheetahException($"Style with name '{name}' was not found. Make sure the style is first added to the spreadsheet by calling {nameof(Spreadsheet)}.{nameof(Spreadsheet.AddStyle)} with a name argument.");
 
     [DoesNotReturn]
     public static void StyleNameStartsOrEndsWithWhiteSpace(string? paramName) => throw new ArgumentException("The name can not start or end with white-space.", paramName);

@@ -16,6 +16,7 @@ public class ClassWithColumnAttributes(string id, string countryOfOrigin, string
 
     [ColumnOrder(1)]
     [ColumnWidth(10)]
+    [CellStyle("Year style")]
     public int Year { get; } = year;
 
 #pragma warning disable IDE1006 // Naming Styles

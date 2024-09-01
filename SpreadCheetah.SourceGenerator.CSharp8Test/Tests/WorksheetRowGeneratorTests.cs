@@ -1,4 +1,5 @@
 using SpreadCheetah.SourceGenerator.CSharp8Test.Models;
+using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
 using System;
 using System.IO;
@@ -24,6 +25,8 @@ namespace SpreadCheetah.SourceGenerator.CSharp8Test.Tests
             await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
             {
                 await spreadsheet.StartWorksheetAsync("Sheet", ctx);
+                spreadsheet.AddStyle(new Style { Font = { Bold = true } }, "Id style");
+                spreadsheet.AddStyle(new Style { Font = { Italic = true } }, "Last name style");
 
                 // Act
                 await spreadsheet.AddAsRowAsync(obj, ctx);
@@ -39,6 +42,9 @@ namespace SpreadCheetah.SourceGenerator.CSharp8Test.Tests
             Assert.Equal(obj.Age, sheet["D1"].IntValue);
             Assert.Equal(4, sheet.CellCount);
             Assert.Equal(5, sheet.Column("D").Width, 4);
+
+            Assert.True(sheet["B1"].Style.Font.Bold);
+            Assert.True(sheet["C1"].Style.Font.Italic);
         }
 
         [Fact]

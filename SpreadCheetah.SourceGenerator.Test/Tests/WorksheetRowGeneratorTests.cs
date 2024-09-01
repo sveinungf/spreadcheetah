@@ -18,6 +18,7 @@ using System.Globalization;
 using Xunit;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
+
 #if NET472
 using SpreadCheetah.SourceGenerator.Test.Helpers.Backporting;
 #endif
@@ -754,6 +755,7 @@ string: "", \)",
         using var stream = new MemoryStream();
         await using var s = await Spreadsheet.CreateNewAsync(stream);
         await s.StartWorksheetAsync("Sheet", ctx);
+        s.AddStyle(new Style { Font = { Bold = true } }, "Year style");
 
         var obj = new ClassWithColumnAttributes(
             id: Guid.NewGuid().ToString(),
@@ -777,6 +779,8 @@ string: "", \)",
         Assert.Equal(obj.kW, sheet["E1"].DecimalValue);
         Assert.Equal(obj.Length, sheet["F1"].DecimalValue);
         Assert.Equal(obj.Id, sheet["G1"].StringValue);
+
+        Assert.True(sheet["A1"].Style.Font.Bold);
 
         Assert.Equal(10, sheet.Column("A").Width, 4);
         Assert.Equal(40, sheet.Column("C").Width, 4);
