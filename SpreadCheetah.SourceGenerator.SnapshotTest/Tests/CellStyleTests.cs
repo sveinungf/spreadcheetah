@@ -76,4 +76,27 @@ public class CellStyleTests
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
+
+    [Fact]
+    public Task CellStyle_ClassWithEmptyCellStyle()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            public class ClassWithCellStyle
+            {
+                [CellStyle("")]
+                public string? FirstName { get; set; }
+            }
+            
+            [WorksheetRow(typeof(ClassWithCellStyle))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
+    }
 }

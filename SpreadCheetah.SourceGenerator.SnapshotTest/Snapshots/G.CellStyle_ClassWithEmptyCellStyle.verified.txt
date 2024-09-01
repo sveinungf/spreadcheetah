@@ -1,0 +1,14 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: SPCH1006,
+      Title: Invalid attribute argument,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (6,5)-(6,18),
+      MessageFormat: '{0}' is an invalid argument for attribute '{1}',
+      Message: '' is an invalid argument for attribute 'SpreadCheetah.SourceGeneration.CellStyleAttribute',
+      Category: SpreadCheetah.SourceGenerator
+    }
+  ]
+}

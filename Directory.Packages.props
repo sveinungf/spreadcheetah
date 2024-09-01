@@ -23,8 +23,7 @@
     <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.1" />
     <PackageVersion Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.7.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.7.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.9.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
     <PackageVersion Include="Polyfill" Version="6.2.0" />
     <PackageVersion Include="PolySharp" Version="1.14.1" />
