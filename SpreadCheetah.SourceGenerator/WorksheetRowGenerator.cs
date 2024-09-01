@@ -646,20 +646,14 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
             var styledCell = rowType.PropertiesWithStyleAttributes > 0;
 
-            if (property.CellValueConverter.HasValue)
+            return (property.CellValueConverter, styledCell, styleIdIndex) switch
             {
-                var converter = property.CellValueConverter.GetValueOrDefault();
-                return FormattableString.Invariant(
-                    $"""
-                     (_cellValueConverters["{converter.CellValueConverterTypeName}"] as CellValueConverter<{converter.GenericName}>).ConvertToCell({value})
-                     """);
-            }
-
-            return (styledCell, styleIdIndex) switch
-            {
-                (true, { } i) => FormattableString.Invariant($"new StyledCell({constructDataCell}, styleIds[{i}])"),
-                (true, null) => $"new StyledCell({constructDataCell}, null)",
-                (false, _) => constructDataCell
+                (null, true, { } i) => FormattableString.Invariant($"new StyledCell({constructDataCell}, styleIds[{i}])"),
+                (null, true, null) => $"new StyledCell({constructDataCell}, null)",
+                (null, false, _) => constructDataCell,
+                ({} converter, true, {} i) => FormattableString.Invariant($"""new StyledCell((_cellValueConverters["{converter.CellValueConverterTypeName}"] as CellValueConverter<{converter.GenericName}>).ConvertToCell({value}), styleIds[{i}])"""),
+                ({} converter, true, null) => FormattableString.Invariant($"""new StyledCell((_cellValueConverters["{converter.CellValueConverterTypeName}"] as CellValueConverter<{converter.GenericName}>).ConvertToCell({value}), null)"""),
+                ({} converter, false, _) =>  FormattableString.Invariant($"""(_cellValueConverters["{converter.CellValueConverterTypeName}"] as CellValueConverter<{converter.GenericName}>).ConvertToCell({value})"""),
             };
         }
     }
