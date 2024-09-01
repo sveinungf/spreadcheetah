@@ -112,12 +112,5 @@ namespace MyNamespace
                 ? new DataCell(value)
                 : new DataCell(value.AsMemory(0, truncateLength));
         }
-
-        private static StyledCell ConstructTruncatedStyledCell(string? value, int truncateLength, StyleId? styleId)
-        {
-            return value is null || value.Length <= truncateLength
-                ? new StyledCell(value, styleId)
-                : new StyledCell(value.AsMemory(0, truncateLength), styleId);
-        }
     }
 }
