@@ -44,4 +44,24 @@ public class WorksheetRowGeneratorCellValueConverterTests
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
+    
+    [Fact]
+    public Task WorksheetRowGenerator_When_Class_Have_Invalid_CellValueConverter_Should_Emit_Error()
+    {
+
+        // Arrange
+        const string source = """
+                              using SpreadCheetah.SourceGeneration;
+                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters;
+                              using System;
+
+                              namespace MyNamespace;
+
+                              [WorksheetRow(typeof(ClassWithInvalidCellValueConverter))]
+                              public partial class MyGenRowContext : WorksheetRowContext;
+                              """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
 }
