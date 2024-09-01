@@ -33,7 +33,7 @@ internal static class AttributeDataExtensions
                 Attributes.ColumnHeader => attribute.TryGetColumnHeaderAttribute(diagnosticInfos, token, ref result),
                 Attributes.ColumnOrder => attribute.TryGetColumnOrderAttribute(token, ref result),
                 Attributes.ColumnWidth => attribute.TryGetColumnWidthAttribute(diagnosticInfos, token, ref result),
-                Attributes.CellValueConverter => attribute.TryGetCellValueConverterAttribute(diagnosticInfos, token, ref result),
+                Attributes.CellValueConverter => attribute.TryGetCellValueConverterAttribute(propertyType, diagnosticInfos, token, ref result),
                 _ => false
             };
         }
@@ -225,6 +225,7 @@ internal static class AttributeDataExtensions
     }
 
     private static bool TryGetCellValueConverterAttribute(this AttributeData attribute,
+        ITypeSymbol propertyType,
         List<DiagnosticInfo> diagnosticInfos, CancellationToken token,
         ref PropertyAttributeData data)
     {
@@ -262,6 +263,17 @@ internal static class AttributeDataExtensions
         
         var cellValueMapperInterfaceGenericArgument = cellValueConverterType.TypeArguments[0] as INamedTypeSymbol;
 
+        var isPropertyTypeAndCellValueConverterTypeEquals = SymbolEqualityComparer.Default.Equals(
+            cellValueMapperInterfaceGenericArgument!.OriginalDefinition, propertyType.OriginalDefinition);
+        if (!isPropertyTypeAndCellValueConverterTypeEquals)
+        {
+            var errorLocation = attribute.GetLocation(token);
+            var stringValue = cellValueConverterTypeSymbol.ToDisplayString();
+            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.CellValueConverterArgumentTypeNotSameAsPropertyType,
+                errorLocation, new([stringValue, Attributes.CellValueConverter])));
+            return false;
+        }
+        
         var genericArgumentName = cellValueMapperInterfaceGenericArgument!.Name;
         if (string.Equals(genericArgumentName, "Nullable", StringComparison.Ordinal))
         {
