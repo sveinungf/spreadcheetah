@@ -209,19 +209,20 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             sb.Append("namespace ").AppendLine(ns);
 
         var accessibility = SyntaxFacts.GetText(contextClass.DeclaredAccessibility);
-
+        
         sb.AppendLine($$"""
             {
                 {{accessibility}} partial class {{contextClass.Name}}
                 {
                     private static {{contextClass.Name}}? _default;
                     public static {{contextClass.Name}} Default => _default ??= new {{contextClass.Name}}();
-                    
 
                     public {{contextClass.Name}}()
                     {
                     }
             """);
+        
+        GenerateCellValueConvertersArray(sb, contextClass.RowTypes);
 
         var rowTypeNames = new HashSet<string>(StringComparer.Ordinal);
 
@@ -288,8 +289,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var cellStyleToStyleIdIndex = doGenerateCreateWorksheetRowDependencyInfo
             ? GenerateCreateWorksheetRowDependencyInfo(sb, typeIndex, properties)
             : [];
-
-        GenerateCellValueConvertersArray(sb, rowType);
+        
         GenerateAddHeaderRow(sb, typeIndex, properties);
         GenerateAddAsRow(sb, rowType);
         GenerateAddRangeAsRows(sb, rowType);
@@ -391,21 +391,28 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return cellStyleToStyleIdIndex;
     }
 
-    private static void GenerateCellValueConvertersArray(StringBuilder sb, RowType rowType)
+    private static void GenerateCellValueConvertersArray(StringBuilder sb, EquatableArray<RowType> rowTypes)
     {
-        if (rowType.Properties.Any(property => property.CellValueConverter.HasValue))
+        if (!rowTypes.Any(type => type.Properties.Any(property => property.CellValueConverter.HasValue)))
         {
-             sb.AppendLine(FormattableString.Invariant($$"""
-                            private static Dictionary<string, object> _cellValueConverters = new Dictionary<string, object>
-                            {
-                    """));
-
-            var cellValueConvertersMap = new HashSet<string>(StringComparer.Ordinal);
+            return;
+        }
+        
+        sb.AppendLine(FormattableString.Invariant($$"""
+                               private static Dictionary<string, object> _cellValueConverters = new Dictionary<string, object>
+                               {
+                       """));
+        
+        var cellValueConvertersMap = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var rowType in rowTypes)
+        {
+            if(!rowType.Properties.Any(property => property.CellValueConverter.HasValue))
+                continue;
+            
             foreach (var cellConverter in rowType.Properties.Where(property => property.CellValueConverter.HasValue))
             {
-
                 var cellValueConverter = cellConverter.CellValueConverter.GetValueOrDefault();
-                if (cellValueConvertersMap.Contains(cellValueConverter.CellValueConverterTypeName)) 
+                if (cellValueConvertersMap.Contains(cellValueConverter.CellValueConverterTypeName))
                     continue;
                     
                 sb.AppendLine(FormattableString.Invariant($$"""
@@ -413,11 +420,11 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                    """));
                 cellValueConvertersMap.Add(cellValueConverter.CellValueConverterTypeName);
             }
-
-            sb.AppendLine(FormattableString.Invariant($$"""
-                            };                     
-                    """));
         }
+        
+        sb.AppendLine(FormattableString.Invariant($$"""
+                               };                     
+                       """));
     }
     
     private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)

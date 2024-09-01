@@ -16,22 +16,21 @@ namespace MyNamespace
     {
         private static MyGenRowContext? _default;
         public static MyGenRowContext Default => _default ??= new MyGenRowContext();
-        
 
         public MyGenRowContext()
         {
         }
-
-        private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWithCellValueConverters>? _ClassWithCellValueConverters;
-        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWithCellValueConverters> ClassWithCellValueConverters => _ClassWithCellValueConverters
-            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWithCellValueConverters>(
-                AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, null);
         private static Dictionary<string, object> _cellValueConverters = new Dictionary<string, object>
         {
              ["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.StringValueConverter"] = new SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.StringValueConverter(),
              ["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.IntValueConverter"] = new SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.IntValueConverter(),
              ["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.DecimalValueConverter"] = new SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.DecimalValueConverter(),
         };                     
+
+        private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWithCellValueConverters>? _ClassWithCellValueConverters;
+        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWithCellValueConverters> ClassWithCellValueConverters => _ClassWithCellValueConverters
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWithCellValueConverters>(
+                AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, null);
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {

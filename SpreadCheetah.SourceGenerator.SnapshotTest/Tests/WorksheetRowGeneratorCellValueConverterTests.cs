@@ -64,4 +64,25 @@ public class WorksheetRowGeneratorCellValueConverterTests
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
+    
+    [Fact]
+    public Task WorksheetRowGenerator_When_Many_Rows_With_CellValueConverter_Should_Generate_One_CellValueDict()
+    {
+
+        // Arrange
+        const string source = """
+                              using SpreadCheetah.SourceGeneration;
+                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters;
+                              using System;
+
+                              namespace MyNamespace;
+
+                              [WorksheetRow(typeof(ClassWithCellValueConverters))]
+                              [WorksheetRow(typeof(ClassWithSameCellValueConverters))]
+                              public partial class MyGenRowContext : WorksheetRowContext;
+                              """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
 }
