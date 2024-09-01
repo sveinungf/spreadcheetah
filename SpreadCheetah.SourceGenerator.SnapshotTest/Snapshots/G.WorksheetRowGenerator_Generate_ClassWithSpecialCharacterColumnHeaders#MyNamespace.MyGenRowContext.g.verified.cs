@@ -3,6 +3,7 @@
 #nullable enable
 using SpreadCheetah;
 using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.Styling;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -22,7 +23,8 @@ namespace MyNamespace
 
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithSpecialCharacterColumnHeaders>? _ClassWithSpecialCharacterColumnHeaders;
         public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithSpecialCharacterColumnHeaders> ClassWithSpecialCharacterColumnHeaders => _ClassWithSpecialCharacterColumnHeaders
-            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithSpecialCharacterColumnHeaders>(AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync);
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithSpecialCharacterColumnHeaders>(
+                AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, null);
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
@@ -54,7 +56,9 @@ namespace MyNamespace
             return AddAsRowInternalAsync(spreadsheet, obj, token);
         }
 
-        private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithSpecialCharacterColumnHeaders?> objs, CancellationToken token)
+        private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet,
+            IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithSpecialCharacterColumnHeaders?> objs,
+            CancellationToken token)
         {
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
@@ -63,12 +67,15 @@ namespace MyNamespace
             return AddRangeAsRowsInternalAsync(spreadsheet, objs, token);
         }
 
-        private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithSpecialCharacterColumnHeaders obj, CancellationToken token)
+        private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
+            SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithSpecialCharacterColumnHeaders obj,
+            CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(8);
             try
             {
-                await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);
+                var styleIds = Array.Empty<StyleId>();
+                await AddCellsAsRowAsync(spreadsheet, obj, cells, styleIds, token).ConfigureAwait(false);
             }
             finally
             {
@@ -76,12 +83,18 @@ namespace MyNamespace
             }
         }
 
-        private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithSpecialCharacterColumnHeaders?> objs, CancellationToken token)
+        private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
+            IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithSpecialCharacterColumnHeaders?> objs,
+            CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(8);
             try
             {
-                await AddEnumerableAsRowsAsync(spreadsheet, objs, cells, token).ConfigureAwait(false);
+                var styleIds = Array.Empty<StyleId>();
+                foreach (var obj in objs)
+                {
+                    await AddCellsAsRowAsync(spreadsheet, obj, cells, styleIds, token).ConfigureAwait(false);
+                }
             }
             finally
             {
@@ -89,15 +102,9 @@ namespace MyNamespace
             }
         }
 
-        private static async ValueTask AddEnumerableAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithSpecialCharacterColumnHeaders?> objs, DataCell[] cells, CancellationToken token)
-        {
-            foreach (var obj in objs)
-            {
-                await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);
-            }
-        }
-
-        private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithSpecialCharacterColumnHeaders? obj, DataCell[] cells, CancellationToken token)
+        private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet,
+            SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithSpecialCharacterColumnHeaders? obj,
+            DataCell[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
         {
             if (obj is null)
                 return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
@@ -111,6 +118,13 @@ namespace MyNamespace
             cells[6] = new DataCell(obj.Note);
             cells[7] = new DataCell(obj.Note2);
             return spreadsheet.AddRowAsync(cells.AsMemory(0, 8), token);
+        }
+
+        private static DataCell ConstructTruncatedDataCell(string? value, int truncateLength)
+        {
+            return value is null || value.Length <= truncateLength
+                ? new DataCell(value)
+                : new DataCell(value.AsMemory(0, truncateLength));
         }
     }
 }

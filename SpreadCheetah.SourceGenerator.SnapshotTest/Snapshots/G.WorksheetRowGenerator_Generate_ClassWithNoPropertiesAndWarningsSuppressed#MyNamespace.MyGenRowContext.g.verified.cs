@@ -3,6 +3,7 @@
 #nullable enable
 using SpreadCheetah;
 using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.Styling;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -23,5 +24,12 @@ namespace MyNamespace
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties>? _ClassWithNoProperties;
         public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties> ClassWithNoProperties => _ClassWithNoProperties
             ??= EmptyWorksheetRowContext.CreateTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithNoProperties>();
+
+        private static DataCell ConstructTruncatedDataCell(string? value, int truncateLength)
+        {
+            return value is null || value.Length <= truncateLength
+                ? new DataCell(value)
+                : new DataCell(value.AsMemory(0, truncateLength));
+        }
     }
 }

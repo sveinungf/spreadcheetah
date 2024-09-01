@@ -23,6 +23,9 @@ public abstract class WorksheetRowTypeInfo<T>
     /// </summary>
     public WorksheetOptions CreateWorksheetOptions() => _worksheetOptionsFactory?.Invoke() ?? new();
 
+    /// <summary>
+    /// Method for creating a class of dependencies, that will be cached to avoid redundant lookups.
+    /// </summary>
     public Func<Spreadsheet, WorksheetRowDependencyInfo>? CreateWorksheetRowDependencyInfo { get; }
 
     /// <summary>

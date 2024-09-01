@@ -10,5 +10,7 @@ internal sealed class ClosedXmlAssertCell(IXLCell cell) : ISpreadsheetAssertCell
 
     public string? StringValue => cell.Value.IsBlank ? null : cell.GetText();
 
+    public DateTime? DateTimeValue => cell.GetValue<double?>() is { } value ? DateTime.FromOADate(value) : null;
+
     public ISpreadsheetAssertStyle Style => new ClosedXmlAssertStyle(cell.Style);
 }

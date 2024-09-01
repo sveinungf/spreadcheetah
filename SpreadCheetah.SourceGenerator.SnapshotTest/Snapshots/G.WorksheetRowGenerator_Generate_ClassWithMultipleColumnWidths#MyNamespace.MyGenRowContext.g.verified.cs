@@ -3,6 +3,7 @@
 #nullable enable
 using SpreadCheetah;
 using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.Styling;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -22,7 +23,8 @@ namespace MyNamespace
 
         private WorksheetRowTypeInfo<MyNamespace.ClassWithMultipleColumnWidths>? _ClassWithMultipleColumnWidths;
         public WorksheetRowTypeInfo<MyNamespace.ClassWithMultipleColumnWidths> ClassWithMultipleColumnWidths => _ClassWithMultipleColumnWidths
-            ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithMultipleColumnWidths>(AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, CreateWorksheetOptions0);
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithMultipleColumnWidths>(
+                AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, CreateWorksheetOptions0);
 
         private static SpreadCheetah.Worksheets.WorksheetOptions CreateWorksheetOptions0()
         {
@@ -59,7 +61,9 @@ namespace MyNamespace
             return AddAsRowInternalAsync(spreadsheet, obj, token);
         }
 
-        private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<MyNamespace.ClassWithMultipleColumnWidths?> objs, CancellationToken token)
+        private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet,
+            IEnumerable<MyNamespace.ClassWithMultipleColumnWidths?> objs,
+            CancellationToken token)
         {
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
@@ -68,12 +72,15 @@ namespace MyNamespace
             return AddRangeAsRowsInternalAsync(spreadsheet, objs, token);
         }
 
-        private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithMultipleColumnWidths obj, CancellationToken token)
+        private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
+            MyNamespace.ClassWithMultipleColumnWidths obj,
+            CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(4);
             try
             {
-                await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);
+                var styleIds = Array.Empty<StyleId>();
+                await AddCellsAsRowAsync(spreadsheet, obj, cells, styleIds, token).ConfigureAwait(false);
             }
             finally
             {
@@ -81,12 +88,18 @@ namespace MyNamespace
             }
         }
 
-        private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<MyNamespace.ClassWithMultipleColumnWidths?> objs, CancellationToken token)
+        private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
+            IEnumerable<MyNamespace.ClassWithMultipleColumnWidths?> objs,
+            CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(4);
             try
             {
-                await AddEnumerableAsRowsAsync(spreadsheet, objs, cells, token).ConfigureAwait(false);
+                var styleIds = Array.Empty<StyleId>();
+                foreach (var obj in objs)
+                {
+                    await AddCellsAsRowAsync(spreadsheet, obj, cells, styleIds, token).ConfigureAwait(false);
+                }
             }
             finally
             {
@@ -94,15 +107,9 @@ namespace MyNamespace
             }
         }
 
-        private static async ValueTask AddEnumerableAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet, IEnumerable<MyNamespace.ClassWithMultipleColumnWidths?> objs, DataCell[] cells, CancellationToken token)
-        {
-            foreach (var obj in objs)
-            {
-                await AddCellsAsRowAsync(spreadsheet, obj, cells, token).ConfigureAwait(false);
-            }
-        }
-
-        private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithMultipleColumnWidths? obj, DataCell[] cells, CancellationToken token)
+        private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet,
+            MyNamespace.ClassWithMultipleColumnWidths? obj,
+            DataCell[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
         {
             if (obj is null)
                 return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
@@ -112,6 +119,13 @@ namespace MyNamespace
             cells[2] = new DataCell(obj.YearOfBirth);
             cells[3] = new DataCell(obj.Initials);
             return spreadsheet.AddRowAsync(cells.AsMemory(0, 4), token);
+        }
+
+        private static DataCell ConstructTruncatedDataCell(string? value, int truncateLength)
+        {
+            return value is null || value.Length <= truncateLength
+                ? new DataCell(value)
+                : new DataCell(value.AsMemory(0, truncateLength));
         }
     }
 }
