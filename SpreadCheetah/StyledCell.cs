@@ -146,14 +146,4 @@ public readonly record struct StyledCell
     public StyledCell(bool? value, StyleId? styleId) : this(new DataCell(value), styleId)
     {
     }
- 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="StyledCell"/> struct with a <see cref="DataCell"/> value and an optional style.
-    /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
-    /// </summary>
-    public StyledCell(DataCell cell, StyleId? styleId)
-    {
-        DataCell = cell;
-        StyleId = styleId;
-    }
 }
