@@ -166,7 +166,10 @@ internal static class AttributeDataExtensions
         if (args is not [{ Value: string value } arg])
             return false;
 
-        if (string.IsNullOrWhiteSpace(value))
+        if (string.IsNullOrEmpty(value)
+            || value.Length > 255
+            || char.IsWhiteSpace(value[0])
+            || char.IsWhiteSpace(value[^1]))
         {
             var location = attribute.GetLocation(token);
             diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.InvalidAttributeArgument, location, new([value, Attributes.CellStyle])));
