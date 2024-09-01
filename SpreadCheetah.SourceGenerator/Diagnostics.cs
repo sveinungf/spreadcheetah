@@ -70,4 +70,12 @@ internal static class Diagnostics
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor CellValueConverterWithoutPublicParameterlessConstructor = new(
+        id: "SPCH1009",
+        title: "The type must have a public parameterless constructor",
+        messageFormat: "'{0}' inherit CellValueConverter but doesn't have a public parameterless constructor",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

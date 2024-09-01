@@ -242,8 +242,21 @@ internal static class AttributeDataExtensions
         {
             var errorLocation = attribute.GetLocation(token);
             var stringValue = cellValueConverterTypeSymbol.ToDisplayString();
-            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.CellValueConverterTypeNotInheritCellValueConverter, errorLocation, new([stringValue, Attributes.CellValueTruncate])));
+            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.CellValueConverterTypeNotInheritCellValueConverter, 
+                errorLocation, new([stringValue, Attributes.CellValueConverter])));
 
+            return false;
+        }
+
+        var publicConstructor = cellValueConverterTypeSymbol.Constructors.FirstOrDefault(symbol =>
+            symbol.Parameters.Length == 0 && symbol.DeclaredAccessibility == Accessibility.Public);
+        
+        if (publicConstructor is null)
+        {
+            var errorLocation = attribute.GetLocation(token);
+            var stringValue = cellValueConverterTypeSymbol.ToDisplayString();
+            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.CellValueConverterWithoutPublicParameterlessConstructor,
+                errorLocation, new([stringValue, Attributes.CellValueConverter])));
             return false;
         }
         
