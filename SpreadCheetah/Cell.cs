@@ -18,6 +18,13 @@ public readonly record struct Cell
     private Cell(DataCell dataCell, Formula? formula, StyleId? styleId) => (DataCell, Formula, StyleId) = (dataCell, formula, styleId);
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="Cell"/> struct with the value from a <see cref="SpreadCheetah.DataCell"/> and an optional style.
+    /// </summary>
+    public Cell(DataCell value, StyleId? styleId = null) : this(value, null, styleId)
+    {
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Cell"/> struct with a text value and an optional style.
     /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// </summary>
@@ -151,6 +158,13 @@ public readonly record struct Cell
     /// Initializes a new instance of the <see cref="Cell"/> struct with a number formula and an optional style.
     /// </summary>
     public Cell(Formula formula, StyleId? styleId = null) : this(formula, null as int?, styleId)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Cell"/> struct with a text formula, a cached value for the formula, and an optional style.
+    /// </summary>
+    public Cell(Formula formula, DataCell cachedValue, StyleId? styleId = null) : this(cachedValue, formula, styleId)
     {
     }
 
