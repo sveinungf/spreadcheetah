@@ -85,4 +85,24 @@ public class WorksheetRowGeneratorCellValueConverterTests
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
+    
+    [Fact]
+    public Task WorksheetRowGenerator_When_Property_Type_Not_Same_As_CellValueConverter()
+    {
+
+        // Arrange
+        const string source = """
+                              using SpreadCheetah.SourceGeneration;
+                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters;
+                              using System;
+
+                              namespace MyNamespace;
+
+                              [WorksheetRow(typeof(ClassWherePropertyTypeDifferentFromCellValueConverter))]
+                              public partial class MyGenRowContext : WorksheetRowContext;
+                              """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
 }

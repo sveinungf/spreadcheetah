@@ -10,7 +10,7 @@ internal class StringValueConverter : CellValueConverter<string>
     }
 }
 
-internal class IntValueConverter : CellValueConverter<int?>
+internal class NullableIntValueConverter : CellValueConverter<int?>
 {
     public override DataCell ConvertToCell(int? value)
     {

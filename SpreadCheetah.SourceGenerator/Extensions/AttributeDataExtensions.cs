@@ -263,8 +263,10 @@ internal static class AttributeDataExtensions
         
         var cellValueMapperInterfaceGenericArgument = cellValueConverterType.TypeArguments[0] as INamedTypeSymbol;
 
-        var isPropertyTypeAndCellValueConverterTypeEquals = SymbolEqualityComparer.Default.Equals(
-            cellValueMapperInterfaceGenericArgument!.OriginalDefinition, propertyType.OriginalDefinition);
+        var isPropertyTypeAndCellValueConverterTypeEquals = string.Equals(
+            cellValueMapperInterfaceGenericArgument!.OriginalDefinition.ToDisplayString(),
+            propertyType.OriginalDefinition.ToDisplayString(), StringComparison.Ordinal);
+        
         if (!isPropertyTypeAndCellValueConverterTypeEquals)
         {
             var errorLocation = attribute.GetLocation(token);

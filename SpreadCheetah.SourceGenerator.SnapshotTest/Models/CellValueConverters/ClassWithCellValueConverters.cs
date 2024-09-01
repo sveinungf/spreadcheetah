@@ -9,7 +9,7 @@ public class ClassWithCellValueConverters
     public string? Property { get; set; }
     
     [ColumnHeader("Property1")]
-    [CellValueConverter(CellValueConverterType = typeof(IntValueConverter))]
+    [CellValueConverter(CellValueConverterType = typeof(NullableIntValueConverter))]
     public int? Property1 { get; set; }
     
     [ColumnHeader("Property1")]

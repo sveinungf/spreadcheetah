@@ -1,0 +1,14 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: SPCH1010,
+      Title: CellValueConverter generic different from the property type,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (0,0)-(0,0),
+      MessageFormat: '{0}' has different type that CellValueConverter,
+      Message: 'SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.NullableIntValueConverter' has different type that CellValueConverter,
+      Category: SpreadCheetah.SourceGenerator
+    }
+  ]
+}
