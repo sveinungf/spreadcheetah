@@ -20,11 +20,8 @@ namespace MyNamespace
         public MyGenRowContext()
         {
         }
-        private static Dictionary<string, object> _cellValueConverters = new Dictionary<string, object>
-        {
-             ["MyNamespace.StringValueConverter"] = new MyNamespace.StringValueConverter(),
-             ["MyNamespace.DecimalValueConverter"] = new MyNamespace.DecimalValueConverter(),
-        };                     
+        private static readonly MyNamespace.StringValueConverter _valueConverter0 = new MyNamespace.StringValueConverter(); 
+        private static readonly MyNamespace.DecimalValueConverter _valueConverter1 = new MyNamespace.DecimalValueConverter(); 
 
         private WorksheetRowTypeInfo<MyNamespace.ClassWithSameCellValueConverters>? _ClassWithSameCellValueConverters;
         public WorksheetRowTypeInfo<MyNamespace.ClassWithSameCellValueConverters> ClassWithSameCellValueConverters => _ClassWithSameCellValueConverters
@@ -109,9 +106,9 @@ namespace MyNamespace
             if (obj is null)
                 return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
 
-            cells[0] = (_cellValueConverters["MyNamespace.StringValueConverter"] as CellValueConverter<String>).ConvertToCell(obj.Property);
-            cells[1] = (_cellValueConverters["MyNamespace.StringValueConverter"] as CellValueConverter<String>).ConvertToCell(obj.Property1);
-            cells[2] = (_cellValueConverters["MyNamespace.DecimalValueConverter"] as CellValueConverter<Decimal>).ConvertToCell(obj.Property2);
+            cells[0] = _valueConverter0.ConvertToCell(obj.Property);
+            cells[1] = _valueConverter1.ConvertToCell(obj.Property1);
+            cells[2] = _valueConverter1.ConvertToCell(obj.Property2);
             return spreadsheet.AddRowAsync(cells.AsMemory(0, 3), token);
         }
 

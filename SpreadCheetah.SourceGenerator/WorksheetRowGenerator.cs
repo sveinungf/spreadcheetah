@@ -6,7 +6,6 @@ using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Helpers;
 using SpreadCheetah.SourceGenerator.Models;
 using System.Diagnostics;
-using System.Globalization;
 using System.Text;
 
 namespace SpreadCheetah.SourceGenerators;
@@ -14,8 +13,6 @@ namespace SpreadCheetah.SourceGenerators;
 [Generator]
 public class WorksheetRowGenerator : IIncrementalGenerator
 {
-    private const string CellValueConverterKeyTemplate = "{0}_{1}";
-    
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var contextClasses = context.SyntaxProvider
@@ -401,7 +398,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         {
             return [];
         }
-        
+
+        var uniqueConverters = new HashSet<string>(StringComparer.Ordinal);
         var propertyNameToConverterMap = new Dictionary<string, string>(StringComparer.Ordinal);
         int valueConverterCount = 0;
         foreach (var rowType in rowTypes)
@@ -411,16 +409,19 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             
             foreach (var property in rowType.Properties.Where(property => property.CellValueConverter.HasValue))
             {
-                var key = FormattableString.Invariant($"{rowType.Name}_{property.Name}");
+                var key = FormattableString.Invariant($"{rowType.FullName}_{property.Name}");
                 var cellValueConverter = property.CellValueConverter.GetValueOrDefault();
-                if (propertyNameToConverterMap.ContainsKey(key))
-                    continue;
-
                 var converterName = FormattableString.Invariant($"_valueConverter{valueConverterCount}");
+                propertyNameToConverterMap.Add(key, converterName);
+                
+                if (uniqueConverters.Contains(cellValueConverter.CellValueConverterTypeName))
+                    continue;
+                
                 sb.AppendLine(FormattableString.Invariant($$"""
                            private static readonly {{cellValueConverter.CellValueConverterTypeName}} {{converterName}} = new {{cellValueConverter.CellValueConverterTypeName}}(); 
                    """));
-                propertyNameToConverterMap.Add(key, converterName);
+               
+                uniqueConverters.Add(cellValueConverter.CellValueConverterTypeName);
                 valueConverterCount++;
             }
         }
@@ -648,8 +649,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
             var styledCell = rowType.PropertiesWithStyleAttributes > 0;
 
-            var cellValueConverterKey = string.Format(CultureInfo.InvariantCulture, CellValueConverterKeyTemplate,
-                rowType.Name, property.Name);
+            var cellValueConverterKey = FormattableString.Invariant($"{rowType.FullName}_{property.Name}");
             var containsValueConverter = valueConverters.ContainsKey(cellValueConverterKey);
 
             return (containsValueConverter, styledCell, styleIdIndex) switch

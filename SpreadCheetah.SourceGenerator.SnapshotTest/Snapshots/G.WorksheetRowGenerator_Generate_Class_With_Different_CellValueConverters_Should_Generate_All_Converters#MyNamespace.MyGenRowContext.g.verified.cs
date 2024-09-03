@@ -20,16 +20,13 @@ namespace MyNamespace
         public MyGenRowContext()
         {
         }
-        private static Dictionary<string, object> _cellValueConverters = new Dictionary<string, object>
-        {
-             ["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.StringValueConverter"] = new SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.StringValueConverter(),
-             ["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.NullableIntValueConverter"] = new SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.NullableIntValueConverter(),
-             ["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.DecimalValueConverter"] = new SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.DecimalValueConverter(),
-        };                     
+        private static readonly MyNamespace.StringValueConverter _valueConverter0 = new MyNamespace.StringValueConverter(); 
+        private static readonly MyNamespace.NullableIntValueConverter _valueConverter1 = new MyNamespace.NullableIntValueConverter(); 
+        private static readonly MyNamespace.DecimalValueConverter _valueConverter2 = new MyNamespace.DecimalValueConverter(); 
 
-        private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWithCellValueConverters>? _ClassWithCellValueConverters;
-        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWithCellValueConverters> ClassWithCellValueConverters => _ClassWithCellValueConverters
-            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWithCellValueConverters>(
+        private WorksheetRowTypeInfo<MyNamespace.ClassWithSameCellValueConverters>? _ClassWithSameCellValueConverters;
+        public WorksheetRowTypeInfo<MyNamespace.ClassWithSameCellValueConverters> ClassWithSameCellValueConverters => _ClassWithSameCellValueConverters
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithSameCellValueConverters>(
                 AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, null);
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
@@ -48,7 +45,7 @@ namespace MyNamespace
             }
         }
 
-        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWithCellValueConverters? obj, CancellationToken token)
+        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithSameCellValueConverters? obj, CancellationToken token)
         {
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
@@ -58,7 +55,7 @@ namespace MyNamespace
         }
 
         private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWithCellValueConverters?> objs,
+            IEnumerable<MyNamespace.ClassWithSameCellValueConverters?> objs,
             CancellationToken token)
         {
             if (spreadsheet is null)
@@ -69,7 +66,7 @@ namespace MyNamespace
         }
 
         private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWithCellValueConverters obj,
+            MyNamespace.ClassWithSameCellValueConverters obj,
             CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(3);
@@ -85,7 +82,7 @@ namespace MyNamespace
         }
 
         private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWithCellValueConverters?> objs,
+            IEnumerable<MyNamespace.ClassWithSameCellValueConverters?> objs,
             CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(3);
@@ -104,15 +101,15 @@ namespace MyNamespace
         }
 
         private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWithCellValueConverters? obj,
+            MyNamespace.ClassWithSameCellValueConverters? obj,
             DataCell[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
         {
             if (obj is null)
                 return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
 
-            cells[0] = (_cellValueConverters["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.StringValueConverter"] as CellValueConverter<String>).ConvertToCell(obj.Property);
-            cells[1] = (_cellValueConverters["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.NullableIntValueConverter"] as CellValueConverter<Int32?>).ConvertToCell(obj.Property1);
-            cells[2] = (_cellValueConverters["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.DecimalValueConverter"] as CellValueConverter<Decimal>).ConvertToCell(obj.Property2);
+            cells[0] = _valueConverter0.ConvertToCell(obj.Property);
+            cells[1] = _valueConverter1.ConvertToCell(obj.Property1);
+            cells[2] = _valueConverter2.ConvertToCell(obj.Property2);
             return spreadsheet.AddRowAsync(cells.AsMemory(0, 3), token);
         }
 

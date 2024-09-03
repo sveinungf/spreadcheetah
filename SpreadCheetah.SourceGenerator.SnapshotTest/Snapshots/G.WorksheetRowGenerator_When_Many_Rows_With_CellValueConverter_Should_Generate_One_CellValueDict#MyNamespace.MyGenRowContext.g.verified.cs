@@ -20,12 +20,9 @@ namespace MyNamespace
         public MyGenRowContext()
         {
         }
-        private static Dictionary<string, object> _cellValueConverters = new Dictionary<string, object>
-        {
-             ["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.StringValueConverter"] = new SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.StringValueConverter(),
-             ["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.NullableIntValueConverter"] = new SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.NullableIntValueConverter(),
-             ["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.DecimalValueConverter"] = new SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.DecimalValueConverter(),
-        };                     
+        private static readonly SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.StringValueConverter _valueConverter0 = new SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.StringValueConverter(); 
+        private static readonly SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.NullableIntValueConverter _valueConverter1 = new SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.NullableIntValueConverter(); 
+        private static readonly SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.DecimalValueConverter _valueConverter2 = new SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.DecimalValueConverter(); 
 
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWithCellValueConverters>? _ClassWithCellValueConverters;
         public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWithCellValueConverters> ClassWithCellValueConverters => _ClassWithCellValueConverters
@@ -110,9 +107,9 @@ namespace MyNamespace
             if (obj is null)
                 return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
 
-            cells[0] = (_cellValueConverters["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.StringValueConverter"] as CellValueConverter<String>).ConvertToCell(obj.Property);
-            cells[1] = (_cellValueConverters["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.NullableIntValueConverter"] as CellValueConverter<Int32?>).ConvertToCell(obj.Property1);
-            cells[2] = (_cellValueConverters["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.DecimalValueConverter"] as CellValueConverter<Decimal>).ConvertToCell(obj.Property2);
+            cells[0] = _valueConverter0.ConvertToCell(obj.Property);
+            cells[1] = _valueConverter1.ConvertToCell(obj.Property1);
+            cells[2] = _valueConverter2.ConvertToCell(obj.Property2);
             return spreadsheet.AddRowAsync(cells.AsMemory(0, 3), token);
         }
 

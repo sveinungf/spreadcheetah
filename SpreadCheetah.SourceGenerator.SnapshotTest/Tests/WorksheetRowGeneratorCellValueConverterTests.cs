@@ -16,8 +16,46 @@ public class WorksheetRowGeneratorCellValueConverterTests
                               using System;
                               
                               namespace MyNamespace;
+                              public class ClassWithSameCellValueConverters
+                              {
+                                  [ColumnHeader("Property")]
+                                  [CellValueConverter(typeof(StringValueConverter))]
+                                  public string? Property { get; set; }
+                                  
+                                  [ColumnHeader("Property1")]
+                                  [CellValueConverter(typeof(NullableIntValueConverter))]
+                                  public int? Property1 { get; set; }
+                                  
+                                  [ColumnHeader("Property1")]
+                                  [CellValueConverter(typeof(DecimalValueConverter))]
+                                  public decimal Property2 { get; set; }
+                              }
                               
-                              [WorksheetRow(typeof(ClassWithCellValueConverters))]
+                              internal class StringValueConverter : CellValueConverter<string>
+                              {
+                                  public override DataCell ConvertToCell(string value)
+                                  {
+                                      return new DataCell(value);
+                                  }
+                              }
+                              
+                              internal class NullableIntValueConverter : CellValueConverter<int?>
+                              {
+                                  public override DataCell ConvertToCell(int? value)
+                                  {
+                                      return new DataCell(value);
+                                  }
+                              }
+                              
+                              internal class DecimalValueConverter : CellValueConverter<decimal>
+                              {
+                                  public override DataCell ConvertToCell(decimal value)
+                                  {
+                                      return new DataCell(value);
+                                  }
+                              }
+                              
+                              [WorksheetRow(typeof(ClassWithSameCellValueConverters))]
                               public partial class MyGenRowContext : WorksheetRowContext;
                               """;
 
@@ -58,14 +96,6 @@ public class WorksheetRowGeneratorCellValueConverterTests
                                   }
                               }
                               
-                              internal class NullableIntValueConverter : CellValueConverter<int?>
-                              {
-                                  public override DataCell ConvertToCell(int? value)
-                                  {
-                                      return new DataCell(value);
-                                  }
-                              }
-                              
                               internal class DecimalValueConverter : CellValueConverter<decimal>
                               {
                                   public override DataCell ConvertToCell(decimal value)
@@ -99,7 +129,7 @@ public class WorksheetRowGeneratorCellValueConverterTests
                               """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
     }
     
     [Fact]
@@ -130,17 +160,40 @@ public class WorksheetRowGeneratorCellValueConverterTests
         // Arrange
         const string source = """
                               using SpreadCheetah.SourceGeneration;
-                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters;
                               using System;
 
                               namespace MyNamespace;
-
+                              public class ClassWherePropertyTypeDifferentFromCellValueConverter
+                              {
+                                  [CellValueConverter(typeof(NullableIntValueConverter))]
+                                  public string Property { get; set; } = null!;
+                                  
+                                  [CellValueConverter(typeof(DecimalValueConverter))]
+                                  public int? Property1 { get; set; }
+                              }
+                              
+                              internal class NullableIntValueConverter : CellValueConverter<int?>
+                              {
+                                  public override DataCell ConvertToCell(int? value)
+                                  {
+                                      return new DataCell(value);
+                                  }
+                              }
+                              
+                              internal class DecimalValueConverter : CellValueConverter<decimal>
+                              {
+                                  public override DataCell ConvertToCell(decimal value)
+                                  {
+                                      return new DataCell(value);
+                                  }
+                              }
+                              
                               [WorksheetRow(typeof(ClassWherePropertyTypeDifferentFromCellValueConverter))]
                               public partial class MyGenRowContext : WorksheetRowContext;
                               """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
     }
     
     [Fact]
@@ -150,17 +203,40 @@ public class WorksheetRowGeneratorCellValueConverterTests
         // Arrange
         const string source = """
                               using SpreadCheetah.SourceGeneration;
-                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters;
                               using System;
 
                               namespace MyNamespace;
+                              public class ClassWherePropertyTypeDifferentFromCellValueConverter
+                              {
+                                  [CellValueConverter(typeof(NullableIntValueConverter))]
+                                  public string Property { get; set; } = null!;
+                                  
+                                  [CellValueConverter(typeof(DecimalValueConverter))]
+                                  public int? Property1 { get; set; }
+                              }
+                              
+                              internal class NullableIntValueConverter : CellValueConverter<int?>
+                              {
+                                  public override DataCell ConvertToCell(int? value)
+                                  {
+                                      return new DataCell(value);
+                                  }
+                              }
+                              
+                              internal class DecimalValueConverter : CellValueConverter<decimal>
+                              {
+                                  public override DataCell ConvertToCell(decimal value)
+                                  {
+                                      return new DataCell(value);
+                                  }
+                              }
 
                               [WorksheetRow(typeof(ClassWherePropertyTypeDifferentFromCellValueConverter))]
                               public partial class MyGenRowContext : WorksheetRowContext;
                               """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
     }
     
     [Fact]
@@ -170,11 +246,40 @@ public class WorksheetRowGeneratorCellValueConverterTests
         // Arrange
         const string source = """
                               using SpreadCheetah.SourceGeneration;
-                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters;
                               using System;
 
                               namespace MyNamespace;
-
+                              public class ClassWithCellValueConvertersAndCellStyle
+                              {
+                                  [ColumnHeader("Property")]
+                                  [CellValueConverter(typeof(StringValueConverter))]
+                                  [CellStyle("Test")]
+                                  public string? Property { get; set; }
+                                  
+                                  [ColumnHeader("Property1")]
+                                  [CellValueConverter(typeof(NullableIntValueConverter))]
+                                  public int? Property1 { get; set; }
+                                  
+                                  [ColumnHeader("Property1")]
+                                  public decimal Property2 { get; set; }
+                              }
+                              
+                              internal class StringValueConverter : CellValueConverter<string>
+                              {
+                                  public override DataCell ConvertToCell(string value)
+                                  {
+                                      return new DataCell(value);
+                                  }
+                              }
+                              
+                              internal class NullableIntValueConverter : CellValueConverter<int?>
+                              {
+                                  public override DataCell ConvertToCell(int? value)
+                                  {
+                                      return new DataCell(value);
+                                  }
+                              }
+                              
                               [WorksheetRow(typeof(ClassWithCellValueConvertersAndCellStyle))]
                               public partial class MyGenRowContext : WorksheetRowContext;
                               """;

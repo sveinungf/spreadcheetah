@@ -5,9 +5,9 @@
       Title: CellValueConverter generic different from the property type,
       Severity: Error,
       WarningLevel: 0,
-      Location: : (0,0)-(0,0),
-      MessageFormat: '{0}' has different type that CellValueConverter,
-      Message: 'SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.NullableIntValueConverter' has different type that CellValueConverter,
+      Location: : (6,5)-(6,58),
+      MessageFormat: '{0}' has different type that property type,
+      Message: 'MyNamespace.NullableIntValueConverter' has different type that property type,
       Category: SpreadCheetah.SourceGenerator
     },
     {
@@ -15,9 +15,9 @@
       Title: CellValueConverter generic different from the property type,
       Severity: Error,
       WarningLevel: 0,
-      Location: : (0,0)-(0,0),
-      MessageFormat: '{0}' has different type that CellValueConverter,
-      Message: 'SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.DecimalValueConverter' has different type that CellValueConverter,
+      Location: : (9,5)-(9,54),
+      MessageFormat: '{0}' has different type that property type,
+      Message: 'MyNamespace.DecimalValueConverter' has different type that property type,
       Category: SpreadCheetah.SourceGenerator
     }
   ]
