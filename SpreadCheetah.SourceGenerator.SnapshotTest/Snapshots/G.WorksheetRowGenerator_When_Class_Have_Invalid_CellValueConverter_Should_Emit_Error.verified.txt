@@ -1,13 +1,23 @@
 ﻿{
   Diagnostics: [
     {
-      Id: SPCH1009,
-      Title: The type must have a public parameterless constructor,
+      Id: SPCH1010,
+      Title: CellValueConverter generic different from the property type,
       Severity: Error,
       WarningLevel: 0,
-      Location: : (0,0)-(0,0),
-      MessageFormat: '{0}' inherit CellValueConverter but doesn't have a public parameterless constructor,
-      Message: 'SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ConverterWithoutParameterlessConstructor' inherit CellValueConverter but doesn't have a public parameterless constructor,
+      Location: : (7,5)-(7,54),
+      MessageFormat: '{0}' has different type that property type,
+      Message: 'MyNamespace.DecimalValueConverter' has different type that property type,
+      Category: SpreadCheetah.SourceGenerator
+    },
+    {
+      Id: SPCH1010,
+      Title: CellValueConverter generic different from the property type,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (11,5)-(11,54),
+      MessageFormat: '{0}' has different type that property type,
+      Message: 'MyNamespace.DecimalValueConverter' has different type that property type,
       Category: SpreadCheetah.SourceGenerator
     }
   ]
