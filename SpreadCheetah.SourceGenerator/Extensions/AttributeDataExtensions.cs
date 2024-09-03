@@ -10,7 +10,7 @@ namespace SpreadCheetah.SourceGenerator.Extensions;
 
 internal static class AttributeDataExtensions
 {
-    private const string CellValueMapperInterfaceName = "ICellValueMapper";
+    private const string CellValueConverterName = "CellValueConverter";
     
     public static PropertyAttributeData MapToPropertyAttributeData(
         this ImmutableArray<AttributeData> attributes,
@@ -243,14 +243,14 @@ internal static class AttributeDataExtensions
         if (!string.Equals(Attributes.CellValueConverter, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
             return false;
 
-        var args = attribute.NamedArguments;
+        var args = attribute.ConstructorArguments;
         if (args.Length == 0)
             return false;
 
-        var cellValueConverterTypeSymbol = args[0].Value.Value as INamedTypeSymbol;
+        var cellValueConverterTypeSymbol = args[0].Value as INamedTypeSymbol;
         var cellValueConverterType = cellValueConverterTypeSymbol!.BaseType;
     
-        if (cellValueConverterType is null || string.Equals(cellValueConverterType.Name, CellValueMapperInterfaceName, StringComparison.Ordinal))
+        if (cellValueConverterType is null || !string.Equals(cellValueConverterType.Name, CellValueConverterName, StringComparison.Ordinal))
         {
             var errorLocation = attribute.GetLocation(token);
             var stringValue = cellValueConverterTypeSymbol.ToDisplayString();

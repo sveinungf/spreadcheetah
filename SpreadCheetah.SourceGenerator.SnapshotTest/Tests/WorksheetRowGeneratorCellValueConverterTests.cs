@@ -107,6 +107,26 @@ public class WorksheetRowGeneratorCellValueConverterTests
     }
     
     [Fact]
+    public Task WorksheetRowGenerator_When_Class_Doesnt_Inherit_CellValueConverter_Should_EmitError()
+    {
+
+        // Arrange
+        const string source = """
+                              using SpreadCheetah.SourceGeneration;
+                              using SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters;
+                              using System;
+
+                              namespace MyNamespace;
+
+                              [WorksheetRow(typeof(ClassWherePropertyTypeDifferentFromCellValueConverter))]
+                              public partial class MyGenRowContext : WorksheetRowContext;
+                              """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
+    
+    [Fact]
     public Task WorksheetRowGenerator_When_CellValueConverter_With_CellStyle_Should_Generate_Correctly()
     {
 
