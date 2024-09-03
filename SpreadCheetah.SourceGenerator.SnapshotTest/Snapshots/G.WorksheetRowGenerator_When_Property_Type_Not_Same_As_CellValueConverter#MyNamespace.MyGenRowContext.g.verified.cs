@@ -20,10 +20,6 @@ namespace MyNamespace
         public MyGenRowContext()
         {
         }
-        private static Dictionary<string, object> _cellValueConverters = new Dictionary<string, object>
-        {
-             ["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.NullableIntValueConverter"] = new SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.NullableIntValueConverter(),
-        };                     
 
         private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWherePropertyTypeDifferentFromCellValueConverter>? _ClassWherePropertyTypeDifferentFromCellValueConverter;
         public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.ClassWherePropertyTypeDifferentFromCellValueConverter> ClassWherePropertyTypeDifferentFromCellValueConverter => _ClassWherePropertyTypeDifferentFromCellValueConverter
@@ -108,7 +104,7 @@ namespace MyNamespace
                 return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
 
             cells[0] = new DataCell(obj.Property);
-            cells[1] = (_cellValueConverters["SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.NullableIntValueConverter"] as CellValueConverter<Int32?>).ConvertToCell(obj.Property1);
+            cells[1] = new DataCell(obj.Property1);
             return spreadsheet.AddRowAsync(cells.AsMemory(0, 2), token);
         }
 

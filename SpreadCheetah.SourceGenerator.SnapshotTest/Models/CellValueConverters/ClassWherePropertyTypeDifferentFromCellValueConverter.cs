@@ -7,6 +7,6 @@ public class ClassWherePropertyTypeDifferentFromCellValueConverter
     [CellValueConverter(typeof(NullableIntValueConverter))]
     public string Property { get; set; } = null!;
     
-    [CellValueConverter(typeof(ClassWithSingleProperty))]
+    [CellValueConverter(typeof(DecimalValueConverter))]
     public int? Property1 { get; set; }
 }

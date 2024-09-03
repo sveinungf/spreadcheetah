@@ -56,7 +56,7 @@ internal static class Diagnostics
     
     public static readonly DiagnosticDescriptor CellValueConverterTypeNotInheritCellValueConverter = new(
         id: "SPCH1007",
-        title: "The type provided for CellValueConverterAttribute must inherit PropertyCellValueConverter<> class",
+        title: "The type provided for CellValueConverterAttribute must inherit СellValueConverter<> class",
         messageFormat: "'{0}' is not inherit PropertyCellValueConverter<>",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,

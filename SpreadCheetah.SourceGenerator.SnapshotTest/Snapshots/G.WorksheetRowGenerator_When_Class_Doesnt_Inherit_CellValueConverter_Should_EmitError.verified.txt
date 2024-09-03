@@ -11,13 +11,13 @@
       Category: SpreadCheetah.SourceGenerator
     },
     {
-      Id: SPCH1007,
-      Title: The type provided for CellValueConverterAttribute must inherit PropertyCellValueConverter<> class,
+      Id: SPCH1010,
+      Title: CellValueConverter generic different from the property type,
       Severity: Error,
       WarningLevel: 0,
       Location: : (0,0)-(0,0),
-      MessageFormat: '{0}' is not inherit PropertyCellValueConverter<>,
-      Message: 'SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty' is not inherit PropertyCellValueConverter<>,
+      MessageFormat: '{0}' has different type that CellValueConverter,
+      Message: 'SpreadCheetah.SourceGenerator.SnapshotTest.Models.CellValueConverters.DecimalValueConverter' has different type that CellValueConverter,
       Category: SpreadCheetah.SourceGenerator
     }
   ]
