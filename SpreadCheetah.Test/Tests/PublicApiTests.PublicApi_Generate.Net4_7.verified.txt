@@ -192,8 +192,7 @@ namespace SpreadCheetah.SourceGeneration
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false, Inherited=true)]
     public sealed class CellValueConverterAttribute : System.Attribute
     {
-        public CellValueConverterAttribute() { }
-        public System.Type CellValueConverterType { get; set; }
+        public CellValueConverterAttribute(System.Type CellValueConverterType) { }
     }
     public abstract class CellValueConverter<T>
     {
