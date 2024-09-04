@@ -1,0 +1,24 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: SPCH1010,
+      Title: CellValueConverter generic different from the property type,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (7,5)-(7,54),
+      MessageFormat: '{0}' has different type that property type,
+      Message: 'MyNamespace.DecimalValueConverter' has different type that property type,
+      Category: SpreadCheetah.SourceGenerator
+    },
+    {
+      Id: SPCH1010,
+      Title: CellValueConverter generic different from the property type,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (11,5)-(11,54),
+      MessageFormat: '{0}' has different type that property type,
+      Message: 'MyNamespace.DecimalValueConverter' has different type that property type,
+      Category: SpreadCheetah.SourceGenerator
+    }
+  ]
+}

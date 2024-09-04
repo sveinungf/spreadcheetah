@@ -189,6 +189,16 @@ namespace SpreadCheetah.SourceGeneration
     {
         public CellStyleAttribute(string styleName) { }
     }
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false, Inherited=true)]
+    public sealed class CellValueConverterAttribute : System.Attribute
+    {
+        public CellValueConverterAttribute(System.Type CellValueConverterType) { }
+    }
+    public abstract class CellValueConverter<T>
+    {
+        protected CellValueConverter() { }
+        public abstract SpreadCheetah.DataCell ConvertToCell(T value);
+    }
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class CellValueTruncateAttribute : System.Attribute
     {

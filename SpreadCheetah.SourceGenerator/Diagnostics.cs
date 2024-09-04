@@ -53,4 +53,37 @@ internal static class Diagnostics
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+    
+    public static readonly DiagnosticDescriptor CellValueConverterTypeNotInheritCellValueConverter = new(
+        id: "SPCH1007",
+        title: "The type provided for CellValueConverterAttribute must inherit СellValueConverter<> class",
+        messageFormat: "'{0}' is not inherit PropertyCellValueConverter<>",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+    
+    public static readonly DiagnosticDescriptor 
+        UnsupportedCellValueConverterAttributeWithCellValueTruncateAttributeTogether = new(
+        id: "SPCH1008",
+        title: "The type has CellValueConverterAttribute and TruncateValueAttribute which is not supported",
+        messageFormat: "'{0}' has CellValueConverterAttribute and TruncateValueAttribute, only one of this attribute on property allowed at once",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor CellValueConverterWithoutPublicParameterlessConstructor = new(
+        id: "SPCH1009",
+        title: "The type must have a public parameterless constructor",
+        messageFormat: "'{0}' inherit CellValueConverter but doesn't have a public parameterless constructor",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+    
+    public static readonly DiagnosticDescriptor CellValueConverterArgumentTypeNotSameAsPropertyType = new(
+        id: "SPCH1010",
+        title: "CellValueConverter generic different from the property type",
+        messageFormat: "'{0}' has different type that property type",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

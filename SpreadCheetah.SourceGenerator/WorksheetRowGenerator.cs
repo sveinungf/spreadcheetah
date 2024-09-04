@@ -111,8 +111,14 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 ColumnHeader: data.ColumnHeader?.ToColumnHeaderInfo(),
                 CellStyle: data.CellStyle,
                 ColumnWidth: data.ColumnWidth,
-                CellValueTruncate: data.CellValueTruncate);
+                CellValueTruncate: data.CellValueTruncate,
+                CellValueConverter: data.CellValueConverter);
 
+            if (data is { CellValueConverter: not null, CellValueTruncate: not null })
+                diagnosticInfos.Add(
+                    new DiagnosticInfo(
+                        Diagnostics.UnsupportedCellValueConverterAttributeWithCellValueTruncateAttributeTogether,
+                        rowTypeProperty.CellValueConverter.GetValueOrDefault().Location, new([property.Name])));
             if (data.ColumnOrder is not { } order)
                 implicitOrderProperties.Add(rowTypeProperty);
             else if (!explicitOrderProperties.ContainsKey(order.Value))
@@ -203,7 +209,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             sb.Append("namespace ").AppendLine(ns);
 
         var accessibility = SyntaxFacts.GetText(contextClass.DeclaredAccessibility);
-
+        
         sb.AppendLine($$"""
             {
                 {{accessibility}} partial class {{contextClass.Name}}
@@ -215,6 +221,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                     {
                     }
             """);
+        
+        var cellValueConverters = GenerateCellValueConverters(sb, contextClass.RowTypes);
 
         var rowTypeNames = new HashSet<string>(StringComparer.Ordinal);
 
@@ -225,7 +233,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             if (!rowTypeNames.Add(rowTypeName))
                 continue;
 
-            GenerateCodeForType(sb, typeIndex, rowType, contextClass, context);
+            GenerateCodeForType(sb, typeIndex, cellValueConverters, rowType, contextClass, context);
             ++typeIndex;
         }
 
@@ -237,7 +245,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             """);
     }
 
-    private static void GenerateCodeForType(StringBuilder sb, int typeIndex, RowType rowType,
+    private static void GenerateCodeForType(StringBuilder sb, int typeIndex,
+        Dictionary<string, string> cellValueConverters, RowType rowType,
         ContextClass contextClass, SourceProductionContext context)
     {
         ReportDiagnostics(rowType, rowType.WorksheetRowAttributeLocation, contextClass.Options, context);
@@ -281,13 +290,13 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var cellStyleToStyleIdIndex = doGenerateCreateWorksheetRowDependencyInfo
             ? GenerateCreateWorksheetRowDependencyInfo(sb, typeIndex, properties)
             : [];
-
+        
         GenerateAddHeaderRow(sb, typeIndex, properties);
         GenerateAddAsRow(sb, rowType);
         GenerateAddRangeAsRows(sb, rowType);
         GenerateAddAsRowInternal(sb, rowType);
         GenerateAddRangeAsRowsInternal(sb, rowType);
-        GenerateAddCellsAsRow(sb, rowType, cellStyleToStyleIdIndex);
+        GenerateAddCellsAsRow(sb, rowType, cellStyleToStyleIdIndex, cellValueConverters);
     }
 
     private static void ReportDiagnostics(RowType rowType, LocationInfo? locationInfo, GeneratorOptions? options, SourceProductionContext context)
@@ -383,6 +392,43 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return cellStyleToStyleIdIndex;
     }
 
+    private static Dictionary<string, string> GenerateCellValueConverters(StringBuilder sb, EquatableArray<RowType> rowTypes)
+    {
+        if (!rowTypes.Any(type => type.Properties.Any(property => property.CellValueConverter.HasValue)))
+        {
+            return [];
+        }
+
+        var uniqueConverters = new HashSet<string>(StringComparer.Ordinal);
+        var propertyNameToConverterMap = new Dictionary<string, string>(StringComparer.Ordinal);
+        int valueConverterCount = 0;
+        foreach (var rowType in rowTypes)
+        {
+            if(!rowType.Properties.Any(property => property.CellValueConverter.HasValue))
+                continue;
+            
+            foreach (var property in rowType.Properties.Where(property => property.CellValueConverter.HasValue))
+            {
+                var key = FormattableString.Invariant($"{rowType.FullName}_{property.Name}");
+                var cellValueConverter = property.CellValueConverter.GetValueOrDefault();
+                var converterName = FormattableString.Invariant($"_valueConverter{valueConverterCount}");
+                propertyNameToConverterMap.Add(key, converterName);
+                
+                if (uniqueConverters.Contains(cellValueConverter.CellValueConverterTypeName))
+                    continue;
+                
+                sb.AppendLine(FormattableString.Invariant($$"""
+                           private static readonly {{cellValueConverter.CellValueConverterTypeName}} {{converterName}} = new {{cellValueConverter.CellValueConverterTypeName}}(); 
+                   """));
+               
+                uniqueConverters.Add(cellValueConverter.CellValueConverterTypeName);
+                valueConverterCount++;
+            }
+        }
+
+        return propertyNameToConverterMap;
+    }
+    
     private static void GenerateAddHeaderRow(StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)
     {
         Debug.Assert(properties.Count > 0);
@@ -554,9 +600,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine("""
                     }
             """);
-    }
+    }   
 
-    private static void GenerateAddCellsAsRow(StringBuilder sb, RowType rowType, Dictionary<CellStyle, int> cellStyleToStyleIdIndex)
+    private static void GenerateAddCellsAsRow(StringBuilder sb, RowType rowType,
+        Dictionary<CellStyle, int> cellStyleToStyleIdIndex, Dictionary<string, string> cellValueConverters)
     {
         var properties = rowType.Properties;
         Debug.Assert(properties.Count > 0);
@@ -568,7 +615,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                         {{rowType.CellType}}[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
                     {
             """);
-
+        
         if (rowType.IsReferenceType)
         {
             sb.AppendLine($"""
@@ -581,7 +628,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         foreach (var (i, property) in properties.Index())
         {
             sb.AppendLine(FormattableString.Invariant($"""
-                        cells[{i}] = {ConstructCell(property, $"obj.{property.Name}")};
+                        cells[{i}] = {ConstructCell(property, cellValueConverters, $"obj.{property.Name}")};
             """));
         }
 
@@ -590,7 +637,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                     }
             """);
 
-        string ConstructCell(RowTypeProperty property, string value)
+        string ConstructCell(RowTypeProperty property, Dictionary<string, string> valueConverters, string value)
         {
             var constructDataCell = property.CellValueTruncate is { } truncate
                 ? FormattableString.Invariant($"ConstructTruncatedDataCell({value}, {truncate.Value})")
@@ -602,15 +649,21 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
             var styledCell = rowType.PropertiesWithStyleAttributes > 0;
 
-            return (styledCell, styleIdIndex) switch
+            var cellValueConverterKey = FormattableString.Invariant($"{rowType.FullName}_{property.Name}");
+            var containsValueConverter = valueConverters.ContainsKey(cellValueConverterKey);
+
+            return (containsValueConverter, styledCell, styleIdIndex) switch
             {
-                (true, { } i) => FormattableString.Invariant($"new StyledCell({constructDataCell}, styleIds[{i}])"),
-                (true, null) => $"new StyledCell({constructDataCell}, null)",
-                (false, _) => constructDataCell
+                (false, true, { } i) => FormattableString.Invariant($"new StyledCell({constructDataCell}, styleIds[{i}])"),
+                (false, true, null) => $"new StyledCell({constructDataCell}, null)",
+                (false, false, _) => constructDataCell,
+                (true, true, {} i) => FormattableString.Invariant($"new StyledCell({valueConverters[cellValueConverterKey]}.ConvertToCell({value}), styleIds[{i}])"),
+                (true, true, null) => FormattableString.Invariant($"new StyledCell({valueConverters[cellValueConverterKey]}.ConvertToCell({value}), null)"),
+                (true, false, _) =>  FormattableString.Invariant($"{valueConverters[cellValueConverterKey]}.ConvertToCell({value})"),
             };
         }
     }
-
+    
     private static void GenerateConstructTruncatedDataCell(StringBuilder sb)
     {
         sb.AppendLine("""
