@@ -235,34 +235,28 @@ internal static class AttributeDataExtensions
         ref PropertyAttributeData data)
     {
         var args = attribute.ConstructorArguments;
-        if (args.Length == 0)
+        if (args is not [{ Value: INamedTypeSymbol converterTypeSymbol }])
             return false;
 
-        var cellValueConverterTypeSymbol = args[0].Value as INamedTypeSymbol;
-        var cellValueConverterType = cellValueConverterTypeSymbol!.BaseType;
-        var typeName = cellValueConverterTypeSymbol.ToDisplayString();
+        var typeName = converterTypeSymbol.ToDisplayString();
 
-        if (cellValueConverterType is null || !string.Equals(cellValueConverterType.Name, "CellValueConverter", StringComparison.Ordinal))
+        if (converterTypeSymbol.BaseType is not { Name: "CellValueConverter", TypeArguments: [INamedTypeSymbol typeArgument] })
         {
             diagnosticInfos.Add(Diagnostics.AttributeTypeArgumentMustInherit(attribute, typeName, "CellValueConverter<T>", token));
             return false;
         }
 
-        var publicConstructor = cellValueConverterTypeSymbol.Constructors.FirstOrDefault(symbol =>
-            symbol.Parameters.Length == 0 && symbol.DeclaredAccessibility == Accessibility.Public);
+        var hasPublicConstructor = converterTypeSymbol.Constructors.Any(ctor =>
+            ctor is { Parameters.Length: 0, DeclaredAccessibility: Accessibility.Public });
 
-        if (publicConstructor is null)
+        if (!hasPublicConstructor)
         {
-            var errorLocation = attribute.GetLocation(token);
-            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.CellValueConverterWithoutPublicParameterlessConstructor,
-                errorLocation, new([typeName, Attributes.CellValueConverter])));
+            diagnosticInfos.Add(Diagnostics.AttributeTypeArgumentMustHaveDefaultConstructor(attribute, typeName, token));
             return false;
         }
 
-        var cellValueMapperInterfaceGenericArgument = cellValueConverterType.TypeArguments[0] as INamedTypeSymbol;
-
         var isPropertyTypeAndCellValueConverterTypeEquals = string.Equals(
-            cellValueMapperInterfaceGenericArgument!.OriginalDefinition.ToDisplayString(),
+            typeArgument.OriginalDefinition.ToDisplayString(),
             propertyType.OriginalDefinition.ToDisplayString(), StringComparison.Ordinal);
 
         if (!isPropertyTypeAndCellValueConverterTypeEquals)

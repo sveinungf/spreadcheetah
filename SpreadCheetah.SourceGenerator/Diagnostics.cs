@@ -96,10 +96,13 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor CellValueConverterWithoutPublicParameterlessConstructor = new(
+    public static DiagnosticInfo AttributeTypeArgumentMustHaveDefaultConstructor(AttributeData attribute, string typeName, CancellationToken token)
+        => new(AttributeTypeArgumentMustHaveDefaultConstructorDescriptor, attribute.GetLocation(token), new([typeName]));
+
+    private static readonly DiagnosticDescriptor AttributeTypeArgumentMustHaveDefaultConstructorDescriptor = new(
         id: "SPCH1009",
-        title: "The type must have a public parameterless constructor",
-        messageFormat: "'{0}' inherit CellValueConverter but doesn't have a public parameterless constructor",
+        title: "Type must have a public parameterless constructor",
+        messageFormat: "Type '{0}' must have a public parameterless constructor",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
