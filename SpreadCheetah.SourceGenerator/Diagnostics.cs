@@ -53,7 +53,7 @@ internal static class Diagnostics
         isEnabledByDefault: true);
 
     public static DiagnosticInfo UnsupportedTypeForAttribute(AttributeData attribute, string typeFullName, CancellationToken token)
-        => new(UnsupportedTypeForAttributeDescriptor, attribute.GetLocation(token), new([attribute.AttributeClass?.Name ?? "", typeFullName]));
+        => new(UnsupportedTypeForAttributeDescriptor, attribute.GetLocation(token), new([attribute.Name(), typeFullName]));
 
     private static readonly DiagnosticDescriptor UnsupportedTypeForAttributeDescriptor = new(
         id: "SPCH1005",
@@ -64,7 +64,7 @@ internal static class Diagnostics
         isEnabledByDefault: true);
 
     public static DiagnosticInfo InvalidAttributeArgument(AttributeData attribute, string attributeArgument, CancellationToken token)
-        => new(InvalidAttributeArgumentDescriptor, attribute.GetLocation(token), new([attributeArgument, attribute.AttributeClass?.Name ?? ""]));
+        => new(InvalidAttributeArgumentDescriptor, attribute.GetLocation(token), new([attributeArgument, attribute.Name()]));
 
     private static readonly DiagnosticDescriptor InvalidAttributeArgumentDescriptor = new(
         id: "SPCH1006",
@@ -74,10 +74,13 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor CellValueConverterTypeNotInheritCellValueConverter = new(
+    public static DiagnosticInfo AttributeTypeArgumentMustInherit(AttributeData attribute, string typeName, string baseClassName, CancellationToken token)
+        => new(AttributeTypeArgumentMustInheritDescriptor, attribute.GetLocation(token), new([typeName, attribute.Name(), baseClassName]));
+
+    private static readonly DiagnosticDescriptor AttributeTypeArgumentMustInheritDescriptor = new(
         id: "SPCH1007",
-        title: "The type provided for CellValueConverterAttribute must inherit СellValueConverter<> class",
-        messageFormat: "'{0}' is not inherit PropertyCellValueConverter<>",
+        title: "Invalid attribute type argument",
+        messageFormat: "Type '{0}' is an invalid argument for {1} because it does not inherit {2}",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
@@ -106,4 +109,6 @@ internal static class Diagnostics
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    private static string Name(this AttributeData attribute) => attribute.AttributeClass?.Name ?? "";
 }

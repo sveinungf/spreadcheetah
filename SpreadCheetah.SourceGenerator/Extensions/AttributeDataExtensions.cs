@@ -10,8 +10,6 @@ namespace SpreadCheetah.SourceGenerator.Extensions;
 
 internal static class AttributeDataExtensions
 {
-    private const string CellValueConverterName = "CellValueConverter";
-
     public static PropertyAttributeData MapToPropertyAttributeData(
         this ImmutableArray<AttributeData> attributes,
         ITypeSymbol propertyType,
@@ -236,23 +234,17 @@ internal static class AttributeDataExtensions
         List<DiagnosticInfo> diagnosticInfos, CancellationToken token,
         ref PropertyAttributeData data)
     {
-        if (!string.Equals(Attributes.CellValueConverter, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
-            return false;
-
         var args = attribute.ConstructorArguments;
         if (args.Length == 0)
             return false;
 
         var cellValueConverterTypeSymbol = args[0].Value as INamedTypeSymbol;
         var cellValueConverterType = cellValueConverterTypeSymbol!.BaseType;
+        var typeName = cellValueConverterTypeSymbol.ToDisplayString();
 
-        if (cellValueConverterType is null || !string.Equals(cellValueConverterType.Name, CellValueConverterName, StringComparison.Ordinal))
+        if (cellValueConverterType is null || !string.Equals(cellValueConverterType.Name, "CellValueConverter", StringComparison.Ordinal))
         {
-            var errorLocation = attribute.GetLocation(token);
-            var stringValue = cellValueConverterTypeSymbol.ToDisplayString();
-            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.CellValueConverterTypeNotInheritCellValueConverter,
-                errorLocation, new([stringValue, Attributes.CellValueConverter])));
-
+            diagnosticInfos.Add(Diagnostics.AttributeTypeArgumentMustInherit(attribute, typeName, "CellValueConverter<T>", token));
             return false;
         }
 
@@ -262,9 +254,8 @@ internal static class AttributeDataExtensions
         if (publicConstructor is null)
         {
             var errorLocation = attribute.GetLocation(token);
-            var stringValue = cellValueConverterTypeSymbol.ToDisplayString();
             diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.CellValueConverterWithoutPublicParameterlessConstructor,
-                errorLocation, new([stringValue, Attributes.CellValueConverter])));
+                errorLocation, new([typeName, Attributes.CellValueConverter])));
             return false;
         }
 
@@ -277,9 +268,8 @@ internal static class AttributeDataExtensions
         if (!isPropertyTypeAndCellValueConverterTypeEquals)
         {
             var errorLocation = attribute.GetLocation(token);
-            var stringValue = cellValueConverterTypeSymbol.ToDisplayString();
             diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.CellValueConverterArgumentTypeNotSameAsPropertyType,
-                errorLocation, new([stringValue, Attributes.CellValueConverter])));
+                errorLocation, new([typeName, Attributes.CellValueConverter])));
             return false;
         }
 
@@ -291,8 +281,7 @@ internal static class AttributeDataExtensions
 
         var location = attribute.GetLocation(token)!;
 
-        data.CellValueConverter = new CellValueConverter(cellValueConverterTypeSymbol.ToDisplayString(),
-            genericArgumentName, location);
+        data.CellValueConverter = new CellValueConverter(typeName, genericArgumentName, location);
         return true;
     }
 
