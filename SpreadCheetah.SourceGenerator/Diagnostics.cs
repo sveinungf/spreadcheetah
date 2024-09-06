@@ -107,13 +107,5 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor CellValueConverterArgumentTypeNotSameAsPropertyType = new(
-        id: "SPCH1010",
-        title: "CellValueConverter generic different from the property type",
-        messageFormat: "'{0}' has different type that property type",
-        category: Category,
-        defaultSeverity: DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
-
     private static string Name(this AttributeData attribute) => attribute.AttributeClass?.Name ?? "";
 }

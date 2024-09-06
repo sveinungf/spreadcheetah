@@ -239,10 +239,12 @@ internal static class AttributeDataExtensions
             return false;
 
         var typeName = converterTypeSymbol.ToDisplayString();
+        var propertyTypeName = propertyType.OriginalDefinition.ToDisplayString();
 
-        if (converterTypeSymbol.BaseType is not { Name: "CellValueConverter", TypeArguments: [INamedTypeSymbol typeArgument] })
+        if (converterTypeSymbol.BaseType is not { Name: "CellValueConverter", TypeArguments: [INamedTypeSymbol typeArgument] }
+            || !string.Equals(typeArgument.OriginalDefinition.ToDisplayString(), propertyTypeName, StringComparison.Ordinal))
         {
-            diagnosticInfos.Add(Diagnostics.AttributeTypeArgumentMustInherit(attribute, typeName, "CellValueConverter<T>", token));
+            diagnosticInfos.Add(Diagnostics.AttributeTypeArgumentMustInherit(attribute, typeName, $"CellValueConverter<{propertyTypeName}>", token));
             return false;
         }
 
@@ -252,18 +254,6 @@ internal static class AttributeDataExtensions
         if (!hasPublicConstructor)
         {
             diagnosticInfos.Add(Diagnostics.AttributeTypeArgumentMustHaveDefaultConstructor(attribute, typeName, token));
-            return false;
-        }
-
-        var isPropertyTypeAndCellValueConverterTypeEquals = string.Equals(
-            typeArgument.OriginalDefinition.ToDisplayString(),
-            propertyType.OriginalDefinition.ToDisplayString(), StringComparison.Ordinal);
-
-        if (!isPropertyTypeAndCellValueConverterTypeEquals)
-        {
-            var errorLocation = attribute.GetLocation(token);
-            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.CellValueConverterArgumentTypeNotSameAsPropertyType,
-                errorLocation, new([typeName, Attributes.CellValueConverter])));
             return false;
         }
 
