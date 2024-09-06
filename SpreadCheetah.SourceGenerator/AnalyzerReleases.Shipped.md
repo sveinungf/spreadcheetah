@@ -35,5 +35,5 @@ SPCH1004 | SpreadCheetah.SourceGenerator | Error | InvalidColumnHeaderPropertyRe
 ### New Rules
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-SPCH1005 | SpreadCheetah.SourceGenerator | Error | UnsupportedTypeForCellValueLengthLimit
+SPCH1005 | SpreadCheetah.SourceGenerator | Error | UnsupportedTypeForAttribute
 SPCH1006 | SpreadCheetah.SourceGenerator | Error | InvalidAttributeArgument

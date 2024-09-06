@@ -11,7 +11,7 @@ namespace SpreadCheetah.SourceGenerator.Extensions;
 internal static class AttributeDataExtensions
 {
     private const string CellValueConverterName = "CellValueConverter";
-    
+
     public static PropertyAttributeData MapToPropertyAttributeData(
         this ImmutableArray<AttributeData> attributes,
         ITypeSymbol propertyType,
@@ -141,7 +141,7 @@ internal static class AttributeDataExtensions
         }
 
         var location = attribute.GetLocation(token);
-        diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.InvalidColumnHeaderPropertyReference, location, new([propertyName, typeFullName])));
+        diagnosticInfos.Add(Diagnostics.InvalidColumnHeaderPropertyReference(location, propertyName, typeFullName));
         return null;
     }
 
@@ -174,8 +174,7 @@ internal static class AttributeDataExtensions
             || char.IsWhiteSpace(value[0])
             || char.IsWhiteSpace(value[^1]))
         {
-            var location = attribute.GetLocation(token);
-            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.InvalidAttributeArgument, location, new([value, Attributes.CellStyle])));
+            diagnosticInfos.Add(Diagnostics.InvalidAttributeArgument(attribute, value, token));
             return false;
         }
 
@@ -195,9 +194,8 @@ internal static class AttributeDataExtensions
 
         if (attributeValue is <= 0 or > 255)
         {
-            var location = attribute.GetLocation(token);
             var stringValue = attributeValue.ToString(CultureInfo.InvariantCulture);
-            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.InvalidAttributeArgument, location, new([stringValue, Attributes.ColumnWidth])));
+            diagnosticInfos.Add(Diagnostics.InvalidAttributeArgument(attribute, stringValue, token));
             return false;
         }
 
@@ -213,9 +211,8 @@ internal static class AttributeDataExtensions
 
         if (propertyType.SpecialType != SpecialType.System_String)
         {
-            var location = attribute.GetLocation(token);
             var typeFullName = propertyType.ToDisplayString();
-            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.UnsupportedTypeForCellValueLengthLimit, location, new([typeFullName])));
+            diagnosticInfos.Add(Diagnostics.UnsupportedTypeForAttribute(attribute, typeFullName, token));
             return false;
         }
 
@@ -225,9 +222,8 @@ internal static class AttributeDataExtensions
 
         if (attributeValue <= 0)
         {
-            var location = attribute.GetLocation(token);
             var stringValue = attributeValue.ToString(CultureInfo.InvariantCulture);
-            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.InvalidAttributeArgument, location, new([stringValue, Attributes.CellValueTruncate])));
+            diagnosticInfos.Add(Diagnostics.InvalidAttributeArgument(attribute, stringValue, token));
             return false;
         }
 
@@ -249,12 +245,12 @@ internal static class AttributeDataExtensions
 
         var cellValueConverterTypeSymbol = args[0].Value as INamedTypeSymbol;
         var cellValueConverterType = cellValueConverterTypeSymbol!.BaseType;
-    
+
         if (cellValueConverterType is null || !string.Equals(cellValueConverterType.Name, CellValueConverterName, StringComparison.Ordinal))
         {
             var errorLocation = attribute.GetLocation(token);
             var stringValue = cellValueConverterTypeSymbol.ToDisplayString();
-            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.CellValueConverterTypeNotInheritCellValueConverter, 
+            diagnosticInfos.Add(new DiagnosticInfo(Diagnostics.CellValueConverterTypeNotInheritCellValueConverter,
                 errorLocation, new([stringValue, Attributes.CellValueConverter])));
 
             return false;
@@ -262,7 +258,7 @@ internal static class AttributeDataExtensions
 
         var publicConstructor = cellValueConverterTypeSymbol.Constructors.FirstOrDefault(symbol =>
             symbol.Parameters.Length == 0 && symbol.DeclaredAccessibility == Accessibility.Public);
-        
+
         if (publicConstructor is null)
         {
             var errorLocation = attribute.GetLocation(token);
@@ -271,13 +267,13 @@ internal static class AttributeDataExtensions
                 errorLocation, new([stringValue, Attributes.CellValueConverter])));
             return false;
         }
-        
+
         var cellValueMapperInterfaceGenericArgument = cellValueConverterType.TypeArguments[0] as INamedTypeSymbol;
 
         var isPropertyTypeAndCellValueConverterTypeEquals = string.Equals(
             cellValueMapperInterfaceGenericArgument!.OriginalDefinition.ToDisplayString(),
             propertyType.OriginalDefinition.ToDisplayString(), StringComparison.Ordinal);
-        
+
         if (!isPropertyTypeAndCellValueConverterTypeEquals)
         {
             var errorLocation = attribute.GetLocation(token);
@@ -286,13 +282,13 @@ internal static class AttributeDataExtensions
                 errorLocation, new([stringValue, Attributes.CellValueConverter])));
             return false;
         }
-        
+
         var genericArgumentName = cellValueMapperInterfaceGenericArgument!.Name;
         if (string.Equals(genericArgumentName, "Nullable", StringComparison.Ordinal))
         {
             genericArgumentName = cellValueMapperInterfaceGenericArgument.TypeArguments[0].Name + "?";
         }
-        
+
         var location = attribute.GetLocation(token)!;
 
         data.CellValueConverter = new CellValueConverter(cellValueConverterTypeSymbol.ToDisplayString(),
@@ -300,7 +296,7 @@ internal static class AttributeDataExtensions
         return true;
     }
 
-    private static LocationInfo? GetLocation(this AttributeData attribute, CancellationToken token)
+    public static LocationInfo? GetLocation(this AttributeData attribute, CancellationToken token)
     {
         return attribute
             .ApplicationSyntaxReference?
