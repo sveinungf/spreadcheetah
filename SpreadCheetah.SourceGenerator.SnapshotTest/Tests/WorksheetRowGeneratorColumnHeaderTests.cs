@@ -101,6 +101,6 @@ public class WorksheetRowGeneratorColumnHeaderTests
             """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
     }
 }
