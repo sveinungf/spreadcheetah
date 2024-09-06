@@ -6,8 +6,8 @@
       Severity: Error,
       WarningLevel: 0,
       Location: : (6,5)-(6,21),
-      MessageFormat: '{0}' is an invalid argument for attribute '{1}',
-      Message: '300' is an invalid argument for attribute 'SpreadCheetah.SourceGeneration.ColumnWidthAttribute',
+      MessageFormat: '{0}' is an invalid argument for {1},
+      Message: '300' is an invalid argument for ColumnWidthAttribute,
       Category: SpreadCheetah.SourceGenerator
     }
   ]

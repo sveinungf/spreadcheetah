@@ -2,12 +2,12 @@
   Diagnostics: [
     {
       Id: SPCH1005,
-      Title: Unsupported type for CellValueLengthLimit attribute,
+      Title: Unsupported type for attribute,
       Severity: Error,
       WarningLevel: 0,
       Location: : (6,5)-(6,26),
-      MessageFormat: The CellValueLengthLimit attribute is not supported on properties of type '{0}',
-      Message: The CellValueLengthLimit attribute is not supported on properties of type 'int',
+      MessageFormat: {0} is not supported on properties of type '{1}',
+      Message: CellValueTruncateAttribute is not supported on properties of type 'int',
       Category: SpreadCheetah.SourceGenerator
     }
   ]
