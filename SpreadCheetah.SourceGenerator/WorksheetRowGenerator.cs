@@ -115,10 +115,11 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 CellValueConverter: data.CellValueConverter);
 
             if (data is { CellValueConverter: not null, CellValueTruncate: not null })
-                diagnosticInfos.Add(
-                    new DiagnosticInfo(
-                        Diagnostics.UnsupportedCellValueConverterAttributeWithCellValueTruncateAttributeTogether,
-                        rowTypeProperty.CellValueConverter.GetValueOrDefault().Location, new([property.Name])));
+            {
+                var location = property.Locations.FirstOrDefault()?.ToLocationInfo();
+                diagnosticInfos.Add(Diagnostics.AttributeCombinationNotSupported(location, "CellValueConverterAttribute", "CellValueTruncateAttribute"));
+            }
+
             if (data.ColumnOrder is not { } order)
                 implicitOrderProperties.Add(rowTypeProperty);
             else if (!explicitOrderProperties.ContainsKey(order.Value))
@@ -394,35 +395,26 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
     private static Dictionary<string, string> GenerateCellValueConverters(StringBuilder sb, EquatableArray<RowType> rowTypes)
     {
-        if (!rowTypes.Any(type => type.Properties.Any(property => property.CellValueConverter.HasValue)))
-        {
-            return [];
-        }
-
         var uniqueConverters = new HashSet<string>(StringComparer.Ordinal);
         var propertyNameToConverterMap = new Dictionary<string, string>(StringComparer.Ordinal);
-        int valueConverterCount = 0;
+
         foreach (var rowType in rowTypes)
         {
-            if (!rowType.Properties.Any(property => property.CellValueConverter.HasValue))
-                continue;
-
-            foreach (var property in rowType.Properties.Where(property => property.CellValueConverter.HasValue))
+            foreach (var property in rowType.Properties)
             {
-                var key = FormattableString.Invariant($"{rowType.FullName}_{property.Name}");
-                var cellValueConverter = property.CellValueConverter.GetValueOrDefault();
-                var converterName = FormattableString.Invariant($"_valueConverter{valueConverterCount}");
-                propertyNameToConverterMap.Add(key, converterName);
-
-                if (uniqueConverters.Contains(cellValueConverter.CellValueConverterTypeName))
+                if (property.CellValueConverter is not { } cellValueConverter)
                     continue;
 
-                sb.AppendLine(FormattableString.Invariant($$"""
-                           private static readonly {{cellValueConverter.CellValueConverterTypeName}} {{converterName}} = new {{cellValueConverter.CellValueConverterTypeName}}(); 
-                   """));
+                var key = $"{rowType.FullName}_{property.Name}";
+                var converterName = FormattableString.Invariant($"_valueConverter{uniqueConverters.Count}"); // TODO: Bug? The last one is always picked here
+                propertyNameToConverterMap.Add(key, converterName);
 
-                uniqueConverters.Add(cellValueConverter.CellValueConverterTypeName);
-                valueConverterCount++;
+                if (!uniqueConverters.Add(cellValueConverter.ConverterTypeName))
+                    continue;
+
+                sb.AppendLine($$"""
+                           private static readonly {{cellValueConverter.ConverterTypeName}} {{converterName}} = new {{cellValueConverter.ConverterTypeName}}(); 
+                   """);
             }
         }
 

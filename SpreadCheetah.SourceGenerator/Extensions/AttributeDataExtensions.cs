@@ -273,15 +273,7 @@ internal static class AttributeDataExtensions
             return false;
         }
 
-        var genericArgumentName = cellValueMapperInterfaceGenericArgument!.Name;
-        if (string.Equals(genericArgumentName, "Nullable", StringComparison.Ordinal))
-        {
-            genericArgumentName = cellValueMapperInterfaceGenericArgument.TypeArguments[0].Name + "?";
-        }
-
-        var location = attribute.GetLocation(token)!;
-
-        data.CellValueConverter = new CellValueConverter(typeName, genericArgumentName, location);
+        data.CellValueConverter = new CellValueConverter(typeName);
         return true;
     }
 

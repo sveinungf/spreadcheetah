@@ -85,11 +85,13 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor
-        UnsupportedCellValueConverterAttributeWithCellValueTruncateAttributeTogether = new(
+    public static DiagnosticInfo AttributeCombinationNotSupported(LocationInfo? location, string attribute1, string attribute2)
+        => new(AttributeCombinationNotSupportedDescriptor, location, new([attribute1, attribute2]));
+
+    private static readonly DiagnosticDescriptor AttributeCombinationNotSupportedDescriptor = new(
         id: "SPCH1008",
-        title: "The type has CellValueConverterAttribute and TruncateValueAttribute which is not supported",
-        messageFormat: "'{0}' has CellValueConverterAttribute and TruncateValueAttribute, only one of this attribute on property allowed at once",
+        title: "Attribute combination not supported",
+        messageFormat: "Having both {0} and {1} on a property is not supported",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
