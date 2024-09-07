@@ -37,3 +37,13 @@ Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 SPCH1005 | SpreadCheetah.SourceGenerator | Error | UnsupportedTypeForAttribute
 SPCH1006 | SpreadCheetah.SourceGenerator | Error | InvalidAttributeArgument
+
+
+## Release 1.17.0
+
+### New Rules
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+SPCH1007 | SpreadCheetah.SourceGenerator | Error | AttributeTypeArgumentMustInherit
+SPCH1008 | SpreadCheetah.SourceGenerator | Error | AttributeCombinationNotSupported
+SPCH1009 | SpreadCheetah.SourceGenerator | Error | AttributeTypeArgumentMustHaveDefaultConstructor
