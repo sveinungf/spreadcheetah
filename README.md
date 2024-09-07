@@ -34,9 +34,11 @@ using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
     await spreadsheet.StartWorksheetAsync("Sheet 1");
 
     // Cells are inserted row by row.
-    var row = new List<Cell>();
-    row.Add(new Cell("Answer to the ultimate question:"));
-    row.Add(new Cell(42));
+    var row = new List<Cell>
+    {
+        new Cell("Answer to the ultimate question:"),
+        new Cell(42)
+    };
 
     // Rows are inserted from top to bottom.
     await spreadsheet.AddRowAsync(row);
@@ -57,7 +59,7 @@ using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
 - [Performance tips](https://github.com/sveinungf/spreadcheetah-samples/blob/main/SpreadCheetahSamples/PerformanceTips.cs)
 
 ## Using the Source Generator
-[Source Generators](https://devblogs.microsoft.com/dotnet/introducing-c-source-generators) is a newly released feature in the C# compiler. SpreadCheetah includes a source generator that makes it easier to create rows from objects. It is used in a similar way to the [`System.Text.Json` source generator](https://devblogs.microsoft.com/dotnet/try-the-new-system-text-json-source-generator/):
+[Source Generators](https://devblogs.microsoft.com/dotnet/introducing-c-source-generators) is a feature in the C# compiler. SpreadCheetah includes a source generator that makes it easier to create rows from objects. It is used in a similar way to the [`System.Text.Json` source generator](https://devblogs.microsoft.com/dotnet/try-the-new-system-text-json-source-generator/):
 ```cs
 namespace MyNamespace;
 
@@ -117,7 +119,7 @@ private static async ValueTask AddAsRowInternalAsync(Spreadsheet spreadsheet, My
 ```
 
 The source generator can generate rows from classes, records, and structs. It can be used in all supported .NET versions, including .NET Framework, however the C# version must be 8.0 or greater.
-More features of the source generator can be seen in the [sample project](https://github.com/sveinungf/spreadcheetah-samples/blob/main/SpreadCheetahSamples/SourceGenerator.cs).
+More features of the source generator can be seen in the [wiki](https://github.com/sveinungf/spreadcheetah/wiki/Source-generator).
 
 ## Benchmarks
 The benchmark results here have been collected using [BenchmarkDotNet](https://github.com/dotnet/benchmarkdotnet) with the following system configuration:
