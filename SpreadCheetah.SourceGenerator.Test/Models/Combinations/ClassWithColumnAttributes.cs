@@ -17,6 +17,7 @@ public class ClassWithColumnAttributes(string id, string countryOfOrigin, string
     [ColumnOrder(1)]
     [ColumnWidth(10)]
     [CellStyle("Year style")]
+    [CellValueConverter(typeof(LeapYearValueConverter))]
     public int Year { get; } = year;
 
 #pragma warning disable IDE1006 // Naming Styles
@@ -24,6 +25,7 @@ public class ClassWithColumnAttributes(string id, string countryOfOrigin, string
 #pragma warning restore IDE1006 // Naming Styles
 
     [ColumnHeader(typeof(ColumnHeaderResources), nameof(ColumnHeaderResources.Header_Length))]
+    [CellValueConverter(typeof(LengthInCmValueConverter))]
     public decimal Length { get; } = length;
 }
 

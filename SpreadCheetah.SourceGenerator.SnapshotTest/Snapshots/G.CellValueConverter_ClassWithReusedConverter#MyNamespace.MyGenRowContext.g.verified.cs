@@ -20,19 +20,23 @@ namespace MyNamespace
         public MyGenRowContext()
         {
         }
+        private static readonly MyNamespace.StringValueConverter _valueConverter0 = new MyNamespace.StringValueConverter(); 
+        private static readonly MyNamespace.DecimalValueConverter _valueConverter1 = new MyNamespace.DecimalValueConverter(); 
 
-        private WorksheetRowTypeInfo<MyNamespace.ClassWithColumnWidth>? _ClassWithColumnWidth;
-        public WorksheetRowTypeInfo<MyNamespace.ClassWithColumnWidth> ClassWithColumnWidth => _ClassWithColumnWidth
-            ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithColumnWidth>(
+        private WorksheetRowTypeInfo<MyNamespace.ClassWithReusedConverter>? _ClassWithReusedConverter;
+        public WorksheetRowTypeInfo<MyNamespace.ClassWithReusedConverter> ClassWithReusedConverter => _ClassWithReusedConverter
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithReusedConverter>(
                 AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, null);
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
-            var cells = ArrayPool<StyledCell>.Shared.Rent(1);
+            var cells = ArrayPool<StyledCell>.Shared.Rent(3);
             try
             {
-                cells[0] = new StyledCell("Name", styleId);
-                await spreadsheet.AddRowAsync(cells.AsMemory(0, 1), token).ConfigureAwait(false);
+                cells[0] = new StyledCell("Property1", styleId);
+                cells[1] = new StyledCell("Property2", styleId);
+                cells[2] = new StyledCell("Property3", styleId);
+                await spreadsheet.AddRowAsync(cells.AsMemory(0, 3), token).ConfigureAwait(false);
             }
             finally
             {
@@ -40,7 +44,7 @@ namespace MyNamespace
             }
         }
 
-        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithColumnWidth? obj, CancellationToken token)
+        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithReusedConverter? obj, CancellationToken token)
         {
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
@@ -50,7 +54,7 @@ namespace MyNamespace
         }
 
         private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            IEnumerable<MyNamespace.ClassWithColumnWidth?> objs,
+            IEnumerable<MyNamespace.ClassWithReusedConverter?> objs,
             CancellationToken token)
         {
             if (spreadsheet is null)
@@ -61,10 +65,10 @@ namespace MyNamespace
         }
 
         private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            MyNamespace.ClassWithColumnWidth obj,
+            MyNamespace.ClassWithReusedConverter obj,
             CancellationToken token)
         {
-            var cells = ArrayPool<DataCell>.Shared.Rent(1);
+            var cells = ArrayPool<DataCell>.Shared.Rent(3);
             try
             {
                 var styleIds = Array.Empty<StyleId>();
@@ -77,10 +81,10 @@ namespace MyNamespace
         }
 
         private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            IEnumerable<MyNamespace.ClassWithColumnWidth?> objs,
+            IEnumerable<MyNamespace.ClassWithReusedConverter?> objs,
             CancellationToken token)
         {
-            var cells = ArrayPool<DataCell>.Shared.Rent(1);
+            var cells = ArrayPool<DataCell>.Shared.Rent(3);
             try
             {
                 var styleIds = Array.Empty<StyleId>();
@@ -96,14 +100,16 @@ namespace MyNamespace
         }
 
         private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            MyNamespace.ClassWithColumnWidth? obj,
+            MyNamespace.ClassWithReusedConverter? obj,
             DataCell[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
         {
             if (obj is null)
                 return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
 
-            cells[0] = new DataCell(obj.Name);
-            return spreadsheet.AddRowAsync(cells.AsMemory(0, 1), token);
+            cells[0] = _valueConverter0.ConvertToDataCell(obj.Property1);
+            cells[1] = _valueConverter1.ConvertToDataCell(obj.Property2);
+            cells[2] = _valueConverter0.ConvertToDataCell(obj.Property3);
+            return spreadsheet.AddRowAsync(cells.AsMemory(0, 3), token);
         }
 
         private static DataCell ConstructTruncatedDataCell(string? value, int truncateLength)

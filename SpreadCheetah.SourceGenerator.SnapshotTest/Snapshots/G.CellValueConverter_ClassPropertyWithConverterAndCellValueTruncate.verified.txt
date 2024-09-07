@@ -1,0 +1,14 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: SPCH1008,
+      Title: Attribute combination not supported,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (7,19)-(7,27),
+      MessageFormat: Having both the {0} and the {1} attributes on a property is not supported,
+      Message: Having both the CellValueConverter and the CellValueTruncate attributes on a property is not supported,
+      Category: SpreadCheetah.SourceGenerator
+    }
+  ]
+}

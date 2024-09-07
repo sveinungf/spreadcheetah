@@ -156,7 +156,7 @@ dotnet_diagnostic.IDE0301.severity = warning
 # IDE0305: Use collection expression for fluent
 dotnet_diagnostic.IDE0305.severity = warning
 
-[{CellValueTruncateAttribute.cs,ColumnHeaderAttribute.cs,ColumnOrderAttribute.cs,CellStyleAttribute.cs,ColumnWidthAttribute.cs,WorksheetRowAttribute.cs}]
+[{CellStyleAttribute.cs,CellValueConverterAttribute.cs,CellValueTruncateAttribute.cs,ColumnHeaderAttribute.cs,ColumnOrderAttribute.cs,ColumnWidthAttribute.cs,WorksheetRowAttribute.cs}]
 # CA1019: Define accessors for attribute arguments
 dotnet_diagnostic.CA1019.severity = none
 # CS9113: Parameter is unread
@@ -265,6 +265,10 @@ dotnet_diagnostic.S3903.severity = warning
 dotnet_diagnostic.S3925.severity = none
 # S4136: Method overloads should be grouped together
 dotnet_diagnostic.S4136.severity = warning
+
+[{CellValueConverter.cs}]
+# S1694: An abstract class should have both abstract and concrete methods
+dotnet_diagnostic.S1694.severity = none
 
 [{*Test,*.Benchmark}/**.cs]
 # S927: Parameter names should match base declaration

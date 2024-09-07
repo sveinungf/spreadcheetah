@@ -63,7 +63,7 @@ public class WorksheetRowGeneratorColumnOrderTests
             """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
     }
 
     [Fact]
@@ -93,6 +93,6 @@ public class WorksheetRowGeneratorColumnOrderTests
             """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
     }
 }

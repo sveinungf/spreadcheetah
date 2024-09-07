@@ -6,8 +6,8 @@
       Severity: Error,
       WarningLevel: 0,
       Location: : (6,5)-(6,18),
-      MessageFormat: '{0}' is an invalid argument for attribute '{1}',
-      Message: '' is an invalid argument for attribute 'SpreadCheetah.SourceGeneration.CellStyleAttribute',
+      MessageFormat: '{0}' is an invalid argument for {1},
+      Message: '' is an invalid argument for CellStyleAttribute,
       Category: SpreadCheetah.SourceGenerator
     }
   ]

@@ -79,7 +79,7 @@ public class WorksheetRowGeneratorCellValueTruncateTests
             """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
     }
 
     [Fact]
@@ -102,6 +102,6 @@ public class WorksheetRowGeneratorCellValueTruncateTests
             """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
     }
 }
