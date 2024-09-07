@@ -619,8 +619,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var (i, property) in properties.Index())
         {
+            int? styleIdIndex = property.CellStyle is { } cellStyle
+                ? cellStyleToStyleIdIndex[cellStyle]
+                : null;
+
             sb.AppendLine(FormattableString.Invariant($"""
-                        cells[{i}] = {ConstructCell(property, cellValueConverters, $"obj.{property.Name}")};
+                        cells[{i}] = {ConstructCell(rowType, property, cellValueConverters, $"obj.{property.Name}", styleIdIndex)};
             """));
         }
 
@@ -628,32 +632,31 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                         return spreadsheet.AddRowAsync(cells.AsMemory(0, {{properties.Count}}), token);
                     }
             """);
+    }
 
-        string ConstructCell(RowTypeProperty property, Dictionary<string, string> valueConverters, string value)
+    private static string ConstructCell(RowType rowType, RowTypeProperty property, Dictionary<string, string> valueConverters, string value, int? styleIdIndex)
+    {
+        var cellValueConverterKey = FormattableString.Invariant($"{rowType.FullName}_{property.Name}");
+        var converter = valueConverters.TryGetValue(cellValueConverterKey, out var converterValue) ? converterValue : null;
+
+        var constructDataCell = (converter, property.CellValueTruncate) switch
         {
-            var constructDataCell = property.CellValueTruncate is { } truncate
-                ? FormattableString.Invariant($"ConstructTruncatedDataCell({value}, {truncate.Value})")
-                : $"new DataCell({value})";
+            (null, null) => $"new DataCell({value})",
+            ({ }, _) => $"{converter}.ConvertToCell({value})",
+            (null, { } truncate) => FormattableString.Invariant($"ConstructTruncatedDataCell({value}, {truncate.Value})")
+        };
 
-            int? styleIdIndex = property.CellStyle is { } cellStyle
-                ? cellStyleToStyleIdIndex[cellStyle]
-                : null;
+        var styledCell = rowType.PropertiesWithStyleAttributes > 0;
+        var styleId = (styledCell, styleIdIndex) switch
+        {
+            (true, { } i) => FormattableString.Invariant($"styleIds[{i}]"),
+            (true, _) => "null",
+            _ => null
+        };
 
-            var styledCell = rowType.PropertiesWithStyleAttributes > 0;
-
-            var cellValueConverterKey = FormattableString.Invariant($"{rowType.FullName}_{property.Name}");
-            var containsValueConverter = valueConverters.ContainsKey(cellValueConverterKey);
-
-            return (containsValueConverter, styledCell, styleIdIndex) switch
-            {
-                (false, true, { } i) => FormattableString.Invariant($"new StyledCell({constructDataCell}, styleIds[{i}])"),
-                (false, true, null) => $"new StyledCell({constructDataCell}, null)",
-                (false, false, _) => constructDataCell,
-                (true, true, { } i) => FormattableString.Invariant($"new StyledCell({valueConverters[cellValueConverterKey]}.ConvertToCell({value}), styleIds[{i}])"),
-                (true, true, null) => FormattableString.Invariant($"new StyledCell({valueConverters[cellValueConverterKey]}.ConvertToCell({value}), null)"),
-                (true, false, _) => FormattableString.Invariant($"{valueConverters[cellValueConverterKey]}.ConvertToCell({value})"),
-            };
-        }
+        return styleId is null
+            ? constructDataCell
+            : $"new StyledCell({constructDataCell}, {styleId})";
     }
 
     private static void GenerateConstructTruncatedDataCell(StringBuilder sb)
