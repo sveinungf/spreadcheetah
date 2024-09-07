@@ -11,6 +11,7 @@ namespace SpreadCheetah.SourceGenerator.CSharp8Test.Models
         public string LastName { get; }
 
         [ColumnOrder(1)]
+        [CellValueConverter(typeof(UpperCaseValueConverter))]
         public string FirstName { get; }
 
         [ColumnWidth(5)]

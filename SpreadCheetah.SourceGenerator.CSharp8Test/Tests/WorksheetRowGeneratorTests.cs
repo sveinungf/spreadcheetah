@@ -14,8 +14,9 @@ namespace SpreadCheetah.SourceGenerator.CSharp8Test.Tests
         public async Task Spreadsheet_AddAsRow_ClassWithMultipleProperties()
         {
             // Arrange
+            const string id = "2cc56ae0-32b2-46c2-b6d2-27c6ce8568ec";
             var obj = new ClassWithMultipleProperties(
-                id: Guid.NewGuid().ToString(),
+                id: id,
                 firstName: "Ola",
                 lastName: "Nordmann",
                 age: 30);
@@ -36,8 +37,8 @@ namespace SpreadCheetah.SourceGenerator.CSharp8Test.Tests
 
             // Assert
             using var sheet = SpreadsheetAssert.SingleSheet(stream);
-            Assert.Equal(obj.FirstName, sheet["A1"].StringValue);
-            Assert.Equal(obj.Id, sheet["B1"].StringValue);
+            Assert.Equal(obj.FirstName.ToUpperInvariant(), sheet["A1"].StringValue);
+            Assert.Equal(obj.Id.Replace("-", ""), sheet["B1"].StringValue);
             Assert.Equal(obj.LastName, sheet["C1"].StringValue);
             Assert.Equal(obj.Age, sheet["D1"].IntValue);
             Assert.Equal(4, sheet.CellCount);
