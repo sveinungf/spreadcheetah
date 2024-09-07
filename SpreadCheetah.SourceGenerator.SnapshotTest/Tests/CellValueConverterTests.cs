@@ -201,4 +201,59 @@ public class CellValueConverterTests
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
+
+    [Fact]
+    public Task CellValueConverter_ClassPropertyWithConverterAndCellValueTruncate()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+            public class ClassPropertyWithConverterAndCellValueTruncate
+            {
+                [CellValueConverter(typeof(StringValueConverter))]
+                [CellValueTruncate(20)]
+                public string? Property { get; set; }
+            }
+
+            internal class StringValueConverter : CellValueConverter<string>
+            {
+                public override DataCell ConvertToCell(string value) => new(value);
+            }
+               
+            [WorksheetRow(typeof(ClassPropertyWithConverterAndCellValueTruncate))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
+    }
+
+    [Fact]
+    public Task CellValueConverter_ClassWithoutParameterlessConstructor()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+            public class ClassWithoutParameterlessConstructor
+            {
+                [CellValueConverter(typeof(FixedValueConverter))]
+                public string? Value { get; set; }
+            }
+
+            internal class FixedValueConverter(string fixedValue) : CellValueConverter<string>
+            {
+                public override DataCell ConvertToCell(string value) => new(fixedValue);
+            }
+               
+            [WorksheetRow(typeof(ClassWithoutParameterlessConstructor))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
+    }
 }

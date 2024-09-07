@@ -117,7 +117,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             if (data is { CellValueConverter: not null, CellValueTruncate: not null })
             {
                 var location = property.Locations.FirstOrDefault()?.ToLocationInfo();
-                diagnosticInfos.Add(Diagnostics.AttributeCombinationNotSupported(location, "CellValueConverterAttribute", "CellValueTruncateAttribute"));
+                diagnosticInfos.Add(Diagnostics.AttributeCombinationNotSupported(location, "CellValueConverter", "CellValueTruncate"));
             }
 
             if (data.ColumnOrder is not { } order)

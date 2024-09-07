@@ -91,7 +91,7 @@ internal static class Diagnostics
     private static readonly DiagnosticDescriptor AttributeCombinationNotSupportedDescriptor = new(
         id: "SPCH1008",
         title: "Attribute combination not supported",
-        messageFormat: "Having both {0} and {1} on a property is not supported",
+        messageFormat: "Having both the {0} and the {1} attributes on a property is not supported",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
