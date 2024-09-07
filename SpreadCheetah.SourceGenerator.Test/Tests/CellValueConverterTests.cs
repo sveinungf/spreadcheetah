@@ -1,4 +1,5 @@
 using SpreadCheetah.SourceGenerator.Test.Models.CellValueConverter;
+using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
 using System.Globalization;
 using Xunit;
@@ -84,5 +85,26 @@ public class CellValueConverterTests
         Assert.Equal("JOHN", sheet["A1"].StringValue);
         Assert.Equal("OLA", sheet["A2"].StringValue);
         Assert.Equal("NORDMANN", sheet["C2"].StringValue);
+    }
+
+    [Fact]
+    public async Task CellValueConverter_ClassWithConverterAndCellStyle()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var style = new Style { Font = { Bold = true } };
+        spreadsheet.AddStyle(style, "ID style");
+        var obj = new ClassWithCellValueConverterAndCellStyle { Id = "Abc123" };
+
+        // Act
+        await spreadsheet.AddAsRowAsync(obj, CellValueConverterContext.Default.ClassWithCellValueConverterAndCellStyle);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal("ABC123", sheet["A1"].StringValue);
+        Assert.True(sheet["A1"].Style.Font.Bold);
     }
 }
