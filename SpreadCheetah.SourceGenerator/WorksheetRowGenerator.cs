@@ -642,7 +642,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var constructDataCell = (converter, property.CellValueTruncate) switch
         {
             (null, null) => $"new DataCell({value})",
-            ({ }, _) => $"{converter}.ConvertToCell({value})",
+            ({ }, _) => $"{converter}.ConvertToDataCell({value})",
             (null, { } truncate) => FormattableString.Invariant($"ConstructTruncatedDataCell({value}, {truncate.Value})")
         };
 

@@ -8,5 +8,5 @@ public abstract class CellValueConverter<T>
     /// <summary>
     /// Converts a value to a <see cref="DataCell"/>.
     /// </summary>
-    public abstract DataCell ConvertToCell(T value);
+    public abstract DataCell ConvertToDataCell(T value);
 }

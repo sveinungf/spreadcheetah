@@ -21,11 +21,12 @@ namespace MyNamespace
         {
         }
         private static readonly MyNamespace.StringValueConverter _valueConverter0 = new MyNamespace.StringValueConverter(); 
-        private static readonly MyNamespace.DecimalValueConverter _valueConverter1 = new MyNamespace.DecimalValueConverter(); 
+        private static readonly MyNamespace.NullableIntValueConverter _valueConverter1 = new MyNamespace.NullableIntValueConverter(); 
+        private static readonly MyNamespace.DecimalValueConverter _valueConverter2 = new MyNamespace.DecimalValueConverter(); 
 
-        private WorksheetRowTypeInfo<MyNamespace.ClassWithSameCellValueConverters>? _ClassWithSameCellValueConverters;
-        public WorksheetRowTypeInfo<MyNamespace.ClassWithSameCellValueConverters> ClassWithSameCellValueConverters => _ClassWithSameCellValueConverters
-            ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithSameCellValueConverters>(
+        private WorksheetRowTypeInfo<MyNamespace.ClassWithMultipleConverters>? _ClassWithMultipleConverters;
+        public WorksheetRowTypeInfo<MyNamespace.ClassWithMultipleConverters> ClassWithMultipleConverters => _ClassWithMultipleConverters
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithMultipleConverters>(
                 AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, null);
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
@@ -35,7 +36,7 @@ namespace MyNamespace
             {
                 cells[0] = new StyledCell("Property", styleId);
                 cells[1] = new StyledCell("Property1", styleId);
-                cells[2] = new StyledCell("Property1", styleId);
+                cells[2] = new StyledCell("Property2", styleId);
                 await spreadsheet.AddRowAsync(cells.AsMemory(0, 3), token).ConfigureAwait(false);
             }
             finally
@@ -44,7 +45,7 @@ namespace MyNamespace
             }
         }
 
-        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithSameCellValueConverters? obj, CancellationToken token)
+        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithMultipleConverters? obj, CancellationToken token)
         {
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
@@ -54,7 +55,7 @@ namespace MyNamespace
         }
 
         private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            IEnumerable<MyNamespace.ClassWithSameCellValueConverters?> objs,
+            IEnumerable<MyNamespace.ClassWithMultipleConverters?> objs,
             CancellationToken token)
         {
             if (spreadsheet is null)
@@ -65,7 +66,7 @@ namespace MyNamespace
         }
 
         private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            MyNamespace.ClassWithSameCellValueConverters obj,
+            MyNamespace.ClassWithMultipleConverters obj,
             CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(3);
@@ -81,7 +82,7 @@ namespace MyNamespace
         }
 
         private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            IEnumerable<MyNamespace.ClassWithSameCellValueConverters?> objs,
+            IEnumerable<MyNamespace.ClassWithMultipleConverters?> objs,
             CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(3);
@@ -100,15 +101,15 @@ namespace MyNamespace
         }
 
         private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            MyNamespace.ClassWithSameCellValueConverters? obj,
+            MyNamespace.ClassWithMultipleConverters? obj,
             DataCell[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
         {
             if (obj is null)
                 return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
 
-            cells[0] = _valueConverter0.ConvertToCell(obj.Property);
-            cells[1] = _valueConverter1.ConvertToCell(obj.Property1);
-            cells[2] = _valueConverter1.ConvertToCell(obj.Property2);
+            cells[0] = _valueConverter0.ConvertToDataCell(obj.Property);
+            cells[1] = _valueConverter1.ConvertToDataCell(obj.Property1);
+            cells[2] = _valueConverter2.ConvertToDataCell(obj.Property2);
             return spreadsheet.AddRowAsync(cells.AsMemory(0, 3), token);
         }
 

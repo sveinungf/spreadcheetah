@@ -1,0 +1,14 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: SPCH1007,
+      Title: Invalid attribute type argument,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (5,5)-(5,54),
+      MessageFormat: Type '{0}' is an invalid argument for {1} because it does not inherit {2},
+      Message: Type 'MyNamespace.DecimalValueConverter' is an invalid argument for CellValueConverterAttribute because it does not inherit CellValueConverter<string>,
+      Category: SpreadCheetah.SourceGenerator
+    }
+  ]
+}
