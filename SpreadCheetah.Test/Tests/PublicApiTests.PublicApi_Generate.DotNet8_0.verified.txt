@@ -190,10 +190,10 @@ namespace SpreadCheetah.SourceGeneration
     {
         public CellStyleAttribute(string styleName) { }
     }
-    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false, Inherited=true)]
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class CellValueConverterAttribute : System.Attribute
     {
-        public CellValueConverterAttribute(System.Type CellValueConverterType) { }
+        public CellValueConverterAttribute(System.Type converterType) { }
     }
     public abstract class CellValueConverter<T>
     {
