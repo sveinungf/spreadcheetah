@@ -66,7 +66,7 @@ public class CellValueConverterTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
-        var obj1 = new ClassWithCellValueConverter { Name = null };
+        var obj1 = new ClassWithCellValueConverter { Name = "John" };
         var obj2 = new ClassWithReusedConverter
         {
             FirstName = "Ola",

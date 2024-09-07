@@ -197,7 +197,7 @@ namespace SpreadCheetah.SourceGeneration
     public abstract class CellValueConverter<T>
     {
         protected CellValueConverter() { }
-        public abstract SpreadCheetah.DataCell ConvertToCell(T value);
+        public abstract SpreadCheetah.DataCell ConvertToDataCell(T value);
     }
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class CellValueTruncateAttribute : System.Attribute
