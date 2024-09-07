@@ -762,7 +762,7 @@ string: "", \)",
             countryOfOrigin: "Germany",
             model: "Golf",
             make: "Volkswagen",
-            year: 1990,
+            year: 1992,
             kW: 96,
             length: 428.4m);
 
@@ -772,12 +772,12 @@ string: "", \)",
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(obj.Year, sheet["A1"].IntValue);
+        Assert.Equal($"{obj.Year} (leap year)", sheet["A1"].StringValue);
         Assert.Equal(obj.Make[..8], sheet["B1"].StringValue);
         Assert.Equal(obj.CountryOfOrigin, sheet["C1"].StringValue);
         Assert.Equal(obj.Model, sheet["D1"].StringValue);
         Assert.Equal(obj.kW, sheet["E1"].DecimalValue);
-        Assert.Equal(obj.Length, sheet["F1"].DecimalValue);
+        Assert.Equal($"{obj.Length} cm", sheet["F1"].StringValue);
         Assert.Equal(obj.Id, sheet["G1"].StringValue);
 
         Assert.True(sheet["A1"].Style.Font.Bold);
