@@ -107,4 +107,32 @@ public class CellValueConverterTests
         Assert.Equal("ABC123", sheet["A1"].StringValue);
         Assert.True(sheet["A1"].Style.Font.Bold);
     }
+    
+    [Fact]
+    public async Task CellValueConverter_ClassWithConverterOnCustomType()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var style = new Style { Font = { Bold = true } };
+        spreadsheet.AddStyle(style, "PercentType");
+        var obj = new ClassWithCellValueConverterOnCustomType
+        {
+            Property = "Abc123", ComplexProperty = null, PercentType = new Percent(123)
+        };
+
+        // Act
+        await spreadsheet.AddAsRowAsync(obj, CellValueConverterContext.Default.ClassWithCellValueConverterOnCustomType);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal("Abc123", sheet["A1"].StringValue);
+        
+        Assert.Equal("-", sheet["B1"].StringValue);
+        
+        Assert.Equal(123, sheet["C1"].DecimalValue);
+        Assert.True(sheet["C1"].Style.Font.Bold);
+    }
 }
