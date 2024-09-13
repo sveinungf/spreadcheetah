@@ -256,4 +256,45 @@ public class CellValueConverterTests
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
     }
+    
+    [Fact]
+    public Task CellValueConverter_ClassWithConverterOnComplexProperty()
+    {
+        // Arrange
+        const string source = """
+                              using SpreadCheetah.SourceGeneration;
+
+                              namespace MyNamespace;
+                              public class ClassWithoutParameterlessConstructor
+                              {
+                                  [CellValueConverter(typeof(ObjectConverter))]
+                                  public object? Value { get; set; }
+                                  
+                                  [CellValueConverter(typeof(ObjectConverter))]
+                                  [CellStyle("object style")]
+                                  public object? Value1 { get; set; }
+                                  
+                                  public string StringProp { get; set; }
+                                  
+                                  [CellValueConverter(typeof(StringConverter))]
+                                  public string StringProp1 { get; set; }
+                              }
+
+                              internal class ObjectConverter : CellValueConverter<object>
+                              {
+                                  public override DataCell ConvertToCell(object value) => new(value.ToString());
+                              } 
+                              
+                              internal class StringConverter : CellValueConverter<string>
+                              {
+                                  public override DataCell ConvertToCell(string value) => new(value);
+                              } 
+                                 
+                              [WorksheetRow(typeof(ClassWithoutParameterlessConstructor))]
+                              public partial class MyGenRowContext : WorksheetRowContext;
+                              """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
 }
