@@ -265,32 +265,22 @@ public class CellValueConverterTests
             using SpreadCheetah.SourceGeneration;
 
             namespace MyNamespace;
-            public class ClassWithoutParameterlessConstructor
+            public class ClassWithConverterOnComplexProperty
             {
                 [CellValueConverter(typeof(ObjectConverter))]
-                public object? Value { get; set; }
+                public object? Property1 { get; set; }
                 
                 [CellValueConverter(typeof(ObjectConverter))]
                 [CellStyle("object style")]
-                public object? Value1 { get; set; }
-                
-                public string StringProp { get; set; }
-                
-                [CellValueConverter(typeof(StringConverter))]
-                public string StringProp1 { get; set; }
+                public object? Property2 { get; set; }
             }
 
             internal class ObjectConverter : CellValueConverter<object>
             {
                 public override DataCell ConvertToCell(object value) => new(value.ToString());
             } 
-                              
-            internal class StringConverter : CellValueConverter<string>
-            {
-                public override DataCell ConvertToCell(string value) => new(value);
-            } 
-                                 
-            [WorksheetRow(typeof(ClassWithoutParameterlessConstructor))]
+                  
+            [WorksheetRow(typeof(ClassWithConverterOnComplexProperty))]
             public partial class MyGenRowContext : WorksheetRowContext;
             """;
 
