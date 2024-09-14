@@ -93,15 +93,15 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             if (property.IsWriteOnly || property.IsStatic || property.DeclaredAccessibility != Accessibility.Public)
                 continue;
 
-            if (!property.Type.IsSupportedType() && !HasCellValueConverter(property))
+            var data = property
+                .GetAttributes()
+                .MapToPropertyAttributeData(property.Type, diagnosticInfos, token);
+
+            if (data.CellValueConverter is null && !property.Type.IsSupportedType())
             {
                 unsupportedPropertyTypeNames.Add(property.Type.Name);
                 continue;
             }
-
-            var data = property
-                .GetAttributes()
-                .MapToPropertyAttributeData(property.Type, diagnosticInfos, token);
 
             if (data.CellStyle is not null)
                 propertiesWithStyleAttributes++;
@@ -168,13 +168,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             InheritedColumnOrder.InheritedColumnsLast => classProperties.Concat(inheritedProperties),
             _ => throw new ArgumentOutOfRangeException(nameof(classType), "Unsupported inheritance strategy type")
         };
-    }
-    
-    
-    private static bool HasCellValueConverter(IPropertySymbol property)
-    {
-        return property.GetAttributes().Any(data => string.Equals(data.AttributeClass?.ToDisplayString(),
-            Attributes.CellValueConverter, StringComparison.Ordinal));
     }
 
     private static void Execute(ContextClass? contextClass, SourceProductionContext context)

@@ -1,0 +1,24 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: SPCH1007,
+      Title: Invalid attribute type argument,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (5,5)-(5,48),
+      MessageFormat: Type '{0}' is an invalid argument for {1} because it does not inherit {2},
+      Message: Type 'MyNamespace.StringConverter' is an invalid argument for CellValueConverterAttribute because it does not inherit CellValueConverter<object>,
+      Category: SpreadCheetah.SourceGenerator
+    },
+    {
+      Id: SPCH1002,
+      Title: Unsupported type for cell value,
+      Severity: Warning,
+      WarningLevel: 1,
+      Location: : (16,1)-(16,65),
+      MessageFormat: The type '{0}' has a property of type '{1}' which is not supported as a cell value. The property will be ignored when creating the row.,
+      Message: The type 'ClassWithInvalidConverterOnComplexProperty' has a property of type 'Object' which is not supported as a cell value. The property will be ignored when creating the row.,
+      Category: SpreadCheetah.SourceGenerator
+    }
+  ]
+}
