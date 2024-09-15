@@ -537,7 +537,7 @@ public class SpreadsheetStyledRowTests
         Assert.True(actualCell.Style.Font.Italic);
     }
 
-    public static IEnumerable<object?[]> BorderStyles() => TestData.CombineWithStyledCellTypes(EnumHelper.GetValues<BorderStyle>());
+    public static IEnumerable<object?[]> BorderStyles() => TestData.CombineWithStyledCellTypes(EnumPolyfill.GetValues<BorderStyle>());
 
     [Theory]
     [MemberData(nameof(BorderStyles))]
@@ -576,7 +576,7 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(XLBorderStyleValues.None, actualBorder.DiagonalBorder);
     }
 
-    public static IEnumerable<object?[]> DiagonalBorderTypes() => TestData.CombineWithStyledCellTypes(EnumHelper.GetValues<DiagonalBorderType>());
+    public static IEnumerable<object?[]> DiagonalBorderTypes() => TestData.CombineWithStyledCellTypes(EnumPolyfill.GetValues<DiagonalBorderType>());
 
     [Theory]
     [MemberData(nameof(DiagonalBorderTypes))]
@@ -681,7 +681,7 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(XLColor.Black, actualBorder.DiagonalBorderColor);
     }
 
-    public static IEnumerable<object?[]> HorizontalAlignments() => TestData.CombineWithStyledCellTypes(EnumHelper.GetValues<HorizontalAlignment>());
+    public static IEnumerable<object?[]> HorizontalAlignments() => TestData.CombineWithStyledCellTypes(EnumPolyfill.GetValues<HorizontalAlignment>());
 
     [Theory]
     [MemberData(nameof(HorizontalAlignments))]
@@ -715,7 +715,7 @@ public class SpreadsheetStyledRowTests
         Assert.False(actualAlignment.WrapText);
     }
 
-    public static IEnumerable<object?[]> VerticalAlignments() => TestData.CombineWithStyledCellTypes(EnumHelper.GetValues<VerticalAlignment>());
+    public static IEnumerable<object?[]> VerticalAlignments() => TestData.CombineWithStyledCellTypes(EnumPolyfill.GetValues<VerticalAlignment>());
 
     [Theory]
     [MemberData(nameof(VerticalAlignments))]
@@ -1150,7 +1150,7 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
 
-    public static IEnumerable<object?[]> ExplicitStandardNumberFormats() => TestData.CombineWithStyledCellTypes(EnumHelper.GetValues<StandardNumberFormat>());
+    public static IEnumerable<object?[]> ExplicitStandardNumberFormats() => TestData.CombineWithStyledCellTypes(EnumPolyfill.GetValues<StandardNumberFormat>());
 
     [Theory]
     [MemberData(nameof(ExplicitStandardNumberFormats))]

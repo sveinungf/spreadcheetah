@@ -11,7 +11,7 @@ public readonly record struct NumberFormat : IEquatable<NumberFormat>
     private NumberFormat(string? customFormat, StandardNumberFormat? standardFormat)
     {
         CustomFormat = customFormat.WithEnsuredMaxLength(255);
-        StandardFormat = (standardFormat is not { } format || EnumHelper.IsDefined(format))
+        StandardFormat = (standardFormat is not { } format || EnumPolyfill.IsDefined(format))
             ? standardFormat
             : throw new ArgumentOutOfRangeException(nameof(standardFormat));
     }
