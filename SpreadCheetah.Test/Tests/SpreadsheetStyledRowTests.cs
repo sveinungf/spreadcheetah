@@ -3,7 +3,6 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
-using SpreadCheetah.Test.Helpers.Backporting;
 using System.Globalization;
 using Alignment = SpreadCheetah.Styling.Alignment;
 using Border = SpreadCheetah.Styling.Border;
