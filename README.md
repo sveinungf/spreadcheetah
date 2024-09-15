@@ -13,7 +13,7 @@ SpreadCheetah is a high-performance .NET library for generating spreadsheet (Mic
 - No dependency to Microsoft Excel
 - Targeting .NET Standard 2.0 for .NET Framework and earlier versions of .NET Core
 - Targeting .NET 6 and newer for more optimizations
-- Trimmable and native AOT compatible
+- Trimmable and NativeAOT compatible
 
 SpreadCheetah is designed to create spreadsheet files in a forward-only manner.
 That means worksheets from left to right, rows from top to bottom, and row cells from left to right.
@@ -125,23 +125,23 @@ More features of the source generator can be seen in the [wiki](https://github.c
 The benchmark results here have been collected using [BenchmarkDotNet](https://github.com/dotnet/benchmarkdotnet) with the following system configuration:
 
 ``` ini
-BenchmarkDotNet v0.13.11, Windows 10 (10.0.19045.3803/22H2/2022Update)
+BenchmarkDotNet v0.14.0, Windows 10 (10.0.19045.4894/22H2/2022Update)
 Intel Core i5-8600K CPU 3.60GHz (Coffee Lake), 1 CPU, 6 logical and 6 physical cores
-.NET SDK 8.0.100
-  [Host]             : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
-  .NET 6.0           : .NET 6.0.25 (6.0.2523.51912), X64 RyuJIT AVX2
-  .NET 8.0           : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
-  .NET Framework 4.8 : .NET Framework 4.8.1 (4.8.9181.0), X64 RyuJIT VectorSize=256
+.NET SDK 9.0.100-preview.7.24407.12
+  [Host]             : .NET 8.0.8 (8.0.824.36612), X64 RyuJIT AVX2
+  .NET 6.0           : .NET 6.0.33 (6.0.3324.36610), X64 RyuJIT AVX2
+  .NET 8.0           : .NET 8.0.8 (8.0.824.36612), X64 RyuJIT AVX2
+  .NET Framework 4.8 : .NET Framework 4.8.1 (4.8.9261.0), X64 RyuJIT VectorSize=256
 
-InvocationCount=1  UnrollFactor=1  
+InvocationCount=1  UnrollFactor=1
 ```
 
 These libraries have been used in the comparison benchmarks:
 | Library                                                | Version |
 |--------------------------------------------------------|--------:|
-| SpreadCheetah                                          |  1.12.0 |
+| SpreadCheetah                                          |  1.18.0 |
 | [Open XML SDK](https://github.com/dotnet/Open-XML-SDK) |  2.20.0 |
-| [ClosedXML](https://github.com/ClosedXML/ClosedXML)    | 0.102.1 |
+| [ClosedXML](https://github.com/ClosedXML/ClosedXML)    | 0.102.3 |
 | [EPPlusFree](https://github.com/rimland/EPPlus)        | 4.5.3.8 |
 
 > Disclaimer: The libraries have different feature sets compared to each other.
@@ -161,11 +161,11 @@ The code is available [in the Benchmark project](https://github.com/sveinungf/sp
 
 |                    Library |         Mean |     Allocated |
 |----------------------------|-------------:|--------------:|
-|          **SpreadCheetah** | **23.07 ms** |   **6.44 KB** |
-|    Open XML (SAX approach) |    184.94 ms |  66 041.63 KB |
-|                 EPPlusFree |    370.07 ms | 195 610.91 KB |
-|    Open XML (DOM approach) |    700.73 ms | 182 916.73 KB |
-|                  ClosedXML |    754.83 ms | 529 203.20 KB |
+|          **SpreadCheetah** | **21.22 ms** |   **6.33 KB** |
+|    Open XML (SAX approach) |    185.66 ms |  66 037.32 KB |
+|                 EPPlusFree |    358.31 ms | 195 610.91 KB |
+|    Open XML (DOM approach) |    701.17 ms | 182 916.73 KB |
+|                  ClosedXML |    739.16 ms | 529 203.20 KB |
 </details>
 
 
@@ -174,11 +174,11 @@ The code is available [in the Benchmark project](https://github.com/sveinungf/sp
 
 |                    Library |         Mean |     Allocated |
 |----------------------------|-------------:|--------------:|
-|          **SpreadCheetah** | **25.58 ms** |   **6.63 KB** |
-|    Open XML (SAX approach) |    237.28 ms |  66 055.02 KB |
-|                 EPPlusFree |    408.78 ms | 195 791.84 KB |
-|    Open XML (DOM approach) |    802.89 ms | 182 926.09 KB |
-|                  ClosedXML |    891.17 ms | 529 852.29 KB |
+|          **SpreadCheetah** | **25.05 ms** |   **6.52 KB** |
+|    Open XML (SAX approach) |    234.12 ms |  66 052.24 KB |
+|                 EPPlusFree |    407.38 ms | 195 791.84 KB |
+|    Open XML (DOM approach) |    803.30 ms | 182 926.09 KB |
+|                  ClosedXML |    874.41 ms | 529 844.80 KB |
 </details>
 
 
@@ -187,9 +187,9 @@ The code is available [in the Benchmark project](https://github.com/sveinungf/sp
 
 |                    Library |         Mean |     Allocated |
 |----------------------------|-------------:|--------------:|
-|          **SpreadCheetah** | **65.54 ms** | **152.23 KB** |
-|    Open XML (SAX approach) |    402.34 ms |  43 317.24 KB |
-|                 EPPlusFree |    621.00 ms | 286 145.93 KB |
-|    Open XML (DOM approach) |  1,051.95 ms | 161 059.22 KB |
-|                  ClosedXML |  1,310.59 ms | 509 205.80 KB |
+|          **SpreadCheetah** | **72.34 ms** | **152.23 KB** |
+|    Open XML (SAX approach) |    408.03 ms |  43 317.24 KB |
+|                 EPPlusFree |    622.80 ms | 286 141.77 KB |
+|    Open XML (DOM approach) |  1,070.28 ms | 161 067.34 KB |
+|                  ClosedXML |  1,319.16 ms | 509 205.80 KB |
 </details>
