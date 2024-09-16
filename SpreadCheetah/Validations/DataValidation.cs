@@ -67,7 +67,7 @@ public sealed class DataValidation
     public ValidationErrorType ErrorType
     {
         get => _errorType;
-        set => _errorType = EnumHelper.IsDefined(value)
+        set => _errorType = EnumPolyfill.IsDefined(value)
             ? value
             : throw new ArgumentOutOfRangeException(nameof(value), value, null);
     }
