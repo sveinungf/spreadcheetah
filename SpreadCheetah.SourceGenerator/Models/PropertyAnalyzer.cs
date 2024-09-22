@@ -18,7 +18,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
             _ = attribute.AttributeClass?.ToDisplayString() switch
             {
                 Attributes.CellStyle => TryGetCellStyleAttribute(attribute, token),
-                Attributes.CellValueConverter => TryGetCellValueConverterAttribute(attribute, property.Type, token),
+                Attributes.CellValueConverter => TryGetCellValueConverterAttribute(property, attribute, property.Type, token),
                 Attributes.CellValueTruncate => TryGetCellValueTruncateAttribute(attribute, property.Type, token),
                 Attributes.ColumnHeader => TryGetColumnHeaderAttribute(attribute, token),
                 Attributes.ColumnOrder => TryGetColumnOrderAttribute(attribute, token),
@@ -46,7 +46,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
             || char.IsWhiteSpace(value[0])
             || char.IsWhiteSpace(value[^1]))
         {
-            diagnostics.ReportInvalidArgument(attribute, value, token);
+            diagnostics.ReportInvalidArgument(attribute, token);
             return false;
         }
 
@@ -55,6 +55,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
     }
 
     private bool TryGetCellValueConverterAttribute(
+        IPropertySymbol propertySymbol,
         AttributeData attribute,
         ITypeSymbol propertyType,
         CancellationToken token)
@@ -81,7 +82,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
         if (!hasPublicConstructor)
         {
-            diagnostics.ReportTypeMustHaveDefaultConstructor(attribute, typeName, token);
+            diagnostics.ReportTypeMustHaveDefaultConstructor(propertySymbol, attribute, typeName, token);
             return false;
         }
 
@@ -109,7 +110,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
         if (attributeValue <= 0)
         {
-            diagnostics.ReportInvalidArgument(attribute, attributeValue, token);
+            diagnostics.ReportInvalidArgument(attribute, token);
             return false;
         }
 
@@ -171,7 +172,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
         if (args is not [{ Value: int attributeValue }])
             return false;
 
-        var location = attribute.GetLocation(token);
+        var location = attribute.GetLocation(token).ToLocationInfo();
         _result.ColumnOrder = new ColumnOrder(attributeValue, location);
         return true;
     }
@@ -189,7 +190,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
         if (attributeValue is <= 0 or > 255)
         {
-            diagnostics.ReportInvalidArgument(attribute, attributeValue, token);
+            diagnostics.ReportInvalidArgument(attribute, token);
             return false;
         }
 

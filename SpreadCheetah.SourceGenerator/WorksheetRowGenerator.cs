@@ -87,15 +87,14 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var unsupportedPropertyTypeNames = new HashSet<string>(StringComparer.Ordinal);
         var diagnosticInfos = new List<DiagnosticInfo>();
         var propertiesWithStyleAttributes = 0;
+        var analyzer = new PropertyAnalyzer(NullDiagnosticsReporter.Instance);
 
         foreach (var property in GetClassAndBaseClassProperties(classType))
         {
             if (property.IsWriteOnly || property.IsStatic || property.DeclaredAccessibility != Accessibility.Public)
                 continue;
 
-            var data = property
-                .GetAttributes()
-                .MapToPropertyAttributeData(property.Type, diagnosticInfos, token);
+            var data = analyzer.Analyze(property, token);
 
             if (data.CellValueConverter is null && !property.Type.IsSupportedType())
             {
@@ -250,7 +249,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         Dictionary<string, string> cellValueConverters, RowType rowType,
         ContextClass contextClass, SourceProductionContext context)
     {
-        ReportDiagnostics(rowType, rowType.WorksheetRowAttributeLocation, contextClass.Options, context);
+        //ReportDiagnostics(rowType, rowType.WorksheetRowAttributeLocation, contextClass.Options, context);
 
         sb.AppendLine().AppendLine($$"""
                     private WorksheetRowTypeInfo<{{rowType.FullName}}>? _{{rowType.Name}};

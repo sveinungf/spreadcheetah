@@ -6,15 +6,7 @@ internal sealed class NullDiagnosticsReporter : IDiagnosticsReporter
 {
     public static readonly NullDiagnosticsReporter Instance = new();
 
-    public void ReportInvalidArgument(AttributeData attribute, int value, CancellationToken token)
-    {
-    }
-
-    public void ReportInvalidArgument(AttributeData attribute, double value, CancellationToken token)
-    {
-    }
-
-    public void ReportInvalidArgument(AttributeData attribute, string value, CancellationToken token)
+    public void ReportInvalidArgument(AttributeData attribute, CancellationToken token)
     {
     }
 
@@ -22,7 +14,7 @@ internal sealed class NullDiagnosticsReporter : IDiagnosticsReporter
     {
     }
 
-    public void ReportTypeMustHaveDefaultConstructor(AttributeData attribute, string typeName, CancellationToken token)
+    public void ReportTypeMustHaveDefaultConstructor(IPropertySymbol symbol, AttributeData attribute, string typeName, CancellationToken token)
     {
     }
 
