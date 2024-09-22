@@ -1,9 +1,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using SpreadCheetah.SourceGenerator.Extensions;
-using SpreadCheetah.SourceGenerator.Helpers;
+using SpreadCheetah.SourceGenerator.Models;
 
-namespace SpreadCheetah.SourceGenerator.Models;
+namespace SpreadCheetah.SourceGenerator.Helpers;
 
 internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 {

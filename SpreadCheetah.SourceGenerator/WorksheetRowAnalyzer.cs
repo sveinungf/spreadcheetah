@@ -1,7 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SpreadCheetah.SourceGenerator;
-using SpreadCheetah.SourceGenerator.Models;
+using SpreadCheetah.SourceGenerator.Helpers;
 using System.Collections.Immutable;
 
 namespace SpreadCheetah.SourceGenerators;

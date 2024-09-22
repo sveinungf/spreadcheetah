@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis;
 
-namespace SpreadCheetah.SourceGenerator.Models;
+namespace SpreadCheetah.SourceGenerator.Helpers;
 
 internal interface IDiagnosticsReporter
 {

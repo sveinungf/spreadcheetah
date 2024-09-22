@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace SpreadCheetah.SourceGenerator.Models;
+namespace SpreadCheetah.SourceGenerator.Helpers;
 
 internal sealed class DiagnosticsReporter(SymbolAnalysisContext context) : IDiagnosticsReporter
 {
