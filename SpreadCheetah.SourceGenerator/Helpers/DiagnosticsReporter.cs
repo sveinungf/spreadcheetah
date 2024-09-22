@@ -8,9 +8,7 @@ internal sealed class DiagnosticsReporter(SymbolAnalysisContext context) : IDiag
 {
     public void ReportInvalidArgument(AttributeData attribute, CancellationToken token)
     {
-        if (attribute.ApplicationSyntaxReference?.GetSyntax(token) is not AttributeSyntax attributeSyntax)
-            return;
-        if (attributeSyntax.ArgumentList?.Arguments.FirstOrDefault() is not { } arg)
+        if (!TryGetArgument(attribute, token, out var arg) || arg is null)
             return;
         if (attribute.AttributeClass?.Name is not { } name)
             return;
@@ -32,15 +30,36 @@ internal sealed class DiagnosticsReporter(SymbolAnalysisContext context) : IDiag
         context.ReportDiagnostic(Diagnostics.UnsupportedTypeForAttribute(attribute, typeFullName, token));
     }
 
-    // TODO: Set correct location
-    public void ReportTypeMustHaveDefaultConstructor(IPropertySymbol symbol, AttributeData attribute, string typeName, CancellationToken token)
+    public void ReportTypeMustHaveDefaultConstructor(AttributeData attribute, string typeName, CancellationToken token)
     {
-        context.ReportDiagnostic(Diagnostics.AttributeTypeArgumentMustHaveDefaultConstructor(symbol, attribute, typeName, token));
+        if (!TryGetArgument(attribute, token, out var arg) || arg is null)
+            return;
+
+        var diagnostic = Diagnostics.AttributeTypeArgumentMustHaveDefaultConstructor(arg.GetLocation(), typeName);
+        context.ReportDiagnostic(diagnostic);
     }
 
-    // TODO: Set correct location
     public void ReportTypeMustInherit(AttributeData attribute, string typeName, string baseClassName, CancellationToken token)
     {
-        context.ReportDiagnostic(Diagnostics.AttributeTypeArgumentMustInherit(attribute, typeName, baseClassName, token));
+        if (!TryGetArgument(attribute, token, out var arg) || arg is null)
+            return;
+        if (attribute.AttributeClass?.Name is not { } name)
+            return;
+
+        var diagnostic = Diagnostics.AttributeTypeArgumentMustInherit(arg.GetLocation(), typeName, name, baseClassName);
+        context.ReportDiagnostic(diagnostic);
+    }
+
+    private static bool TryGetArgument(AttributeData attribute, CancellationToken token, out AttributeArgumentSyntax? argument)
+    {
+        argument = null;
+
+        if (attribute.ApplicationSyntaxReference?.GetSyntax(token) is not AttributeSyntax attributeSyntax)
+            return false;
+        if (attributeSyntax.ArgumentList?.Arguments.FirstOrDefault() is not { } arg)
+            return false;
+
+        argument = arg;
+        return true;
     }
 }

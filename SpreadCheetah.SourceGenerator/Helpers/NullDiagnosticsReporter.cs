@@ -14,7 +14,7 @@ internal sealed class NullDiagnosticsReporter : IDiagnosticsReporter
     {
     }
 
-    public void ReportTypeMustHaveDefaultConstructor(IPropertySymbol symbol, AttributeData attribute, string typeName, CancellationToken token)
+    public void ReportTypeMustHaveDefaultConstructor(AttributeData attribute, string typeName, CancellationToken token)
     {
     }
 

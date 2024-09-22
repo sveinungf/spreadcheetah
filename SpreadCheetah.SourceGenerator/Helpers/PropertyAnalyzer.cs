@@ -18,7 +18,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
             _ = attribute.AttributeClass?.ToDisplayString() switch
             {
                 Attributes.CellStyle => TryGetCellStyleAttribute(attribute, token),
-                Attributes.CellValueConverter => TryGetCellValueConverterAttribute(property, attribute, property.Type, token),
+                Attributes.CellValueConverter => TryGetCellValueConverterAttribute(attribute, property.Type, token),
                 Attributes.CellValueTruncate => TryGetCellValueTruncateAttribute(attribute, property.Type, token),
                 Attributes.ColumnHeader => TryGetColumnHeaderAttribute(attribute, token),
                 Attributes.ColumnOrder => TryGetColumnOrderAttribute(attribute, token),
@@ -55,7 +55,6 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
     }
 
     private bool TryGetCellValueConverterAttribute(
-        IPropertySymbol propertySymbol,
         AttributeData attribute,
         ITypeSymbol propertyType,
         CancellationToken token)
@@ -82,7 +81,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
         if (!hasPublicConstructor)
         {
-            diagnostics.ReportTypeMustHaveDefaultConstructor(propertySymbol, attribute, typeName, token);
+            diagnostics.ReportTypeMustHaveDefaultConstructor(attribute, typeName, token);
             return false;
         }
 

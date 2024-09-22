@@ -93,9 +93,8 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    // TODO: Property-level diagnostic
-    public static Diagnostic AttributeTypeArgumentMustInherit(AttributeData attribute, string typeName, string baseClassName, CancellationToken token)
-        => Diagnostic.Create(AttributeTypeArgumentMustInheritDescriptor, attribute.GetLocation(token), [typeName, attribute.Name(), baseClassName]);
+    public static Diagnostic AttributeTypeArgumentMustInherit(Location? location, string typeName, string attributeName, string baseClassName)
+        => Diagnostic.Create(AttributeTypeArgumentMustInheritDescriptor, location, [typeName, attributeName, baseClassName]);
 
     private static readonly DiagnosticDescriptor AttributeTypeArgumentMustInheritDescriptor = new(
         id: "SPCH1007",
@@ -117,9 +116,8 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    // TODO: Property-level diagnostic
-    public static Diagnostic AttributeTypeArgumentMustHaveDefaultConstructor(IPropertySymbol symbol, AttributeData attribute, string typeName, CancellationToken token)
-        => Diagnostic.Create(AttributeTypeArgumentMustHaveDefaultConstructorDescriptor, symbol.Locations.FirstOrDefault(), [typeName]);
+    public static Diagnostic AttributeTypeArgumentMustHaveDefaultConstructor(Location? location, string typeName)
+        => Diagnostic.Create(AttributeTypeArgumentMustHaveDefaultConstructorDescriptor, location, [typeName]);
 
     public static readonly DiagnosticDescriptor AttributeTypeArgumentMustHaveDefaultConstructorDescriptor = new(
         id: "SPCH1009",
