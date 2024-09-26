@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis;
-using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Models;
 using System.Collections.Immutable;
 
@@ -102,14 +101,13 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    // TODO: Property-level diagnostic
-    public static DiagnosticInfo AttributeCombinationNotSupported(LocationInfo? location, string attribute1, string attribute2)
-        => new(AttributeCombinationNotSupportedDescriptor, location, new([attribute1, attribute2]));
+    public static Diagnostic AttributeCombinationNotSupported(Location? location, string attribute1, string attribute2)
+        => Diagnostic.Create(AttributeCombinationNotSupportedDescriptor, location, [attribute1, attribute2]);
 
     private static readonly DiagnosticDescriptor AttributeCombinationNotSupportedDescriptor = new(
         id: "SPCH1008",
         title: "Attribute combination not supported",
-        messageFormat: "Having both the {0} and the {1} attributes on a property is not supported",
+        messageFormat: "Having both {0} and {1} on a property is not supported",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);

@@ -113,12 +113,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 CellValueTruncate: data.CellValueTruncate,
                 CellValueConverter: data.CellValueConverter);
 
-            if (data is { CellValueConverter: not null, CellValueTruncate: not null })
-            {
-                var location = property.Locations.FirstOrDefault()?.ToLocationInfo();
-                diagnosticInfos.Add(Diagnostics.AttributeCombinationNotSupported(location, "CellValueConverter", "CellValueTruncate"));
-            }
-
             if (data.ColumnOrder is not { } order)
                 implicitOrderProperties.Add(rowTypeProperty);
             else if (!explicitOrderProperties.ContainsKey(order.Value))

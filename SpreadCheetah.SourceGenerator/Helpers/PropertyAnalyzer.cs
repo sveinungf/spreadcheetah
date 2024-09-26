@@ -27,6 +27,15 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
             };
         }
 
+        if (_result is { CellValueConverter: not null, CellValueTruncate: not null })
+        {
+            var cellValueTruncateAttribute = property
+                .GetAttributes()
+                .First(x => Attributes.CellValueTruncate.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
+
+            diagnostics.ReportAttributeCombinationNotSupported(cellValueTruncateAttribute, "CellValueConverterAttribute", token);
+        }
+
         return _result;
     }
 

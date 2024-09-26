@@ -6,6 +6,17 @@ namespace SpreadCheetah.SourceGenerator.Helpers;
 
 internal sealed class DiagnosticsReporter(SymbolAnalysisContext context) : IDiagnosticsReporter
 {
+    public void ReportAttributeCombinationNotSupported(AttributeData attribute, string otherAttribute, CancellationToken token)
+    {
+        if (attribute.ApplicationSyntaxReference?.GetSyntax(token) is not AttributeSyntax attributeSyntax)
+            return;
+        if (attribute.AttributeClass?.Name is not { } name)
+            return;
+
+        var diagnostic = Diagnostics.AttributeCombinationNotSupported(attributeSyntax.GetLocation(), name, otherAttribute);
+        context.ReportDiagnostic(diagnostic);
+    }
+
     public void ReportInvalidArgument(AttributeData attribute, CancellationToken token)
     {
         if (!TryGetArgument(attribute, token, out var arg) || arg is null)

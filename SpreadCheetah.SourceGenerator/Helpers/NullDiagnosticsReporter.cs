@@ -6,6 +6,10 @@ internal sealed class NullDiagnosticsReporter : IDiagnosticsReporter
 {
     public static readonly NullDiagnosticsReporter Instance = new();
 
+    public void ReportAttributeCombinationNotSupported(AttributeData attribute, string otherAttribute, CancellationToken token)
+    {
+    }
+
     public void ReportInvalidArgument(AttributeData attribute, CancellationToken token)
     {
     }
