@@ -58,9 +58,8 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    // TODO: Property-level diagnostic
-    public static Diagnostic InvalidColumnHeaderPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
-        => Diagnostic.Create(InvalidColumnHeaderPropertyReferenceDescriptor, attribute.GetLocation(token), [propertyName, typeFullName]);
+    public static Diagnostic InvalidColumnHeaderPropertyReference(Location? location, string propertyName, string typeFullName)
+        => Diagnostic.Create(InvalidColumnHeaderPropertyReferenceDescriptor, location, [propertyName, typeFullName]);
 
     private static readonly DiagnosticDescriptor InvalidColumnHeaderPropertyReferenceDescriptor = new(
         id: "SPCH1004",
@@ -70,9 +69,8 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    // TODO: Property-level diagnostic
-    public static Diagnostic UnsupportedTypeForAttribute(AttributeData attribute, string typeFullName, CancellationToken token)
-        => Diagnostic.Create(UnsupportedTypeForAttributeDescriptor, attribute.GetLocation(token), [attribute.Name(), typeFullName]);
+    public static Diagnostic UnsupportedTypeForAttribute(Location? location, string attributeName, string typeFullName)
+        => Diagnostic.Create(UnsupportedTypeForAttributeDescriptor, location, [attributeName, typeFullName]);
 
     private static readonly DiagnosticDescriptor UnsupportedTypeForAttributeDescriptor = new(
         id: "SPCH1005",
@@ -126,6 +124,4 @@ internal static class Diagnostics
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
-
-    private static string Name(this AttributeData attribute) => attribute.AttributeClass?.Name ?? "";
 }
