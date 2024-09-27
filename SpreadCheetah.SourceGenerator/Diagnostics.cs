@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis;
-using SpreadCheetah.SourceGenerator.Models;
 using System.Collections.Immutable;
 
 namespace SpreadCheetah.SourceGenerator;
@@ -45,14 +44,13 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
-    // TODO: Class-level diagnostic
-    public static DiagnosticInfo DuplicateColumnOrder(LocationInfo? location, string className)
-        => new(DuplicateColumnOrderDescriptor, location, new([className]));
+    public static Diagnostic DuplicateColumnOrder(Location? location)
+        => Diagnostic.Create(DuplicateColumnOrderDescriptor, location);
 
     private static readonly DiagnosticDescriptor DuplicateColumnOrderDescriptor = new(
         id: "SPCH1003",
         title: "Duplicate column ordering",
-        messageFormat: "The type '{0}' has two or more properties with the same column order",
+        messageFormat: "The same column order can not be used on two different properties",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);

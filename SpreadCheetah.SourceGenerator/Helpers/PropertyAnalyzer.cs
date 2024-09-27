@@ -21,19 +21,10 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
                 Attributes.CellValueConverter => TryGetCellValueConverterAttribute(attribute, property.Type, token),
                 Attributes.CellValueTruncate => TryGetCellValueTruncateAttribute(attribute, property.Type, token),
                 Attributes.ColumnHeader => TryGetColumnHeaderAttribute(attribute, token),
-                Attributes.ColumnOrder => TryGetColumnOrderAttribute(attribute, token),
+                Attributes.ColumnOrder => TryGetColumnOrderAttribute(attribute),
                 Attributes.ColumnWidth => TryGetColumnWidthAttribute(attribute, token),
                 _ => false
             };
-        }
-
-        if (_result is { CellValueConverter: not null, CellValueTruncate: not null })
-        {
-            var cellValueTruncateAttribute = property
-                .GetAttributes()
-                .First(x => Attributes.CellValueTruncate.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
-
-            diagnostics.ReportAttributeCombinationNotSupported(cellValueTruncateAttribute, "CellValueConverterAttribute", token);
         }
 
         return _result;
@@ -169,9 +160,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
         return null;
     }
 
-    private bool TryGetColumnOrderAttribute(
-        AttributeData attribute,
-        CancellationToken token)
+    private bool TryGetColumnOrderAttribute(AttributeData attribute)
     {
         if (_result.ColumnOrder is not null)
             return false;
@@ -180,8 +169,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
         if (args is not [{ Value: int attributeValue }])
             return false;
 
-        var location = attribute.GetLocation(token).ToLocationInfo();
-        _result.ColumnOrder = new ColumnOrder(attributeValue, location);
+        _result.ColumnOrder = new ColumnOrder(attributeValue);
         return true;
     }
 

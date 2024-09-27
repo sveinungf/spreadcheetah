@@ -1,6 +1,5 @@
 using Microsoft.CodeAnalysis;
 using SpreadCheetah.SourceGenerator.Helpers;
-using SpreadCheetah.SourceGenerator.Models;
 using System.Diagnostics.CodeAnalysis;
 
 namespace SpreadCheetah.SourceGenerator.Extensions;
@@ -59,22 +58,8 @@ internal static class AttributeDataExtensions
         return false;
     }
 
-    public static InheritedColumnOrder? TryGetInheritedColumnOrderingAttribute(this AttributeData attribute)
+    public static bool IsColumnOrder(this AttributeData attribute)
     {
-        if (!string.Equals(Attributes.InheritColumns, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
-            return null;
-
-        if (attribute.NamedArguments is [{ Value.Value: { } arg }] && Enum.IsDefined(typeof(InheritedColumnOrder), arg))
-            return (InheritedColumnOrder)arg;
-
-        return InheritedColumnOrder.InheritedColumnsFirst;
-    }
-
-    public static Location? GetLocation(this AttributeData attribute, CancellationToken token)
-    {
-        return attribute
-            .ApplicationSyntaxReference?
-            .GetSyntax(token)
-            .GetLocation();
+        return Attributes.ColumnOrder.Equals(attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal);
     }
 }

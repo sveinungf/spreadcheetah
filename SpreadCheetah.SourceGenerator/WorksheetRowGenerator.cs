@@ -89,7 +89,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var propertiesWithStyleAttributes = 0;
         var analyzer = new PropertyAnalyzer(NullDiagnosticsReporter.Instance);
 
-        foreach (var property in GetClassAndBaseClassProperties(classType))
+        foreach (var property in classType.GetClassAndBaseClassProperties())
         {
             if (property.IsWriteOnly || property.IsStatic || property.DeclaredAccessibility != Accessibility.Public)
                 continue;
@@ -117,8 +117,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 implicitOrderProperties.Add(rowTypeProperty);
             else if (!explicitOrderProperties.ContainsKey(order.Value))
                 explicitOrderProperties.Add(order.Value, rowTypeProperty);
-            else
-                diagnosticInfos.Add(Diagnostics.DuplicateColumnOrder(order.Location, classType.Name));
         }
 
         explicitOrderProperties.AddWithImplicitKeys(implicitOrderProperties);
@@ -132,35 +130,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             PropertiesWithStyleAttributes: propertiesWithStyleAttributes,
             UnsupportedPropertyTypeNames: unsupportedPropertyTypeNames.ToEquatableArray(),
             WorksheetRowAttributeLocation: worksheetRowAttributeLocation);
-    }
-
-    private static IEnumerable<IPropertySymbol> GetClassAndBaseClassProperties(ITypeSymbol? classType)
-    {
-        if (classType is null || string.Equals(classType.Name, "Object", StringComparison.Ordinal))
-        {
-            return [];
-        }
-
-        var inheritedColumnOrderStrategy = classType.GetAttributes()
-            .Where(data => data.TryGetInheritedColumnOrderingAttribute().HasValue)
-            .Select(data => data.TryGetInheritedColumnOrderingAttribute())
-            .FirstOrDefault();
-
-        var classProperties = classType.GetMembers().OfType<IPropertySymbol>();
-
-        if (inheritedColumnOrderStrategy is null)
-        {
-            return classProperties;
-        }
-
-        var inheritedProperties = GetClassAndBaseClassProperties(classType.BaseType);
-
-        return inheritedColumnOrderStrategy switch
-        {
-            InheritedColumnOrder.InheritedColumnsFirst => inheritedProperties.Concat(classProperties),
-            InheritedColumnOrder.InheritedColumnsLast => classProperties.Concat(inheritedProperties),
-            _ => throw new ArgumentOutOfRangeException(nameof(classType), "Unsupported inheritance strategy type")
-        };
     }
 
     private static void Execute(ContextClass? contextClass, SourceProductionContext context)

@@ -10,6 +10,10 @@ internal sealed class NullDiagnosticsReporter : IDiagnosticsReporter
     {
     }
 
+    public void ReportDuplicateColumnOrdering(AttributeData attribute, CancellationToken token)
+    {
+    }
+
     public void ReportInvalidArgument(AttributeData attribute, CancellationToken token)
     {
     }
