@@ -22,6 +22,10 @@ internal sealed class NullDiagnosticsReporter : IDiagnosticsReporter
     {
     }
 
+    public void ReportNoPropertiesFound(AttributeData attribute, INamedTypeSymbol rowType, CancellationToken token)
+    {
+    }
+
     public void ReportTypeMustHaveDefaultConstructor(AttributeData attribute, string typeName, CancellationToken token)
     {
     }
@@ -30,7 +34,11 @@ internal sealed class NullDiagnosticsReporter : IDiagnosticsReporter
     {
     }
 
-    public void ReportUnsupportedType(AttributeData attribute, ITypeSymbol propertyType, CancellationToken token)
+    public void ReportUnsupportedPropertyType(AttributeData attribute, INamedTypeSymbol rowType, ITypeSymbol propertyType, CancellationToken token)
+    {
+    }
+
+    public void ReportUnsupportedPropertyTypeForAttribute(AttributeData attribute, ITypeSymbol propertyType, CancellationToken token)
     {
     }
 }

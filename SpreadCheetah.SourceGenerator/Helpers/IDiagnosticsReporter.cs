@@ -12,7 +12,11 @@ internal interface IDiagnosticsReporter
 
     void ReportInvalidPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token);
 
-    void ReportUnsupportedType(AttributeData attribute, ITypeSymbol propertyType, CancellationToken token);
+    void ReportNoPropertiesFound(AttributeData attribute, INamedTypeSymbol rowType, CancellationToken token);
+
+    void ReportUnsupportedPropertyType(AttributeData attribute, INamedTypeSymbol rowType, ITypeSymbol propertyType, CancellationToken token);
+
+    void ReportUnsupportedPropertyTypeForAttribute(AttributeData attribute, ITypeSymbol propertyType, CancellationToken token);
 
     void ReportTypeMustHaveDefaultConstructor(AttributeData attribute, string typeName, CancellationToken token);
 

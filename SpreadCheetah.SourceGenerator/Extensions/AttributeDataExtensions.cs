@@ -8,12 +8,9 @@ internal static class AttributeDataExtensions
 {
     public static bool TryParseWorksheetRowAttribute(
         this AttributeData attribute,
-        CancellationToken token,
-        [NotNullWhen(true)] out INamedTypeSymbol? typeSymbol,
-        [NotNullWhen(true)] out Location? location)
+        [NotNullWhen(true)] out INamedTypeSymbol? typeSymbol)
     {
         typeSymbol = null;
-        location = null;
 
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: INamedTypeSymbol symbol }])
@@ -22,11 +19,6 @@ internal static class AttributeDataExtensions
         if (symbol.Kind == SymbolKind.ErrorType)
             return false;
 
-        var syntaxReference = attribute.ApplicationSyntaxReference;
-        if (syntaxReference is null)
-            return false;
-
-        location = syntaxReference.GetSyntax(token).GetLocation();
         typeSymbol = symbol;
         return true;
     }

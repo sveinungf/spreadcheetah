@@ -99,7 +99,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
         if (propertyType.SpecialType != SpecialType.System_String)
         {
-            diagnostics.ReportUnsupportedType(attribute, propertyType, token);
+            diagnostics.ReportUnsupportedPropertyTypeForAttribute(attribute, propertyType, token);
             return false;
         }
 

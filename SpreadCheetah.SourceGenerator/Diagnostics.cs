@@ -20,7 +20,6 @@ internal static class Diagnostics
         AttributeTypeArgumentMustHaveDefaultConstructorDescriptor
     ];
 
-    // TODO: Class-level diagnostic
     public static Diagnostic NoPropertiesFound(Location? location, string rowTypeName)
         => Diagnostic.Create(NoPropertiesFoundDescriptor, location, rowTypeName);
 
@@ -32,14 +31,13 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
-    // TODO: Class-level diagnostic
-    public static Diagnostic UnsupportedTypeForCellValue(Location? location, string rowTypeName, string unsupportedPropertyTypeName)
-        => Diagnostic.Create(UnsupportedTypeForCellValueDescriptor, location, rowTypeName, unsupportedPropertyTypeName);
+    public static Diagnostic UnsupportedTypeForCellValue(Location? location, string rowTypeName, string propertyTypeName)
+        => Diagnostic.Create(UnsupportedTypeForCellValueDescriptor, location, rowTypeName, propertyTypeName);
 
     private static readonly DiagnosticDescriptor UnsupportedTypeForCellValueDescriptor = new(
         id: "SPCH1002",
         title: "Unsupported type for cell value",
-        messageFormat: "The type '{0}' has a property of type '{1}' which is not supported as a cell value. The property will be ignored when creating the row.",
+        messageFormat: "The type '{0}' has a property of type '{1}' which is not supported as a cell value, unless a CellValueConverter is used. Otherwise the property will be ignored.",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);

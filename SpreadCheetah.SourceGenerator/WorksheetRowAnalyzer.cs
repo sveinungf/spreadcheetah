@@ -20,11 +20,37 @@ public class WorksheetRowAnalyzer : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
 
-        context.RegisterSymbolAction(AnalyzeNamedType, SymbolKind.NamedType);
-        context.RegisterSymbolAction(AnalyzeProperty, SymbolKind.Property);
+        context.RegisterSymbolAction(AnalyzeContextType, SymbolKind.NamedType);
+        context.RegisterSymbolAction(AnalyzeRowType, SymbolKind.NamedType);
+        context.RegisterSymbolAction(AnalyzeRowTypeProperty, SymbolKind.Property);
     }
 
-    private static void AnalyzeNamedType(SymbolAnalysisContext context)
+    private static void AnalyzeContextType(SymbolAnalysisContext context)
+    {
+        if (context.Symbol is not INamedTypeSymbol type)
+            return;
+        if (type is not { IsStatic: false, BaseType: { } baseType })
+            return;
+        if (!"SpreadCheetah.SourceGeneration.WorksheetRowContext".Equals(baseType.ToDisplayString(), StringComparison.Ordinal))
+            return;
+
+        var diagnostics = new DiagnosticsReporter(context);
+
+        foreach (var attribute in type.GetAttributes())
+        {
+            if (!attribute.TryParseWorksheetRowAttribute(out var typeSymbol))
+                continue;
+
+            var properties = typeSymbol.GetClassAndBaseClassProperties().ToList();
+
+            if (properties is [])
+            {
+                diagnostics.ReportNoPropertiesFound(attribute, typeSymbol, context.CancellationToken);
+            }
+        }
+    }
+
+    private static void AnalyzeRowType(SymbolAnalysisContext context)
     {
         if (context.Symbol is not INamedTypeSymbol type)
             return;
@@ -40,7 +66,7 @@ public class WorksheetRowAnalyzer : DiagnosticAnalyzer
         if (!typeHasColumnOrderAttribute)
             return;
 
-        var diagnosticsReporter = new DiagnosticsReporter(context);
+        var diagnostics = new DiagnosticsReporter(context);
         var columnOrderValues = new HashSet<int>();
 
         foreach (var property in type.GetClassAndBaseClassProperties())
@@ -57,19 +83,19 @@ public class WorksheetRowAnalyzer : DiagnosticAnalyzer
                 continue;
 
             if (!columnOrderValues.Add(attributeValue))
-                diagnosticsReporter.ReportDuplicateColumnOrdering(columnOrderAttribute, context.CancellationToken);
+                diagnostics.ReportDuplicateColumnOrdering(columnOrderAttribute, context.CancellationToken);
         }
     }
 
-    private static void AnalyzeProperty(SymbolAnalysisContext context)
+    private static void AnalyzeRowTypeProperty(SymbolAnalysisContext context)
     {
         if (context.Symbol is not IPropertySymbol property)
             return;
         if (property.GetAttributes() is { Length: 0 } attributes)
             return;
 
-        var diagnosticsReporter = new DiagnosticsReporter(context);
-        var analyzer = new PropertyAnalyzer(diagnosticsReporter);
+        var diagnostics = new DiagnosticsReporter(context);
+        var analyzer = new PropertyAnalyzer(diagnostics);
 
         var data = analyzer.Analyze(property, context.CancellationToken);
 
@@ -78,7 +104,7 @@ public class WorksheetRowAnalyzer : DiagnosticAnalyzer
             var cellValueTruncateAttribute = attributes
                 .First(x => Attributes.CellValueTruncate.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
 
-            diagnosticsReporter.ReportAttributeCombinationNotSupported(cellValueTruncateAttribute,
+            diagnostics.ReportAttributeCombinationNotSupported(cellValueTruncateAttribute,
                 "CellValueConverterAttribute", context.CancellationToken);
         }
     }

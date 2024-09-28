@@ -46,7 +46,25 @@ internal sealed class DiagnosticsReporter(SymbolAnalysisContext context) : IDiag
         context.ReportDiagnostic(diagnostic);
     }
 
-    public void ReportUnsupportedType(AttributeData attribute, ITypeSymbol propertyType, CancellationToken token)
+    public void ReportNoPropertiesFound(AttributeData attribute, INamedTypeSymbol rowType, CancellationToken token)
+    {
+        if (!TryGetArgument(attribute, token, out var arg) || arg is null)
+            return;
+
+        var diagnostic = Diagnostics.NoPropertiesFound(arg.GetLocation(), rowType.Name);
+        context.ReportDiagnostic(diagnostic);
+    }
+
+    public void ReportUnsupportedPropertyType(AttributeData attribute, INamedTypeSymbol rowType, ITypeSymbol propertyType, CancellationToken token)
+    {
+        if (!TryGetArgument(attribute, token, out var arg) || arg is null)
+            return;
+
+        var diagnostic = Diagnostics.UnsupportedTypeForCellValue(arg.GetLocation(), rowType.Name, propertyType.Name);
+        context.ReportDiagnostic(diagnostic);
+    }
+
+    public void ReportUnsupportedPropertyTypeForAttribute(AttributeData attribute, ITypeSymbol propertyType, CancellationToken token)
     {
         if (attribute.ApplicationSyntaxReference?.GetSyntax(token) is not AttributeSyntax attributeSyntax)
             return;

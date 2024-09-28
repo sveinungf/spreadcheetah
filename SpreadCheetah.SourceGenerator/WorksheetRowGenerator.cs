@@ -50,10 +50,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var attribute in context.Attributes)
         {
-            if (!attribute.TryParseWorksheetRowAttribute(token, out var typeSymbol, out var location))
+            if (!attribute.TryParseWorksheetRowAttribute(out var typeSymbol))
                 continue;
 
-            var rowType = AnalyzeTypeProperties(typeSymbol, location.ToLocationInfo(), token);
+            var rowType = AnalyzeTypeProperties(typeSymbol, token);
             if (!rowTypes.Exists(x => string.Equals(x.FullName, rowType.FullName, StringComparison.Ordinal)))
                 rowTypes.Add(rowType);
         }
@@ -80,7 +80,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             Options: generatorOptions);
     }
 
-    private static RowType AnalyzeTypeProperties(ITypeSymbol classType, LocationInfo? worksheetRowAttributeLocation, CancellationToken token)
+    private static RowType AnalyzeTypeProperties(ITypeSymbol classType, CancellationToken token)
     {
         var implicitOrderProperties = new List<RowTypeProperty>();
         var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
@@ -129,7 +129,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             Properties: explicitOrderProperties.Values.ToEquatableArray(),
             PropertiesWithStyleAttributes: propertiesWithStyleAttributes,
             UnsupportedPropertyTypeNames: unsupportedPropertyTypeNames.ToEquatableArray(),
-            WorksheetRowAttributeLocation: worksheetRowAttributeLocation);
+            WorksheetRowAttributeLocation: null);
     }
 
     private static void Execute(ContextClass? contextClass, SourceProductionContext context)
@@ -281,9 +281,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         if (rowType.Properties.Count == 0)
             context.ReportDiagnostic(Diagnostics.NoPropertiesFound(location, rowType.Name));
-
-        if (rowType.UnsupportedPropertyTypeNames.FirstOrDefault() is { } unsupportedPropertyTypeName)
-            context.ReportDiagnostic(Diagnostics.UnsupportedTypeForCellValue(location, rowType.Name, unsupportedPropertyTypeName));
     }
 
     private static void GenerateCreateWorksheetOptions(StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)
