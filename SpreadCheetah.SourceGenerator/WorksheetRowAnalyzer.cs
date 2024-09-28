@@ -33,11 +33,29 @@ public class WorksheetRowAnalyzer : DiagnosticAnalyzer
             return;
         if (!"SpreadCheetah.SourceGeneration.WorksheetRowContext".Equals(baseType.ToDisplayString(), StringComparison.Ordinal))
             return;
+        if (type.GetAttributes() is { Length: 0 } attributes)
+            return;
+
+        var suppressWarnings = false;
+
+        foreach (var attribute in attributes)
+        {
+            if (attribute.TryParseOptionsAttribute(out var options))
+            {
+                suppressWarnings = options.SuppressWarnings;
+                break;
+            }
+        }
+
+        // Right now the diagnostics below are just warnings.
+        // If that changes, then this part here must also change.
+        if (suppressWarnings)
+            return;
 
         var diagnostics = new DiagnosticsReporter(context);
         var analyzer = new PropertyAnalyzer(diagnostics);
 
-        foreach (var attribute in type.GetAttributes())
+        foreach (var attribute in attributes)
         {
             if (!attribute.TryParseWorksheetRowAttribute(out var rowType))
                 continue;
