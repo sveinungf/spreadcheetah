@@ -80,7 +80,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             Options: generatorOptions);
     }
 
-    private static RowType AnalyzeTypeProperties(ITypeSymbol classType, CancellationToken token)
+    private static RowType AnalyzeTypeProperties(ITypeSymbol rowType, CancellationToken token)
     {
         var implicitOrderProperties = new List<RowTypeProperty>();
         var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
@@ -89,11 +89,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var propertiesWithStyleAttributes = 0;
         var analyzer = new PropertyAnalyzer(NullDiagnosticsReporter.Instance);
 
-        foreach (var property in classType.GetClassAndBaseClassProperties())
-        {
-            if (property.IsWriteOnly || property.IsStatic || property.DeclaredAccessibility != Accessibility.Public)
-                continue;
+        var properties = rowType
+            .GetClassAndBaseClassProperties()
+            .Where(x => x.IsInstancePropertyWithPublicGetter());
 
+        foreach (var property in properties)
+        {
             var data = analyzer.Analyze(property, token);
 
             if (data.CellValueConverter is null && !property.Type.IsSupportedType())
@@ -123,9 +124,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         return new RowType(
             DiagnosticInfos: diagnosticInfos.ToEquatableArray(),
-            FullName: classType.ToString(),
-            IsReferenceType: classType.IsReferenceType,
-            Name: classType.Name,
+            FullName: rowType.ToString(),
+            IsReferenceType: rowType.IsReferenceType,
+            Name: rowType.Name,
             Properties: explicitOrderProperties.Values.ToEquatableArray(),
             PropertiesWithStyleAttributes: propertiesWithStyleAttributes,
             UnsupportedPropertyTypeNames: unsupportedPropertyTypeNames.ToEquatableArray(),

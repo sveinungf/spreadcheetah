@@ -35,18 +35,35 @@ public class WorksheetRowAnalyzer : DiagnosticAnalyzer
             return;
 
         var diagnostics = new DiagnosticsReporter(context);
+        var analyzer = new PropertyAnalyzer(diagnostics);
 
         foreach (var attribute in type.GetAttributes())
         {
-            if (!attribute.TryParseWorksheetRowAttribute(out var typeSymbol))
+            if (!attribute.TryParseWorksheetRowAttribute(out var rowType))
                 continue;
 
-            var properties = typeSymbol.GetClassAndBaseClassProperties().ToList();
+            var properties = rowType
+                .GetClassAndBaseClassProperties()
+                .Where(x => x.IsInstancePropertyWithPublicGetter());
 
-            if (properties is [])
+            var hasProperties = false;
+
+            foreach (var property in properties)
             {
-                diagnostics.ReportNoPropertiesFound(attribute, typeSymbol, context.CancellationToken);
+                hasProperties = true;
+
+                var data = analyzer.Analyze(property, Attributes.CellValueConverter, context.CancellationToken);
+                if (data.CellValueConverter is not null)
+                    continue;
+                if (property.Type.IsSupportedType())
+                    continue;
+
+                diagnostics.ReportUnsupportedPropertyType(attribute, rowType, property.Type, context.CancellationToken);
+                break;
             }
+
+            if (!hasProperties)
+                diagnostics.ReportNoPropertiesFound(attribute, rowType, context.CancellationToken);
         }
     }
 

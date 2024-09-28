@@ -41,6 +41,17 @@ internal static class SymbolExtensions
         };
     }
 
+    public static bool IsInstancePropertyWithPublicGetter(
+        this IPropertySymbol property)
+    {
+        return property is
+        {
+            DeclaredAccessibility: Accessibility.Public,
+            IsStatic: false,
+            IsWriteOnly: false
+        };
+    }
+
     public static bool IsStaticPropertyWithPublicGetter(
         this ISymbol symbol,
         [NotNullWhen(true)] out IPropertySymbol? property)
