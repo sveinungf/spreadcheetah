@@ -7,5 +7,4 @@ internal sealed record ContextClass(
     string Name,
     Accessibility DeclaredAccessibility,
     string? Namespace,
-    EquatableArray<RowType> RowTypes,
-    GeneratorOptions? Options);
+    EquatableArray<RowType> RowTypes);

@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 namespace SpreadCheetah.SourceGenerators;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class WorksheetRowAnalyzer : DiagnosticAnalyzer
+public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Diagnostics.AllDescriptors;
 

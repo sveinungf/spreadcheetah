@@ -7,10 +7,7 @@ internal sealed record RowType(
     string FullName,
     bool IsReferenceType,
     int PropertiesWithStyleAttributes,
-    LocationInfo? WorksheetRowAttributeLocation,
-    EquatableArray<RowTypeProperty> Properties,
-    EquatableArray<string> UnsupportedPropertyTypeNames,
-    EquatableArray<DiagnosticInfo> DiagnosticInfos)
+    EquatableArray<RowTypeProperty> Properties)
 {
     public string CellType { get; } = PropertiesWithStyleAttributes > 0 ? "StyledCell" : "DataCell";
     public string FullNameWithNullableAnnotation => IsReferenceType ? $"{FullName}?" : FullName;
