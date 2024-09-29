@@ -21,9 +21,9 @@ namespace MyNamespace
         {
         }
 
-        private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForSomeProperties>? _ClassWithColumnOrderForSomeProperties;
-        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForSomeProperties> ClassWithColumnOrderForSomeProperties => _ClassWithColumnOrderForSomeProperties
-            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForSomeProperties>(
+        private WorksheetRowTypeInfo<MyNamespace.ClassWithColumnOrderForSomeProperties>? _ClassWithColumnOrderForSomeProperties;
+        public WorksheetRowTypeInfo<MyNamespace.ClassWithColumnOrderForSomeProperties> ClassWithColumnOrderForSomeProperties => _ClassWithColumnOrderForSomeProperties
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithColumnOrderForSomeProperties>(
                 AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, null);
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
@@ -45,7 +45,7 @@ namespace MyNamespace
             }
         }
 
-        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForSomeProperties? obj, CancellationToken token)
+        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithColumnOrderForSomeProperties? obj, CancellationToken token)
         {
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
@@ -55,7 +55,7 @@ namespace MyNamespace
         }
 
         private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForSomeProperties?> objs,
+            IEnumerable<MyNamespace.ClassWithColumnOrderForSomeProperties?> objs,
             CancellationToken token)
         {
             if (spreadsheet is null)
@@ -66,7 +66,7 @@ namespace MyNamespace
         }
 
         private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForSomeProperties obj,
+            MyNamespace.ClassWithColumnOrderForSomeProperties obj,
             CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(6);
@@ -82,7 +82,7 @@ namespace MyNamespace
         }
 
         private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForSomeProperties?> objs,
+            IEnumerable<MyNamespace.ClassWithColumnOrderForSomeProperties?> objs,
             CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(6);
@@ -101,7 +101,7 @@ namespace MyNamespace
         }
 
         private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering.ClassWithColumnOrderForSomeProperties? obj,
+            MyNamespace.ClassWithColumnOrderForSomeProperties? obj,
             DataCell[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
         {
             if (obj is null)

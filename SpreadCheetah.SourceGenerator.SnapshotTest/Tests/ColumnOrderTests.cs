@@ -3,17 +3,37 @@ using SpreadCheetah.SourceGenerators;
 
 namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 
-public class WorksheetRowGeneratorColumnOrderTests
+public class ColumnOrderTests
 {
     [Fact]
-    public Task WorksheetRowGenerator_Generate_ClassWithColumnOrderForAllProperties()
+    public Task ColumnOrder_ClassWithColumnOrderForAllProperties()
     {
         // Arrange
         const string source = """
             using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering;
 
             namespace MyNamespace;
+
+            public class ClassWithColumnOrderForAllProperties
+            {
+                [ColumnOrder(2)]
+                public string FirstName { get; set; } = "";
+
+                [ColumnOrder(3)]
+                public string? MiddleName { get; set; }
+
+                [ColumnOrder(1)]
+                public string LastName { get; set; } = "";
+
+                [ColumnOrder(5)]
+                public int Age { get; set; }
+
+                [ColumnOrder(4)]
+                public bool Employed { get; set; }
+
+                [ColumnOrder(6)]
+                public double Score { get; set; }
+            }
             
             [WorksheetRow(typeof(ClassWithColumnOrderForAllProperties))]
             public partial class MyGenRowContext : WorksheetRowContext;
@@ -24,14 +44,31 @@ public class WorksheetRowGeneratorColumnOrderTests
     }
 
     [Fact]
-    public Task WorksheetRowGenerator_Generate_ClassWithColumnOrderForSomeProperties()
+    public Task ColumnOrder_ClassWithColumnOrderForSomeProperties()
     {
         // Arrange
         const string source = """
             using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnOrdering;
 
             namespace MyNamespace;
+
+            public class ClassWithColumnOrderForSomeProperties
+            {
+                public string FirstName { get; set; } = "";
+
+                [ColumnOrder(-1000)]
+                public string? MiddleName { get; set; }
+
+                public string LastName { get; set; } = "";
+
+                [ColumnOrder(500)]
+                public int Age { get; set; }
+
+                public bool Employed { get; set; }
+
+                [ColumnOrder(2)]
+                public double Score { get; set; }
+            }
             
             [WorksheetRow(typeof(ClassWithColumnOrderForSomeProperties))]
             public partial class MyGenRowContext : WorksheetRowContext;
@@ -42,10 +79,11 @@ public class WorksheetRowGeneratorColumnOrderTests
     }
 
     [Fact]
-    public Task WorksheetRowGenerator_Generate_ClassWithDuplicateColumnOrdering()
+    public Task ColumnOrder_ClassWithDuplicateColumnOrdering()
     {
         // Arrange
-        const string source = """
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
             using SpreadCheetah.SourceGeneration;
 
             namespace MyNamespace;
@@ -54,7 +92,7 @@ public class WorksheetRowGeneratorColumnOrderTests
             {
                 [ColumnOrder(1)]
                 public string PropertyA { get; set; }
-                [ColumnOrder(1)]
+                [{|SPCH1003:ColumnOrder(1)|}]
                 public string PropertyB { get; set; }
             }
             
@@ -63,14 +101,15 @@ public class WorksheetRowGeneratorColumnOrderTests
             """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
+        return context.RunAsync();
     }
 
     [Fact]
-    public Task WorksheetRowGenerator_Generate_ClassWithDuplicateColumnOrderingAcrossInheritance()
+    public Task ColumnOrder_ClassWithDuplicateColumnOrderingAcrossInheritance()
     {
         // Arrange
-        const string source = """
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
             using SpreadCheetah.SourceGeneration;
 
             namespace MyNamespace;
@@ -78,7 +117,7 @@ public class WorksheetRowGeneratorColumnOrderTests
             [InheritColumns]
             public class ClassWithDuplicateColumnOrdering : ClassWithDuplicateColumnOrderingBase
             {
-                [ColumnOrder(1)]
+                [{|SPCH1003:ColumnOrder(1)|}]
                 public string PropertyA { get; set; }
             }
 
@@ -93,6 +132,6 @@ public class WorksheetRowGeneratorColumnOrderTests
             """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
+        return context.RunAsync();
     }
 }
