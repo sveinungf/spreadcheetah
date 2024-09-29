@@ -53,7 +53,6 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
             return;
 
         var diagnostics = new DiagnosticsReporter(context);
-        var analyzer = new PropertyAnalyzer(diagnostics);
 
         foreach (var attribute in attributes)
         {
@@ -70,8 +69,8 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
             {
                 hasProperties = true;
 
-                var data = analyzer.Analyze(property, Attributes.CellValueConverter, context.CancellationToken);
-                if (data.CellValueConverter is not null)
+                var cellValueConverter = property.GetCellValueConverterAttribute();
+                if (cellValueConverter is not null)
                     continue;
                 if (property.Type.IsSupportedType())
                     continue;
@@ -94,7 +93,7 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
 
         var typeHasColumnOrderAttribute = members
             .OfType<IPropertySymbol>()
-            .Any(x => x.GetAttributes().Any(a => a.IsColumnOrder()));
+            .Any(x => x.GetColumnOrderAttribute() is not null);
 
         // Avoid duplicate column order on base class from emitting the same error for each derived class.
         // Also some extra work is avoided for types that don't use the attribute.
@@ -106,10 +105,7 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
 
         foreach (var property in type.GetClassAndBaseClassProperties())
         {
-            var columnOrderAttribute = property
-                .GetAttributes()
-                .FirstOrDefault(x => x.IsColumnOrder());
-
+            var columnOrderAttribute = property.GetColumnOrderAttribute();
             if (columnOrderAttribute is null)
                 continue;
 

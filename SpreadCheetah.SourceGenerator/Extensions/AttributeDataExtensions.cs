@@ -49,9 +49,4 @@ internal static class AttributeDataExtensions
 
         return false;
     }
-
-    public static bool IsColumnOrder(this AttributeData attribute)
-    {
-        return Attributes.ColumnOrder.Equals(attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal);
-    }
 }

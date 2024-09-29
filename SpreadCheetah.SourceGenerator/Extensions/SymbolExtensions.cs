@@ -116,4 +116,18 @@ internal static class SymbolExtensions
 
         return true;
     }
+
+    public static AttributeData? GetCellValueConverterAttribute(this IPropertySymbol property)
+    {
+        return property
+            .GetAttributes()
+            .FirstOrDefault(x => Attributes.CellValueConverter.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
+    }
+
+    public static AttributeData? GetColumnOrderAttribute(this IPropertySymbol property)
+    {
+        return property
+            .GetAttributes()
+            .FirstOrDefault(x => Attributes.ColumnOrder.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
+    }
 }

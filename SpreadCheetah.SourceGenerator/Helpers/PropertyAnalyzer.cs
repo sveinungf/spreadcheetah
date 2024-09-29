@@ -11,21 +11,11 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
     public PropertyAttributeData Analyze(IPropertySymbol property, CancellationToken token)
     {
-        return Analyze(property, null, token);
-    }
-
-    public PropertyAttributeData Analyze(IPropertySymbol property, string? onlyAttribute, CancellationToken token)
-    {
         _result = new();
 
         foreach (var attribute in property.GetAttributes())
         {
-            var attributeClass = attribute.AttributeClass?.ToDisplayString();
-
-            if (onlyAttribute?.Equals(attributeClass, StringComparison.Ordinal) == false)
-                continue;
-
-            _ = attributeClass switch
+            _ = attribute.AttributeClass?.ToDisplayString() switch
             {
                 Attributes.CellStyle => TryGetCellStyleAttribute(attribute, token),
                 Attributes.CellValueConverter => TryGetCellValueConverterAttribute(attribute, property.Type, token),
