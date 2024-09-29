@@ -21,9 +21,9 @@ namespace MyNamespace
         {
         }
 
-        private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithPropertyReferenceColumnHeaders>? _ClassWithPropertyReferenceColumnHeaders;
-        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithPropertyReferenceColumnHeaders> ClassWithPropertyReferenceColumnHeaders => _ClassWithPropertyReferenceColumnHeaders
-            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithPropertyReferenceColumnHeaders>(
+        private WorksheetRowTypeInfo<MyNamespace.ClassWithColumnHeaderForAllProperties>? _ClassWithColumnHeaderForAllProperties;
+        public WorksheetRowTypeInfo<MyNamespace.ClassWithColumnHeaderForAllProperties> ClassWithColumnHeaderForAllProperties => _ClassWithColumnHeaderForAllProperties
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithColumnHeaderForAllProperties>(
                 AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, null);
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
@@ -31,12 +31,12 @@ namespace MyNamespace
             var cells = ArrayPool<StyledCell>.Shared.Rent(6);
             try
             {
-                cells[0] = new StyledCell(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaderResources.Header_FirstName, styleId);
-                cells[1] = new StyledCell(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaderResources.Header_LastName, styleId);
-                cells[2] = new StyledCell(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaders.HeaderNationality, styleId);
-                cells[3] = new StyledCell(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaders.HeaderAddressLine1, styleId);
-                cells[4] = new StyledCell(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaders.HeaderAddressLine2, styleId);
-                cells[5] = new StyledCell(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaders.HeaderAge, styleId);
+                cells[0] = new StyledCell("First name", styleId);
+                cells[1] = new StyledCell("Middle name", styleId);
+                cells[2] = new StyledCell("Last name", styleId);
+                cells[3] = new StyledCell("Age", styleId);
+                cells[4] = new StyledCell("Employed (yes/no)", styleId);
+                cells[5] = new StyledCell("Score (decimal)", styleId);
                 await spreadsheet.AddRowAsync(cells.AsMemory(0, 6), token).ConfigureAwait(false);
             }
             finally
@@ -45,7 +45,7 @@ namespace MyNamespace
             }
         }
 
-        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithPropertyReferenceColumnHeaders? obj, CancellationToken token)
+        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithColumnHeaderForAllProperties? obj, CancellationToken token)
         {
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
@@ -55,7 +55,7 @@ namespace MyNamespace
         }
 
         private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithPropertyReferenceColumnHeaders?> objs,
+            IEnumerable<MyNamespace.ClassWithColumnHeaderForAllProperties?> objs,
             CancellationToken token)
         {
             if (spreadsheet is null)
@@ -66,7 +66,7 @@ namespace MyNamespace
         }
 
         private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithPropertyReferenceColumnHeaders obj,
+            MyNamespace.ClassWithColumnHeaderForAllProperties obj,
             CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(6);
@@ -82,7 +82,7 @@ namespace MyNamespace
         }
 
         private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithPropertyReferenceColumnHeaders?> objs,
+            IEnumerable<MyNamespace.ClassWithColumnHeaderForAllProperties?> objs,
             CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(6);
@@ -101,18 +101,18 @@ namespace MyNamespace
         }
 
         private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ClassWithPropertyReferenceColumnHeaders? obj,
+            MyNamespace.ClassWithColumnHeaderForAllProperties? obj,
             DataCell[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
         {
             if (obj is null)
                 return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
 
             cells[0] = new DataCell(obj.FirstName);
-            cells[1] = new DataCell(obj.LastName);
-            cells[2] = new DataCell(obj.Nationality);
-            cells[3] = new DataCell(obj.AddressLine1);
-            cells[4] = new DataCell(obj.AddressLine2);
-            cells[5] = new DataCell(obj.Age);
+            cells[1] = new DataCell(obj.MiddleName);
+            cells[2] = new DataCell(obj.LastName);
+            cells[3] = new DataCell(obj.Age);
+            cells[4] = new DataCell(obj.Employed);
+            cells[5] = new DataCell(obj.Score);
             return spreadsheet.AddRowAsync(cells.AsMemory(0, 6), token);
         }
 
