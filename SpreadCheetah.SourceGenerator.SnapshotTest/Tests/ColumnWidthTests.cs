@@ -3,10 +3,10 @@ using SpreadCheetah.SourceGenerators;
 
 namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 
-public class WorksheetRowGeneratorColumnWidthTests
+public class ColumnWidthTests
 {
     [Fact]
-    public Task WorksheetRowGenerator_Generate_ClassWithColumnWidth()
+    public Task ColumnWidth_ClassWithColumnWidth()
     {
         // Arrange
         const string source = """
@@ -29,7 +29,7 @@ public class WorksheetRowGeneratorColumnWidthTests
     }
 
     [Fact]
-    public Task WorksheetRowGenerator_Generate_ClassWithMultipleColumnWidths()
+    public Task ColumnWidth_ClassWithMultipleColumnWidths()
     {
         // Arrange
         const string source = """
@@ -60,7 +60,7 @@ public class WorksheetRowGeneratorColumnWidthTests
     }
 
     [Fact]
-    public Task WorksheetRowGenerator_Generate_ContextWithTwoClassesWithColumnWidth()
+    public Task ColumnWidth_ContextWithTwoClassesWithColumnWidth()
     {
         // Arrange
         const string source = """
@@ -90,17 +90,18 @@ public class WorksheetRowGeneratorColumnWidthTests
     }
 
     [Fact]
-    public Task WorksheetRowGenerator_Generate_ClassWithColumnWidthWithInvalidWidth()
+    public Task ColumnWidth_ClassWithColumnWidthWithInvalidWidth()
     {
         // Arrange
-        const string source = """
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
             using SpreadCheetah.SourceGeneration;
 
             namespace MyNamespace;
 
             public class ClassWithColumnWidth
             {
-                [ColumnWidth(300)]
+                [ColumnWidth({|SPCH1006:300|})]
                 public string? Name { get; set; }
             }
             
@@ -109,6 +110,6 @@ public class WorksheetRowGeneratorColumnWidthTests
             """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
+        return context.RunAsync();
     }
 }
