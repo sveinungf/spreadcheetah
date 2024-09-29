@@ -3,10 +3,10 @@ using SpreadCheetah.SourceGenerators;
 
 namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 
-public class WorksheetRowGeneratorCellValueTruncateTests
+public class CellValueTruncateTests
 {
     [Fact]
-    public Task WorksheetRowGenerator_Generate_ClassWithCellValueTruncate()
+    public Task CellValueTruncate_ClassWithCellValueTruncate()
     {
         // Arrange
         const string source = """
@@ -29,7 +29,7 @@ public class WorksheetRowGeneratorCellValueTruncateTests
     }
 
     [Fact]
-    public Task WorksheetRowGenerator_Generate_ClassWithMultipleCellValueTruncate()
+    public Task CellValueTruncate_ClassWithMultipleCellValueTruncate()
     {
         // Arrange
         const string source = """
@@ -60,17 +60,18 @@ public class WorksheetRowGeneratorCellValueTruncateTests
     }
 
     [Fact]
-    public Task WorksheetRowGenerator_Generate_ClassWithCellValueTruncateWithInvalidLength()
+    public Task CellValueTruncate_ClassWithCellValueTruncateWithInvalidLength()
     {
         // Arrange
-        const string source = """
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
             using SpreadCheetah.SourceGeneration;
 
             namespace MyNamespace;
 
             public class ClassWithCellValueTruncate
             {
-                [CellValueTruncate(0)]
+                [CellValueTruncate({|SPCH1006:0|})]
                 public string? Name { get; set; }
             }
             
@@ -79,21 +80,22 @@ public class WorksheetRowGeneratorCellValueTruncateTests
             """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
+        return context.RunAsync();
     }
 
     [Fact]
-    public Task WorksheetRowGenerator_Generate_ClassWithCellValueTruncateOnInvalidType()
+    public Task CellValueTruncate_ClassWithCellValueTruncateOnInvalidType()
     {
         // Arrange
-        const string source = """
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
             using SpreadCheetah.SourceGeneration;
 
             namespace MyNamespace;
 
             public class ClassWithCellValueTruncate
             {
-                [CellValueTruncate(10)]
+                [{|SPCH1005:CellValueTruncate(10)|}]
                 public int Year { get; set; }
             }
             
@@ -102,6 +104,6 @@ public class WorksheetRowGeneratorCellValueTruncateTests
             """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
+        return context.RunAsync();
     }
 }
