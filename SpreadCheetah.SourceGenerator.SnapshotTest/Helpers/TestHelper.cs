@@ -28,7 +28,6 @@ internal static class TestHelper
 
     public static SettingsTask CompileAndVerify<T>(string source,
         bool replaceEscapedLineEndings = false,
-        bool onlyDiagnostics = false,
         params object?[] parameters) where T : IIncrementalGenerator, new()
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
@@ -49,9 +48,6 @@ internal static class TestHelper
             settings.ScrubLinesWithReplace(x => x.Replace("\\r\\n", "\\n", StringComparison.Ordinal));
 
         var task = Verify(target, settings);
-
-        if (onlyDiagnostics)
-            task = task.IgnoreGeneratedResult(x => x.SourceText.ToString().Contains("public WorksheetRowTypeInfo<", StringComparison.Ordinal));
 
         return parameters.Length > 0
             ? task.UseParameters(parameters)
