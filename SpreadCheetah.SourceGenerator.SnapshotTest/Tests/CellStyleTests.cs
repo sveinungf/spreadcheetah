@@ -78,7 +78,7 @@ public class CellStyleTests
     }
 
     [Fact]
-    public async Task CellStyle_ClassWithEmptyCellStyle()
+    public Task CellStyle_ClassWithEmptyCellStyle()
     {
         // Arrange
         var context = AnalyzerTest.CreateContext();
@@ -95,6 +95,6 @@ public class CellStyleTests
             """;
 
         // Act & Assert
-        await context.RunAsync();
+        return context.RunAsync();
     }
 }
