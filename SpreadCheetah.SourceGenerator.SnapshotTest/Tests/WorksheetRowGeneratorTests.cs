@@ -132,22 +132,20 @@ public class WorksheetRowGeneratorTests
     public Task WorksheetRowGenerator_Generate_ClassWithNoProperties()
     {
         // Arrange
-        const string source = """
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
             using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-            using System;
 
-            namespace MyNamespace
-            {
-                [WorksheetRow(typeof(ClassWithNoProperties))]
-                public partial class MyGenRowContext : WorksheetRowContext
-                {
-                }
-            }
+            namespace MyNamespace;
+
+            public class ClassWithNoProperties;
+            
+            [WorksheetRow({|SPCH1001:typeof(ClassWithNoProperties)|})]
+            public partial class MyGenRowContext : WorksheetRowContext;
             """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+        return context.RunAsync();
     }
 
     [Fact]
