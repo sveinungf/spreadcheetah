@@ -1,14 +1,18 @@
 ﻿{
   Diagnostics: [
     {
-      Id: SPCH1002,
-      Title: Unsupported type for cell value,
+      Location: : (6,5)-(6,55),
+      Message: The type 'ClassWithUnsupportedProperty' has a property of type 'Uri' which is not supported as a cell value. The property will be ignored when creating the row.,
       Severity: Warning,
       WarningLevel: 1,
-      Location: : (6,5)-(6,55),
-      MessageFormat: The type '{0}' has a property of type '{1}' which is not supported as a cell value. The property will be ignored when creating the row.,
-      Message: The type 'ClassWithUnsupportedProperty' has a property of type 'Uri' which is not supported as a cell value. The property will be ignored when creating the row.,
-      Category: SpreadCheetah.SourceGenerator
+      Descriptor: {
+        Id: SPCH1002,
+        Title: Unsupported type for cell value,
+        MessageFormat: The type '{0}' has a property of type '{1}' which is not supported as a cell value. The property will be ignored when creating the row.,
+        Category: SpreadCheetah.SourceGenerator,
+        DefaultSeverity: Warning,
+        IsEnabledByDefault: true
+      }
     }
   ]
 }
