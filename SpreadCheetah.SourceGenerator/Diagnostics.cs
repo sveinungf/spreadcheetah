@@ -81,7 +81,7 @@ internal static class Diagnostics
     private static readonly DiagnosticDescriptor InvalidAttributeArgumentDescriptor = new(
         id: "SPCH1006",
         title: "Invalid attribute argument",
-        messageFormat: "Invalid argument for {1}",
+        messageFormat: "Invalid argument for {0}",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
