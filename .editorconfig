@@ -277,8 +277,19 @@ dotnet_diagnostic.S927.severity = none
 dotnet_diagnostic.S2094.severity = none
 
 [{*SnapshotTest}/**.cs]
-# S2699 Tests should include assertions (false positive for analyzer tests)
+# S2699: Tests should include assertions (false positive for analyzer tests)
 dotnet_diagnostic.S2699.severity = none
+
+###############################
+# SpreadCheetah Options       #
+###############################
+[{ClassWithNoPropertiesContext.cs,NoPropertiesContext.cs}]
+# SPCH1001: Type has no properties with public getters
+dotnet_diagnostic.SPCH1001.severity = none
+
+[{CustomTypeContext.cs}]
+# SPCH1002: Type with unsupported property type
+dotnet_diagnostic.SPCH1002.severity = none
 
 ###############################
 # Threading.Analyzers Options #

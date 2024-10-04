@@ -9,7 +9,4 @@ namespace SpreadCheetah.SourceGenerator.Test.Models.Contexts;
 [WorksheetRow(typeof(RecordStructWithNoProperties))]
 [WorksheetRow(typeof(ReadOnlyStructWithNoProperties))]
 [WorksheetRow(typeof(ReadOnlyRecordStructWithNoProperties))]
-[WorksheetRowGenerationOptions(SuppressWarnings = true)]
-public partial class NoPropertiesContext : WorksheetRowContext
-{
-}
+public partial class NoPropertiesContext : WorksheetRowContext;
