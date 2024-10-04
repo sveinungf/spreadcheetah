@@ -5,7 +5,6 @@ using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using SpreadCheetah.Images;
 using SpreadCheetah.Test.Helpers;
 using System.IO.Compression;
-using Xunit;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -286,10 +285,10 @@ public class SpreadsheetImageTests
         SpreadsheetAssert.Valid(outputStream);
 
         using var workbook = new XLWorkbook(outputStream);
-        var worksheet1 = Assert.Single(workbook.Worksheets.Where(x => !string.Equals(worksheetName, x.Name, StringComparison.Ordinal)));
+        var worksheet1 = Assert.Single(workbook.Worksheets, x => !string.Equals(worksheetName, x.Name, StringComparison.Ordinal));
         Assert.Empty(worksheet1.Pictures);
 
-        var worksheet2 = Assert.Single(workbook.Worksheets.Where(x => string.Equals(worksheetName, x.Name, StringComparison.Ordinal)));
+        var worksheet2 = Assert.Single(workbook.Worksheets, x => string.Equals(worksheetName, x.Name, StringComparison.Ordinal));
         var picture = Assert.Single(worksheet2.Pictures);
         Assert.Equal(reference, picture.TopLeftCell.Address.ToString());
         Assert.Equal(XLPictureFormat.Png, picture.Format);
