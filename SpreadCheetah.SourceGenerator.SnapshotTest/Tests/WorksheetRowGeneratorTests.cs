@@ -335,10 +335,20 @@ public class WorksheetRowGeneratorTests
         // Arrange
         const string source = """
             using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
             using System;
 
             namespace MyNamespace;
+
+            public class ClassWithUnsupportedProperty
+            {
+                public string? Name { get; set; }
+                public Uri? HomepageUri { get; set; }
+            }
+
+            public class ClassWithSingleProperty
+            {
+                public string? Name { get; set; }
+            }
 
             [WorksheetRow(typeof(ClassWithUnsupportedProperty))]
             [WorksheetRow(typeof(ClassWithSingleProperty))]

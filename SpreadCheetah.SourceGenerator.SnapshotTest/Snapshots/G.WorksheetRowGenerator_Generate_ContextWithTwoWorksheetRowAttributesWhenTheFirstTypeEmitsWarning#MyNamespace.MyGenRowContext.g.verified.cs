@@ -21,9 +21,9 @@ namespace MyNamespace
         {
         }
 
-        private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithUnsupportedProperty>? _ClassWithUnsupportedProperty;
-        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithUnsupportedProperty> ClassWithUnsupportedProperty => _ClassWithUnsupportedProperty
-            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithUnsupportedProperty>(
+        private WorksheetRowTypeInfo<MyNamespace.ClassWithUnsupportedProperty>? _ClassWithUnsupportedProperty;
+        public WorksheetRowTypeInfo<MyNamespace.ClassWithUnsupportedProperty> ClassWithUnsupportedProperty => _ClassWithUnsupportedProperty
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithUnsupportedProperty>(
                 AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, null);
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
@@ -40,7 +40,7 @@ namespace MyNamespace
             }
         }
 
-        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithUnsupportedProperty? obj, CancellationToken token)
+        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithUnsupportedProperty? obj, CancellationToken token)
         {
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
@@ -50,7 +50,7 @@ namespace MyNamespace
         }
 
         private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithUnsupportedProperty?> objs,
+            IEnumerable<MyNamespace.ClassWithUnsupportedProperty?> objs,
             CancellationToken token)
         {
             if (spreadsheet is null)
@@ -61,7 +61,7 @@ namespace MyNamespace
         }
 
         private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithUnsupportedProperty obj,
+            MyNamespace.ClassWithUnsupportedProperty obj,
             CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(1);
@@ -77,7 +77,7 @@ namespace MyNamespace
         }
 
         private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithUnsupportedProperty?> objs,
+            IEnumerable<MyNamespace.ClassWithUnsupportedProperty?> objs,
             CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(1);
@@ -96,7 +96,7 @@ namespace MyNamespace
         }
 
         private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithUnsupportedProperty? obj,
+            MyNamespace.ClassWithUnsupportedProperty? obj,
             DataCell[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
         {
             if (obj is null)
@@ -106,9 +106,9 @@ namespace MyNamespace
             return spreadsheet.AddRowAsync(cells.AsMemory(0, 1), token);
         }
 
-        private WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty>? _ClassWithSingleProperty;
-        public WorksheetRowTypeInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty> ClassWithSingleProperty => _ClassWithSingleProperty
-            ??= WorksheetRowMetadataServices.CreateObjectInfo<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty>(
+        private WorksheetRowTypeInfo<MyNamespace.ClassWithSingleProperty>? _ClassWithSingleProperty;
+        public WorksheetRowTypeInfo<MyNamespace.ClassWithSingleProperty> ClassWithSingleProperty => _ClassWithSingleProperty
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithSingleProperty>(
                 AddHeaderRow1Async, AddAsRowAsync, AddRangeAsRowsAsync, null);
 
         private static async ValueTask AddHeaderRow1Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
@@ -125,7 +125,7 @@ namespace MyNamespace
             }
         }
 
-        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty? obj, CancellationToken token)
+        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithSingleProperty? obj, CancellationToken token)
         {
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
@@ -135,7 +135,7 @@ namespace MyNamespace
         }
 
         private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty?> objs,
+            IEnumerable<MyNamespace.ClassWithSingleProperty?> objs,
             CancellationToken token)
         {
             if (spreadsheet is null)
@@ -146,7 +146,7 @@ namespace MyNamespace
         }
 
         private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty obj,
+            MyNamespace.ClassWithSingleProperty obj,
             CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(1);
@@ -162,7 +162,7 @@ namespace MyNamespace
         }
 
         private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            IEnumerable<SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty?> objs,
+            IEnumerable<MyNamespace.ClassWithSingleProperty?> objs,
             CancellationToken token)
         {
             var cells = ArrayPool<DataCell>.Shared.Rent(1);
@@ -181,7 +181,7 @@ namespace MyNamespace
         }
 
         private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty? obj,
+            MyNamespace.ClassWithSingleProperty? obj,
             DataCell[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
         {
             if (obj is null)
