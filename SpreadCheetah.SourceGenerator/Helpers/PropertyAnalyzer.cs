@@ -34,9 +34,6 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
         AttributeData attribute,
         CancellationToken token)
     {
-        if (_result.CellStyle is not null)
-            return false;
-
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: string value } arg])
             return false;
@@ -59,9 +56,6 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
         ITypeSymbol propertyType,
         CancellationToken token)
     {
-        if (_result.CellValueConverter is not null)
-            return false;
-
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: INamedTypeSymbol converterTypeSymbol }])
             return false;
@@ -94,9 +88,6 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
         ITypeSymbol propertyType,
         CancellationToken token)
     {
-        if (_result.CellValueTruncate is not null)
-            return false;
-
         if (propertyType.SpecialType != SpecialType.System_String)
         {
             diagnostics.ReportUnsupportedPropertyTypeForAttribute(attribute, propertyType, token);
@@ -121,9 +112,6 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
         AttributeData attribute,
         CancellationToken token)
     {
-        if (_result.ColumnHeader is not null)
-            return false;
-
         var args = attribute.ConstructorArguments;
         if (args is [{ Value: string } arg])
             _result.ColumnHeader = new ColumnHeader(arg.ToCSharpString());
@@ -162,9 +150,6 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
     private bool TryGetColumnOrderAttribute(AttributeData attribute)
     {
-        if (_result.ColumnOrder is not null)
-            return false;
-
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: int attributeValue }])
             return false;
@@ -177,9 +162,6 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
         AttributeData attribute,
         CancellationToken token)
     {
-        if (_result.ColumnWidth is not null)
-            return false;
-
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: double attributeValue }])
             return false;
