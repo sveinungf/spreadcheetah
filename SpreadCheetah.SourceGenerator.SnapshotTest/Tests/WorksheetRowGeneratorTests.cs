@@ -129,28 +129,6 @@ public class WorksheetRowGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowGenerator_Generate_ClassWithInheritance()
-    {
-        // Arrange
-        const string source = """
-            using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-            using System;
-
-            namespace MyNamespace
-            {
-                [WorksheetRow(typeof(ClassWithInheritance))]
-                public partial class MyGenRowContext : WorksheetRowContext
-                {
-                }
-            }
-            """;
-
-        // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
-    }
-
-    [Fact]
     public Task WorksheetRowGenerator_Generate_RecordClassWithSingleProperty()
     {
         // Arrange
@@ -254,108 +232,6 @@ public class WorksheetRowGeneratorTests
                 {
                 }
             }
-            """;
-
-        // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
-    }
-
-    [Fact]
-    public Task WorksheetRowGenerator_Generate_ContextWithTwoWorksheetRowAttributes()
-    {
-        // Arrange
-        const string source = """
-            using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-            using System;
-
-            namespace MyNamespace
-            {
-                [WorksheetRow(typeof(ClassWithSingleProperty))]
-                [WorksheetRow(typeof(ClassWithMultipleProperties))]
-                public partial class MyGenRowContext : WorksheetRowContext
-                {
-                }
-            }
-            """;
-
-        // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
-    }
-
-    [Fact]
-    public Task WorksheetRowGenerator_Generate_ContextWithTwoSimilarWorksheetRowAttributes()
-    {
-        // Arrange
-        const string source = """
-            using SpreadCheetah.SourceGeneration;
-            using System;
-
-            namespace MyNamespace
-            {
-                [WorksheetRow(typeof(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ClassWithSingleProperty))]
-                [WorksheetRow(typeof(SpreadCheetah.SourceGenerator.SnapshotTest.AlternativeModels.ClassWithSingleProperty))]
-                public partial class MyGenRowContext : WorksheetRowContext
-                {
-                }
-            }
-            """;
-
-        // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
-    }
-
-    [Fact]
-    public Task WorksheetRowGenerator_Generate_ContextWithTwoWorksheetRowAttributesWhenTheFirstTypeEmitsWarning()
-    {
-        // Arrange
-        const string source = """
-            using SpreadCheetah.SourceGeneration;
-            using System;
-
-            namespace MyNamespace;
-
-            public class ClassWithUnsupportedProperty
-            {
-                public string? Name { get; set; }
-                public Uri? HomepageUri { get; set; }
-            }
-
-            public class ClassWithSingleProperty
-            {
-                public string? Name { get; set; }
-            }
-
-            [WorksheetRow(typeof(ClassWithUnsupportedProperty))]
-            [WorksheetRow(typeof(ClassWithSingleProperty))]
-            public partial class MyGenRowContext : WorksheetRowContext;
-            """;
-
-        // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
-    }
-
-    [Fact]
-    public Task WorksheetRowGenerator_Generate_TwoContextClasses()
-    {
-        // Arrange
-        const string source = """
-            using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-            using System;
-
-            namespace MyNamespace;
-
-            [WorksheetRow(typeof(ClassWithSingleProperty))]
-            public partial class MyGenRowContext : WorksheetRowContext
-            {
-            }
-
-            [WorksheetRow(typeof(ClassWithMultipleProperties))]
-            public partial class MyGenRowContext2 : WorksheetRowContext
-            {
-            }
-
             """;
 
         // Act & Assert
