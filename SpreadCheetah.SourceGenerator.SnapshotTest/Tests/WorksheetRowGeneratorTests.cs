@@ -261,30 +261,6 @@ public class WorksheetRowGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritance_WithoutInheritanceAttribute()
-    {
-        // Arrange
-        const string source = """
-            using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns;
-            using System;
-
-            namespace MyNamespace
-            {
-                [WorksheetRow(typeof(RecordClassWithIgnoreInheritance))]
-                public partial class MyGenRowContext : WorksheetRowContext
-                {
-                }
-            }
-            """;
-
-        // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
-    }
-    
-    
-
-    [Fact]
     public Task WorksheetRowGenerator_Generate_ContextWithTwoWorksheetRowAttributes()
     {
         // Arrange

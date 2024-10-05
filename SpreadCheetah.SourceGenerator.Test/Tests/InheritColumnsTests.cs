@@ -30,7 +30,7 @@ public class InheritColumnsTests
     }
 
     [Fact]
-    public async Task InheritColumns_ClassWithInheritedColumnsFirst()
+    public async Task InheritColumns_InheritedColumnsFirst()
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -52,7 +52,7 @@ public class InheritColumnsTests
     }
 
     [Fact]
-    public async Task InheritColumns_ClassWithInheritedColumnsLast()
+    public async Task InheritColumns_InheritedColumnsLast()
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -71,5 +71,28 @@ public class InheritColumnsTests
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.Equal(["Derived", "Base"], sheet.Row(1).StringValues());
+    }
+
+    [Fact]
+    public async Task InheritColumns_TwoLevelInheritance()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var obj = new TwoLevelInheritanceClassWithInheritedColumns
+        {
+            BaseClassProperty = "Base",
+            DerivedClassProperty = "Derived",
+            LeafClassProperty = "Leaf"
+        };
+
+        // Act
+        await spreadsheet.AddAsRowAsync(obj, InheritColumnsContext.Default.TwoLevelInheritanceClassWithInheritedColumns);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(["Derived", "Base", "Leaf"], sheet.Row(1).StringValues());
     }
 }
