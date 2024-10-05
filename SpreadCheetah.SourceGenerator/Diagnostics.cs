@@ -64,8 +64,8 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static Diagnostic UnsupportedTypeForAttribute(Location? location, string attributeName, string typeFullName)
-        => Diagnostic.Create(UnsupportedTypeForAttributeDescriptor, location, [attributeName, typeFullName]);
+    public static Diagnostic UnsupportedTypeForAttribute(Location? location, string? attributeName, string typeFullName)
+        => Diagnostic.Create(UnsupportedTypeForAttributeDescriptor, location, [attributeName ?? "Attribute", typeFullName]);
 
     private static readonly DiagnosticDescriptor UnsupportedTypeForAttributeDescriptor = new(
         id: "SPCH1005",
@@ -75,8 +75,8 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static Diagnostic InvalidAttributeArgument(Location? location, string attributeName)
-        => Diagnostic.Create(InvalidAttributeArgumentDescriptor, location, [attributeName]);
+    public static Diagnostic InvalidAttributeArgument(Location? location, string? attributeName)
+        => Diagnostic.Create(InvalidAttributeArgumentDescriptor, location, [attributeName ?? "attribute"]);
 
     private static readonly DiagnosticDescriptor InvalidAttributeArgumentDescriptor = new(
         id: "SPCH1006",
@@ -86,8 +86,8 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static Diagnostic AttributeTypeArgumentMustInherit(Location? location, string typeName, string attributeName, string baseClassName)
-        => Diagnostic.Create(AttributeTypeArgumentMustInheritDescriptor, location, [typeName, attributeName, baseClassName]);
+    public static Diagnostic AttributeTypeArgumentMustInherit(Location? location, string typeName, string? attributeName, string baseClassName)
+        => Diagnostic.Create(AttributeTypeArgumentMustInheritDescriptor, location, [typeName, attributeName ?? "attribute", baseClassName]);
 
     private static readonly DiagnosticDescriptor AttributeTypeArgumentMustInheritDescriptor = new(
         id: "SPCH1007",
@@ -97,8 +97,8 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static Diagnostic AttributeCombinationNotSupported(Location? location, string attribute1, string attribute2)
-        => Diagnostic.Create(AttributeCombinationNotSupportedDescriptor, location, [attribute1, attribute2]);
+    public static Diagnostic AttributeCombinationNotSupported(Location? location, string? attribute1, string attribute2)
+        => Diagnostic.Create(AttributeCombinationNotSupportedDescriptor, location, [attribute1 ?? "attribute", attribute2]);
 
     private static readonly DiagnosticDescriptor AttributeCombinationNotSupportedDescriptor = new(
         id: "SPCH1008",

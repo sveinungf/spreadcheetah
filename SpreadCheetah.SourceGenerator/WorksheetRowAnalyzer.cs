@@ -88,10 +88,9 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
     {
         if (context.Symbol is not INamedTypeSymbol type)
             return;
-        if (type.GetMembers() is { Length: 0 } members)
-            return;
 
-        var typeHasColumnOrderAttribute = members
+        var typeHasColumnOrderAttribute = type
+            .GetMembers()
             .OfType<IPropertySymbol>()
             .Any(x => x.GetColumnOrderAttribute() is not null);
 

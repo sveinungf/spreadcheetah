@@ -1,7 +1,9 @@
 using Microsoft.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SpreadCheetah.SourceGenerator.Helpers;
 
+[ExcludeFromCodeCoverage]
 internal sealed class NullDiagnosticsReporter : IDiagnosticsReporter
 {
     public static readonly NullDiagnosticsReporter Instance = new();

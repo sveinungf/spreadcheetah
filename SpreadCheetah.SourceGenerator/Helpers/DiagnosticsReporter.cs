@@ -8,116 +8,81 @@ internal sealed class DiagnosticsReporter(SymbolAnalysisContext context) : IDiag
 {
     public void ReportAttributeCombinationNotSupported(AttributeData attribute, string otherAttribute, CancellationToken token)
     {
-        if (attribute.ApplicationSyntaxReference?.GetSyntax(token) is not AttributeSyntax attributeSyntax)
-            return;
-        if (attribute.AttributeClass?.Name is not { } name)
-            return;
-
-        var diagnostic = Diagnostics.AttributeCombinationNotSupported(attributeSyntax.GetLocation(), name, otherAttribute);
+        var attributeSyntax = attribute.ApplicationSyntaxReference?.GetSyntax(token);
+        var name = attribute.AttributeClass?.Name;
+        var diagnostic = Diagnostics.AttributeCombinationNotSupported(attributeSyntax?.GetLocation(), name, otherAttribute);
         context.ReportDiagnostic(diagnostic);
     }
 
     public void ReportDuplicateColumnOrdering(AttributeData attribute, CancellationToken token)
     {
-        if (attribute.ApplicationSyntaxReference?.GetSyntax(token) is not AttributeSyntax attributeSyntax)
-            return;
-
-        var diagnostic = Diagnostics.DuplicateColumnOrder(attributeSyntax.GetLocation());
+        var attributeSyntax = attribute.ApplicationSyntaxReference?.GetSyntax(token);
+        var diagnostic = Diagnostics.DuplicateColumnOrder(attributeSyntax?.GetLocation());
         context.ReportDiagnostic(diagnostic);
     }
 
     public void ReportInvalidArgument(AttributeData attribute, CancellationToken token)
     {
-        if (!TryGetArgument(attribute, token, out var arg) || arg is null)
-            return;
-        if (attribute.AttributeClass?.Name is not { } name)
-            return;
-
-        var diagnostic = Diagnostics.InvalidAttributeArgument(arg.GetLocation(), name);
+        var location = GetArgument(attribute, token)?.GetLocation();
+        var name = attribute.AttributeClass?.Name;
+        var diagnostic = Diagnostics.InvalidAttributeArgument(location, name);
         context.ReportDiagnostic(diagnostic);
     }
 
     public void ReportInvalidPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
     {
-        if (!TryGetArgumentList(attribute, token, out var argList) || argList is null)
-            return;
-
-        var diagnostic = Diagnostics.InvalidColumnHeaderPropertyReference(argList.GetLocation(), propertyName, typeFullName);
+        var argList = GetArgumentList(attribute, token);
+        var diagnostic = Diagnostics.InvalidColumnHeaderPropertyReference(argList?.GetLocation(), propertyName, typeFullName);
         context.ReportDiagnostic(diagnostic);
     }
 
     public void ReportNoPropertiesFound(AttributeData attribute, INamedTypeSymbol rowType, CancellationToken token)
     {
-        if (!TryGetArgument(attribute, token, out var arg) || arg is null)
-            return;
-
-        var diagnostic = Diagnostics.NoPropertiesFound(arg.GetLocation(), rowType.Name);
+        var location = GetArgument(attribute, token)?.GetLocation();
+        var diagnostic = Diagnostics.NoPropertiesFound(location, rowType.Name);
         context.ReportDiagnostic(diagnostic);
     }
 
     public void ReportUnsupportedPropertyType(AttributeData attribute, INamedTypeSymbol rowType, IPropertySymbol property, CancellationToken token)
     {
-        if (!TryGetArgument(attribute, token, out var arg) || arg is null)
-            return;
-
-        var diagnostic = Diagnostics.UnsupportedTypeForCellValue(arg.GetLocation(), rowType.Name, property.Name, property.Type.Name);
+        var location = GetArgument(attribute, token)?.GetLocation();
+        var diagnostic = Diagnostics.UnsupportedTypeForCellValue(location, rowType.Name, property.Name, property.Type.Name);
         context.ReportDiagnostic(diagnostic);
     }
 
     public void ReportUnsupportedPropertyTypeForAttribute(AttributeData attribute, ITypeSymbol propertyType, CancellationToken token)
     {
-        if (attribute.ApplicationSyntaxReference?.GetSyntax(token) is not AttributeSyntax attributeSyntax)
-            return;
-        if (attribute.AttributeClass?.Name is not { } name)
-            return;
-
-        var diagnostic = Diagnostics.UnsupportedTypeForAttribute(attributeSyntax.GetLocation(), name, propertyType.ToDisplayString());
+        var syntaxNode = attribute.ApplicationSyntaxReference?.GetSyntax(token);
+        var name = attribute.AttributeClass?.Name;
+        var diagnostic = Diagnostics.UnsupportedTypeForAttribute(syntaxNode?.GetLocation(), name, propertyType.ToDisplayString());
         context.ReportDiagnostic(diagnostic);
     }
 
     public void ReportTypeMustHaveDefaultConstructor(AttributeData attribute, string typeName, CancellationToken token)
     {
-        if (!TryGetArgument(attribute, token, out var arg) || arg is null)
-            return;
-
-        var diagnostic = Diagnostics.AttributeTypeArgumentMustHaveDefaultConstructor(arg.GetLocation(), typeName);
+        var location = GetArgument(attribute, token)?.GetLocation();
+        var diagnostic = Diagnostics.AttributeTypeArgumentMustHaveDefaultConstructor(location, typeName);
         context.ReportDiagnostic(diagnostic);
     }
 
     public void ReportTypeMustInherit(AttributeData attribute, string typeName, string baseClassName, CancellationToken token)
     {
-        if (!TryGetArgument(attribute, token, out var arg) || arg is null)
-            return;
-        if (attribute.AttributeClass?.Name is not { } name)
-            return;
-
-        var diagnostic = Diagnostics.AttributeTypeArgumentMustInherit(arg.GetLocation(), typeName, name, baseClassName);
+        var location = GetArgument(attribute, token)?.GetLocation();
+        var name = attribute.AttributeClass?.Name;
+        var diagnostic = Diagnostics.AttributeTypeArgumentMustInherit(location, typeName, name, baseClassName);
         context.ReportDiagnostic(diagnostic);
     }
 
-    private static bool TryGetArgumentList(AttributeData attribute, CancellationToken token, out AttributeArgumentListSyntax? argumentList)
+    private static AttributeArgumentListSyntax? GetArgumentList(AttributeData attribute, CancellationToken token)
     {
-        argumentList = null;
-
-        if (attribute.ApplicationSyntaxReference?.GetSyntax(token) is not AttributeSyntax attributeSyntax)
-            return false;
-        if (attributeSyntax.ArgumentList is not { } argList)
-            return false;
-
-        argumentList = argList;
-        return true;
+        var syntaxNode = attribute.ApplicationSyntaxReference?.GetSyntax(token);
+        var attributeSyntax = syntaxNode as AttributeSyntax;
+        return attributeSyntax?.ArgumentList;
     }
 
-    private static bool TryGetArgument(AttributeData attribute, CancellationToken token, out AttributeArgumentSyntax? argument)
+    private static AttributeArgumentSyntax? GetArgument(AttributeData attribute, CancellationToken token)
     {
-        argument = null;
-
-        if (!TryGetArgumentList(attribute, token, out var argList))
-            return false;
-        if (argList?.Arguments.FirstOrDefault() is not { } arg)
-            return false;
-
-        argument = arg;
-        return true;
+        var argList = GetArgumentList(attribute, token);
+        return argList?.Arguments.FirstOrDefault();
     }
 }
