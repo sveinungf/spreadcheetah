@@ -31,13 +31,13 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
-    public static Diagnostic UnsupportedTypeForCellValue(Location? location, string rowTypeName, string propertyTypeName)
-        => Diagnostic.Create(UnsupportedTypeForCellValueDescriptor, location, rowTypeName, propertyTypeName);
+    public static Diagnostic UnsupportedTypeForCellValue(Location? location, string rowTypeName, string propertyName, string propertyTypeName)
+        => Diagnostic.Create(UnsupportedTypeForCellValueDescriptor, location, rowTypeName, propertyName, propertyTypeName);
 
     private static readonly DiagnosticDescriptor UnsupportedTypeForCellValueDescriptor = new(
         id: "SPCH1002",
         title: "Unsupported type for cell value",
-        messageFormat: "The type '{0}' has a property of type '{1}' which is not supported as a cell value, unless a CellValueConverter is used. Otherwise the property will be ignored.",
+        messageFormat: "The type '{0}' has property '{1}' of type '{2}' which is not supported as a cell value, unless a CellValueConverter is used. Otherwise the property will be ignored.",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);

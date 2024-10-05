@@ -75,7 +75,7 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
                 if (property.Type.IsSupportedType())
                     continue;
 
-                diagnostics.ReportUnsupportedPropertyType(attribute, rowType, property.Type, context.CancellationToken);
+                diagnostics.ReportUnsupportedPropertyType(attribute, rowType, property, context.CancellationToken);
                 break;
             }
 

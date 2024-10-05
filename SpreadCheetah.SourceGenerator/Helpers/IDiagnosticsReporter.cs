@@ -14,7 +14,7 @@ internal interface IDiagnosticsReporter
 
     void ReportNoPropertiesFound(AttributeData attribute, INamedTypeSymbol rowType, CancellationToken token);
 
-    void ReportUnsupportedPropertyType(AttributeData attribute, INamedTypeSymbol rowType, ITypeSymbol propertyType, CancellationToken token);
+    void ReportUnsupportedPropertyType(AttributeData attribute, INamedTypeSymbol rowType, IPropertySymbol property, CancellationToken token);
 
     void ReportUnsupportedPropertyTypeForAttribute(AttributeData attribute, ITypeSymbol propertyType, CancellationToken token);
 

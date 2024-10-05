@@ -34,7 +34,7 @@ internal sealed class NullDiagnosticsReporter : IDiagnosticsReporter
     {
     }
 
-    public void ReportUnsupportedPropertyType(AttributeData attribute, INamedTypeSymbol rowType, ITypeSymbol propertyType, CancellationToken token)
+    public void ReportUnsupportedPropertyType(AttributeData attribute, INamedTypeSymbol rowType, IPropertySymbol property, CancellationToken token)
     {
     }
 
