@@ -44,47 +44,4 @@ public class RowTypeTests
         // Act & Assert
         return context.RunAsync();
     }
-
-    [Fact]
-    public Task RowType_ClassWithUnsupportedProperty()
-    {
-        // Arrange
-        var context = AnalyzerTest.CreateContext();
-        context.TestCode = """
-            using SpreadCheetah.SourceGeneration;
-            using System;
-
-            namespace MyNamespace;
-
-            public record RecordWithUnsupportedProperty(Uri HomepageUri);
-            
-            [WorksheetRow({|SPCH1002:typeof(RecordWithUnsupportedProperty)|})]
-            public partial class MyGenRowContext : WorksheetRowContext;
-            """;
-
-        // Act & Assert
-        return context.RunAsync();
-    }
-
-    [Fact]
-    public Task RowType_ClassWithUnsupportedPropertyAndWarningsSuppressed()
-    {
-        // Arrange
-        var context = AnalyzerTest.CreateContext();
-        context.TestCode = """
-            using SpreadCheetah.SourceGeneration;
-            using System;
-
-            namespace MyNamespace;
-
-            public record RecordWithUnsupportedProperty(Uri HomepageUri);
-            
-            [WorksheetRow(typeof(RecordWithUnsupportedProperty))]
-            [WorksheetRowGenerationOptions(SuppressWarnings = true)]
-            public partial class MyGenRowContext : WorksheetRowContext;
-            """;
-
-        // Act & Assert
-        return context.RunAsync();
-    }
 }

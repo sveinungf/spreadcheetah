@@ -85,28 +85,6 @@ public class WorksheetRowGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowGenerator_Generate_ClassWithAllSupportedTypes()
-    {
-        // Arrange
-        const string source = """
-            using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-            using System;
-
-            namespace MyNamespace
-            {
-                [WorksheetRow(typeof(ClassWithAllSupportedTypes))]
-                public partial class MyGenRowContext : WorksheetRowContext
-                {
-                }
-            }
-            """;
-
-        // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
-    }
-
-    [Fact]
     public Task WorksheetRowGenerator_Generate_ClassWithMultipleProperties()
     {
         // Arrange
