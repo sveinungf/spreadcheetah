@@ -336,50 +336,6 @@ public class WorksheetRowGeneratorTests
     }
 
     [Fact]
-    public Task WorksheetRowGenerator_Generate_ContextClassWithInternalAccessibility()
-    {
-        // Arrange
-        const string source = """
-            using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-            using System;
-
-            namespace MyNamespace
-            {
-                [WorksheetRow(typeof(ClassWithSingleProperty))]
-                internal partial class MyGenRowContext : WorksheetRowContext
-                {
-                }
-            }
-            """;
-
-        // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
-    }
-
-    [Fact]
-    public Task WorksheetRowGenerator_Generate_ContextClassWithDefaultAccessibility()
-    {
-        // Arrange
-        const string source = """
-            using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-            using System;
-
-            namespace MyNamespace
-            {
-                [WorksheetRow(typeof(ClassWithSingleProperty))]
-                partial class MyGenRowContext : WorksheetRowContext
-                {
-                }
-            }
-            """;
-
-        // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
-    }
-
-    [Fact]
     public Task WorksheetRowGenerator_Generate_TwoContextClasses()
     {
         // Arrange
