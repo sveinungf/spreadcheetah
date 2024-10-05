@@ -9,5 +9,6 @@ public sealed class WorksheetRowGenerationOptionsAttribute : Attribute
     /// <summary>
     /// Specifies whether to suppress warnings from the source generator.
     /// </summary>
+    [Obsolete("Configure rule severity in an .editorconfig file instead (e.g. 'dotnet_diagnostic.SPCH1001.severity = none').")]
     public bool SuppressWarnings { get; set; }
 }

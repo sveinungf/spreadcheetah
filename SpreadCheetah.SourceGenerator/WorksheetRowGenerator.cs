@@ -50,10 +50,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var attribute in context.Attributes)
         {
-            if (!attribute.TryParseWorksheetRowAttribute(token, out var typeSymbol, out var location))
+            if (!attribute.TryParseWorksheetRowAttribute(out var typeSymbol))
                 continue;
 
-            var rowType = AnalyzeTypeProperties(typeSymbol, location.ToLocationInfo(), token);
+            var rowType = AnalyzeTypeProperties(typeSymbol, token);
             if (!rowTypes.Exists(x => string.Equals(x.FullName, rowType.FullName, StringComparison.Ordinal)))
                 rowTypes.Add(rowType);
         }
@@ -61,47 +61,30 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         if (rowTypes.Count == 0)
             return null;
 
-        GeneratorOptions? generatorOptions = null;
-
-        foreach (var attribute in classSymbol.GetAttributes())
-        {
-            if (attribute.TryParseOptionsAttribute(out var options))
-            {
-                generatorOptions = options;
-                break;
-            }
-        }
-
         return new ContextClass(
             DeclaredAccessibility: classSymbol.DeclaredAccessibility,
             Namespace: classSymbol.ContainingNamespace is { IsGlobalNamespace: false } ns ? ns.ToString() : null,
             Name: classSymbol.Name,
-            RowTypes: rowTypes.ToEquatableArray(),
-            Options: generatorOptions);
+            RowTypes: rowTypes.ToEquatableArray());
     }
 
-    private static RowType AnalyzeTypeProperties(ITypeSymbol classType, LocationInfo? worksheetRowAttributeLocation, CancellationToken token)
+    private static RowType AnalyzeTypeProperties(ITypeSymbol rowType, CancellationToken token)
     {
         var implicitOrderProperties = new List<RowTypeProperty>();
         var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
-        var unsupportedPropertyTypeNames = new HashSet<string>(StringComparer.Ordinal);
-        var diagnosticInfos = new List<DiagnosticInfo>();
         var propertiesWithStyleAttributes = 0;
+        var analyzer = new PropertyAnalyzer(NullDiagnosticsReporter.Instance);
 
-        foreach (var property in GetClassAndBaseClassProperties(classType))
+        var properties = rowType
+            .GetClassAndBaseClassProperties()
+            .Where(x => x.IsInstancePropertyWithPublicGetter());
+
+        foreach (var property in properties)
         {
-            if (property.IsWriteOnly || property.IsStatic || property.DeclaredAccessibility != Accessibility.Public)
-                continue;
-
-            var data = property
-                .GetAttributes()
-                .MapToPropertyAttributeData(property.Type, diagnosticInfos, token);
+            var data = analyzer.Analyze(property, token);
 
             if (data.CellValueConverter is null && !property.Type.IsSupportedType())
-            {
-                unsupportedPropertyTypeNames.Add(property.Type.Name);
                 continue;
-            }
 
             if (data.CellStyle is not null)
                 propertiesWithStyleAttributes++;
@@ -114,60 +97,20 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 CellValueTruncate: data.CellValueTruncate,
                 CellValueConverter: data.CellValueConverter);
 
-            if (data is { CellValueConverter: not null, CellValueTruncate: not null })
-            {
-                var location = property.Locations.FirstOrDefault()?.ToLocationInfo();
-                diagnosticInfos.Add(Diagnostics.AttributeCombinationNotSupported(location, "CellValueConverter", "CellValueTruncate"));
-            }
-
             if (data.ColumnOrder is not { } order)
                 implicitOrderProperties.Add(rowTypeProperty);
             else if (!explicitOrderProperties.ContainsKey(order.Value))
                 explicitOrderProperties.Add(order.Value, rowTypeProperty);
-            else
-                diagnosticInfos.Add(Diagnostics.DuplicateColumnOrder(order.Location, classType.Name));
         }
 
         explicitOrderProperties.AddWithImplicitKeys(implicitOrderProperties);
 
         return new RowType(
-            DiagnosticInfos: diagnosticInfos.ToEquatableArray(),
-            FullName: classType.ToString(),
-            IsReferenceType: classType.IsReferenceType,
-            Name: classType.Name,
+            FullName: rowType.ToString(),
+            IsReferenceType: rowType.IsReferenceType,
+            Name: rowType.Name,
             Properties: explicitOrderProperties.Values.ToEquatableArray(),
-            PropertiesWithStyleAttributes: propertiesWithStyleAttributes,
-            UnsupportedPropertyTypeNames: unsupportedPropertyTypeNames.ToEquatableArray(),
-            WorksheetRowAttributeLocation: worksheetRowAttributeLocation);
-    }
-
-    private static IEnumerable<IPropertySymbol> GetClassAndBaseClassProperties(ITypeSymbol? classType)
-    {
-        if (classType is null || string.Equals(classType.Name, "Object", StringComparison.Ordinal))
-        {
-            return [];
-        }
-
-        var inheritedColumnOrderStrategy = classType.GetAttributes()
-            .Where(data => data.TryGetInheritedColumnOrderingAttribute().HasValue)
-            .Select(data => data.TryGetInheritedColumnOrderingAttribute())
-            .FirstOrDefault();
-
-        var classProperties = classType.GetMembers().OfType<IPropertySymbol>();
-
-        if (inheritedColumnOrderStrategy is null)
-        {
-            return classProperties;
-        }
-
-        var inheritedProperties = GetClassAndBaseClassProperties(classType.BaseType);
-
-        return inheritedColumnOrderStrategy switch
-        {
-            InheritedColumnOrder.InheritedColumnsFirst => inheritedProperties.Concat(classProperties),
-            InheritedColumnOrder.InheritedColumnsLast => classProperties.Concat(inheritedProperties),
-            _ => throw new ArgumentOutOfRangeException(nameof(classType), "Unsupported inheritance strategy type")
-        };
+            PropertiesWithStyleAttributes: propertiesWithStyleAttributes);
     }
 
     private static void Execute(ContextClass? contextClass, SourceProductionContext context)
@@ -176,7 +119,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             return;
 
         var sb = new StringBuilder();
-        GenerateCode(sb, contextClass, context);
+        GenerateCode(sb, contextClass);
 
         var hintName = contextClass.Namespace is { } ns
             ? $"{ns}.{contextClass.Name}.g.cs"
@@ -202,7 +145,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             """);
     }
 
-    private static void GenerateCode(StringBuilder sb, ContextClass contextClass, SourceProductionContext context)
+    private static void GenerateCode(StringBuilder sb, ContextClass contextClass)
     {
         GenerateHeader(sb);
 
@@ -234,7 +177,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             if (!rowTypeNames.Add(rowTypeName))
                 continue;
 
-            GenerateCodeForType(sb, typeIndex, cellValueConverters, rowType, contextClass, context);
+            GenerateCodeForType(sb, typeIndex, cellValueConverters, rowType);
             ++typeIndex;
         }
 
@@ -247,11 +190,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     }
 
     private static void GenerateCodeForType(StringBuilder sb, int typeIndex,
-        Dictionary<string, string> cellValueConverters, RowType rowType,
-        ContextClass contextClass, SourceProductionContext context)
+        Dictionary<string, string> cellValueConverters, RowType rowType)
     {
-        ReportDiagnostics(rowType, rowType.WorksheetRowAttributeLocation, contextClass.Options, context);
-
         sb.AppendLine().AppendLine($$"""
                     private WorksheetRowTypeInfo<{{rowType.FullName}}>? _{{rowType.Name}};
                     public WorksheetRowTypeInfo<{{rowType.FullName}}> {{rowType.Name}} => _{{rowType.Name}}
@@ -298,30 +238,6 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         GenerateAddAsRowInternal(sb, rowType);
         GenerateAddRangeAsRowsInternal(sb, rowType);
         GenerateAddCellsAsRow(sb, rowType, cellStyleToStyleIdIndex, cellValueConverters);
-    }
-
-    private static void ReportDiagnostics(RowType rowType, LocationInfo? locationInfo, GeneratorOptions? options, SourceProductionContext context)
-    {
-        var suppressWarnings = options?.SuppressWarnings ?? false;
-
-        foreach (var diagnosticInfo in rowType.DiagnosticInfos)
-        {
-            var isWarning = diagnosticInfo.Descriptor.DefaultSeverity == DiagnosticSeverity.Warning;
-            if (isWarning && suppressWarnings)
-                continue;
-
-            context.ReportDiagnostic(diagnosticInfo.ToDiagnostic());
-        }
-
-        if (suppressWarnings) return;
-
-        var location = locationInfo?.ToLocation();
-
-        if (rowType.Properties.Count == 0)
-            context.ReportDiagnostic(Diagnostics.NoPropertiesFound(location, rowType.Name));
-
-        if (rowType.UnsupportedPropertyTypeNames.FirstOrDefault() is { } unsupportedPropertyTypeName)
-            context.ReportDiagnostic(Diagnostics.UnsupportedTypeForCellValue(location, rowType.Name, unsupportedPropertyTypeName));
     }
 
     private static void GenerateCreateWorksheetOptions(StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)

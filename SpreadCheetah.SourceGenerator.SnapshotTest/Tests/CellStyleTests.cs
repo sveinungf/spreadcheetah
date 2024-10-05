@@ -81,22 +81,20 @@ public class CellStyleTests
     public Task CellStyle_ClassWithEmptyCellStyle()
     {
         // Arrange
-        const string source = """
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
             using SpreadCheetah.SourceGeneration;
-
+        
             namespace MyNamespace;
-
+        
             public class ClassWithCellStyle
             {
-                [CellStyle("")]
+                [CellStyle({|SPCH1006:""|})]
                 public string? FirstName { get; set; }
             }
-            
-            [WorksheetRow(typeof(ClassWithCellStyle))]
-            public partial class MyGenRowContext : WorksheetRowContext;
             """;
 
         // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source, onlyDiagnostics: true);
+        return context.RunAsync();
     }
 }

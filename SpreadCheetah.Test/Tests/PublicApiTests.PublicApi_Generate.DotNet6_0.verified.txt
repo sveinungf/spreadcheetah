@@ -254,6 +254,8 @@ namespace SpreadCheetah.SourceGeneration
     public sealed class WorksheetRowGenerationOptionsAttribute : System.Attribute
     {
         public WorksheetRowGenerationOptionsAttribute() { }
+        [System.Obsolete("Configure rule severity in an .editorconfig file instead (e.g. \'dotnet_diagnostic" +
+            ".SPCH1001.severity = none\').")]
         public bool SuppressWarnings { get; set; }
     }
     public static class WorksheetRowMetadataServices

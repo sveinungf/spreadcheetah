@@ -1,12 +1,24 @@
 using Microsoft.CodeAnalysis;
-using SpreadCheetah.SourceGenerator.Extensions;
-using SpreadCheetah.SourceGenerator.Models;
+using System.Collections.Immutable;
 
 namespace SpreadCheetah.SourceGenerator;
 
 internal static class Diagnostics
 {
     private const string Category = "SpreadCheetah.SourceGenerator";
+
+    public static ImmutableArray<DiagnosticDescriptor> AllDescriptors =>
+    [
+        NoPropertiesFoundDescriptor,
+        UnsupportedTypeForCellValueDescriptor,
+        DuplicateColumnOrderDescriptor,
+        InvalidColumnHeaderPropertyReferenceDescriptor,
+        UnsupportedTypeForAttributeDescriptor,
+        InvalidAttributeArgumentDescriptor,
+        AttributeTypeArgumentMustInheritDescriptor,
+        AttributeCombinationNotSupportedDescriptor,
+        AttributeTypeArgumentMustHaveDefaultConstructorDescriptor
+    ];
 
     public static Diagnostic NoPropertiesFound(Location? location, string rowTypeName)
         => Diagnostic.Create(NoPropertiesFoundDescriptor, location, rowTypeName);
@@ -19,30 +31,30 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
-    public static Diagnostic UnsupportedTypeForCellValue(Location? location, string rowTypeName, string unsupportedPropertyTypeName)
-        => Diagnostic.Create(UnsupportedTypeForCellValueDescriptor, location, rowTypeName, unsupportedPropertyTypeName);
+    public static Diagnostic UnsupportedTypeForCellValue(Location? location, string rowTypeName, string propertyName, string propertyTypeName)
+        => Diagnostic.Create(UnsupportedTypeForCellValueDescriptor, location, rowTypeName, propertyName, propertyTypeName);
 
     private static readonly DiagnosticDescriptor UnsupportedTypeForCellValueDescriptor = new(
         id: "SPCH1002",
         title: "Unsupported type for cell value",
-        messageFormat: "The type '{0}' has a property of type '{1}' which is not supported as a cell value. The property will be ignored when creating the row.",
+        messageFormat: "The type '{0}' has property '{1}' of type '{2}' which is not supported as a cell value, unless a CellValueConverter is used. Otherwise the property will be ignored.",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
-    public static DiagnosticInfo DuplicateColumnOrder(LocationInfo? location, string className)
-        => new(DuplicateColumnOrderDescriptor, location, new([className]));
+    public static Diagnostic DuplicateColumnOrder(Location? location)
+        => Diagnostic.Create(DuplicateColumnOrderDescriptor, location);
 
     private static readonly DiagnosticDescriptor DuplicateColumnOrderDescriptor = new(
         id: "SPCH1003",
         title: "Duplicate column ordering",
-        messageFormat: "The type '{0}' has two or more properties with the same column order",
+        messageFormat: "The same column order can not be used on two different properties",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static DiagnosticInfo InvalidColumnHeaderPropertyReference(LocationInfo? location, string propertyName, string typeFullName)
-        => new(InvalidColumnHeaderPropertyReferenceDescriptor, location, new([propertyName, typeFullName]));
+    public static Diagnostic InvalidColumnHeaderPropertyReference(Location? location, string propertyName, string typeFullName)
+        => Diagnostic.Create(InvalidColumnHeaderPropertyReferenceDescriptor, location, [propertyName, typeFullName]);
 
     private static readonly DiagnosticDescriptor InvalidColumnHeaderPropertyReferenceDescriptor = new(
         id: "SPCH1004",
@@ -52,8 +64,8 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static DiagnosticInfo UnsupportedTypeForAttribute(AttributeData attribute, string typeFullName, CancellationToken token)
-        => new(UnsupportedTypeForAttributeDescriptor, attribute.GetLocation(token), new([attribute.Name(), typeFullName]));
+    public static Diagnostic UnsupportedTypeForAttribute(Location? location, string? attributeName, string typeFullName)
+        => Diagnostic.Create(UnsupportedTypeForAttributeDescriptor, location, [attributeName ?? "Attribute", typeFullName]);
 
     private static readonly DiagnosticDescriptor UnsupportedTypeForAttributeDescriptor = new(
         id: "SPCH1005",
@@ -63,19 +75,19 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static DiagnosticInfo InvalidAttributeArgument(AttributeData attribute, string attributeArgument, CancellationToken token)
-        => new(InvalidAttributeArgumentDescriptor, attribute.GetLocation(token), new([attributeArgument, attribute.Name()]));
+    public static Diagnostic InvalidAttributeArgument(Location? location, string? attributeName)
+        => Diagnostic.Create(InvalidAttributeArgumentDescriptor, location, [attributeName ?? "attribute"]);
 
     private static readonly DiagnosticDescriptor InvalidAttributeArgumentDescriptor = new(
         id: "SPCH1006",
         title: "Invalid attribute argument",
-        messageFormat: "'{0}' is an invalid argument for {1}",
+        messageFormat: "Invalid argument for {0}",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static DiagnosticInfo AttributeTypeArgumentMustInherit(AttributeData attribute, string typeName, string baseClassName, CancellationToken token)
-        => new(AttributeTypeArgumentMustInheritDescriptor, attribute.GetLocation(token), new([typeName, attribute.Name(), baseClassName]));
+    public static Diagnostic AttributeTypeArgumentMustInherit(Location? location, string typeName, string? attributeName, string baseClassName)
+        => Diagnostic.Create(AttributeTypeArgumentMustInheritDescriptor, location, [typeName, attributeName ?? "attribute", baseClassName]);
 
     private static readonly DiagnosticDescriptor AttributeTypeArgumentMustInheritDescriptor = new(
         id: "SPCH1007",
@@ -85,27 +97,25 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static DiagnosticInfo AttributeCombinationNotSupported(LocationInfo? location, string attribute1, string attribute2)
-        => new(AttributeCombinationNotSupportedDescriptor, location, new([attribute1, attribute2]));
+    public static Diagnostic AttributeCombinationNotSupported(Location? location, string? attribute1, string attribute2)
+        => Diagnostic.Create(AttributeCombinationNotSupportedDescriptor, location, [attribute1 ?? "attribute", attribute2]);
 
     private static readonly DiagnosticDescriptor AttributeCombinationNotSupportedDescriptor = new(
         id: "SPCH1008",
         title: "Attribute combination not supported",
-        messageFormat: "Having both the {0} and the {1} attributes on a property is not supported",
+        messageFormat: "Having both {0} and {1} on a property is not supported",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static DiagnosticInfo AttributeTypeArgumentMustHaveDefaultConstructor(AttributeData attribute, string typeName, CancellationToken token)
-        => new(AttributeTypeArgumentMustHaveDefaultConstructorDescriptor, attribute.GetLocation(token), new([typeName]));
+    public static Diagnostic AttributeTypeArgumentMustHaveDefaultConstructor(Location? location, string typeName)
+        => Diagnostic.Create(AttributeTypeArgumentMustHaveDefaultConstructorDescriptor, location, [typeName]);
 
-    private static readonly DiagnosticDescriptor AttributeTypeArgumentMustHaveDefaultConstructorDescriptor = new(
+    public static readonly DiagnosticDescriptor AttributeTypeArgumentMustHaveDefaultConstructorDescriptor = new(
         id: "SPCH1009",
         title: "Type must have a public parameterless constructor",
         messageFormat: "Type '{0}' must have a public parameterless constructor",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
-
-    private static string Name(this AttributeData attribute) => attribute.AttributeClass?.Name ?? "";
 }

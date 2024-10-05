@@ -14,6 +14,7 @@ using SpreadCheetah.SourceGenerator.Test.Models.MultipleProperties;
 using SpreadCheetah.SourceGenerator.Test.Models.NoProperties;
 using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers.Extensions;
 using System.Globalization;
 using Xunit;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
@@ -385,8 +386,8 @@ public class WorksheetRowGeneratorTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(values.Select(x => x.LastName), sheet.Column("A").Cells.Select(x => x.StringValue));
-        Assert.Equal(values.Select(x => x.FirstName), sheet.Column("B").Cells.Select(x => x.StringValue));
+        Assert.Equal(values.Select(x => x.LastName), sheet.Column("A").Cells.StringValues());
+        Assert.Equal(values.Select(x => x.FirstName), sheet.Column("B").Cells.StringValues());
         Assert.Equal(values.Select(x => x.Age), sheet.Column("C").Cells.Select(x => x.IntValue ?? -1));
         Assert.Equal(values.Select(x => x.Gpa), sheet.Column("D").Cells.Select(x => x.DecimalValue ?? -1));
         Assert.Equal(3, sheet.RowCount);
@@ -682,7 +683,7 @@ string: "", \)",
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(expectedValues.Select(x => x.ReplaceLineEndings()), sheet.Row(1).Select(x => x.StringValue?.ReplaceLineEndings()));
+        Assert.Equal(expectedValues.Select(x => x.ReplaceLineEndings()), sheet.Row(1).StringValues().Select(x => x?.ReplaceLineEndings()));
     }
 
     [Fact]
@@ -716,7 +717,7 @@ string: "", \)",
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(expectedValues, sheet.Row(1).Select(x => x.StringValue));
+        Assert.Equal(expectedValues, sheet.Row(1).StringValues());
     }
 
     [Fact]
@@ -744,7 +745,7 @@ string: "", \)",
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(expectedValues, sheet.Row(1).Select(x => x.StringValue));
+        Assert.Equal(expectedValues, sheet.Row(1).StringValues());
     }
 
     [Fact]
