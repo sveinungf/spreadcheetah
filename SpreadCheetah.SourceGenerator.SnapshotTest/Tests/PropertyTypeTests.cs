@@ -85,4 +85,27 @@ public class PropertyTypeTests
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
+
+    [Fact]
+    public Task PropertyType_ClassWithIndexer()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+            using System;
+
+            namespace MyNamespace;
+
+            public class MyClass
+            {
+                public int this[int index] => index;
+            }
+
+            [WorksheetRow(typeof(MyClass))]
+            public partial class MyContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
 }

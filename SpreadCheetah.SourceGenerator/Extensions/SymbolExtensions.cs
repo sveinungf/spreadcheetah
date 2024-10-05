@@ -48,6 +48,7 @@ internal static class SymbolExtensions
         {
             DeclaredAccessibility: Accessibility.Public,
             IsStatic: false,
+            IsIndexer: false,
             IsWriteOnly: false
         };
     }
