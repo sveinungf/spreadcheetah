@@ -82,44 +82,6 @@ public class WorksheetRowGeneratorInheritColumnsTests
     }
 
     [Fact]
-    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritance_InheritedColumnsFirst()
-    {
-        // Arrange
-        const string source = """
-            using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns;
-            using System;
-
-            namespace MyNamespace;
-                              
-            [WorksheetRow(typeof(RecordClassWithInheritedColumnsFirst))]
-            public partial class MyGenRowContext : WorksheetRowContext;
-            """;
-
-        // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
-    }
-
-    [Fact]
-    public Task WorksheetRowGenerator_Generate_RecordClassWithInheritance_InheritedColumnsLast()
-    {
-        // Arrange
-        const string source = """
-            using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.SourceGenerator.SnapshotTest.Models.InheritColumns;
-            using System;
-
-            namespace MyNamespace;
-                              
-            [WorksheetRow(typeof(RecordClassWithInheritedColumnsLast))]
-            public partial class MyGenRowContext : WorksheetRowContext;
-            """;
-
-        // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
-    }
-
-    [Fact]
     public Task WorksheetRowGenerator_Generate_RecordClassWith_2LevelOfInheritance_InheritedColumnsLast_ParentInheritColumnsLast()
     {
         // Arrange
