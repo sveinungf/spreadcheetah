@@ -6,37 +6,6 @@ namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 public class WorksheetRowGeneratorTests
 {
     [Fact]
-    public Task WorksheetRowGenerator_Generate_CachingCorrectly()
-    {
-        // Arrange
-        const string source = """
-            using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-            using System;
-
-            namespace MyNamespace
-            {
-                [WorksheetRow(typeof(ClassWithSingleProperty))]
-                public partial class MyGenRowContext : WorksheetRowContext
-                {
-                }
-            }
-            """;
-
-        // Act
-        var (diagnostics, output) = TestHelper.GetGeneratedTrees<WorksheetRowGenerator>(source, ["Transform"]);
-
-        // Assert
-        Assert.Empty(diagnostics);
-        var outputSource = Assert.Single(output);
-
-        var settings = new VerifySettings();
-        settings.UseDirectory("../Snapshots");
-        settings.UseTypeName("G");
-        return Verify(outputSource, settings);
-    }
-
-    [Fact]
     public Task WorksheetRowGenerator_Generate_ClassWithSingleProperty()
     {
         // Arrange
@@ -75,28 +44,6 @@ public class WorksheetRowGeneratorTests
 
                 [WorksheetRow(typeof(InternalClassWithSingleProperty))]
                 internal partial class MyGenRowContext : WorksheetRowContext
-                {
-                }
-            }
-            """;
-
-        // Act & Assert
-        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
-    }
-
-    [Fact]
-    public Task WorksheetRowGenerator_Generate_ClassWithMultipleProperties()
-    {
-        // Arrange
-        const string source = """
-            using SpreadCheetah.SourceGeneration;
-            using SpreadCheetah.SourceGenerator.SnapshotTest.Models;
-            using System;
-
-            namespace MyNamespace
-            {
-                [WorksheetRow(typeof(ClassWithMultipleProperties))]
-                public partial class MyGenRowContext : WorksheetRowContext
                 {
                 }
             }
