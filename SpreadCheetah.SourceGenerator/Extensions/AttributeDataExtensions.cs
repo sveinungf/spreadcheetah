@@ -49,4 +49,20 @@ internal static class AttributeDataExtensions
 
         return false;
     }
+
+    public static bool HasSrcGenAttributeNamespace(this AttributeData attribute)
+    {
+        return attribute.AttributeClass is
+        {
+            ContainingNamespace:
+            {
+                Name: "SourceGeneration",
+                ContainingNamespace:
+                {
+                    Name: "SpreadCheetah",
+                    ContainingNamespace.IsGlobalNamespace: true
+                }
+            }
+        };
+    }
 }

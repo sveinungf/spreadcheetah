@@ -31,7 +31,7 @@ internal sealed class DiagnosticsReporter(SymbolAnalysisContext context) : IDiag
 
     public void ReportInvalidPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
     {
-        var argList = GetArgumentList(attribute, token);
+        var argList = GetAttributeSyntax(attribute, token)?.ArgumentList;
         var diagnostic = Diagnostics.InvalidColumnHeaderPropertyReference(argList?.GetLocation(), propertyName, typeFullName);
         context.ReportDiagnostic(diagnostic);
     }
@@ -43,9 +43,12 @@ internal sealed class DiagnosticsReporter(SymbolAnalysisContext context) : IDiag
         context.ReportDiagnostic(diagnostic);
     }
 
-    public void ReportUnsupportedPropertyType(AttributeData attribute, INamedTypeSymbol rowType, IPropertySymbol property, CancellationToken token)
+    public void ReportUnsupportedPropertyType(AttributeData attribute, bool genericAttribute, INamedTypeSymbol rowType, IPropertySymbol property, CancellationToken token)
     {
-        var location = GetArgument(attribute, token)?.GetLocation();
+        var location = genericAttribute
+            ? GetTypeArgument(attribute, token)?.GetLocation()
+            : GetArgument(attribute, token)?.GetLocation();
+
         var diagnostic = Diagnostics.UnsupportedTypeForCellValue(location, rowType.Name, property.Name, property.Type.Name);
         context.ReportDiagnostic(diagnostic);
     }
@@ -58,31 +61,43 @@ internal sealed class DiagnosticsReporter(SymbolAnalysisContext context) : IDiag
         context.ReportDiagnostic(diagnostic);
     }
 
-    public void ReportTypeMustHaveDefaultConstructor(AttributeData attribute, string typeName, CancellationToken token)
+    public void ReportTypeMustHaveDefaultConstructor(AttributeData attribute, bool genericAttribute, string typeName, CancellationToken token)
     {
-        var location = GetArgument(attribute, token)?.GetLocation();
+        var location = genericAttribute
+            ? GetTypeArgument(attribute, token)?.GetLocation()
+            : GetArgument(attribute, token)?.GetLocation();
+
         var diagnostic = Diagnostics.AttributeTypeArgumentMustHaveDefaultConstructor(location, typeName);
         context.ReportDiagnostic(diagnostic);
     }
 
-    public void ReportTypeMustInherit(AttributeData attribute, string typeName, string baseClassName, CancellationToken token)
+    public void ReportTypeMustInherit(AttributeData attribute, bool genericAttribute, string typeName, string baseClassName, CancellationToken token)
     {
-        var location = GetArgument(attribute, token)?.GetLocation();
+        var location = genericAttribute
+            ? GetTypeArgument(attribute, token)?.GetLocation()
+            : GetArgument(attribute, token)?.GetLocation();
+
         var name = attribute.AttributeClass?.Name;
         var diagnostic = Diagnostics.AttributeTypeArgumentMustInherit(location, typeName, name, baseClassName);
         context.ReportDiagnostic(diagnostic);
     }
 
-    private static AttributeArgumentListSyntax? GetArgumentList(AttributeData attribute, CancellationToken token)
+    private static AttributeSyntax? GetAttributeSyntax(AttributeData attribute, CancellationToken token)
     {
         var syntaxNode = attribute.ApplicationSyntaxReference?.GetSyntax(token);
-        var attributeSyntax = syntaxNode as AttributeSyntax;
-        return attributeSyntax?.ArgumentList;
+        return syntaxNode as AttributeSyntax;
     }
 
     private static AttributeArgumentSyntax? GetArgument(AttributeData attribute, CancellationToken token)
     {
-        var argList = GetArgumentList(attribute, token);
+        var argList = GetAttributeSyntax(attribute, token)?.ArgumentList;
         return argList?.Arguments.FirstOrDefault();
+    }
+
+    private static TypeSyntax? GetTypeArgument(AttributeData attribute, CancellationToken token)
+    {
+        var attributeSyntax = GetAttributeSyntax(attribute, token);
+        var name = attributeSyntax?.Name as GenericNameSyntax;
+        return name?.TypeArgumentList.Arguments.FirstOrDefault();
     }
 }

@@ -118,11 +118,26 @@ internal static class SymbolExtensions
         return true;
     }
 
-    public static AttributeData? GetCellValueConverterAttribute(this IPropertySymbol property)
+    public static AttributeData? GetCellValueConverterAttribute(this IPropertySymbol property, out bool? genericAttribute)
     {
-        return property
-            .GetAttributes()
-            .FirstOrDefault(x => Attributes.CellValueConverter.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
+        foreach (var attribute in property.GetAttributes())
+        {
+            if (!attribute.HasSrcGenAttributeNamespace())
+                continue;
+
+            genericAttribute = attribute.AttributeClass?.MetadataName switch
+            {
+                "CellValueConverterAttribute" => false,
+                "CellValueConverterAttribute`1" => true,
+                _ => null
+            };
+
+            if (genericAttribute is not null)
+                return attribute;
+        }
+
+        genericAttribute = null;
+        return null;
     }
 
     public static AttributeData? GetColumnOrderAttribute(this IPropertySymbol property)

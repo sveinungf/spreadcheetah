@@ -69,13 +69,13 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
             {
                 hasProperties = true;
 
-                var cellValueConverter = property.GetCellValueConverterAttribute();
+                var cellValueConverter = property.GetCellValueConverterAttribute(out var generic);
                 if (cellValueConverter is not null)
                     continue;
                 if (property.Type.IsSupportedType())
                     continue;
 
-                diagnostics.ReportUnsupportedPropertyType(attribute, rowType, property, context.CancellationToken);
+                diagnostics.ReportUnsupportedPropertyType(attribute, generic ?? false, rowType, property, context.CancellationToken);
                 break;
             }
 

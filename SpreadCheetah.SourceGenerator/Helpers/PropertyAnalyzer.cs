@@ -15,23 +15,10 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
         foreach (var attribute in property.GetAttributes())
         {
-            if (attribute.AttributeClass is not
-                {
-                    ContainingNamespace:
-                    {
-                        Name: "SourceGeneration",
-                        ContainingNamespace:
-                        {
-                            Name: "SpreadCheetah",
-                            ContainingNamespace.IsGlobalNamespace: true
-                        }
-                    }
-                })
-            {
+            if (!attribute.HasSrcGenAttributeNamespace())
                 continue;
-            }
 
-            _ = attribute.AttributeClass.MetadataName switch
+            _ = attribute.AttributeClass?.MetadataName switch
             {
                 "CellStyleAttribute" => TryGetCellStyleAttribute(attribute, token),
                 "CellValueConverterAttribute" => TryGetCellValueConverterAttribute(attribute, property.Type, token),
@@ -75,7 +62,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
     {
         var typeArgs = attribute.AttributeClass?.TypeArguments;
         return typeArgs is [INamedTypeSymbol converterType]
-            && TryGetCellValueConverterAttribute(attribute, converterType, propertyType, token);
+            && TryGetCellValueConverterAttribute(attribute, true, converterType, propertyType, token);
     }
 
     private bool TryGetCellValueConverterAttribute(
@@ -85,11 +72,12 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
     {
         var constructorArgs = attribute.ConstructorArguments;
         return constructorArgs is [{ Value: INamedTypeSymbol converterType }]
-            && TryGetCellValueConverterAttribute(attribute, converterType, propertyType, token);
+            && TryGetCellValueConverterAttribute(attribute, false, converterType, propertyType, token);
     }
 
     private bool TryGetCellValueConverterAttribute(
         AttributeData attribute,
+        bool genericAttribute,
         INamedTypeSymbol converterTypeSymbol,
         ITypeSymbol propertyType,
         CancellationToken token)
@@ -100,7 +88,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
         if (converterTypeSymbol.BaseType is not { Name: "CellValueConverter", TypeArguments: [INamedTypeSymbol typeArgument] }
             || !string.Equals(typeArgument.OriginalDefinition.ToDisplayString(), propertyTypeName, StringComparison.Ordinal))
         {
-            diagnostics.ReportTypeMustInherit(attribute, typeName, $"CellValueConverter<{propertyTypeName}>", token);
+            diagnostics.ReportTypeMustInherit(attribute, genericAttribute, typeName, $"CellValueConverter<{propertyTypeName}>", token);
             return false;
         }
 
@@ -109,7 +97,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
         if (!hasPublicConstructor)
         {
-            diagnostics.ReportTypeMustHaveDefaultConstructor(attribute, typeName, token);
+            diagnostics.ReportTypeMustHaveDefaultConstructor(attribute, genericAttribute, typeName, token);
             return false;
         }
 
