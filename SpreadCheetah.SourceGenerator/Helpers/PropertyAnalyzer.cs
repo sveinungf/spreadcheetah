@@ -15,14 +15,31 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
         foreach (var attribute in property.GetAttributes())
         {
-            _ = attribute.AttributeClass?.ToDisplayString() switch
+            if (attribute.AttributeClass is not
+                {
+                    ContainingNamespace:
+                    {
+                        Name: "SourceGeneration",
+                        ContainingNamespace:
+                        {
+                            Name: "SpreadCheetah",
+                            ContainingNamespace.IsGlobalNamespace: true
+                        }
+                    }
+                })
             {
-                Attributes.CellStyle => TryGetCellStyleAttribute(attribute, token),
-                Attributes.CellValueConverter => TryGetCellValueConverterAttribute(attribute, property.Type, token),
-                Attributes.CellValueTruncate => TryGetCellValueTruncateAttribute(attribute, property.Type, token),
-                Attributes.ColumnHeader => TryGetColumnHeaderAttribute(attribute, token),
-                Attributes.ColumnOrder => TryGetColumnOrderAttribute(attribute),
-                Attributes.ColumnWidth => TryGetColumnWidthAttribute(attribute, token),
+                continue;
+            }
+
+            _ = attribute.AttributeClass.MetadataName switch
+            {
+                "CellStyleAttribute" => TryGetCellStyleAttribute(attribute, token),
+                "CellValueConverterAttribute" => TryGetCellValueConverterAttribute(attribute, property.Type, token),
+                "CellValueConverterAttribute`1" => TryGetCellValueConverterGenericAttribute(attribute, property.Type, token),
+                "CellValueTruncateAttribute" => TryGetCellValueTruncateAttribute(attribute, property.Type, token),
+                "ColumnHeaderAttribute" => TryGetColumnHeaderAttribute(attribute, token),
+                "ColumnOrderAttribute" => TryGetColumnOrderAttribute(attribute),
+                "ColumnWidthAttribute" => TryGetColumnWidthAttribute(attribute, token),
                 _ => false
             };
         }
@@ -51,15 +68,32 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
         return true;
     }
 
+    private bool TryGetCellValueConverterGenericAttribute(
+        AttributeData attribute,
+        ITypeSymbol propertyType,
+        CancellationToken token)
+    {
+        var typeArgs = attribute.AttributeClass?.TypeArguments;
+        return typeArgs is [INamedTypeSymbol converterType]
+            && TryGetCellValueConverterAttribute(attribute, converterType, propertyType, token);
+    }
+
     private bool TryGetCellValueConverterAttribute(
         AttributeData attribute,
         ITypeSymbol propertyType,
         CancellationToken token)
     {
-        var args = attribute.ConstructorArguments;
-        if (args is not [{ Value: INamedTypeSymbol converterTypeSymbol }])
-            return false;
+        var constructorArgs = attribute.ConstructorArguments;
+        return constructorArgs is [{ Value: INamedTypeSymbol converterType }]
+            && TryGetCellValueConverterAttribute(attribute, converterType, propertyType, token);
+    }
 
+    private bool TryGetCellValueConverterAttribute(
+        AttributeData attribute,
+        INamedTypeSymbol converterTypeSymbol,
+        ITypeSymbol propertyType,
+        CancellationToken token)
+    {
         var typeName = converterTypeSymbol.ToDisplayString();
         var propertyTypeName = propertyType.OriginalDefinition.ToDisplayString();
 
