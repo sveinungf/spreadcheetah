@@ -11,17 +11,17 @@ public class CellValueConverterTests
         // Arrange
         const string source = """
             using SpreadCheetah.SourceGeneration;
-            
+
             namespace MyNamespace;
             public class ClassWithMultipleConverters
             {
-                [CellValueConverter(typeof(StringValueConverter))]
+                [CellValueConverter<StringValueConverter>]
                 public string? Property { get; set; }
 
-                [CellValueConverter(typeof(NullableIntValueConverter))]
+                [CellValueConverter<NullableIntValueConverter>]
                 public int? Property1 { get; set; }
 
-                [CellValueConverter(typeof(DecimalValueConverter))]
+                [CellValueConverter<DecimalValueConverter>]
                 public decimal Property2 { get; set; }
             }
             
@@ -116,6 +116,35 @@ public class CellValueConverterTests
     }
 
     [Fact]
+    public Task CellValueConverter_ClassWithInvalidConverterForGenericAttribute()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
+            using SpreadCheetah;
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+            public class ClassWithInvalidConverter
+            {
+                [CellValueConverter<{|SPCH1007:DecimalValueConverter|}>]
+                public string? Property { get; set; }
+            }
+            
+            internal class DecimalValueConverter : CellValueConverter<decimal>
+            {
+                public override DataCell ConvertToDataCell(decimal value) => new(value);
+            }
+            
+            [WorksheetRow(typeof(ClassWithInvalidConverter))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return context.RunAsync();
+    }
+
+    [Fact]
     public Task CellValueConverter_TwoClassesUsingTheSameConverter()
     {
         // Arrange
@@ -162,6 +191,35 @@ public class CellValueConverterTests
             public class ClassWithConverterThatDoesNotInheritCellValueConverter
             {           
                 [CellValueConverter({|SPCH1007:typeof(DecimalValueConverter)|})]
+                public decimal Property { get; set; }
+            }
+            
+            internal class DecimalValueConverter
+            {
+                public DataCell ConvertToDataCell(decimal value) => new(value);
+            }
+
+            [WorksheetRow(typeof(ClassWithConverterThatDoesNotInheritCellValueConverter))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return context.RunAsync();
+    }
+
+    [Fact]
+    public Task CellValueConverter_ClassWithConverterThatDoesNotInheritCellValueConverterForGenericAttribute()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
+            using SpreadCheetah;
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+            public class ClassWithConverterThatDoesNotInheritCellValueConverter
+            {           
+                [CellValueConverter<{|SPCH1007:DecimalValueConverter|}>]
                 public decimal Property { get; set; }
             }
             
@@ -266,6 +324,35 @@ public class CellValueConverterTests
     }
 
     [Fact]
+    public Task CellValueConverter_ClassWithoutParameterlessConstructorForGenericAttribute()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
+            using SpreadCheetah;
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+            public class ClassWithoutParameterlessConstructor
+            {
+                [CellValueConverter<{|SPCH1009:FixedValueConverter|}>]
+                public string? Value { get; set; }
+            }
+
+            internal class FixedValueConverter(string fixedValue) : CellValueConverter<string>
+            {
+                public override DataCell ConvertToDataCell(string value) => new(fixedValue);
+            }
+               
+            [WorksheetRow(typeof(ClassWithoutParameterlessConstructor))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return context.RunAsync();
+    }
+
+    [Fact]
     public Task CellValueConverter_ClassWithConverterOnComplexProperty()
     {
         // Arrange
@@ -309,6 +396,37 @@ public class CellValueConverterTests
             public class ClassWithInvalidConverterOnComplexProperty
             {
                 [CellValueConverter({|SPCH1007:typeof(StringConverter)|})]
+                public object? Property1 { get; set; }
+
+                public string? Property2 { get; set; }
+            }
+               
+            internal class StringConverter : CellValueConverter<string>
+            {
+                public override DataCell ConvertToDataCell(string value) => new(value);
+            } 
+                                 
+            [WorksheetRow(typeof(ClassWithInvalidConverterOnComplexProperty))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return context.RunAsync();
+    }
+
+    [Fact]
+    public Task CellValueConverter_ClassWithInvalidConverterOnComplexPropertyForGenericAttribute()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
+            using SpreadCheetah;
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+            public class ClassWithInvalidConverterOnComplexProperty
+            {
+                [CellValueConverter<{|SPCH1007:StringConverter|}>]
                 public object? Property1 { get; set; }
 
                 public string? Property2 { get; set; }

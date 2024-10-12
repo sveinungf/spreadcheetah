@@ -4,6 +4,6 @@ namespace SpreadCheetah.SourceGenerator.Test.Models.CellValueConverter;
 
 internal class ClassWithCellValueConverter
 {
-    [CellValueConverter(typeof(UpperCaseValueConverter))]
+    [CellValueConverter<UpperCaseValueConverter>]
     public string? Name { get; set; }
 }
