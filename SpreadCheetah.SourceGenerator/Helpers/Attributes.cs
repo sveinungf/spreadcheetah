@@ -9,10 +9,6 @@ internal static class Attributes
     public const string ColumnHeader = "ColumnHeaderAttribute";
     public const string ColumnOrder = "ColumnOrderAttribute";
     public const string ColumnWidth = "ColumnWidthAttribute";
-
-    // TODO: Get rid of these
-    public const string CellValueTruncateFqn = "SpreadCheetah.SourceGeneration.CellValueTruncateAttribute";
-    public const string ColumnOrderFqn = "SpreadCheetah.SourceGeneration.ColumnOrderAttribute";
-    public const string InheritColumnsFqn = "SpreadCheetah.SourceGeneration.InheritColumnsAttribute";
-    public const string GenerationOptionsFqn = "SpreadCheetah.SourceGeneration.WorksheetRowGenerationOptionsAttribute";
+    public const string GenerationOptions = "WorksheetRowGenerationOptionsAttribute";
+    public const string InheritColumns = "InheritColumnsAttribute";
 }

@@ -108,7 +108,9 @@ internal static class SymbolExtensions
     {
         result = default;
 
-        if (!string.Equals(Attributes.InheritColumnsFqn, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
+        if (!attribute.HasSpreadCheetahSrcGenNamespace())
+            return false;
+        if (!Attributes.InheritColumns.Equals(attribute.AttributeClass?.MetadataName, StringComparison.Ordinal))
             return false;
 
         result = attribute.NamedArguments is [{ Value.Value: { } arg }] && Enum.IsDefined(typeof(InheritedColumnOrder), arg)
@@ -122,7 +124,7 @@ internal static class SymbolExtensions
     {
         foreach (var attribute in property.GetAttributes())
         {
-            if (!attribute.HasSrcGenAttributeNamespace())
+            if (!attribute.HasSpreadCheetahSrcGenNamespace())
                 continue;
 
             genericAttribute = attribute.AttributeClass?.MetadataName switch
@@ -144,6 +146,7 @@ internal static class SymbolExtensions
     {
         return property
             .GetAttributes()
-            .FirstOrDefault(x => Attributes.ColumnOrderFqn.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
+            .FirstOrDefault(x => x.HasSpreadCheetahSrcGenNamespace()
+                && Attributes.ColumnOrder.Equals(x.AttributeClass?.MetadataName, StringComparison.Ordinal));
     }
 }

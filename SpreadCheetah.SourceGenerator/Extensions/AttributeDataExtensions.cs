@@ -29,9 +29,10 @@ internal static class AttributeDataExtensions
     {
         options = null;
 
-        if (!string.Equals(Attributes.GenerationOptionsFqn, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
+        if (!attribute.HasSpreadCheetahSrcGenNamespace())
             return false;
-
+        if (!Attributes.GenerationOptions.Equals(attribute.AttributeClass?.MetadataName, StringComparison.Ordinal))
+            return false;
         if (attribute.NamedArguments.IsDefaultOrEmpty)
             return false;
 
@@ -50,7 +51,7 @@ internal static class AttributeDataExtensions
         return false;
     }
 
-    public static bool HasSrcGenAttributeNamespace(this AttributeData attribute)
+    public static bool HasSpreadCheetahSrcGenNamespace(this AttributeData attribute)
     {
         return attribute.AttributeClass is
         {

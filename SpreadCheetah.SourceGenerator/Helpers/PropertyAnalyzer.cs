@@ -15,7 +15,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
         foreach (var attribute in property.GetAttributes())
         {
-            if (!attribute.HasSrcGenAttributeNamespace())
+            if (!attribute.HasSpreadCheetahSrcGenNamespace())
                 continue;
 
             _ = attribute.AttributeClass?.MetadataName switch
