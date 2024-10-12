@@ -20,13 +20,13 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
             _ = attribute.AttributeClass?.MetadataName switch
             {
-                "CellStyleAttribute" => TryGetCellStyleAttribute(attribute, token),
-                "CellValueConverterAttribute" => TryGetCellValueConverterAttribute(attribute, property.Type, token),
-                "CellValueConverterAttribute`1" => TryGetCellValueConverterGenericAttribute(attribute, property.Type, token),
-                "CellValueTruncateAttribute" => TryGetCellValueTruncateAttribute(attribute, property.Type, token),
-                "ColumnHeaderAttribute" => TryGetColumnHeaderAttribute(attribute, token),
-                "ColumnOrderAttribute" => TryGetColumnOrderAttribute(attribute),
-                "ColumnWidthAttribute" => TryGetColumnWidthAttribute(attribute, token),
+                Attributes.CellStyle => TryGetCellStyleAttribute(attribute, token),
+                Attributes.CellValueConverter => TryGetCellValueConverterAttribute(attribute, property.Type, token),
+                Attributes.CellValueConverterGeneric => TryGetCellValueConverterGenericAttribute(attribute, property.Type, token),
+                Attributes.CellValueTruncate => TryGetCellValueTruncateAttribute(attribute, property.Type, token),
+                Attributes.ColumnHeader => TryGetColumnHeaderAttribute(attribute, token),
+                Attributes.ColumnOrder => TryGetColumnOrderAttribute(attribute),
+                Attributes.ColumnWidth => TryGetColumnWidthAttribute(attribute, token),
                 _ => false
             };
         }

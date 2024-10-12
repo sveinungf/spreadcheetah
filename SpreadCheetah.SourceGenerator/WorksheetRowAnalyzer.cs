@@ -132,10 +132,10 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
         if (data is { CellValueConverter: not null, CellValueTruncate: not null })
         {
             var cellValueTruncateAttribute = attributes
-                .First(x => Attributes.CellValueTruncate.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
+                .First(x => Attributes.CellValueTruncateFqn.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
 
             diagnostics.ReportAttributeCombinationNotSupported(cellValueTruncateAttribute,
-                "CellValueConverterAttribute", context.CancellationToken);
+                Attributes.CellValueConverter, context.CancellationToken);
         }
     }
 }

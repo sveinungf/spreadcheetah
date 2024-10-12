@@ -29,7 +29,7 @@ internal static class AttributeDataExtensions
     {
         options = null;
 
-        if (!string.Equals(Attributes.GenerationOptions, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
+        if (!string.Equals(Attributes.GenerationOptionsFqn, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
             return false;
 
         if (attribute.NamedArguments.IsDefaultOrEmpty)

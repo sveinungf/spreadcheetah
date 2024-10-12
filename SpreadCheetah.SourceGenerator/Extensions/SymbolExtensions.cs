@@ -108,7 +108,7 @@ internal static class SymbolExtensions
     {
         result = default;
 
-        if (!string.Equals(Attributes.InheritColumns, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
+        if (!string.Equals(Attributes.InheritColumnsFqn, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
             return false;
 
         result = attribute.NamedArguments is [{ Value.Value: { } arg }] && Enum.IsDefined(typeof(InheritedColumnOrder), arg)
@@ -127,8 +127,8 @@ internal static class SymbolExtensions
 
             genericAttribute = attribute.AttributeClass?.MetadataName switch
             {
-                "CellValueConverterAttribute" => false,
-                "CellValueConverterAttribute`1" => true,
+                Attributes.CellValueConverter => false,
+                Attributes.CellValueConverterGeneric => true,
                 _ => null
             };
 
@@ -144,6 +144,6 @@ internal static class SymbolExtensions
     {
         return property
             .GetAttributes()
-            .FirstOrDefault(x => Attributes.ColumnOrder.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
+            .FirstOrDefault(x => Attributes.ColumnOrderFqn.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
     }
 }
