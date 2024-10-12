@@ -270,7 +270,7 @@ dotnet_diagnostic.S4136.severity = warning
 # S1694: An abstract class should have both abstract and concrete methods
 dotnet_diagnostic.S1694.severity = none
 
-[{CellValueConverterAttributeOfT.cs}]
+[{CellValueConverterAttribute.cs}]
 # S2326: Unused type parameters should be removed
 dotnet_diagnostic.S2326.severity = none
 
