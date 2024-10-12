@@ -295,6 +295,36 @@ public class CellValueConverterTests
     }
 
     [Fact]
+    public Task CellValueConverter_ClassPropertyWithConverterAndCellValueTruncateForGenericAttribute()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
+            using SpreadCheetah;
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+            public class ClassPropertyWithConverterAndCellValueTruncate
+            {
+                [CellValueConverter<StringValueConverter>]
+                [{|SPCH1008:CellValueTruncate(20)|}]
+                public string? Property { get; set; }
+            }
+
+            internal class StringValueConverter : CellValueConverter<string>
+            {
+                public override DataCell ConvertToDataCell(string value) => new(value);
+            }
+               
+            [WorksheetRow(typeof(ClassPropertyWithConverterAndCellValueTruncate))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return context.RunAsync();
+    }
+
+    [Fact]
     public Task CellValueConverter_ClassWithoutParameterlessConstructor()
     {
         // Arrange
