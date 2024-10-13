@@ -191,6 +191,12 @@ namespace SpreadCheetah.SourceGeneration
         public CellStyleAttribute(string styleName) { }
     }
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
+    public sealed class CellStyleFormatAttribute : System.Attribute
+    {
+        public CellStyleFormatAttribute(SpreadCheetah.Styling.StandardNumberFormat format) { }
+        public CellStyleFormatAttribute(string customFormat) { }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class CellValueConverterAttribute : System.Attribute
     {
         public CellValueConverterAttribute(System.Type converterType) { }
