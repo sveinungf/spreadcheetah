@@ -129,13 +129,19 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
 
         var data = analyzer.Analyze(property, context.CancellationToken);
 
-        if (data is { CellValueConverter: not null, CellValueTruncate: not null })
-        {
-            var cellValueTruncateAttribute = attributes
-                .First(x => Attributes.CellValueTruncate.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
+        if (data is not { CellValueConverter: not null, CellValueTruncate: not null })
+            return;
 
-            diagnostics.ReportAttributeCombinationNotSupported(cellValueTruncateAttribute,
+        foreach (var attribute in attributes)
+        {
+            if (attribute is not { AttributeClass.MetadataName: Attributes.CellValueTruncate })
+                continue;
+            if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace())
+                continue;
+
+            diagnostics.ReportAttributeCombinationNotSupported(attribute,
                 "CellValueConverterAttribute", context.CancellationToken);
+            break;
         }
     }
 }

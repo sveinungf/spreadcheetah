@@ -108,7 +108,9 @@ internal static class SymbolExtensions
     {
         result = default;
 
-        if (!string.Equals(Attributes.InheritColumns, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
+        if (attribute is not { AttributeClass.MetadataName: Attributes.InheritColumns })
+            return false;
+        if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace())
             return false;
 
         result = attribute.NamedArguments is [{ Value.Value: { } arg }] && Enum.IsDefined(typeof(InheritedColumnOrder), arg)
@@ -120,15 +122,42 @@ internal static class SymbolExtensions
 
     public static AttributeData? GetCellValueConverterAttribute(this IPropertySymbol property)
     {
-        return property
-            .GetAttributes()
-            .FirstOrDefault(x => Attributes.CellValueConverter.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
+        return property.GetAttribute(Attributes.CellValueConverter);
     }
 
     public static AttributeData? GetColumnOrderAttribute(this IPropertySymbol property)
     {
-        return property
-            .GetAttributes()
-            .FirstOrDefault(x => Attributes.ColumnOrder.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
+        return property.GetAttribute(Attributes.ColumnOrder);
+    }
+
+    private static AttributeData? GetAttribute(this IPropertySymbol property, string attributeName)
+    {
+        foreach (var attribute in property.GetAttributes())
+        {
+            if (attribute.AttributeClass is not { } attributeClass)
+                continue;
+            if (!string.Equals(attributeName, attributeClass.MetadataName, StringComparison.Ordinal))
+                continue;
+            if (attributeClass.HasSpreadCheetahSrcGenNamespace())
+                return attribute;
+        }
+
+        return null;
+    }
+
+    public static bool HasSpreadCheetahSrcGenNamespace(this INamedTypeSymbol symbol)
+    {
+        return symbol is
+        {
+            ContainingNamespace:
+            {
+                Name: "SourceGeneration",
+                ContainingNamespace:
+                {
+                    Name: "SpreadCheetah",
+                    ContainingNamespace.IsGlobalNamespace: true
+                }
+            }
+        };
     }
 }

@@ -15,7 +15,12 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
         foreach (var attribute in property.GetAttributes())
         {
-            _ = attribute.AttributeClass?.ToDisplayString() switch
+            if (attribute.AttributeClass is not { } attributeClass)
+                continue;
+            if (!attributeClass.HasSpreadCheetahSrcGenNamespace())
+                continue;
+
+            _ = attributeClass.MetadataName switch
             {
                 Attributes.CellStyle => TryGetCellStyleAttribute(attribute, token),
                 Attributes.CellValueConverter => TryGetCellValueConverterAttribute(attribute, property.Type, token),
