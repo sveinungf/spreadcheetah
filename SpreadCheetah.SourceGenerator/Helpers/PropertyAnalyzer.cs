@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Models;
+using SpreadCheetah.SourceGenerator.Models.Values;
 
 namespace SpreadCheetah.SourceGenerator.Helpers;
 
@@ -22,6 +23,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
             _ = attributeClass.MetadataName switch
             {
+                Attributes.CellFormat => TryGetCellFormatAttribute(attribute, token),
                 Attributes.CellStyle => TryGetCellStyleAttribute(attribute, token),
                 Attributes.CellValueConverter => TryGetCellValueConverterAttribute(attribute, property.Type, token),
                 Attributes.CellValueTruncate => TryGetCellValueTruncateAttribute(attribute, property.Type, token),
@@ -54,6 +56,36 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
         _result.CellStyle = new CellStyle(arg.ToCSharpString());
         return true;
+    }
+
+    private bool TryGetCellFormatAttribute(
+        AttributeData attribute,
+        CancellationToken token)
+    {
+        var args = attribute.ConstructorArguments;
+        if (args is not [{ Value: { } value } arg])
+            return false;
+
+        if (value is string stringValue)
+        {
+            if (stringValue.Length > 255)
+            {
+                diagnostics.ReportInvalidArgument(attribute, token);
+                return false;
+            }
+
+            _result.CellFormat = new CellFormat(arg.ToCSharpString());
+            return true;
+        }
+
+        if (value.IsEnum(out StandardNumberFormat standardFormat))
+        {
+            _result.CellFormat = new CellFormat(standardFormat);
+            return true;
+        }
+
+        diagnostics.ReportInvalidArgument(attribute, token);
+        return false;
     }
 
     private bool TryGetCellValueConverterAttribute(

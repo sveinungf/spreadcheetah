@@ -1,7 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using SpreadCheetah.SourceGenerator;
 using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Helpers;
 using SpreadCheetah.SourceGenerator.Models;
@@ -72,7 +71,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     {
         var implicitOrderProperties = new List<RowTypeProperty>();
         var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
-        var propertiesWithStyleAttributes = 0;
+        var hasStyleAttributes = false;
         var analyzer = new PropertyAnalyzer(NullDiagnosticsReporter.Instance);
 
         var properties = rowType
@@ -86,16 +85,17 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             if (data.CellValueConverter is null && !property.Type.IsSupportedType())
                 continue;
 
-            if (data.CellStyle is not null)
-                propertiesWithStyleAttributes++;
-
             var rowTypeProperty = new RowTypeProperty(
                 Name: property.Name,
-                ColumnHeader: data.ColumnHeader?.ToColumnHeaderInfo(),
+                CellFormat: data.CellFormat,
                 CellStyle: data.CellStyle,
-                ColumnWidth: data.ColumnWidth,
+                CellValueConverter: data.CellValueConverter,
                 CellValueTruncate: data.CellValueTruncate,
-                CellValueConverter: data.CellValueConverter);
+                ColumnHeader: data.ColumnHeader?.ToColumnHeaderInfo(),
+                ColumnWidth: data.ColumnWidth);
+
+            if (rowTypeProperty.HasStyle)
+                hasStyleAttributes = true;
 
             if (data.ColumnOrder is not { } order)
                 implicitOrderProperties.Add(rowTypeProperty);
@@ -107,10 +107,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         return new RowType(
             FullName: rowType.ToString(),
+            HasStyleAttributes: hasStyleAttributes,
             IsReferenceType: rowType.IsReferenceType,
             Name: rowType.Name,
-            Properties: explicitOrderProperties.Values.ToEquatableArray(),
-            PropertiesWithStyleAttributes: propertiesWithStyleAttributes);
+            Properties: explicitOrderProperties.Values.ToEquatableArray());
     }
 
     private static void Execute(ContextClass? contextClass, SourceProductionContext context)
@@ -208,7 +208,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         var properties = rowType.Properties;
         var doGenerateCreateWorksheetOptions = properties.Any(static x => x.ColumnWidth is not null);
-        var doGenerateCreateWorksheetRowDependencyInfo = properties.Any(static x => x.CellStyle is not null);
+        var doGenerateCreateWorksheetRowDependencyInfo = properties.Any(static x => x.HasStyle);
 
         sb.Append(FormattableString.Invariant($$"""
                         ??= WorksheetRowMetadataServices.CreateObjectInfo<{{rowType.FullName}}>(
@@ -228,16 +228,16 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         if (doGenerateCreateWorksheetOptions)
             GenerateCreateWorksheetOptions(sb, typeIndex, properties);
 
-        var cellStyleToStyleIdIndex = doGenerateCreateWorksheetRowDependencyInfo
+        var styleLookup = doGenerateCreateWorksheetRowDependencyInfo
             ? GenerateCreateWorksheetRowDependencyInfo(sb, typeIndex, properties)
-            : [];
+            : null;
 
         GenerateAddHeaderRow(sb, typeIndex, properties);
         GenerateAddAsRow(sb, rowType);
         GenerateAddRangeAsRows(sb, rowType);
         GenerateAddAsRowInternal(sb, rowType);
         GenerateAddRangeAsRowsInternal(sb, rowType);
-        GenerateAddCellsAsRow(sb, rowType, cellStyleToStyleIdIndex, cellValueConverters);
+        GenerateAddCellsAsRow(sb, rowType, styleLookup, cellValueConverters);
     }
 
     private static void GenerateCreateWorksheetOptions(StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)
@@ -270,10 +270,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             """);
     }
 
-    private static Dictionary<CellStyle, int> GenerateCreateWorksheetRowDependencyInfo(
+    private static StyleLookup GenerateCreateWorksheetRowDependencyInfo(
         StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)
     {
-        Debug.Assert(properties.Any(static x => x.CellStyle is not null));
+        Debug.Assert(properties.Any(static x => x.HasStyle));
 
         sb.AppendLine(FormattableString.Invariant($$"""
 
@@ -283,21 +283,16 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                         {
             """));
 
-        var cellStyleToStyleIdIndex = new Dictionary<CellStyle, int>();
+        var lookup = new StyleLookup();
 
         foreach (var property in properties)
         {
-            if (property.CellStyle is not { } style)
-                continue;
-
-            if (cellStyleToStyleIdIndex.ContainsKey(style))
-                continue;
-
-            cellStyleToStyleIdIndex[style] = cellStyleToStyleIdIndex.Count;
-
-            sb.AppendLine($"""
-                            spreadsheet.GetStyleId({style.StyleNameRawString}),
-            """);
+            _ = property switch
+            {
+                { CellFormat: { } format } => HandleCellFormat(sb, lookup, format),
+                { CellStyle: { } style } => HandleCellStyle(sb, lookup, style),
+                _ => false
+            };
         }
 
         sb.AppendLine("""
@@ -306,7 +301,39 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                     }
             """);
 
-        return cellStyleToStyleIdIndex;
+        return lookup;
+    }
+
+    private static bool HandleCellFormat(StringBuilder sb, StyleLookup styleLookup, CellFormat format)
+    {
+        if (!styleLookup.TryAdd(format))
+            return false;
+
+        if (format.RawString is { } rawString)
+        {
+            sb.AppendLine($$"""
+                            spreadsheet.AddStyle(new Style { Format = NumberFormat.Custom({{rawString}}) }),
+            """);
+        }
+        else if (format.StandardFormat is { } standardFormat)
+        {
+            sb.AppendLine($$"""
+                            spreadsheet.AddStyle(new Style { Format = NumberFormat.Standard(StandardNumberFormat.{{standardFormat}}) }),
+            """);
+        }
+
+        return true;
+    }
+
+    private static bool HandleCellStyle(StringBuilder sb, StyleLookup styleLookup, CellStyle style)
+    {
+        if (!styleLookup.TryAdd(style))
+            return false;
+
+        sb.AppendLine($"""
+                            spreadsheet.GetStyleId({style.StyleNameRawString}),
+            """);
+        return true;
     }
 
     private static Dictionary<string, string> GenerateCellValueConverters(StringBuilder sb, EquatableArray<RowType> rowTypes)
@@ -409,7 +436,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
     private static void GenerateGetStyleIdsPart(StringBuilder sb, RowType rowType)
     {
-        if (rowType.PropertiesWithStyleAttributes > 0)
+        if (rowType.HasStyleAttributes)
         {
             sb.AppendLine($"""
                             var worksheetRowDependencyInfo = spreadsheet.GetOrCreateWorksheetRowDependencyInfo(Default.{rowType.Name});
@@ -510,7 +537,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     }
 
     private static void GenerateAddCellsAsRow(StringBuilder sb, RowType rowType,
-        Dictionary<CellStyle, int> cellStyleToStyleIdIndex, Dictionary<string, string> valueConverters)
+        StyleLookup? styleLookup, Dictionary<string, string> valueConverters)
     {
         var properties = rowType.Properties;
         Debug.Assert(properties.Count > 0);
@@ -534,9 +561,14 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var (i, property) in properties.Index())
         {
-            int? styleIdIndex = property.CellStyle is { } cellStyle
-                ? cellStyleToStyleIdIndex[cellStyle]
-                : null;
+            int? styleIdIndex = null;
+            _ = property switch
+            {
+                _ when styleLookup is null => false,
+                { CellFormat: { } format } => styleLookup.TryGetStyleIdIndex(format, out styleIdIndex),
+                { CellStyle: { } style } => styleLookup.TryGetStyleIdIndex(style, out styleIdIndex),
+                _ => false
+            };
 
             sb.AppendLine(FormattableString.Invariant($"""
                         cells[{i}] = {ConstructCell(property, styleIdIndex)};
@@ -559,8 +591,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 (null, { } truncate) => FormattableString.Invariant($"ConstructTruncatedDataCell({value}, {truncate.Value})")
             };
 
-            var styledCell = rowType.PropertiesWithStyleAttributes > 0;
-            var styleId = (styledCell, styleIdIndex) switch
+            var styleId = (rowType.HasStyleAttributes, styleIdIndex) switch
             {
                 (true, { } i) => FormattableString.Invariant($"styleIds[{i}]"),
                 (true, _) => "null",

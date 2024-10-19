@@ -2,6 +2,7 @@ namespace SpreadCheetah.SourceGenerator.Helpers;
 
 internal static class Attributes
 {
+    public const string CellFormat = "CellFormatAttribute";
     public const string CellStyle = "CellStyleAttribute";
     public const string CellValueConverter = "CellValueConverterAttribute";
     public const string CellValueTruncate = "CellValueTruncateAttribute";
