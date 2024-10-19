@@ -113,8 +113,8 @@ internal static class SymbolExtensions
         if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace())
             return false;
 
-        result = attribute.NamedArguments is [{ Value.Value: { } arg }] && Enum.IsDefined(typeof(InheritedColumnsOrder), arg)
-            ? (InheritedColumnsOrder)arg
+        result = attribute.NamedArguments is [{ Value.Value: { } arg }] && arg.IsEnum(out InheritedColumnsOrder order)
+            ? order
             : InheritedColumnsOrder.InheritedColumnsFirst;
 
         return true;
