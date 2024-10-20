@@ -6,8 +6,8 @@ internal sealed class StyleLookup
     private Dictionary<CellStyle, int>? _cellStyleToStyleIdIndex;
 
     private int StyleCount =>
-        _cellFormatToStyleIdIndex?.Count ?? 0
-        + _cellStyleToStyleIdIndex?.Count ?? 0;
+        (_cellFormatToStyleIdIndex?.Count ?? 0)
+        + (_cellStyleToStyleIdIndex?.Count ?? 0);
 
     public bool TryAdd(CellFormat cellFormat)
     {
