@@ -44,4 +44,29 @@ public class CellFormatTests
         Assert.Equal(obj.Price, sheet["A1"].DecimalValue);
         Assert.Equal("#.0#", sheet["A1"].Style.NumberFormat.CustomFormat);
     }
+
+    [Fact]
+    public async Task CellFormat_ClassWithMultipleCellFormats()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var obj = new ClassWithMultipleCellFormats
+        {
+            FromDate = DateTime.UtcNow,
+            Id = 6889,
+            Price = 199.90m
+        };
+
+        // Act
+        await spreadsheet.AddAsRowAsync(obj, CellFormatContext.Default.ClassWithMultipleCellFormats);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal("#.00", sheet["A1"].Style.NumberFormat.CustomFormat);
+        Assert.Equal(StandardNumberFormat.LongDate, sheet["B1"].Style.NumberFormat.StandardFormat);
+        Assert.Equal("#.00", sheet["C1"].Style.NumberFormat.CustomFormat);
+    }
 }
