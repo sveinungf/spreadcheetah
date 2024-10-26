@@ -33,8 +33,6 @@ internal static class AttributeDataExtensions
             return false;
         if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace())
             return false;
-        if (attribute.NamedArguments.IsDefaultOrEmpty)
-            return false;
 
         foreach (var (key, value) in attribute.NamedArguments)
         {
