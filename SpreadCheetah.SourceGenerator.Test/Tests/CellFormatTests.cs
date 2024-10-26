@@ -45,6 +45,33 @@ public class CellFormatTests
         Assert.Equal("#.0#", sheet["A1"].Style.NumberFormat.CustomFormat);
     }
 
+    [Theory, CombinatorialData]
+    public async Task CellFormat_ClassWithDateTimeFormat(bool withDefaultDateTimeFormat)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var options = withDefaultDateTimeFormat
+            ? new SpreadCheetahOptions()
+            : new SpreadCheetahOptions { DefaultDateTimeFormat = null };
+
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var obj = new ClassWithDateTimeCellFormat
+        {
+            FromDate = DateTime.UtcNow.AddDays(-1),
+            ToDate = DateTime.UtcNow.AddDays(1)
+        };
+
+        // Act
+        await spreadsheet.AddAsRowAsync(obj, CellFormatContext.Default.ClassWithDateTimeCellFormat);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(withDefaultDateTimeFormat, sheet["A1"].Style.NumberFormat.CustomFormat is not null);
+        Assert.Equal(StandardNumberFormat.DateAndTime, sheet["B1"].Style.NumberFormat.StandardFormat);
+    }
+
     [Fact]
     public async Task CellFormat_ClassWithMultipleCellFormats()
     {
