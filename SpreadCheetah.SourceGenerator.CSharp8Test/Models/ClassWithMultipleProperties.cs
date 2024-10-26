@@ -15,6 +15,7 @@ namespace SpreadCheetah.SourceGenerator.CSharp8Test.Models
         public string FirstName { get; }
 
         [ColumnWidth(5)]
+        [CellFormat("#.0#")]
         public int Age { get; }
 
         public ClassWithMultipleProperties(string id, string firstName, string lastName, int age)
