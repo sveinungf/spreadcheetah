@@ -121,27 +121,12 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
     {
         if (context.Symbol is not IPropertySymbol property)
             return;
-        if (property.GetAttributes() is { Length: 0 } attributes)
+        if (property.GetAttributes() is { Length: 0 })
             return;
 
         var diagnostics = new DiagnosticsReporter(context);
         var analyzer = new PropertyAnalyzer(diagnostics);
 
-        var data = analyzer.Analyze(property, context.CancellationToken);
-
-        if (data is not { CellValueConverter: not null, CellValueTruncate: not null })
-            return;
-
-        foreach (var attribute in attributes)
-        {
-            if (attribute is not { AttributeClass.MetadataName: Attributes.CellValueTruncate })
-                continue;
-            if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace())
-                continue;
-
-            diagnostics.ReportAttributeCombinationNotSupported(attribute,
-                "CellValueConverterAttribute", context.CancellationToken);
-            break;
-        }
+        analyzer.Analyze(property, context.CancellationToken);
     }
 }

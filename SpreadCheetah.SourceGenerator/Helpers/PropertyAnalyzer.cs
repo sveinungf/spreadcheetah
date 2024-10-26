@@ -3,25 +3,28 @@ using Microsoft.CodeAnalysis.CSharp;
 using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Models;
 using SpreadCheetah.SourceGenerator.Models.Values;
+using System.Diagnostics;
 
 namespace SpreadCheetah.SourceGenerator.Helpers;
 
 internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 {
+    private static AttributeDataComparer AttributeDataComparer { get; } = new();
+
     private PropertyAttributeData _result;
 
     public PropertyAttributeData Analyze(IPropertySymbol property, CancellationToken token)
     {
         _result = new();
 
-        foreach (var attribute in property.GetAttributes())
-        {
-            if (attribute.AttributeClass is not { } attributeClass)
-                continue;
-            if (!attributeClass.HasSpreadCheetahSrcGenNamespace())
-                continue;
+        var attributes = property
+            .GetAttributes()
+            .Where(x => x.AttributeClass is { } c && c.HasSpreadCheetahSrcGenNamespace())
+            .OrderBy(x => x, AttributeDataComparer);
 
-            _ = attributeClass.MetadataName switch
+        foreach (var attribute in attributes)
+        {
+            _ = attribute.AttributeClass?.MetadataName switch
             {
                 Attributes.CellFormat => TryGetCellFormatAttribute(attribute, token),
                 Attributes.CellStyle => TryGetCellStyleAttribute(attribute, token),
@@ -125,6 +128,14 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
         ITypeSymbol propertyType,
         CancellationToken token)
     {
+        Debug.Assert(AttributeDataComparer.Compare(Attributes.CellValueConverter, Attributes.CellValueTruncate) < 0);
+
+        if (_result.CellValueConverter is not null)
+        {
+            diagnostics.ReportAttributeCombinationNotSupported(attribute, Attributes.CellValueConverter, token);
+            return false;
+        }
+
         if (propertyType.SpecialType != SpecialType.System_String)
         {
             diagnostics.ReportUnsupportedPropertyTypeForAttribute(attribute, propertyType, token);
