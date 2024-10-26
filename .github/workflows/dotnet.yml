@@ -28,7 +28,7 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Test
-      run: dotnet test --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+      run: dotnet test --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage" --settings coverlet.runsettings
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
       timeout-minutes: 5

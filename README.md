@@ -21,7 +21,7 @@ This allows for creating spreadsheet files in a streaming manner, while also kee
 
 Most basic spreadsheet functionality is supported, such as cells with different data types, basic styling, and formulas. More advanced functionality will be added in future releases. See the list of currently supported spreadsheet functionality [in the wiki](https://github.com/sveinungf/spreadcheetah/wiki#supported-spreadsheet-functionality).
 
-See [Releases](https://github.com/sveinungf/spreadcheetah/releases) for release notes.
+See [Releases](https://github.com/sveinungf/spreadcheetah/releases) for release notes. This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## How to install
 SpreadCheetah is available as a [package on nuget.org](https://www.nuget.org/packages/SpreadCheetah). The NuGet package targets .NET Standard 2.0 as well as newer versions of .NET. The .NET Standard 2.0 version is intended for backwards compatibility (.NET Framework and earlier versions of .NET Core). More optimizations are enabled when targeting newer versions of .NET.

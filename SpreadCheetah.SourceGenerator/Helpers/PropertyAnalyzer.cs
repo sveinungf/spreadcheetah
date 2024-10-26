@@ -2,21 +2,31 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Models;
+using SpreadCheetah.SourceGenerator.Models.Values;
+using System.Diagnostics;
 
 namespace SpreadCheetah.SourceGenerator.Helpers;
 
 internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 {
+    private static AttributeDataComparer AttributeDataComparer { get; } = new();
+
     private PropertyAttributeData _result;
 
     public PropertyAttributeData Analyze(IPropertySymbol property, CancellationToken token)
     {
         _result = new();
 
-        foreach (var attribute in property.GetAttributes())
+        var attributes = property
+            .GetAttributes()
+            .Where(x => x.AttributeClass is { } c && c.HasSpreadCheetahSrcGenNamespace())
+            .OrderBy(x => x, AttributeDataComparer);
+
+        foreach (var attribute in attributes)
         {
-            _ = attribute.AttributeClass?.ToDisplayString() switch
+            _ = attribute.AttributeClass?.MetadataName switch
             {
+                Attributes.CellFormat => TryGetCellFormatAttribute(attribute, token),
                 Attributes.CellStyle => TryGetCellStyleAttribute(attribute, token),
                 Attributes.CellValueConverter => TryGetCellValueConverterAttribute(attribute, property.Type, token),
                 Attributes.CellValueTruncate => TryGetCellValueTruncateAttribute(attribute, property.Type, token),
@@ -34,6 +44,14 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
         AttributeData attribute,
         CancellationToken token)
     {
+        Debug.Assert(AttributeDataComparer.Compare(Attributes.CellFormat, Attributes.CellStyle) < 0);
+
+        if (_result.CellFormat is not null)
+        {
+            diagnostics.ReportAttributeCombinationNotSupported(attribute, Attributes.CellFormat, token);
+            return false;
+        }
+
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: string value } arg])
             return false;
@@ -49,6 +67,36 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
         _result.CellStyle = new CellStyle(arg.ToCSharpString());
         return true;
+    }
+
+    private bool TryGetCellFormatAttribute(
+        AttributeData attribute,
+        CancellationToken token)
+    {
+        var args = attribute.ConstructorArguments;
+        if (args is not [{ Value: { } value } arg])
+            return false;
+
+        if (value is string stringValue)
+        {
+            if (stringValue.Length > 255)
+            {
+                diagnostics.ReportInvalidArgument(attribute, token);
+                return false;
+            }
+
+            _result.CellFormat = new CellFormat(arg.ToCSharpString());
+            return true;
+        }
+
+        if (value.IsEnum(out StandardNumberFormat standardFormat))
+        {
+            _result.CellFormat = new CellFormat(standardFormat);
+            return true;
+        }
+
+        diagnostics.ReportInvalidArgument(attribute, token);
+        return false;
     }
 
     private bool TryGetCellValueConverterAttribute(
@@ -88,6 +136,14 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
         ITypeSymbol propertyType,
         CancellationToken token)
     {
+        Debug.Assert(AttributeDataComparer.Compare(Attributes.CellValueConverter, Attributes.CellValueTruncate) < 0);
+
+        if (_result.CellValueConverter is not null)
+        {
+            diagnostics.ReportAttributeCombinationNotSupported(attribute, Attributes.CellValueConverter, token);
+            return false;
+        }
+
         if (propertyType.SpecialType != SpecialType.System_String)
         {
             diagnostics.ReportUnsupportedPropertyTypeForAttribute(attribute, propertyType, token);

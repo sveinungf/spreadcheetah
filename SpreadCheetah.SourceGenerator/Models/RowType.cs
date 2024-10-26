@@ -6,9 +6,9 @@ internal sealed record RowType(
     string Name,
     string FullName,
     bool IsReferenceType,
-    int PropertiesWithStyleAttributes,
+    bool HasStyleAttributes,
     EquatableArray<RowTypeProperty> Properties)
 {
-    public string CellType { get; } = PropertiesWithStyleAttributes > 0 ? "StyledCell" : "DataCell";
+    public string CellType { get; } = HasStyleAttributes ? "StyledCell" : "DataCell";
     public string FullNameWithNullableAnnotation => IsReferenceType ? $"{FullName}?" : FullName;
 }

@@ -29,10 +29,9 @@ internal static class AttributeDataExtensions
     {
         options = null;
 
-        if (!string.Equals(Attributes.GenerationOptions, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
+        if (attribute is not { AttributeClass.MetadataName: Attributes.GenerationOptions })
             return false;
-
-        if (attribute.NamedArguments.IsDefaultOrEmpty)
+        if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace())
             return false;
 
         foreach (var (key, value) in attribute.NamedArguments)

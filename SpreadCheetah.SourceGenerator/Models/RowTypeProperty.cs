@@ -2,8 +2,12 @@ namespace SpreadCheetah.SourceGenerator.Models;
 
 internal sealed record RowTypeProperty(
     string Name,
-    ColumnHeaderInfo? ColumnHeader,
+    CellFormat? CellFormat,
     CellStyle? CellStyle,
-    ColumnWidth? ColumnWidth,
+    CellValueConverter? CellValueConverter,
     CellValueTruncate? CellValueTruncate,
-    CellValueConverter? CellValueConverter);
+    ColumnHeaderInfo? ColumnHeader,
+    ColumnWidth? ColumnWidth)
+{
+    public bool HasStyle => this is not { CellFormat: null, CellStyle: null };
+}

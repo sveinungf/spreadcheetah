@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis;
 using SpreadCheetah.SourceGenerator.Helpers;
-using SpreadCheetah.SourceGenerator.Models;
+using SpreadCheetah.SourceGenerator.Models.Values;
 using System.Diagnostics.CodeAnalysis;
 
 namespace SpreadCheetah.SourceGenerator.Extensions;
@@ -78,7 +78,7 @@ internal static class SymbolExtensions
         if ("Object".Equals(type.Name, StringComparison.Ordinal))
             return [];
 
-        InheritedColumnOrder? inheritedColumnOrder = null;
+        InheritedColumnsOrder? inheritedColumnOrder = null;
 
         foreach (var attribute in type.GetAttributes())
         {
@@ -98,37 +98,66 @@ internal static class SymbolExtensions
 
         return inheritedColumnOrder switch
         {
-            InheritedColumnOrder.InheritedColumnsFirst => inheritedProperties.Concat(properties),
-            InheritedColumnOrder.InheritedColumnsLast => properties.Concat(inheritedProperties),
+            InheritedColumnsOrder.InheritedColumnsFirst => inheritedProperties.Concat(properties),
+            InheritedColumnsOrder.InheritedColumnsLast => properties.Concat(inheritedProperties),
             _ => throw new ArgumentOutOfRangeException(nameof(type), "Unsupported inheritance strategy type")
         };
     }
 
-    private static bool TryGetInheritedColumnOrderingAttribute(this AttributeData attribute, out InheritedColumnOrder result)
+    private static bool TryGetInheritedColumnOrderingAttribute(this AttributeData attribute, out InheritedColumnsOrder result)
     {
         result = default;
 
-        if (!string.Equals(Attributes.InheritColumns, attribute.AttributeClass?.ToDisplayString(), StringComparison.Ordinal))
+        if (attribute is not { AttributeClass.MetadataName: Attributes.InheritColumns })
+            return false;
+        if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace())
             return false;
 
-        result = attribute.NamedArguments is [{ Value.Value: { } arg }] && Enum.IsDefined(typeof(InheritedColumnOrder), arg)
-            ? (InheritedColumnOrder)arg
-            : InheritedColumnOrder.InheritedColumnsFirst;
+        result = attribute.NamedArguments is [{ Value.Value: { } arg }] && arg.IsEnum(out InheritedColumnsOrder order)
+            ? order
+            : InheritedColumnsOrder.InheritedColumnsFirst;
 
         return true;
     }
 
     public static AttributeData? GetCellValueConverterAttribute(this IPropertySymbol property)
     {
-        return property
-            .GetAttributes()
-            .FirstOrDefault(x => Attributes.CellValueConverter.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
+        return property.GetAttribute(Attributes.CellValueConverter);
     }
 
     public static AttributeData? GetColumnOrderAttribute(this IPropertySymbol property)
     {
-        return property
-            .GetAttributes()
-            .FirstOrDefault(x => Attributes.ColumnOrder.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
+        return property.GetAttribute(Attributes.ColumnOrder);
+    }
+
+    private static AttributeData? GetAttribute(this IPropertySymbol property, string attributeName)
+    {
+        foreach (var attribute in property.GetAttributes())
+        {
+            if (attribute.AttributeClass is not { } attributeClass)
+                continue;
+            if (!string.Equals(attributeName, attributeClass.MetadataName, StringComparison.Ordinal))
+                continue;
+            if (attributeClass.HasSpreadCheetahSrcGenNamespace())
+                return attribute;
+        }
+
+        return null;
+    }
+
+    public static bool HasSpreadCheetahSrcGenNamespace(this INamedTypeSymbol symbol)
+    {
+        return symbol is
+        {
+            ContainingNamespace:
+            {
+                Name: "SourceGeneration",
+                ContainingNamespace:
+                {
+                    Name: "SpreadCheetah",
+                    ContainingNamespace.IsGlobalNamespace: true
+                }
+            }
+        };
     }
 }

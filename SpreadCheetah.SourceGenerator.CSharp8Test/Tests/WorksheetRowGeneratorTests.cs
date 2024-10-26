@@ -1,7 +1,6 @@
 using SpreadCheetah.SourceGenerator.CSharp8Test.Models;
 using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
-using System;
 using System.IO;
 using System.Threading.Tasks;
 using Xunit;
@@ -46,6 +45,7 @@ namespace SpreadCheetah.SourceGenerator.CSharp8Test.Tests
 
             Assert.True(sheet["B1"].Style.Font.Bold);
             Assert.True(sheet["C1"].Style.Font.Italic);
+            Assert.Equal("#.0#", sheet["D1"].Style.NumberFormat.CustomFormat);
         }
 
         [Fact]

@@ -89,7 +89,7 @@ public class CellStyleTests
         Assert.Equal(obj.CreatedDate, sheet["A1"].DateTimeValue);
         var actualStyle = sheet["A1"].Style;
         Assert.True(actualStyle.Font.Bold);
-        Assert.Equal(withDefaultDateTimeFormat, actualStyle.NumberFormat.Format is not null);
+        Assert.Equal(withDefaultDateTimeFormat, actualStyle.NumberFormat.CustomFormat is not null);
     }
 
     [Fact]

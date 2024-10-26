@@ -185,6 +185,12 @@ namespace SpreadCheetah.Images
 namespace SpreadCheetah.SourceGeneration
 {
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
+    public sealed class CellFormatAttribute : System.Attribute
+    {
+        public CellFormatAttribute(SpreadCheetah.Styling.StandardNumberFormat format) { }
+        public CellFormatAttribute(string customFormat) { }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class CellStyleAttribute : System.Attribute
     {
         public CellStyleAttribute(string styleName) { }

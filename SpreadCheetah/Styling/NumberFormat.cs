@@ -4,29 +4,25 @@ namespace SpreadCheetah.Styling;
 
 /// <summary>
 /// Format that defines how a number or <see cref="DateTime"/> cell should be displayed.
-/// May be a custom format, initialised by <see cref="Custom"/>, or a standard format, initialised by <see cref="Standard"/>
+/// May be a custom format, initialised by <see cref="Custom"/>, or a standard format, initialised by <see cref="Standard"/>.
 /// </summary>
-public readonly record struct NumberFormat : IEquatable<NumberFormat>
+public readonly record struct NumberFormat
 {
-    private NumberFormat(string? customFormat, StandardNumberFormat? standardFormat)
-    {
-        CustomFormat = customFormat.WithEnsuredMaxLength(255);
-        StandardFormat = (standardFormat is not { } format || EnumHelper.IsDefined(format))
-            ? standardFormat
-            : throw new ArgumentOutOfRangeException(nameof(standardFormat));
-    }
+    private NumberFormat(string? customFormat) => CustomFormat = customFormat;
+    private NumberFormat(StandardNumberFormat standardFormat) => StandardFormat = standardFormat;
 
     internal string? CustomFormat { get; }
     internal StandardNumberFormat? StandardFormat { get; }
 
     /// <summary>
-    /// Creates a custom number format. The <paramref name="formatString"/> must be an <see href="https://support.microsoft.com/en-us/office/number-format-codes-5026bbd6-04bc-48cd-bf33-80f18b4eae68">Excel Format Code</see>
+    /// Creates a custom number format. The <paramref name="formatString"/> must be an <see href="https://support.microsoft.com/en-us/office/number-format-codes-5026bbd6-04bc-48cd-bf33-80f18b4eae68">Excel Format Code</see>.
     /// </summary>
     /// <param name="formatString">The custom format string for this number format</param>
     /// <returns>A <see cref="NumberFormat"/> representing this custom format string</returns>
     public static NumberFormat Custom(string formatString)
     {
-        return new NumberFormat(formatString, null);
+        var customFormat = formatString.WithEnsuredMaxLength(255);
+        return new NumberFormat(customFormat);
     }
 
     /// <summary>
@@ -36,7 +32,10 @@ public readonly record struct NumberFormat : IEquatable<NumberFormat>
     /// <returns>A <see cref="NumberFormat"/> representing this standard format</returns>
     public static NumberFormat Standard(StandardNumberFormat format)
     {
-        return new NumberFormat(null, format);
+        if (!EnumHelper.IsDefined(format))
+            throw new ArgumentOutOfRangeException(nameof(format));
+
+        return new NumberFormat(format);
     }
 
     /// <summary>
@@ -48,16 +47,14 @@ public readonly record struct NumberFormat : IEquatable<NumberFormat>
     internal static NumberFormat FromLegacyString(string formatString)
     {
         var standardNumberFormat = (StandardNumberFormat?)NumberFormats.GetStandardNumberFormatId(formatString);
-        return standardNumberFormat is not null
-            ? new NumberFormat(null, standardNumberFormat)
-            : new NumberFormat(formatString, null);
+        return standardNumberFormat is { } standardFormat
+            ? Standard(standardFormat)
+            : Custom(formatString);
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
-        if (CustomFormat is not null) return CustomFormat;
-        if (StandardFormat is { } format) return format.ToString();
-        return string.Empty;
+        return CustomFormat ?? StandardFormat?.ToString() ?? "";
     }
 }

@@ -156,7 +156,7 @@ dotnet_diagnostic.IDE0301.severity = warning
 # IDE0305: Use collection expression for fluent
 dotnet_diagnostic.IDE0305.severity = warning
 
-[{CellStyleAttribute.cs,CellValueConverterAttribute.cs,CellValueTruncateAttribute.cs,ColumnHeaderAttribute.cs,ColumnOrderAttribute.cs,ColumnWidthAttribute.cs,WorksheetRowAttribute.cs}]
+[{*SourceGeneration}**Attribute.cs]
 # CA1019: Define accessors for attribute arguments
 dotnet_diagnostic.CA1019.severity = none
 # CS9113: Parameter is unread
@@ -243,11 +243,10 @@ dotnet_diagnostic.MA0076.severity = none
 [*.cs]
 # RCS1163: Unused parameter
 dotnet_diagnostic.RCS1163.severity = warning
-
 # RCS1205: Order named arguments according to the order of parameters
 dotnet_diagnostic.RCS1205.severity = none
 
-[{ColumnHeaderAttribute.cs,ColumnOrderAttribute.cs,WorksheetRowAttribute.cs}]
+[{CellFormatAttribute.cs,ColumnHeaderAttribute.cs,ColumnOrderAttribute.cs,WorksheetRowAttribute.cs}]
 # RCS1163: Unused parameter
 dotnet_diagnostic.RCS1163.severity = none
 

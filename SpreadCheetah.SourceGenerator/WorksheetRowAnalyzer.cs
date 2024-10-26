@@ -121,21 +121,12 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
     {
         if (context.Symbol is not IPropertySymbol property)
             return;
-        if (property.GetAttributes() is { Length: 0 } attributes)
+        if (property.GetAttributes() is { Length: 0 })
             return;
 
         var diagnostics = new DiagnosticsReporter(context);
         var analyzer = new PropertyAnalyzer(diagnostics);
 
-        var data = analyzer.Analyze(property, context.CancellationToken);
-
-        if (data is { CellValueConverter: not null, CellValueTruncate: not null })
-        {
-            var cellValueTruncateAttribute = attributes
-                .First(x => Attributes.CellValueTruncate.Equals(x.AttributeClass?.ToDisplayString(), StringComparison.Ordinal));
-
-            diagnostics.ReportAttributeCombinationNotSupported(cellValueTruncateAttribute,
-                "CellValueConverterAttribute", context.CancellationToken);
-        }
+        analyzer.Analyze(property, context.CancellationToken);
     }
 }
