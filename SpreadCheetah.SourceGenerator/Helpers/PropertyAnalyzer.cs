@@ -44,6 +44,14 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
         AttributeData attribute,
         CancellationToken token)
     {
+        Debug.Assert(AttributeDataComparer.Compare(Attributes.CellFormat, Attributes.CellStyle) < 0);
+
+        if (_result.CellFormat is not null)
+        {
+            diagnostics.ReportAttributeCombinationNotSupported(attribute, Attributes.CellFormat, token);
+            return false;
+        }
+
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: string value } arg])
             return false;
