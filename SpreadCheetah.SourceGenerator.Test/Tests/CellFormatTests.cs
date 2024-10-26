@@ -25,4 +25,23 @@ public class CellFormatTests
         Assert.Equal(obj.Price, sheet["A1"].DecimalValue);
         Assert.Equal(StandardNumberFormat.TwoDecimalPlaces, sheet["A1"].Style.NumberFormat.StandardFormat);
     }
+
+    [Fact]
+    public async Task CellFormat_ClassWithCustomFormat()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var obj = new ClassWithCellCustomFormat { Price = 199.90m };
+
+        // Act
+        await spreadsheet.AddAsRowAsync(obj, CellFormatContext.Default.ClassWithCellCustomFormat);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(obj.Price, sheet["A1"].DecimalValue);
+        Assert.Equal("#.0#", sheet["A1"].Style.NumberFormat.CustomFormat);
+    }
 }

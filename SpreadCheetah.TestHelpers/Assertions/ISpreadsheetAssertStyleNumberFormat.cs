@@ -4,7 +4,7 @@ namespace SpreadCheetah.TestHelpers.Assertions;
 
 public interface ISpreadsheetAssertStyleNumberFormat
 {
-    string? Format { get; }
+    string? CustomFormat { get; }
 
     StandardNumberFormat? StandardFormat { get; }
 }
