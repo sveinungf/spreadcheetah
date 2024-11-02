@@ -218,6 +218,11 @@ namespace SpreadCheetah.SourceGeneration
         public ColumnHeaderAttribute(System.Type type, string propertyName) { }
     }
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
+    public sealed class ColumnIgnoreAttribute : System.Attribute
+    {
+        public ColumnIgnoreAttribute() { }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class ColumnOrderAttribute : System.Attribute
     {
         public ColumnOrderAttribute(int order) { }
