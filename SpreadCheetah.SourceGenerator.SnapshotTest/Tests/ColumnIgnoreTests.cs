@@ -18,6 +18,7 @@ public class ColumnIgnoreTests
             {
                 [{|SPCH1008:CellFormat("#.0#")|}]
                 [ColumnIgnore]
+                [{|SPCH1008:ColumnWidth(10)|}]
                 public decimal Value { get; set; }
             }
             
