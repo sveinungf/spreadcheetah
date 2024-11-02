@@ -10,6 +10,7 @@ internal record struct PropertyAttributeData
     public CellValueConverter? CellValueConverter { get; set; }
     public CellValueTruncate? CellValueTruncate { get; set; }
     public ColumnHeader? ColumnHeader { get; set; }
+    public ColumnIgnore? ColumnIgnore { get; set; }
     public ColumnOrder? ColumnOrder { get; set; }
     public ColumnWidth? ColumnWidth { get; set; }
 }

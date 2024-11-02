@@ -81,7 +81,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         foreach (var property in properties)
         {
             var data = analyzer.Analyze(property, token);
-
+            if (data.ColumnIgnore is not null)
+                continue;
             if (data.CellValueConverter is null && !property.Type.IsSupportedType())
                 continue;
 

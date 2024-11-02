@@ -24,6 +24,12 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
         foreach (var attribute in attributes)
         {
+            if (_result.ColumnIgnore is not null)
+            {
+                diagnostics.ReportAttributeCombinationNotSupported(attribute, Attributes.ColumnIgnore, token);
+                continue;
+            }
+
             _ = attribute.AttributeClass?.MetadataName switch
             {
                 Attributes.CellFormat => TryGetCellFormatAttribute(attribute, token),
@@ -31,6 +37,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
                 Attributes.CellValueConverter => TryGetCellValueConverterAttribute(attribute, property.Type, token),
                 Attributes.CellValueTruncate => TryGetCellValueTruncateAttribute(attribute, property.Type, token),
                 Attributes.ColumnHeader => TryGetColumnHeaderAttribute(attribute, token),
+                Attributes.ColumnIgnore => TryGetColumnIgnoreAttribute(),
                 Attributes.ColumnOrder => TryGetColumnOrderAttribute(attribute),
                 Attributes.ColumnWidth => TryGetColumnWidthAttribute(attribute, token),
                 _ => false
@@ -202,6 +209,12 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
         diagnostics.ReportInvalidPropertyReference(attribute, propertyName, typeFullName, token);
         return null;
+    }
+
+    private bool TryGetColumnIgnoreAttribute()
+    {
+        _result.ColumnIgnore = new ColumnIgnore();
+        return true;
     }
 
     private bool TryGetColumnOrderAttribute(AttributeData attribute)

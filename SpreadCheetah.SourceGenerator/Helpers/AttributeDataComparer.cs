@@ -18,6 +18,7 @@ internal sealed class AttributeDataComparer : IComparer<AttributeData>
     {
         return metadataName switch
         {
+            Attributes.ColumnIgnore => -2,
             Attributes.CellValueConverter => -1,
             Attributes.CellStyle => 1,
             _ => 0
