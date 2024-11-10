@@ -69,8 +69,9 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
             {
                 hasProperties = true;
 
-                var cellValueConverter = property.GetCellValueConverterAttribute();
-                if (cellValueConverter is not null)
+                if (property.HasColumnIgnoreAttribute())
+                    continue;
+                if (property.HasCellValueConverterAttribute())
                     continue;
                 if (property.Type.IsSupportedType())
                     continue;

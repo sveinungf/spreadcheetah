@@ -55,4 +55,32 @@ public class ColumnIgnoreTests
         // Act & Assert
         return context.RunAsync();
     }
+
+    [Fact]
+    public Task ColumnIgnore_IgnorePropertyOfUnsupportedType()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
+            using SpreadCheetah.SourceGeneration;
+            using System;
+            using System.Diagnostics;
+
+            namespace MyNamespace;
+
+            public class ClassWithUnsupportedProperty
+            {
+                [ColumnIgnore] // SPCH1002 without this attribute
+                public Stopwatch? Stopwatch { get; set; }
+
+                public int Value { get; set; }
+            }
+            
+            [WorksheetRow(typeof(ClassWithUnsupportedProperty))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return context.RunAsync();
+    }
 }
