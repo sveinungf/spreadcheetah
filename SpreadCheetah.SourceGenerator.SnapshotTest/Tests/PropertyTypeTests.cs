@@ -16,9 +16,12 @@ public class PropertyTypeTests
 
             namespace MyNamespace;
 
-            public record RecordWithUnsupportedProperty(Uri HomepageUri);
+            public class ClassWithUnsupportedProperty
+            {
+                public System.Diagnostics.Stopwatch? Stopwatch { get; set; }
+            }
             
-            [WorksheetRow({|SPCH1002:typeof(RecordWithUnsupportedProperty)|})]
+            [WorksheetRow({|SPCH1002:typeof(ClassWithUnsupportedProperty)|})]
             public partial class MyGenRowContext : WorksheetRowContext;
             """;
 
@@ -36,10 +39,13 @@ public class PropertyTypeTests
             using System;
 
             namespace MyNamespace;
-
-            public record RecordWithUnsupportedProperty(Uri HomepageUri);
             
-            [WorksheetRow(typeof(RecordWithUnsupportedProperty))]
+            public class ClassWithUnsupportedProperty
+            {
+                public System.Diagnostics.Stopwatch? Stopwatch { get; set; }
+            }
+            
+            [WorksheetRow(typeof(ClassWithUnsupportedProperty))]
             [WorksheetRowGenerationOptions(SuppressWarnings = true)]
             public partial class MyGenRowContext : WorksheetRowContext;
             """;

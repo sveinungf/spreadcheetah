@@ -120,9 +120,14 @@ internal static class SymbolExtensions
         return true;
     }
 
-    public static AttributeData? GetCellValueConverterAttribute(this IPropertySymbol property)
+    public static bool HasCellValueConverterAttribute(this IPropertySymbol property)
     {
-        return property.GetAttribute(Attributes.CellValueConverter);
+        return property.GetAttribute(Attributes.CellValueConverter) is not null;
+    }
+
+    public static bool HasColumnIgnoreAttribute(this IPropertySymbol property)
+    {
+        return property.GetAttribute(Attributes.ColumnIgnore) is not null;
     }
 
     public static AttributeData? GetColumnOrderAttribute(this IPropertySymbol property)
