@@ -13,6 +13,7 @@ public sealed class ColumnHeaderAttribute : Attribute
     /// </summary>
     public ColumnHeaderAttribute(string name)
     {
+        Name = name;
     }
 
     /// <summary>
@@ -25,5 +26,28 @@ public sealed class ColumnHeaderAttribute : Attribute
     /// </summary>
     public ColumnHeaderAttribute(Type type, string propertyName)
     {
+        Type = type;
+        PropertyName = propertyName;
     }
+
+
+    /// <summary>
+    /// <para>When constructed with <see cref="ColumnHeaderAttribute(string)"/>, returns the constructor's <c>name</c> argument value.</para>
+    /// <para>When constructed with <see cref="ColumnHeaderAttribute(Type, string)"/>, returns null.</para>
+    /// </summary>
+    public string? Name { get; }
+
+    /// <summary>
+    /// <para>When constructed with <see cref="ColumnHeaderAttribute(Type, string)"/>, returns the constructor's <c>type</c> argument value.</para>
+    /// <para>When constructed with <see cref="ColumnHeaderAttribute(string)"/>, returns null.</para>
+    /// </summary>
+    public Type? Type { get; }
+
+    /// <summary>
+    /// <para>When constructed with <see cref="ColumnHeaderAttribute(Type, string)"/>, returns the constructor's <c>propertyName</c> argument value.</para>
+    /// <para>When constructed with <see cref="ColumnHeaderAttribute(string)"/>, returns null.</para>
+    /// </summary>
+    public string? PropertyName { get; }
+
+    
 }

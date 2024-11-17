@@ -6,4 +6,10 @@ namespace SpreadCheetah.SourceGeneration;
 /// The specified length must be greater than 0.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-public sealed class CellValueTruncateAttribute(int length) : Attribute;
+public sealed class CellValueTruncateAttribute(int length) : Attribute
+{
+    /// <summary>
+    /// Returns the constructor's <c>length</c> argument value.
+    /// </summary>
+    public int Length { get; } = length;
+}

@@ -1,3 +1,5 @@
+using System.Reflection;
+using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Models.CellFormat;
 using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
@@ -95,5 +97,53 @@ public class CellFormatTests
         Assert.Equal("#.00", sheet["A1"].Style.NumberFormat.CustomFormat);
         Assert.Equal(StandardNumberFormat.LongDate, sheet["B1"].Style.NumberFormat.StandardFormat);
         Assert.Equal("#.00", sheet["C1"].Style.NumberFormat.CustomFormat);
+    }
+
+    [Fact]
+    public void CellFormat_ClassWithCellCustomFormat_CanReadCustomFormat()
+    {
+        // Arrange
+        var property = typeof(ClassWithCellCustomFormat).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithCellCustomFormat.Price), StringComparison.Ordinal));
+        
+        // Act
+        var cellFormatAttr = property?.GetCustomAttribute<CellFormatAttribute>();
+
+        // Assert
+        Assert.NotNull(property);
+        Assert.NotNull(cellFormatAttr);
+        Assert.Equal("#.0#", cellFormatAttr.CustomFormat);
+    }
+
+    [Fact]
+    public void CellFormat_ClassWithCellStandardFormat_CanReadFormat()
+    {
+        // Arrange
+        var property = typeof(ClassWithCellStandardFormat).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithCellStandardFormat.Price), StringComparison.Ordinal));
+
+        // Act
+        var cellFormatAttr = property?.GetCustomAttribute<CellFormatAttribute>();
+
+        // Assert
+        Assert.NotNull(property);
+        Assert.NotNull(cellFormatAttr);
+        Assert.Equal(StandardNumberFormat.TwoDecimalPlaces, cellFormatAttr.Format);
+    }
+
+    [Fact]
+    public void CellFormat_ClassWithDateTimeCellFormat_CanReadFormat()
+    {
+        // Arrange
+        var property = typeof(ClassWithDateTimeCellFormat).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithDateTimeCellFormat.ToDate), StringComparison.Ordinal));
+
+        // Act
+        var cellFormatAttr = property?.GetCustomAttribute<CellFormatAttribute>();
+
+        // Assert
+        Assert.NotNull(property);
+        Assert.NotNull(cellFormatAttr);
+        Assert.Equal(StandardNumberFormat.DateAndTime, cellFormatAttr.Format);
     }
 }

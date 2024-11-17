@@ -21,4 +21,10 @@ namespace SpreadCheetah.SourceGeneration;
 /// </para>
 /// </summary>
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-public sealed class ColumnWidthAttribute(double width) : Attribute;
+public sealed class ColumnWidthAttribute(double width) : Attribute
+{
+    /// <summary>
+    /// Returns the constructor's <c>width</c> argument value.
+    /// </summary>
+    public double Width { get; } = width;
+}
