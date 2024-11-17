@@ -146,4 +146,32 @@ public class CellFormatTests
         Assert.NotNull(cellFormatAttr);
         Assert.Equal(StandardNumberFormat.DateAndTime, cellFormatAttr.Format);
     }
+
+    [Fact]
+    public void CellFormat_ClassWithMultipleCellFormats_CanReadFormat()
+    {
+        // Arrange
+        var publicProperties = typeof(ClassWithMultipleCellFormats).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var idProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithMultipleCellFormats.Id), StringComparison.Ordinal));
+        var fromDateProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithMultipleCellFormats.FromDate), StringComparison.Ordinal));
+        var priceProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithMultipleCellFormats.Price), StringComparison.Ordinal));
+
+        // Act
+        var idCellFormatAttr = idProperty?.GetCustomAttribute<CellFormatAttribute>();
+        var fromDateCellFormatAttr = fromDateProperty?.GetCustomAttribute<CellFormatAttribute>();
+        var priceCellFormatAttr = priceProperty?.GetCustomAttribute<CellFormatAttribute>();
+
+        // Assert
+        Assert.NotNull(idProperty);
+        Assert.NotNull(idCellFormatAttr);
+        Assert.Equal("#.00", idCellFormatAttr.CustomFormat);
+
+        Assert.NotNull(fromDateProperty);
+        Assert.NotNull(fromDateCellFormatAttr);
+        Assert.Equal(StandardNumberFormat.LongDate, fromDateCellFormatAttr.Format);
+
+        Assert.NotNull(priceProperty);
+        Assert.NotNull(priceCellFormatAttr);
+        Assert.Equal("#.00", priceCellFormatAttr.CustomFormat);
+    }
 }
