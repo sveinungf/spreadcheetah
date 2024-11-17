@@ -216,7 +216,7 @@ public class CellStyleTests
     }
 
     [Fact]
-    public void CellFormat_ClassWithCellStyle_CanReadStyleName()
+    public void CellStyle_ClassWithCellStyle_CanReadStyleName()
     {
         // Arrange
         var property = typeof(ClassWithCellStyle).GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -232,7 +232,7 @@ public class CellStyleTests
     }
 
     [Fact]
-    public void CellFormat_ClassWithCellStyleOnDateTimeProperty_CanReadStyleName()
+    public void CellStyle_ClassWithCellStyleOnDateTimeProperty_CanReadStyleName()
     {
         // Arrange
         var property = typeof(ClassWithCellStyleOnDateTimeProperty).GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -248,7 +248,7 @@ public class CellStyleTests
     }
 
     [Fact]
-    public void CellFormat_ClassWithCellStyleOnTruncatedProperty_CanReadStyleName()
+    public void CellStyle_ClassWithCellStyleOnTruncatedProperty_CanReadStyleName()
     {
         // Arrange
         var property = typeof(ClassWithCellStyleOnTruncatedProperty).GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -264,7 +264,7 @@ public class CellStyleTests
     }
 
     [Fact]
-    public void CellFormat_ClassWithMultipleCellStyles_CanReadStyleName()
+    public void CellStyle_ClassWithMultipleCellStyles_CanReadStyleName()
     {
         // Arrange
         var publicProperties = typeof(ClassWithMultipleCellStyles).GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -297,7 +297,7 @@ public class CellStyleTests
     }
 
     [Fact]
-    public void CellFormat_RecordWithCellStyle_CanReadStyleName()
+    public void CellStyle_RecordWithCellStyle_CanReadStyleName()
     {
         // Arrange
         var property = typeof(RecordWithCellStyle).GetProperties(BindingFlags.Public | BindingFlags.Instance)
