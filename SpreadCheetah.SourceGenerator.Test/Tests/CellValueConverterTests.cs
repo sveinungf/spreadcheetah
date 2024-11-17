@@ -1,7 +1,9 @@
+using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Models.CellValueConverter;
 using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
 using System.Globalization;
+using System.Reflection;
 using Xunit;
 
 namespace SpreadCheetah.SourceGenerator.Test.Tests;
@@ -134,5 +136,128 @@ public class CellValueConverterTests
         
         Assert.Equal(123, sheet["C1"].DecimalValue);
         Assert.True(sheet["C1"].Style.Font.Bold);
+    }
+
+    [Fact]
+    public void CellFormat_ClassWithCellValueConverter_CanReadConverterType()
+    {
+        // Arrange
+        var property = typeof(ClassWithCellValueConverter).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithCellValueConverter.Name), StringComparison.Ordinal));
+
+        // Act
+        var cellValueConverterAttr = property?.GetCustomAttribute<CellValueConverterAttribute>();
+
+        // Assert
+        Assert.NotNull(property);
+        Assert.NotNull(cellValueConverterAttr);
+        Assert.Equal(typeof(UpperCaseValueConverter), cellValueConverterAttr.ConverterType);
+    }
+
+    [Fact]
+    public void CellFormat_ClassWithCellValueConverterAndCellStyle_CanReadConverterType()
+    {
+        // Arrange
+        var property = typeof(ClassWithCellValueConverterAndCellStyle).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithCellValueConverterAndCellStyle.Id), StringComparison.Ordinal));
+
+        // Act
+        var cellValueConverterAttr = property?.GetCustomAttribute<CellValueConverterAttribute>();
+
+        // Assert
+        Assert.NotNull(property);
+        Assert.NotNull(cellValueConverterAttr);
+        Assert.Equal(typeof(UpperCaseValueConverter), cellValueConverterAttr.ConverterType);
+    }
+
+    [Fact]
+    public void CellFormat_ClassWithCellValueConverterOnCustomType_CanReadConverterType()
+    {
+        // Arrange
+        var publicProperties = typeof(ClassWithCellValueConverterOnCustomType).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var property = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithCellValueConverterOnCustomType.Property), StringComparison.Ordinal));
+        var complexProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithCellValueConverterOnCustomType.ComplexProperty), StringComparison.Ordinal));
+        var percentTypeProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithCellValueConverterOnCustomType.PercentType), StringComparison.Ordinal));
+
+        // Act
+        var propertyCellValueConverterAttr = property?.GetCustomAttribute<CellValueConverterAttribute>();
+        var complexPropertyCellValueConverterAttr = complexProperty?.GetCustomAttribute<CellValueConverterAttribute>();
+        var percentTypePropertyCellValueConverterAttr = percentTypeProperty?.GetCustomAttribute<CellValueConverterAttribute>();
+
+        // Assert
+        Assert.NotNull(property);
+        Assert.Null(propertyCellValueConverterAttr);
+
+        Assert.NotNull(complexProperty);
+        Assert.NotNull(complexPropertyCellValueConverterAttr);
+        Assert.Equal(typeof(NullToDashValueConverter<object?>), complexPropertyCellValueConverterAttr.ConverterType);
+
+        Assert.NotNull(property);
+        Assert.NotNull(percentTypePropertyCellValueConverterAttr);
+        Assert.Equal(typeof(PercentToNumberConverter), percentTypePropertyCellValueConverterAttr.ConverterType);
+    }
+
+    [Fact]
+    public void CellFormat_ClassWithGenericConverter_CanReadConverterType()
+    {
+        // Arrange
+        var publicProperties = typeof(ClassWithGenericConverter).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var firstNameProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithGenericConverter.FirstName), StringComparison.Ordinal));
+        var middleNameProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithGenericConverter.MiddleName), StringComparison.Ordinal));
+        var lastNameProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithGenericConverter.LastName), StringComparison.Ordinal));
+        var gpaProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithGenericConverter.Gpa), StringComparison.Ordinal));
+
+        // Act
+        var firstNamePropertyCellValueConverterAttr = firstNameProperty?.GetCustomAttribute<CellValueConverterAttribute>();
+        var middleNamePropertyCellValueConverterAttr = middleNameProperty?.GetCustomAttribute<CellValueConverterAttribute>();
+        var lastNamePropertyCellValueConverterAttr = lastNameProperty?.GetCustomAttribute<CellValueConverterAttribute>();
+        var gpaCellValueConverterAttr = gpaProperty?.GetCustomAttribute<CellValueConverterAttribute>();
+
+        // Assert
+        Assert.NotNull(firstNameProperty);
+        Assert.Null(firstNamePropertyCellValueConverterAttr);
+
+        Assert.NotNull(middleNameProperty);
+        Assert.NotNull(middleNamePropertyCellValueConverterAttr);
+        Assert.Equal(typeof(NullToDashValueConverter<string>), middleNamePropertyCellValueConverterAttr.ConverterType);
+
+        Assert.NotNull(lastNameProperty);
+        Assert.Null(lastNamePropertyCellValueConverterAttr);
+
+        Assert.NotNull(gpaProperty);
+        Assert.NotNull(gpaCellValueConverterAttr);
+        Assert.Equal(typeof(NullToDashValueConverter<decimal?>), gpaCellValueConverterAttr.ConverterType);
+    }
+
+    [Fact]
+    public void CellFormat_ClassWithReusedConverter_CanReadConverterType()
+    {
+        // Arrange
+        var publicProperties = typeof(ClassWithReusedConverter).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var firstNameProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithReusedConverter.FirstName), StringComparison.Ordinal));
+        var middleNameProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithReusedConverter.MiddleName), StringComparison.Ordinal));
+        var lastNameProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithReusedConverter.LastName), StringComparison.Ordinal));
+        var gpaProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithReusedConverter.Gpa), StringComparison.Ordinal));
+
+        // Act
+        var firstNamePropertyCellValueConverterAttr = firstNameProperty?.GetCustomAttribute<CellValueConverterAttribute>();
+        var middleNamePropertyCellValueConverterAttr = middleNameProperty?.GetCustomAttribute<CellValueConverterAttribute>();
+        var lastNamePropertyCellValueConverterAttr = lastNameProperty?.GetCustomAttribute<CellValueConverterAttribute>();
+        var gpaCellValueConverterAttr = gpaProperty?.GetCustomAttribute<CellValueConverterAttribute>();
+
+        // Assert
+        Assert.NotNull(firstNameProperty);
+        Assert.NotNull(firstNamePropertyCellValueConverterAttr);
+        Assert.Equal(typeof(UpperCaseValueConverter), firstNamePropertyCellValueConverterAttr.ConverterType);
+
+        Assert.NotNull(middleNameProperty);
+        Assert.Null(middleNamePropertyCellValueConverterAttr);
+
+        Assert.NotNull(lastNameProperty);
+        Assert.NotNull(lastNamePropertyCellValueConverterAttr);
+        Assert.Equal(typeof(UpperCaseValueConverter), lastNamePropertyCellValueConverterAttr.ConverterType);
+
+        Assert.NotNull(gpaProperty);
+        Assert.Null(gpaCellValueConverterAttr);
     }
 }
