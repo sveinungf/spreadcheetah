@@ -190,16 +190,20 @@ namespace SpreadCheetah.SourceGeneration
     {
         public CellFormatAttribute(SpreadCheetah.Styling.StandardNumberFormat format) { }
         public CellFormatAttribute(string customFormat) { }
+        public string? CustomFormat { get; }
+        public SpreadCheetah.Styling.StandardNumberFormat? Format { get; }
     }
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class CellStyleAttribute : System.Attribute
     {
         public CellStyleAttribute(string styleName) { }
+        public string StyleName { get; }
     }
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class CellValueConverterAttribute : System.Attribute
     {
         public CellValueConverterAttribute(System.Type converterType) { }
+        public System.Type ConverterType { get; }
     }
     public abstract class CellValueConverter<T>
     {
@@ -210,12 +214,16 @@ namespace SpreadCheetah.SourceGeneration
     public sealed class CellValueTruncateAttribute : System.Attribute
     {
         public CellValueTruncateAttribute(int length) { }
+        public int Length { get; }
     }
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class ColumnHeaderAttribute : System.Attribute
     {
         public ColumnHeaderAttribute(string name) { }
         public ColumnHeaderAttribute(System.Type type, string propertyName) { }
+        public string? Name { get; }
+        public string? PropertyName { get; }
+        public System.Type? Type { get; }
     }
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class ColumnIgnoreAttribute : System.Attribute
@@ -226,11 +234,13 @@ namespace SpreadCheetah.SourceGeneration
     public sealed class ColumnOrderAttribute : System.Attribute
     {
         public ColumnOrderAttribute(int order) { }
+        public int Order { get; }
     }
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class ColumnWidthAttribute : System.Attribute
     {
         public ColumnWidthAttribute(double width) { }
+        public double Width { get; }
     }
     public static class EmptyWorksheetRowContext
     {
