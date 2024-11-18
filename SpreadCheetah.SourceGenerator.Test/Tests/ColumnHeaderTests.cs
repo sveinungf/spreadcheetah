@@ -60,7 +60,7 @@ public class ColumnHeaderTests
     }
 
     [Fact]
-    public void ColumnHeader_ClassWithSpecialCharacterColumnHeaders_CanReadTypeAndPropertyName()
+    public void ColumnHeader_ClassWithSpecialCharacterColumnHeaders_CanReadName()
     {
         // Arrange
         var publicProperties = typeof(ClassWithSpecialCharacterColumnHeaders).GetProperties(BindingFlags.Public | BindingFlags.Instance);

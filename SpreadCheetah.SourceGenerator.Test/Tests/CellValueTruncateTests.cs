@@ -22,20 +22,4 @@ public class CellValueTruncateTests
         Assert.NotNull(cellValueTruncateAttr);
         Assert.Equal(1, cellValueTruncateAttr.Length);
     }
-
-    [Fact]
-    public void CellValueTruncate_ClassWithTruncation_CanReadLength()
-    {
-        // Arrange
-        var property = typeof(ClassWithTruncation).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithTruncation.Value), StringComparison.Ordinal));
-
-        // Act
-        var cellValueTruncateAttr = property?.GetCustomAttribute<CellValueTruncateAttribute>();
-
-        // Assert
-        Assert.NotNull(property);
-        Assert.NotNull(cellValueTruncateAttr);
-        Assert.Equal(15, cellValueTruncateAttr.Length);
-    }
 }
