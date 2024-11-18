@@ -18,5 +18,5 @@ public sealed class ColumnOrderAttribute(int order) : Attribute
     /// <summary>
     /// Returns the constructor's <c>order</c> argument value.
     /// </summary>
-    public int Order { get; } = order;
+    public int? Order { get; } = order;
 }

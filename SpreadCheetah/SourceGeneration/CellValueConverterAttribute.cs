@@ -11,5 +11,5 @@ public sealed class CellValueConverterAttribute(Type converterType) : Attribute
     /// <summary>
     /// Returns the constructor's <c>converterType</c> argument value.
     /// </summary>
-    public Type ConverterType { get; } = converterType;
+    public Type? ConverterType { get; } = converterType;
 }

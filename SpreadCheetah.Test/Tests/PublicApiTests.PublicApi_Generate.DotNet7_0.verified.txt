@@ -197,13 +197,13 @@ namespace SpreadCheetah.SourceGeneration
     public sealed class CellStyleAttribute : System.Attribute
     {
         public CellStyleAttribute(string styleName) { }
-        public string StyleName { get; }
+        public string? StyleName { get; }
     }
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class CellValueConverterAttribute : System.Attribute
     {
         public CellValueConverterAttribute(System.Type converterType) { }
-        public System.Type ConverterType { get; }
+        public System.Type? ConverterType { get; }
     }
     public abstract class CellValueConverter<T>
     {
@@ -214,7 +214,7 @@ namespace SpreadCheetah.SourceGeneration
     public sealed class CellValueTruncateAttribute : System.Attribute
     {
         public CellValueTruncateAttribute(int length) { }
-        public int Length { get; }
+        public int? Length { get; }
     }
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class ColumnHeaderAttribute : System.Attribute
@@ -234,13 +234,13 @@ namespace SpreadCheetah.SourceGeneration
     public sealed class ColumnOrderAttribute : System.Attribute
     {
         public ColumnOrderAttribute(int order) { }
-        public int Order { get; }
+        public int? Order { get; }
     }
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class ColumnWidthAttribute : System.Attribute
     {
         public ColumnWidthAttribute(double width) { }
-        public double Width { get; }
+        public double? Width { get; }
     }
     public static class EmptyWorksheetRowContext
     {

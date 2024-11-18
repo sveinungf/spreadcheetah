@@ -13,5 +13,5 @@ public sealed class CellStyleAttribute(string styleName) : Attribute
     /// <summary>
     /// Returns the constructor's <c>styleName</c> argument value.
     /// </summary>
-    public string StyleName { get; } = styleName;
+    public string? StyleName { get; } = styleName;
 }

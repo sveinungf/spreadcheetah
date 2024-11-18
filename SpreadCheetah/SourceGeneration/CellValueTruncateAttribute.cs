@@ -11,5 +11,5 @@ public sealed class CellValueTruncateAttribute(int length) : Attribute
     /// <summary>
     /// Returns the constructor's <c>length</c> argument value.
     /// </summary>
-    public int Length { get; } = length;
+    public int? Length { get; } = length;
 }
