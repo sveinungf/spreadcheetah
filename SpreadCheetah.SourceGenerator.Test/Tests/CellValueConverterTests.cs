@@ -1,7 +1,9 @@
+using System.Globalization;
+using System.Reflection;
+using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Models.CellValueConverter;
 using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
-using System.Globalization;
 using Xunit;
 
 namespace SpreadCheetah.SourceGenerator.Test.Tests;
@@ -107,7 +109,7 @@ public class CellValueConverterTests
         Assert.Equal("ABC123", sheet["A1"].StringValue);
         Assert.True(sheet["A1"].Style.Font.Bold);
     }
-    
+
     [Fact]
     public async Task CellValueConverter_ClassWithConverterOnCustomType()
     {
@@ -119,7 +121,9 @@ public class CellValueConverterTests
         spreadsheet.AddStyle(style, "PercentType");
         var obj = new ClassWithCellValueConverterOnCustomType
         {
-            Property = "Abc123", ComplexProperty = null, PercentType = new Percent(123)
+            Property = "Abc123",
+            ComplexProperty = null,
+            PercentType = new Percent(123)
         };
 
         // Act
@@ -129,10 +133,26 @@ public class CellValueConverterTests
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.Equal("Abc123", sheet["A1"].StringValue);
-        
+
         Assert.Equal("-", sheet["B1"].StringValue);
-        
+
         Assert.Equal(123, sheet["C1"].DecimalValue);
         Assert.True(sheet["C1"].Style.Font.Bold);
+    }
+
+    [Fact]
+    public void CellFormat_ClassWithCellValueConverter_CanReadConverterType()
+    {
+        // Arrange
+        var property = typeof(ClassWithCellValueConverter).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithCellValueConverter.Name), StringComparison.Ordinal));
+
+        // Act
+        var cellValueConverterAttr = property?.GetCustomAttribute<CellValueConverterAttribute>();
+
+        // Assert
+        Assert.NotNull(property);
+        Assert.NotNull(cellValueConverterAttr);
+        Assert.Equal(typeof(UpperCaseValueConverter), cellValueConverterAttr.ConverterType);
     }
 }

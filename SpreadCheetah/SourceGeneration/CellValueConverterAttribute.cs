@@ -6,4 +6,10 @@ namespace SpreadCheetah.SourceGeneration;
 /// and its type parameter must match the property type.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-public sealed class CellValueConverterAttribute(Type converterType) : Attribute;
+public sealed class CellValueConverterAttribute(Type converterType) : Attribute
+{
+    /// <summary>
+    /// Returns the constructor's <c>converterType</c> argument value.
+    /// </summary>
+    public Type? ConverterType { get; } = converterType;
+}

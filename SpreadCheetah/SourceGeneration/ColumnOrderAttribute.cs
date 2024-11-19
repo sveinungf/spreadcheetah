@@ -13,4 +13,10 @@ namespace SpreadCheetah.SourceGeneration;
 /// </list>
 /// </summary>
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-public sealed class ColumnOrderAttribute(int order) : Attribute;
+public sealed class ColumnOrderAttribute(int order) : Attribute
+{
+    /// <summary>
+    /// Returns the constructor's <c>order</c> argument value.
+    /// </summary>
+    public int? Order { get; } = order;
+}

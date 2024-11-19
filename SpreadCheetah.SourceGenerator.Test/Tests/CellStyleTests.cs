@@ -1,3 +1,5 @@
+using System.Reflection;
+using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Models.CellStyle;
 using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
@@ -211,5 +213,21 @@ public class CellStyleTests
         // Assert
         var subsequentDependencyInfo = spreadsheet.GetOrCreateWorksheetRowDependencyInfo(typeInfo);
         Assert.Same(initialDependencyInfo, subsequentDependencyInfo);
+    }
+
+    [Fact]
+    public void CellStyle_ClassWithCellStyle_CanReadStyleName()
+    {
+        // Arrange
+        var property = typeof(ClassWithCellStyle).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithCellStyle.Price), StringComparison.Ordinal));
+
+        // Act
+        var cellStyleAttr = property?.GetCustomAttribute<CellStyleAttribute>();
+
+        // Assert
+        Assert.NotNull(property);
+        Assert.NotNull(cellStyleAttr);
+        Assert.Equal("Price style", cellStyleAttr.StyleName);
     }
 }

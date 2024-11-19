@@ -8,4 +8,10 @@ namespace SpreadCheetah.SourceGeneration;
 /// before it can be used by the source generator.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-public sealed class CellStyleAttribute(string styleName) : Attribute;
+public sealed class CellStyleAttribute(string styleName) : Attribute
+{
+    /// <summary>
+    /// Returns the constructor's <c>styleName</c> argument value.
+    /// </summary>
+    public string? StyleName { get; } = styleName;
+}
