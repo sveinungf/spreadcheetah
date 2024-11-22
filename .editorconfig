@@ -69,7 +69,7 @@ csharp_new_line_before_members_in_anonymous_types = true
 csharp_new_line_before_members_in_object_initializers = true
 csharp_new_line_before_open_brace = all
 csharp_new_line_between_query_expression_clauses = true
-csharp_prefer_braces = false
+csharp_prefer_braces = false:silent
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_prefer_simple_using_statement = true:warning
 csharp_prefer_system_threading_lock = true:suggestion
@@ -232,6 +232,8 @@ dotnet_diagnostic.MA0076.severity = none
 # Roslynator Options          #
 ###############################
 [*.cs]
+# RCS1036: Remove unnecessary blank line
+dotnet_diagnostic.RCS1036.severity = warning
 # RCS1163: Unused parameter
 dotnet_diagnostic.RCS1163.severity = warning
 # RCS1205: Order named arguments according to the order of parameters

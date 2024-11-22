@@ -437,7 +437,6 @@ public class SpreadsheetImageTests
             embeddedImages.Enqueue(embeddedImage);
         }
 
-
         // Act
         await spreadsheet.StartWorksheetAsync("Sheet 1");
         foreach (var reference in worksheet1References)

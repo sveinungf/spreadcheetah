@@ -30,7 +30,6 @@ public sealed class ColumnHeaderAttribute : Attribute
         PropertyName = propertyName;
     }
 
-
     /// <summary>
     /// <para>When constructed with <see cref="ColumnHeaderAttribute(string)"/>, returns the constructor's <c>name</c> argument value.</para>
     /// <para>When constructed with <see cref="ColumnHeaderAttribute(Type, string)"/>, returns null.</para>

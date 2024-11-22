@@ -19,7 +19,6 @@ using System.Globalization;
 using Xunit;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
-
 #if NET472
 using SpreadCheetah.SourceGenerator.Test.Helpers.Backporting;
 #endif
