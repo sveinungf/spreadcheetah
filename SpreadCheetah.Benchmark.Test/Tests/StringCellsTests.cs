@@ -1,6 +1,5 @@
-using ClosedXML.Excel;
 using SpreadCheetah.Benchmark.Benchmarks;
-using SpreadCheetah.Benchmark.Test.Helpers;
+using SpreadCheetah.TestHelpers.Assertions;
 using Xunit;
 
 namespace SpreadCheetah.Benchmark.Test.Tests;
@@ -80,22 +79,19 @@ public sealed class StringCellsTests : IDisposable
 
     private void AssertCellValuesEqual()
     {
-        SpreadsheetAssert.Valid(_stringCells.Stream);
+        using var sheet = SpreadsheetAssert.SingleSheet(_stringCells.Stream);
 
-        _stringCells.Stream.Position = 0;
-        using var workbook = new XLWorkbook(_stringCells.Stream);
-        var worksheet = workbook.Worksheets.Single();
         var values = _stringCells.Values;
+        Assert.Equal(values.Count, sheet.RowCount);
 
-        for (var r = 0; r < values.Count; ++r)
+        foreach (var (r, rowValues) in values.Index())
         {
-            var row = worksheet.Row(r + 1);
-            var rowValues = values[r];
+            var row = sheet.Row(r + 1).ToList();
+            Assert.Equal(rowValues.Count, row.Count);
 
-            for (var c = 0; c < rowValues.Count; ++c)
+            foreach (var (c, cellValue) in rowValues.Index())
             {
-                var cell = row.Cell(c + 1);
-                Assert.Equal(rowValues[c], cell.Value);
+                Assert.Equal(cellValue, row[c].StringValue);
             }
         }
     }
