@@ -137,7 +137,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         {
             Debug.Fail("Create non-generic overloads to avoid allocations when running on .NET Framework");
 
-            string? s = value is IFormattable f
+            var s = value is IFormattable f
                 ? f.ToString(null, CultureInfo.InvariantCulture)
                 : value?.ToString();
 

@@ -1,7 +1,7 @@
-using ClosedXML.Excel;
 using SpreadCheetah.Benchmark.Benchmarks;
-using SpreadCheetah.Benchmark.Test.Helpers;
+using SpreadCheetah.TestHelpers.Assertions;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace SpreadCheetah.Benchmark.Test.Tests;
 
@@ -10,9 +10,11 @@ public sealed class StringCellsTests : IDisposable
     private const int NumberOfColumns = 10;
     private const int NumberOfRows = 20000;
     private readonly StringCells _stringCells;
+    private readonly ITestOutputHelper _output;
 
-    public StringCellsTests()
+    public StringCellsTests(ITestOutputHelper output)
     {
+        _output = output;
         _stringCells = new StringCells
         {
             NumberOfColumns = NumberOfColumns,
@@ -35,6 +37,7 @@ public sealed class StringCellsTests : IDisposable
         await _stringCells.SpreadCheetah();
 
         // Assert
+        WriteOutput();
         AssertCellValuesEqual();
     }
 
@@ -45,6 +48,7 @@ public sealed class StringCellsTests : IDisposable
         _stringCells.EpPlus4();
 
         // Assert
+        WriteOutput();
         AssertCellValuesEqual();
     }
 
@@ -55,6 +59,7 @@ public sealed class StringCellsTests : IDisposable
         _stringCells.OpenXmlSax();
 
         // Assert
+        WriteOutput();
         AssertCellValuesEqual();
     }
 
@@ -65,6 +70,7 @@ public sealed class StringCellsTests : IDisposable
         _stringCells.OpenXmlDom();
 
         // Assert
+        WriteOutput();
         AssertCellValuesEqual();
     }
 
@@ -75,27 +81,30 @@ public sealed class StringCellsTests : IDisposable
         _stringCells.ClosedXml();
 
         // Assert
+        WriteOutput();
         AssertCellValuesEqual();
+    }
+
+    private void WriteOutput()
+    {
+        _output.WriteLine("Stream length: " + _stringCells.Stream.Length);
     }
 
     private void AssertCellValuesEqual()
     {
-        SpreadsheetAssert.Valid(_stringCells.Stream);
+        using var sheet = SpreadsheetAssert.SingleSheet(_stringCells.Stream);
 
-        _stringCells.Stream.Position = 0;
-        using var workbook = new XLWorkbook(_stringCells.Stream);
-        var worksheet = workbook.Worksheets.Single();
         var values = _stringCells.Values;
+        Assert.Equal(values.Count, sheet.RowCount);
 
-        for (var r = 0; r < values.Count; ++r)
+        foreach (var (r, rowValues) in values.Index())
         {
-            var row = worksheet.Row(r + 1);
-            var rowValues = values[r];
+            var row = sheet.Row(r + 1).ToList();
+            Assert.Equal(rowValues.Count, row.Count);
 
-            for (var c = 0; c < rowValues.Count; ++c)
+            foreach (var (c, cellValue) in rowValues.Index())
             {
-                var cell = row.Cell(c + 1);
-                Assert.Equal(rowValues[c], cell.Value);
+                Assert.Equal(cellValue, row[c].StringValue);
             }
         }
     }

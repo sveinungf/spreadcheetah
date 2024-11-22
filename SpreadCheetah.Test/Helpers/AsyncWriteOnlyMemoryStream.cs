@@ -8,10 +8,10 @@ internal class AsyncWriteOnlyMemoryStream : WriteOnlyMemoryStream
     }
 
 #if NETCOREAPP
-        public override void Write(ReadOnlySpan<byte> source)
-        {
-            throw new NotImplementedException();
-        }
+    public override void Write(ReadOnlySpan<byte> source)
+    {
+        throw new NotImplementedException();
+    }
 #endif
 
     public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state)

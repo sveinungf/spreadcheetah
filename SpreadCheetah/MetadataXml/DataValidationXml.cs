@@ -1,28 +1,19 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Validations;
-using System.Net;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct DataValidationXml
+internal struct DataValidationXml(SingleCellOrCellRangeReference reference, DataValidation validation)
 {
-    private readonly SingleCellOrCellRangeReference _reference;
-    private readonly DataValidation _validation;
     private Element _next;
     private int _nextIndex;
-
-    public DataValidationXml(SingleCellOrCellRangeReference reference, DataValidation validation)
-    {
-        _reference = reference;
-        _validation = validation;
-    }
 
 #pragma warning disable MA0051 // Method is too long
     public bool TryWrite(Span<byte> bytes, ref int bytesWritten)
 #pragma warning restore MA0051 // Method is too long
     {
-        var valid = _validation;
+        var valid = validation;
 
         if (_next == Element.Header && !Advance(TryWriteHeader(bytes, ref bytesWritten))) return false;
         if (_next == Element.InputTitleStart && !Advance(TryWriteInputTitleStart(bytes, ref bytesWritten))) return false;
@@ -61,7 +52,7 @@ internal struct DataValidationXml
     {
         var span = bytes.Slice(bytesWritten);
         var written = 0;
-        var valid = _validation;
+        var valid = validation;
 
         if (!"<dataValidation "u8.TryCopyTo(span, ref written)) return false;
         if (!TryWriteType(valid.Type, span, ref written)) return false;
@@ -106,16 +97,16 @@ internal struct DataValidationXml
     };
 
     private readonly bool TryWriteInputTitleStart(Span<byte> bytes, ref int bytesWritten)
-        => string.IsNullOrEmpty(_validation.InputTitle) || "promptTitle=\""u8.TryCopyTo(bytes, ref bytesWritten);
+        => string.IsNullOrEmpty(validation.InputTitle) || "promptTitle=\""u8.TryCopyTo(bytes, ref bytesWritten);
 
     private readonly bool TryWriteInputMessageStart(Span<byte> bytes, ref int bytesWritten)
-        => string.IsNullOrEmpty(_validation.InputMessage) || "prompt=\""u8.TryCopyTo(bytes, ref bytesWritten);
+        => string.IsNullOrEmpty(validation.InputMessage) || "prompt=\""u8.TryCopyTo(bytes, ref bytesWritten);
 
     private readonly bool TryWriteErrorTitleStart(Span<byte> bytes, ref int bytesWritten)
-        => string.IsNullOrEmpty(_validation.ErrorTitle) || "errorTitle=\""u8.TryCopyTo(bytes, ref bytesWritten);
+        => string.IsNullOrEmpty(validation.ErrorTitle) || "errorTitle=\""u8.TryCopyTo(bytes, ref bytesWritten);
 
     private readonly bool TryWriteErrorMessageStart(Span<byte> bytes, ref int bytesWritten)
-        => string.IsNullOrEmpty(_validation.ErrorMessage) || "error=\""u8.TryCopyTo(bytes, ref bytesWritten);
+        => string.IsNullOrEmpty(validation.ErrorMessage) || "error=\""u8.TryCopyTo(bytes, ref bytesWritten);
 
     private bool TryWriteAttributeValue(string? value, Span<byte> bytes, ref int bytesWritten)
     {
@@ -137,7 +128,7 @@ internal struct DataValidationXml
         var written = 0;
 
         if (!"sqref=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_reference.Reference, span, ref written)) return false;
+        if (!SpanHelper.TryWrite(reference.Reference, span, ref written)) return false;
         if (!"\" "u8.TryCopyTo(span, ref written)) return false;
 
         bytesWritten += written;
@@ -145,18 +136,18 @@ internal struct DataValidationXml
     }
 
     private readonly bool TryWriteValue1Start(Span<byte> bytes, ref int bytesWritten)
-        => _validation.Value1 is null
+        => validation.Value1 is null
             ? "/>"u8.TryCopyTo(bytes, ref bytesWritten)
             : "><formula1>"u8.TryCopyTo(bytes, ref bytesWritten);
 
     private readonly bool TryWriteValue1End(Span<byte> bytes, ref int bytesWritten)
-        => _validation.Value1 is null || "</formula1>"u8.TryCopyTo(bytes, ref bytesWritten);
+        => validation.Value1 is null || "</formula1>"u8.TryCopyTo(bytes, ref bytesWritten);
 
     private readonly bool TryWriteValue2Start(Span<byte> bytes, ref int bytesWritten)
-        => _validation.Value2 is null || "<formula2>"u8.TryCopyTo(bytes, ref bytesWritten);
+        => validation.Value2 is null || "<formula2>"u8.TryCopyTo(bytes, ref bytesWritten);
 
     private readonly bool TryWriteValue2End(Span<byte> bytes, ref int bytesWritten)
-        => _validation.Value2 is null || "</formula2>"u8.TryCopyTo(bytes, ref bytesWritten);
+        => validation.Value2 is null || "</formula2>"u8.TryCopyTo(bytes, ref bytesWritten);
 
     private bool TryWriteValue(string? value, Span<byte> bytes, ref int bytesWritten)
     {

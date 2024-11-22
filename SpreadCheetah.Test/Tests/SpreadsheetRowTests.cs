@@ -612,7 +612,6 @@ public class SpreadsheetRowTests
 
         await spreadsheet.FinishAsync();
 
-
         // Assert
         SpreadsheetAssert.Valid(stream);
         using var workbook = new XLWorkbook(stream);

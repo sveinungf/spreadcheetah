@@ -591,9 +591,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         var constructDataCell = (property.CellValueConverter, property.CellValueTruncate) switch
         {
-            (null, null) => $"new DataCell({value})",
             ({ } converter, _) => $"{valueConverters[converter.ConverterTypeName]}.ConvertToDataCell({value})",
-            (null, { } truncate) => FormattableString.Invariant($"ConstructTruncatedDataCell({value}, {truncate.Value})")
+            (null, { } truncate) => FormattableString.Invariant($"ConstructTruncatedDataCell({value}, {truncate.Value})"),
+            _ => $"new DataCell({value})"
         };
 
         var styleId = (hasStyleAttributes, styleIdIndex) switch

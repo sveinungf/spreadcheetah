@@ -529,7 +529,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     ///   <item><term><c>A5:XFD5</c></term><description>References all cells in row 5.</description></item>
     /// </list>
     /// </summary>
-    /// <param name="cellRange"></param>
     public void MergeCells(string cellRange)
     {
         ArgumentNullException.ThrowIfNull(cellRange);

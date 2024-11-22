@@ -24,7 +24,6 @@ public sealed class CellFormatAttribute : Attribute
         Format = format;
     }
 
-
     /// <summary>
     /// <para>When constructed with <see cref="CellFormatAttribute(string)"/>, returns the constructor's <c>customFormat</c> argument value.</para>
     /// <para>When constructed with <see cref="CellFormatAttribute(StandardNumberFormat)"/>, returns null.</para>

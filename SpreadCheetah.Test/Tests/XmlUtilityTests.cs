@@ -1,7 +1,6 @@
 #if DEBUG
 using SpreadCheetah.Helpers;
 using System.Text;
-using Xunit;
 
 namespace SpreadCheetah.Test.Tests;
 

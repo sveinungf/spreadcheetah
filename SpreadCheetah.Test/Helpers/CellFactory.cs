@@ -60,10 +60,10 @@ internal static class CellFactory
         _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
     };
 
-    public static object Create(CellType type, DateTime? value, StyleId? styleId) => type switch
+    public static object Create(StyledCellType type, DateTime? value, StyleId? styleId) => type switch
     {
-        CellType.Cell => new Cell(value, styleId),
-        CellType.StyledCell => new StyledCell(value, styleId),
+        StyledCellType.Cell => new Cell(value, styleId),
+        StyledCellType.StyledCell => new StyledCell(value, styleId),
         _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
     };
 
@@ -96,6 +96,13 @@ internal static class CellFactory
         CellType.Cell => new Cell(value, styleId),
         CellType.StyledCell => new StyledCell(value, styleId),
         CellType.DataCell => new DataCell(value),
+        _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+    };
+
+    public static object Create(StyledCellType type, string? value, StyleId? styleId) => type switch
+    {
+        StyledCellType.Cell => new Cell(value, styleId),
+        StyledCellType.StyledCell => new StyledCell(value, styleId),
         _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
     };
 

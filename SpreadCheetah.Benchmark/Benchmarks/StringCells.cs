@@ -12,8 +12,8 @@ using OpenXmlCellValue = DocumentFormat.OpenXml.Spreadsheet.CellValues;
 namespace SpreadCheetah.Benchmark.Benchmarks;
 
 [SimpleJob(RuntimeMoniker.Net48)]
-[SimpleJob(RuntimeMoniker.Net60)]
 [SimpleJob(RuntimeMoniker.Net80)]
+[SimpleJob(RuntimeMoniker.Net90)]
 [MemoryDiagnoser]
 public class StringCells : IDisposable
 {
@@ -118,10 +118,11 @@ public class StringCells : IDisposable
         var cellAttributes = new[] { new OpenXmlAttribute("t", "", "inlineStr") };
         var cell = new OpenXmlCell();
         var inlineString = new InlineString();
+        var rowAttributes = new OpenXmlAttribute[1];
 
         for (var row = 0; row < NumberOfRows; ++row)
         {
-            var rowAttributes = new[] { new OpenXmlAttribute("r", "", (row + 1).ToString()) };
+            rowAttributes[0] = new OpenXmlAttribute("r", "", (row + 1).ToString());
             oxw.WriteStartElement(rowObject, rowAttributes);
             var rowValues = Values[row];
 

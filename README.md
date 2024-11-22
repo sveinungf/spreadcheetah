@@ -11,8 +11,8 @@ SpreadCheetah is a high-performance .NET library for generating spreadsheet (Mic
 - Low memory allocation (see benchmarks below)
 - Async APIs
 - No dependency to Microsoft Excel
-- Targeting .NET Standard 2.0 for .NET Framework and earlier versions of .NET Core
-- Targeting .NET 6 and newer for more optimizations
+- Supports .NET Standard 2.0 targets, such as .NET Framework
+- Supports .NET 6 to .NET 9, with more optimizations enabled for later versions
 - Trimmable and NativeAOT compatible
 
 SpreadCheetah is designed to create spreadsheet files in a forward-only manner.
@@ -24,7 +24,15 @@ Most basic spreadsheet functionality is supported, such as cells with different 
 See [Releases](https://github.com/sveinungf/spreadcheetah/releases) for release notes. This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## How to install
-SpreadCheetah is available as a [package on nuget.org](https://www.nuget.org/packages/SpreadCheetah). The NuGet package targets .NET Standard 2.0 as well as newer versions of .NET. The .NET Standard 2.0 version is intended for backwards compatibility (.NET Framework and earlier versions of .NET Core). More optimizations are enabled when targeting newer versions of .NET.
+SpreadCheetah is available as a [package on nuget.org](https://www.nuget.org/packages/SpreadCheetah).
+### .NET CLI
+```
+dotnet add package SpreadCheetah
+```
+### Package Manager
+```
+Install-Package SpreadCheetah
+```
 
 ## Basic usage
 ```cs
@@ -125,23 +133,23 @@ More features of the source generator can be seen in the [wiki](https://github.c
 The benchmark results here have been collected using [BenchmarkDotNet](https://github.com/dotnet/benchmarkdotnet) with the following system configuration:
 
 ``` ini
-BenchmarkDotNet v0.14.0, Windows 10 (10.0.19045.4894/22H2/2022Update)
+BenchmarkDotNet v0.14.0, Windows 10 (10.0.19045.5131/22H2/2022Update)
 Intel Core i5-8600K CPU 3.60GHz (Coffee Lake), 1 CPU, 6 logical and 6 physical cores
-.NET SDK 9.0.100-preview.7.24407.12
-  [Host]             : .NET 8.0.8 (8.0.824.36612), X64 RyuJIT AVX2
-  .NET 6.0           : .NET 6.0.33 (6.0.3324.36610), X64 RyuJIT AVX2
-  .NET 8.0           : .NET 8.0.8 (8.0.824.36612), X64 RyuJIT AVX2
-  .NET Framework 4.8 : .NET Framework 4.8.1 (4.8.9261.0), X64 RyuJIT VectorSize=256
+.NET SDK 9.0.100
+  [Host]             : .NET 9.0.0 (9.0.24.52809), X64 RyuJIT AVX2
+  .NET 8.0           : .NET 8.0.11 (8.0.1124.51707), X64 RyuJIT AVX2
+  .NET 9.0           : .NET 9.0.0 (9.0.24.52809), X64 RyuJIT AVX2
+  .NET Framework 4.8 : .NET Framework 4.8.1 (4.8.9282.0), X64 RyuJIT VectorSize=256
 
-InvocationCount=1  UnrollFactor=1
+InvocationCount=1  UnrollFactor=1 
 ```
 
 These libraries have been used in the comparison benchmarks:
 | Library                                                | Version |
 |--------------------------------------------------------|--------:|
-| SpreadCheetah                                          |  1.18.0 |
-| [Open XML SDK](https://github.com/dotnet/Open-XML-SDK) |  2.20.0 |
-| [ClosedXML](https://github.com/ClosedXML/ClosedXML)    | 0.102.3 |
+| SpreadCheetah                                          |  1.19.0 |
+| [Open XML SDK](https://github.com/dotnet/Open-XML-SDK) |   3.1.1 |
+| [ClosedXML](https://github.com/ClosedXML/ClosedXML)    | 0.104.2 |
 | [EPPlusFree](https://github.com/rimland/EPPlus)        | 4.5.3.8 |
 
 > Disclaimer: The libraries have different feature sets compared to each other.
@@ -157,28 +165,28 @@ but to make this a fair comparison the idea is to use the most efficient approac
 The code is available [in the Benchmark project](https://github.com/sveinungf/spreadcheetah/blob/main/SpreadCheetah.Benchmark/Benchmarks/StringCells.cs).
 
 <details open>
-<summary><h3>.NET 8</h3></summary>
+<summary><h3>.NET 9</h3></summary>
 
 |                    Library |         Mean |     Allocated |
 |----------------------------|-------------:|--------------:|
-|          **SpreadCheetah** | **21.22 ms** |   **6.33 KB** |
-|    Open XML (SAX approach) |    185.66 ms |  66 037.32 KB |
-|                 EPPlusFree |    358.31 ms | 195 610.91 KB |
-|    Open XML (DOM approach) |    701.17 ms | 182 916.73 KB |
-|                  ClosedXML |    739.16 ms | 529 203.20 KB |
+|          **SpreadCheetah** | **14.72 ms** |   **6.25 KB** |
+|    Open XML (SAX approach) |    161.14 ms |  64 958.95 KB |
+|                 EPPlusFree |    346.14 ms | 195 608.41 KB |
+|    Open XML (DOM approach) |    486.15 ms | 135 579.86 KB |
+|                  ClosedXML |    562.77 ms | 265 742.71 KB |
 </details>
 
 
 <details>
-<summary><h3>.NET 6</h3></summary>
+<summary><h3>.NET 8</h3></summary>
 
 |                    Library |         Mean |     Allocated |
 |----------------------------|-------------:|--------------:|
-|          **SpreadCheetah** | **25.05 ms** |   **6.52 KB** |
-|    Open XML (SAX approach) |    234.12 ms |  66 052.24 KB |
-|                 EPPlusFree |    407.38 ms | 195 791.84 KB |
-|    Open XML (DOM approach) |    803.30 ms | 182 926.09 KB |
-|                  ClosedXML |    874.41 ms | 529 844.80 KB |
+|          **SpreadCheetah** | **21.51 ms** |   **6.33 KB** |
+|    Open XML (SAX approach) |    179.69 ms |  64 958.03 KB |
+|                 EPPlusFree |    351.35 ms | 195 610.91 KB |
+|    Open XML (DOM approach) |    515.54 ms | 135 585.72 KB |
+|                  ClosedXML |    609.47 ms | 284 490.52 KB |
 </details>
 
 
@@ -187,9 +195,9 @@ The code is available [in the Benchmark project](https://github.com/sveinungf/sp
 
 |                    Library |         Mean |     Allocated |
 |----------------------------|-------------:|--------------:|
-|          **SpreadCheetah** | **72.34 ms** | **152.23 KB** |
+|          **SpreadCheetah** | **71.08 ms** | **144.23 KB** |
 |    Open XML (SAX approach) |    408.03 ms |  43 317.24 KB |
-|                 EPPlusFree |    622.80 ms | 286 141.77 KB |
-|    Open XML (DOM approach) |  1,070.28 ms | 161 067.34 KB |
-|                  ClosedXML |  1,319.16 ms | 509 205.80 KB |
+|                 EPPlusFree |    604.59 ms | 286 141.34 KB |
+|    Open XML (DOM approach) |    777.62 ms | 113 059.66 KB |
+|                  ClosedXML |  1,125.82 ms | 263 766.13 KB |
 </details>
