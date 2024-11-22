@@ -1,7 +1,5 @@
-using System.Runtime.CompilerServices;
-
 [assembly: CLSCompliant(true)]
 
 #if DEBUG
-[assembly: InternalsVisibleTo("SpreadCheetah.Test")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("SpreadCheetah.Test")]
 #endif

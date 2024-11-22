@@ -163,6 +163,7 @@ internal struct HashCode
         return (int)hash;
     }
 
+#pragma warning disable CA1065 // Do not raise exceptions in unexpected locations
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
 #pragma warning disable S3877 // Exceptions should not be thrown from unexpected methods
     [Obsolete("HashCode is a mutable struct and should not be compared with other HashCodes. Use ToHashCode to retrieve the computed hash code.", error: true)]
@@ -172,6 +173,7 @@ internal struct HashCode
     [Obsolete("HashCode is a mutable struct and should not be compared with other HashCodes.", error: true)]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public override readonly bool Equals(object? obj) => throw new NotSupportedException();
+#pragma warning restore CA1065 // Do not raise exceptions in unexpected locations
 #pragma warning restore CS0809 // Obsolete member overrides non-obsolete member
 #pragma warning restore S3877 // Exceptions should not be thrown from unexpected methods
 
