@@ -1,6 +1,6 @@
-using System.Reflection;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnHeader;
+using System.Reflection;
 using Xunit;
 
 namespace SpreadCheetah.SourceGenerator.Test.Tests;
@@ -84,28 +84,22 @@ public class ColumnHeaderTests
         var note2ColHeaderAttr = note2Property?.GetCustomAttribute<ColumnHeaderAttribute>();
 
         // Assert
-        Assert.NotNull(firstNameProperty);
         Assert.NotNull(firstNameColHeaderAttr);
         Assert.Equal("First name", firstNameColHeaderAttr.Name);
 
-        Assert.NotNull(lastNameProperty);
         Assert.NotNull(lastNameColHeaderAttr);
         Assert.Equal("", lastNameColHeaderAttr.Name);
 
-        Assert.NotNull(nationalityProperty);
         Assert.NotNull(nationalityColHeaderAttr);
         Assert.Equal("Nationality (escaped characters \", \', \\)", nationalityColHeaderAttr.Name);
 
-        Assert.NotNull(addressLine1Property);
         Assert.NotNull(addressLine1ColHeaderAttr);
         Assert.Equal("Address line 1 (escaped characters \r\n, \t)", addressLine1ColHeaderAttr.Name);
 
-        Assert.NotNull(addressLine2Property);
         Assert.NotNull(addressLine2ColHeaderAttr);
         Assert.Equal(@"Address line 2 (verbatim
 string: "", \)", addressLine2ColHeaderAttr.Name);
 
-        Assert.NotNull(ageProperty);
         Assert.NotNull(ageColHeaderAttr);
         Assert.Equal("""
         Age (
@@ -115,11 +109,9 @@ string: "", \)", addressLine2ColHeaderAttr.Name);
         )
     """, ageColHeaderAttr.Name);
 
-        Assert.NotNull(noteProperty);
         Assert.NotNull(noteColHeaderAttr);
         Assert.Equal("Note (unicode escape sequence 🌉, \ud83d\udc4d, \xE7)", noteColHeaderAttr.Name);
 
-        Assert.NotNull(note2Property);
         Assert.NotNull(note2ColHeaderAttr);
         Assert.Equal($"Note 2 (constant interpolated string: This is a constant)", note2ColHeaderAttr.Name);
     }

@@ -11,7 +11,9 @@ internal struct NumberFormatsXmlPart(
     private string? _currentXmlEncodedFormat;
     private int _currentXmlEncodedFormatIndex;
 
+#pragma warning disable EPS12 // Member can be made readonly (false positive)
     public bool TryWrite()
+#pragma warning restore EPS12 // Member can be made readonly (false positive)
     {
         while (MoveNext())
         {

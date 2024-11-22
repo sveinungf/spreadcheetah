@@ -48,6 +48,4 @@ public sealed class ColumnHeaderAttribute : Attribute
     /// <para>When constructed with <see cref="ColumnHeaderAttribute(string)"/>, returns null.</para>
     /// </summary>
     public string? PropertyName { get; }
-
-    
 }

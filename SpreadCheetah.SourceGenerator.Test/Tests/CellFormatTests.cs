@@ -1,8 +1,8 @@
-using System.Reflection;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Models.CellFormat;
 using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
+using System.Reflection;
 using Xunit;
 
 namespace SpreadCheetah.SourceGenerator.Test.Tests;
@@ -105,7 +105,7 @@ public class CellFormatTests
         // Arrange
         var property = typeof(ClassWithCellCustomFormat).GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithCellCustomFormat.Price), StringComparison.Ordinal));
-        
+
         // Act
         var cellFormatAttr = property?.GetCustomAttribute<CellFormatAttribute>();
 
