@@ -8,6 +8,8 @@ internal struct NumberFormatsXmlPart(
 {
     private Element _next;
     private int _nextIndex;
+    private string? _currentXmlEncodedFormat;
+    private int _currentXmlEncodedFormatIndex;
 
     public bool TryWrite()
     {
@@ -64,16 +66,28 @@ internal struct NumberFormatsXmlPart(
             var span = buffer.GetSpan();
             var written = 0;
 
-            if (!"<numFmt numFmtId=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(format.Value, span, ref written)) return false;
-            if (!"\" formatCode=\""u8.TryCopyTo(span, ref written)) return false;
+            if (_currentXmlEncodedFormat is null)
+            {
+                if (!"<numFmt numFmtId=\""u8.TryCopyTo(span, ref written)) return false;
+                if (!SpanHelper.TryWrite(format.Value, span, ref written)) return false;
+                if (!"\" formatCode=\""u8.TryCopyTo(span, ref written)) return false;
 
-            // TODO: This can be longer than the minimum buffer length. Should use the "long string" approach
-            var numberFormat = XmlUtility.XmlEncode(format.Key);
-            if (!SpanHelper.TryWrite(numberFormat, span, ref written)) return false;
+                _currentXmlEncodedFormat = XmlUtility.XmlEncode(format.Key);
+                _currentXmlEncodedFormatIndex = 0;
+            }
+
+            if (!SpanHelper.TryWriteLongString(_currentXmlEncodedFormat, ref _currentXmlEncodedFormatIndex, span, ref written))
+            {
+                buffer.Advance(written);
+                return false;
+            }
+
             if (!"\"/>"u8.TryCopyTo(span, ref written)) return false;
 
             buffer.Advance(written);
+
+            _currentXmlEncodedFormat = null;
+            _currentXmlEncodedFormatIndex = 0;
         }
 
         return true;

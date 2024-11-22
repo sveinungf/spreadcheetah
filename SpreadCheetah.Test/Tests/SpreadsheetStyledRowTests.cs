@@ -468,9 +468,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(styles.Length, actualCells.Count());
     }
 
-    [Theory]
-    [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_DateTimeCell(bool withDefaultDateTimeFormat, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_DateTimeCell(bool withDefaultDateTimeFormat, StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
@@ -485,56 +484,73 @@ public class SpreadsheetStyledRowTests
         var style = new Style { Font = { Italic = true } };
         var styleId = spreadsheet.AddStyle(style);
         var styledCell = CellFactory.Create(type, value, styleId);
-        var expectedNumberFormat = withDefaultDateTimeFormat ? @"yyyy\-mm\-dd\ hh:mm:ss" : "";
+        var expectedNumberFormat = withDefaultDateTimeFormat ? NumberFormats.DateTimeSortable : null;
 
         // Act
         await spreadsheet.AddRowAsync(styledCell, rowType);
         await spreadsheet.FinishAsync();
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
-        Assert.Equal(value.ToOADate(), actualCell.Value.GetUnifiedNumber(), 0.0005);
-        Assert.Equal(expectedNumberFormat, actualCell.Style.NumberFormat.Format);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(value, actualCell.DateTimeValue);
+        Assert.Equal(expectedNumberFormat, actualCell.Style.NumberFormat.CustomFormat);
         Assert.True(actualCell.Style.Font.Italic);
     }
 
-    [Theory]
-    [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_DateTimeNumberFormat(bool withExplicitNumberFormat, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_DateTimeNumberFormat(bool withExplicitNumberFormat, StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string explicitNumberFormat = "yyyy";
         var expectedNumberFormat = withExplicitNumberFormat ? explicitNumberFormat : NumberFormats.DateTimeSortable;
         var value = new DateTime(2021, 2, 3, 4, 5, 6, DateTimeKind.Unspecified);
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
 
-            var style = new Style();
-            style.Font.Italic = true;
-            if (withExplicitNumberFormat)
-                style.Format = NumberFormat.Custom(explicitNumberFormat);
+        var style = new Style();
+        style.Font.Italic = true;
+        if (withExplicitNumberFormat)
+            style.Format = NumberFormat.Custom(explicitNumberFormat);
 
-            var styleId = spreadsheet.AddStyle(style);
-            var styledCell = CellFactory.Create(type, value, styleId);
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = CellFactory.Create(type, value, styleId);
 
-            // Act
-            await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync();
-        }
+        // Act
+        await spreadsheet.AddRowAsync(styledCell, rowType);
+        await spreadsheet.FinishAsync();
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
-        Assert.Equal(value, actualCell.GetDateTime());
-        Assert.Equal(expectedNumberFormat, actualCell.Style.NumberFormat.Format);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(value, actualCell.DateTimeValue);
+        Assert.Equal(expectedNumberFormat, actualCell.Style.NumberFormat.CustomFormat);
         Assert.True(actualCell.Style.Font.Italic);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_LongCustomFormat(StyledCellType type, RowCollectionType rowType)
+    {
+        // Arrange
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        var format = new string('"', 255);
+        var style = new Style { Format = NumberFormat.Custom(format) };
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = CellFactory.Create(type, "Foo", styleId);
+
+        // Act
+        await spreadsheet.AddRowAsync(styledCell, rowType);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(format, actualCell.Style.NumberFormat.CustomFormat);
     }
 
     public static IEnumerable<object?[]> BorderStyles() => TestData.CombineWithStyledCellTypes(EnumHelper.GetValues<BorderStyle>());
