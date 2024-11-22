@@ -25,14 +25,14 @@ public static class EmptyWorksheetRowContext
 
     private static ValueTask AddAsRowAsync<T>(Spreadsheet spreadsheet, T _, CancellationToken token)
     {
-        ArgumentNullException.ThrowIfNull(nameof(spreadsheet));
+        ArgumentNullException.ThrowIfNull(spreadsheet);
         return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
     }
 
     private static ValueTask AddRangeAsRowsAsync<T>(Spreadsheet spreadsheet, IEnumerable<T> objs, CancellationToken token)
     {
-        ArgumentNullException.ThrowIfNull(nameof(spreadsheet));
-        ArgumentNullException.ThrowIfNull(nameof(objs));
+        ArgumentNullException.ThrowIfNull(spreadsheet);
+        ArgumentNullException.ThrowIfNull(objs);
         return AddRangeAsEmptyRowsAsync(spreadsheet, objs, token);
     }
 
