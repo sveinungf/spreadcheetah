@@ -1,6 +1,7 @@
 using SpreadCheetah.Benchmark.Benchmarks;
 using SpreadCheetah.TestHelpers.Assertions;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace SpreadCheetah.Benchmark.Test.Tests;
 
@@ -9,9 +10,11 @@ public sealed class StringCellsTests : IDisposable
     private const int NumberOfColumns = 10;
     private const int NumberOfRows = 20000;
     private readonly StringCells _stringCells;
+    private readonly ITestOutputHelper _output;
 
-    public StringCellsTests()
+    public StringCellsTests(ITestOutputHelper output)
     {
+        _output = output;
         _stringCells = new StringCells
         {
             NumberOfColumns = NumberOfColumns,
@@ -34,6 +37,7 @@ public sealed class StringCellsTests : IDisposable
         await _stringCells.SpreadCheetah();
 
         // Assert
+        WriteOutput();
         AssertCellValuesEqual();
     }
 
@@ -44,6 +48,7 @@ public sealed class StringCellsTests : IDisposable
         _stringCells.EpPlus4();
 
         // Assert
+        WriteOutput();
         AssertCellValuesEqual();
     }
 
@@ -54,6 +59,7 @@ public sealed class StringCellsTests : IDisposable
         _stringCells.OpenXmlSax();
 
         // Assert
+        WriteOutput();
         AssertCellValuesEqual();
     }
 
@@ -64,6 +70,7 @@ public sealed class StringCellsTests : IDisposable
         _stringCells.OpenXmlDom();
 
         // Assert
+        WriteOutput();
         AssertCellValuesEqual();
     }
 
@@ -74,7 +81,13 @@ public sealed class StringCellsTests : IDisposable
         _stringCells.ClosedXml();
 
         // Assert
+        WriteOutput();
         AssertCellValuesEqual();
+    }
+
+    private void WriteOutput()
+    {
+        _output.WriteLine("Stream length: " + _stringCells.Stream.Length);
     }
 
     private void AssertCellValuesEqual()
