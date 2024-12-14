@@ -34,34 +34,6 @@ internal readonly struct PooledArray<T> : IDisposable
         }
     }
 
-    public static PooledArray<T> Create<TSource, TState>(
-        ICollection<TSource> collection,
-        TState state,
-        Func<TSource, TState, T> convert)
-    {
-        if (collection.Count == 0)
-            return new PooledArray<T>([], 0);
-
-        var array = ArrayPool<T>.Shared.Rent(collection.Count);
-
-        try
-        {
-            var i = 0;
-            foreach (var element in collection)
-            {
-                array[i] = convert(element, state);
-                ++i;
-            }
-
-            return new PooledArray<T>(array, collection.Count);
-        }
-        catch
-        {
-            ArrayPool<T>.Shared.Return(array);
-            throw;
-        }
-    }
-
     public static async ValueTask<PooledArray<byte>> CreateAsync(Stream stream, int maxBytesToRead, CancellationToken token)
     {
         var array = ArrayPool<byte>.Shared.Rent(maxBytesToRead);

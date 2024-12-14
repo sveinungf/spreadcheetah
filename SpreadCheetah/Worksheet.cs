@@ -7,6 +7,7 @@ using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
+using System.Buffers;
 
 namespace SpreadCheetah;
 
@@ -113,8 +114,20 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         if (headerNames.Count == 0)
             return;
 
-        using var cells = headerNames.ToPooledArray(styleId, static (x, s) => new StyledCell(x, s));
-        await AddRowAsync(cells.Memory, token).ConfigureAwait(false);
+        var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Count);
+        try
+        {
+            for (var i = 0; i < headerNames.Count; ++i)
+            {
+                cells[i] = new StyledCell(headerNames[i], styleId);
+            }
+
+            await AddRowAsync(cells.AsMemory(0, headerNames.Count), token).ConfigureAwait(false);
+        }
+        finally
+        {
+            ArrayPool<StyledCell>.Shared.Return(cells);
+        }
     }
 
     public bool TryAddDataValidation(string reference, DataValidation validation)
