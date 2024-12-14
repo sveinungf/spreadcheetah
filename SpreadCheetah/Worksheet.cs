@@ -3,6 +3,7 @@ using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml;
+using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
@@ -106,6 +107,15 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         => _dataCellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, options, _stream, ct);
     public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, RowOptions options, CancellationToken ct)
         => _styledCellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, options, _stream, ct);
+
+    public async ValueTask AddHeaderRowAsync(IList<string> headerNames, StyleId? styleId = null, CancellationToken token = default)
+    {
+        if (headerNames.Count == 0)
+            return;
+
+        using var cells = headerNames.ToPooledArray(styleId, static (x, s) => new StyledCell(x, s));
+        await AddRowAsync(cells.Memory, token).ConfigureAwait(false);
+    }
 
     public bool TryAddDataValidation(string reference, DataValidation validation)
     {

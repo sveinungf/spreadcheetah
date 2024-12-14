@@ -342,6 +342,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             : Worksheet.AddRowAsync(cells, options, token);
     }
 
+    public ValueTask AddHeaderRowAsync(IList<string> headerNames, StyleId? styleId = null, CancellationToken token = default)
+    {
+        ArgumentNullException.ThrowIfNull(headerNames);
+        return Worksheet.AddHeaderRowAsync(headerNames, styleId, token);
+    }
+
     /// <summary>
     /// Add a row of header names in the active worksheet.
     /// This functionality depends on the source generator, which will generate the <see cref="WorksheetRowTypeInfo{T}"/> type.
