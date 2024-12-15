@@ -343,6 +343,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             : Worksheet.AddRowAsync(cells, options, token);
     }
 
+    /// <summary>
+    /// Add a row of header names in the active worksheet. A style can optionally be applied to all the cells in the row.
+    /// </summary>
     public async ValueTask AddHeaderRowAsync(string?[] headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(headerNames);
@@ -362,6 +365,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Add a row of header names in the active worksheet. A style can optionally be applied to all the cells in the row.
+    /// </summary>
     public async ValueTask AddHeaderRowAsync(ReadOnlyMemory<string?> headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
         if (headerNames.Length == 0)
@@ -379,6 +385,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Add a row of header names in the active worksheet. A style can optionally be applied to all the cells in the row.
+    /// </summary>
     public async ValueTask AddHeaderRowAsync(IList<string?> headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(headerNames);
