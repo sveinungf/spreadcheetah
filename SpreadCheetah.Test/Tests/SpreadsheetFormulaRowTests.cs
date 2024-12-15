@@ -4,7 +4,6 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
 using System.Globalization;
-using Xunit;
 using Color = System.Drawing.Color;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
@@ -399,9 +398,9 @@ public class SpreadsheetFormulaRowTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
         var formula = new Formula("SUM(A1,A2)");
 
-        var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(formula, valueType, isNull, null, out var value)).ToList();
-        var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(formula, valueType, isNull, null, out var value)).ToList();
-        var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(formula, valueType, isNull, null, out var value)).ToList();
+        var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(formula, valueType, isNull, null, out var _)).ToList();
+        var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(formula, valueType, isNull, null, out var _)).ToList();
+        var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(formula, valueType, isNull, null, out var _)).ToList();
 
         var expectedRow1Refs = Enumerable.Range(1, 10).Select(x => SpreadsheetUtility.GetColumnName(x) + "1").OfType<string?>();
         var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
@@ -453,9 +452,9 @@ public class SpreadsheetFormulaRowTests
         style.Fill.Color = Color.SaddleBrown;
         var styleId = spreadsheet.AddStyle(style);
 
-        var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(formula, valueType, isNull, styleId, out var value)).ToList();
-        var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(formula, valueType, isNull, styleId, out var value)).ToList();
-        var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(formula, valueType, isNull, styleId, out var value)).ToList();
+        var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(formula, valueType, isNull, styleId, out var _)).ToList();
+        var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(formula, valueType, isNull, styleId, out var _)).ToList();
+        var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(formula, valueType, isNull, styleId, out var _)).ToList();
 
         var expectedRow1Refs = Enumerable.Range(1, 10).Select(x => SpreadsheetUtility.GetColumnName(x) + "1").OfType<string?>();
         var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
@@ -504,9 +503,9 @@ public class SpreadsheetFormulaRowTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
         var formula = new Formula(FormulaGenerator.Generate(options.BufferSize * 2));
 
-        var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(formula, valueType, isNull, null, out var value)).ToList();
-        var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(formula, valueType, isNull, null, out var value)).ToList();
-        var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(formula, valueType, isNull, null, out var value)).ToList();
+        var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(formula, valueType, isNull, null, out var _)).ToList();
+        var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(formula, valueType, isNull, null, out var _)).ToList();
+        var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(formula, valueType, isNull, null, out var _)).ToList();
 
         var expectedRow1Refs = Enumerable.Range(1, 10).Select(x => SpreadsheetUtility.GetColumnName(x) + "1").OfType<string?>();
         var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
@@ -558,9 +557,9 @@ public class SpreadsheetFormulaRowTests
         style.Fill.Color = Color.LightGoldenrodYellow;
         var styleId = spreadsheet.AddStyle(style);
 
-        var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(formula, valueType, isNull, styleId, out var value)).ToList();
-        var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(formula, valueType, isNull, styleId, out var value)).ToList();
-        var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(formula, valueType, isNull, styleId, out var value)).ToList();
+        var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(formula, valueType, isNull, styleId, out var _)).ToList();
+        var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(formula, valueType, isNull, styleId, out var _)).ToList();
+        var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(formula, valueType, isNull, styleId, out var _)).ToList();
 
         var expectedRow1Refs = Enumerable.Range(1, 10).Select(x => SpreadsheetUtility.GetColumnName(x) + "1").OfType<string?>();
         var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
