@@ -5,19 +5,19 @@
   </PropertyGroup>
   <ItemGroup>
     <GlobalPackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.4.0-beta.1" />
-    <GlobalPackageReference Include="Meziantou.Analyzer" Version="2.0.179" />
+    <GlobalPackageReference Include="Meziantou.Analyzer" Version="2.0.182" />
     <GlobalPackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" />
     <GlobalPackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.12.19" />
     <GlobalPackageReference Include="PrimaryConstructorAnalyzer" Version="1.0.6" />
     <GlobalPackageReference Include="Roslynator.Analyzers" Version="4.12.9" />
-    <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="9.32.0.97167" />
+    <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.3.0.106239" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
     <PackageVersion Include="Bogus" Version="35.6.1" />
     <PackageVersion Include="ClosedXML" Version="0.104.2" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
-    <PackageVersion Include="DocumentFormat.OpenXml" Version="3.1.1" />
+    <PackageVersion Include="DocumentFormat.OpenXml" Version="3.2.0" />
     <PackageVersion Include="EPPlusFree" Version="4.5.3.8" />
     <PackageVersion Include="ErrorProne.NET.Structs" Version="0.4.0-beta.1" />
     <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0" />
@@ -25,10 +25,10 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="1.1.2" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.9.2" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageVersion Include="Polyfill" Version="6.2.0" />
     <PackageVersion Include="PolySharp" Version="1.14.1" />
-    <PackageVersion Include="PublicApiGenerator" Version="11.1.0" />
+    <PackageVersion Include="PublicApiGenerator" Version="11.2.0" />
     <PackageVersion Include="System.Collections.Immutable" Version="9.0.0" />
     <PackageVersion Include="System.Drawing.Common" Version="4.7.3" />
     <PackageVersion Include="System.Formats.Asn1" Version="9.0.0" />
@@ -38,7 +38,7 @@
     <PackageVersion Include="System.Text.RegularExpressions" Version="4.3.1" />
     <PackageVersion Include="TngTech.ArchUnitNET.xUnit" Version="0.11.1" />
     <PackageVersion Include="Verify.SourceGenerators" Version="2.5.0" />
-    <PackageVersion Include="Verify.Xunit" Version="28.3.1" />
+    <PackageVersion Include="Verify.Xunit" Version="28.5.0" />
     <PackageVersion Include="xunit" Version="2.9.2" />
     <PackageVersion Include="xunit.assert" Version="2.9.2" />
     <PackageVersion Include="Xunit.Combinatorial" Version="1.6.24" />

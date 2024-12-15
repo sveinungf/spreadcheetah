@@ -28,20 +28,20 @@ namespace MyNamespace
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
-            var cells = ArrayPool<StyledCell>.Shared.Rent(6);
+            var headerNames = ArrayPool<string?>.Shared.Rent(6);
             try
             {
-                cells[0] = new StyledCell("LastName", styleId);
-                cells[1] = new StyledCell("FirstName", styleId);
-                cells[2] = new StyledCell("MiddleName", styleId);
-                cells[3] = new StyledCell("Employed", styleId);
-                cells[4] = new StyledCell("Age", styleId);
-                cells[5] = new StyledCell("Score", styleId);
-                await spreadsheet.AddRowAsync(cells.AsMemory(0, 6), token).ConfigureAwait(false);
+                headerNames[0] = "LastName";
+                headerNames[1] = "FirstName";
+                headerNames[2] = "MiddleName";
+                headerNames[3] = "Employed";
+                headerNames[4] = "Age";
+                headerNames[5] = "Score";
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 6), styleId, token).ConfigureAwait(false);
             }
             finally
             {
-                ArrayPool<StyledCell>.Shared.Return(cells, true);
+                ArrayPool<string?>.Shared.Return(headerNames, true);
             }
         }
 

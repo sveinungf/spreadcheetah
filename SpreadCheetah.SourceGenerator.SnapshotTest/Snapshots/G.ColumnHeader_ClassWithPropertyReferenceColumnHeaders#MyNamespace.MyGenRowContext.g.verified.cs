@@ -28,20 +28,20 @@ namespace MyNamespace
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
-            var cells = ArrayPool<StyledCell>.Shared.Rent(6);
+            var headerNames = ArrayPool<string?>.Shared.Rent(6);
             try
             {
-                cells[0] = new StyledCell(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaderResources.Header_FirstName, styleId);
-                cells[1] = new StyledCell(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaderResources.Header_LastName, styleId);
-                cells[2] = new StyledCell(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaders.HeaderNationality, styleId);
-                cells[3] = new StyledCell(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaders.HeaderAddressLine1, styleId);
-                cells[4] = new StyledCell(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaders.HeaderAddressLine2, styleId);
-                cells[5] = new StyledCell(SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaders.HeaderAge, styleId);
-                await spreadsheet.AddRowAsync(cells.AsMemory(0, 6), token).ConfigureAwait(false);
+                headerNames[0] = SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaderResources.Header_FirstName;
+                headerNames[1] = SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaderResources.Header_LastName;
+                headerNames[2] = SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaders.HeaderNationality;
+                headerNames[3] = SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaders.HeaderAddressLine1;
+                headerNames[4] = SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaders.HeaderAddressLine2;
+                headerNames[5] = SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaders.HeaderAge;
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 6), styleId, token).ConfigureAwait(false);
             }
             finally
             {
-                ArrayPool<StyledCell>.Shared.Return(cells, true);
+                ArrayPool<string?>.Shared.Return(headerNames, true);
             }
         }
 

@@ -372,7 +372,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
                     private static async ValueTask AddHeaderRow{{typeIndex}}Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
                     {
-                        var cells = ArrayPool<StyledCell>.Shared.Rent({{properties.Count}});
+                        var headerNames = ArrayPool<string?>.Shared.Rent({{properties.Count}});
                         try
                         {
             """));
@@ -384,16 +384,16 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 ?? @$"""{property.Name}""";
 
             sb.AppendLine(FormattableString.Invariant($"""
-                            cells[{i}] = new StyledCell({header}, styleId);
+                            headerNames[{i}] = {header};
             """));
         }
 
         sb.AppendLine($$"""
-                            await spreadsheet.AddRowAsync(cells.AsMemory(0, {{properties.Count}}), token).ConfigureAwait(false);
+                            await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, {{properties.Count}}), styleId, token).ConfigureAwait(false);
                         }
                         finally
                         {
-                            ArrayPool<StyledCell>.Shared.Return(cells, true);
+                            ArrayPool<string?>.Shared.Return(headerNames, true);
                         }
                     }
             """);

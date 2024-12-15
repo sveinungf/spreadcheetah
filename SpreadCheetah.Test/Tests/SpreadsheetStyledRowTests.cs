@@ -1027,9 +1027,9 @@ public class SpreadsheetStyledRowTests
         style.Fill.Color = Color.LightSeaGreen;
         var styleId = spreadsheet.AddStyle(style);
 
-        var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(cellType, valueType, isNull, styleId, out var value)).ToList();
-        var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(cellType, valueType, isNull, styleId, out var value)).ToList();
-        var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(cellType, valueType, isNull, styleId, out var value)).ToList();
+        var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(cellType, valueType, isNull, styleId, out var _)).ToList();
+        var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(cellType, valueType, isNull, styleId, out var _)).ToList();
+        var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(cellType, valueType, isNull, styleId, out var _)).ToList();
 
         var expectedRow1Refs = Enumerable.Range(1, 10).Select(x => SpreadsheetUtility.GetColumnName(x) + "1").OfType<string?>();
         var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();

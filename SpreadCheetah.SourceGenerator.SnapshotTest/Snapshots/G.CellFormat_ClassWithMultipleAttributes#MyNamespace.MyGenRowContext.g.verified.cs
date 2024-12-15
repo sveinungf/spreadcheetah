@@ -38,18 +38,18 @@ namespace MyNamespace
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
-            var cells = ArrayPool<StyledCell>.Shared.Rent(4);
+            var headerNames = ArrayPool<string?>.Shared.Rent(4);
             try
             {
-                cells[0] = new StyledCell("First", styleId);
-                cells[1] = new StyledCell("Second", styleId);
-                cells[2] = new StyledCell("Year", styleId);
-                cells[3] = new StyledCell("Score", styleId);
-                await spreadsheet.AddRowAsync(cells.AsMemory(0, 4), token).ConfigureAwait(false);
+                headerNames[0] = "First";
+                headerNames[1] = "Second";
+                headerNames[2] = "Year";
+                headerNames[3] = "Score";
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 4), styleId, token).ConfigureAwait(false);
             }
             finally
             {
-                ArrayPool<StyledCell>.Shared.Return(cells, true);
+                ArrayPool<string?>.Shared.Return(headerNames, true);
             }
         }
 

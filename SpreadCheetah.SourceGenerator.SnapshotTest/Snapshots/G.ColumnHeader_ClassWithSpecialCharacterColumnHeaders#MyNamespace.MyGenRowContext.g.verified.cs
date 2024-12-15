@@ -28,22 +28,22 @@ namespace MyNamespace
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
-            var cells = ArrayPool<StyledCell>.Shared.Rent(8);
+            var headerNames = ArrayPool<string?>.Shared.Rent(8);
             try
             {
-                cells[0] = new StyledCell("First name", styleId);
-                cells[1] = new StyledCell("", styleId);
-                cells[2] = new StyledCell("Nationality (escaped characters \", ', \\)", styleId);
-                cells[3] = new StyledCell("Address line 1 (escaped characters \n, \t)", styleId);
-                cells[4] = new StyledCell("Address line 2 (verbatim\nstring: \", \\)", styleId);
-                cells[5] = new StyledCell("    Age (\n        raw\n        string\n        literal\n    )", styleId);
-                cells[6] = new StyledCell("Note (unicode escape sequence 🌉, 👍, ç)", styleId);
-                cells[7] = new StyledCell("Note 2 (constant interpolated string: This is a constant)", styleId);
-                await spreadsheet.AddRowAsync(cells.AsMemory(0, 8), token).ConfigureAwait(false);
+                headerNames[0] = "First name";
+                headerNames[1] = "";
+                headerNames[2] = "Nationality (escaped characters \", ', \\)";
+                headerNames[3] = "Address line 1 (escaped characters \n, \t)";
+                headerNames[4] = "Address line 2 (verbatim\nstring: \", \\)";
+                headerNames[5] = "    Age (\n        raw\n        string\n        literal\n    )";
+                headerNames[6] = "Note (unicode escape sequence 🌉, 👍, ç)";
+                headerNames[7] = "Note 2 (constant interpolated string: This is a constant)";
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 8), styleId, token).ConfigureAwait(false);
             }
             finally
             {
-                ArrayPool<StyledCell>.Shared.Return(cells, true);
+                ArrayPool<string?>.Shared.Return(headerNames, true);
             }
         }
 

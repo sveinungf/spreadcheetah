@@ -28,30 +28,30 @@ namespace MyNamespace
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
-            var cells = ArrayPool<StyledCell>.Shared.Rent(16);
+            var headerNames = ArrayPool<string?>.Shared.Rent(16);
             try
             {
-                cells[0] = new StyledCell("StringValue", styleId);
-                cells[1] = new StyledCell("NullableStringValue", styleId);
-                cells[2] = new StyledCell("IntValue", styleId);
-                cells[3] = new StyledCell("NullableIntValue", styleId);
-                cells[4] = new StyledCell("LongValue", styleId);
-                cells[5] = new StyledCell("NullableLongValue", styleId);
-                cells[6] = new StyledCell("FloatValue", styleId);
-                cells[7] = new StyledCell("NullableFloatValue", styleId);
-                cells[8] = new StyledCell("DoubleValue", styleId);
-                cells[9] = new StyledCell("NullableDoubleValue", styleId);
-                cells[10] = new StyledCell("DecimalValue", styleId);
-                cells[11] = new StyledCell("NullableDecimalValue", styleId);
-                cells[12] = new StyledCell("DateTimeValue", styleId);
-                cells[13] = new StyledCell("NullableDateTimeValue", styleId);
-                cells[14] = new StyledCell("BoolValue", styleId);
-                cells[15] = new StyledCell("NullableBoolValue", styleId);
-                await spreadsheet.AddRowAsync(cells.AsMemory(0, 16), token).ConfigureAwait(false);
+                headerNames[0] = "StringValue";
+                headerNames[1] = "NullableStringValue";
+                headerNames[2] = "IntValue";
+                headerNames[3] = "NullableIntValue";
+                headerNames[4] = "LongValue";
+                headerNames[5] = "NullableLongValue";
+                headerNames[6] = "FloatValue";
+                headerNames[7] = "NullableFloatValue";
+                headerNames[8] = "DoubleValue";
+                headerNames[9] = "NullableDoubleValue";
+                headerNames[10] = "DecimalValue";
+                headerNames[11] = "NullableDecimalValue";
+                headerNames[12] = "DateTimeValue";
+                headerNames[13] = "NullableDateTimeValue";
+                headerNames[14] = "BoolValue";
+                headerNames[15] = "NullableBoolValue";
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 16), styleId, token).ConfigureAwait(false);
             }
             finally
             {
-                ArrayPool<StyledCell>.Shared.Return(cells, true);
+                ArrayPool<string?>.Shared.Return(headerNames, true);
             }
         }
 
