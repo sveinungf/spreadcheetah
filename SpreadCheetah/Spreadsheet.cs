@@ -9,6 +9,7 @@ using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
+using System.Buffers;
 using System.Diagnostics;
 using System.IO.Compression;
 
@@ -342,10 +343,58 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             : Worksheet.AddRowAsync(cells, options, token);
     }
 
-    public ValueTask AddHeaderRowAsync(IList<string> headerNames, StyleId? styleId = null, CancellationToken token = default)
+    public async ValueTask AddHeaderRowAsync(string?[] headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(headerNames);
-        return Worksheet.AddHeaderRowAsync(headerNames, styleId, token);
+        if (headerNames.Length == 0)
+            return;
+
+        var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Length);
+        try
+        {
+            ReadOnlySpan<string?> span = headerNames.AsSpan();
+            span.CopyToCells(cells, styleId);
+            await AddRowAsync(cells.AsMemory(0, headerNames.Length), token).ConfigureAwait(false);
+        }
+        finally
+        {
+            ArrayPool<StyledCell>.Shared.Return(cells);
+        }
+    }
+
+    public async ValueTask AddHeaderRowAsync(ReadOnlyMemory<string?> headerNames, StyleId? styleId = null, CancellationToken token = default)
+    {
+        if (headerNames.Length == 0)
+            return;
+
+        var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Length);
+        try
+        {
+            headerNames.Span.CopyToCells(cells, styleId);
+            await AddRowAsync(cells.AsMemory(0, headerNames.Length), token).ConfigureAwait(false);
+        }
+        finally
+        {
+            ArrayPool<StyledCell>.Shared.Return(cells);
+        }
+    }
+
+    public async ValueTask AddHeaderRowAsync(IList<string?> headerNames, StyleId? styleId = null, CancellationToken token = default)
+    {
+        ArgumentNullException.ThrowIfNull(headerNames);
+        if (headerNames.Count == 0)
+            return;
+
+        var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Count);
+        try
+        {
+            headerNames.CopyToCells(cells, styleId);
+            await AddRowAsync(cells.AsMemory(0, headerNames.Count), token).ConfigureAwait(false);
+        }
+        finally
+        {
+            ArrayPool<StyledCell>.Shared.Return(cells);
+        }
     }
 
     /// <summary>

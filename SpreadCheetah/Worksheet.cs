@@ -109,27 +109,6 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, RowOptions options, CancellationToken ct)
         => _styledCellWriter.AddRowAsync(cells, _state.NextRowIndex - 1, options, _stream, ct);
 
-    public async ValueTask AddHeaderRowAsync(IList<string> headerNames, StyleId? styleId = null, CancellationToken token = default)
-    {
-        if (headerNames.Count == 0)
-            return;
-
-        var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Count);
-        try
-        {
-            for (var i = 0; i < headerNames.Count; ++i)
-            {
-                cells[i] = new StyledCell(headerNames[i], styleId);
-            }
-
-            await AddRowAsync(cells.AsMemory(0, headerNames.Count), token).ConfigureAwait(false);
-        }
-        finally
-        {
-            ArrayPool<StyledCell>.Shared.Return(cells);
-        }
-    }
-
     public bool TryAddDataValidation(string reference, DataValidation validation)
     {
         _validations ??= [];
