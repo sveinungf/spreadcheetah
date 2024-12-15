@@ -5,30 +5,25 @@ namespace SpreadCheetah.Test.Helpers;
 
 internal static class SpreadsheetExtensions
 {
-    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, Cell cell, RowOptions? options = null) => spreadsheet.AddRowAsync(new[] { cell }, options);
+    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, Cell cell, RowOptions? options = null) => spreadsheet.AddRowAsync([cell], options);
 
-    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, DataCell cell, RowOptions? options = null) => spreadsheet.AddRowAsync(new[] { cell }, options);
+    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, DataCell cell, RowOptions? options = null) => spreadsheet.AddRowAsync([cell], options);
 
-    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, StyledCell cell, RowOptions? options = null) => spreadsheet.AddRowAsync(new[] { cell }, options);
+    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, StyledCell cell, RowOptions? options = null) => spreadsheet.AddRowAsync([cell], options);
 
     public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, Cell cell, RowCollectionType rowType, RowOptions? options = null)
     {
-        return spreadsheet.AddRowAsync(new[] { cell }, rowType, options);
+        return spreadsheet.AddRowAsync([cell], rowType, options);
     }
 
     public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, DataCell cell, RowCollectionType rowType, RowOptions? options = null)
     {
-        return spreadsheet.AddRowAsync(new[] { cell }, rowType, options);
-    }
-
-    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, StyledCell cell, RowCollectionType rowType, RowOptions? options = null)
-    {
-        return spreadsheet.AddRowAsync(new[] { cell }, rowType, options);
+        return spreadsheet.AddRowAsync([cell], rowType, options);
     }
 
     public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, object obj, RowCollectionType rowType, RowOptions? options = null)
     {
-        return spreadsheet.AddRowAsync(new[] { obj }, rowType, options);
+        return spreadsheet.AddRowAsync([obj], rowType, options);
     }
 
     public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, IList<object> obj, RowCollectionType rowType, RowOptions? options = null) => obj[0] switch
@@ -63,6 +58,15 @@ internal static class SpreadsheetExtensions
         RowCollectionType.ReadOnlyMemory => spreadsheet.AddRowAsync(cells.ToArray().AsMemory(), options),
         RowCollectionType.List => spreadsheet.AddRowAsync(cells.ToList(), options),
         RowCollectionType.ImmutableList => spreadsheet.AddRowAsync(cells.ToImmutableList(), options),
+        _ => throw new ArgumentOutOfRangeException(nameof(rowType), rowType, null)
+    };
+
+    public static ValueTask AddHeaderRowAsync(this Spreadsheet spreadsheet, IEnumerable<string?> headerNames, RowCollectionType rowType) => rowType switch
+    {
+        RowCollectionType.Array => spreadsheet.AddHeaderRowAsync(headerNames.ToArray()),
+        RowCollectionType.ReadOnlyMemory => spreadsheet.AddHeaderRowAsync(headerNames.ToArray().AsMemory()),
+        RowCollectionType.List => spreadsheet.AddHeaderRowAsync(headerNames.ToList()),
+        RowCollectionType.ImmutableList => spreadsheet.AddHeaderRowAsync(headerNames.ToImmutableList()),
         _ => throw new ArgumentOutOfRangeException(nameof(rowType), rowType, null)
     };
 }
