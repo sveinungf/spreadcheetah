@@ -35,15 +35,15 @@ namespace MyNamespace
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
-            var cells = ArrayPool<StyledCell>.Shared.Rent(1);
+            var headerNames = ArrayPool<string?>.Shared.Rent(1);
             try
             {
-                cells[0] = new StyledCell("Name", styleId);
-                await spreadsheet.AddRowAsync(cells.AsMemory(0, 1), token).ConfigureAwait(false);
+                headerNames[0] = "Name";
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 1), styleId, token).ConfigureAwait(false);
             }
             finally
             {
-                ArrayPool<StyledCell>.Shared.Return(cells, true);
+                ArrayPool<string?>.Shared.Return(headerNames, true);
             }
         }
 

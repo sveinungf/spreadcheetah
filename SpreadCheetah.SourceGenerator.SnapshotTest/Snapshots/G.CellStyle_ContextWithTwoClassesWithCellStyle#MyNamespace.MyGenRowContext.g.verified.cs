@@ -38,18 +38,18 @@ namespace MyNamespace
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
-            var cells = ArrayPool<StyledCell>.Shared.Rent(4);
+            var headerNames = ArrayPool<string?>.Shared.Rent(4);
             try
             {
-                cells[0] = new StyledCell("FirstName", styleId);
-                cells[1] = new StyledCell("LastName", styleId);
-                cells[2] = new StyledCell("YearOfBirth", styleId);
-                cells[3] = new StyledCell("Initials", styleId);
-                await spreadsheet.AddRowAsync(cells.AsMemory(0, 4), token).ConfigureAwait(false);
+                headerNames[0] = "FirstName";
+                headerNames[1] = "LastName";
+                headerNames[2] = "YearOfBirth";
+                headerNames[3] = "Initials";
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 4), styleId, token).ConfigureAwait(false);
             }
             finally
             {
-                ArrayPool<StyledCell>.Shared.Return(cells, true);
+                ArrayPool<string?>.Shared.Return(headerNames, true);
             }
         }
 
@@ -141,16 +141,16 @@ namespace MyNamespace
 
         private static async ValueTask AddHeaderRow1Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
-            var cells = ArrayPool<StyledCell>.Shared.Rent(2);
+            var headerNames = ArrayPool<string?>.Shared.Rent(2);
             try
             {
-                cells[0] = new StyledCell("Id", styleId);
-                cells[1] = new StyledCell("Price", styleId);
-                await spreadsheet.AddRowAsync(cells.AsMemory(0, 2), token).ConfigureAwait(false);
+                headerNames[0] = "Id";
+                headerNames[1] = "Price";
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 2), styleId, token).ConfigureAwait(false);
             }
             finally
             {
-                ArrayPool<StyledCell>.Shared.Return(cells, true);
+                ArrayPool<string?>.Shared.Return(headerNames, true);
             }
         }
 
