@@ -3,11 +3,9 @@ using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml;
-using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
-using System.Buffers;
 
 namespace SpreadCheetah;
 
@@ -159,13 +157,16 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         using var cellMergesPooledArray = _cellMerges?.ToPooledArray();
         using var validationsPooledArray = _validations?.ToPooledArray();
 
-        var hasNotes = Notes is not null;
-        var hasImages = Images is not null;
+        await WorksheetEndXml.WriteAsync(
+            cellMerges: cellMergesPooledArray?.Memory,
+            validations: validationsPooledArray?.Memory,
+            autoFilterRange: _autoFilterRange,
+            hasNotes: Notes is not null,
+            hasImages: Images is not null,
+            buffer: _buffer,
+            stream: _stream,
+            token: token).ConfigureAwait(false);
 
-        var writer = new WorksheetEndXml(cellMergesPooledArray?.Memory, validationsPooledArray?.Memory, _autoFilterRange, hasNotes, hasImages);
-#pragma warning disable EPS06 // Hidden struct copy operation
-        await writer.WriteAsync(_stream, _buffer, token).ConfigureAwait(false);
-#pragma warning restore EPS06 // Hidden struct copy operation
         await _stream.FlushAsync(token).ConfigureAwait(false);
     }
 
