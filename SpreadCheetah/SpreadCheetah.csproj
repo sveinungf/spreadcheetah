@@ -12,6 +12,7 @@
     <Version>1.19.0</Version>
     <Authors>sveinungf</Authors>
     <Description>SpreadCheetah is a high-performance .NET library for generating spreadsheet (Microsoft Excel XLSX) files.</Description>
+    <PackageIcon>icon-package.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/sveinungf/spreadcheetah</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -38,6 +39,10 @@
     <EnableStrictModeForCompatibleTfms>true</EnableStrictModeForCompatibleTfms>
     <EnableStrictModeForCompatibleFrameworksInPackage>true</EnableStrictModeForCompatibleFrameworksInPackage>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../assets/icon-package.png" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
