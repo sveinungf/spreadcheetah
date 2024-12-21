@@ -680,6 +680,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         await worksheet.FinishAsync(token).ConfigureAwait(false);
         await worksheet.DisposeAsync().ConfigureAwait(false);
 
+        // TODO: Write table XML
+
         if (worksheet.Notes is { } notes)
         {
             var sheetsWithNotes = _fileCounter?.WorksheetsWithNotes ?? 0;

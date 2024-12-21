@@ -27,6 +27,9 @@ internal struct ContentTypesXml : IXmlWriter
         """<Default Extension="xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" />"""u8 +
         """<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />"""u8;
 
+    // TODO: If there are tables, add for each table file:
+    // <Override PartName="/xl/tables/table1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml"/>
+
     private static ReadOnlySpan<byte> Jpeg => """<Default Extension="jpeg" ContentType="image/jpeg"/>"""u8;
     private static ReadOnlySpan<byte> Png => """<Default Extension="png" ContentType="image/png"/>"""u8;
     private static ReadOnlySpan<byte> Vml => "<Default Extension=\"vml\" ContentType=\"application/vnd.openxmlformats-officedocument.vmlDrawing\"/>"u8;

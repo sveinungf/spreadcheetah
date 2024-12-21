@@ -170,6 +170,9 @@ internal struct StylesXml
             Element.CellXfsEntries => TryWriteCellXfsEntries(),
             Element.CellXfsEnd => _buffer.TryWrite("</cellXfs>"u8),
             Element.CellStyles => _cellStylesXml.TryWrite(),
+
+            // TODO: Write "dxf" entries
+
             _ => _buffer.TryWrite(Footer),
         };
 

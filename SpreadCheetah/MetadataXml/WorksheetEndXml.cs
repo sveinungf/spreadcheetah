@@ -43,6 +43,9 @@ internal struct WorksheetEndXml : IXmlWriter
         if (_next == Element.ValidationsEnd && !Advance(TryWriteValidationsEnd(bytes, ref bytesWritten))) return false;
         if (_next == Element.Drawing && !Advance(TryWriteDrawing(bytes, ref bytesWritten))) return false;
         if (_next == Element.LegacyDrawing && !Advance(TryWriteLegacyDrawing(bytes, ref bytesWritten))) return false;
+
+        // TODO: Write "tableParts"
+
         if (_next == Element.Footer && !Advance("</worksheet>"u8.TryCopyTo(bytes, ref bytesWritten))) return false;
 
         return true;

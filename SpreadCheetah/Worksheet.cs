@@ -156,6 +156,8 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public async ValueTask FinishAsync(CancellationToken token)
     {
+        // TODO: Finish active tables
+
         using var cellMergesPooledArray = _cellMerges?.ToPooledArray();
         using var validationsPooledArray = _validations?.ToPooledArray();
 
