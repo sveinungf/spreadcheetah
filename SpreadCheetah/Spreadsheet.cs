@@ -7,6 +7,7 @@ using SpreadCheetah.MetadataXml.Styles;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
+using SpreadCheetah.Tables;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 using System.Buffers;
@@ -155,6 +156,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes);
         await _worksheet.WriteHeadAsync(options, token).ConfigureAwait(false);
         _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
+    }
+
+    public void StartTable(Table table, string firstColumnName = "A")
+    {
+        // TODO
+        throw new NotImplementedException();
     }
 
     /// <summary>
@@ -658,6 +665,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         if (firstImage)
             _fileCounter.WorksheetsWithImages++;
+    }
+
+    public ValueTask FinishTableAsync(Table table, CancellationToken token = default)
+    {
+        // TODO
+        throw new NotImplementedException();
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
