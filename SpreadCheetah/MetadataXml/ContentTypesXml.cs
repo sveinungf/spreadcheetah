@@ -87,8 +87,7 @@ internal struct ContentTypesXml
             Element.Drawings => TryWriteDrawings(),
             Element.Worksheets => TryWriteWorksheets(),
             Element.Comments => TryWriteComments(),
-            Element.Footer => _buffer.TryWrite(Footer),
-            _ => false
+            _ => _buffer.TryWrite(Footer)
         };
 
         if (Current)

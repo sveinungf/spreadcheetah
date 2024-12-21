@@ -53,8 +53,7 @@ internal struct DataValidationXml(
             Element.Value2Start => TryWriteValue2Start(),
             Element.Value2 => TryWriteValue(valid.Value2),
             Element.Value2End => TryWriteValue2End(),
-            Element.Footer => buffer.TryWrite("</dataValidation>"u8),
-            _ => false
+            _ => buffer.TryWrite("</dataValidation>"u8)
         };
 
         if (Current)
