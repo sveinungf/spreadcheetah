@@ -4,53 +4,67 @@ using SpreadCheetah.Validations;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct DataValidationXml(SingleCellOrCellRangeReference reference, DataValidation validation)
+internal struct DataValidationXml(
+    SingleCellOrCellRangeReference reference,
+    DataValidation validation,
+    SpreadsheetBuffer buffer)
 {
     private Element _next;
     private int _nextIndex;
 
-#pragma warning disable MA0051 // Method is too long
-    public bool TryWrite(Span<byte> bytes, ref int bytesWritten)
-#pragma warning restore MA0051 // Method is too long
+#pragma warning disable EPS12 // A struct member can be made readonly
+    public bool TryWrite()
+#pragma warning restore EPS12 // A struct member can be made readonly
     {
-        var valid = validation;
-
-        if (_next == Element.Header && !Advance(TryWriteHeader(bytes, ref bytesWritten))) return false;
-        if (_next == Element.InputTitleStart && !Advance(TryWriteInputTitleStart(bytes, ref bytesWritten))) return false;
-        if (_next == Element.InputTitle && !Advance(TryWriteAttributeValue(valid.InputTitle, bytes, ref bytesWritten))) return false;
-        if (_next == Element.InputTitleEnd && !Advance(TryWriteAttributeEnd(valid.InputTitle, bytes, ref bytesWritten))) return false;
-        if (_next == Element.InputMessageStart && !Advance(TryWriteInputMessageStart(bytes, ref bytesWritten))) return false;
-        if (_next == Element.InputMessage && !Advance(TryWriteAttributeValue(valid.InputMessage, bytes, ref bytesWritten))) return false;
-        if (_next == Element.InputMessageEnd && !Advance(TryWriteAttributeEnd(valid.InputMessage, bytes, ref bytesWritten))) return false;
-        if (_next == Element.ErrorTitleStart && !Advance(TryWriteErrorTitleStart(bytes, ref bytesWritten))) return false;
-        if (_next == Element.ErrorTitle && !Advance(TryWriteAttributeValue(valid.ErrorTitle, bytes, ref bytesWritten))) return false;
-        if (_next == Element.ErrorTitleEnd && !Advance(TryWriteAttributeEnd(valid.ErrorTitle, bytes, ref bytesWritten))) return false;
-        if (_next == Element.ErrorMessageStart && !Advance(TryWriteErrorMessageStart(bytes, ref bytesWritten))) return false;
-        if (_next == Element.ErrorMessage && !Advance(TryWriteAttributeValue(valid.ErrorMessage, bytes, ref bytesWritten))) return false;
-        if (_next == Element.ErrorMessageEnd && !Advance(TryWriteAttributeEnd(valid.ErrorMessage, bytes, ref bytesWritten))) return false;
-        if (_next == Element.Reference && !Advance(TryWriteReference(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Value1Start && !Advance(TryWriteValue1Start(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Value1 && !Advance(TryWriteValue(valid.Value1, bytes, ref bytesWritten))) return false;
-        if (_next == Element.Value1End && !Advance(TryWriteValue1End(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Value2Start && !Advance(TryWriteValue2Start(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Value2 && !Advance(TryWriteValue(valid.Value2, bytes, ref bytesWritten))) return false;
-        if (_next == Element.Value2End && !Advance(TryWriteValue2End(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Footer && !Advance("</dataValidation>"u8.TryCopyTo(bytes, ref bytesWritten))) return false;
+        while (MoveNext())
+        {
+            if (!Current)
+                return false;
+        }
 
         return true;
     }
 
-    private bool Advance(bool success)
+    public bool Current { get; private set; }
+
+    public bool MoveNext()
     {
-        if (success)
+        var valid = validation;
+
+        Current = _next switch
+        {
+            Element.Header => TryWriteHeader(),
+            Element.InputTitleStart => TryWriteInputTitleStart(),
+            Element.InputTitle => TryWriteAttributeValue(valid.InputTitle),
+            Element.InputTitleEnd => TryWriteAttributeEnd(valid.InputTitle),
+            Element.InputMessageStart => TryWriteInputMessageStart(),
+            Element.InputMessage => TryWriteAttributeValue(valid.InputMessage),
+            Element.InputMessageEnd => TryWriteAttributeEnd(valid.InputMessage),
+            Element.ErrorTitleStart => TryWriteErrorTitleStart(),
+            Element.ErrorTitle => TryWriteAttributeValue(valid.ErrorTitle),
+            Element.ErrorTitleEnd => TryWriteAttributeEnd(valid.ErrorTitle),
+            Element.ErrorMessageStart => TryWriteErrorMessageStart(),
+            Element.ErrorMessage => TryWriteAttributeValue(valid.ErrorMessage),
+            Element.ErrorMessageEnd => TryWriteAttributeEnd(valid.ErrorMessage),
+            Element.Reference => TryWriteReference(),
+            Element.Value1Start => TryWriteValue1Start(),
+            Element.Value1 => TryWriteValue(valid.Value1),
+            Element.Value1End => TryWriteValue1End(),
+            Element.Value2Start => TryWriteValue2Start(),
+            Element.Value2 => TryWriteValue(valid.Value2),
+            Element.Value2End => TryWriteValue2End(),
+            _ => buffer.TryWrite("</dataValidation>"u8)
+        };
+
+        if (Current)
             ++_next;
 
-        return success;
+        return _next < Element.Done;
     }
 
-    private readonly bool TryWriteHeader(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteHeader()
     {
-        var span = bytes.Slice(bytesWritten);
+        var span = buffer.GetSpan();
         var written = 0;
         var valid = validation;
 
@@ -64,7 +78,7 @@ internal struct DataValidationXml(SingleCellOrCellRangeReference reference, Data
         if (valid.ShowInputMessage && !"showInputMessage=\"1\" "u8.TryCopyTo(span, ref written)) return false;
         if (valid.ShowErrorAlert && !"showErrorMessage=\"1\" "u8.TryCopyTo(span, ref written)) return false;
 
-        bytesWritten += written;
+        buffer.Advance(written);
         return true;
     }
 
@@ -96,64 +110,69 @@ internal struct DataValidationXml(SingleCellOrCellRangeReference reference, Data
         _ => true
     };
 
-    private readonly bool TryWriteInputTitleStart(Span<byte> bytes, ref int bytesWritten)
-        => string.IsNullOrEmpty(validation.InputTitle) || "promptTitle=\""u8.TryCopyTo(bytes, ref bytesWritten);
+    private readonly bool TryWriteInputTitleStart()
+        => string.IsNullOrEmpty(validation.InputTitle) || buffer.TryWrite("promptTitle=\""u8);
 
-    private readonly bool TryWriteInputMessageStart(Span<byte> bytes, ref int bytesWritten)
-        => string.IsNullOrEmpty(validation.InputMessage) || "prompt=\""u8.TryCopyTo(bytes, ref bytesWritten);
+    private readonly bool TryWriteInputMessageStart()
+        => string.IsNullOrEmpty(validation.InputMessage) || buffer.TryWrite("prompt=\""u8);
 
-    private readonly bool TryWriteErrorTitleStart(Span<byte> bytes, ref int bytesWritten)
-        => string.IsNullOrEmpty(validation.ErrorTitle) || "errorTitle=\""u8.TryCopyTo(bytes, ref bytesWritten);
+    private readonly bool TryWriteErrorTitleStart()
+        => string.IsNullOrEmpty(validation.ErrorTitle) || buffer.TryWrite("errorTitle=\""u8);
 
-    private readonly bool TryWriteErrorMessageStart(Span<byte> bytes, ref int bytesWritten)
-        => string.IsNullOrEmpty(validation.ErrorMessage) || "error=\""u8.TryCopyTo(bytes, ref bytesWritten);
+    private readonly bool TryWriteErrorMessageStart()
+        => string.IsNullOrEmpty(validation.ErrorMessage) || buffer.TryWrite("error=\""u8);
 
-    private bool TryWriteAttributeValue(string? value, Span<byte> bytes, ref int bytesWritten)
+#pragma warning disable EPS12 // A struct member can be made readonly
+    private bool TryWriteAttributeValue(string? value)
+#pragma warning restore EPS12 // A struct member can be made readonly
     {
         if (string.IsNullOrEmpty(value)) return true;
-
         var encodedValue = XmlUtility.XmlEncode(value);
-        if (!SpanHelper.TryWriteLongString(encodedValue, ref _nextIndex, bytes, ref bytesWritten)) return false;
-
-        _nextIndex = 0;
-        return true;
+        return TryWriteValue(encodedValue);
     }
 
-    private static bool TryWriteAttributeEnd(string? value, Span<byte> bytes, ref int bytesWritten)
-        => string.IsNullOrEmpty(value) || "\" "u8.TryCopyTo(bytes, ref bytesWritten);
+    private readonly bool TryWriteAttributeEnd(string? value)
+        => string.IsNullOrEmpty(value) || buffer.TryWrite("\" "u8);
 
-    private readonly bool TryWriteReference(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteReference()
     {
-        var span = bytes.Slice(bytesWritten);
+        var span = buffer.GetSpan();
         var written = 0;
 
         if (!"sqref=\""u8.TryCopyTo(span, ref written)) return false;
         if (!SpanHelper.TryWrite(reference.Reference, span, ref written)) return false;
         if (!"\" "u8.TryCopyTo(span, ref written)) return false;
 
-        bytesWritten += written;
+        buffer.Advance(written);
         return true;
     }
 
-    private readonly bool TryWriteValue1Start(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteValue1Start()
         => validation.Value1 is null
-            ? "/>"u8.TryCopyTo(bytes, ref bytesWritten)
-            : "><formula1>"u8.TryCopyTo(bytes, ref bytesWritten);
+            ? buffer.TryWrite("/>"u8)
+            : buffer.TryWrite("><formula1>"u8);
 
-    private readonly bool TryWriteValue1End(Span<byte> bytes, ref int bytesWritten)
-        => validation.Value1 is null || "</formula1>"u8.TryCopyTo(bytes, ref bytesWritten);
+    private readonly bool TryWriteValue1End()
+        => validation.Value1 is null || buffer.TryWrite("</formula1>"u8);
 
-    private readonly bool TryWriteValue2Start(Span<byte> bytes, ref int bytesWritten)
-        => validation.Value2 is null || "<formula2>"u8.TryCopyTo(bytes, ref bytesWritten);
+    private readonly bool TryWriteValue2Start()
+        => validation.Value2 is null || buffer.TryWrite("<formula2>"u8);
 
-    private readonly bool TryWriteValue2End(Span<byte> bytes, ref int bytesWritten)
-        => validation.Value2 is null || "</formula2>"u8.TryCopyTo(bytes, ref bytesWritten);
+    private readonly bool TryWriteValue2End()
+        => validation.Value2 is null || buffer.TryWrite("</formula2>"u8);
 
-    private bool TryWriteValue(string? value, Span<byte> bytes, ref int bytesWritten)
+    private bool TryWriteValue(string? value)
     {
         if (value is null) return true;
-        if (!SpanHelper.TryWriteLongString(value, ref _nextIndex, bytes, ref bytesWritten)) return false;
+        var bytes = buffer.GetSpan();
+        var bytesWritten = 0;
+        if (!SpanHelper.TryWriteLongString(value, ref _nextIndex, bytes, ref bytesWritten))
+        {
+            buffer.Advance(bytesWritten);
+            return false;
+        }
 
+        buffer.Advance(bytesWritten);
         _nextIndex = 0;
         return true;
     }

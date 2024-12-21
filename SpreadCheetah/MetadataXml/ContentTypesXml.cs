@@ -5,9 +5,9 @@ using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct ContentTypesXml : IXmlWriter
+internal struct ContentTypesXml
 {
-    public static ValueTask WriteAsync(
+    public static async ValueTask WriteAsync(
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
@@ -17,8 +17,23 @@ internal struct ContentTypesXml : IXmlWriter
         CancellationToken token)
     {
         var entry = archive.CreateEntry("[Content_Types].xml", compressionLevel);
-        var writer = new ContentTypesXml(worksheets, fileCounter, hasStylesXml);
-        return writer.WriteAsync(entry, buffer, token);
+        var stream = entry.Open();
+#if NETSTANDARD2_0
+        using (stream)
+#else
+        await using (stream.ConfigureAwait(false))
+#endif
+        {
+            var writer = new ContentTypesXml(worksheets, fileCounter, hasStylesXml, buffer);
+
+            foreach (var success in writer)
+            {
+                if (!success)
+                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            }
+
+            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        }
     }
 
     private static ReadOnlySpan<byte> Header =>
@@ -41,45 +56,53 @@ internal struct ContentTypesXml : IXmlWriter
 
     private readonly List<WorksheetMetadata> _worksheets;
     private readonly FileCounter? _fileCounter;
+    private readonly SpreadsheetBuffer _buffer;
     private readonly bool _hasStylesXml;
     private Element _next;
     private int _nextIndex;
 
-    private ContentTypesXml(List<WorksheetMetadata> worksheets, FileCounter? fileCounter, bool hasStylesXml)
+    private ContentTypesXml(
+        List<WorksheetMetadata> worksheets,
+        FileCounter? fileCounter,
+        bool hasStylesXml,
+        SpreadsheetBuffer buffer)
     {
         _worksheets = worksheets;
         _fileCounter = fileCounter;
         _hasStylesXml = hasStylesXml;
+        _buffer = buffer;
     }
 
-    public bool TryWrite(Span<byte> bytes, out int bytesWritten)
+    public readonly ContentTypesXml GetEnumerator() => this;
+    public bool Current { get; private set; }
+
+    public bool MoveNext()
     {
-        bytesWritten = 0;
+        Current = _next switch
+        {
+            Element.Header => _buffer.TryWrite(Header),
+            Element.ImageTypes => TryWriteImageTypes(),
+            Element.Vml => TryWriteVml(),
+            Element.Styles => TryWriteStyles(),
+            Element.Drawings => TryWriteDrawings(),
+            Element.Worksheets => TryWriteWorksheets(),
+            Element.Comments => TryWriteComments(),
+            _ => _buffer.TryWrite(Footer)
+        };
 
-        if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
-        if (_next == Element.ImageTypes && !Advance(TryWriteImageTypes(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Vml && !Advance(TryWriteVml(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Styles && !Advance(TryWriteStyles(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Drawings && !Advance(TryWriteDrawings(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Worksheets && !Advance(TryWriteWorksheets(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Comments && !Advance(TryWriteComments(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
-
-        return true;
-    }
-
-    private bool Advance(bool success)
-    {
-        if (success)
+        if (Current)
             ++_next;
 
-        return success;
+        return _next < Element.Done;
     }
 
-    private readonly bool TryWriteImageTypes(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteImageTypes()
     {
         if (_fileCounter is not { } counter)
             return true;
+
+        var bytes = _buffer.GetSpan();
+        var bytesWritten = 0;
 
         if (counter.EmbeddedImageTypes.HasFlag(EmbeddedImageTypes.Png) && !Png.TryCopyTo(bytes, ref bytesWritten))
             return false;
@@ -87,75 +110,76 @@ internal struct ContentTypesXml : IXmlWriter
         if (counter.EmbeddedImageTypes.HasFlag(EmbeddedImageTypes.Jpeg) && !Jpeg.TryCopyTo(bytes, ref bytesWritten))
             return false;
 
+        _buffer.Advance(bytesWritten);
         return true;
     }
 
-    private readonly bool TryWriteStyles(Span<byte> bytes, ref int bytesWritten)
-        => !_hasStylesXml || Styles.TryCopyTo(bytes, ref bytesWritten);
+    private readonly bool TryWriteStyles()
+        => !_hasStylesXml || _buffer.TryWrite(Styles);
 
-    private bool TryWriteDrawings(Span<byte> bytes, ref int bytesWritten)
+    private bool TryWriteDrawings()
     {
         if (_fileCounter is not { } counter)
             return true;
 
         for (; _nextIndex < counter.WorksheetsWithImages; ++_nextIndex)
         {
-            var span = bytes.Slice(bytesWritten);
+            var span = _buffer.GetSpan();
             var written = 0;
 
             if (!DrawingStart.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(_nextIndex + 1, span, ref written)) return false;
             if (!DrawingEnd.TryCopyTo(span, ref written)) return false;
 
-            bytesWritten += written;
+            _buffer.Advance(written);
         }
 
         _nextIndex = 0;
         return true;
     }
 
-    private readonly bool TryWriteVml(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteVml()
     {
         var hasNotes = _fileCounter is { WorksheetsWithNotes: > 0 };
-        return !hasNotes || Vml.TryCopyTo(bytes, ref bytesWritten);
+        return !hasNotes || _buffer.TryWrite(Vml);
     }
 
-    private bool TryWriteWorksheets(Span<byte> bytes, ref int bytesWritten)
+    private bool TryWriteWorksheets()
     {
         var worksheets = _worksheets;
 
         for (; _nextIndex < worksheets.Count; ++_nextIndex)
         {
             var worksheet = worksheets[_nextIndex];
-            var span = bytes.Slice(bytesWritten);
+            var span = _buffer.GetSpan();
             var written = 0;
 
             if (!SheetStart.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(worksheet.Path, span, ref written)) return false;
             if (!SheetEnd.TryCopyTo(span, ref written)) return false;
 
-            bytesWritten += written;
+            _buffer.Advance(written);
         }
 
         _nextIndex = 0;
         return true;
     }
 
-    private bool TryWriteComments(Span<byte> bytes, ref int bytesWritten)
+    private bool TryWriteComments()
     {
         if (_fileCounter is not { } counter)
             return true;
 
         for (; _nextIndex < counter.WorksheetsWithNotes; ++_nextIndex)
         {
-            var span = bytes.Slice(bytesWritten);
+            var span = _buffer.GetSpan();
             var written = 0;
 
             if (!CommentStart.TryCopyTo(span, ref written)) return false;
             if (!SpanHelper.TryWrite(_nextIndex + 1, span, ref written)) return false;
             if (!CommentEnd.TryCopyTo(span, ref written)) return false;
 
-            bytesWritten += written;
+            _buffer.Advance(written);
         }
 
         _nextIndex = 0;
