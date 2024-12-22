@@ -4,9 +4,9 @@ using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct DrawingRelsXml : IXmlWriter
+internal struct DrawingRelsXml
 {
-    public static ValueTask WriteAsync(
+    public static async ValueTask WriteAsync(
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
@@ -16,8 +16,23 @@ internal struct DrawingRelsXml : IXmlWriter
     {
         var entryName = StringHelper.Invariant($"xl/drawings/_rels/drawing{drawingsFileIndex}.xml.rels");
         var entry = archive.CreateEntry(entryName, compressionLevel);
-        var writer = new DrawingRelsXml(images);
-        return writer.WriteAsync(entry, buffer, token);
+        var stream = entry.Open();
+#if NETSTANDARD2_0
+        using (stream)
+#else
+        await using (stream.ConfigureAwait(false))
+#endif
+        {
+            var writer = new DrawingRelsXml(images, buffer);
+
+            foreach (var success in writer)
+            {
+                if (!success)
+                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            }
+
+            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        }
     }
 
     private static ReadOnlySpan<byte> Header => """<?xml version="1.0" encoding="utf-8"?>"""u8 +
@@ -27,34 +42,35 @@ internal struct DrawingRelsXml : IXmlWriter
     private static ReadOnlySpan<byte> Footer => """</Relationships>"""u8;
 
     private readonly List<WorksheetImage> _images;
+    private readonly SpreadsheetBuffer _buffer;
     private Element _next;
     private int _nextImageIndex;
 
-    private DrawingRelsXml(List<WorksheetImage> images)
+    private DrawingRelsXml(List<WorksheetImage> images, SpreadsheetBuffer buffer)
     {
         _images = images;
+        _buffer = buffer;
     }
 
-    public bool TryWrite(Span<byte> bytes, out int bytesWritten)
+    public readonly DrawingRelsXml GetEnumerator() => this;
+    public bool Current { get; private set; }
+
+    public bool MoveNext()
     {
-        bytesWritten = 0;
+        Current = _next switch
+        {
+            Element.Header => _buffer.TryWrite(Header),
+            Element.Images => TryWriteImages(),
+            _ => _buffer.TryWrite(Footer)
+        };
 
-        if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Images && !Advance(TryWriteImages(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
-
-        return true;
-    }
-
-    private bool Advance(bool success)
-    {
-        if (success)
+        if (Current)
             ++_next;
 
-        return success;
+        return _next < Element.Done;
     }
 
-    private bool TryWriteImages(Span<byte> bytes, ref int bytesWritten)
+    private bool TryWriteImages()
     {
         var images = _images;
 
@@ -62,7 +78,7 @@ internal struct DrawingRelsXml : IXmlWriter
         {
             var index = _nextImageIndex;
             var imageId = images[index].EmbeddedImage.Id;
-            var span = bytes.Slice(bytesWritten);
+            var span = _buffer.GetSpan();
             var written = 0;
 
             if (!ImageStart.TryCopyTo(span, ref written)) return false;
@@ -71,7 +87,7 @@ internal struct DrawingRelsXml : IXmlWriter
             if (!SpanHelper.TryWrite(index + 1, span, ref written)) return false;
             if (!"\"/>"u8.TryCopyTo(span, ref written)) return false;
 
-            bytesWritten += written;
+            _buffer.Advance(written);
         }
 
         return true;
