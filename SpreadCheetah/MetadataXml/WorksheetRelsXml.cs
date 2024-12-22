@@ -78,49 +78,22 @@ internal struct WorksheetRelsXml
     private readonly bool TryWriteVmlDrawing()
     {
         var notesFilesIndex = _fileCounter.WorksheetsWithNotes;
-        if (notesFilesIndex <= 0) return true;
-
-        var span = _buffer.GetSpan();
-        var written = 0;
-
-        if (!VmlDrawingStart.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(notesFilesIndex, span, ref written)) return false;
-        if (!""".vml"/>"""u8.TryCopyTo(span, ref written)) return false;
-
-        _buffer.Advance(written);
-        return true;
+        return notesFilesIndex == 0 ||
+            _buffer.TryWrite($"{VmlDrawingStart}{notesFilesIndex}{""".vml"/>"""u8}");
     }
 
     private readonly bool TryWriteComments()
     {
         var notesFilesIndex = _fileCounter.WorksheetsWithNotes;
-        if (notesFilesIndex <= 0) return true;
-
-        var span = _buffer.GetSpan();
-        var written = 0;
-
-        if (!CommentStart.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(notesFilesIndex, span, ref written)) return false;
-        if (!""".xml"/>"""u8.TryCopyTo(span, ref written)) return false;
-
-        _buffer.Advance(written);
-        return true;
+        return notesFilesIndex == 0 ||
+            _buffer.TryWrite($"{CommentStart}{notesFilesIndex}{""".xml"/>"""u8}");
     }
 
     private readonly bool TryWriteDrawing()
     {
         var drawingsFileIndex = _fileCounter.WorksheetsWithImages;
-        if (drawingsFileIndex <= 0) return true;
-
-        var span = _buffer.GetSpan();
-        var written = 0;
-
-        if (!DrawingStart.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(drawingsFileIndex, span, ref written)) return false;
-        if (!""".xml"/>"""u8.TryCopyTo(span, ref written)) return false;
-
-        _buffer.Advance(written);
-        return true;
+        return drawingsFileIndex == 0 ||
+            _buffer.TryWrite($"{DrawingStart}{drawingsFileIndex}{""".xml"/>"""u8}");
     }
 
     private enum Element
