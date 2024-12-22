@@ -42,15 +42,14 @@ internal struct ContentTypesXml
         """<Default Extension="xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" />"""u8 +
         """<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />"""u8;
 
-    // TODO: If there are tables, add for each table file:
-    // <Override PartName="/xl/tables/table1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml"/>
-
     private static ReadOnlySpan<byte> Jpeg => """<Default Extension="jpeg" ContentType="image/jpeg"/>"""u8;
     private static ReadOnlySpan<byte> Png => """<Default Extension="png" ContentType="image/png"/>"""u8;
     private static ReadOnlySpan<byte> Vml => "<Default Extension=\"vml\" ContentType=\"application/vnd.openxmlformats-officedocument.vmlDrawing\"/>"u8;
     private static ReadOnlySpan<byte> Styles => """<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml" />"""u8;
     private static ReadOnlySpan<byte> DrawingStart => """<Override PartName="/xl/drawings/drawing"""u8;
     private static ReadOnlySpan<byte> DrawingEnd => """.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>"""u8;
+    private static ReadOnlySpan<byte> TableStart => """<Override PartName="/xl/tables/table"""u8;
+    private static ReadOnlySpan<byte> TableEnd => """.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml"/>"""u8;
     private static ReadOnlySpan<byte> SheetStart => """<Override PartName="/"""u8;
     private static ReadOnlySpan<byte> SheetEnd => "\" "u8 + """ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" />"""u8;
     private static ReadOnlySpan<byte> CommentStart => """<Override PartName="/xl/comments"""u8;
@@ -88,6 +87,7 @@ internal struct ContentTypesXml
             Element.Vml => TryWriteVml(),
             Element.Styles => TryWriteStyles(),
             Element.Drawings => TryWriteDrawings(),
+            Element.Tables => TryWriteTables(),
             Element.Worksheets => TryWriteWorksheets(),
             Element.Comments => TryWriteComments(),
             _ => _buffer.TryWrite(Footer)
@@ -135,6 +135,21 @@ internal struct ContentTypesXml
             if (!DrawingEnd.TryCopyTo(span, ref written)) return false;
 
             _buffer.Advance(written);
+        }
+
+        _nextIndex = 0;
+        return true;
+    }
+
+    private bool TryWriteTables()
+    {
+        if (_fileCounter is not { } counter || counter.TotalTables == 0)
+            return true;
+
+        for (; _nextIndex < counter.TotalTables; ++_nextIndex)
+        {
+            if (!_buffer.TryWrite($"{TableStart}{_nextIndex + 1}{TableEnd}"))
+                return false;
         }
 
         _nextIndex = 0;
@@ -196,6 +211,7 @@ internal struct ContentTypesXml
         Vml,
         Styles,
         Drawings,
+        Tables,
         Worksheets,
         Comments,
         Footer,

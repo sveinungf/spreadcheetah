@@ -8,6 +8,7 @@ internal sealed class FileCounter
 {
     public int WorksheetsWithImages { get; set; }
     public int WorksheetsWithNotes { get; set; }
+    public int TotalTables { get; set; } // TODO: Increment when adding a table
     public int TotalEmbeddedImages { get; private set; }
     public int TotalAddedImages { get; set; }
     public EmbeddedImageTypes EmbeddedImageTypes { get; private set; }
