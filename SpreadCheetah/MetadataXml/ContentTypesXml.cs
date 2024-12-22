@@ -124,14 +124,9 @@ internal struct ContentTypesXml
 
         for (; _nextIndex < counter.WorksheetsWithImages; ++_nextIndex)
         {
-            var span = _buffer.GetSpan();
-            var written = 0;
-
-            if (!DrawingStart.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(_nextIndex + 1, span, ref written)) return false;
-            if (!DrawingEnd.TryCopyTo(span, ref written)) return false;
-
-            _buffer.Advance(written);
+            var success = _buffer.TryWrite($"{DrawingStart}{_nextIndex + 1}{DrawingEnd}");
+            if (!success)
+                return false;
         }
 
         _nextIndex = 0;
@@ -151,14 +146,9 @@ internal struct ContentTypesXml
         for (; _nextIndex < worksheets.Count; ++_nextIndex)
         {
             var worksheet = worksheets[_nextIndex];
-            var span = _buffer.GetSpan();
-            var written = 0;
-
-            if (!SheetStart.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(worksheet.Path, span, ref written)) return false;
-            if (!SheetEnd.TryCopyTo(span, ref written)) return false;
-
-            _buffer.Advance(written);
+            var success = _buffer.TryWrite($"{SheetStart}{worksheet.Path}{SheetEnd}");
+            if (!success)
+                return false;
         }
 
         _nextIndex = 0;
@@ -172,14 +162,9 @@ internal struct ContentTypesXml
 
         for (; _nextIndex < counter.WorksheetsWithNotes; ++_nextIndex)
         {
-            var span = _buffer.GetSpan();
-            var written = 0;
-
-            if (!CommentStart.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(_nextIndex + 1, span, ref written)) return false;
-            if (!CommentEnd.TryCopyTo(span, ref written)) return false;
-
-            _buffer.Advance(written);
+            var success = _buffer.TryWrite($"{CommentStart}{_nextIndex + 1}{CommentEnd}");
+            if (!success)
+                return false;
         }
 
         _nextIndex = 0;
