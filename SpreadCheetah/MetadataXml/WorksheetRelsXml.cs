@@ -5,9 +5,9 @@ using System.Runtime.InteropServices;
 namespace SpreadCheetah.MetadataXml;
 
 [StructLayout(LayoutKind.Auto)]
-internal struct WorksheetRelsXml : IXmlWriter
+internal struct WorksheetRelsXml
 {
-    public static ValueTask WriteAsync(
+    public static async ValueTask WriteAsync(
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
@@ -17,8 +17,23 @@ internal struct WorksheetRelsXml : IXmlWriter
     {
         var entryName = StringHelper.Invariant($"xl/worksheets/_rels/sheet{worksheetIndex}.xml.rels");
         var entry = archive.CreateEntry(entryName, compressionLevel);
-        var writer = new WorksheetRelsXml(fileCounter);
-        return writer.WriteAsync(entry, buffer, token);
+        var stream = entry.Open();
+#if NETSTANDARD2_0
+        using (stream)
+#else
+        await using (stream.ConfigureAwait(false))
+#endif
+        {
+            var writer = new WorksheetRelsXml(fileCounter, buffer);
+
+            foreach (var success in writer)
+            {
+                if (!success)
+                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            }
+
+            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        }
     }
 
     private static ReadOnlySpan<byte> Header =>
@@ -31,79 +46,80 @@ internal struct WorksheetRelsXml : IXmlWriter
     private static ReadOnlySpan<byte> Footer => "</Relationships>"u8;
 
     private readonly FileCounter _fileCounter;
+    private readonly SpreadsheetBuffer _buffer;
     private Element _next;
 
-    private WorksheetRelsXml(FileCounter fileCounter)
+    private WorksheetRelsXml(FileCounter fileCounter, SpreadsheetBuffer buffer)
     {
         _fileCounter = fileCounter;
+        _buffer = buffer;
     }
 
-    public bool TryWrite(Span<byte> bytes, out int bytesWritten)
+    public readonly WorksheetRelsXml GetEnumerator() => this;
+    public bool Current { get; private set; }
+
+    public bool MoveNext()
     {
-        bytesWritten = 0;
+        Current = _next switch
+        {
+            Element.Header => _buffer.TryWrite(Header),
+            Element.VmlDrawing => TryWriteVmlDrawing(),
+            Element.Comments => TryWriteComments(),
+            Element.Drawing => TryWriteDrawing(),
+            _ => _buffer.TryWrite(Footer)
+        };
 
-        if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
-        if (_next == Element.VmlDrawing && !Advance(TryWriteVmlDrawing(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Comments && !Advance(TryWriteComments(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Drawing && !Advance(TryWriteDrawing(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
-
-        return true;
-    }
-
-    private bool Advance(bool success)
-    {
-        if (success)
+        if (Current)
             ++_next;
 
-        return success;
+        return _next < Element.Done;
     }
 
-    private readonly bool TryWriteVmlDrawing(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteVmlDrawing()
     {
         var notesFilesIndex = _fileCounter.WorksheetsWithNotes;
         if (notesFilesIndex <= 0) return true;
 
-        var span = bytes.Slice(bytesWritten);
+        var span = _buffer.GetSpan();
         var written = 0;
 
         if (!VmlDrawingStart.TryCopyTo(span, ref written)) return false;
         if (!SpanHelper.TryWrite(notesFilesIndex, span, ref written)) return false;
         if (!""".vml"/>"""u8.TryCopyTo(span, ref written)) return false;
 
-        bytesWritten += written;
+        _buffer.Advance(written);
         return true;
     }
 
-    private readonly bool TryWriteComments(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteComments()
     {
         var notesFilesIndex = _fileCounter.WorksheetsWithNotes;
         if (notesFilesIndex <= 0) return true;
 
-        var span = bytes.Slice(bytesWritten);
+        var span = _buffer.GetSpan();
         var written = 0;
 
         if (!CommentStart.TryCopyTo(span, ref written)) return false;
         if (!SpanHelper.TryWrite(notesFilesIndex, span, ref written)) return false;
         if (!""".xml"/>"""u8.TryCopyTo(span, ref written)) return false;
 
-        bytesWritten += written;
+        _buffer.Advance(written);
         return true;
     }
 
-    private readonly bool TryWriteDrawing(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteDrawing()
     {
         var drawingsFileIndex = _fileCounter.WorksheetsWithImages;
         if (drawingsFileIndex <= 0) return true;
 
-        var span = bytes.Slice(bytesWritten);
+        var span = _buffer.GetSpan();
         var written = 0;
 
         if (!DrawingStart.TryCopyTo(span, ref written)) return false;
         if (!SpanHelper.TryWrite(drawingsFileIndex, span, ref written)) return false;
         if (!""".xml"/>"""u8.TryCopyTo(span, ref written)) return false;
 
-        bytesWritten += written;
+        _buffer.Advance(written);
         return true;
     }
 
