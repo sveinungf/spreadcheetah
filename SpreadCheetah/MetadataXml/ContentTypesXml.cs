@@ -127,14 +127,8 @@ internal struct ContentTypesXml
 
         for (; _nextIndex < counter.WorksheetsWithImages; ++_nextIndex)
         {
-            var span = _buffer.GetSpan();
-            var written = 0;
-
-            if (!DrawingStart.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(_nextIndex + 1, span, ref written)) return false;
-            if (!DrawingEnd.TryCopyTo(span, ref written)) return false;
-
-            _buffer.Advance(written);
+            if (!_buffer.TryWrite($"{DrawingStart}{_nextIndex + 1}{DrawingEnd}"))
+                return false;
         }
 
         _nextIndex = 0;
@@ -143,7 +137,7 @@ internal struct ContentTypesXml
 
     private bool TryWriteTables()
     {
-        if (_fileCounter is not { } counter || counter.TotalTables == 0)
+        if (_fileCounter is not { } counter)
             return true;
 
         for (; _nextIndex < counter.TotalTables; ++_nextIndex)
@@ -169,14 +163,8 @@ internal struct ContentTypesXml
         for (; _nextIndex < worksheets.Count; ++_nextIndex)
         {
             var worksheet = worksheets[_nextIndex];
-            var span = _buffer.GetSpan();
-            var written = 0;
-
-            if (!SheetStart.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(worksheet.Path, span, ref written)) return false;
-            if (!SheetEnd.TryCopyTo(span, ref written)) return false;
-
-            _buffer.Advance(written);
+            if (!_buffer.TryWrite($"{SheetStart}{worksheet.Path}{SheetEnd}"))
+                return false;
         }
 
         _nextIndex = 0;
@@ -190,14 +178,8 @@ internal struct ContentTypesXml
 
         for (; _nextIndex < counter.WorksheetsWithNotes; ++_nextIndex)
         {
-            var span = _buffer.GetSpan();
-            var written = 0;
-
-            if (!CommentStart.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(_nextIndex + 1, span, ref written)) return false;
-            if (!CommentEnd.TryCopyTo(span, ref written)) return false;
-
-            _buffer.Advance(written);
+            if (!_buffer.TryWrite($"{CommentStart}{_nextIndex + 1}{CommentEnd}"))
+                return false;
         }
 
         _nextIndex = 0;
