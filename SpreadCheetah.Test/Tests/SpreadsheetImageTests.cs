@@ -5,6 +5,7 @@ using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using SpreadCheetah.Images;
 using SpreadCheetah.Test.Helpers;
 using System.IO.Compression;
+using System.Security.Cryptography.Xml;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -416,6 +417,36 @@ public class SpreadsheetImageTests
 
         var imageNames = worksheet1Pictures.Concat(worksheet2Pictures).Select(x => x.Name).ToHashSet(StringComparer.Ordinal);
         Assert.Equal(worksheet1References.Length + worksheet2References.Length, imageNames.Count);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddImage_SamePngUsedInManyWorksheets()
+    {
+        // Arrange
+        const int worksheetCount = 100;
+        const string reference = "A1";
+        using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
+        using var outputStream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, options);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+
+        // Act
+        for (var i = 0; i < worksheetCount; i++)
+        {
+            await spreadsheet.StartWorksheetAsync($"Sheet {i}");
+            var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
+            spreadsheet.AddImage(canvas, embeddedImage);
+        }
+
+        // Assert
+        await spreadsheet.FinishAsync();
+        SpreadsheetAssert.Valid(outputStream);
+
+        using var workbook = new XLWorkbook(outputStream);
+        var actualWorksheets = workbook.Worksheets.ToList();
+        Assert.All(actualWorksheets, x => Assert.Single(x.Pictures));
+        Assert.All(actualWorksheets, x => Assert.Equal(reference, x.Pictures.Single().TopLeftCell.Address.ToString()));
     }
 
     [Fact]
