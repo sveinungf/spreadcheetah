@@ -78,16 +78,15 @@ internal struct DrawingRelsXml
         {
             var index = _nextImageIndex;
             var imageId = images[index].EmbeddedImage.Id;
-            var span = _buffer.GetSpan();
-            var written = 0;
+            var success = _buffer.TryWrite(
+                $"{ImageStart}" +
+                $"{imageId}" +
+                $"{""".png" Id="rId"""u8}" +
+                $"{index + 1}" +
+                $"{"\"/>"u8}");
 
-            if (!ImageStart.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(imageId, span, ref written)) return false;
-            if (!""".png" Id="rId"""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(index + 1, span, ref written)) return false;
-            if (!"\"/>"u8.TryCopyTo(span, ref written)) return false;
-
-            _buffer.Advance(written);
+            if (!success)
+                return false;
         }
 
         return true;
