@@ -1,4 +1,3 @@
-using SpreadCheetah.Helpers;
 using SpreadCheetah.Worksheets;
 using System.IO.Compression;
 
@@ -85,16 +84,15 @@ internal struct WorkbookRelsXml
         {
             var index = _nextWorksheetIndex;
             var path = worksheets[index].Path;
-            var span = _buffer.GetSpan();
-            var written = 0;
+            var success = _buffer.TryWrite(
+                $"{SheetStart}" +
+                $"{path}" +
+                $"{"\" Id=\"rId"u8}" +
+                $"{index + 1}" +
+                $"{"\" />"u8}");
 
-            if (!SheetStart.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(path, span, ref written)) return false;
-            if (!"\" Id=\"rId"u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(index + 1, span, ref written)) return false;
-            if (!"\" />"u8.TryCopyTo(span, ref written)) return false;
-
-            _buffer.Advance(written);
+            if (!success)
+                return false;
         }
 
         return true;
@@ -102,17 +100,8 @@ internal struct WorkbookRelsXml
 
     private readonly bool TryWriteStyles()
     {
-        if (!_hasStylesXml) return true;
-
-        var span = _buffer.GetSpan();
-        var written = 0;
-
-        if (!StylesStart.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_worksheets.Count + 1, span, ref written)) return false;
-        if (!"\" />"u8.TryCopyTo(span, ref written)) return false;
-
-        _buffer.Advance(written);
-        return true;
+        return !_hasStylesXml
+            || _buffer.TryWrite($"{StylesStart}{_worksheets.Count + 1}{"\" />"u8}");
     }
 
     private enum Element
