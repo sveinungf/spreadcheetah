@@ -91,49 +91,37 @@ internal struct VmlDrawingNoteXml(
     /// </summary>
     private readonly bool TryWriteAnchor()
     {
-        var span = buffer.GetSpan();
-        var written = 0;
         var col = reference.Column;
         var row = reference.Row;
 
-        if (!SpanHelper.TryWrite(col, span, ref written)) return false;
-
         if (row <= 1)
         {
-            if (!",12,0,1,"u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite((ushort)(col + 2), span, ref written)) return false;
-            if (!",18,4,5"u8.TryCopyTo(span, ref written)) return false;
-        }
-        else
-        {
-            if (!",12,"u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(row - 2, span, ref written)) return false;
-            if (!",11,"u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite((ushort)(col + 2), span, ref written)) return false;
-            if (!",18,"u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(row + 2, span, ref written)) return false;
-            if (!",15"u8.TryCopyTo(span, ref written)) return false;
+            return buffer.TryWrite(
+                $"{col}" +
+                $"{",12,0,1,"u8}" +
+                $"{(ushort)(col + 2)}" +
+                $"{",18,4,5"u8}");
         }
 
-        buffer.Advance(written);
-        return true;
+        return buffer.TryWrite(
+            $"{col}" +
+            $"{",12,"u8}" +
+            $"{row - 2}" +
+            $"{",11,"u8}" +
+            $"{(ushort)(col + 2)}" +
+            $"{",18,"u8}" +
+            $"{row + 2}" +
+            $"{",15"u8}");
     }
 
     private readonly bool TryWriteShapeEnd()
     {
-        var span = buffer.GetSpan();
-        var written = 0;
-        var col = reference.Column;
-        var row = reference.Row;
-
-        if (!ShapeAfterAnchor.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(row - 1, span, ref written)) return false;
-        if (!ShapeAfterRow.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(col - 1, span, ref written)) return false;
-        if (!ShapeEnd.TryCopyTo(span, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        return buffer.TryWrite(
+            $"{ShapeAfterAnchor}" +
+            $"{reference.Row - 1}" +
+            $"{ShapeAfterRow}" +
+            $"{reference.Column - 1}" +
+            $"{ShapeEnd}");
     }
 
     private enum Element

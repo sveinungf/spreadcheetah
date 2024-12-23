@@ -110,6 +110,17 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             return Fail();
         }
 
+        public bool AppendFormatted(ushort value)
+        {
+            if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
+            {
+                _pos += bytesWritten;
+                return true;
+            }
+
+            return Fail();
+        }
+
         public bool AppendFormatted(float value)
         {
             if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
