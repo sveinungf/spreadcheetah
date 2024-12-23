@@ -1,12 +1,13 @@
 using SpreadCheetah.CellReferences;
-using SpreadCheetah.Helpers;
 using System.Buffers;
 using System.Runtime.InteropServices;
 
 namespace SpreadCheetah.MetadataXml;
 
 [StructLayout(LayoutKind.Auto)]
-internal struct VmlDrawingNoteXml
+internal struct VmlDrawingNoteXml(
+    SingleCellRelativeReference reference,
+    SpreadsheetBuffer buffer)
 {
     private static ReadOnlySpan<byte> ShapeStart =>
         """<v:shapetype id="_x0000_t202" coordsize="21600,21600" o:spt="202" path="m,l,21600r21600,l21600,xe">"""u8
@@ -30,32 +31,44 @@ internal struct VmlDrawingNoteXml
     private static ReadOnlySpan<byte> ShapeAfterRow => "</x:Row><x:Column>"u8;
     private static ReadOnlySpan<byte> ShapeEnd => "</x:Column></x:ClientData></v:shape>"u8;
 
-    private readonly SingleCellRelativeReference _reference;
     private Element _next;
 
-    public VmlDrawingNoteXml(SingleCellRelativeReference reference)
+    public bool TryWrite()
     {
-        _reference = reference;
-    }
-
-    public bool TryWrite(Span<byte> bytes, out int bytesWritten)
-    {
-        bytesWritten = 0;
-
-        if (_next == Element.ShapeStart && !Advance(ShapeStart.TryCopyTo(bytes, ref bytesWritten))) return false;
-        if (_next == Element.MarginTop && !Advance(TryWriteMarginTop(bytes, ref bytesWritten))) return false;
-        if (_next == Element.ShapeAfterMarginTop && !Advance(ShapeAfterMarginTop.TryCopyTo(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Anchor && !Advance(TryWriteAnchor(bytes, ref bytesWritten))) return false;
-        if (_next == Element.ShapeEnd && !Advance(TryWriteShapeEnd(bytes, ref bytesWritten))) return false;
+        while (MoveNext())
+        {
+            if (!Current)
+                return false;
+        }
 
         return true;
     }
 
-    private readonly bool TryWriteMarginTop(Span<byte> bytes, ref int bytesWritten)
+    public bool Current { get; private set; }
+
+    public bool MoveNext()
     {
-        var row = _reference.Row;
+        Current = _next switch
+        {
+            Element.ShapeStart => buffer.TryWrite(ShapeStart),
+            Element.MarginTop => TryWriteMarginTop(),
+            Element.ShapeAfterMarginTop => buffer.TryWrite(ShapeAfterMarginTop),
+            Element.Anchor => TryWriteAnchor(),
+            _ => TryWriteShapeEnd()
+        };
+
+        if (Current)
+            ++_next;
+
+        return _next < Element.Done;
+    }
+
+    private readonly bool TryWriteMarginTop()
+    {
+        var row = reference.Row;
         var marginTop = row == 1 ? 1.2 : row * 14.4 - 20.4;
-        return SpanHelper.TryWrite(marginTop, bytes, ref bytesWritten, new StandardFormat('F', 1));
+        var tuple = (marginTop, new StandardFormat('F', 1));
+        return buffer.TryWrite($"{tuple}");
     }
 
     /// <summary>
@@ -70,59 +83,39 @@ internal struct VmlDrawingNoteXml
     /// [6] Right row
     /// [7] Right row offset
     /// </summary>
-    private readonly bool TryWriteAnchor(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteAnchor()
     {
-        var span = bytes.Slice(bytesWritten);
-        var written = 0;
-        var col = _reference.Column;
-        var row = _reference.Row;
-
-        if (!SpanHelper.TryWrite(col, span, ref written)) return false;
+        var col = reference.Column;
+        var row = reference.Row;
 
         if (row <= 1)
         {
-            if (!",12,0,1,"u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite((ushort)(col + 2), span, ref written)) return false;
-            if (!",18,4,5"u8.TryCopyTo(span, ref written)) return false;
-        }
-        else
-        {
-            if (!",12,"u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(row - 2, span, ref written)) return false;
-            if (!",11,"u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite((ushort)(col + 2), span, ref written)) return false;
-            if (!",18,"u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(row + 2, span, ref written)) return false;
-            if (!",15"u8.TryCopyTo(span, ref written)) return false;
+            return buffer.TryWrite(
+                $"{col}" +
+                $"{",12,0,1,"u8}" +
+                $"{(ushort)(col + 2)}" +
+                $"{",18,4,5"u8}");
         }
 
-        bytesWritten += written;
-        return true;
+        return buffer.TryWrite(
+            $"{col}" +
+            $"{",12,"u8}" +
+            $"{row - 2}" +
+            $"{",11,"u8}" +
+            $"{(ushort)(col + 2)}" +
+            $"{",18,"u8}" +
+            $"{row + 2}" +
+            $"{",15"u8}");
     }
 
-    private readonly bool TryWriteShapeEnd(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteShapeEnd()
     {
-        var span = bytes.Slice(bytesWritten);
-        var written = 0;
-        var col = _reference.Column;
-        var row = _reference.Row;
-
-        if (!ShapeAfterAnchor.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(row - 1, span, ref written)) return false;
-        if (!ShapeAfterRow.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(col - 1, span, ref written)) return false;
-        if (!ShapeEnd.TryCopyTo(span, ref written)) return false;
-
-        bytesWritten += written;
-        return true;
-    }
-
-    private bool Advance(bool success)
-    {
-        if (success)
-            ++_next;
-
-        return success;
+        return buffer.TryWrite(
+            $"{ShapeAfterAnchor}" +
+            $"{reference.Row - 1}" +
+            $"{ShapeAfterRow}" +
+            $"{reference.Column - 1}" +
+            $"{ShapeEnd}");
     }
 
     private enum Element

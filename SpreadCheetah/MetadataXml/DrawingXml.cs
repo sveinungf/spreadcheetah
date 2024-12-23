@@ -4,9 +4,9 @@ using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct DrawingXml : IXmlWriter
+internal struct DrawingXml
 {
-    public static ValueTask WriteAsync(
+    public static async ValueTask WriteAsync(
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
@@ -16,10 +16,23 @@ internal struct DrawingXml : IXmlWriter
     {
         var entryName = StringHelper.Invariant($"xl/drawings/drawing{drawingsFileIndex}.xml");
         var entry = archive.CreateEntry(entryName, compressionLevel);
-        var writer = new DrawingXml(images);
-#pragma warning disable EPS06 // Hidden struct copy operation
-        return writer.WriteAsync(entry, buffer, token);
-#pragma warning restore EPS06 // Hidden struct copy operation
+        var stream = entry.Open();
+#if NETSTANDARD2_0
+        using (stream)
+#else
+        await using (stream.ConfigureAwait(false))
+#endif
+        {
+            var writer = new DrawingXml(images, buffer);
+
+            foreach (var success in writer)
+            {
+                if (!success)
+                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            }
+
+            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        }
     }
 
     private static ReadOnlySpan<byte> Header => """<?xml version="1.0" encoding="utf-8"?>"""u8 +
@@ -30,50 +43,47 @@ internal struct DrawingXml : IXmlWriter
     private static ReadOnlySpan<byte> Footer => """</xdr:wsDr>"""u8;
 
     private readonly List<WorksheetImage> _images;
+    private readonly SpreadsheetBuffer _buffer;
     private DrawingImageXml? _currentImageXmlWriter;
     private Element _next;
     private int _nextIndex;
 
-    private DrawingXml(List<WorksheetImage> images)
+    private DrawingXml(List<WorksheetImage> images, SpreadsheetBuffer buffer)
     {
         _images = images;
+        _buffer = buffer;
     }
 
-    public bool TryWrite(Span<byte> bytes, out int bytesWritten)
+    public readonly DrawingXml GetEnumerator() => this;
+    public bool Current { get; private set; }
+
+    public bool MoveNext()
     {
-        bytesWritten = 0;
+        Current = _next switch
+        {
+            Element.Header => _buffer.TryWrite(Header),
+            Element.Images => TryWriteImages(),
+            _ => _buffer.TryWrite(Footer)
+        };
 
-        if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Images && !Advance(TryWriteImages(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
-
-        return true;
-    }
-
-    private bool Advance(bool success)
-    {
-        if (success)
+        if (Current)
             ++_next;
 
-        return success;
+        return _next < Element.Done;
     }
 
-    private bool TryWriteImages(Span<byte> bytes, ref int bytesWritten)
+    private bool TryWriteImages()
     {
         var images = _images;
 
         for (; _nextIndex < images.Count; ++_nextIndex)
         {
-            var imageXmlWriter = _currentImageXmlWriter
-                ?? new DrawingImageXml(images[_nextIndex], _nextIndex);
+            var writer = _currentImageXmlWriter
+                ?? new DrawingImageXml(images[_nextIndex], _nextIndex, _buffer);
 
-            var span = bytes.Slice(bytesWritten);
-            var done = imageXmlWriter.TryWrite(span, out var written);
-            bytesWritten += written;
-
-            if (!done)
+            if (!writer.TryWrite())
             {
-                _currentImageXmlWriter = imageXmlWriter;
+                _currentImageXmlWriter = writer;
                 return false;
             }
 

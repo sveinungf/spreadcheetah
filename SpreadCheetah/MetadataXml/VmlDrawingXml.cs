@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 namespace SpreadCheetah.MetadataXml;
 
 [StructLayout(LayoutKind.Auto)]
-internal struct VmlDrawingXml : IXmlWriter
+internal struct VmlDrawingXml
 {
-    public static ValueTask WriteAsync(
+    public static async ValueTask WriteAsync(
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
@@ -18,10 +18,23 @@ internal struct VmlDrawingXml : IXmlWriter
     {
         var entryName = StringHelper.Invariant($"xl/drawings/vmlDrawing{notesFilesIndex}.vml");
         var entry = archive.CreateEntry(entryName, compressionLevel);
-        var writer = new VmlDrawingXml(notes);
-#pragma warning disable EPS06 // Hidden struct copy operation
-        return writer.WriteAsync(entry, buffer, token);
-#pragma warning restore EPS06 // Hidden struct copy operation
+        var stream = entry.Open();
+#if NETSTANDARD2_0
+        using (stream)
+#else
+        await using (stream.ConfigureAwait(false))
+#endif
+        {
+            var writer = new VmlDrawingXml(notes, buffer);
+
+            foreach (var success in writer)
+            {
+                if (!success)
+                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            }
+
+            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        }
     }
 
     private static ReadOnlySpan<byte> Header =>
@@ -30,50 +43,49 @@ internal struct VmlDrawingXml : IXmlWriter
     private static ReadOnlySpan<byte> Footer => "</xml>"u8;
 
     private readonly ReadOnlyMemory<KeyValuePair<SingleCellRelativeReference, string>> _notes;
+    private readonly SpreadsheetBuffer _buffer;
     private VmlDrawingNoteXml? _currentNoteXmlWriter;
     private Element _next;
     private int _nextIndex;
 
-    private VmlDrawingXml(ReadOnlyMemory<KeyValuePair<SingleCellRelativeReference, string>> notes)
+    private VmlDrawingXml(
+        ReadOnlyMemory<KeyValuePair<SingleCellRelativeReference, string>> notes,
+        SpreadsheetBuffer buffer)
     {
         _notes = notes;
+        _buffer = buffer;
     }
 
-    public bool TryWrite(Span<byte> bytes, out int bytesWritten)
+    public readonly VmlDrawingXml GetEnumerator() => this;
+    public bool Current { get; private set; }
+
+    public bool MoveNext()
     {
-        bytesWritten = 0;
+        Current = _next switch
+        {
+            Element.Header => _buffer.TryWrite(Header),
+            Element.Notes => TryWriteNotes(),
+            _ => _buffer.TryWrite(Footer)
+        };
 
-        if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Notes && !Advance(TryWriteNotes(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
-
-        return true;
-    }
-
-    private bool Advance(bool success)
-    {
-        if (success)
+        if (Current)
             ++_next;
 
-        return success;
+        return _next < Element.Done;
     }
 
-    private bool TryWriteNotes(Span<byte> bytes, ref int bytesWritten)
+    private bool TryWriteNotes()
     {
         var notes = _notes.Span;
 
         for (; _nextIndex < notes.Length; ++_nextIndex)
         {
-            var noteXmlWriter = _currentNoteXmlWriter
-                ?? new VmlDrawingNoteXml(notes[_nextIndex].Key);
+            var writer = _currentNoteXmlWriter
+                ?? new VmlDrawingNoteXml(notes[_nextIndex].Key, _buffer);
 
-            var span = bytes.Slice(bytesWritten);
-            var done = noteXmlWriter.TryWrite(span, out var written);
-            bytesWritten += written;
-
-            if (!done)
+            if (!writer.TryWrite())
             {
-                _currentNoteXmlWriter = noteXmlWriter;
+                _currentNoteXmlWriter = writer;
                 return false;
             }
 

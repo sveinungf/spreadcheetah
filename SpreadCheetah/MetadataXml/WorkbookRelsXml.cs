@@ -1,12 +1,11 @@
-using SpreadCheetah.Helpers;
 using SpreadCheetah.Worksheets;
 using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct WorkbookRelsXml : IXmlWriter
+internal struct WorkbookRelsXml
 {
-    public static ValueTask WriteAsync(
+    public static async ValueTask WriteAsync(
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
@@ -15,8 +14,23 @@ internal struct WorkbookRelsXml : IXmlWriter
         CancellationToken token)
     {
         var entry = archive.CreateEntry("xl/_rels/workbook.xml.rels", compressionLevel);
-        var writer = new WorkbookRelsXml(worksheets, hasStylesXml);
-        return writer.WriteAsync(entry, buffer, token);
+        var stream = entry.Open();
+#if NETSTANDARD2_0
+        using (stream)
+#else
+        await using (stream.ConfigureAwait(false))
+#endif
+        {
+            var writer = new WorkbookRelsXml(worksheets, hasStylesXml, buffer);
+
+            foreach (var success in writer)
+            {
+                if (!success)
+                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            }
+
+            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        }
     }
 
     private static ReadOnlySpan<byte> Header =>
@@ -28,37 +42,41 @@ internal struct WorkbookRelsXml : IXmlWriter
     private static ReadOnlySpan<byte> Footer => "</Relationships>"u8;
 
     private readonly List<WorksheetMetadata> _worksheets;
+    private readonly SpreadsheetBuffer _buffer;
     private readonly bool _hasStylesXml;
     private Element _next;
     private int _nextWorksheetIndex;
 
-    private WorkbookRelsXml(List<WorksheetMetadata> worksheets, bool hasStylesXml)
+    private WorkbookRelsXml(
+        List<WorksheetMetadata> worksheets,
+        bool hasStylesXml,
+        SpreadsheetBuffer buffer)
     {
         _worksheets = worksheets;
         _hasStylesXml = hasStylesXml;
+        _buffer = buffer;
     }
 
-    public bool TryWrite(Span<byte> bytes, out int bytesWritten)
+    public readonly WorkbookRelsXml GetEnumerator() => this;
+    public bool Current { get; private set; }
+
+    public bool MoveNext()
     {
-        bytesWritten = 0;
+        Current = _next switch
+        {
+            Element.Header => _buffer.TryWrite(Header),
+            Element.Worksheets => TryWriteWorksheets(),
+            Element.Styles => TryWriteStyles(),
+            _ => _buffer.TryWrite(Footer)
+        };
 
-        if (_next == Element.Header && !Advance(Header.TryCopyTo(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Worksheets && !Advance(TryWriteWorksheets(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Styles && !Advance(TryWriteStyles(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Footer && !Advance(Footer.TryCopyTo(bytes, ref bytesWritten))) return false;
-
-        return true;
-    }
-
-    private bool Advance(bool success)
-    {
-        if (success)
+        if (Current)
             ++_next;
 
-        return success;
+        return _next < Element.Done;
     }
 
-    private bool TryWriteWorksheets(Span<byte> bytes, ref int bytesWritten)
+    private bool TryWriteWorksheets()
     {
         var worksheets = _worksheets;
 
@@ -66,34 +84,24 @@ internal struct WorkbookRelsXml : IXmlWriter
         {
             var index = _nextWorksheetIndex;
             var path = worksheets[index].Path;
-            var span = bytes.Slice(bytesWritten);
-            var written = 0;
+            var success = _buffer.TryWrite(
+                $"{SheetStart}" +
+                $"{path}" +
+                $"{"\" Id=\"rId"u8}" +
+                $"{index + 1}" +
+                $"{"\" />"u8}");
 
-            if (!SheetStart.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(path, span, ref written)) return false;
-            if (!"\" Id=\"rId"u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(index + 1, span, ref written)) return false;
-            if (!"\" />"u8.TryCopyTo(span, ref written)) return false;
-
-            bytesWritten += written;
+            if (!success)
+                return false;
         }
 
         return true;
     }
 
-    private readonly bool TryWriteStyles(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteStyles()
     {
-        if (!_hasStylesXml) return true;
-
-        var span = bytes.Slice(bytesWritten);
-        var written = 0;
-
-        if (!StylesStart.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_worksheets.Count + 1, span, ref written)) return false;
-        if (!"\" />"u8.TryCopyTo(span, ref written)) return false;
-
-        bytesWritten += written;
-        return true;
+        return !_hasStylesXml
+            || _buffer.TryWrite($"{StylesStart}{_worksheets.Count + 1}{"\" />"u8}");
     }
 
     private enum Element
