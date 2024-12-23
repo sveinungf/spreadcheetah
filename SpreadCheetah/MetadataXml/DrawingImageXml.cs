@@ -57,29 +57,18 @@ internal struct DrawingImageXml(
 
     private readonly bool TryWriteImageStart()
     {
-        var span = buffer.GetSpan();
-        var written = 0;
-
-        if (!ImageStart.TryCopyTo(span, ref written)) return false;
-
         var moveWithCells = image.Canvas.Options.HasFlag(ImageCanvasOptions.MoveWithCells);
         var resizeWithCells = image.Canvas.Options.HasFlag(ImageCanvasOptions.ResizeWithCells);
 
+        Debug.Assert(moveWithCells || !resizeWithCells);
         var anchorAttribute = (moveWithCells, resizeWithCells) switch
         {
             (true, true) => "twoCell"u8,
             (true, false) => "oneCell"u8,
-            (false, false) => "absolute"u8,
-            _ => []
+            _ => "absolute"u8
         };
 
-        Debug.Assert(!anchorAttribute.IsEmpty);
-
-        if (!anchorAttribute.TryCopyTo(span, ref written)) return false;
-        if (!AnchorStart.TryCopyTo(span, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        return buffer.TryWrite($"{ImageStart}{anchorAttribute}{AnchorStart}");
     }
 
     private readonly bool TryWriteAnchor()
@@ -139,19 +128,14 @@ internal struct DrawingImageXml(
 
     private readonly bool TryWriteImageEnd()
     {
-        var span = buffer.GetSpan();
-        var written = 0;
-
-        if (!AnchorEnd.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(worksheetImageIndex, span, ref written)) return false;
-        if (!ImageIdEnd.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(image.ImageNumber, span, ref written)) return false;
-        if (!NameEnd.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(worksheetImageIndex + 1, span, ref written)) return false;
-        if (!ImageEnd.TryCopyTo(span, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        return buffer.TryWrite(
+            $"{AnchorEnd}" +
+            $"{worksheetImageIndex}" +
+            $"{ImageIdEnd}" +
+            $"{image.ImageNumber}" +
+            $"{NameEnd}" +
+            $"{worksheetImageIndex + 1}" +
+            $"{ImageEnd}");
     }
 
     private enum Element
