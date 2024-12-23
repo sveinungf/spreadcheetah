@@ -143,6 +143,17 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             return Fail();
         }
 
+        public bool AppendFormatted((double, StandardFormat) value)
+        {
+            if (Utf8Formatter.TryFormat(value.Item1, GetSpan(), out var bytesWritten, value.Item2))
+            {
+                _pos += bytesWritten;
+                return true;
+            }
+
+            return Fail();
+        }
+
         [ExcludeFromCodeCoverage]
         public bool AppendFormatted<T>(T value)
         {

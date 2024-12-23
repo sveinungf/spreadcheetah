@@ -1,5 +1,4 @@
 using SpreadCheetah.CellReferences;
-using SpreadCheetah.Helpers;
 using System.Buffers;
 using System.Runtime.InteropServices;
 
@@ -68,13 +67,8 @@ internal struct VmlDrawingNoteXml(
     {
         var row = reference.Row;
         var marginTop = row == 1 ? 1.2 : row * 14.4 - 20.4;
-        var bytes = buffer.GetSpan();
-        var written = 0;
-        if (!SpanHelper.TryWrite(marginTop, bytes, ref written, new StandardFormat('F', 1)))
-            return false;
-
-        buffer.Advance(written);
-        return true;
+        var tuple = (marginTop, new StandardFormat('F', 1));
+        return buffer.TryWrite($"{tuple}");
     }
 
     /// <summary>
