@@ -127,7 +127,8 @@ internal struct ContentTypesXml
 
         for (; _nextIndex < counter.WorksheetsWithImages; ++_nextIndex)
         {
-            if (!_buffer.TryWrite($"{DrawingStart}{_nextIndex + 1}{DrawingEnd}"))
+            var success = _buffer.TryWrite($"{DrawingStart}{_nextIndex + 1}{DrawingEnd}");
+            if (!success)
                 return false;
         }
 
@@ -163,7 +164,8 @@ internal struct ContentTypesXml
         for (; _nextIndex < worksheets.Count; ++_nextIndex)
         {
             var worksheet = worksheets[_nextIndex];
-            if (!_buffer.TryWrite($"{SheetStart}{worksheet.Path}{SheetEnd}"))
+            var success = _buffer.TryWrite($"{SheetStart}{worksheet.Path}{SheetEnd}");
+            if (!success)
                 return false;
         }
 
@@ -178,7 +180,8 @@ internal struct ContentTypesXml
 
         for (; _nextIndex < counter.WorksheetsWithNotes; ++_nextIndex)
         {
-            if (!_buffer.TryWrite($"{CommentStart}{_nextIndex + 1}{CommentEnd}"))
+            var success = _buffer.TryWrite($"{CommentStart}{_nextIndex + 1}{CommentEnd}");
+            if (!success)
                 return false;
         }
 

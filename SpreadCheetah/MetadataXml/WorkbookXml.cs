@@ -3,9 +3,9 @@ using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct WorkbookXml : IBufferXmlWriter
+internal struct WorkbookXml
 {
-    public static ValueTask WriteAsync(
+    public static async ValueTask WriteAsync(
         ZipArchive archive,
         CompressionLevel compressionLevel,
         SpreadsheetBuffer buffer,
@@ -13,8 +13,23 @@ internal struct WorkbookXml : IBufferXmlWriter
         CancellationToken token)
     {
         var entry = archive.CreateEntry("xl/workbook.xml", compressionLevel);
-        var writer = new WorkbookXml(worksheets);
-        return writer.WriteToBufferAsync(entry, buffer, token);
+        var stream = entry.Open();
+#if NETSTANDARD2_0
+        using (stream)
+#else
+        await using (stream.ConfigureAwait(false))
+#endif
+        {
+            var writer = new WorkbookXml(worksheets, buffer);
+
+            foreach (var success in writer)
+            {
+                if (!success)
+                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            }
+
+            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        }
     }
 
     private static ReadOnlySpan<byte> Header =>
@@ -26,37 +41,45 @@ internal struct WorkbookXml : IBufferXmlWriter
     private static ReadOnlySpan<byte> SheetsEnd => "</sheets></workbook>"u8;
 
     private readonly List<WorksheetMetadata> _worksheets;
+    private readonly SpreadsheetBuffer _buffer;
     private Element _next;
     private int _nextWorksheetIndex;
 
-    private WorkbookXml(List<WorksheetMetadata> worksheets) => _worksheets = worksheets;
-
-    public bool TryWrite(SpreadsheetBuffer buffer)
+    private WorkbookXml(
+        List<WorksheetMetadata> worksheets,
+        SpreadsheetBuffer buffer)
     {
-        if (_next == Element.Header && !Advance(buffer.TryWrite(Header))) return false;
-        if (_next == Element.BookViews && !Advance(TryWriteBookViews(buffer))) return false;
-        if (_next == Element.SheetsStart && !Advance(buffer.TryWrite(SheetsStart))) return false;
-        if (_next == Element.Sheets && !Advance(TryWriteWorksheets(buffer))) return false;
-        if (_next == Element.SheetsEnd && !Advance(buffer.TryWrite(SheetsEnd))) return false;
-
-        return true;
+        _worksheets = worksheets;
+        _buffer = buffer;
     }
 
-    public bool Advance(bool success)
+    public readonly WorkbookXml GetEnumerator() => this;
+    public bool Current { get; private set; }
+
+    public bool MoveNext()
     {
-        if (success)
+        Current = _next switch
+        {
+            Element.Header => _buffer.TryWrite(Header),
+            Element.BookViews => TryWriteBookViews(),
+            Element.SheetsStart => _buffer.TryWrite(SheetsStart),
+            Element.Sheets => TryWriteWorksheets(),
+            _ => _buffer.TryWrite(SheetsEnd)
+        };
+
+        if (Current)
             ++_next;
 
-        return success;
+        return _next < Element.Done;
     }
 
-    private readonly bool TryWriteBookViews(SpreadsheetBuffer buffer)
+    private readonly bool TryWriteBookViews()
     {
         var firstVisibleWorksheetId = _worksheets.FindIndex(static x => x.Visibility == WorksheetVisibility.Visible);
         if (firstVisibleWorksheetId <= 0)
             return true;
 
-        return buffer.TryWrite(
+        return _buffer.TryWrite(
             $"{"<bookViews><workbookView firstSheet=\""u8}" +
             $"{firstVisibleWorksheetId}" +
             $"{"\" activeTab=\""u8}" +
@@ -64,7 +87,7 @@ internal struct WorkbookXml : IBufferXmlWriter
             $"{"\"/></bookViews>"u8}");
     }
 
-    private bool TryWriteWorksheets(SpreadsheetBuffer buffer)
+    private bool TryWriteWorksheets()
     {
         var worksheets = _worksheets;
 
@@ -80,7 +103,7 @@ internal struct WorkbookXml : IBufferXmlWriter
                 _ => []
             };
 
-            var ok = buffer.TryWrite(
+            var ok = _buffer.TryWrite(
                 $"{"<sheet name=\""u8}{sheet.Name}" +
                 $"{"\" sheetId=\""u8}{index + 1}" +
                 $"{visibilitySpan}" +

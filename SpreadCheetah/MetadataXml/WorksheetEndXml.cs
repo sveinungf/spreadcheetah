@@ -1,5 +1,4 @@
 using SpreadCheetah.CellReferences;
-using SpreadCheetah.Helpers;
 using SpreadCheetah.Validations;
 
 namespace SpreadCheetah.MetadataXml;
@@ -88,32 +87,14 @@ internal struct WorksheetEndXml
 
     private readonly bool TryWriteAutoFilter()
     {
-        if (_autoFilterRange is not { } range) return true;
-
-        var span = _buffer.GetSpan();
-        var written = 0;
-
-        if (!"<autoFilter ref=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(range, span, ref written)) return false;
-        if (!"\"></autoFilter>"u8.TryCopyTo(span, ref written)) return false;
-
-        _buffer.Advance(written);
-        return true;
+        return _autoFilterRange is not { } range
+            || _buffer.TryWrite($"{"<autoFilter ref=\""u8}{range}{"\"></autoFilter>"u8}");
     }
 
     private readonly bool TryWriteCellMergesStart()
     {
-        if (_cellMerges.IsEmpty) return true;
-
-        var span = _buffer.GetSpan();
-        var written = 0;
-
-        if (!"<mergeCells count=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_cellMerges.Length, span, ref written)) return false;
-        if (!"\">"u8.TryCopyTo(span, ref written)) return false;
-
-        _buffer.Advance(written);
-        return true;
+        return _cellMerges.IsEmpty
+            || _buffer.TryWrite($"{"<mergeCells count=\""u8}{_cellMerges.Length}{"\">"u8}");
     }
 
     private bool TryWriteCellMerges()
@@ -124,14 +105,10 @@ internal struct WorksheetEndXml
         for (; _nextIndex < cellMerges.Length; ++_nextIndex)
         {
             var cellMerge = cellMerges[_nextIndex];
-            var span = _buffer.GetSpan();
-            var written = 0;
 
-            if (!"<mergeCell ref=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(cellMerge.Reference, span, ref written)) return false;
-            if (!"\"/>"u8.TryCopyTo(span, ref written)) return false;
-
-            _buffer.Advance(written);
+            var success = _buffer.TryWrite($"{"<mergeCell ref=\""u8}{cellMerge.Reference}{"\"/>"u8}");
+            if (!success)
+                return false;
         }
 
         _nextIndex = 0;
@@ -143,17 +120,8 @@ internal struct WorksheetEndXml
 
     private readonly bool TryWriteValidationsStart()
     {
-        if (_validations.IsEmpty) return true;
-
-        var span = _buffer.GetSpan();
-        var written = 0;
-
-        if (!"<dataValidations count=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_validations.Length, span, ref written)) return false;
-        if (!"\">"u8.TryCopyTo(span, ref written)) return false;
-
-        _buffer.Advance(written);
-        return true;
+        return _validations.IsEmpty
+            || _buffer.TryWrite($"{"<dataValidations count=\""u8}{_validations.Length}{"\">"u8}");
     }
 
     private bool TryWriteValidations()

@@ -7,7 +7,10 @@ using System.Runtime.InteropServices;
 namespace SpreadCheetah.MetadataXml;
 
 [StructLayout(LayoutKind.Auto)]
-internal struct DrawingImageXml
+internal struct DrawingImageXml(
+    WorksheetImage image,
+    int worksheetImageIndex,
+    SpreadsheetBuffer buffer)
 {
     private static ReadOnlySpan<byte> ImageStart => "<xdr:twoCellAnchor editAs=\""u8;
     private static ReadOnlySpan<byte> AnchorStart => "\"><xdr:from><xdr:col>"u8;
@@ -20,90 +23,82 @@ internal struct DrawingImageXml
         """</a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:ln w="0"><a:noFill/></a:ln></xdr:spPr>"""u8 +
         """</xdr:pic><xdr:clientData/></xdr:twoCellAnchor>"""u8;
 
-    private readonly WorksheetImage _image;
-    private readonly int _worksheetImageIndex;
     private Element _next;
 
-    public DrawingImageXml(WorksheetImage image, int worksheetImageIndex)
+#pragma warning disable EPS12 // A struct member can be made readonly
+    public bool TryWrite()
+#pragma warning restore EPS12 // A struct member can be made readonly
     {
-        _image = image;
-        _worksheetImageIndex = worksheetImageIndex;
-    }
-
-    public bool TryWrite(Span<byte> bytes, out int bytesWritten)
-    {
-        bytesWritten = 0;
-
-        if (_next == Element.ImageStart && !Advance(TryWriteImageStart(bytes, ref bytesWritten))) return false;
-        if (_next == Element.Anchor && !Advance(TryWriteAnchor(bytes, ref bytesWritten))) return false;
-        if (_next == Element.ImageEnd && !Advance(TryWriteImageEnd(bytes, ref bytesWritten))) return false;
+        while (MoveNext())
+        {
+            if (!Current)
+                return false;
+        }
 
         return true;
     }
 
-    private bool Advance(bool success)
+    public bool Current { get; private set; }
+
+    public bool MoveNext()
     {
-        if (success)
+        Current = _next switch
+        {
+            Element.ImageStart => TryWriteImageStart(),
+            Element.Anchor => TryWriteAnchor(),
+            _ => TryWriteImageEnd()
+        };
+
+        if (Current)
             ++_next;
 
-        return success;
+        return _next < Element.Done;
     }
 
-    private readonly bool TryWriteImageStart(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteImageStart()
     {
-        var span = bytes.Slice(bytesWritten);
-        var written = 0;
+        var moveWithCells = image.Canvas.Options.HasFlag(ImageCanvasOptions.MoveWithCells);
+        var resizeWithCells = image.Canvas.Options.HasFlag(ImageCanvasOptions.ResizeWithCells);
 
-        if (!ImageStart.TryCopyTo(span, ref written)) return false;
-
-        var moveWithCells = _image.Canvas.Options.HasFlag(ImageCanvasOptions.MoveWithCells);
-        var resizeWithCells = _image.Canvas.Options.HasFlag(ImageCanvasOptions.ResizeWithCells);
-
+        Debug.Assert(moveWithCells || !resizeWithCells);
         var anchorAttribute = (moveWithCells, resizeWithCells) switch
         {
             (true, true) => "twoCell"u8,
             (true, false) => "oneCell"u8,
-            (false, false) => "absolute"u8,
-            _ => []
+            _ => "absolute"u8
         };
 
-        Debug.Assert(!anchorAttribute.IsEmpty);
-
-        if (!anchorAttribute.TryCopyTo(span, ref written)) return false;
-        if (!AnchorStart.TryCopyTo(span, ref written)) return false;
-
-        bytesWritten += written;
-        return true;
+        return buffer.TryWrite($"{ImageStart}{anchorAttribute}{AnchorStart}");
     }
 
-    private readonly bool TryWriteAnchor(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteAnchor()
     {
-        var span = bytes.Slice(bytesWritten);
+        var span = buffer.GetSpan();
         var written = 0;
 
-        var fromColumnOffset = _image.Offset?.Left ?? 0;
-        var fromRowOffset = _image.Offset?.Top ?? 0;
+        var fromColumnOffset = image.Offset?.Left ?? 0;
+        var fromRowOffset = image.Offset?.Top ?? 0;
 
-        var column = _image.Canvas.FromColumn;
-        var row = _image.Canvas.FromRow;
+        var column = image.Canvas.FromColumn;
+        var row = image.Canvas.FromRow;
 
         if (!TryWriteAnchorPart(span, ref written, column, row, fromColumnOffset, fromRowOffset)) return false;
         if (!"</xdr:rowOff></xdr:from><xdr:to><xdr:col>"u8.TryCopyTo(span, ref written)) return false;
 
-        var fillCell = _image.Canvas.Options.HasFlag(ImageCanvasOptions.FillCell);
+        var fillCell = image.Canvas.Options.HasFlag(ImageCanvasOptions.FillCell);
 
         var (toColumn, toRow) = fillCell
-            ? (_image.Canvas.ToColumn, _image.Canvas.ToRow)
+            ? (image.Canvas.ToColumn, image.Canvas.ToRow)
             : (column, row);
 
-        var (actualWidth, actualHeight) = CalculateActualDimensions(_image);
+        var (actualWidth, actualHeight) = CalculateActualDimensions(image);
         var (toColumnOffset, toRowOffset) = fillCell
-            ? (_image.Offset?.Right ?? 0, _image.Offset?.Bottom ?? 0)
+            ? (image.Offset?.Right ?? 0, image.Offset?.Bottom ?? 0)
             : (actualWidth + fromColumnOffset, actualHeight + fromRowOffset);
 
         if (!TryWriteAnchorPart(span, ref written, toColumn, toRow, toColumnOffset, toRowOffset)) return false;
 
-        bytesWritten += written;
+        buffer.Advance(written);
         return true;
     }
 
@@ -131,21 +126,16 @@ internal struct DrawingImageXml
             : originalDimensions;
     }
 
-    private readonly bool TryWriteImageEnd(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteImageEnd()
     {
-        var span = bytes.Slice(bytesWritten);
-        var written = 0;
-
-        if (!AnchorEnd.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_worksheetImageIndex, span, ref written)) return false;
-        if (!ImageIdEnd.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_image.ImageNumber, span, ref written)) return false;
-        if (!NameEnd.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(_worksheetImageIndex + 1, span, ref written)) return false;
-        if (!ImageEnd.TryCopyTo(span, ref written)) return false;
-
-        bytesWritten += written;
-        return true;
+        return buffer.TryWrite(
+            $"{AnchorEnd}" +
+            $"{worksheetImageIndex}" +
+            $"{ImageIdEnd}" +
+            $"{image.ImageNumber}" +
+            $"{NameEnd}" +
+            $"{worksheetImageIndex + 1}" +
+            $"{ImageEnd}");
     }
 
     private enum Element
