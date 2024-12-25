@@ -150,11 +150,17 @@ internal struct WorksheetEndXml
     private readonly bool TryWriteValidationsEnd()
         => _validations.IsEmpty || _buffer.TryWrite("</dataValidations>"u8);
 
-    private readonly bool TryWriteDrawing()
-        => !_hasImages || _buffer.TryWrite("""<drawing r:id="rId3"/>"""u8);
+    private readonly bool TryWriteDrawing() => !_hasImages ||
+        _buffer.TryWrite(
+            $"{"<drawing r:id=\""u8}" +
+            $"{WorksheetRelationshipIds.Drawing}" +
+            $"{"\"/>"u8}");
 
-    private readonly bool TryWriteLegacyDrawing()
-        => !_hasNotes || _buffer.TryWrite("""<legacyDrawing r:id="rId1"/>"""u8);
+    private readonly bool TryWriteLegacyDrawing()=> !_hasNotes ||
+        _buffer.TryWrite(
+            $"{"<legacyDrawing r:id=\""u8}" +
+            $"{WorksheetRelationshipIds.VmlDrawing}" +
+            $"{"\"/>"u8}");
 
     private enum Element
     {
