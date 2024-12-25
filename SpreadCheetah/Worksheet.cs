@@ -4,6 +4,7 @@ using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.Styling.Internal;
+using SpreadCheetah.Tables;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 
@@ -21,6 +22,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly CellWriterState _state;
     private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
     private HashSet<CellRangeRelativeReference>? _cellMerges;
+    private List<Table>? _tables;
     private string? _autoFilterRange;
 
     public Dictionary<SingleCellRelativeReference, string>? Notes { get; private set; }
@@ -165,6 +167,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
             autoFilterRange: _autoFilterRange,
             hasNotes: Notes is not null,
             hasImages: Images is not null,
+            tableCount: _tables?.Count ?? 0,
             buffer: _buffer,
             stream: _stream,
             token: token).ConfigureAwait(false);
