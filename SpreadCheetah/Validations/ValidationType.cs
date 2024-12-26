@@ -6,5 +6,7 @@ internal enum ValidationType
     Integer,
     Decimal,
     TextLength,
-    List
+    List,
+    DateOnly,
+    DateTime
 }

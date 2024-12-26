@@ -11,6 +11,68 @@ namespace SpreadCheetah.Test.Tests;
 
 public class SpreadsheetDataValidationTests
 {
+
+    [Theory]
+    [InlineData("eq", XLOperator.EqualTo)]
+    [InlineData("neq", XLOperator.NotEqualTo)]
+    [InlineData("gt", XLOperator.GreaterThan)]
+    [InlineData("gte", XLOperator.EqualOrGreaterThan)]
+    [InlineData("lt", XLOperator.LessThan)]
+    [InlineData("lte", XLOperator.EqualOrLessThan)]
+    public async Task Spreadsheet_AddDataValidation_DateTimeValue(string op, XLOperator expectedOperator)
+    {
+        // Arrange
+        var year = 2000;
+        var month = 1;
+        var day  = 1;
+        var hour = 1;
+        var minute = 1;
+        var second = 1;
+        DateTime value = new DateTime(year,
+                                      month,
+                                      day,
+                                      hour,
+                                      minute,
+                                      second,
+                                      DateTimeKind.Unspecified);
+
+        var validation = op switch
+        {
+            "eq" => DataValidation.DateTimeEqualTo(value),
+            "neq" => DataValidation.DateTimeNotEqualTo(value),
+            "gt" => DataValidation.DateTimeGreaterThan(value),
+            "gte" => DataValidation.DateTimeGreaterThanOrEqualTo(value),
+            "lt" => DataValidation.DateTimeLessThan(value),
+            "lte" => DataValidation.DateTimeLessThanOrEqualTo(value),
+            _ => throw new ArgumentOutOfRangeException(nameof(op))
+        };
+
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet");
+
+            // Act
+            spreadsheet.AddDataValidation("A1", validation);
+            await spreadsheet.FinishAsync();
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualValidation = Assert.Single(worksheet.DataValidations);
+        var actualRange = Assert.Single(actualValidation.Ranges);
+        var cell = Assert.Single(actualRange.Cells());
+        Assert.Equal(1, cell.Address.ColumnNumber);
+        Assert.Equal(1, cell.Address.RowNumber);
+        Assert.Equal(XLAllowedValues.AnyValue, actualValidation.AllowedValues);
+        Assert.Equal(expectedOperator, actualValidation.Operator);
+        Assert.Equal(value.ToString(CultureInfo.InvariantCulture), actualValidation.MinValue);
+        Assert.Empty(actualValidation.MaxValue);
+    }
+
+
     [Theory]
     [InlineData("eq", XLOperator.EqualTo)]
     [InlineData("neq", XLOperator.NotEqualTo)]

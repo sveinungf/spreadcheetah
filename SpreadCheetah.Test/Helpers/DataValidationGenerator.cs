@@ -23,6 +23,25 @@ internal static class DataValidationGenerator
 
     private static readonly Func<Faker, DataValidation>[] Factories =
     [
+        f => DataValidation.DateTimeBetween(f.Random.SimpleDateTimePair(out var max), max),
+        f => DataValidation.DateTimeEqualTo(f.Random.SimpleDateTime()),
+        f => DataValidation.DateTimeGreaterThan(f.Random.SimpleDateTime()),
+        f => DataValidation.DateTimeGreaterThanOrEqualTo(f.Random.SimpleDateTime()),
+        f => DataValidation.DateTimeLessThan(f.Random.SimpleDateTime()),
+        f => DataValidation.DateTimeLessThanOrEqualTo(f.Random.SimpleDateTime()),
+        f => DataValidation.DateTimeNotBetween(f.Random.SimpleDateTimePair(out var max), max),
+        f => DataValidation.DateTimeNotEqualTo(f.Random.SimpleDateTime()),
+
+        f => DataValidation.DateOnlyBetween(f.Random.SimpleDateOnlyPair(out var max), max),
+        f => DataValidation.DateOnlyEqualTo(f.Random.SimpleDateOnly()),
+        f => DataValidation.DateOnlyGreaterThan(f.Random.SimpleDateOnly()),
+        f => DataValidation.DateOnlyGreaterThanOrEqualTo(f.Random.SimpleDateOnly()),
+        f => DataValidation.DateOnlyLessThan(f.Random.SimpleDateOnly()),
+        f => DataValidation.DateOnlyLessThanOrEqualTo(f.Random.SimpleDateOnly()),
+        f => DataValidation.DateOnlyNotBetween(f.Random.SimpleDateOnlyPair(out var max), max),
+        f => DataValidation.DateOnlyNotEqualTo(f.Random.SimpleDateOnly()),
+
+
         f => DataValidation.DecimalBetween(f.Random.SimpleDoublePair(out var max), max),
         f => DataValidation.DecimalEqualTo(f.Random.SimpleDouble()),
         f => DataValidation.DecimalGreaterThan(f.Random.SimpleDouble()),
