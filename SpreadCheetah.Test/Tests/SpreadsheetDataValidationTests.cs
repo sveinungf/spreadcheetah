@@ -66,7 +66,7 @@ public class SpreadsheetDataValidationTests
         var cell = Assert.Single(actualRange.Cells());
         Assert.Equal(1, cell.Address.ColumnNumber);
         Assert.Equal(1, cell.Address.RowNumber);
-        Assert.Equal(XLAllowedValues.AnyValue, actualValidation.AllowedValues);
+        Assert.Equal(XLAllowedValues.Date, actualValidation.AllowedValues);
         Assert.Equal(expectedOperator, actualValidation.Operator);
         Assert.Equal(value.ToString(CultureInfo.InvariantCulture), actualValidation.MinValue);
         Assert.Empty(actualValidation.MaxValue);

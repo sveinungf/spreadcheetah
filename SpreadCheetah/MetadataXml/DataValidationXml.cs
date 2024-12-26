@@ -84,6 +84,7 @@ internal struct DataValidationXml(
 
     private static bool TryWriteType(ValidationType type, Span<byte> bytes, ref int bytesWritten) => type switch
     {
+        ValidationType.DateTime => "type=\"date\" "u8.TryCopyTo(bytes, ref bytesWritten),
         ValidationType.Decimal => "type=\"decimal\" "u8.TryCopyTo(bytes, ref bytesWritten),
         ValidationType.Integer => "type=\"whole\" "u8.TryCopyTo(bytes, ref bytesWritten),
         ValidationType.List => "type=\"list\" "u8.TryCopyTo(bytes, ref bytesWritten),

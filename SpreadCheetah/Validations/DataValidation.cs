@@ -74,32 +74,6 @@ public sealed class DataValidation
 
     private ValidationErrorType _errorType;
 
-    #region DateOnly validations
-    private static DataValidation _DateOnly(ValidationOperator op, DateOnly min, DateOnly max) => max < min
-        ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
-        : new DataValidation(ValidationType.DateOnly, op, min.ToStringInvariant(), max.ToStringInvariant());
-
-    private static DataValidation _DateOnly(ValidationOperator op, DateOnly value) => new(ValidationType.DateOnly, op, value.ToStringInvariant());
-
-    /// <summary>Validate that decimals are between <paramref name="min"/> and <paramref name="max"/>.</summary>
-    public static DataValidation DateOnlyBetween(DateOnly min, DateOnly max) => _DateOnly(ValidationOperator.Between, min, max);
-    /// <summary>Validate that decimals are not between <paramref name="min"/> and <paramref name="max"/>.</summary>
-    public static DataValidation DateOnlyNotBetween(DateOnly min, DateOnly max) => _DateOnly(ValidationOperator.NotBetween, min, max);
-    /// <summary>Validate that decimals are equal to <paramref name="value"/>.</summary>
-    public static DataValidation DateOnlyEqualTo(DateOnly value) => _DateOnly(ValidationOperator.EqualTo, value);
-    /// <summary>Validate that decimals are not equal to <paramref name="value"/>.</summary>
-    public static DataValidation DateOnlyNotEqualTo(DateOnly value) => _DateOnly(ValidationOperator.NotEqualTo, value);
-    /// <summary>Validate that decimals are greater than <paramref name="value"/>.</summary>
-    public static DataValidation DateOnlyGreaterThan(DateOnly value) => _DateOnly(ValidationOperator.GreaterThan, value);
-    /// <summary>Validate that decimals are greater than or equal to <paramref name="value"/>.</summary>
-    public static DataValidation DateOnlyGreaterThanOrEqualTo(DateOnly value) => _DateOnly(ValidationOperator.GreaterThanOrEqualTo, value);
-    /// <summary>Validate that decimals are less than <paramref name="value"/>.</summary>
-    public static DataValidation DateOnlyLessThan(DateOnly value) => _DateOnly(ValidationOperator.LessThan, value);
-    /// <summary>Validate that decimals are less than or equal to <paramref name="value"/>.</summary>
-    public static DataValidation DateOnlyLessThanOrEqualTo(DateOnly value) => _DateOnly(ValidationOperator.LessThanOrEqualTo, value);
-
-    #endregion DateOnly validations
-
     #region DateTime validations
     private static DataValidation _DateTime(ValidationOperator op, DateTime min, DateTime max)
     {
