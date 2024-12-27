@@ -6,8 +6,11 @@ namespace SpreadCheetah.Helpers;
 
 internal sealed class FileCounter
 {
-    public int WorksheetsWithImages { get; set; }
-    public int WorksheetsWithNotes { get; set; }
+    public int? CurrentWorksheetDrawingsFileIndex { get; private set; }
+    public int? CurrentWorksheetNotesFileIndex { get; private set; }
+
+    public int WorksheetsWithImages { get; private set; }
+    public int WorksheetsWithNotes { get; private set; }
     public int TotalTables { get; set; } // TODO: Increment when adding a table
     public int TotalEmbeddedImages { get; private set; }
     public int TotalAddedImages { get; set; }
@@ -23,5 +26,32 @@ internal sealed class FileCounter
             EmbeddedImageTypes |= EmbeddedImageTypes.Jpeg;
 
         TotalEmbeddedImages++;
+    }
+
+    public void ImageForCurrentWorksheet()
+    {
+        if (CurrentWorksheetDrawingsFileIndex is null)
+        {
+            ++WorksheetsWithImages;
+            CurrentWorksheetDrawingsFileIndex = WorksheetsWithImages;
+        }
+    }
+
+    public void NoteForCurrentWorksheet()
+    {
+        if (CurrentWorksheetNotesFileIndex is null)
+        {
+            ++WorksheetsWithNotes;
+            CurrentWorksheetNotesFileIndex = WorksheetsWithNotes;
+        }
+    }
+
+    public bool CurrentWorksheetHasRelationships =>
+        CurrentWorksheetDrawingsFileIndex is not null || CurrentWorksheetNotesFileIndex is not null;
+
+    public void ResetCurrentWorksheet()
+    {
+        CurrentWorksheetDrawingsFileIndex = null;
+        CurrentWorksheetNotesFileIndex = null;
     }
 }
