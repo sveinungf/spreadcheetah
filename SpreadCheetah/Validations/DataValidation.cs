@@ -1,6 +1,7 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Text;
 
 #if !NET6_0_OR_GREATER
@@ -80,10 +81,22 @@ public sealed class DataValidation
         if (max < min)
             throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min));
         else
-            return new DataValidation(ValidationType.DateTime, op, min.ToStringInvariant(), max.ToStringInvariant());
+        {
+            var epoch = new DateTime(1900,1,1,1,1,1,DateTimeKind.Unspecified);
+            var minElapsedDates = (min.AddDays(2) - epoch).Days;
+            var maxElapsedDates = (max.AddDays(2) - epoch).Days;
+
+            return new DataValidation(ValidationType.DateTime, op, minElapsedDates.ToString(CultureInfo.InvariantCulture), maxElapsedDates.ToString(CultureInfo.InvariantCulture));
+        }
     }
 
-    private static DataValidation _DateTime(ValidationOperator op, DateTime value) => new(ValidationType.DateTime, op, value.ToStringInvariant());
+    private static DataValidation _DateTime(ValidationOperator op, DateTime value)
+    {
+        var epoch = new DateTime(1900,1,1,1,1,1,DateTimeKind.Unspecified);
+        var elapsedDate = value.AddDays(2) - epoch;
+        var days = (elapsedDate.Days);
+        return new(ValidationType.DateTime, op, days.ToString(CultureInfo.InvariantCulture));
+    }
 
     /// <summary>Validate that decimals are between <paramref name="min"/> and <paramref name="max"/>.</summary>
     public static DataValidation DateTimeBetween(DateTime min, DateTime max) => _DateTime(ValidationOperator.Between, min, max);

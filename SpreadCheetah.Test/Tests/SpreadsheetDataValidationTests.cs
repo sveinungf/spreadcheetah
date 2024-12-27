@@ -2,6 +2,7 @@ using ClosedXML.Excel;
 using OfficeOpenXml;
 using OfficeOpenXml.DataValidation;
 using OfficeOpenXml.DataValidation.Contracts;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Validations;
 using System.Globalization;
@@ -48,6 +49,7 @@ public class SpreadsheetDataValidationTests
         };
 
         using var stream = new MemoryStream();
+        
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
         {
             await spreadsheet.StartWorksheetAsync("Sheet");
@@ -68,8 +70,14 @@ public class SpreadsheetDataValidationTests
         Assert.Equal(1, cell.Address.RowNumber);
         Assert.Equal(XLAllowedValues.Date, actualValidation.AllowedValues);
         Assert.Equal(expectedOperator, actualValidation.Operator);
-        Assert.Equal(value.ToString(CultureInfo.InvariantCulture), actualValidation.MinValue);
+
+
+        var epoch = new DateTime(1900,1,1,1,1,1,DateTimeKind.Unspecified);
+        var elapsedDates = (value.AddDays(2) - epoch).Days;
+        Assert.Equal(elapsedDates.ToString(CultureInfo.InvariantCulture), actualValidation.MinValue);
         Assert.Empty(actualValidation.MaxValue);
+
+        
     }
 
 
