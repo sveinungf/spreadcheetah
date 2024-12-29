@@ -40,12 +40,12 @@ internal struct WorksheetRelsXml
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">"""u8;
 
-    // TODO: Tables
     private static ReadOnlySpan<byte> Footer => "</Relationships>"u8;
 
     private readonly FileCounter _fileCounter;
     private readonly SpreadsheetBuffer _buffer;
     private Element _next;
+    private int _nextIndex;
 
     private WorksheetRelsXml(FileCounter fileCounter, SpreadsheetBuffer buffer)
     {
@@ -64,6 +64,7 @@ internal struct WorksheetRelsXml
             Element.VmlDrawing => TryWriteVmlDrawing(),
             Element.Comments => TryWriteComments(),
             Element.Drawing => TryWriteDrawing(),
+            Element.Tables => TryWriteTables(),
             _ => _buffer.TryWrite(Footer)
         };
 
@@ -112,12 +113,38 @@ internal struct WorksheetRelsXml
             $"{""".xml"/>"""u8}");
     }
 
+    private bool TryWriteTables()
+    {
+        if (_fileCounter.CurrentWorksheetTableFileStartIndex is not { } fileStartIndex)
+            return true;
+
+        for (; _nextIndex < _fileCounter.CurrentWorksheetTableCount; ++_nextIndex)
+        {
+            var relationshipId = WorksheetRelationshipIds.TableStartId + _nextIndex;
+            var tableIndex = fileStartIndex + _nextIndex;
+
+            var success = _buffer.TryWrite(
+                $"{"<Relationship Id=\"rId"u8}" +
+                $"{relationshipId}" +
+                $"{"\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/table\" Target=\"../tables/table"u8}" +
+                $"{tableIndex}" +
+                $"{""".xml"/>"""u8}");
+
+            if (!success)
+                return false;
+        }
+
+        _nextIndex = 0;
+        return true;
+    }
+
     private enum Element
     {
         Header,
         VmlDrawing,
         Comments,
         Drawing,
+        Tables,
         Footer,
         Done
     }

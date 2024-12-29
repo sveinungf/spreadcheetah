@@ -8,10 +8,12 @@ internal sealed class FileCounter
 {
     public int? CurrentWorksheetDrawingsFileIndex { get; private set; }
     public int? CurrentWorksheetNotesFileIndex { get; private set; }
+    public int? CurrentWorksheetTableFileStartIndex { get; private set; }
+    public int CurrentWorksheetTableCount { get; private set; }
 
     public int WorksheetsWithImages { get; private set; }
     public int WorksheetsWithNotes { get; private set; }
-    public int TotalTables { get; set; } // TODO: Increment when adding a table
+    public int TotalTables { get; set; }
     public int TotalEmbeddedImages { get; private set; }
     public int TotalAddedImages { get; set; }
     public EmbeddedImageTypes EmbeddedImageTypes { get; private set; }
@@ -46,6 +48,13 @@ internal sealed class FileCounter
         }
     }
 
+    public void TableForCurrentWorksheet()
+    {
+        CurrentWorksheetTableCount++;
+        TotalTables++;
+        CurrentWorksheetTableFileStartIndex ??= TotalTables;
+    }
+
     public bool CurrentWorksheetHasRelationships =>
         CurrentWorksheetDrawingsFileIndex is not null || CurrentWorksheetNotesFileIndex is not null;
 
@@ -53,5 +62,7 @@ internal sealed class FileCounter
     {
         CurrentWorksheetDrawingsFileIndex = null;
         CurrentWorksheetNotesFileIndex = null;
+        CurrentWorksheetTableCount = 0;
+        CurrentWorksheetTableFileStartIndex = null;
     }
 }

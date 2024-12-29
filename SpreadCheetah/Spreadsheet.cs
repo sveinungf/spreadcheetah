@@ -160,7 +160,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
     public void StartTable(Table table, string firstColumnName = "A")
     {
-        // TODO
+        // TODO: Verify arguments
+        _fileCounter ??= new FileCounter();
+        _fileCounter.TableForCurrentWorksheet();
+        // TODO: Implementation
         throw new NotImplementedException();
     }
 
