@@ -1,7 +1,6 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Text;
 
 #if !NET6_0_OR_GREATER
@@ -75,48 +74,38 @@ public sealed class DataValidation
 
     private ValidationErrorType _errorType;
 
-    #region DateTime validations
-    private static DataValidation _DateTime(ValidationOperator op, DateTime min, DateTime max)
+    private static DataValidation CreateDateTime(ValidationOperator op, DateTime min, DateTime max)
     {
         if (max < min)
             throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min));
-        else
-        {
-            var epoch = DateTime.FromOADate(0.0);
-            var minElapsedDates = Math.Ceiling(min.AddDays(-1).ToOADate() - epoch.ToOADate());
-            var maxElapsedDates = Math.Ceiling(max.AddDays(-1).ToOADate() - epoch.ToOADate());
 
-            return new DataValidation(ValidationType.DateTime, op, minElapsedDates.ToString(CultureInfo.InvariantCulture), maxElapsedDates.ToString(CultureInfo.InvariantCulture));
-        }
+        var stringValue1 = min.ToOADate().ToStringInvariant();
+        var stringValue2 = max.ToOADate().ToStringInvariant();
+        return new DataValidation(ValidationType.DateTime, op, stringValue1, stringValue2);
     }
 
-    private static DataValidation _DateTime(ValidationOperator op, DateTime value)
+    private static DataValidation CreateDateTime(ValidationOperator op, DateTime value)
     {
-        var epoch = DateTime.FromOADate(0.0);
-        var days = Math.Ceiling(value.AddDays(-1).ToOADate() - epoch.ToOADate());
-        return new(ValidationType.DateTime, op, days.ToString(CultureInfo.InvariantCulture));
+        var stringValue = value.ToOADate().ToStringInvariant();
+        return new(ValidationType.DateTime, op, stringValue);
     }
 
     /// <summary>Validate that decimals are between <paramref name="min"/> and <paramref name="max"/>.</summary>
-    public static DataValidation DateTimeBetween(DateTime min, DateTime max) => _DateTime(ValidationOperator.Between, min, max);
+    public static DataValidation DateTimeBetween(DateTime min, DateTime max) => CreateDateTime(ValidationOperator.Between, min, max);
     /// <summary>Validate that decimals are not between <paramref name="min"/> and <paramref name="max"/>.</summary>
-    public static DataValidation DateTimeNotBetween(DateTime min, DateTime max) => _DateTime(ValidationOperator.NotBetween, min, max);
+    public static DataValidation DateTimeNotBetween(DateTime min, DateTime max) => CreateDateTime(ValidationOperator.NotBetween, min, max);
     /// <summary>Validate that decimals are equal to <paramref name="value"/>.</summary>
-    public static DataValidation DateTimeEqualTo(DateTime value) => _DateTime(ValidationOperator.EqualTo, value);
+    public static DataValidation DateTimeEqualTo(DateTime value) => CreateDateTime(ValidationOperator.EqualTo, value);
     /// <summary>Validate that decimals are not equal to <paramref name="value"/>.</summary>
-    public static DataValidation DateTimeNotEqualTo(DateTime value) => _DateTime(ValidationOperator.NotEqualTo, value);
+    public static DataValidation DateTimeNotEqualTo(DateTime value) => CreateDateTime(ValidationOperator.NotEqualTo, value);
     /// <summary>Validate that decimals are greater than <paramref name="value"/>.</summary>
-    public static DataValidation DateTimeGreaterThan(DateTime value) => _DateTime(ValidationOperator.GreaterThan, value);
+    public static DataValidation DateTimeGreaterThan(DateTime value) => CreateDateTime(ValidationOperator.GreaterThan, value);
     /// <summary>Validate that decimals are greater than or equal to <paramref name="value"/>.</summary>
-    public static DataValidation DateTimeGreaterThanOrEqualTo(DateTime value) => _DateTime(ValidationOperator.GreaterThanOrEqualTo, value);
+    public static DataValidation DateTimeGreaterThanOrEqualTo(DateTime value) => CreateDateTime(ValidationOperator.GreaterThanOrEqualTo, value);
     /// <summary>Validate that decimals are less than <paramref name="value"/>.</summary>
-    public static DataValidation DateTimeLessThan(DateTime value) => _DateTime(ValidationOperator.LessThan, value);
+    public static DataValidation DateTimeLessThan(DateTime value) => CreateDateTime(ValidationOperator.LessThan, value);
     /// <summary>Validate that decimals are less than or equal to <paramref name="value"/>.</summary>
-    public static DataValidation DateTimeLessThanOrEqualTo(DateTime value) => _DateTime(ValidationOperator.LessThanOrEqualTo, value);
-
-    #endregion DateTime validations
-
-    #region Decimal Validations
+    public static DataValidation DateTimeLessThanOrEqualTo(DateTime value) => CreateDateTime(ValidationOperator.LessThanOrEqualTo, value);
 
     private static DataValidation Decimal(ValidationOperator op, double min, double max) => max < min
         ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
@@ -141,9 +130,6 @@ public sealed class DataValidation
     /// <summary>Validate that decimals are less than or equal to <paramref name="value"/>.</summary>
     public static DataValidation DecimalLessThanOrEqualTo(double value) => Decimal(ValidationOperator.LessThanOrEqualTo, value);
 
-    #endregion Decimal Validations
-
-    #region Integer Validations
     private static DataValidation Integer(ValidationOperator op, int min, int max) => max < min
         ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
         : new DataValidation(ValidationType.Integer, op, min.ToStringInvariant(), max.ToStringInvariant());
@@ -166,10 +152,6 @@ public sealed class DataValidation
     /// <summary>Validate that integers are less than or equal to <paramref name="value"/>.</summary>
     public static DataValidation IntegerLessThanOrEqualTo(int value) => Integer(ValidationOperator.LessThanOrEqualTo, value);
 
-    #endregion Integer Validations
-
-    #region Text Validations
-
     private static DataValidation TextLength(ValidationOperator op, int min, int max) => max < min
         ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
         : new DataValidation(ValidationType.TextLength, op, min.ToStringInvariant(), max.ToStringInvariant());
@@ -191,10 +173,6 @@ public sealed class DataValidation
     public static DataValidation TextLengthLessThan(int value) => TextLength(ValidationOperator.LessThan, value);
     /// <summary>Validate that text lengths are less than or equal to <paramref name="value"/>.</summary>
     public static DataValidation TextLengthLessThanOrEqualTo(int value) => TextLength(ValidationOperator.LessThanOrEqualTo, value);
-
-    #endregion Text Validations
-
-    #region List Validations
 
     private static DataValidation ListValuesInternal(string value, bool showDropdown) => new(ValidationType.List, ValidationOperator.None, value, null, showDropdown);
 
@@ -323,6 +301,4 @@ public sealed class DataValidation
         dataValidation = ListValuesInternal(sb.ToString(), showDropdown);
         return true;
     }
-
-    #endregion List Validations
 }
