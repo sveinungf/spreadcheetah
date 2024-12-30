@@ -15,7 +15,6 @@ namespace SpreadCheetah.Validations;
 public sealed class DataValidation
 {
     private const int MaxValueLength = 255;
-    private const string MinGreaterThanMaxMessage = "The min value must be less than or equal to the max value.";
 
     internal ValidationType Type { get; }
     internal ValidationOperator Operator { get; }
@@ -77,7 +76,7 @@ public sealed class DataValidation
     private static DataValidation CreateDateTime(ValidationOperator op, DateTime min, DateTime max)
     {
         if (max < min)
-            throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min));
+            ThrowHelper.MinGreaterThanMax(nameof(min));
 
         var stringValue1 = min.ToOADate().ToStringInvariant();
         var stringValue2 = max.ToOADate().ToStringInvariant();
@@ -107,9 +106,13 @@ public sealed class DataValidation
     /// <summary>Validate that dates are less than or equal to <paramref name="value"/>.</summary>
     public static DataValidation DateTimeLessThanOrEqualTo(DateTime value) => CreateDateTime(ValidationOperator.LessThanOrEqualTo, value);
 
-    private static DataValidation Decimal(ValidationOperator op, double min, double max) => max < min
-        ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
-        : new DataValidation(ValidationType.Decimal, op, min.ToStringInvariant(), max.ToStringInvariant());
+    private static DataValidation Decimal(ValidationOperator op, double min, double max)
+    {
+        if (max < min)
+            ThrowHelper.MinGreaterThanMax(nameof(min));
+
+        return new DataValidation(ValidationType.Decimal, op, min.ToStringInvariant(), max.ToStringInvariant());
+    }
 
     private static DataValidation Decimal(ValidationOperator op, double value) => new(ValidationType.Decimal, op, value.ToStringInvariant());
 
@@ -130,9 +133,13 @@ public sealed class DataValidation
     /// <summary>Validate that decimals are less than or equal to <paramref name="value"/>.</summary>
     public static DataValidation DecimalLessThanOrEqualTo(double value) => Decimal(ValidationOperator.LessThanOrEqualTo, value);
 
-    private static DataValidation Integer(ValidationOperator op, int min, int max) => max < min
-        ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
-        : new DataValidation(ValidationType.Integer, op, min.ToStringInvariant(), max.ToStringInvariant());
+    private static DataValidation Integer(ValidationOperator op, int min, int max)
+    {
+        if (max < min)
+            ThrowHelper.MinGreaterThanMax(nameof(min));
+
+        return new DataValidation(ValidationType.Integer, op, min.ToStringInvariant(), max.ToStringInvariant());
+    }
 
     private static DataValidation Integer(ValidationOperator op, int value) => new(ValidationType.Integer, op, value.ToStringInvariant());
     /// <summary>Validate that integers are between <paramref name="min"/> and <paramref name="max"/>.</summary>
@@ -152,9 +159,13 @@ public sealed class DataValidation
     /// <summary>Validate that integers are less than or equal to <paramref name="value"/>.</summary>
     public static DataValidation IntegerLessThanOrEqualTo(int value) => Integer(ValidationOperator.LessThanOrEqualTo, value);
 
-    private static DataValidation TextLength(ValidationOperator op, int min, int max) => max < min
-        ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
-        : new DataValidation(ValidationType.TextLength, op, min.ToStringInvariant(), max.ToStringInvariant());
+    private static DataValidation TextLength(ValidationOperator op, int min, int max)
+    {
+        if (max < min)
+            ThrowHelper.MinGreaterThanMax(nameof(min));
+
+        return new DataValidation(ValidationType.TextLength, op, min.ToStringInvariant(), max.ToStringInvariant());
+    }
 
     private static DataValidation TextLength(ValidationOperator op, int value) => new(ValidationType.TextLength, op, value.ToStringInvariant());
     /// <summary>Validate that text lengths are between <paramref name="min"/> and <paramref name="max"/>.</summary>
@@ -268,10 +279,9 @@ public sealed class DataValidation
     {
         invalidValue = null;
         dataValidation = null;
-        var sb = new StringBuilder();
-        sb.Append('"');
+        var sb = new StringBuilder("\"");
         var first = true;
-        int combinedLength = 0;
+        var combinedLength = 0;
 
         foreach (var value in values)
         {

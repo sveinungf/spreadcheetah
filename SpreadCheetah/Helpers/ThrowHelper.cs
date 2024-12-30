@@ -50,6 +50,9 @@ internal static class ThrowHelper
     public static void ImageScaleTooSmall(string? paramName, float actualValue) => throw new ArgumentOutOfRangeException(paramName, actualValue, "The image scale must result in image width and height being at least 1 pixel.");
 
     [DoesNotReturn]
+    public static void MinGreaterThanMax(string? minParamName) => throw new ArgumentException("The min value must be less than or equal to the max value.", minParamName);
+
+    [DoesNotReturn]
     public static void NameEmptyOrWhiteSpace(string? paramName) => throw new ArgumentException("The name can not be empty or consist only of whitespace.", paramName);
 
     [DoesNotReturn]
