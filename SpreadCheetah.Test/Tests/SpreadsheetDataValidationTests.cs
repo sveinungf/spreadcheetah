@@ -2,15 +2,94 @@ using ClosedXML.Excel;
 using OfficeOpenXml;
 using OfficeOpenXml.DataValidation;
 using OfficeOpenXml.DataValidation.Contracts;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Validations;
 using System.Globalization;
-using Xunit;
 
 namespace SpreadCheetah.Test.Tests;
 
 public class SpreadsheetDataValidationTests
 {
+    [Theory]
+    [InlineData("eq", XLOperator.EqualTo)]
+    [InlineData("neq", XLOperator.NotEqualTo)]
+    [InlineData("gt", XLOperator.GreaterThan)]
+    [InlineData("gte", XLOperator.EqualOrGreaterThan)]
+    [InlineData("lt", XLOperator.LessThan)]
+    [InlineData("lte", XLOperator.EqualOrLessThan)]
+    public async Task Spreadsheet_AddDataValidation_DateTimeValue(string op, XLOperator expectedOperator)
+    {
+        // Arrange
+        var value = new DateTime(2000, 1, 2, 3, 4, 5, DateTimeKind.Unspecified);
+        var validation = op switch
+        {
+            "eq" => DataValidation.DateTimeEqualTo(value),
+            "neq" => DataValidation.DateTimeNotEqualTo(value),
+            "gt" => DataValidation.DateTimeGreaterThan(value),
+            "gte" => DataValidation.DateTimeGreaterThanOrEqualTo(value),
+            "lt" => DataValidation.DateTimeLessThan(value),
+            "lte" => DataValidation.DateTimeLessThanOrEqualTo(value),
+            _ => throw new ArgumentOutOfRangeException(nameof(op))
+        };
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act
+        spreadsheet.AddDataValidation("A1", validation);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualValidation = Assert.Single(worksheet.DataValidations);
+        var actualRange = Assert.Single(actualValidation.Ranges);
+        var cell = Assert.Single(actualRange.Cells());
+        Assert.Equal(1, cell.Address.ColumnNumber);
+        Assert.Equal(1, cell.Address.RowNumber);
+        Assert.Equal(XLAllowedValues.Date, actualValidation.AllowedValues);
+        Assert.Equal(expectedOperator, actualValidation.Operator);
+        Assert.Equal(value.ToOADate().ToString(CultureInfo.InvariantCulture), actualValidation.MinValue);
+        Assert.Empty(actualValidation.MaxValue);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddDataValidation_DateTimeTwoValues(bool between)
+    {
+        // Arrange
+        var min = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var max = new DateTime(2009, 12, 31, 0, 0, 0, DateTimeKind.Utc);
+        var validation = between
+            ? DataValidation.DateTimeBetween(min, max)
+            : DataValidation.DateTimeNotBetween(min, max);
+        var expectedOperator = between ? XLOperator.Between : XLOperator.NotBetween;
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act
+        spreadsheet.AddDataValidation("A1", validation);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualValidation = Assert.Single(worksheet.DataValidations);
+        var actualRange = Assert.Single(actualValidation.Ranges);
+        var cell = Assert.Single(actualRange.Cells());
+        Assert.Equal(1, cell.Address.ColumnNumber);
+        Assert.Equal(1, cell.Address.RowNumber);
+        Assert.Equal(XLAllowedValues.Date, actualValidation.AllowedValues);
+        Assert.Equal(expectedOperator, actualValidation.Operator);
+        Assert.Equal(min.ToOADate().ToString(CultureInfo.InvariantCulture), actualValidation.MinValue);
+        Assert.Equal(max.ToOADate().ToString(CultureInfo.InvariantCulture), actualValidation.MaxValue);
+    }
+
     [Theory]
     [InlineData("eq", XLOperator.EqualTo)]
     [InlineData("neq", XLOperator.NotEqualTo)]

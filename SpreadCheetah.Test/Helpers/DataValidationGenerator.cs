@@ -23,6 +23,14 @@ internal static class DataValidationGenerator
 
     private static readonly Func<Faker, DataValidation>[] Factories =
     [
+        f => DataValidation.DateTimeBetween(f.Date.Past(), f.Date.Future()),
+        f => DataValidation.DateTimeEqualTo(f.Date.Past()),
+        f => DataValidation.DateTimeGreaterThan(f.Date.Past()),
+        f => DataValidation.DateTimeGreaterThanOrEqualTo(f.Date.Past()),
+        f => DataValidation.DateTimeLessThan(f.Date.Future()),
+        f => DataValidation.DateTimeLessThanOrEqualTo(f.Date.Future()),
+        f => DataValidation.DateTimeNotBetween(f.Date.Past(), f.Date.Future()),
+        f => DataValidation.DateTimeNotEqualTo(f.Date.Past()),
         f => DataValidation.DecimalBetween(f.Random.SimpleDoublePair(out var max), max),
         f => DataValidation.DecimalEqualTo(f.Random.SimpleDouble()),
         f => DataValidation.DecimalGreaterThan(f.Random.SimpleDouble()),

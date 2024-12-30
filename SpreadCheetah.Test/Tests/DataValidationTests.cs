@@ -1,19 +1,14 @@
 using SpreadCheetah.Validations;
-using Xunit;
 
 namespace SpreadCheetah.Test.Tests;
 
 public class DataValidationTests
 {
-    [Theory]
-    [InlineData(false, false)]
-    [InlineData(false, true)]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
+    [Theory, CombinatorialData]
     public void DataValidation_ListValues_InvalidListValues(bool withComma, bool tooLong)
     {
         // Arrange
-        var values = new List<string> { "One", "\"Two\"", "<Three>" };
+        List<string> values = ["One", "\"Two\"", "<Three>"];
 
         if (withComma)
             values.Add("Fo,ur");
@@ -27,15 +22,11 @@ public class DataValidationTests
         Assert.Equal(withComma || tooLong, exception is not null);
     }
 
-    [Theory]
-    [InlineData(false, false)]
-    [InlineData(false, true)]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
+    [Theory, CombinatorialData]
     public void DataValidation_TryCreateListValues_InvalidListValues(bool withComma, bool tooLong)
     {
         // Arrange
-        var values = new List<string> { "One", "\"Two\"", "<Three>" };
+        List<string> values = ["One", "\"Two\"", "<Three>"];
 
         if (withComma)
             values.Add("Fo,ur");
@@ -47,5 +38,60 @@ public class DataValidationTests
 
         // Assert
         Assert.Equal(withComma || tooLong, !ok);
+    }
+
+    [Fact]
+    public void DataValidation_DateTimeBetween_MinGreaterThanMax()
+    {
+        // Arrange
+        var min = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var max = min.AddDays(-1);
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => DataValidation.DateTimeBetween(min, max));
+    }
+
+    [Fact]
+    public void DataValidation_DecimalBetween_MinGreaterThanMax()
+    {
+        // Arrange
+        const double min = 10.0;
+        const double max = 0.0;
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => DataValidation.DecimalBetween(min, max));
+    }
+
+    [Fact]
+    public void DataValidation_IntegerBetween_MinGreaterThanMax()
+    {
+        // Arrange
+        const int min = 10;
+        const int max = 0;
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => DataValidation.IntegerBetween(min, max));
+    }
+
+    [Fact]
+    public void DataValidation_TextLengthBetween_MinGreaterThanMax()
+    {
+        // Arrange
+        const int min = 10;
+        const int max = 0;
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => DataValidation.TextLengthBetween(min, max));
+    }
+
+    [Fact]
+    public void DataValidation_ErrorType_SetInvalidType()
+    {
+        // Arrange
+        var dataValidation = DataValidation.TextLengthBetween(0, 10);
+        var errorType = (ValidationErrorType)3;
+
+        // Act & Assert
+        Assert.Throws<ArgumentOutOfRangeException>(() => dataValidation.ErrorType = errorType);
     }
 }

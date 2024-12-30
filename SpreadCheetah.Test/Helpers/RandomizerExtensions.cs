@@ -53,6 +53,8 @@ internal static class RandomizerExtensions
     {
         var value1 = randomizer.Number(-500000, 500000);
         var value2 = randomizer.Number(value1, 500001);
+
+        // other must be necessarily greater than value1.
         other = value2 / 1000.0;
         return value1 / 1000.0;
     }

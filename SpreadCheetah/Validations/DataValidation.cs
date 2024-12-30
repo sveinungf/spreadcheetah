@@ -15,18 +15,17 @@ namespace SpreadCheetah.Validations;
 public sealed class DataValidation
 {
     private const int MaxValueLength = 255;
-    private const string MinGreaterThanMaxMessage = "The min value must be less than or equal to the max value.";
 
     internal ValidationType Type { get; }
     internal ValidationOperator Operator { get; }
-    internal string? Value1 { get; }
+    internal string Value1 { get; }
     internal string? Value2 { get; }
     internal bool ShowDropdown { get; }
 
     private DataValidation(
         ValidationType type,
         ValidationOperator op,
-        string? value1,
+        string value1,
         string? value2 = null,
         bool showDropdown = true)
     {
@@ -74,9 +73,46 @@ public sealed class DataValidation
 
     private ValidationErrorType _errorType;
 
-    private static DataValidation Decimal(ValidationOperator op, double min, double max) => max < min
-        ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
-        : new DataValidation(ValidationType.Decimal, op, min.ToStringInvariant(), max.ToStringInvariant());
+    private static DataValidation CreateDateTime(ValidationOperator op, DateTime min, DateTime max)
+    {
+        if (max < min)
+            ThrowHelper.MinGreaterThanMax(nameof(min));
+
+        var stringValue1 = min.ToOADate().ToStringInvariant();
+        var stringValue2 = max.ToOADate().ToStringInvariant();
+        return new DataValidation(ValidationType.DateTime, op, stringValue1, stringValue2);
+    }
+
+    private static DataValidation CreateDateTime(ValidationOperator op, DateTime value)
+    {
+        var stringValue = value.ToOADate().ToStringInvariant();
+        return new(ValidationType.DateTime, op, stringValue);
+    }
+
+    /// <summary>Validate that dates are between <paramref name="min"/> and <paramref name="max"/>.</summary>
+    public static DataValidation DateTimeBetween(DateTime min, DateTime max) => CreateDateTime(ValidationOperator.Between, min, max);
+    /// <summary>Validate that dates are not between <paramref name="min"/> and <paramref name="max"/>.</summary>
+    public static DataValidation DateTimeNotBetween(DateTime min, DateTime max) => CreateDateTime(ValidationOperator.NotBetween, min, max);
+    /// <summary>Validate that dates are equal to <paramref name="value"/>.</summary>
+    public static DataValidation DateTimeEqualTo(DateTime value) => CreateDateTime(ValidationOperator.EqualTo, value);
+    /// <summary>Validate that dates are not equal to <paramref name="value"/>.</summary>
+    public static DataValidation DateTimeNotEqualTo(DateTime value) => CreateDateTime(ValidationOperator.NotEqualTo, value);
+    /// <summary>Validate that dates are greater than <paramref name="value"/>.</summary>
+    public static DataValidation DateTimeGreaterThan(DateTime value) => CreateDateTime(ValidationOperator.GreaterThan, value);
+    /// <summary>Validate that dates are greater than or equal to <paramref name="value"/>.</summary>
+    public static DataValidation DateTimeGreaterThanOrEqualTo(DateTime value) => CreateDateTime(ValidationOperator.GreaterThanOrEqualTo, value);
+    /// <summary>Validate that dates are less than <paramref name="value"/>.</summary>
+    public static DataValidation DateTimeLessThan(DateTime value) => CreateDateTime(ValidationOperator.LessThan, value);
+    /// <summary>Validate that dates are less than or equal to <paramref name="value"/>.</summary>
+    public static DataValidation DateTimeLessThanOrEqualTo(DateTime value) => CreateDateTime(ValidationOperator.LessThanOrEqualTo, value);
+
+    private static DataValidation Decimal(ValidationOperator op, double min, double max)
+    {
+        if (max < min)
+            ThrowHelper.MinGreaterThanMax(nameof(min));
+
+        return new DataValidation(ValidationType.Decimal, op, min.ToStringInvariant(), max.ToStringInvariant());
+    }
 
     private static DataValidation Decimal(ValidationOperator op, double value) => new(ValidationType.Decimal, op, value.ToStringInvariant());
 
@@ -97,9 +133,13 @@ public sealed class DataValidation
     /// <summary>Validate that decimals are less than or equal to <paramref name="value"/>.</summary>
     public static DataValidation DecimalLessThanOrEqualTo(double value) => Decimal(ValidationOperator.LessThanOrEqualTo, value);
 
-    private static DataValidation Integer(ValidationOperator op, int min, int max) => max < min
-        ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
-        : new DataValidation(ValidationType.Integer, op, min.ToStringInvariant(), max.ToStringInvariant());
+    private static DataValidation Integer(ValidationOperator op, int min, int max)
+    {
+        if (max < min)
+            ThrowHelper.MinGreaterThanMax(nameof(min));
+
+        return new DataValidation(ValidationType.Integer, op, min.ToStringInvariant(), max.ToStringInvariant());
+    }
 
     private static DataValidation Integer(ValidationOperator op, int value) => new(ValidationType.Integer, op, value.ToStringInvariant());
     /// <summary>Validate that integers are between <paramref name="min"/> and <paramref name="max"/>.</summary>
@@ -119,9 +159,13 @@ public sealed class DataValidation
     /// <summary>Validate that integers are less than or equal to <paramref name="value"/>.</summary>
     public static DataValidation IntegerLessThanOrEqualTo(int value) => Integer(ValidationOperator.LessThanOrEqualTo, value);
 
-    private static DataValidation TextLength(ValidationOperator op, int min, int max) => max < min
-        ? throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min))
-        : new DataValidation(ValidationType.TextLength, op, min.ToStringInvariant(), max.ToStringInvariant());
+    private static DataValidation TextLength(ValidationOperator op, int min, int max)
+    {
+        if (max < min)
+            ThrowHelper.MinGreaterThanMax(nameof(min));
+
+        return new DataValidation(ValidationType.TextLength, op, min.ToStringInvariant(), max.ToStringInvariant());
+    }
 
     private static DataValidation TextLength(ValidationOperator op, int value) => new(ValidationType.TextLength, op, value.ToStringInvariant());
     /// <summary>Validate that text lengths are between <paramref name="min"/> and <paramref name="max"/>.</summary>
@@ -235,10 +279,9 @@ public sealed class DataValidation
     {
         invalidValue = null;
         dataValidation = null;
-        var sb = new StringBuilder();
-        sb.Append('"');
+        var sb = new StringBuilder("\"");
         var first = true;
-        int combinedLength = 0;
+        var combinedLength = 0;
 
         foreach (var value in values)
         {
