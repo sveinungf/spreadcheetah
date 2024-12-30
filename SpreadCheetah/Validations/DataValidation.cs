@@ -18,14 +18,14 @@ public sealed class DataValidation
 
     internal ValidationType Type { get; }
     internal ValidationOperator Operator { get; }
-    internal string? Value1 { get; }
+    internal string Value1 { get; }
     internal string? Value2 { get; }
     internal bool ShowDropdown { get; }
 
     private DataValidation(
         ValidationType type,
         ValidationOperator op,
-        string? value1,
+        string value1,
         string? value2 = null,
         bool showDropdown = true)
     {

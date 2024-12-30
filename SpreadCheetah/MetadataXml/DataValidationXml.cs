@@ -88,8 +88,7 @@ internal struct DataValidationXml(
         ValidationType.Decimal => "type=\"decimal\" "u8.TryCopyTo(bytes, ref bytesWritten),
         ValidationType.Integer => "type=\"whole\" "u8.TryCopyTo(bytes, ref bytesWritten),
         ValidationType.List => "type=\"list\" "u8.TryCopyTo(bytes, ref bytesWritten),
-        ValidationType.TextLength => "type=\"textLength\" "u8.TryCopyTo(bytes, ref bytesWritten),
-        _ => true
+        _ => "type=\"textLength\" "u8.TryCopyTo(bytes, ref bytesWritten)
     };
 
     private static bool TryWriteErrorType(ValidationErrorType type, Span<byte> bytes, ref int bytesWritten) => type switch
@@ -148,13 +147,9 @@ internal struct DataValidationXml(
         return true;
     }
 
-    private readonly bool TryWriteValue1Start()
-        => validation.Value1 is null
-            ? buffer.TryWrite("/>"u8)
-            : buffer.TryWrite("><formula1>"u8);
+    private readonly bool TryWriteValue1Start() => buffer.TryWrite("><formula1>"u8);
 
-    private readonly bool TryWriteValue1End()
-        => validation.Value1 is null || buffer.TryWrite("</formula1>"u8);
+    private readonly bool TryWriteValue1End() => buffer.TryWrite("</formula1>"u8);
 
     private readonly bool TryWriteValue2Start()
         => validation.Value2 is null || buffer.TryWrite("<formula2>"u8);
