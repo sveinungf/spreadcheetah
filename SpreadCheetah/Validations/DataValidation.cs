@@ -90,21 +90,21 @@ public sealed class DataValidation
         return new(ValidationType.DateTime, op, stringValue);
     }
 
-    /// <summary>Validate that decimals are between <paramref name="min"/> and <paramref name="max"/>.</summary>
+    /// <summary>Validate that dates are between <paramref name="min"/> and <paramref name="max"/>.</summary>
     public static DataValidation DateTimeBetween(DateTime min, DateTime max) => CreateDateTime(ValidationOperator.Between, min, max);
-    /// <summary>Validate that decimals are not between <paramref name="min"/> and <paramref name="max"/>.</summary>
+    /// <summary>Validate that dates are not between <paramref name="min"/> and <paramref name="max"/>.</summary>
     public static DataValidation DateTimeNotBetween(DateTime min, DateTime max) => CreateDateTime(ValidationOperator.NotBetween, min, max);
-    /// <summary>Validate that decimals are equal to <paramref name="value"/>.</summary>
+    /// <summary>Validate that dates are equal to <paramref name="value"/>.</summary>
     public static DataValidation DateTimeEqualTo(DateTime value) => CreateDateTime(ValidationOperator.EqualTo, value);
-    /// <summary>Validate that decimals are not equal to <paramref name="value"/>.</summary>
+    /// <summary>Validate that dates are not equal to <paramref name="value"/>.</summary>
     public static DataValidation DateTimeNotEqualTo(DateTime value) => CreateDateTime(ValidationOperator.NotEqualTo, value);
-    /// <summary>Validate that decimals are greater than <paramref name="value"/>.</summary>
+    /// <summary>Validate that dates are greater than <paramref name="value"/>.</summary>
     public static DataValidation DateTimeGreaterThan(DateTime value) => CreateDateTime(ValidationOperator.GreaterThan, value);
-    /// <summary>Validate that decimals are greater than or equal to <paramref name="value"/>.</summary>
+    /// <summary>Validate that dates are greater than or equal to <paramref name="value"/>.</summary>
     public static DataValidation DateTimeGreaterThanOrEqualTo(DateTime value) => CreateDateTime(ValidationOperator.GreaterThanOrEqualTo, value);
-    /// <summary>Validate that decimals are less than <paramref name="value"/>.</summary>
+    /// <summary>Validate that dates are less than <paramref name="value"/>.</summary>
     public static DataValidation DateTimeLessThan(DateTime value) => CreateDateTime(ValidationOperator.LessThan, value);
-    /// <summary>Validate that decimals are less than or equal to <paramref name="value"/>.</summary>
+    /// <summary>Validate that dates are less than or equal to <paramref name="value"/>.</summary>
     public static DataValidation DateTimeLessThanOrEqualTo(DateTime value) => CreateDateTime(ValidationOperator.LessThanOrEqualTo, value);
 
     private static DataValidation Decimal(ValidationOperator op, double min, double max) => max < min
