@@ -1,3 +1,4 @@
+using SpreadCheetah.CellReferences;
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using System.Buffers;
@@ -148,6 +149,18 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (Utf8Formatter.TryFormat(value.Item1, GetSpan(), out var bytesWritten, value.Item2))
             {
                 _pos += bytesWritten;
+                return true;
+            }
+
+            return Fail();
+        }
+
+        public bool AppendFormatted(SimpleSingleCellReference reference)
+        {
+            var written = 0;
+            if (SpanHelper.TryWriteCellReference(reference.Column, reference.Row, GetSpan(), ref written))
+            {
+                _pos += written;
                 return true;
             }
 

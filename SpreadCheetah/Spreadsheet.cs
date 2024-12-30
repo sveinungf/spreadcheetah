@@ -161,6 +161,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public void StartTable(Table table, string firstColumnName = "A")
     {
         // TODO: Verify arguments
+        // TODO: Is there a limit on the number of tables?
+        // TODO: Make an immutable copy of the table?
         _fileCounter ??= new FileCounter();
         _fileCounter.TableForCurrentWorksheet();
         // TODO: Implementation
