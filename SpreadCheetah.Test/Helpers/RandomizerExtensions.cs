@@ -53,7 +53,97 @@ internal static class RandomizerExtensions
     {
         var value1 = randomizer.Number(-500000, 500000);
         var value2 = randomizer.Number(value1, 500001);
+
+        // other must be necessarily greater than value1.
         other = value2 / 1000.0;
         return value1 / 1000.0;
+    }
+
+    public static DateTime SimpleDateTime(this Randomizer randomizer, Bogus.DataSets.Date date)
+    {
+        var minYear = 1950;
+        var maxYear = 3200;
+
+        var minDay = 1;
+        var maxDay = 28;
+
+        var minHour = 1;
+        var maxHour = 12;
+
+        var minMinute = 1;
+        var maxMinute = 59;
+
+        var minSecond = 1;
+        var maxSecond = 59;
+
+        var randomYear = randomizer.Number(minYear, maxYear);
+        var randomDay = randomizer.Number(minDay, maxDay);
+        var randomHour = randomizer.Number(minHour, maxHour);
+        var randomMinute = randomizer.Number(minMinute, maxMinute);
+        var randomSecond = randomizer.Number(minSecond, maxSecond);
+
+        var timeSpan = new TimeSpan(randomDay, randomHour, randomMinute, randomSecond);
+        var dateOffset = new DateTimeOffset(DateTime.Now, timeSpan);
+
+        var dateTimeOffset = date.PastOffset(randomYear, dateOffset);
+
+        return dateTimeOffset.DateTime;
+    }
+
+    public static DateTime SimpleDateTimePair(this Randomizer randomizer, out DateTime other)
+    {
+        var minYear = 1950;
+        var maxYear = 3200;
+
+        var minMonth = 1;
+        var maxMonth = 12;
+
+        var minDay = 1;
+        var maxDay = 28;
+
+        var minHour = 1;
+        var maxHour = 12;
+
+        var minMinute = 1;
+        var maxMinute = 59;
+
+        var minSecond = 1;
+        var maxSecond = 59;
+
+        var randomYear = randomizer.Number(minYear, maxYear);
+        var randomMonth = randomizer.Number(minMonth, maxMonth);
+        var randomDay = randomizer.Number(minDay, maxDay);
+        var randomHour = randomizer.Number(minHour, maxHour);
+        var randomMinute = randomizer.Number(minMinute, maxMinute);
+        var randomSecond = randomizer.Number(minSecond, maxSecond);
+
+        var otherDateTime = new DateTime(randomYear,
+                                         randomMonth,
+                                         randomDay,
+                                         randomHour,
+                                         randomMinute,
+                                         randomSecond,
+                                         DateTimeKind.Unspecified);
+
+        var upperlimit = otherDateTime.AddSeconds(-4).AddDays(-1);
+
+        randomYear = randomizer.Number(minYear, upperlimit.Year);
+        randomMonth = randomizer.Number(minMonth, upperlimit.Month);
+        randomDay = randomizer.Number(minDay, upperlimit.Day);
+        randomHour = randomizer.Number(minHour, upperlimit.Hour);
+        randomMinute = randomizer.Number(minMinute, upperlimit.Minute);
+        randomSecond = randomizer.Number(minSecond, upperlimit.Second);
+
+        var newDateTime = new DateTime(randomYear,
+                                       randomMonth,
+                                       randomDay,
+                                       randomHour,
+                                       randomMinute,
+                                       randomSecond,
+                                       DateTimeKind.Unspecified);
+
+        // other must be necessarily greater than the returned value.
+        other = otherDateTime;
+        return newDateTime;
     }
 }
