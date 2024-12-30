@@ -82,9 +82,9 @@ public sealed class DataValidation
             throw new ArgumentException(MinGreaterThanMaxMessage, nameof(min));
         else
         {
-            var epoch = new DateTime(1900,1,1,1,1,1,DateTimeKind.Unspecified);
-            var minElapsedDates = (min.AddDays(2) - epoch).Days;
-            var maxElapsedDates = (max.AddDays(2) - epoch).Days;
+            var epoch = DateTime.FromOADate(0.0);
+            var minElapsedDates = Math.Ceiling(min.AddDays(-1).ToOADate() - epoch.ToOADate());
+            var maxElapsedDates = Math.Ceiling(max.AddDays(-1).ToOADate() - epoch.ToOADate());
 
             return new DataValidation(ValidationType.DateTime, op, minElapsedDates.ToString(CultureInfo.InvariantCulture), maxElapsedDates.ToString(CultureInfo.InvariantCulture));
         }
@@ -92,9 +92,8 @@ public sealed class DataValidation
 
     private static DataValidation _DateTime(ValidationOperator op, DateTime value)
     {
-        var epoch = new DateTime(1900,1,1,1,1,1,DateTimeKind.Unspecified);
-        var elapsedDate = value.AddDays(2) - epoch;
-        var days = (elapsedDate.Days);
+        var epoch = DateTime.FromOADate(0.0);
+        var days = Math.Ceiling(value.AddDays(-1).ToOADate() - epoch.ToOADate());
         return new(ValidationType.DateTime, op, days.ToString(CultureInfo.InvariantCulture));
     }
 

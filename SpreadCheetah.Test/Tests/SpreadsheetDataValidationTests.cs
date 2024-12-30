@@ -72,8 +72,8 @@ public class SpreadsheetDataValidationTests
         Assert.Equal(expectedOperator, actualValidation.Operator);
 
 
-        var epoch = new DateTime(1900,1,1,1,1,1,DateTimeKind.Unspecified);
-        var elapsedDates = (value.AddDays(2) - epoch).Days;
+        var epoch = DateTime.FromOADate(0.0);
+        var elapsedDates = Math.Ceiling(value.AddDays(-1).ToOADate() - epoch.ToOADate());
         Assert.Equal(elapsedDates.ToString(CultureInfo.InvariantCulture), actualValidation.MinValue);
         Assert.Empty(actualValidation.MaxValue);
 

@@ -59,13 +59,10 @@ internal static class RandomizerExtensions
         return value1 / 1000.0;
     }
 
-    public static DateTime SimpleDateTime(this Randomizer randomizer)
+    public static DateTime SimpleDateTime(this Randomizer randomizer, Bogus.DataSets.Date date)
     {
         var minYear = 1950;
         var maxYear = 3200;
-
-        var minMonth = 1;
-        var maxMonth = 12;
 
         var minDay = 1;
         var maxDay = 28;
@@ -80,21 +77,17 @@ internal static class RandomizerExtensions
         var maxSecond = 59;
 
         var randomYear = randomizer.Number(minYear, maxYear);
-        var randomMonth = randomizer.Number(minMonth, maxMonth);
         var randomDay = randomizer.Number(minDay, maxDay);
         var randomHour = randomizer.Number(minHour, maxHour);
         var randomMinute = randomizer.Number(minMinute, maxMinute);
         var randomSecond = randomizer.Number(minSecond, maxSecond);
 
-        var dateTime = new DateTime(randomYear,
-                                    randomMonth,
-                                    randomDay,
-                                    randomHour,
-                                    randomMinute,
-                                    randomSecond,
-                                    DateTimeKind.Unspecified);
+        var timeSpan = new TimeSpan(randomDay, randomHour, randomMinute, randomSecond);
+        var dateOffset = new DateTimeOffset(DateTime.Now, timeSpan);
 
-        return dateTime;
+        var dateTimeOffset = date.PastOffset(randomYear, dateOffset);
+
+        return dateTimeOffset.DateTime;
     }
 
     public static DateTime SimpleDateTimePair(this Randomizer randomizer, out DateTime other)
