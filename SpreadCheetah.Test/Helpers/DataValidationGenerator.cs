@@ -23,16 +23,14 @@ internal static class DataValidationGenerator
 
     private static readonly Func<Faker, DataValidation>[] Factories =
     [
-        f => DataValidation.DateTimeBetween(f.Random.SimpleDateTimePair(out var max), max),
-        f => DataValidation.DateTimeEqualTo(f.Random.SimpleDateTime(f.Date)),
-        f => DataValidation.DateTimeGreaterThan(f.Random.SimpleDateTime(f.Date)),
-        f => DataValidation.DateTimeGreaterThanOrEqualTo(f.Random.SimpleDateTime(f.Date)),
-        f => DataValidation.DateTimeLessThan(f.Random.SimpleDateTime(f.Date)),
-        f => DataValidation.DateTimeLessThanOrEqualTo(f.Random.SimpleDateTime(f.Date)),
-        f => DataValidation.DateTimeNotBetween(f.Random.SimpleDateTimePair(out var max), max),
-        f => DataValidation.DateTimeNotEqualTo(f.Random.SimpleDateTime(f.Date)),
-
-
+        f => DataValidation.DateTimeBetween(f.Date.Past(), f.Date.Future()),
+        f => DataValidation.DateTimeEqualTo(f.Date.Past()),
+        f => DataValidation.DateTimeGreaterThan(f.Date.Past()),
+        f => DataValidation.DateTimeGreaterThanOrEqualTo(f.Date.Past()),
+        f => DataValidation.DateTimeLessThan(f.Date.Future()),
+        f => DataValidation.DateTimeLessThanOrEqualTo(f.Date.Future()),
+        f => DataValidation.DateTimeNotBetween(f.Date.Past(), f.Date.Future()),
+        f => DataValidation.DateTimeNotEqualTo(f.Date.Past()),
         f => DataValidation.DecimalBetween(f.Random.SimpleDoublePair(out var max), max),
         f => DataValidation.DecimalEqualTo(f.Random.SimpleDouble()),
         f => DataValidation.DecimalGreaterThan(f.Random.SimpleDouble()),
