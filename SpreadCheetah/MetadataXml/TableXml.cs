@@ -5,51 +5,55 @@ namespace SpreadCheetah.MetadataXml;
 
 internal struct TableXml
 {
-    // TODO: "id" should be globally unique?
     private static ReadOnlySpan<byte> Header =>
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
-        """<table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" """u8 +
-        """id="1" name="""u8 + "\""u8;
+        """<table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="""u8 + "\""u8;
 
     // TODO: Set value for "insertRow"?
     // TODO: Set value for "totalsRowShown"
-    // TODO: Consider having autoFilter by default for all columns
+    // TODO: AutoFilter by default for all columns. Can later add options to change this behavior.
     private static ReadOnlySpan<byte> ReferenceEnd => "\""u8 +
         """ insertRow="1" totalsRowShown="0">"""u8 +
-        """<autoFilter ref="A1:A2"/>"""u8 +
-        """<tableColumns count="1">"""u8 +
-        """<tableColumn id="1" name="Column1"/>"""u8 +
-        """</tableColumns>"""u8 +
-        """<tableStyleInfo name="TableStyleLight1" showFirstColumn="0" showLastColumn="0" showRowStripes="1" showColumnStripes="0"/>"""u8;
+        """<autoFilter ref="""u8 + "\""u8;
 
     private readonly SpreadsheetBuffer _buffer;
     private readonly Table _table;
-    private readonly ReadOnlyMemory<string?> _headerRowNames; // TODO: Set value. Might be empty.
+    private readonly ReadOnlyMemory<string?> _headerRowNames; // TODO: Set value. Might be empty. Consider how to handle tables that don't start at colum 'A'.
     private readonly ushort _startColumn; // TODO: Set value
     private readonly uint _startRow; // TODO: Set value
     private readonly uint _endRow; // TODO: Set value
+    private readonly int _tableId; // TODO: Table id set from TotalNumberOfTables
     private Element _next;
+    private int _nextIndex;
 
-    private TableXml(Table table, SpreadsheetBuffer buffer)
+    private TableXml(Table table, int tableId, SpreadsheetBuffer buffer)
     {
         _buffer = buffer;
         _table = table;
+        _tableId = tableId;
     }
 
     public readonly TableXml GetEnumerator() => this;
     public bool Current { get; private set; }
 
+    // TODO: Can ColumnCount end up being "0"?
+    private readonly int ColumnCount => _table.NumberOfColumns ?? _headerRowNames.Length;
+
     public bool MoveNext()
     {
         Current = _next switch
         {
-            Element.Header => _buffer.TryWrite(Header),
+            Element.Header => TryWriteHeader(),
             Element.Name => _buffer.TryWrite($"{_table.Name}"), // TODO: Can it be longer than minimum buffer length? Maybe it should be disallowed?
             Element.NameEnd => _buffer.TryWrite("\" displayName=\""u8),
             Element.DisplayName => _buffer.TryWrite($"{_table.Name}"), // TODO: Can it be longer than minimum buffer length? Maybe it should be disallowed?
             Element.DisplayNameEnd => _buffer.TryWrite("\" ref=\""u8),
             Element.Reference => TryWriteCellRangeReference(),
             Element.ReferenceEnd => _buffer.TryWrite(ReferenceEnd),
+            Element.AutoFilterReference => TryWriteCellRangeReference(),
+            Element.TableColumnsStart => TryWriteTableColumnsStart(),
+            Element.TableColumns => TryWriteTableColumns(),
+            Element.TableStyleInfo => TryWriteTableStyleInfo(),
             _ => _buffer.TryWrite("</table>"u8)
         };
 
@@ -59,16 +63,70 @@ internal struct TableXml
         return _next < Element.Done;
     }
 
+    private readonly bool TryWriteHeader()
+    {
+        return _buffer.TryWrite($"{Header}{_tableId}{"\" name=\""u8}");
+    }
+
     private readonly bool TryWriteCellRangeReference()
     {
+        var endColumn = (ushort)(_startColumn + ColumnCount);
         var fromCell = new SimpleSingleCellReference(_startColumn, _startRow);
-
-        // TODO: Can columnCount end up being "0"?
-        var columnCount = _table.NumberOfColumns ?? _headerRowNames.Length;
-        var endColumn = (ushort)(_startColumn + columnCount);
         var toCell = new SimpleSingleCellReference(endColumn, _endRow);
 
         return _buffer.TryWrite($"{fromCell}:{toCell}");
+    }
+
+    private readonly bool TryWriteTableColumnsStart()
+    {
+        return _buffer.TryWrite($"{"\"/><tableColumns count=\""u8}{ColumnCount}{"\">"u8}");
+    }
+
+    private bool TryWriteTableColumns()
+    {
+        var span = _headerRowNames.Span;
+        var length = Math.Min(span.Length, ColumnCount);
+
+        for (; _nextIndex < length; ++_nextIndex)
+        {
+            var name = span[_nextIndex];
+            // TODO: Need to make changes to the name?
+            // TODO: What to do when name is null or empty?
+            // TODO: Need unique names here? If so, might have to validate in AddHeaderRow
+
+            if (!TryWriteTableColumn(name))
+                return false;
+        }
+
+        for (; _nextIndex < ColumnCount; ++_nextIndex)
+        {
+            var name = ""; // TODO: Generate a unique name, e.g. "ColumnX"
+
+            if (!TryWriteTableColumn(name))
+                return false;
+        }
+
+        _nextIndex = 0;
+        return true;
+    }
+
+    private readonly bool TryWriteTableColumn(string name)
+    {
+        return _buffer.TryWrite(
+            $"{"<tableColumn id=\""u8}" +
+            $"{_nextIndex + 1}" +
+            $"{"\" name=\""u8}" +
+            $"{name}" +
+            $"{"\"/>"u8}");
+    }
+
+    private readonly bool TryWriteTableStyleInfo()
+    {
+        // TODO: Set attribute values
+        return _buffer.TryWrite($"" +
+            $"{"</tableColumns><tableStyleInfo name=\""u8}" +
+            $"{"TableStyleLight1"u8}" + // TODO: Set from style
+            $"{"\" showFirstColumn=\"0\" showLastColumn=\"0\" showRowStripes=\"1\" showColumnStripes=\"0\"/>"u8}");
     }
 
     private enum Element
@@ -80,6 +138,10 @@ internal struct TableXml
         DisplayNameEnd,
         Reference,
         ReferenceEnd,
+        AutoFilterReference,
+        TableColumnsStart,
+        TableColumns,
+        TableStyleInfo,
         Footer,
         Done
     }

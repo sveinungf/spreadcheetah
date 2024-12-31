@@ -360,6 +360,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public async ValueTask AddHeaderRowAsync(string?[] headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
+        // TODO: Consider if headerNames should be non-nullable strings
         ArgumentNullException.ThrowIfNull(headerNames);
         if (headerNames.Length == 0)
             return;
