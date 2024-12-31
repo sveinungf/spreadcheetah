@@ -573,6 +573,14 @@ namespace SpreadCheetah.Validations
         public string? InputTitle { get; set; }
         public bool ShowErrorAlert { get; set; }
         public bool ShowInputMessage { get; set; }
+        public static SpreadCheetah.Validations.DataValidation DateTimeBetween(System.DateTime min, System.DateTime max) { }
+        public static SpreadCheetah.Validations.DataValidation DateTimeEqualTo(System.DateTime value) { }
+        public static SpreadCheetah.Validations.DataValidation DateTimeGreaterThan(System.DateTime value) { }
+        public static SpreadCheetah.Validations.DataValidation DateTimeGreaterThanOrEqualTo(System.DateTime value) { }
+        public static SpreadCheetah.Validations.DataValidation DateTimeLessThan(System.DateTime value) { }
+        public static SpreadCheetah.Validations.DataValidation DateTimeLessThanOrEqualTo(System.DateTime value) { }
+        public static SpreadCheetah.Validations.DataValidation DateTimeNotBetween(System.DateTime min, System.DateTime max) { }
+        public static SpreadCheetah.Validations.DataValidation DateTimeNotEqualTo(System.DateTime value) { }
         public static SpreadCheetah.Validations.DataValidation DecimalBetween(double min, double max) { }
         public static SpreadCheetah.Validations.DataValidation DecimalEqualTo(double value) { }
         public static SpreadCheetah.Validations.DataValidation DecimalGreaterThan(double value) { }
