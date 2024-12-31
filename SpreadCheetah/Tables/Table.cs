@@ -1,3 +1,5 @@
+using SpreadCheetah.Helpers;
+
 namespace SpreadCheetah.Tables;
 
 public sealed class Table
@@ -5,7 +7,6 @@ public sealed class Table
     internal string Name { get; }
     internal TableStyle Style { get; }
 
-    public bool AutoFilter { get; set; } = true; // TODO: Maybe bool is not enough, if one would want to do pre-defined filtering.
     public bool BandedColumns { get; set; }
     public bool BandedRows { get; set; } = true;
     public int? NumberOfColumns { get; set; } // TODO: Validate in setter. Should only be used if number of columns is different from header row columns.
@@ -16,10 +17,22 @@ public sealed class Table
         Style = style; // TODO: Validate
     }
 
+    internal SortedDictionary<int, TableColumnOptions>? ColumnOptions { get; private set; }
+
     public TableColumnOptions Column(int columnNumber)
     {
-        // TODO: Implement
+        if (columnNumber is < 1 or > SpreadsheetConstants.MaxNumberOfColumns)
+            ThrowHelper.ColumnNumberInvalid(nameof(columnNumber), columnNumber);
+
+        // TODO: Is there a limit of the number of columns in a table?
         // TODO: Consider having AutoFilter stuff in TableColumnOptions
-        throw new NotImplementedException();
+        ColumnOptions ??= [];
+        if (!ColumnOptions.TryGetValue(columnNumber, out var options))
+        {
+            options = new TableColumnOptions();
+            ColumnOptions[columnNumber] = options;
+        }
+
+        return options;
     }
 }

@@ -89,6 +89,22 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             return Fail();
         }
 
+        /// <summary>
+        /// Writes '1' for true and '0' for false.
+        /// </summary>
+        public bool AppendFormatted(bool value)
+        {
+            var destination = GetSpan();
+            if (destination.Length > 0)
+            {
+                destination[0] = (byte)('0' + (value ? 1 : 0)); // Branchless on .NET 8+
+                _pos++;
+                return true;
+            }
+
+            return Fail();
+        }
+
         public bool AppendFormatted(int value)
         {
             if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))

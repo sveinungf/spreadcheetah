@@ -10,13 +10,6 @@ internal struct TableXml
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="""u8 + "\""u8;
 
-    // TODO: Set value for "insertRow"?
-    // TODO: Set value for "totalsRowShown"
-    // TODO: AutoFilter by default for all columns. Can later add options to change this behavior.
-    private static ReadOnlySpan<byte> ReferenceEnd => "\""u8 +
-        """ insertRow="1" totalsRowShown="0">"""u8 +
-        """<autoFilter ref="""u8 + "\""u8;
-
     private readonly SpreadsheetBuffer _buffer;
     private readonly Table _table;
     private readonly ReadOnlyMemory<string?> _headerRowNames; // TODO: Set value. Might be empty. Consider how to handle tables that don't start at colum 'A'.
@@ -50,7 +43,7 @@ internal struct TableXml
             Element.DisplayName => _buffer.TryWrite($"{_table.Name}"), // TODO: Can it be longer than minimum buffer length? Maybe it should be disallowed?
             Element.DisplayNameEnd => _buffer.TryWrite("\" ref=\""u8),
             Element.Reference => TryWriteCellRangeReference(),
-            Element.ReferenceEnd => _buffer.TryWrite(ReferenceEnd),
+            Element.ReferenceEnd => TryWriteReferenceEnd(),
             Element.AutoFilterReference => TryWriteCellRangeReference(),
             Element.TableColumnsStart => TryWriteTableColumnsStart(),
             Element.TableColumns => TryWriteTableColumns(),
@@ -80,9 +73,23 @@ internal struct TableXml
         return _buffer.TryWrite($"{fromCell}:{toCell}");
     }
 
+    private readonly bool TryWriteReferenceEnd()
+    {
+        var hasTotalRow = _table.ColumnOptions?.Values.Any(x => x.AffectsTotalRow) ?? false;
+
+        // TODO: AutoFilter by default for all columns. Can later add options to change this behavior.
+        return _buffer.TryWrite(
+            $"{"\" totalsRowShown=\""u8}" +
+            $"{hasTotalRow}" +
+            $"{"\"><autoFilter ref=\""u8}");
+    }
+
     private readonly bool TryWriteTableColumnsStart()
     {
-        return _buffer.TryWrite($"{"\"/><tableColumns count=\""u8}{ColumnCount}{"\">"u8}");
+        return _buffer.TryWrite(
+            $"{"\"/><tableColumns count=\""u8}" +
+            $"{ColumnCount}" +
+            $"{"\">"u8}");
     }
 
     private bool TryWriteTableColumns()
@@ -149,13 +156,11 @@ internal struct TableXml
 
     private readonly bool TryWriteTableStyleInfo()
     {
-        var showRowStripesValue = _table.BandedRows ? "1"u8 : "0"u8;
-        var showColumnStripesValue = _table.BandedColumns ? "1"u8 : "0"u8;
         return _buffer.TryWrite(
             $"{"\" showFirstColumn=\"0\" showLastColumn=\"0\" showRowStripes=\""u8}" +
-            $"{showRowStripesValue}" +
+            $"{_table.BandedRows}" +
             $"{"\" showColumnStripes=\""u8}" +
-            $"{showColumnStripesValue}" +
+            $"{_table.BandedColumns}" +
             $"{"\"/>"u8}");
     }
 
