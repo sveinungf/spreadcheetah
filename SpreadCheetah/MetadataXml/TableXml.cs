@@ -1,5 +1,6 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.Tables;
+using System.Diagnostics;
 
 namespace SpreadCheetah.MetadataXml;
 
@@ -53,6 +54,8 @@ internal struct TableXml
             Element.AutoFilterReference => TryWriteCellRangeReference(),
             Element.TableColumnsStart => TryWriteTableColumnsStart(),
             Element.TableColumns => TryWriteTableColumns(),
+            Element.TableStyleInfoStart => _buffer.TryWrite("</tableColumns><tableStyleInfo "u8),
+            Element.TableStyleName => TryWriteTableStyleName(),
             Element.TableStyleInfo => TryWriteTableStyleInfo(),
             _ => _buffer.TryWrite("</table>"u8)
         };
@@ -120,13 +123,40 @@ internal struct TableXml
             $"{"\"/>"u8}");
     }
 
+    private readonly bool TryWriteTableStyleName()
+    {
+        if (_table.Style is TableStyle.None)
+            return true;
+
+        Debug.Assert(_table.Style is > TableStyle.None and <= TableStyle.Dark11);
+
+        var styleCategory = _table.Style switch
+        {
+            >= TableStyle.Dark1 => "Dark"u8,
+            >= TableStyle.Medium1 => "Medium"u8,
+            _ => "Light"u8
+        };
+
+        var styleNumber = _table.Style switch
+        {
+            >= TableStyle.Dark1 => _table.Style - TableStyle.Dark1 + 1,
+            >= TableStyle.Medium1 => _table.Style - TableStyle.Medium1 + 1,
+            _ => (int)_table.Style
+        };
+
+        return _buffer.TryWrite($"{"TableStyle"u8}{styleCategory}{styleNumber}");
+    }
+
     private readonly bool TryWriteTableStyleInfo()
     {
-        // TODO: Set attribute values
-        return _buffer.TryWrite($"" +
-            $"{"</tableColumns><tableStyleInfo name=\""u8}" +
-            $"{"TableStyleLight1"u8}" + // TODO: Set from style
-            $"{"\" showFirstColumn=\"0\" showLastColumn=\"0\" showRowStripes=\"1\" showColumnStripes=\"0\"/>"u8}");
+        var showRowStripesValue = _table.BandedRows ? "1"u8 : "0"u8;
+        var showColumnStripesValue = _table.BandedColumns ? "1"u8 : "0"u8;
+        return _buffer.TryWrite(
+            $"{"\" showFirstColumn=\"0\" showLastColumn=\"0\" showRowStripes=\""u8}" +
+            $"{showRowStripesValue}" +
+            $"{"\" showColumnStripes=\""u8}" +
+            $"{showColumnStripesValue}" +
+            $"{"\"/>"u8}");
     }
 
     private enum Element
@@ -141,6 +171,8 @@ internal struct TableXml
         AutoFilterReference,
         TableColumnsStart,
         TableColumns,
+        TableStyleInfoStart,
+        TableStyleName,
         TableStyleInfo,
         Footer,
         Done
