@@ -5,6 +5,7 @@ using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Tables;
+using SpreadCheetah.Tables.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 
@@ -21,8 +22,11 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly BaseCellWriter<StyledCell> _styledCellWriter;
     private readonly CellWriterState _state;
     private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
+
+    // TODO: Key should rather be an immutable type (e.g. ImmutableTable like for styles)
+    // TODO: Table GUID as key? Not great since the Table type is mutable.
+    private Dictionary<Table, WorksheetTableInfo>? _tables;
     private HashSet<CellRangeRelativeReference>? _cellMerges;
-    private List<Table>? _tables;
     private string? _autoFilterRange;
 
     public Dictionary<SingleCellRelativeReference, string>? Notes { get; private set; }

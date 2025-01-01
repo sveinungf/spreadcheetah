@@ -17,6 +17,7 @@ public sealed class Table
         Style = style; // TODO: Validate
     }
 
+    // TODO: Make copy in immutable type. Use e.g. List for now.
     internal SortedDictionary<int, TableColumnOptions>? ColumnOptions { get; private set; }
 
     public TableColumnOptions Column(int columnNumber)
