@@ -160,11 +160,18 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
     public void StartTable(Table table, string firstColumnName = "A")
     {
-        // TODO: Verify arguments
+        ArgumentNullException.ThrowIfNull(table);
+        ArgumentNullException.ThrowIfNull(firstColumnName);
+
+        if (!SpreadsheetUtility.TryParseColumnName(firstColumnName.AsSpan(), out var firstColumnNumber))
+            ThrowHelper.ColumnNameInvalid(nameof(firstColumnName));
+
         // TODO: Is there a limit on the number of tables?
+        // TODO: Can there be overlapping tables?
         // TODO: Make an immutable copy of the table?
         _fileCounter ??= new FileCounter();
         _fileCounter.TableForCurrentWorksheet();
+        // TODO: Need to store current row number and firstColumnName in the worksheet
         // TODO: Implementation
         throw new NotImplementedException();
     }
@@ -360,7 +367,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public async ValueTask AddHeaderRowAsync(string?[] headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
-        // TODO: Consider if headerNames should be non-nullable strings
+        // TODO: Consider if headerNames should be non-nullable strings.
+        // TODO: Check if a table was just started, and if so, set the header names on it.
+        // TODO: Active tables that already have header names should be ignored.
+        // TODO: How to handle multiple tables?
         ArgumentNullException.ThrowIfNull(headerNames);
         if (headerNames.Length == 0)
             return;
@@ -675,7 +685,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
     public ValueTask FinishTableAsync(Table table, CancellationToken token = default)
     {
-        // TODO
+        ArgumentNullException.ThrowIfNull(table);
+
+        // TODO: Need to store the current row number in the worksheet
+        // TODO: Throw if table is not in the current worksheet
+        // TODO: Add total row if set for the table
+        // TODO: Implementation
         throw new NotImplementedException();
     }
 
