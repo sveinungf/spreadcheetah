@@ -6,9 +6,9 @@ public enum TableTotalRowFunction
     Average,
     Count,
     CountNumbers,
-    Max,
-    Min,
+    Maximum,
+    Minimum,
     Sum,
-    StdDev,
-    Var
+    StandardDeviation,
+    Variance
 }

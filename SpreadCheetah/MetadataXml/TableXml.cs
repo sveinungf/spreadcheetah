@@ -149,7 +149,11 @@ file struct TableXmlWriter(
             // TODO: What to do when name is null or empty?
             // TODO: Need unique names here? If so, might have to validate in AddHeaderRow
 
-            if (!TryWriteTableColumn(name))
+            var (label, function) = table.ColumnOptions is { } columns && columns.TryGetValue(_nextIndex + 1, out var options)
+                ? (options.TotalRowLabel, options.TotalRowFunction)
+                : (null, null);
+
+            if (!TryWriteTableColumn(name, label, function))
                 return false;
         }
 
@@ -157,7 +161,7 @@ file struct TableXmlWriter(
         {
             var name = "Column1"; // TODO: Generate a unique name, e.g. "ColumnX"
 
-            if (!TryWriteTableColumn(name))
+            if (!TryWriteTableColumn(name, null, null))
                 return false;
         }
 
@@ -165,15 +169,38 @@ file struct TableXmlWriter(
         return true;
     }
 
-    private readonly bool TryWriteTableColumn(string name)
+    private readonly bool TryWriteTableColumn(string name,
+        string? totalRowLabel,
+        TableTotalRowFunction? totalRowFunction)
     {
+        var labelAttribute = totalRowLabel is not null ? "\" totalsRowLabel=\""u8 : [];
+        var functionAttribute = totalRowFunction is not null ? "\" totalsRowFunction=\""u8 : [];
+        var functionAttributeValue = GetFunctionAttributeValue(totalRowFunction);
+
         return buffer.TryWrite(
             $"{"<tableColumn id=\""u8}" +
             $"{_nextIndex + 1}" +
             $"{"\" name=\""u8}" +
             $"{name}" +
+            $"{labelAttribute}" +
+            $"{totalRowLabel}" +
+            $"{functionAttribute}" +
+            $"{functionAttributeValue}" +
             $"{"\"/>"u8}");
     }
+
+    private static ReadOnlySpan<byte> GetFunctionAttributeValue(TableTotalRowFunction? function) => function switch
+    {
+        TableTotalRowFunction.Average => "average"u8,
+        TableTotalRowFunction.Count => "count"u8, // TODO: Verify
+        TableTotalRowFunction.CountNumbers => "countNums"u8, // TODO: Verify
+        TableTotalRowFunction.Maximum => "max"u8, // TODO: Verify
+        TableTotalRowFunction.Minimum => "min"u8, // TODO: Verify
+        TableTotalRowFunction.StandardDeviation => "stdDev"u8, // TODO: Verify
+        TableTotalRowFunction.Sum => "sum"u8,
+        TableTotalRowFunction.Variance => "var"u8, // TODO: Verify
+        _ => []
+    };
 
     private readonly bool TryWriteTableStyleName()
     {
