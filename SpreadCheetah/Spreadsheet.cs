@@ -168,12 +168,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         // TODO: Is there a limit on the number of tables?
         // TODO: Can there be overlapping tables?
-        // TODO: Make an immutable copy of the table?
+        // TODO: Make an immutable copy of the table
         _fileCounter ??= new FileCounter();
         _fileCounter.TableForCurrentWorksheet();
-        // TODO: Need to store current row number and firstColumnName in the worksheet
-        // TODO: Implementation
-        throw new NotImplementedException();
+
+        if (!Worksheet.TryStartTable(table, firstColumnNumber))
+            ThrowHelper.TableNameAlreadyExists(nameof(table));
     }
 
     /// <summary>
@@ -683,15 +683,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             _fileCounter.ImageForCurrentWorksheet();
     }
 
-    public ValueTask FinishTableAsync(Table table, CancellationToken token = default)
+    public async ValueTask FinishTableAsync(string tableName, CancellationToken token = default)
     {
-        ArgumentNullException.ThrowIfNull(table);
-
-        // TODO: Need to store the current row number in the worksheet
-        // TODO: Throw if table is not in the current worksheet
-        // TODO: Add total row if set for the table
-        // TODO: Implementation
-        throw new NotImplementedException();
+        ArgumentNullException.ThrowIfNull(tableName);
+        await Worksheet.FinishTableAsync(tableName, token).ConfigureAwait(false);
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)

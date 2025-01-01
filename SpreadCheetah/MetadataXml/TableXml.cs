@@ -54,7 +54,7 @@ file struct TableXmlWriter(
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="""u8 + "\""u8;
 
-    private readonly bool _hasTotalRow = table.ColumnOptions?.Values.Any(x => x.AffectsTotalRow) ?? false;
+    private readonly bool _hasTotalRow = table.HasTotalRow();
     private Element _next;
     private int _nextIndex;
 

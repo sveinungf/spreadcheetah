@@ -22,10 +22,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly BaseCellWriter<StyledCell> _styledCellWriter;
     private readonly CellWriterState _state;
     private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
-
-    // TODO: Key should rather be an immutable type (e.g. ImmutableTable like for styles)
-    // TODO: Table GUID as key? Not great since the Table type is mutable.
-    private Dictionary<Table, WorksheetTableInfo>? _tables;
+    private Dictionary<string, WorksheetTableInfo>? _tables;
     private HashSet<CellRangeRelativeReference>? _cellMerges;
     private string? _autoFilterRange;
 
@@ -62,6 +59,23 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         {
             _autoFilterRange = options.AutoFilter.CellRange.Reference;
         }
+    }
+
+    public bool TryStartTable(Table table, int firstColumnNumber)
+    {
+        _tables ??= new(StringComparer.OrdinalIgnoreCase);
+        if (_tables.ContainsKey(table.Name))
+            return false;
+
+        // TODO: Any other reason why we shouldn't start a table?
+        _tables[table.Name] = new WorksheetTableInfo
+        {
+            FirstColumn = (ushort)firstColumnNumber,
+            FirstRow = _state.NextRowIndex,
+            Table = table
+        };
+
+        return true;
     }
 
     public bool TryAddRow(IList<Cell> cells)
@@ -156,6 +170,28 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     {
         _cellMerges ??= [];
         _cellMerges.Add(cellRange);
+    }
+
+    public async ValueTask FinishTableAsync(string tableName, CancellationToken token)
+    {
+        if (_tables is null || !_tables.TryGetValue(tableName, out var tableInfo))
+            ThrowHelper.TableNameDoesNotExist(nameof(tableName));
+        else if (tableInfo.LastDataRow is not null)
+            ThrowHelper.TableAlreadyFinished();
+        else
+        {
+            // TODO: What to do if table has no columns?
+            // TODO: What to do if table has no rows? Only header row should probably be fine.
+            tableInfo.LastDataRow = _state.NextRowIndex - 1;
+
+            if (!tableInfo.Table.HasTotalRow())
+                return;
+
+            // TODO: tableInfo.Table.ColumnOptions.Last().Key;
+
+            // TODO: Add total row
+            throw new NotImplementedException();
+        }
     }
 
     public async ValueTask FinishAsync(CancellationToken token)

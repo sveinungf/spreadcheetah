@@ -19,6 +19,7 @@ public sealed class Table
 
     // TODO: Make copy in immutable type. Use e.g. List for now.
     internal SortedDictionary<int, TableColumnOptions>? ColumnOptions { get; private set; }
+    internal bool HasTotalRow() => ColumnOptions?.Values.Any(x => x.AffectsTotalRow) ?? false;
 
     public TableColumnOptions Column(int columnNumber)
     {
