@@ -683,10 +683,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             _fileCounter.ImageForCurrentWorksheet();
     }
 
-    public async ValueTask FinishTableAsync(string tableName, CancellationToken token = default)
+    public ValueTask FinishTableAsync(string tableName, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(tableName);
-        await Worksheet.FinishTableAsync(tableName, token).ConfigureAwait(false);
+        return Worksheet.FinishTableAsync(tableName, token);
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
