@@ -14,7 +14,7 @@ internal static class AnalyzerTest
         {
             TestState =
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
                 AdditionalReferences =
                 {
                     MetadataReference.CreateFromFile(typeof(WorksheetRowAttribute).Assembly.Location)
