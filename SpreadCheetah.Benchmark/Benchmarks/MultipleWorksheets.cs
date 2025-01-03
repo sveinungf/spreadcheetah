@@ -4,7 +4,7 @@ using SpreadCheetah.Worksheets;
 
 namespace SpreadCheetah.Benchmark.Benchmarks;
 
-[SimpleJob(RuntimeMoniker.Net80)]
+[SimpleJob(RuntimeMoniker.Net90)]
 [MemoryDiagnoser]
 public class MultipleWorksheets
 {
