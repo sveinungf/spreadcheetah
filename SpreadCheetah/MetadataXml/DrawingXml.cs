@@ -1,22 +1,19 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
-using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
 internal struct DrawingXml
 {
     public static async ValueTask WriteAsync(
-        ZipArchive archive,
-        CompressionLevel compressionLevel,
+        ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         int drawingsFileIndex,
         List<WorksheetImage> images,
         CancellationToken token)
     {
         var entryName = StringHelper.Invariant($"xl/drawings/drawing{drawingsFileIndex}.xml");
-        var entry = archive.CreateEntry(entryName, compressionLevel);
-        var stream = entry.Open();
+        var stream = zipArchiveManager.OpenEntry(entryName);
 #if NETSTANDARD2_0
         using (stream)
 #else

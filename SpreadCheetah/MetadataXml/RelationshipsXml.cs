@@ -1,5 +1,5 @@
+using SpreadCheetah.Helpers;
 using System.Diagnostics;
-using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
@@ -12,12 +12,11 @@ internal static class RelationshipsXml
         """</Relationships>"""u8;
 
     public static async ValueTask WriteAsync(
-        ZipArchive archive,
-        CompressionLevel compressionLevel,
+        ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         CancellationToken token)
     {
-        var stream = archive.CreateEntry("_rels/.rels", compressionLevel).Open();
+        var stream = zipArchiveManager.OpenEntry("_rels/.rels");
 #if NETSTANDARD2_0
         using (stream)
 #else

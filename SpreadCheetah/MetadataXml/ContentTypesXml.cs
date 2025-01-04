@@ -1,23 +1,20 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
 using SpreadCheetah.Worksheets;
-using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
 internal struct ContentTypesXml
 {
     public static async ValueTask WriteAsync(
-        ZipArchive archive,
-        CompressionLevel compressionLevel,
+        ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         List<WorksheetMetadata> worksheets,
         FileCounter? fileCounter,
         bool hasStylesXml,
         CancellationToken token)
     {
-        var entry = archive.CreateEntry("[Content_Types].xml", compressionLevel);
-        var stream = entry.Open();
+        var stream = zipArchiveManager.OpenEntry("[Content_Types].xml");
 #if NETSTANDARD2_0
         using (stream)
 #else

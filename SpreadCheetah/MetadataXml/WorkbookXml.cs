@@ -1,19 +1,17 @@
+using SpreadCheetah.Helpers;
 using SpreadCheetah.Worksheets;
-using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
 internal struct WorkbookXml
 {
     public static async ValueTask WriteAsync(
-        ZipArchive archive,
-        CompressionLevel compressionLevel,
+        ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         List<WorksheetMetadata> worksheets,
         CancellationToken token)
     {
-        var entry = archive.CreateEntry("xl/workbook.xml", compressionLevel);
-        var stream = entry.Open();
+        var stream = zipArchiveManager.OpenEntry("xl/workbook.xml");
 #if NETSTANDARD2_0
         using (stream)
 #else

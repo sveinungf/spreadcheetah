@@ -1,5 +1,4 @@
 using SpreadCheetah.Helpers;
-using System.IO.Compression;
 using System.Runtime.InteropServices;
 
 namespace SpreadCheetah.MetadataXml;
@@ -8,16 +7,14 @@ namespace SpreadCheetah.MetadataXml;
 internal struct WorksheetRelsXml
 {
     public static async ValueTask WriteAsync(
-        ZipArchive archive,
-        CompressionLevel compressionLevel,
+        ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         int worksheetIndex,
         FileCounter fileCounter,
         CancellationToken token)
     {
         var entryName = StringHelper.Invariant($"xl/worksheets/_rels/sheet{worksheetIndex}.xml.rels");
-        var entry = archive.CreateEntry(entryName, compressionLevel);
-        var stream = entry.Open();
+        var stream = zipArchiveManager.OpenEntry(entryName);
 #if NETSTANDARD2_0
         using (stream)
 #else

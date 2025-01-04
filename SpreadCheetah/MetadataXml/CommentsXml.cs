@@ -1,22 +1,19 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
-using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
 internal struct CommentsXml
 {
     public static async ValueTask WriteAsync(
-        ZipArchive archive,
-        CompressionLevel compressionLevel,
+        ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         int notesFilesIndex,
         ReadOnlyMemory<KeyValuePair<SingleCellRelativeReference, string>> notes,
         CancellationToken token)
     {
         var entryName = StringHelper.Invariant($"xl/comments{notesFilesIndex}.xml");
-        var entry = archive.CreateEntry(entryName, compressionLevel);
-        var stream = entry.Open();
+        var stream = zipArchiveManager.OpenEntry(entryName);
 #if NETSTANDARD2_0
         using (stream)
 #else

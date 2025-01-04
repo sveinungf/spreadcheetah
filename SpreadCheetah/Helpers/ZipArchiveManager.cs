@@ -1,16 +1,34 @@
-using SpreadCheetah.Helpers;
+using SpreadCheetah.Images;
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO.Compression;
 
-namespace SpreadCheetah.Images;
+namespace SpreadCheetah.Helpers;
 
-internal static class ZipArchiveExtensions
+internal sealed class ZipArchiveManager : IDisposable
 {
-    public static async ValueTask<EmbeddedImage> CreateImageEntryAsync(
-        this ZipArchive archive,
+    private readonly ZipArchive _zipArchive;
+    private readonly CompressionLevel _compressionLevel;
+
+    public ZipArchiveManager(
         Stream stream,
-        CompressionLevel compressionLevel,
+        SpreadCheetahCompressionLevel? compressionLevel)
+    {
+        _zipArchive = new ZipArchive(stream, ZipArchiveMode.Create, true);
+
+        var level = compressionLevel ?? SpreadCheetahOptions.DefaultCompressionLevel;
+        _compressionLevel = level is SpreadCheetahCompressionLevel.Optimal
+            ? CompressionLevel.Optimal
+            : CompressionLevel.Fastest;
+    }
+
+    public Stream OpenEntry(string entryName)
+    {
+        return _zipArchive.CreateEntry(entryName, _compressionLevel).Open();
+    }
+
+    public async ValueTask<EmbeddedImage> CreateImageEntryAsync(
+        Stream stream,
         ReadOnlyMemory<byte> header,
         ImageType type,
         int embeddedImageId,
@@ -25,8 +43,7 @@ internal static class ZipArchiveExtensions
         };
 
         var entryName = StringHelper.Invariant($"xl/media/image{embeddedImageId}{fileExtension}");
-        var entry = archive.CreateEntry(entryName, compressionLevel);
-        var entryStream = entry.Open();
+        var entryStream = OpenEntry(entryName);
 #if NETSTANDARD2_0
         using (entryStream)
 #else
@@ -37,7 +54,7 @@ internal static class ZipArchiveExtensions
 
             var task = type switch
             {
-                ImageType.Png => stream.CopyPngToAsync(entryStream, header, embeddedImageId, spreadsheetGuid, token),
+                ImageType.Png => CopyPngToAsync(stream, entryStream, header, embeddedImageId, spreadsheetGuid, token),
                 _ => new ValueTask<EmbeddedImage>(new EmbeddedImage(0, 0, embeddedImageId, spreadsheetGuid))
             };
 
@@ -45,7 +62,7 @@ internal static class ZipArchiveExtensions
         }
     }
 
-    private static async ValueTask<EmbeddedImage> CopyPngToAsync(this Stream source, Stream destination, ReadOnlyMemory<byte> bytesReadSoFar,
+    private static async ValueTask<EmbeddedImage> CopyPngToAsync(Stream source, Stream destination, ReadOnlyMemory<byte> bytesReadSoFar,
         int embeddedImageId, Guid spreadsheetGuid, CancellationToken token)
     {
         // A valid PNG file should start with these bytes:
@@ -72,5 +89,10 @@ internal static class ZipArchiveExtensions
         height.EnsureValidImageDimension();
 
         return (width, height);
+    }
+
+    public void Dispose()
+    {
+        _zipArchive.Dispose();
     }
 }

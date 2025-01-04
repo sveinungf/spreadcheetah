@@ -1,20 +1,18 @@
+using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
-using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct StylesXml
 {
     public static async ValueTask WriteAsync(
-        ZipArchive archive,
-        CompressionLevel compressionLevel,
+        ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         StyleManager styleManager,
         CancellationToken token)
     {
-        var entry = archive.CreateEntry("xl/styles.xml", compressionLevel);
-        var stream = entry.Open();
+        var stream = zipArchiveManager.OpenEntry("xl/styles.xml");
 #if NETSTANDARD2_0
         using (stream)
 #else
