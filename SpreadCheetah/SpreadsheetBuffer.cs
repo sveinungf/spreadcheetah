@@ -107,7 +107,11 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(int value)
         {
+#if NET8_0_OR_GREATER
+            if (value.TryFormat(GetSpan(), out var bytesWritten, provider: NumberFormatInfo.InvariantInfo))
+#else
             if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
+#endif
             {
                 _pos += bytesWritten;
                 return true;
@@ -118,7 +122,11 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(uint value)
         {
+#if NET8_0_OR_GREATER
+            if (value.TryFormat(GetSpan(), out var bytesWritten, provider: NumberFormatInfo.InvariantInfo))
+#else
             if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
+#endif
             {
                 _pos += bytesWritten;
                 return true;
@@ -129,7 +137,11 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(ushort value)
         {
+#if NET8_0_OR_GREATER
+            if (value.TryFormat(GetSpan(), out var bytesWritten, provider: NumberFormatInfo.InvariantInfo))
+#else
             if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
+#endif
             {
                 _pos += bytesWritten;
                 return true;
@@ -140,7 +152,11 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(float value)
         {
+#if NET8_0_OR_GREATER
+            if (value.TryFormat(GetSpan(), out var bytesWritten, provider: NumberFormatInfo.InvariantInfo))
+#else
             if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
+#endif
             {
                 _pos += bytesWritten;
                 return true;
@@ -151,7 +167,11 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(double value)
         {
+#if NET8_0_OR_GREATER
+            if (value.TryFormat(GetSpan(), out var bytesWritten, provider: NumberFormatInfo.InvariantInfo))
+#else
             if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
+#endif
             {
                 _pos += bytesWritten;
                 return true;
