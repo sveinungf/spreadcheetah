@@ -1,40 +1,22 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
-using System.IO.Compression;
 using System.Runtime.InteropServices;
 
 namespace SpreadCheetah.MetadataXml;
 
 [StructLayout(LayoutKind.Auto)]
-internal struct VmlDrawingXml
+internal struct VmlDrawingXml : IXmlWriter<VmlDrawingXml>
 {
-    public static async ValueTask WriteAsync(
-        ZipArchive archive,
-        CompressionLevel compressionLevel,
+    public static ValueTask WriteAsync(
+        ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         int notesFilesIndex,
         ReadOnlyMemory<KeyValuePair<SingleCellRelativeReference, string>> notes,
         CancellationToken token)
     {
         var entryName = StringHelper.Invariant($"xl/drawings/vmlDrawing{notesFilesIndex}.vml");
-        var entry = archive.CreateEntry(entryName, compressionLevel);
-        var stream = entry.Open();
-#if NETSTANDARD2_0
-        using (stream)
-#else
-        await using (stream.ConfigureAwait(false))
-#endif
-        {
-            var writer = new VmlDrawingXml(notes, buffer);
-
-            foreach (var success in writer)
-            {
-                if (!success)
-                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            }
-
-            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        }
+        var writer = new VmlDrawingXml(notes, buffer);
+        return zipArchiveManager.WriteAsync(writer, entryName, buffer, token);
     }
 
     private static ReadOnlySpan<byte> Header =>

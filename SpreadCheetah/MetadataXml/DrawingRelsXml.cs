@@ -1,38 +1,20 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
-using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct DrawingRelsXml
+internal struct DrawingRelsXml : IXmlWriter<DrawingRelsXml>
 {
-    public static async ValueTask WriteAsync(
-        ZipArchive archive,
-        CompressionLevel compressionLevel,
+    public static ValueTask WriteAsync(
+        ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         int drawingsFileIndex,
         List<WorksheetImage> images,
         CancellationToken token)
     {
         var entryName = StringHelper.Invariant($"xl/drawings/_rels/drawing{drawingsFileIndex}.xml.rels");
-        var entry = archive.CreateEntry(entryName, compressionLevel);
-        var stream = entry.Open();
-#if NETSTANDARD2_0
-        using (stream)
-#else
-        await using (stream.ConfigureAwait(false))
-#endif
-        {
-            var writer = new DrawingRelsXml(images, buffer);
-
-            foreach (var success in writer)
-            {
-                if (!success)
-                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            }
-
-            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        }
+        var writer = new DrawingRelsXml(images, buffer);
+        return zipArchiveManager.WriteAsync(writer, entryName, buffer, token);
     }
 
     private static ReadOnlySpan<byte> Header => """<?xml version="1.0" encoding="utf-8"?>"""u8 +
