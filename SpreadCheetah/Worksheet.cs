@@ -67,6 +67,10 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         if (_tables.ContainsKey(table.Name))
             return false;
 
+        // TODO: If overlapping tables are not allowed, check for that here and return false if there is overlap.
+        // TODO: Handle case where two tables start on the same row. The call to AddHeaderRow should know the max number of columns in the first table.
+        // TODO: AddHeaderRow can also know the max number of columns if there is an active table that was started on a previous row.
+
         // TODO: Any other reason why we shouldn't start a table?
         _tables[table.Name] = new WorksheetTableInfo
         {
@@ -76,6 +80,30 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         };
 
         return true;
+    }
+
+    public void AddHeaderNamesToNewlyStartedTables(ReadOnlySpan<string?> headerNames)
+    {
+        if (_tables is null)
+            return;
+
+        foreach (var tableInfo in _tables.Values)
+        {
+            if (tableInfo.Active && tableInfo.FirstRow == _state.NextRowIndex)
+                tableInfo.SetHeaderNames(headerNames);
+        }
+    }
+
+    public void AddHeaderNamesToNewlyStartedTables(IList<string?> headerNames)
+    {
+        if (_tables is null)
+            return;
+
+        foreach (var tableInfo in _tables.Values)
+        {
+            if (tableInfo.Active && tableInfo.FirstRow == _state.NextRowIndex)
+                tableInfo.SetHeaderNames(headerNames);
+        }
     }
 
     public bool TryAddRow(IList<Cell> cells)

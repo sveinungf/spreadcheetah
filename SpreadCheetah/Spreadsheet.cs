@@ -169,6 +169,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         // TODO: Is there a limit on the number of tables?
         // TODO: Can there be overlapping tables?
         // TODO: Make an immutable copy of the table
+        // TODO: Do not allow multiple active tables for now.
         _fileCounter ??= new FileCounter();
         _fileCounter.TableForCurrentWorksheet();
 
@@ -365,27 +366,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Add a row of header names in the active worksheet. A style can optionally be applied to all the cells in the row.
     /// </summary>
-    public async ValueTask AddHeaderRowAsync(string?[] headerNames, StyleId? styleId = null, CancellationToken token = default)
+    public ValueTask AddHeaderRowAsync(string?[] headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
         // TODO: Consider if headerNames should be non-nullable strings.
         // TODO: Check if a table was just started, and if so, set the header names on it.
         // TODO: Active tables that already have header names should be ignored.
         // TODO: How to handle multiple tables?
         ArgumentNullException.ThrowIfNull(headerNames);
-        if (headerNames.Length == 0)
-            return;
-
-        var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Length);
-        try
-        {
-            ReadOnlySpan<string?> span = headerNames.AsSpan();
-            span.CopyToCells(cells, styleId);
-            await AddRowAsync(cells.AsMemory(0, headerNames.Length), token).ConfigureAwait(false);
-        }
-        finally
-        {
-            ArrayPool<StyledCell>.Shared.Return(cells);
-        }
+        return AddHeaderRowAsync(headerNames.AsMemory(), styleId, token);
     }
 
     /// <summary>
@@ -394,13 +382,16 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public async ValueTask AddHeaderRowAsync(ReadOnlyMemory<string?> headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
         if (headerNames.Length == 0)
-            return;
+            return; // TODO: Should add an empty row instead
 
-        var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Length);
+        var headerNamesSpan = headerNames.Span;
+        Worksheet.AddHeaderNamesToNewlyStartedTables(headerNamesSpan);
+
+        var cells = ArrayPool<StyledCell>.Shared.Rent(headerNamesSpan.Length);
         try
         {
-            headerNames.Span.CopyToCells(cells, styleId);
-            await AddRowAsync(cells.AsMemory(0, headerNames.Length), token).ConfigureAwait(false);
+            headerNamesSpan.CopyToCells(cells, styleId);
+            await AddRowAsync(cells.AsMemory(0, headerNamesSpan.Length), token).ConfigureAwait(false);
         }
         finally
         {
@@ -415,7 +406,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(headerNames);
         if (headerNames.Count == 0)
-            return;
+            return; // TODO: Should add an empty row instead
+
+        Worksheet.AddHeaderNamesToNewlyStartedTables(headerNames);
 
         var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Count);
         try
