@@ -4,35 +4,22 @@ using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.MetadataXml.Styles;
 
-internal struct StylesXml
+internal struct StylesXml : IXmlWriter<StylesXml>
 {
-    public static async ValueTask WriteAsync(
+    public static ValueTask WriteAsync(
         ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         StyleManager styleManager,
         CancellationToken token)
     {
-        var stream = zipArchiveManager.OpenEntry("xl/styles.xml");
-#if NETSTANDARD2_0
-        using (stream)
-#else
-        await using (stream.ConfigureAwait(false))
-#endif
-        {
-            var writer = new StylesXml(
-                styles: styleManager.StyleElements,
-                namedStyles: styleManager.GetEmbeddedNamedStyles(),
-                namedStylesDictionary: styleManager.NamedStyles,
-                buffer: buffer);
+        const string entryName = "xl/styles.xml";
+        var writer = new StylesXml(
+            styles: styleManager.StyleElements,
+            namedStyles: styleManager.GetEmbeddedNamedStyles(),
+            namedStylesDictionary: styleManager.NamedStyles,
+            buffer: buffer);
 
-            foreach (var success in writer)
-            {
-                if (!success)
-                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            }
-
-            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        }
+        return zipArchiveManager.WriteAsync(writer, entryName, buffer, token);
     }
 
     private static ReadOnlySpan<byte> Header =>

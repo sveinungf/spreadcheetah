@@ -3,9 +3,9 @@ using SpreadCheetah.Images.Internal;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct DrawingRelsXml
+internal struct DrawingRelsXml : IXmlWriter<DrawingRelsXml>
 {
-    public static async ValueTask WriteAsync(
+    public static ValueTask WriteAsync(
         ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         int drawingsFileIndex,
@@ -13,23 +13,8 @@ internal struct DrawingRelsXml
         CancellationToken token)
     {
         var entryName = StringHelper.Invariant($"xl/drawings/_rels/drawing{drawingsFileIndex}.xml.rels");
-        var stream = zipArchiveManager.OpenEntry(entryName);
-#if NETSTANDARD2_0
-        using (stream)
-#else
-        await using (stream.ConfigureAwait(false))
-#endif
-        {
-            var writer = new DrawingRelsXml(images, buffer);
-
-            foreach (var success in writer)
-            {
-                if (!success)
-                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            }
-
-            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        }
+        var writer = new DrawingRelsXml(images, buffer);
+        return zipArchiveManager.WriteAsync(writer, entryName, buffer, token);
     }
 
     private static ReadOnlySpan<byte> Header => """<?xml version="1.0" encoding="utf-8"?>"""u8 +

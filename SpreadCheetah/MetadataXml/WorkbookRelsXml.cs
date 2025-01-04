@@ -3,32 +3,18 @@ using SpreadCheetah.Worksheets;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct WorkbookRelsXml
+internal struct WorkbookRelsXml : IXmlWriter<WorkbookRelsXml>
 {
-    public static async ValueTask WriteAsync(
+    public static ValueTask WriteAsync(
         ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         List<WorksheetMetadata> worksheets,
         bool hasStylesXml,
         CancellationToken token)
     {
-        var stream = zipArchiveManager.OpenEntry("xl/_rels/workbook.xml.rels");
-#if NETSTANDARD2_0
-        using (stream)
-#else
-        await using (stream.ConfigureAwait(false))
-#endif
-        {
-            var writer = new WorkbookRelsXml(worksheets, hasStylesXml, buffer);
-
-            foreach (var success in writer)
-            {
-                if (!success)
-                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            }
-
-            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        }
+        const string entryName = "xl/_rels/workbook.xml.rels";
+        var writer = new WorkbookRelsXml(worksheets, hasStylesXml, buffer);
+        return zipArchiveManager.WriteAsync(writer, entryName, buffer, token);
     }
 
     private static ReadOnlySpan<byte> Header =>

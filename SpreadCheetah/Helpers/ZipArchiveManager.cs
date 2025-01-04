@@ -1,4 +1,5 @@
 using SpreadCheetah.Images;
+using SpreadCheetah.MetadataXml;
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO.Compression;
@@ -25,6 +26,30 @@ internal sealed class ZipArchiveManager : IDisposable
     public Stream OpenEntry(string entryName)
     {
         return _zipArchive.CreateEntry(entryName, _compressionLevel).Open();
+    }
+
+    public async ValueTask WriteAsync<T>(
+        T xmlWriter,
+        string entryName,
+        SpreadsheetBuffer buffer,
+        CancellationToken token)
+        where T : struct, IXmlWriter<T>
+    {
+        var stream = OpenEntry(entryName);
+#if NETSTANDARD2_0
+        using (stream)
+#else
+        await using (stream.ConfigureAwait(false))
+#endif
+        {
+            foreach (var success in xmlWriter)
+            {
+                if (!success)
+                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            }
+
+            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        }
     }
 
     public async ValueTask<EmbeddedImage> CreateImageEntryAsync(

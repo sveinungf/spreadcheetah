@@ -3,9 +3,9 @@ using SpreadCheetah.Helpers;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct CommentsXml
+internal struct CommentsXml : IXmlWriter<CommentsXml>
 {
-    public static async ValueTask WriteAsync(
+    public static ValueTask WriteAsync(
         ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         int notesFilesIndex,
@@ -13,23 +13,8 @@ internal struct CommentsXml
         CancellationToken token)
     {
         var entryName = StringHelper.Invariant($"xl/comments{notesFilesIndex}.xml");
-        var stream = zipArchiveManager.OpenEntry(entryName);
-#if NETSTANDARD2_0
-        using (stream)
-#else
-        await using (stream.ConfigureAwait(false))
-#endif
-        {
-            var writer = new CommentsXml(notes, buffer);
-
-            foreach (var success in writer)
-            {
-                if (!success)
-                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            }
-
-            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        }
+        var writer = new CommentsXml(notes, buffer);
+        return zipArchiveManager.WriteAsync(writer, entryName, buffer, token);
     }
 
     private static ReadOnlySpan<byte> Header =>

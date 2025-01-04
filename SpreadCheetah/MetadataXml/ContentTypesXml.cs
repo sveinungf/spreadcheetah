@@ -4,9 +4,9 @@ using SpreadCheetah.Worksheets;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct ContentTypesXml
+internal struct ContentTypesXml : IXmlWriter<ContentTypesXml>
 {
-    public static async ValueTask WriteAsync(
+    public static ValueTask WriteAsync(
         ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         List<WorksheetMetadata> worksheets,
@@ -14,23 +14,9 @@ internal struct ContentTypesXml
         bool hasStylesXml,
         CancellationToken token)
     {
-        var stream = zipArchiveManager.OpenEntry("[Content_Types].xml");
-#if NETSTANDARD2_0
-        using (stream)
-#else
-        await using (stream.ConfigureAwait(false))
-#endif
-        {
-            var writer = new ContentTypesXml(worksheets, fileCounter, hasStylesXml, buffer);
-
-            foreach (var success in writer)
-            {
-                if (!success)
-                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            }
-
-            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        }
+        const string entryName = "[Content_Types].xml";
+        var writer = new ContentTypesXml(worksheets, fileCounter, hasStylesXml, buffer);
+        return zipArchiveManager.WriteAsync(writer, entryName, buffer, token);
     }
 
     private static ReadOnlySpan<byte> Header =>
