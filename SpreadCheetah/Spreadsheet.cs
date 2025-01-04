@@ -346,23 +346,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Add a row of header names in the active worksheet. A style can optionally be applied to all the cells in the row.
     /// </summary>
-    public async ValueTask AddHeaderRowAsync(string?[] headerNames, StyleId? styleId = null, CancellationToken token = default)
+    public ValueTask AddHeaderRowAsync(string?[] headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(headerNames);
-        if (headerNames.Length == 0)
-            return;
-
-        var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Length);
-        try
-        {
-            ReadOnlySpan<string?> span = headerNames.AsSpan();
-            span.CopyToCells(cells, styleId);
-            await AddRowAsync(cells.AsMemory(0, headerNames.Length), token).ConfigureAwait(false);
-        }
-        finally
-        {
-            ArrayPool<StyledCell>.Shared.Return(cells);
-        }
+        return AddHeaderRowAsync(headerNames.AsMemory(), styleId, token);
     }
 
     /// <summary>
