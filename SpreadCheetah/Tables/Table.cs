@@ -11,6 +11,7 @@ public sealed class Table
     public bool BandedRows { get; set; } = true;
     public int? NumberOfColumns { get; set; } // TODO: Validate in setter. Should only be used if number of columns is different from header row columns.
 
+    // TODO: Consider having name as optional. If not set, use "Table1", "Table2", etc.
     public Table(string name, TableStyle style)
     {
         Name = name; // TODO: Validate
@@ -28,6 +29,7 @@ public sealed class Table
 
         // TODO: Is there a limit of the number of columns in a table?
         // TODO: Consider having AutoFilter stuff in TableColumnOptions
+        // TODO: Consider storing the max columnNumber in a property, for easy lookup later
         ColumnOptions ??= [];
         if (!ColumnOptions.TryGetValue(columnNumber, out var options))
         {

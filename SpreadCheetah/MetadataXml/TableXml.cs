@@ -147,7 +147,7 @@ file struct TableXmlWriter(
             var name = headerNames[_nextIndex];
             // TODO: Need to make changes to the name?
             // TODO: What to do when name is null or empty?
-            // TODO: Need unique names here? If so, might have to validate in AddHeaderRow
+            // TODO: Need unique names here? If so, might have to validate in AddHeaderRow (depends on wether Excel allows duplicate header names or not)
 
             var (label, function) = table.ColumnOptions is { } columns && columns.TryGetValue(_nextIndex + 1, out var options)
                 ? (options.TotalRowLabel, options.TotalRowFunction)

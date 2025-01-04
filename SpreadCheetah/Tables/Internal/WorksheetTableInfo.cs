@@ -1,3 +1,5 @@
+using SpreadCheetah.Helpers;
+
 namespace SpreadCheetah.Tables.Internal;
 
 internal sealed class WorksheetTableInfo
@@ -11,4 +13,17 @@ internal sealed class WorksheetTableInfo
     public bool Active => LastDataRow is null;
 
     public ReadOnlySpan<string?> HeaderNames => _headerNames.AsSpan();
+
+    public PooledArray<Cell> CreateTotalRow()
+    {
+        // TODO: Example
+        //var cells = new List<Cell>
+        //{
+        //    new Cell("Total"),
+        //    new Cell(),
+        //    new Cell(new Formula("SUBTOTAL(109,Table1[[Count ]])")),
+        //    new Cell(new Formula("SUBTOTAL(101,Table1[Price])")),
+        //};
+        throw new NotImplementedException();
+    }
 }
