@@ -1,7 +1,7 @@
 namespace SpreadCheetah.Tables.Internal;
 
 internal readonly record struct ImmutableTable(
-    string? Name,
+    string Name,
     TableStyle Style,
     bool BandedColumns,
     bool BandedRows,
@@ -9,7 +9,7 @@ internal readonly record struct ImmutableTable(
     int? NumberOfColumns,
     IReadOnlyDictionary<int, ImmutableTableColumnOptions>? ColumnOptions)
 {
-    public static ImmutableTable From(Table table)
+    public static ImmutableTable From(Table table, string tableName)
     {
         Dictionary<int, ImmutableTableColumnOptions>? columnOptions = null;
         var hasTotalRow = false;
@@ -26,7 +26,7 @@ internal readonly record struct ImmutableTable(
         }
 
         return new ImmutableTable(
-            Name: table.Name,
+            Name: tableName,
             Style: table.Style,
             BandedColumns: table.BandedColumns,
             BandedRows: table.BandedRows,

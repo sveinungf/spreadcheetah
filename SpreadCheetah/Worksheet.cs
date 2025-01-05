@@ -64,7 +64,11 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public bool TryStartTable(Table table, int firstColumnNumber)
     {
         _tables ??= new(StringComparer.OrdinalIgnoreCase);
-        if (_tables.ContainsKey(table.Name))
+
+        var tableName = table.Name;
+        if (tableName is null)
+            tableName = TableNameGenerator.GenerateUniqueName(_tables);
+        else if (_tables.ContainsKey(tableName))
             return false;
 
         // TODO: If overlapping tables are not allowed, check for that here and return false if there is overlap.
@@ -72,11 +76,11 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         // TODO: AddHeaderRow can also know the max number of columns if there is an active table that was started on a previous row.
 
         // TODO: Any other reason why we shouldn't start a table?
-        _tables[table.Name] = new WorksheetTableInfo
+        _tables[tableName] = new WorksheetTableInfo
         {
             FirstColumn = (ushort)firstColumnNumber,
             FirstRow = _state.NextRowIndex,
-            Table = ImmutableTable.From(table)
+            Table = ImmutableTable.From(table, tableName)
         };
 
         return true;

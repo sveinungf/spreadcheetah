@@ -4,18 +4,17 @@ namespace SpreadCheetah.Tables;
 
 public sealed class Table
 {
-    internal string Name { get; }
     internal TableStyle Style { get; }
+    internal string? Name { get; }
 
     public bool BandedColumns { get; set; }
     public bool BandedRows { get; set; } = true;
     public int? NumberOfColumns { get; set; } // TODO: Validate in setter. Doesn't make sense to set it to 0. Should only be used if number of columns is different from header row columns.
 
-    // TODO: Consider having name as optional. If not set, use "Table1", "Table2", etc.
-    public Table(string name, TableStyle style)
+    public Table(TableStyle style, string? name = null)
     {
-        Name = name; // TODO: Validate
         Style = style; // TODO: Validate
+        Name = name; // TODO: Validate
     }
 
     // TODO: Make copy in immutable type. Use e.g. List for now.
