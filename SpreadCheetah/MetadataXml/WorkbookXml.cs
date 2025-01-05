@@ -1,35 +1,19 @@
+using SpreadCheetah.Helpers;
 using SpreadCheetah.Worksheets;
-using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct WorkbookXml
+internal struct WorkbookXml : IXmlWriter<WorkbookXml>
 {
-    public static async ValueTask WriteAsync(
-        ZipArchive archive,
-        CompressionLevel compressionLevel,
+    public static ValueTask WriteAsync(
+        ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         List<WorksheetMetadata> worksheets,
         CancellationToken token)
     {
-        var entry = archive.CreateEntry("xl/workbook.xml", compressionLevel);
-        var stream = entry.Open();
-#if NETSTANDARD2_0
-        using (stream)
-#else
-        await using (stream.ConfigureAwait(false))
-#endif
-        {
-            var writer = new WorkbookXml(worksheets, buffer);
-
-            foreach (var success in writer)
-            {
-                if (!success)
-                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            }
-
-            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        }
+        const string entryName = "xl/workbook.xml";
+        var writer = new WorkbookXml(worksheets, buffer);
+        return zipArchiveManager.WriteAsync(writer, entryName, buffer, token);
     }
 
     private static ReadOnlySpan<byte> Header =>

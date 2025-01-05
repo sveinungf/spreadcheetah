@@ -12,7 +12,6 @@ using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 using System.Buffers;
 using System.Diagnostics;
-using System.IO.Compression;
 
 #if !NET6_0_OR_GREATER
 using ArgumentNullException = SpreadCheetah.Helpers.Backporting.ArgumentNullExceptionBackport;
@@ -27,8 +26,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 {
     private readonly Guid _spreadsheetGuid = Guid.NewGuid();
     private readonly List<WorksheetMetadata> _worksheets = new(1);
-    private readonly ZipArchive _archive;
-    private readonly CompressionLevel _compressionLevel;
+    private readonly ZipArchiveManager _zipArchiveManager;
     private readonly SpreadsheetBuffer _buffer;
     private readonly bool _writeCellReferenceAttributes;
     private Dictionary<Type, WorksheetRowDependencyInfo>? _worksheetRowDependencyInfo;
@@ -47,10 +45,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         }
     }
 
-    private Spreadsheet(ZipArchive archive, CompressionLevel compressionLevel, int bufferSize, NumberFormat? defaultDateTimeFormat, bool writeCellReferenceAttributes)
+    private Spreadsheet(ZipArchiveManager zipArchiveManager, int bufferSize, NumberFormat? defaultDateTimeFormat, bool writeCellReferenceAttributes)
     {
-        _archive = archive;
-        _compressionLevel = compressionLevel;
+        _zipArchiveManager = zipArchiveManager;
         _buffer = new SpreadsheetBuffer(bufferSize);
         _writeCellReferenceAttributes = writeCellReferenceAttributes;
 
@@ -68,25 +65,19 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         SpreadCheetahOptions? options = null,
         CancellationToken cancellationToken = default)
     {
-        var archive = new ZipArchive(stream, ZipArchiveMode.Create, true);
+        var zipArchiveManager = new ZipArchiveManager(stream, options?.CompressionLevel);
         var bufferSize = options?.BufferSize ?? SpreadCheetahOptions.DefaultBufferSize;
-        var compressionLevel = GetCompressionLevel(options?.CompressionLevel ?? SpreadCheetahOptions.DefaultCompressionLevel);
         var defaultDateTimeFormat = options is null ? SpreadCheetahOptions.InitialDefaultDateTimeFormat : options.DefaultDateTimeFormat;
         var writeCellReferenceAttributes = options?.WriteCellReferenceAttributes ?? false;
 
-        var spreadsheet = new Spreadsheet(archive, compressionLevel, bufferSize, defaultDateTimeFormat, writeCellReferenceAttributes);
+        var spreadsheet = new Spreadsheet(zipArchiveManager, bufferSize, defaultDateTimeFormat, writeCellReferenceAttributes);
         await spreadsheet.InitializeAsync(cancellationToken).ConfigureAwait(false);
         return spreadsheet;
     }
 
-    private static CompressionLevel GetCompressionLevel(SpreadCheetahCompressionLevel level)
-    {
-        return level == SpreadCheetahCompressionLevel.Optimal ? CompressionLevel.Optimal : CompressionLevel.Fastest;
-    }
-
     private ValueTask InitializeAsync(CancellationToken token)
     {
-        return RelationshipsXml.WriteAsync(_archive, _compressionLevel, _buffer, token);
+        return RelationshipsXml.WriteAsync(_zipArchiveManager, _buffer, token);
     }
 
     /// <summary>
@@ -151,8 +142,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         await FinishAndDisposeWorksheetAsync(token).ConfigureAwait(false);
 
         var path = StringHelper.Invariant($"xl/worksheets/sheet{_worksheets.Count + 1}.xml");
-        var entry = _archive.CreateEntry(path, _compressionLevel);
-        var entryStream = entry.Open();
+        var entryStream = _zipArchiveManager.OpenEntry(path);
         _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes);
         await _worksheet.WriteHeadAsync(options, token).ConfigureAwait(false);
         _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
@@ -651,7 +641,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _fileCounter.AddEmbeddedImage(type);
         var embeddedImageId = _fileCounter.TotalEmbeddedImages;
 
-        return await _archive.CreateImageEntryAsync(stream, _compressionLevel, buffer, type, embeddedImageId, _spreadsheetGuid, token).ConfigureAwait(false);
+        return await _zipArchiveManager.CreateImageEntryAsync(stream, buffer, type, embeddedImageId, _spreadsheetGuid, token).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -697,22 +687,22 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             Debug.Assert(notesFileIndex > 0);
             using var notesPooledArray = notes.ToPooledArray();
 
-            await CommentsXml.WriteAsync(_archive, _compressionLevel, _buffer, notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
-            await VmlDrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
+            await CommentsXml.WriteAsync(_zipArchiveManager, _buffer, notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
+            await VmlDrawingXml.WriteAsync(_zipArchiveManager, _buffer, notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
         }
 
         if (worksheet.Images is { } images)
         {
             var drawingsFileIndex = _fileCounter?.CurrentWorksheetDrawingsFileIndex ?? 0;
             Debug.Assert(drawingsFileIndex > 0);
-            await DrawingXml.WriteAsync(_archive, _compressionLevel, _buffer, drawingsFileIndex, images, token).ConfigureAwait(false);
-            await DrawingRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, drawingsFileIndex, images, token).ConfigureAwait(false);
+            await DrawingXml.WriteAsync(_zipArchiveManager, _buffer, drawingsFileIndex, images, token).ConfigureAwait(false);
+            await DrawingRelsXml.WriteAsync(_zipArchiveManager, _buffer, drawingsFileIndex, images, token).ConfigureAwait(false);
         }
 
         if (_fileCounter is { CurrentWorksheetHasRelationships: true } counter)
         {
             var worksheetIndex = _worksheets.Count;
-            await WorksheetRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, worksheetIndex, counter, token).ConfigureAwait(false);
+            await WorksheetRelsXml.WriteAsync(_zipArchiveManager, _buffer, worksheetIndex, counter, token).ConfigureAwait(false);
         }
 
         _worksheet = null;
@@ -735,19 +725,19 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         var hasStyles = _styleManager is not null;
 
-        await ContentTypesXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, _fileCounter, hasStyles, token).ConfigureAwait(false);
-        await WorkbookRelsXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
-        await WorkbookXml.WriteAsync(_archive, _compressionLevel, _buffer, _worksheets, token).ConfigureAwait(false);
+        await ContentTypesXml.WriteAsync(_zipArchiveManager, _buffer, _worksheets, _fileCounter, hasStyles, token).ConfigureAwait(false);
+        await WorkbookRelsXml.WriteAsync(_zipArchiveManager, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
+        await WorkbookXml.WriteAsync(_zipArchiveManager, _buffer, _worksheets, token).ConfigureAwait(false);
 
         if (_styleManager is not null)
-            await StylesXml.WriteAsync(_archive, _compressionLevel, _buffer, _styleManager, token).ConfigureAwait(false);
+            await StylesXml.WriteAsync(_zipArchiveManager, _buffer, _styleManager, token).ConfigureAwait(false);
 
         _finished = true;
 
         // The XLSX can become corrupt if the archive is not flushed before the resulting stream is being used.
         // ZipArchive.Dispose() is currently (up to .NET 7) the only way to flush the archive to the resulting stream.
         // In case the user would use the resulting stream before Spreadsheet.Dispose(), the flush must happen here to prevent a corrupt XLSX.
-        _archive.Dispose();
+        _zipArchiveManager.Dispose();
     }
 
     /// <inheritdoc/>

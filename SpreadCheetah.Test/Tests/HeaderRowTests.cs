@@ -70,14 +70,14 @@ public class HeaderRowTests
         await spreadsheet.StartWorksheetAsync("Sheet");
 
         // Act
-        var task = rowType switch
+        var exception = await Record.ExceptionAsync(rowType switch
         {
-            RowCollectionType.Array => spreadsheet.AddHeaderRowAsync(null!),
-            RowCollectionType.List => spreadsheet.AddHeaderRowAsync((null as List<string?>)!),
+            RowCollectionType.Array => async () => await spreadsheet.AddHeaderRowAsync(null!),
+            RowCollectionType.List => async () => await spreadsheet.AddHeaderRowAsync((null as List<string?>)!),
             _ => throw new ArgumentOutOfRangeException(nameof(rowType), rowType, null)
-        };
+        });
 
         // Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(task.AsTask);
+        Assert.IsType<ArgumentNullException>(exception);
     }
 }
