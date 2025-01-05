@@ -3,15 +3,13 @@ using SpreadCheetah.Helpers;
 using SpreadCheetah.Tables;
 using SpreadCheetah.Tables.Internal;
 using System.Diagnostics;
-using System.IO.Compression;
 
 namespace SpreadCheetah.MetadataXml;
 
 internal static class TableXml
 {
-    public static async ValueTask WriteAsync(
-        ZipArchive archive,
-        CompressionLevel compressionLevel,
+    public static ValueTask WriteAsync(
+        ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         Table table,
         WorksheetTableInfo worksheetTableInfo,
@@ -19,28 +17,13 @@ internal static class TableXml
         CancellationToken token)
     {
         var entryName = StringHelper.Invariant($"xl/tables/table{fileCounter.TotalTables}.xml");
-        var entry = archive.CreateEntry(entryName, compressionLevel);
-        var stream = entry.Open();
-#if NETSTANDARD2_0
-        using (stream)
-#else
-        await using (stream.ConfigureAwait(false))
-#endif
-        {
-            var writer = new TableXmlWriter(
-                table: table,
-                tableId: fileCounter.TotalTables,
-                worksheetTableInfo: worksheetTableInfo,
-                buffer: buffer);
+        var writer = new TableXmlWriter(
+            table: table,
+            tableId: fileCounter.TotalTables,
+            worksheetTableInfo: worksheetTableInfo,
+            buffer: buffer);
 
-            foreach (var success in writer)
-            {
-                if (!success)
-                    await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-            }
-
-            await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        }
+        return zipArchiveManager.WriteAsync(writer, entryName, buffer, token);
     }
 }
 
@@ -49,6 +32,7 @@ file struct TableXmlWriter(
     int tableId,
     WorksheetTableInfo worksheetTableInfo,
     SpreadsheetBuffer buffer)
+    : IXmlWriter<TableXmlWriter>
 {
     private static ReadOnlySpan<byte> Header =>
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
