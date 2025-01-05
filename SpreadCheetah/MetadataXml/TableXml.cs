@@ -11,14 +11,12 @@ internal static class TableXml
     public static ValueTask WriteAsync(
         ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
-        Table table,
         WorksheetTableInfo worksheetTableInfo,
         FileCounter fileCounter,
         CancellationToken token)
     {
         var entryName = StringHelper.Invariant($"xl/tables/table{fileCounter.TotalTables}.xml");
         var writer = new TableXmlWriter(
-            table: table,
             tableId: fileCounter.TotalTables,
             worksheetTableInfo: worksheetTableInfo,
             buffer: buffer);
@@ -28,7 +26,6 @@ internal static class TableXml
 }
 
 file struct TableXmlWriter(
-    Table table,
     int tableId,
     WorksheetTableInfo worksheetTableInfo,
     SpreadsheetBuffer buffer)
@@ -38,24 +35,24 @@ file struct TableXmlWriter(
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="""u8 + "\""u8;
 
-    private readonly bool _hasTotalRow = table.HasTotalRow();
     private Element _next;
     private int _nextIndex;
 
+    private readonly ImmutableTable Table => worksheetTableInfo.Table;
     public readonly TableXmlWriter GetEnumerator() => this;
     public bool Current { get; private set; }
 
     // TODO: Can ColumnCount end up being "0"?
-    private readonly int ColumnCount => table.NumberOfColumns ?? worksheetTableInfo.HeaderNames.Length;
+    private readonly int ColumnCount => Table.NumberOfColumns ?? worksheetTableInfo.HeaderNames.Length;
 
     public bool MoveNext()
     {
         Current = _next switch
         {
             Element.Header => TryWriteHeader(),
-            Element.Name => buffer.TryWrite($"{table.Name}"), // TODO: Can it be longer than minimum buffer length? Maybe it should be disallowed?
+            Element.Name => buffer.TryWrite($"{Table.Name}"), // TODO: Can it be longer than minimum buffer length? Maybe it should be disallowed?
             Element.NameEnd => buffer.TryWrite("\" displayName=\""u8),
-            Element.DisplayName => buffer.TryWrite($"{table.Name}"), // TODO: Can it be longer than minimum buffer length? Maybe it should be disallowed?
+            Element.DisplayName => buffer.TryWrite($"{Table.Name}"), // TODO: Can it be longer than minimum buffer length? Maybe it should be disallowed?
             Element.DisplayNameEnd => buffer.TryWrite("\" ref=\""u8),
             Element.Reference => TryWriteTableReference(),
             Element.ReferenceEnd => TryWriteReferenceEnd(),
@@ -83,7 +80,7 @@ file struct TableXmlWriter(
     {
         var lastDataRow = worksheetTableInfo.LastDataRow ?? 0;
         Debug.Assert(lastDataRow > 0);
-        var toRow = lastDataRow + (_hasTotalRow ? 1u : 0u);
+        var toRow = lastDataRow + (Table.HasTotalRow ? 1u : 0u);
         return TryWriteCellRangeReference(toRow);
     }
 
@@ -109,7 +106,7 @@ file struct TableXmlWriter(
         // TODO: AutoFilter by default for all columns. Can later add options to change this behavior.
         return buffer.TryWrite(
             $"{"\" totalsRowShown=\""u8}" +
-            $"{_hasTotalRow}" +
+            $"{Table.HasTotalRow}" +
             $"{"\"><autoFilter ref=\""u8}");
     }
 
@@ -133,7 +130,7 @@ file struct TableXmlWriter(
             // TODO: What to do when name is null or empty?
             // TODO: Need unique names here? If so, might have to validate in AddHeaderRow (depends on wether Excel allows duplicate header names or not)
 
-            var (label, function) = table.ColumnOptions is { } columns && columns.TryGetValue(_nextIndex + 1, out var options)
+            var (label, function) = Table.ColumnOptions is { } columns && columns.TryGetValue(_nextIndex + 1, out var options)
                 ? (options.TotalRowLabel, options.TotalRowFunction)
                 : (null, null);
 
@@ -188,23 +185,24 @@ file struct TableXmlWriter(
 
     private readonly bool TryWriteTableStyleName()
     {
-        if (table.Style is TableStyle.None)
+        var style = Table.Style;
+        if (style is TableStyle.None)
             return true;
 
-        Debug.Assert(table.Style is > TableStyle.None and <= TableStyle.Dark11);
+        Debug.Assert(style is > TableStyle.None and <= TableStyle.Dark11);
 
-        var styleCategory = table.Style switch
+        var styleCategory = style switch
         {
             >= TableStyle.Dark1 => "Dark"u8,
             >= TableStyle.Medium1 => "Medium"u8,
             _ => "Light"u8
         };
 
-        var styleNumber = table.Style switch
+        var styleNumber = style switch
         {
-            >= TableStyle.Dark1 => table.Style - TableStyle.Dark1 + 1,
-            >= TableStyle.Medium1 => table.Style - TableStyle.Medium1 + 1,
-            _ => (int)table.Style
+            >= TableStyle.Dark1 => style - TableStyle.Dark1 + 1,
+            >= TableStyle.Medium1 => style - TableStyle.Medium1 + 1,
+            _ => (int)style
         };
 
         return buffer.TryWrite($"{"TableStyle"u8}{styleCategory}{styleNumber}");
@@ -214,9 +212,9 @@ file struct TableXmlWriter(
     {
         return buffer.TryWrite(
             $"{"\" showFirstColumn=\"0\" showLastColumn=\"0\" showRowStripes=\""u8}" +
-            $"{table.BandedRows}" +
+            $"{Table.BandedRows}" +
             $"{"\" showColumnStripes=\""u8}" +
-            $"{table.BandedColumns}" +
+            $"{Table.BandedColumns}" +
             $"{"\"/>"u8}");
     }
 }

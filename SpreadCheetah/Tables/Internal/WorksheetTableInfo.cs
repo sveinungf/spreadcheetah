@@ -11,7 +11,7 @@ internal sealed class WorksheetTableInfo
 
     /// <summary>The first row of the table. 1-based.</summary>
     public required uint FirstRow { get; init; }
-    public required Table Table { get; init; } // TODO: Make an immutable type (e.g. ImmutableTable like for styles)
+    public required ImmutableTable Table { get; init; }
     public uint? LastDataRow { get; set; }
     public bool Active => LastDataRow is null;
 

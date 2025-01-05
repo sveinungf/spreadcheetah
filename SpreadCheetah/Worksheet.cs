@@ -76,7 +76,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         {
             FirstColumn = (ushort)firstColumnNumber,
             FirstRow = _state.NextRowIndex,
-            Table = table
+            Table = ImmutableTable.From(table)
         };
 
         return true;
@@ -212,7 +212,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
             // TODO: What to do if table has no rows? Only header row should probably be fine.
             tableInfo.LastDataRow = _state.NextRowIndex - 1;
 
-            if (!tableInfo.Table.HasTotalRow())
+            if (!tableInfo.Table.HasTotalRow)
                 return;
 
             // TODO: tableInfo.Table.ColumnOptions.Last().Key;
