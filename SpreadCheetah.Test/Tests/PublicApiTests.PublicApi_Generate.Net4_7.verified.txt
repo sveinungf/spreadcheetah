@@ -125,7 +125,7 @@ namespace SpreadCheetah
         public System.Threading.Tasks.ValueTask DisposeAsync() { }
         public System.Threading.Tasks.ValueTask<SpreadCheetah.Images.EmbeddedImage> EmbedImageAsync(System.IO.Stream stream, System.Threading.CancellationToken token = default) { }
         public System.Threading.Tasks.ValueTask FinishAsync(System.Threading.CancellationToken token = default) { }
-        public System.Threading.Tasks.ValueTask FinishTableAsync(SpreadCheetah.Tables.Table table, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask FinishTableAsync(System.Threading.CancellationToken token = default) { }
         public SpreadCheetah.SourceGeneration.WorksheetRowDependencyInfo GetOrCreateWorksheetRowDependencyInfo<T>(SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> typeInfo) { }
         public SpreadCheetah.Styling.StyleId GetStyleId(string name) { }
         public void MergeCells(string cellRange) { }
@@ -470,8 +470,7 @@ namespace SpreadCheetah.Tables
 {
     public sealed class Table
     {
-        public Table(string name, SpreadCheetah.Tables.TableStyle style) { }
-        public bool AutoFilter { get; set; }
+        public Table(SpreadCheetah.Tables.TableStyle style, string? name = null) { }
         public bool BandedColumns { get; set; }
         public bool BandedRows { get; set; }
         public int? NumberOfColumns { get; set; }
@@ -553,11 +552,11 @@ namespace SpreadCheetah.Tables
         Average = 1,
         Count = 2,
         CountNumbers = 3,
-        Max = 4,
-        Min = 5,
+        Maximum = 4,
+        Minimum = 5,
         Sum = 6,
-        StdDev = 7,
-        Var = 8,
+        StandardDeviation = 7,
+        Variance = 8,
     }
 }
 namespace SpreadCheetah.Validations
