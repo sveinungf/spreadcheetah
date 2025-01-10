@@ -15,6 +15,7 @@ internal static class TableXml
         FileCounter fileCounter,
         CancellationToken token)
     {
+        // TODO: Counter here is not correct if there are multiple tables
         var entryName = StringHelper.Invariant($"xl/tables/table{fileCounter.TotalTables}.xml");
         var writer = new TableXmlWriter(
             tableId: fileCounter.TotalTables,
@@ -59,7 +60,7 @@ file struct TableXmlWriter(
             Element.AutoFilterReference => TryWriteAutoFilterReference(),
             Element.TableColumnsStart => TryWriteTableColumnsStart(),
             Element.TableColumns => TryWriteTableColumns(),
-            Element.TableStyleInfoStart => buffer.TryWrite("</tableColumns><tableStyleInfo "u8),
+            Element.TableStyleInfoStart => buffer.TryWrite("</tableColumns><tableStyleInfo name=\""u8),
             Element.TableStyleName => TryWriteTableStyleName(),
             Element.TableStyleInfo => TryWriteTableStyleInfo(),
             _ => buffer.TryWrite("</table>"u8)
@@ -94,11 +95,11 @@ file struct TableXmlWriter(
     private readonly bool TryWriteCellRangeReference(uint toRow)
     {
         var firstColumn = worksheetTableInfo.FirstColumn;
-        var endColumn = (ushort)(firstColumn + ColumnCount);
+        var endColumn = (ushort)(firstColumn + ColumnCount - 1);
         var fromCell = new SimpleSingleCellReference(firstColumn, worksheetTableInfo.FirstRow);
         var toCell = new SimpleSingleCellReference(endColumn, toRow);
 
-        return buffer.TryWrite($"{fromCell}:{toCell}");
+        return buffer.TryWrite($"{fromCell}{":"u8}{toCell}");
     }
 
     private readonly bool TryWriteReferenceEnd()

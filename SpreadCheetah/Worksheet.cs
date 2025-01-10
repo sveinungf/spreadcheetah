@@ -22,11 +22,11 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly BaseCellWriter<StyledCell> _styledCellWriter;
     private readonly CellWriterState _state;
     private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
-    private Dictionary<string, WorksheetTableInfo>? _tables;
     private HashSet<CellRangeRelativeReference>? _cellMerges;
     private string? _autoFilterRange;
 
     public Dictionary<SingleCellRelativeReference, string>? Notes { get; private set; }
+    public Dictionary<string, WorksheetTableInfo>? Tables {  get; private set; }
     public List<WorksheetImage>? Images { get; private set; }
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer, bool writeCellReferenceAttributes)
@@ -63,12 +63,12 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public bool TryStartTable(Table table, int firstColumnNumber)
     {
-        _tables ??= new(StringComparer.OrdinalIgnoreCase);
+        Tables ??= new(StringComparer.OrdinalIgnoreCase);
 
         var tableName = table.Name;
         if (tableName is null)
-            tableName = TableNameGenerator.GenerateUniqueName(_tables);
-        else if (_tables.ContainsKey(tableName))
+            tableName = TableNameGenerator.GenerateUniqueName(Tables);
+        else if (Tables.ContainsKey(tableName))
             return false;
 
         // TODO: If overlapping tables are not allowed, check for that here and return false if there is overlap.
@@ -76,7 +76,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         // TODO: AddHeaderRow can also know the max number of columns if there is an active table that was started on a previous row.
 
         // TODO: Any other reason why we shouldn't start a table?
-        _tables[tableName] = new WorksheetTableInfo
+        Tables[tableName] = new WorksheetTableInfo
         {
             FirstColumn = (ushort)firstColumnNumber,
             FirstRow = _state.NextRowIndex,
@@ -88,10 +88,10 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public void AddHeaderNamesToNewlyStartedTables(ReadOnlySpan<string?> headerNames)
     {
-        if (_tables is null)
+        if (Tables is null)
             return;
 
-        foreach (var tableInfo in _tables.Values)
+        foreach (var tableInfo in Tables.Values)
         {
             if (tableInfo.Active && tableInfo.FirstRow == _state.NextRowIndex)
                 tableInfo.SetHeaderNames(headerNames);
@@ -100,10 +100,10 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public void AddHeaderNamesToNewlyStartedTables(IList<string?> headerNames)
     {
-        if (_tables is null)
+        if (Tables is null)
             return;
 
-        foreach (var tableInfo in _tables.Values)
+        foreach (var tableInfo in Tables.Values)
         {
             if (tableInfo.Active && tableInfo.FirstRow == _state.NextRowIndex)
                 tableInfo.SetHeaderNames(headerNames);
@@ -206,13 +206,13 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public async ValueTask FinishTableAsync(CancellationToken token)
     {
-        var activeTables = _tables?.Values.Count(x => x.Active) ?? 0;
-        if (_tables is null || activeTables == 0)
+        var activeTables = Tables?.Values.Count(x => x.Active) ?? 0;
+        if (Tables is null || activeTables == 0)
             ThrowHelper.NoActiveTables();
         if (activeTables > 1)
             ThrowHelper.MultipleActiveTables();
 
-        var tableInfo = _tables.Values.First(x => x.Active);
+        var tableInfo = Tables.Values.First(x => x.Active);
 
         // TODO: What to do if table has no columns?
         // TODO: What to do if table has no rows? Only header row should probably be fine.
@@ -240,7 +240,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
             autoFilterRange: _autoFilterRange,
             hasNotes: Notes is not null,
             hasImages: Images is not null,
-            tableCount: _tables?.Count ?? 0,
+            tableCount: Tables?.Count ?? 0,
             buffer: _buffer,
             stream: _stream,
             token: token).ConfigureAwait(false);

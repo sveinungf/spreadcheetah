@@ -56,7 +56,9 @@ internal sealed class FileCounter
     }
 
     public bool CurrentWorksheetHasRelationships =>
-        CurrentWorksheetDrawingsFileIndex is not null || CurrentWorksheetNotesFileIndex is not null;
+        CurrentWorksheetDrawingsFileIndex is not null ||
+        CurrentWorksheetNotesFileIndex is not null ||
+        CurrentWorksheetTableCount > 0;
 
     public void ResetCurrentWorksheet()
     {

@@ -698,6 +698,13 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             await DrawingRelsXml.WriteAsync(_zipArchiveManager, _buffer, drawingsFileIndex, images, token).ConfigureAwait(false);
         }
 
+        if (worksheet.Tables is { } tables && _fileCounter is not null)
+        {
+            // TODO: Handle multiple tables
+            var table = tables.Values.First();
+            await TableXml.WriteAsync(_zipArchiveManager, _buffer, table, _fileCounter, token).ConfigureAwait(false);
+        }
+
         if (_fileCounter is { CurrentWorksheetHasRelationships: true } counter)
         {
             var worksheetIndex = _worksheets.Count;
