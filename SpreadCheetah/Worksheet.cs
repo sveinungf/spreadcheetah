@@ -204,26 +204,27 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         _cellMerges.Add(cellRange);
     }
 
-    public async ValueTask FinishTableAsync(string tableName, CancellationToken token)
+    public async ValueTask FinishTableAsync(CancellationToken token)
     {
-        if (_tables is null || !_tables.TryGetValue(tableName, out var tableInfo))
-            ThrowHelper.TableNameDoesNotExist(nameof(tableName));
-        else if (tableInfo.LastDataRow is not null)
-            ThrowHelper.TableAlreadyFinished();
-        else
-        {
-            // TODO: What to do if table has no columns?
-            // TODO: What to do if table has no rows? Only header row should probably be fine.
-            tableInfo.LastDataRow = _state.NextRowIndex - 1;
+        var activeTables = _tables?.Values.Count(x => x.Active) ?? 0;
+        if (_tables is null || activeTables == 0)
+            ThrowHelper.NoActiveTables();
+        if (activeTables > 1)
+            ThrowHelper.MultipleActiveTables();
 
-            if (!tableInfo.Table.HasTotalRow)
-                return;
+        var tableInfo = _tables.Values.First(x => x.Active);
 
-            // TODO: tableInfo.Table.ColumnOptions.Last().Key;
+        // TODO: What to do if table has no columns?
+        // TODO: What to do if table has no rows? Only header row should probably be fine.
+        tableInfo.LastDataRow = _state.NextRowIndex - 1;
 
-            // TODO: Add total row
-            throw new NotImplementedException();
-        }
+        if (!tableInfo.Table.HasTotalRow)
+            return;
+
+        // TODO: tableInfo.Table.ColumnOptions.Last().Key;
+
+        // TODO: Add total row
+        throw new NotImplementedException();
     }
 
     public async ValueTask FinishAsync(CancellationToken token)

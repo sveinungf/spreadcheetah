@@ -56,7 +56,13 @@ internal static class ThrowHelper
     public static void MinGreaterThanMax(string? minParamName) => throw new ArgumentException("The min value must be less than or equal to the max value.", minParamName);
 
     [DoesNotReturn]
+    public static void MultipleActiveTables() => throw new SpreadCheetahException("There are multiple active tables.");
+
+    [DoesNotReturn]
     public static void NameEmptyOrWhiteSpace(string? paramName) => throw new ArgumentException("The name can not be empty or consist only of whitespace.", paramName);
+
+    [DoesNotReturn]
+    public static void NoActiveTables() => throw new SpreadCheetahException("There are no active tables.");
 
     [DoesNotReturn]
     public static void NoteTextTooLong(string? paramName) => throw new ArgumentException($"Note text can not exceed {SpreadsheetConstants.MaxNoteTextLength} characters.", paramName);
@@ -98,13 +104,7 @@ internal static class ThrowHelper
     public static void StyleNameTooLong(string? paramName) => throw new ArgumentException("The name can not be more than 255 characters.", paramName);
 
     [DoesNotReturn]
-    public static void TableAlreadyFinished() => throw new SpreadCheetahException("The table has already been finished.");
-
-    [DoesNotReturn]
     public static void TableNameAlreadyExists(string? paramName) => throw new ArgumentException("A table with the given name already exists.", paramName);
-
-    [DoesNotReturn]
-    public static void TableNameDoesNotExist(string? paramName) => throw new ArgumentException("A table with the given name does not exist.", paramName);
 
     [DoesNotReturn]
     public static void ValueIsNegative<T>(string? paramName, T value) => throw new ArgumentOutOfRangeException(paramName, value, "The value can not be negative.");
