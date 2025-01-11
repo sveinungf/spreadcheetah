@@ -1,4 +1,3 @@
-using ClosedXML.Excel;
 using SpreadCheetah.Tables;
 using SpreadCheetah.TestHelpers.Assertions;
 
@@ -27,18 +26,16 @@ public class SpreadsheetTableTests
         await spreadsheet.FinishAsync();
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualTable = Assert.Single(worksheet.Tables);
-        Assert.Equal(headerNames, actualTable.Fields.Select(x => x.Name));
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualTable = Assert.Single(sheet.Tables);
+        Assert.Equal(headerNames, actualTable.Columns.Select(x => x.Name));
         Assert.Equal("Table1", actualTable.Name);
-        Assert.Equal("TableStyleLight1", actualTable.Theme.Name);
-        Assert.Equal("A1:C3", actualTable.RangeAddress.ToString());
+        Assert.Equal("TableStyleLight1", actualTable.TableStyle);
+        Assert.Equal("A1:C3", actualTable.CellRangeReference);
         Assert.True(actualTable.ShowAutoFilter);
         Assert.True(actualTable.ShowHeaderRow);
-        Assert.True(actualTable.ShowRowStripes);
-        Assert.False(actualTable.ShowColumnStripes);
-        Assert.False(actualTable.ShowTotalsRow);
+        Assert.True(actualTable.BandedRows);
+        Assert.False(actualTable.BandedColumns);
+        Assert.False(actualTable.ShowTotalRow);
     }
 }
