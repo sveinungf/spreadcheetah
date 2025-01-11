@@ -37,7 +37,7 @@ namespace MyNamespace
                 headerNames[3] = SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaders.HeaderAddressLine1;
                 headerNames[4] = SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaders.HeaderAddressLine2;
                 headerNames[5] = SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaders.HeaderAge;
-                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 6), styleId, token).ConfigureAwait(false);
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 6)!, styleId, token).ConfigureAwait(false);
             }
             finally
             {

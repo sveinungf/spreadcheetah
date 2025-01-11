@@ -45,7 +45,7 @@ namespace MyNamespace
                 headerNames[1] = "Second";
                 headerNames[2] = "Year";
                 headerNames[3] = "Score";
-                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 4), styleId, token).ConfigureAwait(false);
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 4)!, styleId, token).ConfigureAwait(false);
             }
             finally
             {
