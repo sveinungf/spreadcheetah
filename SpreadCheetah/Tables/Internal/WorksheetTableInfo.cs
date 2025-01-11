@@ -48,12 +48,12 @@ internal sealed class WorksheetTableInfo
     public List<Cell> CreateTotalRow()
     {
         var cells = new List<Cell>();
-        var allColumnOptions = Table.ColumnOptions;
+        var allColumnOptions = Table.ColumnOptions; // TODO: What to do when this is null?
         var headers = HeaderNames;
 
         for (var i = 0; i < headers.Length; ++i)
         {
-            var columnOptions = allColumnOptions?.GetValueOrDefault(i) ?? new();
+            var columnOptions = allColumnOptions?.GetValueOrDefault(i + 1) ?? new();
 
             var cell = columnOptions switch
             {
@@ -68,7 +68,7 @@ internal sealed class WorksheetTableInfo
         return cells;
     }
 
-    private static Formula TotalRowFormula(TableTotalRowFunction function, string? headerName)
+    private Formula TotalRowFormula(TableTotalRowFunction function, string? headerName)
     {
         var functionNumber = function switch
         {
@@ -87,8 +87,9 @@ internal sealed class WorksheetTableInfo
             return new Formula(); // TODO: Expected behavior?
 
         // TODO: What if headerName is null?
+        // TODO: Do we need to adjust the tableName in any way?
         // TODO: Do we need to adjust the headerName in any way?
-        var formulaText = StringHelper.Invariant($"SUBTOTAL({functionNumber};[{headerName}])");
+        var formulaText = StringHelper.Invariant($"SUBTOTAL({functionNumber},{Table.Name}[{headerName}])");
         return new Formula(formulaText);
     }
 }
