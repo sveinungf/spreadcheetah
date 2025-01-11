@@ -5,7 +5,7 @@ namespace SpreadCheetah.Helpers;
 internal static class HeaderNameExtensions
 {
     public static void CopyToCells(
-        this ReadOnlySpan<string?> headerNames,
+        this ReadOnlySpan<string> headerNames,
         StyledCell[] cells,
         StyleId? styleId)
     {
@@ -16,7 +16,7 @@ internal static class HeaderNameExtensions
     }
 
     public static void CopyToCells(
-        this IList<string?> headerNames,
+        this IList<string> headerNames,
         StyledCell[] cells,
         StyleId? styleId)
     {

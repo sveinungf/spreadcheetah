@@ -13,7 +13,7 @@ public class HeaderRowTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
-        string?[] headerNames = ["ID", "First name", "Last name", "Age"];
+        string[] headerNames = ["ID", "First name", "Last name", "Age"];
 
         // Act
         await spreadsheet.AddHeaderRowAsync(headerNames, rowType);
@@ -31,7 +31,7 @@ public class HeaderRowTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
-        string?[] headerNames = ["ID", null, "Last name", "Age"];
+        string[] headerNames = ["ID", null!, "Last name", "Age"];
 
         // Act
         await spreadsheet.AddHeaderRowAsync(headerNames, rowType);
@@ -73,7 +73,7 @@ public class HeaderRowTests
         var exception = await Record.ExceptionAsync(rowType switch
         {
             RowCollectionType.Array => async () => await spreadsheet.AddHeaderRowAsync(null!),
-            RowCollectionType.List => async () => await spreadsheet.AddHeaderRowAsync((null as List<string?>)!),
+            RowCollectionType.List => async () => await spreadsheet.AddHeaderRowAsync((null as List<string>)!),
             _ => throw new ArgumentOutOfRangeException(nameof(rowType), rowType, null)
         });
 
