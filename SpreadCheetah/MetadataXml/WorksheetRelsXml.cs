@@ -22,9 +22,6 @@ internal struct WorksheetRelsXml : IXmlWriter<WorksheetRelsXml>
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">"""u8;
 
-    private static ReadOnlySpan<byte> VmlDrawingStart => """<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/vmlDrawing" Target="../drawings/vmlDrawing"""u8;
-    private static ReadOnlySpan<byte> CommentStart => """<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments" Target="../comments"""u8;
-    private static ReadOnlySpan<byte> DrawingStart => """<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing"""u8;
     private static ReadOnlySpan<byte> Footer => "</Relationships>"u8;
 
     private readonly FileCounter _fileCounter;
@@ -59,23 +56,41 @@ internal struct WorksheetRelsXml : IXmlWriter<WorksheetRelsXml>
 
     private readonly bool TryWriteVmlDrawing()
     {
-        var notesFilesIndex = _fileCounter.WorksheetsWithNotes;
-        return notesFilesIndex == 0 ||
-            _buffer.TryWrite($"{VmlDrawingStart}{notesFilesIndex}{""".vml"/>"""u8}");
+        if (_fileCounter.CurrentWorksheetNotesFileIndex is not { } fileIndex)
+            return true;
+
+        return _buffer.TryWrite(
+            $"{"<Relationship Id=\""u8}" +
+            $"{WorksheetRelationshipIds.VmlDrawing}" +
+            $"{"\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/vmlDrawing\" Target=\"../drawings/vmlDrawing"u8}" +
+            $"{fileIndex}" +
+            $"{""".vml"/>"""u8}");
     }
 
     private readonly bool TryWriteComments()
     {
-        var notesFilesIndex = _fileCounter.WorksheetsWithNotes;
-        return notesFilesIndex == 0 ||
-            _buffer.TryWrite($"{CommentStart}{notesFilesIndex}{""".xml"/>"""u8}");
+        if (_fileCounter.CurrentWorksheetNotesFileIndex is not { } fileIndex)
+            return true;
+
+        return _buffer.TryWrite(
+            $"{"<Relationship Id=\""u8}" +
+            $"{WorksheetRelationshipIds.Comments}" +
+            $"{"\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments\" Target=\"../comments"u8}" +
+            $"{fileIndex}" +
+            $"{""".xml"/>"""u8}");
     }
 
     private readonly bool TryWriteDrawing()
     {
-        var drawingsFileIndex = _fileCounter.WorksheetsWithImages;
-        return drawingsFileIndex == 0 ||
-            _buffer.TryWrite($"{DrawingStart}{drawingsFileIndex}{""".xml"/>"""u8}");
+        if (_fileCounter.CurrentWorksheetDrawingsFileIndex is not { } fileIndex)
+            return true;
+
+        return _buffer.TryWrite(
+            $"{"<Relationship Id=\""u8}" +
+            $"{WorksheetRelationshipIds.Drawing}" +
+            $"{"\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing\" Target=\"../drawings/drawing"u8}" +
+            $"{fileIndex}" +
+            $"{""".xml"/>"""u8}");
     }
 
     private enum Element

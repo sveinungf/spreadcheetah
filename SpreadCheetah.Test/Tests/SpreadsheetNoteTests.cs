@@ -73,6 +73,34 @@ public class SpreadsheetNoteTests
     }
 
     [Fact]
+    public async Task Spreadsheet_AddNote_InTwoWorksheets()
+    {
+        // Arrange
+        const string reference = "A2";
+        const string sheet1Note = "Note 1";
+        const string sheet2Note = "Note 2";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        spreadsheet.AddNote(reference, sheet1Note);
+        await spreadsheet.StartWorksheetAsync("Sheet 2");
+        spreadsheet.AddNote(reference, sheet2Note);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet1 = workbook.Worksheets.First();
+        var note1Cell = worksheet1.Cell(reference);
+        Assert.Equal(sheet1Note, note1Cell.GetCellNoteText());
+        var worksheet2 = workbook.Worksheets.Skip(1).Single();
+        var note2Cell = worksheet2.Cell(reference);
+        Assert.Equal(sheet2Note, note2Cell.GetCellNoteText());
+    }
+
+    [Fact]
     public async Task Spreadsheet_AddNote_TextLongerThanBufferSize()
     {
         // Arrange
