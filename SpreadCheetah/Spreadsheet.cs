@@ -336,7 +336,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Add a row of header names in the active worksheet. A style can optionally be applied to all the cells in the row.
     /// </summary>
-    public ValueTask AddHeaderRowAsync(string?[] headerNames, StyleId? styleId = null, CancellationToken token = default)
+    public ValueTask AddHeaderRowAsync(string[] headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(headerNames);
         return AddHeaderRowAsync(headerNames.AsMemory(), styleId, token);
@@ -345,10 +345,13 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Add a row of header names in the active worksheet. A style can optionally be applied to all the cells in the row.
     /// </summary>
-    public async ValueTask AddHeaderRowAsync(ReadOnlyMemory<string?> headerNames, StyleId? styleId = null, CancellationToken token = default)
+    public async ValueTask AddHeaderRowAsync(ReadOnlyMemory<string> headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
         if (headerNames.Length == 0)
+        {
+            await AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token).ConfigureAwait(false);
             return;
+        }
 
         var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Length);
         try
@@ -365,11 +368,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Add a row of header names in the active worksheet. A style can optionally be applied to all the cells in the row.
     /// </summary>
-    public async ValueTask AddHeaderRowAsync(IList<string?> headerNames, StyleId? styleId = null, CancellationToken token = default)
+    public async ValueTask AddHeaderRowAsync(IList<string> headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(headerNames);
         if (headerNames.Count == 0)
+        {
+            await AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token).ConfigureAwait(false);
             return;
+        }
 
         var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Count);
         try
@@ -557,7 +563,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (firstNote)
         {
             _fileCounter ??= new FileCounter();
-            _fileCounter.WorksheetsWithNotes++;
+            _fileCounter.NoteForCurrentWorksheet();
         }
     }
 
@@ -634,7 +640,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         Worksheet.AddImage(worksheetImage, out var firstImage);
 
         if (firstImage)
-            _fileCounter.WorksheetsWithImages++;
+            _fileCounter.ImageForCurrentWorksheet();
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
@@ -646,29 +652,30 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         if (worksheet.Notes is { } notes)
         {
-            var sheetsWithNotes = _fileCounter?.WorksheetsWithNotes ?? 0;
-            Debug.Assert(sheetsWithNotes > 0);
+            var notesFileIndex = _fileCounter?.CurrentWorksheetNotesFileIndex ?? 0;
+            Debug.Assert(notesFileIndex > 0);
             using var notesPooledArray = notes.ToPooledArray();
 
-            await CommentsXml.WriteAsync(_zipArchiveManager, _buffer, sheetsWithNotes, notesPooledArray.Memory, token).ConfigureAwait(false);
-            await VmlDrawingXml.WriteAsync(_zipArchiveManager, _buffer, sheetsWithNotes, notesPooledArray.Memory, token).ConfigureAwait(false);
+            await CommentsXml.WriteAsync(_zipArchiveManager, _buffer, notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
+            await VmlDrawingXml.WriteAsync(_zipArchiveManager, _buffer, notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
         }
 
         if (worksheet.Images is { } images)
         {
-            var sheetsWithImages = _fileCounter?.WorksheetsWithImages ?? 0;
-            Debug.Assert(sheetsWithImages > 0);
-            await DrawingXml.WriteAsync(_zipArchiveManager, _buffer, sheetsWithImages, images, token).ConfigureAwait(false);
-            await DrawingRelsXml.WriteAsync(_zipArchiveManager, _buffer, sheetsWithImages, images, token).ConfigureAwait(false);
+            var drawingsFileIndex = _fileCounter?.CurrentWorksheetDrawingsFileIndex ?? 0;
+            Debug.Assert(drawingsFileIndex > 0);
+            await DrawingXml.WriteAsync(_zipArchiveManager, _buffer, drawingsFileIndex, images, token).ConfigureAwait(false);
+            await DrawingRelsXml.WriteAsync(_zipArchiveManager, _buffer, drawingsFileIndex, images, token).ConfigureAwait(false);
         }
 
-        if (_fileCounter is { } counter && (counter.WorksheetsWithImages > 0 || counter.WorksheetsWithNotes > 0))
+        if (_fileCounter is { CurrentWorksheetHasRelationships: true } counter)
         {
             var worksheetIndex = _worksheets.Count;
             await WorksheetRelsXml.WriteAsync(_zipArchiveManager, _buffer, worksheetIndex, counter, token).ConfigureAwait(false);
         }
 
         _worksheet = null;
+        _fileCounter?.ResetCurrentWorksheet();
     }
 
     /// <summary>

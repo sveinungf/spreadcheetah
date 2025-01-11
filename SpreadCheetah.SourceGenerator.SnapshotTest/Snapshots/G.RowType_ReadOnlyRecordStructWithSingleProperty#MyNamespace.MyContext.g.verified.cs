@@ -32,7 +32,7 @@ namespace MyNamespace
             try
             {
                 headerNames[0] = "Value";
-                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 1), styleId, token).ConfigureAwait(false);
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 1)!, styleId, token).ConfigureAwait(false);
             }
             finally
             {

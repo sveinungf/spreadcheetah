@@ -95,9 +95,9 @@ namespace SpreadCheetah
         public int NextRowNumber { get; }
         public System.Threading.Tasks.ValueTask AddAsRowAsync<T>(T obj, SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> typeInfo, System.Threading.CancellationToken token = default) { }
         public void AddDataValidation(string reference, SpreadCheetah.Validations.DataValidation validation) { }
-        public System.Threading.Tasks.ValueTask AddHeaderRowAsync(System.Collections.Generic.IList<string?> headerNames, SpreadCheetah.Styling.StyleId? styleId = null, System.Threading.CancellationToken token = default) { }
-        public System.Threading.Tasks.ValueTask AddHeaderRowAsync(System.ReadOnlyMemory<string?> headerNames, SpreadCheetah.Styling.StyleId? styleId = null, System.Threading.CancellationToken token = default) { }
-        public System.Threading.Tasks.ValueTask AddHeaderRowAsync(string?[] headerNames, SpreadCheetah.Styling.StyleId? styleId = null, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddHeaderRowAsync(System.Collections.Generic.IList<string> headerNames, SpreadCheetah.Styling.StyleId? styleId = null, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddHeaderRowAsync(System.ReadOnlyMemory<string> headerNames, SpreadCheetah.Styling.StyleId? styleId = null, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddHeaderRowAsync(string[] headerNames, SpreadCheetah.Styling.StyleId? styleId = null, System.Threading.CancellationToken token = default) { }
         public System.Threading.Tasks.ValueTask AddHeaderRowAsync<T>(SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> typeInfo, SpreadCheetah.Styling.StyleId? styleId = null, System.Threading.CancellationToken token = default) { }
         public void AddImage(SpreadCheetah.Images.ImageCanvas canvas, SpreadCheetah.Images.EmbeddedImage image, SpreadCheetah.Images.ImageOptions? options = null) { }
         public void AddNote(string cellReference, string noteText) { }

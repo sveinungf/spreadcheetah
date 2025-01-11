@@ -39,7 +39,7 @@ namespace MyNamespace
                 headerNames[5] = "    Age (\n        raw\n        string\n        literal\n    )";
                 headerNames[6] = "Note (unicode escape sequence 🌉, 👍, ç)";
                 headerNames[7] = "Note 2 (constant interpolated string: This is a constant)";
-                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 8), styleId, token).ConfigureAwait(false);
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 8)!, styleId, token).ConfigureAwait(false);
             }
             finally
             {

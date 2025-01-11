@@ -389,7 +389,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         }
 
         sb.AppendLine($$"""
-                            await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, {{properties.Count}}), styleId, token).ConfigureAwait(false);
+                            await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, {{properties.Count}})!, styleId, token).ConfigureAwait(false);
                         }
                         finally
                         {

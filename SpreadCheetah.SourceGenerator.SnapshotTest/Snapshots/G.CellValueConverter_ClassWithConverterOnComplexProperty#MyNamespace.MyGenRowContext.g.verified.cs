@@ -43,7 +43,7 @@ namespace MyNamespace
             {
                 headerNames[0] = "Property1";
                 headerNames[1] = "Property2";
-                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 2), styleId, token).ConfigureAwait(false);
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 2)!, styleId, token).ConfigureAwait(false);
             }
             finally
             {
