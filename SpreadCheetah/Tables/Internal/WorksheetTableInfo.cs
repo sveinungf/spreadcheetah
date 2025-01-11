@@ -45,16 +45,50 @@ internal sealed class WorksheetTableInfo
             : startingValues.ToArray();
     }
 
-    public PooledArray<Cell> CreateTotalRow()
+    public List<Cell> CreateTotalRow()
     {
-        // TODO: Example
-        //var cells = new List<Cell>
-        //{
-        //    new Cell("Total"),
-        //    new Cell(),
-        //    new Cell(new Formula("SUBTOTAL(109,Table1[[Count ]])")),
-        //    new Cell(new Formula("SUBTOTAL(101,Table1[Price])")),
-        //};
-        throw new NotImplementedException();
+        var cells = new List<Cell>();
+        var allColumnOptions = Table.ColumnOptions;
+        var headers = HeaderNames;
+
+        for (var i = 0; i < headers.Length; ++i)
+        {
+            var columnOptions = allColumnOptions?.GetValueOrDefault(i) ?? new();
+
+            var cell = columnOptions switch
+            {
+                { TotalRowLabel: { } label } => new Cell(label),
+                { TotalRowFunction: { } func } => new Cell(TotalRowFormula(func, headers[i])),
+                _ => new Cell()
+            };
+
+            cells.Add(cell);
+        }
+
+        return cells;
+    }
+
+    private static Formula TotalRowFormula(TableTotalRowFunction function, string? headerName)
+    {
+        var functionNumber = function switch
+        {
+            TableTotalRowFunction.Average => 101,
+            TableTotalRowFunction.Count => 103,
+            TableTotalRowFunction.CountNumbers => 102,
+            TableTotalRowFunction.Maximum => 104,
+            TableTotalRowFunction.Minimum => 105,
+            TableTotalRowFunction.StandardDeviation => 107,
+            TableTotalRowFunction.Sum => 109,
+            TableTotalRowFunction.Variance => 110,
+            _ => 0
+        };
+
+        if (functionNumber == 0)
+            return new Formula(); // TODO: Expected behavior?
+
+        // TODO: What if headerName is null?
+        // TODO: Do we need to adjust the headerName in any way?
+        var formulaText = StringHelper.Invariant($"SUBTOTAL({functionNumber};[{headerName}])");
+        return new Formula(formulaText);
     }
 }

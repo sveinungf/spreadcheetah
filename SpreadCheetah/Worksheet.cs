@@ -26,7 +26,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private string? _autoFilterRange;
 
     public Dictionary<SingleCellRelativeReference, string>? Notes { get; private set; }
-    public Dictionary<string, WorksheetTableInfo>? Tables {  get; private set; }
+    public Dictionary<string, WorksheetTableInfo>? Tables { get; private set; }
     public List<WorksheetImage>? Images { get; private set; }
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer, bool writeCellReferenceAttributes)
@@ -204,7 +204,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         _cellMerges.Add(cellRange);
     }
 
-    public async ValueTask FinishTableAsync(CancellationToken token)
+    public ValueTask FinishTableAsync(CancellationToken token)
     {
         var activeTables = Tables?.Values.Count(x => x.Active) ?? 0;
         if (Tables is null || activeTables == 0)
@@ -215,16 +215,17 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         var tableInfo = Tables.Values.First(x => x.Active);
 
         // TODO: What to do if table has no columns?
-        // TODO: What to do if table has no rows? Only header row should probably be fine.
+        // TODO: What to do if table has no rows? Only having a header row should probably be fine.
         tableInfo.LastDataRow = _state.NextRowIndex - 1;
 
         if (!tableInfo.Table.HasTotalRow)
-            return;
+            return default;
 
-        // TODO: tableInfo.Table.ColumnOptions.Last().Key;
+        var totalRow = tableInfo.CreateTotalRow();
 
-        // TODO: Add total row
-        throw new NotImplementedException();
+        return TryAddRow(totalRow)
+            ? default
+            : AddRowAsync(totalRow, token);
     }
 
     public async ValueTask FinishAsync(CancellationToken token)
