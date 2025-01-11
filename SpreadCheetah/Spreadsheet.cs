@@ -348,7 +348,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public async ValueTask AddHeaderRowAsync(ReadOnlyMemory<string> headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
         if (headerNames.Length == 0)
+        {
+            await AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token).ConfigureAwait(false);
             return;
+        }
 
         var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Length);
         try
@@ -369,7 +372,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(headerNames);
         if (headerNames.Count == 0)
+        {
+            await AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token).ConfigureAwait(false);
             return;
+        }
 
         var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Count);
         try

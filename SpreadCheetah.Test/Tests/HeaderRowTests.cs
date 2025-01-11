@@ -49,14 +49,17 @@ public class HeaderRowTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
+        const string subsequentRowValue = "Hello";
 
         // Act
         await spreadsheet.AddHeaderRowAsync([], rowType);
+        await spreadsheet.AddRowAsync([new DataCell(subsequentRowValue)], rowType);
         await spreadsheet.FinishAsync();
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.Empty(sheet.Row(1));
+        Assert.Equal(subsequentRowValue, sheet["A2"].StringValue);
     }
 
     [Theory]
