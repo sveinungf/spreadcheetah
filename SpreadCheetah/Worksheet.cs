@@ -65,7 +65,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     {
         Tables ??= new(StringComparer.OrdinalIgnoreCase);
 
-        if (Tables.Values.Any(x => x.Active))
+        if (Tables.GetActive() is not null)
             ThrowHelper.OnlyOneActiveTableAllowed();
 
         var tableName = table.Name;
@@ -84,32 +84,20 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public void AddHeaderNamesToNewlyStartedTables(ReadOnlySpan<string?> headerNames)
     {
-        if (Tables is null)
-            return;
+        if (Tables is null) return;
 
-        foreach (var tableInfo in Tables.Values)
-        {
-            if (tableInfo.Active && tableInfo.FirstRow == _state.NextRowIndex)
-            {
-                tableInfo.SetHeaderNames(headerNames);
-                break;
-            }
-        }
+        var tableInfo = Tables.GetActive();
+        if (tableInfo?.FirstRow == _state.NextRowIndex)
+            tableInfo.SetHeaderNames(headerNames);
     }
 
     public void AddHeaderNamesToNewlyStartedTables(IList<string?> headerNames)
     {
-        if (Tables is null)
-            return;
+        if (Tables is null) return;
 
-        foreach (var tableInfo in Tables.Values)
-        {
-            if (tableInfo.Active && tableInfo.FirstRow == _state.NextRowIndex)
-            {
-                tableInfo.SetHeaderNames(headerNames);
-                break;
-            }
-        }
+        var tableInfo = Tables.GetActive();
+        if (tableInfo?.FirstRow == _state.NextRowIndex)
+            tableInfo.SetHeaderNames(headerNames);
     }
 
     public bool TryAddRow(IList<Cell> cells)
@@ -208,16 +196,16 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public ValueTask FinishTableAsync(CancellationToken token)
     {
-        var activeTables = Tables?.Values.Count(x => x.Active) ?? 0;
-        if (Tables is null || activeTables == 0)
-            ThrowHelper.NoActiveTables();
-        if (activeTables > 1)
+        var tableInfo = Tables.GetActive(out var multipleActiveTables);
+        if (multipleActiveTables)
             ThrowHelper.MultipleActiveTables();
-
-        var tableInfo = Tables.Values.First(x => x.Active);
+        if (tableInfo is null)
+            ThrowHelper.NoActiveTables();
 
         // TODO: What to do if table has no columns?
-        // TODO: What to do if table has no rows? Only having a header row should probably be fine.
+        if (tableInfo.FirstRow == _state.NextRowIndex)
+            ThrowHelper.TableHasNoRows(tableInfo.Table.Name);
+
         tableInfo.LastDataRow = _state.NextRowIndex - 1;
 
         if (!tableInfo.Table.HasTotalRow)

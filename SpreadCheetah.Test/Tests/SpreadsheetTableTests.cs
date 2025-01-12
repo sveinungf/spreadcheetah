@@ -104,6 +104,33 @@ public class SpreadsheetTableTests
         Assert.False(actualTable.BandedColumns);
     }
 
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_Table_WithoutRows(bool rowBefore)
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        if (rowBefore)
+        {
+            DataCell[] dataRow = [new("Ford"), new("Mondeo"), new(190000)];
+            await spreadsheet.AddRowAsync(dataRow);
+        }
+
+        var table = new Table(TableStyle.Light1) { NumberOfColumns = 1 };
+
+        // Act
+        spreadsheet.StartTable(table);
+        var exception = await Record.ExceptionAsync(() => spreadsheet.FinishTableAsync().AsTask());
+
+        // Assert
+        Assert.IsType<SpreadCheetahException>(exception);
+        Assert.Contains("no rows", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // TODO: Test for table with only header row. Should be allowed.
+    // TODO: Test for table with only total row. Should not be allowed.
+    // TODO: Test for table with only a single data row. Should be allowed?
     // TODO: Test for table that doesn't start at row 1
     // TODO: Test for table that doesn't start at column A
     // TODO: Test for having two active tables

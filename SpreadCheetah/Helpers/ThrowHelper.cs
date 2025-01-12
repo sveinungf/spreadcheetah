@@ -107,6 +107,9 @@ internal static class ThrowHelper
     public static void StyleNameTooLong(string? paramName) => throw new ArgumentException("The name can not be more than 255 characters.", paramName);
 
     [DoesNotReturn]
+    public static void TableHasNoRows(string tableName) => throw new SpreadCheetahException($"Table '{tableName}' has no rows. Tables must have at least one row.");
+
+    [DoesNotReturn]
     public static void TableNameAlreadyExists(string? paramName) => throw new ArgumentException("A table with the given name already exists.", paramName);
 
     [DoesNotReturn]
