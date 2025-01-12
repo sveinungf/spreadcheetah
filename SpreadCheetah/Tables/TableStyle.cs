@@ -3,6 +3,7 @@ namespace SpreadCheetah.Tables;
 public enum TableStyle
 {
     None,
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     Light1,
     Light2,
     Light3,
@@ -63,4 +64,5 @@ public enum TableStyle
     Dark9,
     Dark10,
     Dark11
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }
