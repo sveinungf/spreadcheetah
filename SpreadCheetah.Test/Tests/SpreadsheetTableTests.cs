@@ -40,6 +40,30 @@ public class SpreadsheetTableTests
     }
 
     [Theory, CombinatorialData]
+    public async Task Spreadsheet_Table_TableStyle(TableStyle tableStyle)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(tableStyle);
+        DataCell[] dataRow = [new("Ford"), new("Mondeo"), new(1993)];
+
+        // Act
+        spreadsheet.StartTable(table);
+        await spreadsheet.AddHeaderRowAsync(["Make", "Model", "Year"]);
+        await spreadsheet.AddRowAsync(dataRow);
+        await spreadsheet.FinishTableAsync();
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualTable = Assert.Single(sheet.Tables);
+        var expectedStyle = tableStyle is TableStyle.None ? "None" : $"TableStyle{tableStyle}";
+        Assert.Equal(expectedStyle, actualTable.TableStyle);
+    }
+
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_Table_TotalRow(TableTotalRowFunction function)
     {
         // Arrange

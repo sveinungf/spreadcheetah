@@ -60,7 +60,7 @@ file struct TableXmlWriter(
             Element.AutoFilterReference => TryWriteAutoFilterReference(),
             Element.TableColumnsStart => TryWriteTableColumnsStart(),
             Element.TableColumns => TryWriteTableColumns(),
-            Element.TableStyleInfoStart => buffer.TryWrite("</tableColumns><tableStyleInfo name=\""u8),
+            Element.TableStyleInfoStart => buffer.TryWrite("</tableColumns><tableStyleInfo "u8),
             Element.TableStyleName => TryWriteTableStyleName(),
             Element.TableStyleInfo => TryWriteTableStyleInfo(),
             _ => buffer.TryWrite("</table>"u8)
@@ -206,13 +206,13 @@ file struct TableXmlWriter(
             _ => (int)style
         };
 
-        return buffer.TryWrite($"{"TableStyle"u8}{styleCategory}{styleNumber}");
+        return buffer.TryWrite($"{"name=\"TableStyle"u8}{styleCategory}{styleNumber}{"\" "u8}");
     }
 
     private readonly bool TryWriteTableStyleInfo()
     {
         return buffer.TryWrite(
-            $"{"\" showFirstColumn=\"0\" showLastColumn=\"0\" showRowStripes=\""u8}" +
+            $"{"showFirstColumn=\"0\" showLastColumn=\"0\" showRowStripes=\""u8}" +
             $"{Table.BandedRows}" +
             $"{"\" showColumnStripes=\""u8}" +
             $"{Table.BandedColumns}" +
