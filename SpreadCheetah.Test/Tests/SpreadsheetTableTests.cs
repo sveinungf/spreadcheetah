@@ -103,4 +103,15 @@ public class SpreadsheetTableTests
         Assert.True(actualTable.BandedRows);
         Assert.False(actualTable.BandedColumns);
     }
+
+    // TODO: Test for table that doesn't start at row 1
+    // TODO: Test for table that doesn't start at column A
+    // TODO: Test for having two active tables
+    // TODO: Test for finishing table twice
+    // TODO: Test for implicit finishing a table with FinishAsync
+    // TODO: Test for calling AddHeaderRow twice. Only the first call should set the headers.
+    // TODO: Test for using AddHeaderRow from source generated code
+    // TODO: Test for multiple tables in the same worksheet.
+    // TODO: Test for multiple worksheets with tables.
+    // TODO: Test for styling on top of table (differential/dxf?)
 }
