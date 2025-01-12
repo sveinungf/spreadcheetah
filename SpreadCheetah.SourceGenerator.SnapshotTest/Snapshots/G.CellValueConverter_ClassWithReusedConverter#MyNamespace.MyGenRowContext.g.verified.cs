@@ -36,7 +36,7 @@ namespace MyNamespace
                 headerNames[0] = "Property1";
                 headerNames[1] = "Property2";
                 headerNames[2] = "Property3";
-                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 3), styleId, token).ConfigureAwait(false);
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 3)!, styleId, token).ConfigureAwait(false);
             }
             finally
             {

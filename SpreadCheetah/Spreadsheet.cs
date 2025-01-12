@@ -356,7 +356,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Add a row of header names in the active worksheet. A style can optionally be applied to all the cells in the row.
     /// </summary>
-    public ValueTask AddHeaderRowAsync(string?[] headerNames, StyleId? styleId = null, CancellationToken token = default)
+    public ValueTask AddHeaderRowAsync(string[] headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
         // TODO: Consider if headerNames should be non-nullable strings.
         // TODO: Check if a table was just started, and if so, set the header names on it.
@@ -369,10 +369,13 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Add a row of header names in the active worksheet. A style can optionally be applied to all the cells in the row.
     /// </summary>
-    public async ValueTask AddHeaderRowAsync(ReadOnlyMemory<string?> headerNames, StyleId? styleId = null, CancellationToken token = default)
+    public async ValueTask AddHeaderRowAsync(ReadOnlyMemory<string> headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
         if (headerNames.Length == 0)
-            return; // TODO: Should add an empty row instead
+        {
+            await AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token).ConfigureAwait(false);
+            return;
+        }
 
         var headerNamesSpan = headerNames.Span;
         Worksheet.AddHeaderNamesToNewlyStartedTables(headerNamesSpan);
@@ -392,11 +395,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Add a row of header names in the active worksheet. A style can optionally be applied to all the cells in the row.
     /// </summary>
-    public async ValueTask AddHeaderRowAsync(IList<string?> headerNames, StyleId? styleId = null, CancellationToken token = default)
+    public async ValueTask AddHeaderRowAsync(IList<string> headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(headerNames);
         if (headerNames.Count == 0)
-            return; // TODO: Should add an empty row instead
+        {
+            await AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token).ConfigureAwait(false);
+            return;
+        }
 
         Worksheet.AddHeaderNamesToNewlyStartedTables(headerNames);
 

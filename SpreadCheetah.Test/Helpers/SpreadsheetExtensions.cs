@@ -61,7 +61,7 @@ internal static class SpreadsheetExtensions
         _ => throw new ArgumentOutOfRangeException(nameof(rowType), rowType, null)
     };
 
-    public static ValueTask AddHeaderRowAsync(this Spreadsheet spreadsheet, IEnumerable<string?> headerNames, RowCollectionType rowType) => rowType switch
+    public static ValueTask AddHeaderRowAsync(this Spreadsheet spreadsheet, IEnumerable<string> headerNames, RowCollectionType rowType) => rowType switch
     {
         RowCollectionType.Array => spreadsheet.AddHeaderRowAsync(headerNames.ToArray()),
         RowCollectionType.ReadOnlyMemory => spreadsheet.AddHeaderRowAsync(headerNames.ToArray().AsMemory()),

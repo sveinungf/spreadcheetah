@@ -13,7 +13,7 @@ public class HeaderRowTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
-        string?[] headerNames = ["ID", "First name", "Last name", "Age"];
+        string[] headerNames = ["ID", "First name", "Last name", "Age"];
 
         // Act
         await spreadsheet.AddHeaderRowAsync(headerNames, rowType);
@@ -31,7 +31,7 @@ public class HeaderRowTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
-        string?[] headerNames = ["ID", null, "Last name", "Age"];
+        string[] headerNames = ["ID", null!, "Last name", "Age"];
 
         // Act
         await spreadsheet.AddHeaderRowAsync(headerNames, rowType);
@@ -49,14 +49,17 @@ public class HeaderRowTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
+        const string subsequentRowValue = "Hello";
 
         // Act
         await spreadsheet.AddHeaderRowAsync([], rowType);
+        await spreadsheet.AddRowAsync([new DataCell(subsequentRowValue)], rowType);
         await spreadsheet.FinishAsync();
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.Empty(sheet.Row(1));
+        Assert.Equal(subsequentRowValue, sheet["A2"].StringValue);
     }
 
     [Theory]
@@ -73,7 +76,7 @@ public class HeaderRowTests
         var exception = await Record.ExceptionAsync(rowType switch
         {
             RowCollectionType.Array => async () => await spreadsheet.AddHeaderRowAsync(null!),
-            RowCollectionType.List => async () => await spreadsheet.AddHeaderRowAsync((null as List<string?>)!),
+            RowCollectionType.List => async () => await spreadsheet.AddHeaderRowAsync((null as List<string>)!),
             _ => throw new ArgumentOutOfRangeException(nameof(rowType), rowType, null)
         });
 

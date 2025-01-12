@@ -47,7 +47,7 @@ namespace MyNamespace
                 headerNames[13] = "NullableDateTimeValue";
                 headerNames[14] = "BoolValue";
                 headerNames[15] = "NullableBoolValue";
-                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 16), styleId, token).ConfigureAwait(false);
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 16)!, styleId, token).ConfigureAwait(false);
             }
             finally
             {

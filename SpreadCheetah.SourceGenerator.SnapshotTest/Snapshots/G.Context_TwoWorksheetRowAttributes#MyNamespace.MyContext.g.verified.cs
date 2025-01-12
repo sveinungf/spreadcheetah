@@ -32,7 +32,7 @@ namespace MyNamespace
             try
             {
                 headerNames[0] = "Name";
-                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 1), styleId, token).ConfigureAwait(false);
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 1)!, styleId, token).ConfigureAwait(false);
             }
             finally
             {
@@ -117,7 +117,7 @@ namespace MyNamespace
             try
             {
                 headerNames[0] = "Id";
-                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 1), styleId, token).ConfigureAwait(false);
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 1)!, styleId, token).ConfigureAwait(false);
             }
             finally
             {
