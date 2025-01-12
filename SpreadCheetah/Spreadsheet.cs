@@ -157,14 +157,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ThrowHelper.ColumnNameInvalid(nameof(firstColumnName));
 
         // TODO: Is there a limit on the number of tables?
-        // TODO: Can there be overlapping tables?
-        // TODO: Make an immutable copy of the table
-        // TODO: Do not allow multiple active tables for now.
         _fileCounter ??= new FileCounter();
         _fileCounter.TableForCurrentWorksheet();
 
-        if (!Worksheet.TryStartTable(table, firstColumnNumber))
-            ThrowHelper.TableNameAlreadyExists(nameof(table));
+        Worksheet.StartTable(table, firstColumnNumber);
     }
 
     /// <summary>
@@ -358,10 +354,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddHeaderRowAsync(string[] headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
-        // TODO: Consider if headerNames should be non-nullable strings.
-        // TODO: Check if a table was just started, and if so, set the header names on it.
-        // TODO: Active tables that already have header names should be ignored.
-        // TODO: How to handle multiple tables?
         ArgumentNullException.ThrowIfNull(headerNames);
         return AddHeaderRowAsync(headerNames.AsMemory(), styleId, token);
     }
@@ -373,6 +365,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         if (headerNames.Length == 0)
         {
+            // TODO: What to do with active table here?
             await AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token).ConfigureAwait(false);
             return;
         }
@@ -400,6 +393,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(headerNames);
         if (headerNames.Count == 0)
         {
+            // TODO: What to do with active table here?
             await AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token).ConfigureAwait(false);
             return;
         }
@@ -683,8 +677,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         await worksheet.FinishAsync(token).ConfigureAwait(false);
         await worksheet.DisposeAsync().ConfigureAwait(false);
-
-        // TODO: Write table XML
 
         if (worksheet.Notes is { } notes)
         {

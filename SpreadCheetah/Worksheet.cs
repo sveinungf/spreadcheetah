@@ -61,29 +61,25 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         }
     }
 
-    public bool TryStartTable(Table table, int firstColumnNumber)
+    public void StartTable(Table table, int firstColumnNumber)
     {
         Tables ??= new(StringComparer.OrdinalIgnoreCase);
+
+        if (Tables.Values.Any(x => x.Active))
+            ThrowHelper.OnlyOneActiveTableAllowed();
 
         var tableName = table.Name;
         if (tableName is null)
             tableName = TableNameGenerator.GenerateUniqueName(Tables);
         else if (Tables.ContainsKey(tableName))
-            return false;
+            ThrowHelper.TableNameAlreadyExists(nameof(table));
 
-        // TODO: If overlapping tables are not allowed, check for that here and return false if there is overlap.
-        // TODO: Handle case where two tables start on the same row. The call to AddHeaderRow should know the max number of columns in the first table.
-        // TODO: AddHeaderRow can also know the max number of columns if there is an active table that was started on a previous row.
-
-        // TODO: Any other reason why we shouldn't start a table?
         Tables[tableName] = new WorksheetTableInfo
         {
             FirstColumn = (ushort)firstColumnNumber,
             FirstRow = _state.NextRowIndex,
             Table = ImmutableTable.From(table, tableName)
         };
-
-        return true;
     }
 
     public void AddHeaderNamesToNewlyStartedTables(ReadOnlySpan<string?> headerNames)
@@ -94,7 +90,10 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         foreach (var tableInfo in Tables.Values)
         {
             if (tableInfo.Active && tableInfo.FirstRow == _state.NextRowIndex)
+            {
                 tableInfo.SetHeaderNames(headerNames);
+                break;
+            }
         }
     }
 
@@ -106,7 +105,10 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         foreach (var tableInfo in Tables.Values)
         {
             if (tableInfo.Active && tableInfo.FirstRow == _state.NextRowIndex)
+            {
                 tableInfo.SetHeaderNames(headerNames);
+                break;
+            }
         }
     }
 

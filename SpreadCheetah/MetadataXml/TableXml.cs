@@ -104,7 +104,6 @@ file struct TableXmlWriter(
 
     private readonly bool TryWriteReferenceEnd()
     {
-        // TODO: AutoFilter by default for all columns. Can later add options to change this behavior.
         return buffer.TryWrite(
             $"{"\" totalsRowCount=\""u8}" +
             $"{Table.HasTotalRow}" +

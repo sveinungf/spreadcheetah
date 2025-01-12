@@ -68,6 +68,9 @@ internal static class ThrowHelper
     public static void NoteTextTooLong(string? paramName) => throw new ArgumentException($"Note text can not exceed {SpreadsheetConstants.MaxNoteTextLength} characters.", paramName);
 
     [DoesNotReturn]
+    public static void OnlyOneActiveTableAllowed() => throw new SpreadCheetahException($"Currently there is support for having only one active table at a time. Another table can be added if the previous table is first finished by calling {nameof(Spreadsheet.FinishTableAsync)}.");
+
+    [DoesNotReturn]
     public static void ResizeAndMoveCellsCombinationNotSupported(string resizeParamName, string moveParamName) => throw new ArgumentException($"Enabling {resizeParamName} is not supported when {moveParamName} is false.", resizeParamName);
 
     [DoesNotReturn]
