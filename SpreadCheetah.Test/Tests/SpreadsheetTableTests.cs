@@ -39,8 +39,8 @@ public class SpreadsheetTableTests
         Assert.False(actualTable.ShowTotalRow);
     }
 
-    [Fact]
-    public async Task Spreadsheet_Table_TotalRow()
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_Table_TotalRow(TableTotalRowFunction function)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -49,9 +49,9 @@ public class SpreadsheetTableTests
         var table = new Table(TableStyle.Light19);
         string[] headerNames = ["Make", "Model", "Price"];
         const string totalRowLabel = "Average price";
-        const TableTotalRowFunction totalRowFunction = TableTotalRowFunction.Average;
         table.Column(1).TotalRowLabel = totalRowLabel;
-        table.Column(3).TotalRowFunction = totalRowFunction;
+        table.Column(3).TotalRowFunction = function;
+        TableTotalRowFunction? expectedFunction = function is TableTotalRowFunction.None ? null : function;
         DataCell[] dataRow1 = [new("Ford"), new("Mondeo"), new(190000)];
         DataCell[] dataRow2 = [new("Volkswagen"), new("Polo"), new(150000)];
 
@@ -69,7 +69,7 @@ public class SpreadsheetTableTests
         var actualColumns = actualTable.Columns;
         Assert.Equal(headerNames, actualColumns.Select(x => x.Name));
         Assert.Equal([totalRowLabel, null, null], actualColumns.Select(x => x.TotalRowLabel));
-        Assert.Equal([null, null, totalRowFunction], actualColumns.Select(x => x.TotalRowFunction));
+        Assert.Equal([null, null, expectedFunction], actualColumns.Select(x => x.TotalRowFunction));
         Assert.Equal("Table1", actualTable.Name);
         Assert.Equal("TableStyleLight19", actualTable.TableStyle);
         Assert.Equal("A1:C4", actualTable.CellRangeReference);

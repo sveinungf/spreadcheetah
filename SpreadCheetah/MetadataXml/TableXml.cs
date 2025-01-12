@@ -156,7 +156,7 @@ file struct TableXmlWriter(
         TableTotalRowFunction? totalRowFunction)
     {
         var labelAttribute = totalRowLabel is not null ? "\" totalsRowLabel=\""u8 : [];
-        var functionAttribute = totalRowFunction is not null ? "\" totalsRowFunction=\""u8 : [];
+        var functionAttribute = totalRowFunction is (null or TableTotalRowFunction.None) ? [] : "\" totalsRowFunction=\""u8;
         var functionAttributeValue = GetFunctionAttributeValue(totalRowFunction);
 
         return buffer.TryWrite(
@@ -174,13 +174,13 @@ file struct TableXmlWriter(
     private static ReadOnlySpan<byte> GetFunctionAttributeValue(TableTotalRowFunction? function) => function switch
     {
         TableTotalRowFunction.Average => "average"u8,
-        TableTotalRowFunction.Count => "count"u8, // TODO: Verify
-        TableTotalRowFunction.CountNumbers => "countNums"u8, // TODO: Verify
-        TableTotalRowFunction.Maximum => "max"u8, // TODO: Verify
-        TableTotalRowFunction.Minimum => "min"u8, // TODO: Verify
-        TableTotalRowFunction.StandardDeviation => "stdDev"u8, // TODO: Verify
+        TableTotalRowFunction.Count => "count"u8,
+        TableTotalRowFunction.CountNumbers => "countNums"u8,
+        TableTotalRowFunction.Maximum => "max"u8,
+        TableTotalRowFunction.Minimum => "min"u8,
+        TableTotalRowFunction.StandardDeviation => "stdDev"u8,
         TableTotalRowFunction.Sum => "sum"u8,
-        TableTotalRowFunction.Variance => "var"u8, // TODO: Verify
+        TableTotalRowFunction.Variance => "var"u8,
         _ => []
     };
 
