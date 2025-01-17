@@ -201,10 +201,10 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
             ThrowHelper.MultipleActiveTables();
         if (tableInfo is null)
             ThrowHelper.NoActiveTables();
-
-        // TODO: What to do if table has no columns?
         if (tableInfo.FirstRow == _state.NextRowIndex)
             ThrowHelper.TableHasNoRows(tableInfo.Table.Name);
+        if (tableInfo.ActualNumberOfColumns == 0)
+            ThrowHelper.TableHasNoColumns(tableInfo.Table.Name);
 
         tableInfo.LastDataRow = _state.NextRowIndex - 1;
 

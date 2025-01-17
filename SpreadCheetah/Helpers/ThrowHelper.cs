@@ -1,3 +1,4 @@
+using SpreadCheetah.Tables;
 using System.Diagnostics.CodeAnalysis;
 
 namespace SpreadCheetah.Helpers;
@@ -105,6 +106,9 @@ internal static class ThrowHelper
 
     [DoesNotReturn]
     public static void StyleNameTooLong(string? paramName) => throw new ArgumentException("The name can not be more than 255 characters.", paramName);
+
+    [DoesNotReturn]
+    public static void TableHasNoColumns(string tableName) => throw new SpreadCheetahException($"Table '{tableName}' has no columns. The number of columns is determined by calling {nameof(Spreadsheet.AddHeaderRowAsync)} for the first row of the table. Alternatively it can be set explicitly with {nameof(Table)}.{nameof(Table.NumberOfColumns)}.");
 
     [DoesNotReturn]
     public static void TableHasNoRows(string tableName) => throw new SpreadCheetahException($"Table '{tableName}' has no rows. Tables must have at least one row.");

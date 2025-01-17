@@ -16,6 +16,7 @@ internal sealed class WorksheetTableInfo
     public bool Active => LastDataRow is null;
 
     public ReadOnlySpan<string?> HeaderNames => _headerNames.AsSpan();
+    public int ActualNumberOfColumns => Table.NumberOfColumns ?? HeaderNames.Length;
 
     public void SetHeaderNames(ReadOnlySpan<string?> fullRowValues)
     {

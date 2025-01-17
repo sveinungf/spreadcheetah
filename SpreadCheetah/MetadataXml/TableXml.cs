@@ -43,8 +43,7 @@ file struct TableXmlWriter(
     public readonly TableXmlWriter GetEnumerator() => this;
     public bool Current { get; private set; }
 
-    // TODO: Can ColumnCount end up being "0"?
-    private readonly int ColumnCount => Table.NumberOfColumns ?? worksheetTableInfo.HeaderNames.Length;
+    private readonly int ColumnCount => worksheetTableInfo.ActualNumberOfColumns;
 
     public bool MoveNext()
     {
@@ -112,6 +111,7 @@ file struct TableXmlWriter(
 
     private readonly bool TryWriteTableColumnsStart()
     {
+        Debug.Assert(ColumnCount > 0);
         return buffer.TryWrite(
             $"{"\"/><tableColumns count=\""u8}" +
             $"{ColumnCount}" +

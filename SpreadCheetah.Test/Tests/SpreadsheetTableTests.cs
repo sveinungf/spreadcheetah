@@ -128,6 +128,29 @@ public class SpreadsheetTableTests
         Assert.Contains("no rows", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_Table_WithoutColumns(bool hasEmptyHeaderRow)
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        var table = new Table(TableStyle.Light1);
+
+        // Act
+        spreadsheet.StartTable(table);
+
+        if (hasEmptyHeaderRow)
+            await spreadsheet.AddHeaderRowAsync([]);
+
+        await spreadsheet.AddRowAsync([new DataCell("Hello"), new DataCell("World!")]);
+        var exception = await Record.ExceptionAsync(() => spreadsheet.FinishTableAsync().AsTask());
+
+        // Assert
+        Assert.IsType<SpreadCheetahException>(exception);
+        Assert.Contains("no columns", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
     // TODO: Test for table with only header row. Should be allowed.
     // TODO: Test for table with only total row. Should not be allowed.
     // TODO: Test for table with only a single data row. Should be allowed?
@@ -141,4 +164,8 @@ public class SpreadsheetTableTests
     // TODO: Test for multiple tables in the same worksheet.
     // TODO: Test for multiple worksheets with tables.
     // TODO: Test for styling on top of table (differential/dxf?)
+    // TODO: Test for valid table names
+    // TODO: Test for invalid table names
+    // TODO: Test for column name changes?
+    // TODO: Test for generated column names
 }
