@@ -194,30 +194,38 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         _cellMerges.Add(cellRange);
     }
 
-    public ValueTask FinishTableAsync(bool throwWhenNoTable, CancellationToken token)
+    public async ValueTask FinishTableAsync(bool throwWhenNoTable, CancellationToken token)
     {
         var tableInfo = Tables.GetActive(out var multipleActiveTables);
         if (multipleActiveTables)
             ThrowHelper.MultipleActiveTables();
         if (tableInfo is null && !throwWhenNoTable)
-            return default;
+            return;
         if (tableInfo is null)
             ThrowHelper.NoActiveTables();
-        if (tableInfo.FirstRow == _state.NextRowIndex)
+
+        var tableRows = _state.NextRowIndex - tableInfo.FirstRow;
+        if (tableRows == 0)
             ThrowHelper.TableHasNoRows(tableInfo.Table.Name);
         if (tableInfo.ActualNumberOfColumns == 0)
             ThrowHelper.TableHasNoColumns(tableInfo.Table.Name);
 
+        // TODO: If no header but data row -> ???
+        var tableHasOnlyHeaderRow = tableRows == 1 && !tableInfo.HeaderNames.IsEmpty;
+        if (tableHasOnlyHeaderRow && !TryAddRow(ReadOnlySpan<DataCell>.Empty))
+        {
+            // Add an empty row so that the table doesn't cause an error when opening the file in Excel
+            await AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token).ConfigureAwait(false);
+        }
+
         tableInfo.LastDataRow = _state.NextRowIndex - 1;
 
         if (!tableInfo.Table.HasTotalRow)
-            return default;
+            return;
 
         var totalRow = tableInfo.CreateTotalRow();
-
-        return TryAddRow(totalRow)
-            ? default
-            : AddRowAsync(totalRow, token);
+        if (!TryAddRow(totalRow))
+            await AddRowAsync(totalRow, token).ConfigureAwait(false);
     }
 
     public async ValueTask FinishAsync(CancellationToken token)

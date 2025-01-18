@@ -103,6 +103,7 @@ public class SpreadsheetTableTests
         Assert.Equal("Table1", actualTable.Name);
         Assert.Equal("TableStyleLight19", actualTable.TableStyle);
         Assert.Equal("A1:C4", actualTable.CellRangeReference);
+        Assert.Equal(totalRowLabel, sheet["A4"].StringValue);
         Assert.True(actualTable.ShowAutoFilter);
         Assert.True(actualTable.ShowHeaderRow);
         Assert.True(actualTable.ShowTotalRow);
@@ -157,7 +158,58 @@ public class SpreadsheetTableTests
         Assert.Contains("no columns", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
-    // TODO: Test for table with only header row. Should be allowed.
+    [Fact]
+    public async Task Spreadsheet_Table_WithOnlyHeaderRow()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+        string[] headerNames = ["Make", "Model", "Year"];
+
+        // Act
+        spreadsheet.StartTable(table);
+        await spreadsheet.AddHeaderRowAsync(headerNames);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualTable = Assert.Single(sheet.Tables);
+        Assert.Equal(headerNames, actualTable.Columns.Select(x => x.Name));
+        Assert.Equal("A1:C2", actualTable.CellRangeReference);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_Table_WithOnlyHeaderAndTotalRows()
+    {
+        // Arrange
+        const string totalRowLabel = "Result";
+        const TableTotalRowFunction totalRowFunction = TableTotalRowFunction.Count;
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+        string[] headerNames = ["Make", "Model", "Year"];
+        table.Column(1).TotalRowLabel = totalRowLabel;
+        table.Column(3).TotalRowFunction = totalRowFunction;
+
+        // Act
+        spreadsheet.StartTable(table);
+        await spreadsheet.AddHeaderRowAsync(headerNames);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualTable = Assert.Single(sheet.Tables);
+        var actualColumns = actualTable.Columns;
+        Assert.Equal(headerNames, actualTable.Columns.Select(x => x.Name));
+        Assert.Equal([totalRowLabel, null, null], actualColumns.Select(x => x.TotalRowLabel));
+        Assert.Equal([null, null, totalRowFunction], actualColumns.Select(x => x.TotalRowFunction));
+        Assert.Equal("A1:C3", actualTable.CellRangeReference);
+        Assert.Equal(totalRowLabel, sheet["A3"].StringValue);
+    }
+
     // TODO: Test for table with only total row. Should not be allowed.
     // TODO: Test for table with only a single data row. Should be allowed?
     // TODO: Test for table that doesn't start at row 1
