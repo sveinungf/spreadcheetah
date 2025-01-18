@@ -668,7 +668,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
     public ValueTask FinishTableAsync(CancellationToken token = default)
     {
-        return Worksheet.FinishTableAsync(token);
+        return Worksheet.FinishTableAsync(throwWhenNoTable: true, token);
     }
 
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)

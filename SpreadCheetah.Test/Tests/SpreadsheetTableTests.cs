@@ -5,8 +5,8 @@ namespace SpreadCheetah.Test.Tests;
 
 public class SpreadsheetTableTests
 {
-    [Fact]
-    public async Task Spreadsheet_Table_Success()
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_Table_Success(bool explicitlyFinishTable)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -22,7 +22,10 @@ public class SpreadsheetTableTests
         await spreadsheet.AddHeaderRowAsync(headerNames);
         await spreadsheet.AddRowAsync(dataRow1);
         await spreadsheet.AddRowAsync(dataRow2);
-        await spreadsheet.FinishTableAsync();
+
+        if (explicitlyFinishTable)
+            await spreadsheet.FinishTableAsync();
+
         await spreadsheet.FinishAsync();
 
         // Assert
@@ -64,7 +67,7 @@ public class SpreadsheetTableTests
     }
 
     [Theory, CombinatorialData]
-    public async Task Spreadsheet_Table_TotalRow(TableTotalRowFunction function)
+    public async Task Spreadsheet_Table_TotalRow(TableTotalRowFunction function, bool explicitlyFinishTable)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -84,7 +87,10 @@ public class SpreadsheetTableTests
         await spreadsheet.AddHeaderRowAsync(headerNames);
         await spreadsheet.AddRowAsync(dataRow1);
         await spreadsheet.AddRowAsync(dataRow2);
-        await spreadsheet.FinishTableAsync();
+
+        if (explicitlyFinishTable)
+            await spreadsheet.FinishTableAsync();
+
         await spreadsheet.FinishAsync();
 
         // Assert
@@ -158,7 +164,6 @@ public class SpreadsheetTableTests
     // TODO: Test for table that doesn't start at column A
     // TODO: Test for having two active tables
     // TODO: Test for finishing table twice
-    // TODO: Test for implicit finishing a table with FinishAsync
     // TODO: Test for calling AddHeaderRow twice. Only the first call should set the headers.
     // TODO: Test for using AddHeaderRow from source generated code
     // TODO: Test for multiple tables in the same worksheet.

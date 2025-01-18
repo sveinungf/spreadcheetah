@@ -194,11 +194,13 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         _cellMerges.Add(cellRange);
     }
 
-    public ValueTask FinishTableAsync(CancellationToken token)
+    public ValueTask FinishTableAsync(bool throwWhenNoTable, CancellationToken token)
     {
         var tableInfo = Tables.GetActive(out var multipleActiveTables);
         if (multipleActiveTables)
             ThrowHelper.MultipleActiveTables();
+        if (tableInfo is null && !throwWhenNoTable)
+            return default;
         if (tableInfo is null)
             ThrowHelper.NoActiveTables();
         if (tableInfo.FirstRow == _state.NextRowIndex)
@@ -220,7 +222,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public async ValueTask FinishAsync(CancellationToken token)
     {
-        // TODO: Finish active tables
+        await FinishTableAsync(throwWhenNoTable: false, token).ConfigureAwait(false);
 
         using var cellMergesPooledArray = _cellMerges?.ToPooledArray();
         using var validationsPooledArray = _validations?.ToPooledArray();
