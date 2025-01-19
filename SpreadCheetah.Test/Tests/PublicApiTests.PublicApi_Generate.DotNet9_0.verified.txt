@@ -103,6 +103,7 @@ namespace SpreadCheetah
         public void AddNote(string cellReference, string noteText) { }
         public System.Threading.Tasks.ValueTask AddRangeAsRowsAsync<T>(System.Collections.Generic.IEnumerable<T> objs, SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> typeInfo, System.Threading.CancellationToken token = default) { }
         public System.Threading.Tasks.ValueTask AddRowAsync(SpreadCheetah.Cell[] cells, System.Threading.CancellationToken token = default) { }
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
         public System.Threading.Tasks.ValueTask AddRowAsync(SpreadCheetah.DataCell[] cells, System.Threading.CancellationToken token = default) { }
         public System.Threading.Tasks.ValueTask AddRowAsync(SpreadCheetah.StyledCell[] cells, System.Threading.CancellationToken token = default) { }
         public System.Threading.Tasks.ValueTask AddRowAsync(System.Collections.Generic.IList<SpreadCheetah.Cell> cells, System.Threading.CancellationToken token = default) { }
