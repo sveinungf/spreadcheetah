@@ -1,9 +1,9 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Polyfills;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
-using SpreadCheetah.Test.Helpers.Backporting;
 using System.Globalization;
 using Alignment = SpreadCheetah.Styling.Alignment;
 using Border = SpreadCheetah.Styling.Border;
@@ -14,7 +14,6 @@ using Fill = SpreadCheetah.Styling.Fill;
 using Font = SpreadCheetah.Styling.Font;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
-using Polyfills;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -554,7 +553,7 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(format, actualCell.Style.NumberFormat.CustomFormat);
     }
 
-    public static IEnumerable<object?[]> BorderStyles() => TestData.CombineWithStyledCellTypes(EnumHelper.GetValues<BorderStyle>());
+    public static IEnumerable<object?[]> BorderStyles() => TestData.CombineWithStyledCellTypes(EnumPolyfill.GetValues<BorderStyle>());
 
     [Theory]
     [MemberData(nameof(BorderStyles))]
@@ -593,7 +592,7 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(XLBorderStyleValues.None, actualBorder.DiagonalBorder);
     }
 
-    public static IEnumerable<object?[]> DiagonalBorderTypes() => TestData.CombineWithStyledCellTypes(EnumHelper.GetValues<DiagonalBorderType>());
+    public static IEnumerable<object?[]> DiagonalBorderTypes() => TestData.CombineWithStyledCellTypes(EnumPolyfill.GetValues<DiagonalBorderType>());
 
     [Theory]
     [MemberData(nameof(DiagonalBorderTypes))]
@@ -698,7 +697,7 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(XLColor.Black, actualBorder.DiagonalBorderColor);
     }
 
-    public static IEnumerable<object?[]> HorizontalAlignments() => TestData.CombineWithStyledCellTypes(EnumHelper.GetValues<HorizontalAlignment>());
+    public static IEnumerable<object?[]> HorizontalAlignments() => TestData.CombineWithStyledCellTypes(EnumPolyfill.GetValues<HorizontalAlignment>());
 
     [Theory]
     [MemberData(nameof(HorizontalAlignments))]
@@ -732,7 +731,7 @@ public class SpreadsheetStyledRowTests
         Assert.False(actualAlignment.WrapText);
     }
 
-    public static IEnumerable<object?[]> VerticalAlignments() => TestData.CombineWithStyledCellTypes(EnumHelper.GetValues<VerticalAlignment>());
+    public static IEnumerable<object?[]> VerticalAlignments() => TestData.CombineWithStyledCellTypes(EnumPolyfill.GetValues<VerticalAlignment>());
 
     [Theory]
     [MemberData(nameof(VerticalAlignments))]
@@ -1167,7 +1166,7 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
 
-    public static IEnumerable<object?[]> ExplicitStandardNumberFormats() => TestData.CombineWithStyledCellTypes(EnumHelper.GetValues<StandardNumberFormat>());
+    public static IEnumerable<object?[]> ExplicitStandardNumberFormats() => TestData.CombineWithStyledCellTypes(EnumPolyfill.GetValues<StandardNumberFormat>());
 
     [Theory]
     [MemberData(nameof(ExplicitStandardNumberFormats))]
