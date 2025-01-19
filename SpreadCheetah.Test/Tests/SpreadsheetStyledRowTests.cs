@@ -14,6 +14,7 @@ using Fill = SpreadCheetah.Styling.Fill;
 using Font = SpreadCheetah.Styling.Font;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
+using Polyfills;
 
 namespace SpreadCheetah.Test.Tests;
 

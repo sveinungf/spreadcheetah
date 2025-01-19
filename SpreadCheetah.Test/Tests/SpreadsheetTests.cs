@@ -11,6 +11,7 @@ using Color = System.Drawing.Color;
 using DataValidation = SpreadCheetah.Validations.DataValidation;
 using Fill = SpreadCheetah.Styling.Fill;
 using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
+using Polyfills;
 
 namespace SpreadCheetah.Test.Tests;
 
