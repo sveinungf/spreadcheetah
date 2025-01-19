@@ -11,6 +11,7 @@ using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 #if !NET6_0_OR_GREATER
 using ArgumentNullException = SpreadCheetah.Helpers.Backporting.ArgumentNullExceptionBackport;
@@ -168,6 +169,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Adds a row of cells to the worksheet and increments the current row number by 1.
     /// </summary>
+    [OverloadResolutionPriority(1)]
     public ValueTask AddRowAsync(DataCell[] cells, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(cells);
@@ -486,7 +488,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ThrowHelper.StyleNameStartsOrEndsWithWhiteSpace(nameof(name));
         if (name.Equals("Normal", StringComparison.OrdinalIgnoreCase))
             ThrowHelper.StyleNameCanNotEqualNormal(nameof(name));
-        if (nameVisibility is { } visibility && !EnumHelper.IsDefined(visibility))
+        if (nameVisibility is { } visibility && !EnumPolyfill.IsDefined(visibility))
             ThrowHelper.EnumValueInvalid(nameof(nameVisibility), nameVisibility);
 
         var styleManager = _styleManager ??= new(defaultDateTimeFormat: null);

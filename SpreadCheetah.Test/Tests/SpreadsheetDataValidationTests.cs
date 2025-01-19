@@ -6,6 +6,7 @@ using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Validations;
 using System.Globalization;
+using Polyfills;
 
 namespace SpreadCheetah.Test.Tests;
 

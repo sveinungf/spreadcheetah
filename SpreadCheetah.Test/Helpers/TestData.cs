@@ -1,13 +1,13 @@
-using SpreadCheetah.Test.Helpers.Backporting;
+using Polyfills;
 
 namespace SpreadCheetah.Test.Helpers;
 
 internal static class TestData
 {
-    private static readonly CellType[] CellTypeArray = EnumHelper.GetValues<CellType>();
+    private static readonly CellType[] CellTypeArray = EnumPolyfill.GetValues<CellType>();
     private static readonly CellType[] StyledCellTypeArray = [CellType.StyledCell, CellType.Cell];
-    private static readonly CellValueType[] CellValueTypeArray = EnumHelper.GetValues<CellValueType>();
-    private static readonly RowCollectionType[] RowCollectionTypeArray = EnumHelper.GetValues<RowCollectionType>();
+    private static readonly CellValueType[] CellValueTypeArray = EnumPolyfill.GetValues<CellValueType>();
+    private static readonly RowCollectionType[] RowCollectionTypeArray = EnumPolyfill.GetValues<RowCollectionType>();
 
     public static IEnumerable<object?[]> CellTypes()
     {

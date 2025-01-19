@@ -1,20 +1,18 @@
-using System.Text;
+namespace SpreadCheetah.SourceGenerator.Test.Helpers;
 
-namespace SpreadCheetah.SourceGenerator.Test.Helpers.Backporting;
-
-internal static class StringExtensions
+internal static class StringHelpers
 {
-    public static string ReplaceLineEndings(this string value)
+    public static string ReplaceLineEndings(string value)
     {
+#if NET6_0_OR_GREATER
+        return value.ReplaceLineEndings();
+#else
         if (string.Equals(Environment.NewLine, "\n", StringComparison.Ordinal))
-        {
 #pragma warning disable CA1307 // Specify StringComparison for clarity
             return value.Replace("\r\n", Environment.NewLine);
-#pragma warning restore CA1307 // Specify StringComparison for clarity
-        }
 
         var parts = value.Split('\n');
-        var sb = new StringBuilder();
+        var sb = new System.Text.StringBuilder();
 
         foreach (var part in parts)
         {
@@ -25,5 +23,6 @@ internal static class StringExtensions
         }
 
         return sb.ToString();
+#endif
     }
 }
