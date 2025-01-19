@@ -16,7 +16,7 @@ public sealed record Alignment
         get => _horizontal;
         set
         {
-            if (!EnumHelper.IsDefined(value))
+            if (!EnumPolyfill.IsDefined(value))
                 ThrowHelper.EnumValueInvalid(nameof(value), value);
             else
                 _horizontal = value;
@@ -31,7 +31,7 @@ public sealed record Alignment
         get => _vertical;
         set
         {
-            if (!EnumHelper.IsDefined(value))
+            if (!EnumPolyfill.IsDefined(value))
                 ThrowHelper.EnumValueInvalid(nameof(value), value);
             else
                 _vertical = value;

@@ -1,6 +1,5 @@
 using ClosedXML.Excel;
 using SpreadCheetah.Styling;
-using SpreadCheetah.TestHelpers.Helpers;
 
 namespace SpreadCheetah.TestHelpers.Assertions;
 
@@ -10,7 +9,7 @@ internal sealed class ClosedXmlAssertStyleNumberFormat(IXLNumberFormat numberFor
     public string? CustomFormat => numberFormat.Format is { Length: > 0 } format ? format : null;
 
     public StandardNumberFormat? StandardFormat =>
-        (StandardNumberFormat)numberFormat.NumberFormatId is var format && EnumHelper.IsDefined(format)
+        (StandardNumberFormat)numberFormat.NumberFormatId is var format && EnumPolyfill.IsDefined(format)
             ? format
             : null;
 }
