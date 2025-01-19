@@ -70,7 +70,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
         var tableName = table.Name;
         if (tableName is null)
-            tableName = TableNameGenerator.GenerateUniqueName(Tables);
+            tableName = TableNameGenerator.GenerateUniqueTableName(Tables);
         else if (Tables.ContainsKey(tableName))
             ThrowHelper.TableNameAlreadyExists(nameof(table));
 
@@ -210,8 +210,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         if (tableInfo.ActualNumberOfColumns == 0)
             ThrowHelper.TableHasNoColumns(tableInfo.Table.Name);
 
-        // TODO: If no header but data row -> ???
-        var tableHasOnlyHeaderRow = tableRows == 1 && !tableInfo.HeaderNames.IsEmpty;
+        var tableHasOnlyHeaderRow = tableRows == 1 && tableInfo.HasHeaderRow;
         if (tableHasOnlyHeaderRow && !TryAddRow(ReadOnlySpan<DataCell>.Empty))
         {
             // Add an empty row so that the table doesn't cause an error when opening the file in Excel

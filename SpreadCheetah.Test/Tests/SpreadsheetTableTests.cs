@@ -112,7 +112,7 @@ public class SpreadsheetTableTests
     }
 
     [Theory, CombinatorialData]
-    public async Task Spreadsheet_Table_WithoutRows(bool rowBefore)
+    public async Task Spreadsheet_Table_WithoutRows(bool rowBefore, bool totalRow)
     {
         // Arrange
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
@@ -125,6 +125,9 @@ public class SpreadsheetTableTests
         }
 
         var table = new Table(TableStyle.Light1) { NumberOfColumns = 1 };
+
+        if (totalRow)
+            table.Column(1).TotalRowLabel = "Result";
 
         // Act
         spreadsheet.StartTable(table);
@@ -210,8 +213,29 @@ public class SpreadsheetTableTests
         Assert.Equal(totalRowLabel, sheet["A3"].StringValue);
     }
 
-    // TODO: Test for table with only total row. Should not be allowed.
-    // TODO: Test for table with only a single data row. Should be allowed?
+    [Fact]
+    public async Task Spreadsheet_Table_WithOnlyDataRow()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1) { NumberOfColumns = 3 };
+        DataCell[] dataRow = [new("Ford"), new("Mondeo"), new(190000)];
+
+        // Act
+        spreadsheet.StartTable(table);
+        await spreadsheet.AddRowAsync(dataRow);
+        await spreadsheet.AddRowAsync(dataRow);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualTable = Assert.Single(sheet.Tables);
+        Assert.Equal(["Column1", "Column2", "Column3"], actualTable.Columns.Select(x => x.Name));
+        Assert.Equal("A1:C2", actualTable.CellRangeReference);
+    }
+
     // TODO: Test for table that doesn't start at row 1
     // TODO: Test for table that doesn't start at column A
     // TODO: Test for having two active tables
@@ -225,4 +249,6 @@ public class SpreadsheetTableTests
     // TODO: Test for invalid table names
     // TODO: Test for column name changes?
     // TODO: Test for generated column names
+    // TODO: Test for header row where the header name is null/empty for one of the columns
+    // TODO: Test for header row with duplicate header names
 }

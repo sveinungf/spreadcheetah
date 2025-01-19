@@ -14,6 +14,7 @@ internal sealed class WorksheetTableInfo
     public required ImmutableTable Table { get; init; }
     public uint? LastDataRow { get; set; }
     public bool Active => LastDataRow is null;
+    public bool HasHeaderRow => !HeaderNames.IsEmpty; // TODO: Not entirely correct. If calling "AddHeaderRow" with an empty row, then this should return true.
 
     public ReadOnlySpan<string?> HeaderNames => _headerNames.AsSpan();
     public int ActualNumberOfColumns => Table.NumberOfColumns ?? HeaderNames.Length;

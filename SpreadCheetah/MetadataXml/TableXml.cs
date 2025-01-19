@@ -39,6 +39,7 @@ file struct TableXmlWriter(
     private Element _next;
     private int _nextIndex;
 
+    private readonly HashSet<string> _uniqueColumnNames = new(StringComparer.OrdinalIgnoreCase);
     private readonly ImmutableTable Table => worksheetTableInfo.Table;
     public readonly TableXmlWriter GetEnumerator() => this;
     public bool Current { get; private set; }
@@ -56,7 +57,7 @@ file struct TableXmlWriter(
             Element.DisplayNameEnd => buffer.TryWrite("\" ref=\""u8),
             Element.Reference => TryWriteTableReference(),
             Element.ReferenceEnd => TryWriteReferenceEnd(),
-            Element.AutoFilterReference => TryWriteAutoFilterReference(),
+            Element.AutoFilter => TryWriteAutoFilter(),
             Element.TableColumnsStart => TryWriteTableColumnsStart(),
             Element.TableColumns => TryWriteTableColumns(),
             Element.TableStyleInfoStart => buffer.TryWrite("</tableColumns><tableStyleInfo "u8),
@@ -81,39 +82,49 @@ file struct TableXmlWriter(
         var lastDataRow = worksheetTableInfo.LastDataRow ?? 0;
         Debug.Assert(lastDataRow > 0);
         var toRow = lastDataRow + (Table.HasTotalRow ? 1u : 0u);
-        return TryWriteCellRangeReference(toRow);
+        return buffer.TryWrite($"{FromCell()}{":"u8}{ToCell(toRow)}");
     }
 
-    private readonly bool TryWriteAutoFilterReference()
+    private readonly SimpleSingleCellReference FromCell()
     {
-        var lastDataRow = worksheetTableInfo.LastDataRow ?? 0;
-        Debug.Assert(lastDataRow > 0);
-        return TryWriteCellRangeReference(lastDataRow);
+        var firstColumn = worksheetTableInfo.FirstColumn;
+        return new SimpleSingleCellReference(firstColumn, worksheetTableInfo.FirstRow);
     }
 
-    private readonly bool TryWriteCellRangeReference(uint toRow)
+    private readonly SimpleSingleCellReference ToCell(uint toRow)
     {
         var firstColumn = worksheetTableInfo.FirstColumn;
         var endColumn = (ushort)(firstColumn + ColumnCount - 1);
-        var fromCell = new SimpleSingleCellReference(firstColumn, worksheetTableInfo.FirstRow);
-        var toCell = new SimpleSingleCellReference(endColumn, toRow);
-
-        return buffer.TryWrite($"{fromCell}{":"u8}{toCell}");
+        return new SimpleSingleCellReference(endColumn, toRow);
     }
 
     private readonly bool TryWriteReferenceEnd()
     {
         return buffer.TryWrite(
+            $"{"\" headerRowCount=\""u8}" +
+            $"{worksheetTableInfo.HasHeaderRow}" +
             $"{"\" totalsRowCount=\""u8}" +
             $"{Table.HasTotalRow}" +
-            $"{"\"><autoFilter ref=\""u8}");
+            $"{"\">"u8}");
+    }
+
+    private readonly bool TryWriteAutoFilter()
+    {
+        if (!worksheetTableInfo.HasHeaderRow)
+            return true;
+
+        var lastDataRow = worksheetTableInfo.LastDataRow ?? 0;
+        return buffer.TryWrite(
+            $"{"<autoFilter ref=\""u8}" +
+            $"{FromCell()}{":"u8}{ToCell(lastDataRow)}" +
+            $"{"\"/>"u8}");
     }
 
     private readonly bool TryWriteTableColumnsStart()
     {
         Debug.Assert(ColumnCount > 0);
         return buffer.TryWrite(
-            $"{"\"/><tableColumns count=\""u8}" +
+            $"{"<tableColumns count=\""u8}" +
             $"{ColumnCount}" +
             $"{"\">"u8}");
     }
@@ -126,9 +137,11 @@ file struct TableXmlWriter(
         for (; _nextIndex < length; ++_nextIndex)
         {
             var name = headerNames[_nextIndex];
+            if (name is null || string.IsNullOrEmpty(name))
+                name = TableNameGenerator.GenerateUniqueTableColumnName(_uniqueColumnNames);
+
             // TODO: Need to make changes to the name?
-            // TODO: What to do when name is null or empty?
-            // TODO: Need unique names here? If so, might have to validate in AddHeaderRow (depends on wether Excel allows duplicate header names or not)
+            // TODO: Need unique names here. Consider validating in AddHeaderRow
 
             var (label, function) = Table.ColumnOptions is { } columns && columns.TryGetValue(_nextIndex + 1, out var options)
                 ? (options.TotalRowLabel, options.TotalRowFunction)
@@ -136,14 +149,18 @@ file struct TableXmlWriter(
 
             if (!TryWriteTableColumn(name, label, function))
                 return false;
+
+            _uniqueColumnNames.Add(name);
         }
 
         for (; _nextIndex < ColumnCount; ++_nextIndex)
         {
-            var name = "Column1"; // TODO: Generate a unique name, e.g. "ColumnX"
+            var name = TableNameGenerator.GenerateUniqueTableColumnName(_uniqueColumnNames);
 
             if (!TryWriteTableColumn(name, null, null))
                 return false;
+
+            _uniqueColumnNames.Add(name);
         }
 
         _nextIndex = 0;
@@ -228,7 +245,7 @@ file enum Element
     DisplayNameEnd,
     Reference,
     ReferenceEnd,
-    AutoFilterReference,
+    AutoFilter,
     TableColumnsStart,
     TableColumns,
     TableStyleInfoStart,
