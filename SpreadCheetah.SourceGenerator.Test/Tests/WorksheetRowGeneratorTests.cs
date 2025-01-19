@@ -678,7 +678,7 @@ string: "", \)",
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(expectedValues.Select(x => x.ReplaceLineEndings()), sheet.Row(1).StringValues().Select(x => x?.ReplaceLineEndings()));
+        Assert.Equal(expectedValues.Select(StringHelpers.ReplaceLineEndings), sheet.Row(1).StringValues().Select(StringHelpers.ReplaceLineEndings!));
     }
 
     [Fact]
