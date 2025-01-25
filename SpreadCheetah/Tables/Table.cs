@@ -17,8 +17,7 @@ public sealed class Table
         Name = name; // TODO: Validate
     }
 
-    // TODO: Can maybe use a regular dictionary?
-    internal SortedDictionary<int, TableColumnOptions>? ColumnOptions { get; private set; }
+    internal Dictionary<int, TableColumnOptions>? ColumnOptions { get; private set; }
 
     public TableColumnOptions Column(int columnNumber)
     {
