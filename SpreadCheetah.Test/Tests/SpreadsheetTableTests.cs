@@ -1,5 +1,6 @@
 using SpreadCheetah.Tables;
-using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.Test.Helpers;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -306,7 +307,42 @@ public class SpreadsheetTableTests
         Assert.Equal(["Ford", "Volkswagen", "Oldest"], firstColumnValues);
     }
 
-    // TODO: Test for table that doesn't start at column A
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_Table_StartingAtColumn(
+        [CombinatorialValues("B", "K", "CB")] string startColumn)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+        var columnNumber = ColumnName.Parse(startColumn);
+        var firstHeaderCells = Enumerable.Repeat("", columnNumber - 1);
+        var firstDataCells = Enumerable.Repeat(new DataCell(), columnNumber - 1);
+        string[] headerNames = ["Make", "Model", "Year"];
+
+        var endColumn = SpreadsheetUtility.GetColumnName(columnNumber + 2);
+        var expectedTableReference = $"{startColumn}1:{endColumn}3";
+
+        // Act
+        spreadsheet.StartTable(table, startColumn);
+        await spreadsheet.AddHeaderRowAsync([.. firstHeaderCells, .. headerNames]);
+        await spreadsheet.AddRowAsync([.. firstDataCells, new("Ford"), new("Mondeo"), new(1993)]);
+        await spreadsheet.AddRowAsync([.. firstDataCells, new("Volkswagen"), new("Polo"), new(1975)]);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualTable = Assert.Single(sheet.Tables);
+        Assert.Equal(expectedTableReference, actualTable.CellRangeReference);
+        Assert.Equal(headerNames, actualTable.Columns.Select(x => x.Name));
+
+        var actualHeaderNames = sheet.Row(1).Select(x => x.StringValue);
+        Assert.Equal(headerNames, actualHeaderNames);
+        var firstColumnValues = sheet.Column(startColumn).Cells.Skip(1).Take(2).Select(x => x.StringValue);
+        Assert.Equal(["Ford", "Volkswagen"], firstColumnValues);
+    }
+
     // TODO: Test for having two active tables
     // TODO: Test for finishing table twice
     // TODO: Test for calling AddHeaderRow twice. Only the first call should set the headers.
