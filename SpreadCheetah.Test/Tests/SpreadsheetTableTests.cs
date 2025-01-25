@@ -14,14 +14,12 @@ public class SpreadsheetTableTests
         await spreadsheet.StartWorksheetAsync("Sheet");
         var table = new Table(TableStyle.Light1);
         string[] headerNames = ["Make", "Model", "Year"];
-        DataCell[] dataRow1 = [new("Ford"), new("Mondeo"), new(1993)];
-        DataCell[] dataRow2 = [new("Volkswagen"), new("Polo"), new(1975)];
 
         // Act
         spreadsheet.StartTable(table);
         await spreadsheet.AddHeaderRowAsync(headerNames);
-        await spreadsheet.AddRowAsync(dataRow1);
-        await spreadsheet.AddRowAsync(dataRow2);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)]);
+        await spreadsheet.AddRowAsync([new("Volkswagen"), new("Polo"), new(1975)]);
 
         if (explicitlyFinishTable)
             await spreadsheet.FinishTableAsync();
@@ -50,12 +48,11 @@ public class SpreadsheetTableTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
         var table = new Table(tableStyle);
-        DataCell[] dataRow = [new("Ford"), new("Mondeo"), new(1993)];
 
         // Act
         spreadsheet.StartTable(table);
         await spreadsheet.AddHeaderRowAsync(["Make", "Model", "Year"]);
-        await spreadsheet.AddRowAsync(dataRow);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)]);
         await spreadsheet.FinishTableAsync();
         await spreadsheet.FinishAsync();
 
@@ -75,18 +72,15 @@ public class SpreadsheetTableTests
         await spreadsheet.StartWorksheetAsync("Sheet");
         var table = new Table(TableStyle.Light19);
         string[] headerNames = ["Make", "Model", "Price"];
-        const string totalRowLabel = "Average price";
-        table.Column(1).TotalRowLabel = totalRowLabel;
+        table.Column(1).TotalRowLabel = "Average price";
         table.Column(3).TotalRowFunction = function;
         TableTotalRowFunction? expectedFunction = function is TableTotalRowFunction.None ? null : function;
-        DataCell[] dataRow1 = [new("Ford"), new("Mondeo"), new(190000)];
-        DataCell[] dataRow2 = [new("Volkswagen"), new("Polo"), new(150000)];
 
         // Act
         spreadsheet.StartTable(table);
         await spreadsheet.AddHeaderRowAsync(headerNames);
-        await spreadsheet.AddRowAsync(dataRow1);
-        await spreadsheet.AddRowAsync(dataRow2);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(190000)]);
+        await spreadsheet.AddRowAsync([new("Volkswagen"), new("Polo"), new(150000)]);
 
         if (explicitlyFinishTable)
             await spreadsheet.FinishTableAsync();
@@ -97,13 +91,14 @@ public class SpreadsheetTableTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualTable = Assert.Single(sheet.Tables);
         var actualColumns = actualTable.Columns;
+        var columns = Enumerable.Range(1, 3).Select(table.Column);
         Assert.Equal(headerNames, actualColumns.Select(x => x.Name));
-        Assert.Equal([totalRowLabel, null, null], actualColumns.Select(x => x.TotalRowLabel));
+        Assert.Equal(columns.Select(x => x.TotalRowLabel), actualColumns.Select(x => x.TotalRowLabel));
         Assert.Equal([null, null, expectedFunction], actualColumns.Select(x => x.TotalRowFunction));
         Assert.Equal("Table1", actualTable.Name);
         Assert.Equal("TableStyleLight19", actualTable.TableStyle);
         Assert.Equal("A1:C4", actualTable.CellRangeReference);
-        Assert.Equal(totalRowLabel, sheet["A4"].StringValue);
+        Assert.Equal("Average price", sheet["A4"].StringValue);
         Assert.True(actualTable.ShowAutoFilter);
         Assert.True(actualTable.ShowHeaderRow);
         Assert.True(actualTable.ShowTotalRow);
@@ -119,10 +114,7 @@ public class SpreadsheetTableTests
         await spreadsheet.StartWorksheetAsync("Sheet");
 
         if (rowBefore)
-        {
-            DataCell[] dataRow = [new("Ford"), new("Mondeo"), new(190000)];
-            await spreadsheet.AddRowAsync(dataRow);
-        }
+            await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(190000)]);
 
         var table = new Table(TableStyle.Light1) { NumberOfColumns = 1 };
 
@@ -153,7 +145,7 @@ public class SpreadsheetTableTests
         if (hasEmptyHeaderRow)
             await spreadsheet.AddHeaderRowAsync([]);
 
-        await spreadsheet.AddRowAsync([new DataCell("Hello"), new DataCell("World!")]);
+        await spreadsheet.AddRowAsync([new("Hello"), new("World!")]);
         var exception = await Record.ExceptionAsync(() => spreadsheet.FinishTableAsync().AsTask());
 
         // Assert
@@ -187,15 +179,13 @@ public class SpreadsheetTableTests
     public async Task Spreadsheet_Table_WithOnlyHeaderAndTotalRows()
     {
         // Arrange
-        const string totalRowLabel = "Result";
-        const TableTotalRowFunction totalRowFunction = TableTotalRowFunction.Count;
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
         var table = new Table(TableStyle.Light1);
         string[] headerNames = ["Make", "Model", "Year"];
-        table.Column(1).TotalRowLabel = totalRowLabel;
-        table.Column(3).TotalRowFunction = totalRowFunction;
+        table.Column(1).TotalRowLabel = "Result";
+        table.Column(3).TotalRowFunction = TableTotalRowFunction.Count;
 
         // Act
         spreadsheet.StartTable(table);
@@ -206,11 +196,12 @@ public class SpreadsheetTableTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualTable = Assert.Single(sheet.Tables);
         var actualColumns = actualTable.Columns;
+        var columns = Enumerable.Range(1, 3).Select(table.Column);
         Assert.Equal(headerNames, actualTable.Columns.Select(x => x.Name));
-        Assert.Equal([totalRowLabel, null, null], actualColumns.Select(x => x.TotalRowLabel));
-        Assert.Equal([null, null, totalRowFunction], actualColumns.Select(x => x.TotalRowFunction));
+        Assert.Equal(columns.Select(x => x.TotalRowLabel), actualColumns.Select(x => x.TotalRowLabel));
+        Assert.Equal(columns.Select(x => x.TotalRowFunction), actualColumns.Select(x => x.TotalRowFunction));
         Assert.Equal("A1:C3", actualTable.CellRangeReference);
-        Assert.Equal(totalRowLabel, sheet["A3"].StringValue);
+        Assert.Equal("Result", sheet["A3"].StringValue);
     }
 
     [Fact]
@@ -221,12 +212,11 @@ public class SpreadsheetTableTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
         var table = new Table(TableStyle.Light1) { NumberOfColumns = 3 };
-        DataCell[] dataRow = [new("Ford"), new("Mondeo"), new(190000)];
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddRowAsync(dataRow);
-        await spreadsheet.AddRowAsync(dataRow);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(190000)]);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Sierra"), new(140000)]);
         await spreadsheet.FinishAsync();
 
         // Assert
@@ -237,7 +227,8 @@ public class SpreadsheetTableTests
     }
 
     [Theory, CombinatorialData]
-    public async Task Spreadsheet_Table_StartingAtRow([CombinatorialValues(2, 10, 999)] int startRow)
+    public async Task Spreadsheet_Table_StartingAtRow(
+        [CombinatorialValues(2, 10, 999)] int startRow)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -245,13 +236,10 @@ public class SpreadsheetTableTests
         await spreadsheet.StartWorksheetAsync("Sheet");
         var table = new Table(TableStyle.Light1);
         string[] headerNames = ["Make", "Model", "Year"];
-        DataCell[] dataRow1 = [new("Ford"), new("Mondeo"), new(1993)];
-        DataCell[] dataRow2 = [new("Volkswagen"), new("Polo"), new(1975)];
 
         for (var i = 1; i < startRow; i++)
         {
-            DataCell[] row = [new DataCell(i)];
-            await spreadsheet.AddRowAsync(row);
+            await spreadsheet.AddRowAsync([new(i)]);
         }
 
         var expectedTableReference = $"A{startRow}:C{startRow + 2}";
@@ -259,16 +247,15 @@ public class SpreadsheetTableTests
         // Act
         spreadsheet.StartTable(table);
         await spreadsheet.AddHeaderRowAsync(headerNames);
-        await spreadsheet.AddRowAsync(dataRow1);
-        await spreadsheet.AddRowAsync(dataRow2);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)]);
+        await spreadsheet.AddRowAsync([new("Volkswagen"), new("Polo"), new(1975)]);
         await spreadsheet.FinishAsync();
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualTable = Assert.Single(sheet.Tables);
-        var actualColumns = actualTable.Columns;
         Assert.Equal(expectedTableReference, actualTable.CellRangeReference);
-        Assert.Equal(headerNames, actualColumns.Select(x => x.Name));
+        Assert.Equal(headerNames, actualTable.Columns.Select(x => x.Name));
 
         var actualHeaderNames = sheet.Row(startRow).Select(x => x.StringValue);
         Assert.Equal(headerNames, actualHeaderNames);
@@ -277,25 +264,21 @@ public class SpreadsheetTableTests
     }
 
     [Theory, CombinatorialData]
-    public async Task Spreadsheet_Table_WithTotalRowAndStartingAtRow([CombinatorialValues(2, 10, 999)] int startRow)
+    public async Task Spreadsheet_Table_WithTotalRowAndStartingAtRow(
+        [CombinatorialValues(2, 10, 999)] int startRow)
     {
         // Arrange
-        const string totalRowLabel = "Oldest";
-        const TableTotalRowFunction totalRowFunction = TableTotalRowFunction.Minimum;
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
         var table = new Table(TableStyle.Light1);
         string[] headerNames = ["Make", "Model", "Year"];
-        table.Column(1).TotalRowLabel = totalRowLabel;
-        table.Column(3).TotalRowFunction = totalRowFunction;
-        DataCell[] dataRow1 = [new("Ford"), new("Mondeo"), new(1993)];
-        DataCell[] dataRow2 = [new("Volkswagen"), new("Polo"), new(1975)];
+        table.Column(1).TotalRowLabel = "Oldest";
+        table.Column(3).TotalRowFunction = TableTotalRowFunction.Minimum;
 
         for (var i = 1; i < startRow; i++)
         {
-            DataCell[] row = [new DataCell(i)];
-            await spreadsheet.AddRowAsync(row);
+            await spreadsheet.AddRowAsync([new(i)]);
         }
 
         var expectedTableReference = $"A{startRow}:C{startRow + 3}";
@@ -303,23 +286,24 @@ public class SpreadsheetTableTests
         // Act
         spreadsheet.StartTable(table);
         await spreadsheet.AddHeaderRowAsync(headerNames);
-        await spreadsheet.AddRowAsync(dataRow1);
-        await spreadsheet.AddRowAsync(dataRow2);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)]);
+        await spreadsheet.AddRowAsync([new("Volkswagen"), new("Polo"), new(1975)]);
         await spreadsheet.FinishAsync();
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualTable = Assert.Single(sheet.Tables);
         var actualColumns = actualTable.Columns;
+        var columns = Enumerable.Range(1, 3).Select(table.Column);
         Assert.Equal(expectedTableReference, actualTable.CellRangeReference);
         Assert.Equal(headerNames, actualColumns.Select(x => x.Name));
-        Assert.Equal([totalRowLabel, null, null], actualColumns.Select(x => x.TotalRowLabel));
-        Assert.Equal([null, null, totalRowFunction], actualColumns.Select(x => x.TotalRowFunction));
+        Assert.Equal(columns.Select(x => x.TotalRowLabel), actualColumns.Select(x => x.TotalRowLabel));
+        Assert.Equal(columns.Select(x => x.TotalRowFunction), actualColumns.Select(x => x.TotalRowFunction));
 
         var actualHeaderNames = sheet.Row(startRow).Select(x => x.StringValue);
         Assert.Equal(headerNames, actualHeaderNames);
         var firstColumnValues = sheet.Column("A").Cells.Skip(startRow).Take(3).Select(x => x.StringValue);
-        Assert.Equal(["Ford", "Volkswagen", totalRowLabel], firstColumnValues);
+        Assert.Equal(["Ford", "Volkswagen", "Oldest"], firstColumnValues);
     }
 
     // TODO: Test for table that doesn't start at column A
