@@ -19,10 +19,6 @@ using System.Globalization;
 using Xunit;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
-#if NET472
-using SpreadCheetah.SourceGenerator.Test.Helpers.Backporting;
-#endif
-
 namespace SpreadCheetah.SourceGenerator.Test.Tests;
 
 public class WorksheetRowGeneratorTests
@@ -682,7 +678,7 @@ string: "", \)",
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(expectedValues.Select(x => x.ReplaceLineEndings()), sheet.Row(1).StringValues().Select(x => x?.ReplaceLineEndings()));
+        Assert.Equal(expectedValues.Select(StringHelpers.ReplaceLineEndings), sheet.Row(1).StringValues().Select(StringHelpers.ReplaceLineEndings!));
     }
 
     [Fact]
