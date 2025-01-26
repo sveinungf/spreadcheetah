@@ -343,9 +343,87 @@ public class SpreadsheetTableTests
         Assert.Equal(["Ford", "Volkswagen"], firstColumnValues);
     }
 
-    // TODO: Test for having two active tables
-    // TODO: Test for finishing table twice
-    // TODO: Test for calling AddHeaderRow twice. Only the first call should set the headers.
+    [Fact]
+    public async Task Spreadsheet_Table_TwoActiveTables()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        var table1 = new Table(TableStyle.Light1);
+        var table2 = new Table(TableStyle.Light2);
+
+        // Act
+        spreadsheet.StartTable(table1);
+        var exception = Record.Exception(() => spreadsheet.StartTable(table2));
+
+        // Assert
+        Assert.IsType<SpreadCheetahException>(exception);
+        Assert.Contains("active", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_Table_FinishTableWithoutStartingIt()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        // Act
+        await spreadsheet.AddHeaderRowAsync(["Make", "Model", "Year"]);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)]);
+        var exception = await Record.ExceptionAsync(() => spreadsheet.FinishTableAsync().AsTask());
+
+        // Assert
+        Assert.IsType<SpreadCheetahException>(exception);
+        Assert.Contains("active", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_Table_FinishTableTwice()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+
+        // Act
+        spreadsheet.StartTable(table);
+        await spreadsheet.AddHeaderRowAsync(["Make", "Model", "Year"]);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)]);
+        await spreadsheet.FinishTableAsync();
+        var exception = await Record.ExceptionAsync(() => spreadsheet.FinishTableAsync().AsTask());
+
+        // Assert
+        Assert.IsType<SpreadCheetahException>(exception);
+        Assert.Contains("active", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_Table_AddHeaderRowTwice()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+        string[] headerNames1 = ["Make", "Model", "Year"];
+        string[] headerNames2 = ["Width", "Height", "Length"];
+
+        // Act
+        spreadsheet.StartTable(table);
+        await spreadsheet.AddHeaderRowAsync(headerNames1);
+        await spreadsheet.AddHeaderRowAsync(headerNames2);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualTable = Assert.Single(sheet.Tables);
+        Assert.Equal(headerNames1, actualTable.Columns.Select(x => x.Name));
+        Assert.Equal(headerNames1, sheet.Row(1).Select(x => x.StringValue));
+        Assert.Equal(headerNames2, sheet.Row(2).Select(x => x.StringValue));
+    }
+
     // TODO: Test for using AddHeaderRow from source generated code
     // TODO: Test for multiple tables in the same worksheet.
     // TODO: Test for multiple worksheets with tables.
