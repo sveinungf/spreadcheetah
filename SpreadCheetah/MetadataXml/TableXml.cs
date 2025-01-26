@@ -8,21 +8,27 @@ namespace SpreadCheetah.MetadataXml;
 
 internal static class TableXml
 {
-    public static ValueTask WriteAsync(
-        ZipArchiveManager zipArchiveManager,
+    public static async ValueTask WriteTablesAsync(
+        this ZipArchiveManager zipArchiveManager,
+        Dictionary<string, WorksheetTableInfo> tables,
         SpreadsheetBuffer buffer,
-        WorksheetTableInfo worksheetTableInfo,
-        FileCounter fileCounter,
+        FileCounter? fileCounter,
         CancellationToken token)
     {
-        // TODO: Counter here is not correct if there are multiple tables
-        var entryName = StringHelper.Invariant($"xl/tables/table{fileCounter.TotalTables}.xml");
-        var writer = new TableXmlWriter(
-            tableId: fileCounter.TotalTables,
-            worksheetTableInfo: worksheetTableInfo,
-            buffer: buffer);
+        var fileStartIndex = fileCounter?.CurrentWorksheetTableFileStartIndex ?? 0;
+        Debug.Assert(fileStartIndex > 0);
 
-        return zipArchiveManager.WriteAsync(writer, entryName, buffer, token);
+        foreach (var (i, table) in tables.Values.Index())
+        {
+            var tableId = fileStartIndex + i;
+            var entryName = StringHelper.Invariant($"xl/tables/table{tableId}.xml");
+            var writer = new TableXmlWriter(
+                tableId: tableId,
+                worksheetTableInfo: table,
+                buffer: buffer);
+
+            await zipArchiveManager.WriteAsync(writer, entryName, buffer, token).ConfigureAwait(false);
+        }
     }
 }
 

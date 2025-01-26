@@ -424,9 +424,37 @@ public class SpreadsheetTableTests
         Assert.Equal(headerNames2, sheet.Row(2).Select(x => x.StringValue));
     }
 
-    // TODO: Test for using AddHeaderRow from source generated code
-    // TODO: Test for multiple tables in the same worksheet.
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_Table_MultipleInWorksheet(
+        [CombinatorialValues(2, 10, 100)] int count)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+        table.Column(2).TotalRowFunction = TableTotalRowFunction.Sum;
+        string[] headerNames = ["Text", "Number"];
+
+        // Act
+        for (var i = 0; i < count; ++i)
+        {
+            spreadsheet.StartTable(table);
+            await spreadsheet.AddHeaderRowAsync(headerNames);
+            await spreadsheet.AddRowAsync([new($"Number {i}"), new(i)]);
+            await spreadsheet.FinishTableAsync();
+        }
+
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(count, sheet.Tables.Count);
+        Assert.All(sheet.Tables, x => Assert.Equal(headerNames, x.Columns.Select(c => c.Name)));
+    }
+
     // TODO: Test for multiple worksheets with tables.
+    // TODO: Test for using AddHeaderRow from source generated code
     // TODO: Test for styling on top of table (differential/dxf?)
     // TODO: Test for valid table names
     // TODO: Test for invalid table names
