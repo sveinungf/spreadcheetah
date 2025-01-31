@@ -454,7 +454,6 @@ public class SpreadsheetTableTests
     }
 
     // TODO: Test for multiple worksheets with tables.
-    // TODO: Test for using AddHeaderRow from source generated code
     // TODO: Test for styling on top of table (differential/dxf?)
     // TODO: Test for valid table names
     // TODO: Test for invalid table names
