@@ -372,6 +372,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             return;
         }
 
+        // TODO: Duplicate header names causes a corrupt file if in a table. Should throw in that case.
+        // TODO: Duplicate names check should be case insensitive.
+        // TODO: The names should NOT be trimmed.
         var headerNamesSpan = headerNames.Span;
         Worksheet.AddHeaderNamesToNewlyStartedTables(headerNamesSpan);
 
