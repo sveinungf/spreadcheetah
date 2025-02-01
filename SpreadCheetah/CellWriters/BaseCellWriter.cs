@@ -110,15 +110,6 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
 
     private bool TryWriteRowEnd() => Buffer.TryWrite("</row>"u8);
 
-    private async ValueTask WriteRowEndAsync(Stream stream, CancellationToken token)
-    {
-        if (TryWriteRowEnd())
-            return;
-
-        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        TryWriteRowEnd();
-    }
-
     public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, uint rowIndex, RowOptions? options, Stream stream, CancellationToken token)
     {
         // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
@@ -144,7 +135,11 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
             await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }
 
-        await WriteRowEndAsync(stream, token).ConfigureAwait(false);
+        if (TryWriteRowEnd())
+            return;
+
+        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        TryWriteRowEnd();
     }
 
     public async ValueTask AddRowAsync(IList<T> cells, uint rowIndex, RowOptions? options, Stream stream, CancellationToken token)
