@@ -17,15 +17,16 @@ internal readonly struct PooledArray<T> : IDisposable
 
     public static PooledArray<T> Create(ICollection<T> collection)
     {
-        if (collection.Count == 0)
+        var length = collection.Count;
+        if (length == 0)
             return new PooledArray<T>([], 0);
 
-        var array = ArrayPool<T>.Shared.Rent(collection.Count);
+        var array = ArrayPool<T>.Shared.Rent(length);
 
         try
         {
             collection.CopyTo(array, 0);
-            return new PooledArray<T>(array, collection.Count);
+            return new PooledArray<T>(array, length);
         }
         catch
         {
