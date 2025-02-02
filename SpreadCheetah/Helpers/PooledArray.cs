@@ -8,6 +8,7 @@ internal readonly struct PooledArray<T> : IDisposable
     private readonly int _count;
 
     public ReadOnlyMemory<T> Memory => _array.AsMemory(0, _count);
+    public ReadOnlySpan<T> Span => _array.AsSpan(0, _count);
 
     private PooledArray(T[] array, int count)
     {

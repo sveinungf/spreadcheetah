@@ -74,7 +74,7 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
 #if NET5_0_OR_GREATER
             List<T> cellList => TryAddRowCellsForSpan(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(cellList)),
 #endif
-            _ => TryAddRowCellsForList(cells)
+            _ => TryAddRowCellsForIList(cells)
         };
     }
 
@@ -93,19 +93,10 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
         return TryWriteRowEnd();
     }
 
-    private bool TryAddRowCellsForList(IList<T> cells)
+    private bool TryAddRowCellsForIList(IList<T> cells)
     {
-        var writerState = State;
-        var column = writerState.Column;
-        while (column < cells.Count)
-        {
-            if (!TryWriteCell(cells[column]))
-                return false;
-
-            writerState.Column = ++column;
-        }
-
-        return TryWriteRowEnd();
+        using var pooledArray = cells.ToPooledArray();
+        return TryAddRowCellsForSpan(pooledArray.Span);
     }
 
     private bool TryWriteRowEnd() => Buffer.TryWrite("</row>"u8);
