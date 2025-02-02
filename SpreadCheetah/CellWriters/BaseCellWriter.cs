@@ -74,7 +74,7 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
 #if NET5_0_OR_GREATER
             List<T> cellList => TryAddRowCellsForSpan(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(cellList)),
 #endif
-            _ => TryAddRowCellsForList(cells)
+            _ => TryAddRowCellsForIList(cells)
         };
     }
 
@@ -93,31 +93,13 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
         return TryWriteRowEnd();
     }
 
-    private bool TryAddRowCellsForList(IList<T> cells)
+    private bool TryAddRowCellsForIList(IList<T> cells)
     {
-        var writerState = State;
-        var column = writerState.Column;
-        while (column < cells.Count)
-        {
-            if (!TryWriteCell(cells[column]))
-                return false;
-
-            writerState.Column = ++column;
-        }
-
-        return TryWriteRowEnd();
+        using var pooledArray = cells.ToPooledArray();
+        return TryAddRowCellsForSpan(pooledArray.Span);
     }
 
     private bool TryWriteRowEnd() => Buffer.TryWrite("</row>"u8);
-
-    private async ValueTask WriteRowEndAsync(Stream stream, CancellationToken token)
-    {
-        if (TryWriteRowEnd())
-            return;
-
-        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        TryWriteRowEnd();
-    }
 
     public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, uint rowIndex, RowOptions? options, Stream stream, CancellationToken token)
     {
@@ -144,36 +126,17 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
             await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }
 
-        await WriteRowEndAsync(stream, token).ConfigureAwait(false);
+        if (TryWriteRowEnd())
+            return;
+
+        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        TryWriteRowEnd();
     }
 
     public async ValueTask AddRowAsync(IList<T> cells, uint rowIndex, RowOptions? options, Stream stream, CancellationToken token)
     {
-        // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
-        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-
-        EnsureRowStartIsWritten(rowIndex, options);
-
-        while (State.Column < cells.Count)
-        {
-            // Attempt to add row cells again
-            var beforeIndex = State.Column;
-            if (TryAddRowCells(cells))
-                return;
-
-            // If no cells were added, the next cell is larger than the buffer.
-            if (State.Column == beforeIndex)
-            {
-                var cell = cells[State.Column];
-                await WriteCellPieceByPieceAsync(cell, stream, token).ConfigureAwait(false);
-                ++State.Column;
-            }
-
-            // One or more cells were added, repeat
-            await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        }
-
-        await WriteRowEndAsync(stream, token).ConfigureAwait(false);
+        using var pooledArray = cells.ToPooledArray();
+        await AddRowAsync(pooledArray.Memory, rowIndex, options, stream, token).ConfigureAwait(false);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
