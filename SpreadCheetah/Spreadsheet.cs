@@ -368,7 +368,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (headerNames.Length == 0)
         {
             // TODO: What to do with active table here?
-            await AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token).ConfigureAwait(false);
+            await AddRowAsync([], token).ConfigureAwait(false);
             return;
         }
 
@@ -396,25 +396,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public async ValueTask AddHeaderRowAsync(IList<string> headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(headerNames);
-        if (headerNames.Count == 0)
-        {
-            // TODO: What to do with active table here?
-            await AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token).ConfigureAwait(false);
-            return;
-        }
-
-        Worksheet.AddHeaderNamesToNewlyStartedTables(headerNames);
-
-        var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Count);
-        try
-        {
-            headerNames.CopyToCells(cells, styleId);
-            await AddRowAsync(cells.AsMemory(0, headerNames.Count), token).ConfigureAwait(false);
-        }
-        finally
-        {
-            ArrayPool<StyledCell>.Shared.Return(cells);
-        }
+        using var pooledArray = headerNames.ToPooledArray();
+        await AddHeaderRowAsync(pooledArray.Memory, styleId, token).ConfigureAwait(false);
     }
 
     /// <summary>

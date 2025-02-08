@@ -14,15 +14,4 @@ internal static class HeaderNameExtensions
             cells[i] = new StyledCell(headerNames[i], styleId);
         }
     }
-
-    public static void CopyToCells(
-        this IList<string> headerNames,
-        StyledCell[] cells,
-        StyleId? styleId)
-    {
-        for (var i = 0; i < headerNames.Count; ++i)
-        {
-            cells[i] = new StyledCell(headerNames[i], styleId);
-        }
-    }
 }

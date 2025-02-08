@@ -82,17 +82,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         };
     }
 
-    public void AddHeaderNamesToNewlyStartedTables(ReadOnlySpan<string?> headerNames)
-    {
-        if (Tables is null) return;
-
-        var tableInfo = Tables.GetActive();
-        if (tableInfo?.FirstRow == _state.NextRowIndex)
-            tableInfo.SetHeaderNames(headerNames);
-    }
-
-    // TODO: Use the ReadOnlySpan overload by getting a span from the IList (use ToArray() as fallback)
-    public void AddHeaderNamesToNewlyStartedTables(IList<string?> headerNames)
+    public void AddHeaderNamesToNewlyStartedTables(ReadOnlySpan<string> headerNames)
     {
         if (Tables is null) return;
 

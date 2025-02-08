@@ -19,7 +19,7 @@ internal sealed class WorksheetTableInfo
     public ReadOnlySpan<string?> HeaderNames => _headerNames.AsSpan();
     public int ActualNumberOfColumns => Table.NumberOfColumns ?? HeaderNames.Length;
 
-    public void SetHeaderNames(ReadOnlySpan<string?> fullRowValues)
+    public void SetHeaderNames(ReadOnlySpan<string> fullRowValues)
     {
         var startIndex = FirstColumn - 1;
         if (startIndex >= fullRowValues.Length)
@@ -30,20 +30,6 @@ internal sealed class WorksheetTableInfo
 
         _headerNames = Table.NumberOfColumns is { } count && count < startingValuesLength
             ? startingValues.Slice(0, count).ToArray()
-            : startingValues.ToArray();
-    }
-
-    public void SetHeaderNames(IList<string?> fullRowValues)
-    {
-        var startIndex = FirstColumn - 1;
-        if (startIndex >= fullRowValues.Count)
-            return;
-
-        var startingValues = fullRowValues.Skip(startIndex);
-        var startingValuesLength = fullRowValues.Count - startIndex;
-
-        _headerNames = Table.NumberOfColumns is { } count && count < startingValuesLength
-            ? startingValues.Take(count).ToArray()
             : startingValues.ToArray();
     }
 
