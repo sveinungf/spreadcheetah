@@ -27,7 +27,7 @@ public class SpreadsheetRowTests
             await spreadsheet.StartWorksheetAsync("Sheet");
 
         // Act
-        var exception = await Record.ExceptionAsync(async () => await spreadsheet.AddRowAsync(Array.Empty<DataCell>()));
+        var exception = await Record.ExceptionAsync(async () => await spreadsheet.AddRowAsync([]));
 
         // Assert
         Assert.NotEqual(hasWorksheet, exception is SpreadCheetahException);
@@ -46,7 +46,7 @@ public class SpreadsheetRowTests
             await spreadsheet.FinishAsync();
 
         // Act
-        var exception = await Record.ExceptionAsync(async () => await spreadsheet.AddRowAsync(Array.Empty<DataCell>()));
+        var exception = await Record.ExceptionAsync(async () => await spreadsheet.AddRowAsync([]));
 
         // Assert
         Assert.Equal(finished, exception != null);
