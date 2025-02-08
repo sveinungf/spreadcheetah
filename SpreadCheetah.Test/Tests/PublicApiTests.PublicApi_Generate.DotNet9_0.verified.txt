@@ -281,8 +281,8 @@ namespace SpreadCheetah.SourceGeneration
     public sealed class WorksheetRowGenerationOptionsAttribute : System.Attribute
     {
         public WorksheetRowGenerationOptionsAttribute() { }
-        [System.Obsolete(("Configure rule severity in an .editorconfig file instead (e.g. \'dotnet_diagnostic" +
-            ".SPCH1001.severity = none\')."))]
+        [System.Obsolete("Configure rule severity in an .editorconfig file instead (e.g. \'dotnet_diagnostic" +
+            ".SPCH1001.severity = none\').")]
         public bool SuppressWarnings { get; set; }
     }
     public static class WorksheetRowMetadataServices
@@ -404,8 +404,8 @@ namespace SpreadCheetah.Styling
         public const string Text = "@";
         [System.Obsolete("Use NumberFormat.Standard(StandardNumberFormat.ThousandsSeparator)")]
         public const string ThousandsSeparator = "#,##0";
-        [System.Obsolete(("Use NumberFormat.Standard(StandardNumberFormat.ThousandsSeparatorTwoDecimalPlaces" +
-            ")"))]
+        [System.Obsolete("Use NumberFormat.Standard(StandardNumberFormat.ThousandsSeparatorTwoDecimalPlaces" +
+            ")")]
         public const string ThousandsSeparatorTwoDecimalPlaces = "#,##0.00";
         [System.Obsolete("Use NumberFormat.Standard(StandardNumberFormat.TwoDecimalPlaces)")]
         public const string TwoDecimalPlaces = "0.00";
