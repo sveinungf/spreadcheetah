@@ -20,13 +20,13 @@ public static class EmptyWorksheetRowContext
 
     private static ValueTask AddHeaderRowAsync(Spreadsheet spreadsheet, StyleId? _, CancellationToken token)
     {
-        return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
+        return spreadsheet.AddRowAsync([], token);
     }
 
     private static ValueTask AddAsRowAsync<T>(Spreadsheet spreadsheet, T _, CancellationToken token)
     {
         ArgumentNullException.ThrowIfNull(spreadsheet);
-        return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
+        return spreadsheet.AddRowAsync([], token);
     }
 
     private static ValueTask AddRangeAsRowsAsync<T>(Spreadsheet spreadsheet, IEnumerable<T> objs, CancellationToken token)
@@ -40,7 +40,7 @@ public static class EmptyWorksheetRowContext
     {
         foreach (var _ in objs)
         {
-            await spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token).ConfigureAwait(false);
+            await spreadsheet.AddRowAsync([], token).ConfigureAwait(false);
         }
     }
 }
