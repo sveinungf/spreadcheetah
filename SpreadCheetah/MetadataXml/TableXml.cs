@@ -45,7 +45,6 @@ file struct TableXmlWriter(
     private Element _next;
     private int _nextIndex;
 
-    private readonly HashSet<string> _uniqueColumnNames = new(StringComparer.OrdinalIgnoreCase);
     private readonly ImmutableTable Table => worksheetTableInfo.Table;
     public readonly TableXmlWriter GetEnumerator() => this;
     public bool Current { get; private set; }
@@ -143,30 +142,15 @@ file struct TableXmlWriter(
         for (; _nextIndex < length; ++_nextIndex)
         {
             var name = headerNames[_nextIndex];
-            if (name is null || string.IsNullOrEmpty(name))
-                name = TableNameGenerator.GenerateUniqueTableColumnName(_uniqueColumnNames);
-
-            // TODO: Need to make changes to the name?
-            // TODO: Need unique names here. Consider validating in AddHeaderRow
+            Debug.Assert(!string.IsNullOrEmpty(name));
 
             var (label, function) = Table.ColumnOptions is { } columns && columns.TryGetValue(_nextIndex + 1, out var options)
                 ? (options.TotalRowLabel, options.TotalRowFunction)
                 : (null, null);
 
+            // TODO: Need to make changes to the name?
             if (!TryWriteTableColumn(name, label, function))
                 return false;
-
-            _uniqueColumnNames.Add(name);
-        }
-
-        for (; _nextIndex < ColumnCount; ++_nextIndex)
-        {
-            var name = TableNameGenerator.GenerateUniqueTableColumnName(_uniqueColumnNames);
-
-            if (!TryWriteTableColumn(name, null, null))
-                return false;
-
-            _uniqueColumnNames.Add(name);
         }
 
         _nextIndex = 0;
@@ -185,7 +169,7 @@ file struct TableXmlWriter(
             $"{"<tableColumn id=\""u8}" +
             $"{_nextIndex + 1}" +
             $"{"\" name=\""u8}" +
-            $"{name}" +
+            $"{name}" + // TODO: Is this XML escaped?
             $"{labelAttribute}" +
             $"{totalRowLabel}" +
             $"{functionAttribute}" +

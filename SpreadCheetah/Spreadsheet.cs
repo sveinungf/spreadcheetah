@@ -157,7 +157,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (!SpreadsheetUtility.TryParseColumnName(firstColumnName.AsSpan(), out var firstColumnNumber))
             ThrowHelper.ColumnNameInvalid(nameof(firstColumnName));
 
-        // TODO: Is there a limit on the number of tables?
         _fileCounter ??= new FileCounter();
         _fileCounter.TableForCurrentWorksheet();
 
@@ -365,18 +364,22 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public async ValueTask AddHeaderRowAsync(ReadOnlyMemory<string> headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
-        if (headerNames.Length == 0)
+        var headerNamesSpan = headerNames.Span;
+        if (headerNamesSpan.Length == 0)
         {
-            // TODO: What to do with active table here?
+            // TODO: If there is an active table, and it has the number of columns set explicitly, we should add generated header names here.
+            // TODO: If there is an active table, and it doesn't have the number of columns set explicitly, we should throw an exception.
+            // TODO: If there are no active table, we should just add an empty row.
             await AddRowAsync([], token).ConfigureAwait(false);
             return;
         }
 
-        // TODO: Duplicate header names causes a corrupt file if in a table. Should throw in that case.
-        // TODO: Duplicate names check should be case insensitive.
-        // TODO: The names should NOT be trimmed.
-        var headerNamesSpan = headerNames.Span;
-        Worksheet.AddHeaderNamesToNewlyStartedTables(headerNamesSpan);
+        var activeTable = Worksheet.GetActiveTable();
+        if (activeTable?.FirstRow == Worksheet.NextRowNumber)
+        {
+            activeTable.SetHeaderNames(headerNamesSpan);
+            headerNamesSpan = activeTable.HeaderNames;
+        }
 
         var cells = ArrayPool<StyledCell>.Shared.Rent(headerNamesSpan.Length);
         try

@@ -82,14 +82,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         };
     }
 
-    public void AddHeaderNamesToNewlyStartedTables(ReadOnlySpan<string> headerNames)
-    {
-        if (Tables is null) return;
-
-        var tableInfo = Tables.GetActive();
-        if (tableInfo?.FirstRow == _state.NextRowIndex)
-            tableInfo.SetHeaderNames(headerNames);
-    }
+    public WorksheetTableInfo? GetActiveTable() => Tables?.GetActive();
 
     public bool TryAddRow(IList<Cell> cells)
         => _cellWriter.TryAddRow(cells, _state.NextRowIndex++);

@@ -4,7 +4,7 @@ namespace SpreadCheetah.Tables.Internal;
 
 internal sealed class WorksheetTableInfo
 {
-    private string?[]? _headerNames;
+    private string[] _headerNames = [];
 
     /// <summary>The first column of the table. 1-based.</summary>
     public required ushort FirstColumn { get; init; }
@@ -14,9 +14,9 @@ internal sealed class WorksheetTableInfo
     public required ImmutableTable Table { get; init; }
     public uint? LastDataRow { get; set; }
     public bool Active => LastDataRow is null;
-    public bool HasHeaderRow => !HeaderNames.IsEmpty; // TODO: Not entirely correct. If calling "AddHeaderRow" with an empty row, then this should return true.
+    public bool HasHeaderRow => _headerNames.Length > 0; // TODO: Not entirely correct. If calling "AddHeaderRow" with an empty row, should this then return true?
 
-    public ReadOnlySpan<string?> HeaderNames => _headerNames.AsSpan();
+    public ReadOnlySpan<string> HeaderNames => _headerNames.AsSpan();
     public int ActualNumberOfColumns => Table.NumberOfColumns ?? HeaderNames.Length;
 
     public void SetHeaderNames(ReadOnlySpan<string> fullRowValues)
@@ -26,11 +26,26 @@ internal sealed class WorksheetTableInfo
             return;
 
         var startingValues = fullRowValues.Slice(startIndex);
-        var startingValuesLength = fullRowValues.Length - startIndex;
+        var actualNumberOfColumns = Table.NumberOfColumns ?? startingValues.Length;
+        var headerNames = new string[actualNumberOfColumns];
+        var copyLength = Math.Min(startingValues.Length, headerNames.Length);
+        startingValues.Slice(0, copyLength).CopyTo(headerNames);
 
-        _headerNames = Table.NumberOfColumns is { } count && count < startingValuesLength
-            ? startingValues.Slice(0, count).ToArray()
-            : startingValues.ToArray();
+        var uniqueHeaderNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < headerNames.Length; i++)
+        {
+            var headerName = headerNames[i];
+            if (string.IsNullOrEmpty(headerName))
+            {
+                headerName = TableNameGenerator.GenerateUniqueHeaderName(uniqueHeaderNames);
+                headerNames[i] = headerName;
+            }
+
+            if (!uniqueHeaderNames.Add(headerName))
+                TableThrowHelper.DuplicateHeaderName(headerName);
+        }
+
+        _headerNames = headerNames;
     }
 
     public List<Cell> CreateTotalRow()

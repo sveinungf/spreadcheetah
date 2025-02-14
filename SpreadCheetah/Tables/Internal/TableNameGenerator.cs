@@ -18,7 +18,7 @@ internal static class TableNameGenerator
         }
     }
 
-    public static string GenerateUniqueTableColumnName(
+    public static string GenerateUniqueHeaderName(
         HashSet<string> existingColumnNames)
     {
         var counter = 1;
