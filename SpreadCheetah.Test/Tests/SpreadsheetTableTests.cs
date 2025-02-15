@@ -499,6 +499,7 @@ public class SpreadsheetTableTests
         Assert.Equal(expected, sheet.Row(1).Select(x => x.StringValue));
     }
 
+    // TODO: Test for table not starting at column A + AddHeaderRow which doesn't "reach" the table. Should check for generated header names for the table columns.
     // TODO: Test for generated header names if AddHeaderRow is called with an empty row.
     // TODO: Test for generated header names if table has more columns than header row.
     // TODO: Test for special characters in header names

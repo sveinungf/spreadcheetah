@@ -8,6 +8,7 @@ using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Tables;
+using SpreadCheetah.Tables.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 using System.Buffers;
@@ -378,14 +379,46 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (activeTable?.FirstRow == Worksheet.NextRowNumber)
         {
             activeTable.SetHeaderNames(headerNamesSpan);
-            headerNamesSpan = activeTable.HeaderNames;
+            await AddHeaderRowInternalAsync(headerNames, activeTable, styleId, token).ConfigureAwait(false);
+            return;
         }
 
-        var cells = ArrayPool<StyledCell>.Shared.Rent(headerNamesSpan.Length);
+        await AddHeaderRowInternalAsync(headerNames, styleId, token).ConfigureAwait(false);
+    }
+
+    private async ValueTask AddHeaderRowInternalAsync(ReadOnlyMemory<string> headerNames, StyleId? styleId = null, CancellationToken token = default)
+    {
+        var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Length);
         try
         {
-            headerNamesSpan.CopyToCells(cells, styleId);
-            await AddRowAsync(cells.AsMemory(0, headerNamesSpan.Length), token).ConfigureAwait(false);
+            headerNames.Span.CopyToCells(cells, styleId);
+            await AddRowAsync(cells.AsMemory(0, headerNames.Length), token).ConfigureAwait(false);
+        }
+        finally
+        {
+            ArrayPool<StyledCell>.Shared.Return(cells);
+        }
+    }
+
+    private async ValueTask AddHeaderRowInternalAsync(ReadOnlyMemory<string> headerNames, WorksheetTableInfo table, StyleId? styleId = null, CancellationToken token = default)
+    {
+        var tableOffset = table.FirstColumn;
+        var length = Math.Max(tableOffset + table.ActualNumberOfColumns, headerNames.Length);
+        var cells = ArrayPool<StyledCell>.Shared.Rent(length); // TODO: Correct expected length?
+        try
+        {
+            // Fill to cover possible gap between last value from "headerNames" and table.
+            cells.AsSpan().Fill(new StyledCell("", styleId));
+
+            // Use values from "headerNames".
+            headerNames.Span.CopyToCells(cells, styleId);
+
+            // Replace with values from table, in case some header names were generated.
+            var tableHeaderNames = table.HeaderNames;
+            var cellsToReplace = cells.AsSpan(tableOffset - 1, tableHeaderNames.Length);
+            tableHeaderNames.CopyToCells(cellsToReplace, styleId);
+
+            await AddRowAsync(cells.AsMemory(0, length), token).ConfigureAwait(false);
         }
         finally
         {
