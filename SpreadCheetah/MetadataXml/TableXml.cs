@@ -136,21 +136,33 @@ file struct TableXmlWriter(
 
     private bool TryWriteTableColumns()
     {
-        var headerNames = worksheetTableInfo.HeaderNames;
-        var length = Math.Min(headerNames.Length, ColumnCount);
-
-        for (; _nextIndex < length; ++_nextIndex)
+        if (worksheetTableInfo.HasHeaderRow)
         {
-            var name = headerNames[_nextIndex];
-            Debug.Assert(!string.IsNullOrEmpty(name));
+            var headerNames = worksheetTableInfo.HeaderNames;
+            var length = Math.Min(headerNames.Length, ColumnCount);
 
-            var (label, function) = Table.ColumnOptions is { } columns && columns.TryGetValue(_nextIndex + 1, out var options)
-                ? (options.TotalRowLabel, options.TotalRowFunction)
-                : (null, null);
+            for (; _nextIndex < length; ++_nextIndex)
+            {
+                var name = headerNames[_nextIndex];
+                Debug.Assert(!string.IsNullOrEmpty(name));
 
-            // TODO: Need to make changes to the name?
-            if (!TryWriteTableColumn(name, label, function))
-                return false;
+                var (label, function) = Table.ColumnOptions is { } columns && columns.TryGetValue(_nextIndex + 1, out var options)
+                    ? (options.TotalRowLabel, options.TotalRowFunction)
+                    : (null, null);
+
+                // TODO: Need to make changes to the name?
+                if (!TryWriteTableColumn(name, label, function))
+                    return false;
+            }
+        }
+        else
+        {
+            for (; _nextIndex < ColumnCount; ++_nextIndex)
+            {
+                var name = StringHelper.Invariant($"Column{_nextIndex + 1}");
+                if (!TryWriteTableColumn(name, null, null))
+                    return false;
+            }
         }
 
         _nextIndex = 0;
