@@ -502,6 +502,7 @@ public class SpreadsheetTableTests
     // TODO: Test for table not starting at column A + AddHeaderRow which doesn't "reach" the table. Should check for generated header names for the table columns.
     // TODO: Test for generated header names if AddHeaderRow is called with an empty row.
     // TODO: Test for generated header names if table has more columns than header row.
+    // TODO: Test for longer header row than table.NumberOfColumns. Table should only get NumberOfColumns header names.
     // TODO: Test for special characters in header names
     // TODO: Test for formula characters in header names
     // TODO: Test for multiple worksheets with tables.

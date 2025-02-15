@@ -365,16 +365,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public async ValueTask AddHeaderRowAsync(ReadOnlyMemory<string> headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
-        var headerNamesSpan = headerNames.Span;
-        if (headerNamesSpan.Length == 0)
-        {
-            // TODO: If there is an active table, and it has the number of columns set explicitly, we should add generated header names here.
-            // TODO: If there is an active table, and it doesn't have the number of columns set explicitly, we should throw an exception.
-            // TODO: If there are no active table, we should just add an empty row.
-            await AddRowAsync([], token).ConfigureAwait(false);
-            return;
-        }
-
         var activeTable = Worksheet.GetActiveTable();
         if (activeTable?.FirstRow == Worksheet.NextRowNumber)
         {
@@ -382,12 +372,33 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             return;
         }
 
-        using var cells = PooledArray<StyledCell>.Create(headerNames.Length);
-        headerNames.Span.CopyToCells(cells.Span, styleId);
+        var headerNamesSpan = headerNames.Span;
+        if (headerNamesSpan.IsEmpty)
+        {
+            await AddRowAsync([], token).ConfigureAwait(false);
+            return;
+        }
+
+        using var cells = PooledArray<StyledCell>.Create(headerNamesSpan.Length);
+        headerNamesSpan.CopyToCells(cells.Span, styleId);
         await AddRowAsync(cells.Memory, token).ConfigureAwait(false);
     }
 
     private async ValueTask AddHeaderRowForTableAsync(ReadOnlyMemory<string> headerNames, WorksheetTableInfo table, StyleId? styleId = null, CancellationToken token = default)
+    {
+        if (!headerNames.IsEmpty)
+        {
+            await AddHeaderRowForTableInternalAsync(headerNames, table, styleId, token).ConfigureAwait(false);
+            return;
+        }
+
+        if (table.Table.NumberOfColumns is null)
+            TableThrowHelper.MustHaveHeaderNamesOrNumberOfColumnsSet();
+
+        // TODO: If there is an active table, and it has the number of columns set explicitly, we should add generated header names here.
+    }
+
+    private async ValueTask AddHeaderRowForTableInternalAsync(ReadOnlyMemory<string> headerNames, WorksheetTableInfo table, StyleId? styleId = null, CancellationToken token = default)
     {
         var tableOffset = table.FirstColumn - 1;
         var length = Math.Max(tableOffset + table.ActualNumberOfColumns, headerNames.Length);

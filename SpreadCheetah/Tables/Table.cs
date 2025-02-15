@@ -9,7 +9,7 @@ public sealed class Table
 
     public bool BandedColumns { get; set; }
     public bool BandedRows { get; set; } = true;
-    public int? NumberOfColumns { get; set; } // TODO: Validate in setter. Doesn't make sense to set it to 0. Should only be used if number of columns is different from header row columns.
+    public int? NumberOfColumns { get; set; } // TODO: Validate in setter. 0 should not be allowed. For comment: Should only be used if number of columns is different from header row columns.
 
     public Table(TableStyle style, string? name = null)
     {
