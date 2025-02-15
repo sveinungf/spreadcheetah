@@ -378,52 +378,37 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var activeTable = Worksheet.GetActiveTable();
         if (activeTable?.FirstRow == Worksheet.NextRowNumber)
         {
-            activeTable.SetHeaderNames(headerNamesSpan);
-            await AddHeaderRowInternalAsync(headerNames, activeTable, styleId, token).ConfigureAwait(false);
+            await AddHeaderRowForTableAsync(headerNames, activeTable, styleId, token).ConfigureAwait(false);
             return;
         }
 
-        await AddHeaderRowInternalAsync(headerNames, styleId, token).ConfigureAwait(false);
+        using var cells = PooledArray<StyledCell>.Create(headerNames.Length);
+        headerNames.Span.CopyToCells(cells.Span, styleId);
+        await AddRowAsync(cells.Memory, token).ConfigureAwait(false);
     }
 
-    private async ValueTask AddHeaderRowInternalAsync(ReadOnlyMemory<string> headerNames, StyleId? styleId = null, CancellationToken token = default)
+    private async ValueTask AddHeaderRowForTableAsync(ReadOnlyMemory<string> headerNames, WorksheetTableInfo table, StyleId? styleId = null, CancellationToken token = default)
     {
-        var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Length);
-        try
-        {
-            headerNames.Span.CopyToCells(cells, styleId);
-            await AddRowAsync(cells.AsMemory(0, headerNames.Length), token).ConfigureAwait(false);
-        }
-        finally
-        {
-            ArrayPool<StyledCell>.Shared.Return(cells);
-        }
-    }
-
-    private async ValueTask AddHeaderRowInternalAsync(ReadOnlyMemory<string> headerNames, WorksheetTableInfo table, StyleId? styleId = null, CancellationToken token = default)
-    {
-        var tableOffset = table.FirstColumn;
+        var tableOffset = table.FirstColumn - 1;
         var length = Math.Max(tableOffset + table.ActualNumberOfColumns, headerNames.Length);
-        var cells = ArrayPool<StyledCell>.Shared.Rent(length); // TODO: Correct expected length?
-        try
-        {
-            // Fill to cover possible gap between last value from "headerNames" and table.
-            cells.AsSpan().Fill(new StyledCell("", styleId));
+        using var cells = PooledArray<StyledCell>.Create(length);
 
-            // Use values from "headerNames".
-            headerNames.Span.CopyToCells(cells, styleId);
+        // Fill to cover possible gap between last value from "headerNames" and table.
+        cells.Span.Slice(0, tableOffset).Fill(new StyledCell("", styleId));
 
-            // Replace with values from table, in case some header names were generated.
-            var tableHeaderNames = table.HeaderNames;
-            var cellsToReplace = cells.AsSpan(tableOffset - 1, tableHeaderNames.Length);
-            tableHeaderNames.CopyToCells(cellsToReplace, styleId);
+        // Use values from "headerNames".
+        var headerNamesSpan = headerNames.Span;
+        headerNamesSpan.CopyToCells(cells.Span, styleId);
 
-            await AddRowAsync(cells.AsMemory(0, length), token).ConfigureAwait(false);
-        }
-        finally
-        {
-            ArrayPool<StyledCell>.Shared.Return(cells);
-        }
+        // Set header names for table. This can generate new header names in some cases.
+        table.SetHeaderNames(headerNamesSpan);
+
+        // Replace with values from table, in case some header names have been generated.
+        var tableHeaderNames = table.HeaderNames;
+        var cellsToReplace = cells.Span.Slice(tableOffset, tableHeaderNames.Length);
+        tableHeaderNames.CopyToCells(cellsToReplace, styleId);
+
+        await AddRowAsync(cells.Memory, token).ConfigureAwait(false);
     }
 
     /// <summary>
