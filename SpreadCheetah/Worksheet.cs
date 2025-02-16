@@ -66,13 +66,13 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         Tables ??= new(StringComparer.OrdinalIgnoreCase);
 
         if (Tables.GetActive() is not null)
-            ThrowHelper.OnlyOneActiveTableAllowed();
+            TableThrowHelper.OnlyOneActiveTableAllowed();
 
         var tableName = table.Name;
         if (tableName is null)
             tableName = TableNameGenerator.GenerateUniqueTableName(Tables);
         else if (Tables.ContainsKey(tableName))
-            ThrowHelper.TableNameAlreadyExists(nameof(table));
+            TableThrowHelper.NameAlreadyExists(nameof(table));
 
         Tables[tableName] = new WorksheetTableInfo
         {
@@ -182,17 +182,17 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     {
         var tableInfo = Tables.GetActive(out var multipleActiveTables);
         if (multipleActiveTables)
-            ThrowHelper.MultipleActiveTables();
+            TableThrowHelper.MultipleActiveTables();
         if (tableInfo is null && !throwWhenNoTable)
             return;
         if (tableInfo is null)
-            ThrowHelper.NoActiveTables();
+            TableThrowHelper.NoActiveTables();
 
         var tableRows = _state.NextRowIndex - tableInfo.FirstRow;
         if (tableRows == 0)
-            ThrowHelper.TableHasNoRows(tableInfo.Table.Name);
+            TableThrowHelper.NoRows(tableInfo.Table.Name);
         if (tableInfo.ActualNumberOfColumns == 0)
-            ThrowHelper.TableHasNoColumns(tableInfo.Table.Name);
+            TableThrowHelper.NoColumns(tableInfo.Table.Name);
 
         var tableHasOnlyHeaderRow = tableRows == 1 && tableInfo.HasHeaderRow;
         if (tableHasOnlyHeaderRow && !TryAddRow(ReadOnlySpan<DataCell>.Empty))

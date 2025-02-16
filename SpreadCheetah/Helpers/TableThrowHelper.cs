@@ -1,3 +1,4 @@
+using SpreadCheetah.Tables;
 using System.Diagnostics.CodeAnalysis;
 
 namespace SpreadCheetah.Helpers;
@@ -20,5 +21,27 @@ internal static class TableThrowHelper
     public static void MissingHeaderNames(int expectedCount, int actualCount)
         => throw new SpreadCheetahException(StringHelper.Invariant($"Table was expected to have {expectedCount} header names, but only {actualCount} were supplied."));
 
-    // TODO: Move all other table related methods from ThrowHelper to this class.
+    [DoesNotReturn]
+    public static void MultipleActiveTables()
+        => throw new SpreadCheetahException("There are multiple active tables.");
+
+    [DoesNotReturn]
+    public static void NameAlreadyExists(string? paramName)
+        => throw new ArgumentException("A table with the given name already exists.", paramName);
+
+    [DoesNotReturn]
+    public static void NoActiveTables()
+        => throw new SpreadCheetahException("There are no active tables.");
+
+    [DoesNotReturn]
+    public static void NoColumns(string tableName)
+        => throw new SpreadCheetahException($"Table '{tableName}' has no columns. The number of columns is determined by calling {nameof(Spreadsheet.AddHeaderRowAsync)} for the first row of the table. Alternatively it can be set explicitly with {nameof(Table)}.{nameof(Table.NumberOfColumns)}.");
+
+    [DoesNotReturn]
+    public static void NoRows(string tableName)
+        => throw new SpreadCheetahException($"Table '{tableName}' has no rows. Tables must have at least one row.");
+
+    [DoesNotReturn]
+    public static void OnlyOneActiveTableAllowed()
+        => throw new SpreadCheetahException($"Currently there is support for having only one active table at a time. Another table can be added if the previous table is first finished by calling {nameof(Spreadsheet.FinishTableAsync)}.");
 }

@@ -1,4 +1,3 @@
-using SpreadCheetah.Tables;
 using System.Diagnostics.CodeAnalysis;
 
 namespace SpreadCheetah.Helpers;
@@ -57,19 +56,10 @@ internal static class ThrowHelper
     public static void MinGreaterThanMax(string? minParamName) => throw new ArgumentException("The min value must be less than or equal to the max value.", minParamName);
 
     [DoesNotReturn]
-    public static void MultipleActiveTables() => throw new SpreadCheetahException("There are multiple active tables.");
-
-    [DoesNotReturn]
     public static void NameEmptyOrWhiteSpace(string? paramName) => throw new ArgumentException("The name can not be empty or consist only of whitespace.", paramName);
 
     [DoesNotReturn]
-    public static void NoActiveTables() => throw new SpreadCheetahException("There are no active tables.");
-
-    [DoesNotReturn]
     public static void NoteTextTooLong(string? paramName) => throw new ArgumentException($"Note text can not exceed {SpreadsheetConstants.MaxNoteTextLength} characters.", paramName);
-
-    [DoesNotReturn]
-    public static void OnlyOneActiveTableAllowed() => throw new SpreadCheetahException($"Currently there is support for having only one active table at a time. Another table can be added if the previous table is first finished by calling {nameof(Spreadsheet.FinishTableAsync)}.");
 
     [DoesNotReturn]
     public static void ResizeAndMoveCellsCombinationNotSupported(string resizeParamName, string moveParamName) => throw new ArgumentException($"Enabling {resizeParamName} is not supported when {moveParamName} is false.", resizeParamName);
@@ -106,15 +96,6 @@ internal static class ThrowHelper
 
     [DoesNotReturn]
     public static void StyleNameTooLong(string? paramName) => throw new ArgumentException("The name can not be more than 255 characters.", paramName);
-
-    [DoesNotReturn]
-    public static void TableHasNoColumns(string tableName) => throw new SpreadCheetahException($"Table '{tableName}' has no columns. The number of columns is determined by calling {nameof(Spreadsheet.AddHeaderRowAsync)} for the first row of the table. Alternatively it can be set explicitly with {nameof(Table)}.{nameof(Table.NumberOfColumns)}.");
-
-    [DoesNotReturn]
-    public static void TableHasNoRows(string tableName) => throw new SpreadCheetahException($"Table '{tableName}' has no rows. Tables must have at least one row.");
-
-    [DoesNotReturn]
-    public static void TableNameAlreadyExists(string? paramName) => throw new ArgumentException("A table with the given name already exists.", paramName);
 
     [DoesNotReturn]
     public static void ValueIsNegative<T>(string? paramName, T value) => throw new ArgumentOutOfRangeException(paramName, value, "The value can not be negative.");
