@@ -10,6 +10,10 @@ internal static class TableThrowHelper
         => throw new SpreadCheetahException($"Duplicate header names are not allowed in a table. Header name '{headerName}' appeared more than once.");
 
     [DoesNotReturn]
+    public static void HeaderNameCanNotBeginOrEndWithWhitespace()
+        => throw new SpreadCheetahException("Table header name can not begin or end with a whitespace.");
+
+    [DoesNotReturn]
     public static void HeaderNameNullOrEmpty(int columnNumber)
         => throw new SpreadCheetahException(StringHelper.Invariant($"Header for table column {columnNumber} was null or empty."));
 

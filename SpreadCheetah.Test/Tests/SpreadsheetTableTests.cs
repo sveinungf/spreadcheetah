@@ -441,35 +441,6 @@ public class SpreadsheetTableTests
     }
 
     [Theory, CombinatorialData]
-    public async Task Spreadsheet_Table_MultipleInWorksheet(
-        [CombinatorialValues(2, 10, 100)] int count)
-    {
-        // Arrange
-        using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
-        var table = new Table(TableStyle.Light1);
-        table.Column(2).TotalRowFunction = TableTotalRowFunction.Sum;
-        string[] headerNames = ["Text", "Number"];
-
-        // Act
-        for (var i = 0; i < count; ++i)
-        {
-            spreadsheet.StartTable(table);
-            await spreadsheet.AddHeaderRowAsync(headerNames);
-            await spreadsheet.AddRowAsync([new($"Number {i}"), new(i)]);
-            await spreadsheet.FinishTableAsync();
-        }
-
-        await spreadsheet.FinishAsync();
-
-        // Assert
-        using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(count, sheet.Tables.Count);
-        Assert.All(sheet.Tables, x => Assert.Equal(headerNames, x.Columns.Select(c => c.Name)));
-    }
-
-    [Theory, CombinatorialData]
     public async Task Spreadsheet_Table_DuplicateHeaderNames(bool differentCasing)
     {
         // Arrange
@@ -569,8 +540,94 @@ public class SpreadsheetTableTests
         Assert.Equal("Table must have at least one header name.", exception.Message);
     }
 
-    // TODO: Test for special characters in header names
-    // TODO: Test for formula characters in header names
+    [Theory]
+    [InlineData("R")]
+    [InlineData("'")]
+    [InlineData("\"")]
+    [InlineData("A1")]
+    [InlineData("R1C1")]
+    [InlineData("Z$100")]
+    [InlineData("\"With-Special!#¤%Characters\"")]
+    [InlineData("With-Special<>&'\\Characters")]
+    [InlineData("<>&'\\StartingWithSpecialCharacters")]
+    [InlineData("With\"Quotation\"Marks")]
+    [InlineData("WithNorwegianCharactersÆØÅ")]
+    [InlineData("With\ud83d\udc4dEmoji")]
+    [InlineData("With🌉Emoji")]
+    [InlineData("🌉StartingWithEmoji")]
+    [InlineData("With\tValid\r\nControlCharacters")]
+    [InlineData("WithCharacters\u00a0\u00c9\u00ffBetween160And255")]
+    public async Task Spreadsheet_Table_ValidHeaderName(string headerName)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+
+        // Act
+        spreadsheet.StartTable(table);
+        await spreadsheet.AddHeaderRowAsync([headerName]);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualTable = Assert.Single(sheet.Tables);
+        Assert.Equal([headerName], actualTable.Columns.Select(x => x.Name));
+        Assert.Equal([headerName], sheet.Row(1).Select(x => x.StringValue));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("\t")]
+    [InlineData(" Leading whitespace")]
+    [InlineData("Trailing whitespace ")]
+    public async Task Spreadsheet_Table_InvalidHeaderName(string headerName)
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+
+        // Act
+        spreadsheet.StartTable(table);
+        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync([headerName]).AsTask());
+
+        // Assert
+        Assert.IsType<SpreadCheetahException>(exception);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_Table_MultipleInWorksheet(
+    [CombinatorialValues(2, 10, 100)] int count)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+        table.Column(2).TotalRowFunction = TableTotalRowFunction.Sum;
+        string[] headerNames = ["Text", "Number"];
+
+        // Act
+        for (var i = 0; i < count; ++i)
+        {
+            spreadsheet.StartTable(table);
+            await spreadsheet.AddHeaderRowAsync(headerNames);
+            await spreadsheet.AddRowAsync([new($"Number {i}"), new(i)]);
+            await spreadsheet.FinishTableAsync();
+        }
+
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(count, sheet.Tables.Count);
+        Assert.All(sheet.Tables, x => Assert.Equal(headerNames, x.Columns.Select(c => c.Name)));
+    }
+
+    // TODO: Test for a very long header name
     // TODO: Test for multiple worksheets with tables.
     // TODO: Test for styling on top of table (differential/dxf?)
     // TODO: Test for valid table names

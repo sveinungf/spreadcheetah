@@ -15,7 +15,7 @@ internal sealed class WorksheetTableInfo
     public required ImmutableTable Table { get; init; }
     public uint? LastDataRow { get; set; }
     public bool Active => LastDataRow is null;
-    public bool HasHeaderRow => _headerNames.Length > 0; // TODO: Not entirely correct. If calling "AddHeaderRow" with an empty row, should this then return true?
+    public bool HasHeaderRow => _headerNames.Length > 0;
 
     public ReadOnlySpan<string> HeaderNames => _headerNames.AsSpan();
     public int ActualNumberOfColumns => Table.NumberOfColumns ?? HeaderNames.Length;
@@ -44,6 +44,8 @@ internal sealed class WorksheetTableInfo
             var headerName = headerNames[i];
             if (string.IsNullOrEmpty(headerName))
                 TableThrowHelper.HeaderNameNullOrEmpty(i + 1);
+            if (char.IsWhiteSpace(headerName[0]) || char.IsWhiteSpace(headerName[^1]))
+                TableThrowHelper.HeaderNameCanNotBeginOrEndWithWhitespace();
             if (!uniqueHeaderNames.Add(headerName))
                 TableThrowHelper.DuplicateHeaderName(headerName);
         }
@@ -94,7 +96,6 @@ internal sealed class WorksheetTableInfo
             return new Formula(); // TODO: Expected behavior?
 
         // TODO: Do we need to adjust the tableName in any way?
-        // TODO: Do we need to adjust the headerName in any way?
         var formulaText = StringHelper.Invariant($"SUBTOTAL({functionNumber},{Table.Name}[{headerName}])");
         return new Formula(formulaText);
     }

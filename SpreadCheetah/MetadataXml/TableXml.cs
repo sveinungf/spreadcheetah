@@ -150,7 +150,6 @@ file struct TableXmlWriter(
                     ? (options.TotalRowLabel, options.TotalRowFunction)
                     : (null, null);
 
-                // TODO: Need to make changes to the name?
                 if (!TryWriteTableColumn(name, label, function))
                     return false;
             }
@@ -181,9 +180,9 @@ file struct TableXmlWriter(
             $"{"<tableColumn id=\""u8}" +
             $"{_nextIndex + 1}" +
             $"{"\" name=\""u8}" +
-            $"{name}" + // TODO: Is this XML escaped?
+            $"{name}" + // TODO: This can be longer than the minimum buffer length
             $"{labelAttribute}" +
-            $"{totalRowLabel}" +
+            $"{totalRowLabel}" + // TODO: Can this be longer than the minimum buffer length?
             $"{functionAttribute}" +
             $"{functionAttributeValue}" +
             $"{"\"/>"u8}");

@@ -24,6 +24,7 @@ public sealed class Table
         if (columnNumber is < 1 or > SpreadsheetConstants.MaxNumberOfColumns)
             ThrowHelper.ColumnNumberInvalid(nameof(columnNumber), columnNumber);
 
+        // TODO: Should calling this method set the internal table number of columns?
         // TODO: Is there a limit of the number of columns in a table?
         // TODO: Consider storing the max columnNumber in a property, for easy lookup later
         ColumnOptions ??= [];
