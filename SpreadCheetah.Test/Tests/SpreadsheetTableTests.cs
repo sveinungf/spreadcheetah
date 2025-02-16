@@ -131,8 +131,8 @@ public class SpreadsheetTableTests
         Assert.Contains("no rows", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
-    [Theory, CombinatorialData]
-    public async Task Spreadsheet_Table_WithoutColumns(bool hasEmptyHeaderRow)
+    [Fact]
+    public async Task Spreadsheet_Table_WithoutColumns()
     {
         // Arrange
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
@@ -142,16 +142,29 @@ public class SpreadsheetTableTests
 
         // Act
         spreadsheet.StartTable(table);
-
-        if (hasEmptyHeaderRow)
-            await spreadsheet.AddHeaderRowAsync([]);
-
         await spreadsheet.AddRowAsync([new("Hello"), new("World!")]);
         var exception = await Record.ExceptionAsync(() => spreadsheet.FinishTableAsync().AsTask());
 
         // Assert
         Assert.IsType<SpreadCheetahException>(exception);
         Assert.Contains("no columns", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_Table_EmptyHeaderRowForTableWithoutColumns()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+
+        // Act
+        spreadsheet.StartTable(table);
+        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync([]).AsTask());
+
+        // Assert
+        Assert.IsType<SpreadCheetahException>(exception);
+        Assert.Contains("Table must either have header names", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]
