@@ -1,4 +1,5 @@
 using SpreadCheetah.Helpers;
+using System.Diagnostics;
 
 namespace SpreadCheetah.Tables.Internal;
 
@@ -21,31 +22,33 @@ internal sealed class WorksheetTableInfo
 
     public void SetHeaderNames(ReadOnlySpan<string> fullRowValues)
     {
-        var startIndex = FirstColumn - 1;
-        if (startIndex >= fullRowValues.Length)
-            return;
+        var tableOffset = FirstColumn - 1;
 
-        var startingValues = fullRowValues.Slice(startIndex);
-        var actualNumberOfColumns = Table.NumberOfColumns ?? startingValues.Length;
-        var headerNames = new string[actualNumberOfColumns];
-        var copyLength = Math.Min(startingValues.Length, headerNames.Length);
-        startingValues.Slice(0, copyLength).CopyTo(headerNames);
+        if (fullRowValues.Length <= tableOffset)
+            TableThrowHelper.MissingHeaderName();
+
+        var headerNames = fullRowValues.Slice(tableOffset);
+        Debug.Assert(!headerNames.IsEmpty);
+
+        if (Table.NumberOfColumns is { } numberOfColumns)
+        {
+            if (headerNames.Length < numberOfColumns)
+                TableThrowHelper.MissingHeaderNames(numberOfColumns, headerNames.Length);
+
+            headerNames = headerNames.Slice(0, numberOfColumns);
+        }
 
         var uniqueHeaderNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         for (var i = 0; i < headerNames.Length; i++)
         {
             var headerName = headerNames[i];
             if (string.IsNullOrEmpty(headerName))
-            {
-                headerName = TableNameGenerator.GenerateUniqueHeaderName(uniqueHeaderNames);
-                headerNames[i] = headerName;
-            }
-
+                TableThrowHelper.HeaderNameNullOrEmpty(i + 1);
             if (!uniqueHeaderNames.Add(headerName))
                 TableThrowHelper.DuplicateHeaderName(headerName);
         }
 
-        _headerNames = headerNames;
+        _headerNames = headerNames.ToArray();
     }
 
     public List<Cell> CreateTotalRow()
@@ -56,6 +59,7 @@ internal sealed class WorksheetTableInfo
 
         for (var i = 0; i < headers.Length; ++i)
         {
+            Debug.Assert(!string.IsNullOrEmpty(headers[i]));
             var columnOptions = allColumnOptions?.GetValueOrDefault(i + 1) ?? new();
 
             var cell = columnOptions switch
@@ -71,7 +75,7 @@ internal sealed class WorksheetTableInfo
         return cells;
     }
 
-    private Formula TotalRowFormula(TableTotalRowFunction function, string? headerName)
+    private Formula TotalRowFormula(TableTotalRowFunction function, string headerName)
     {
         var functionNumber = function switch
         {
@@ -89,7 +93,6 @@ internal sealed class WorksheetTableInfo
         if (functionNumber == 0)
             return new Formula(); // TODO: Expected behavior?
 
-        // TODO: What if headerName is null?
         // TODO: Do we need to adjust the tableName in any way?
         // TODO: Do we need to adjust the headerName in any way?
         var formulaText = StringHelper.Invariant($"SUBTOTAL({functionNumber},{Table.Name}[{headerName}])");

@@ -150,13 +150,16 @@ public class SpreadsheetTableTests
         Assert.Contains("no columns", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact]
-    public async Task Spreadsheet_Table_EmptyHeaderRowForTableWithoutColumns()
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_Table_EmptyHeaderRow(bool numberOfColumnsSet)
     {
         // Arrange
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
         await spreadsheet.StartWorksheetAsync("Sheet");
-        var table = new Table(TableStyle.Light1);
+        var table = new Table(TableStyle.Light1)
+        {
+            NumberOfColumns = numberOfColumnsSet ? 3 : null
+        };
 
         // Act
         spreadsheet.StartTable(table);
@@ -164,7 +167,7 @@ public class SpreadsheetTableTests
 
         // Assert
         Assert.IsType<SpreadCheetahException>(exception);
-        Assert.Contains("Table must either have header names", exception.Message, StringComparison.Ordinal);
+        Assert.Equal("Table must have at least one header name.", exception.Message);
     }
 
     [Fact]
@@ -490,15 +493,33 @@ public class SpreadsheetTableTests
     }
 
     [Fact]
-    public async Task Spreadsheet_Table_GeneratedHeaderNames()
+    public async Task Spreadsheet_Table_HeaderRowWithEmptyString()
     {
         // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+        string[] headerNames = ["Make", "", "Model"];
+
+        // Act
+        spreadsheet.StartTable(table);
+        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync(headerNames).AsTask());
+
+        // Assert
+        Assert.IsType<SpreadCheetahException>(exception);
+        Assert.Contains("Header for table column 2 was null or empty.", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_Table_HeaderRowLongerThanTableColumns()
+    {
+        // Arrange
+        const int numberOfColumns = 3;
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
-        var table = new Table(TableStyle.Light1);
-        string[] headerNames = ["Make", "", "Column3", "", null!, "Column 3", null!];
-        string[] expected = ["Make", "Column1", "Column3", "Column2", "Column4", "Column 3", "Column5"];
+        var table = new Table(TableStyle.Light1) { NumberOfColumns = numberOfColumns };
+        string[] headerNames = ["A", "B", "C", "D", "E"];
 
         // Act
         spreadsheet.StartTable(table);
@@ -508,14 +529,46 @@ public class SpreadsheetTableTests
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualTable = Assert.Single(sheet.Tables);
-        Assert.Equal(expected, actualTable.Columns.Select(x => x.Name));
-        Assert.Equal(expected, sheet.Row(1).Select(x => x.StringValue));
+        Assert.Equal(headerNames.Take(numberOfColumns), actualTable.Columns.Select(x => x.Name));
+        Assert.Equal(headerNames, sheet.Row(1).Select(x => x.StringValue));
     }
 
-    // TODO: Test for table not starting at column A + AddHeaderRow which doesn't "reach" the table. Should check for generated header names for the table columns.
-    // TODO: Test for generated header names if AddHeaderRow is called with an empty row.
-    // TODO: Test for generated header names if table has more columns than header row.
-    // TODO: Test for longer header row than table.NumberOfColumns. Table should only get NumberOfColumns header names.
+    [Fact]
+    public async Task Spreadsheet_Table_HeaderRowShorterThanTableColumns()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1) { NumberOfColumns = 5 };
+        string[] headerNames = ["A", "B", "C"];
+
+        // Act
+        spreadsheet.StartTable(table);
+        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync(headerNames).AsTask());
+
+        // Assert
+        Assert.IsType<SpreadCheetahException>(exception);
+        Assert.Equal("Table was expected to have 5 header names, but only 3 were supplied.", exception.Message);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_Table_HeaderRowEndingBeforeTableStart()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+        string[] headerNames = ["A", "B", "C"];
+
+        // Act
+        spreadsheet.StartTable(table, "D");
+        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync(headerNames).AsTask());
+
+        // Assert
+        Assert.IsType<SpreadCheetahException>(exception);
+        Assert.Equal("Table must have at least one header name.", exception.Message);
+    }
+
     // TODO: Test for special characters in header names
     // TODO: Test for formula characters in header names
     // TODO: Test for multiple worksheets with tables.
