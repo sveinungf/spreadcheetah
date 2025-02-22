@@ -712,7 +712,7 @@ public class SpreadsheetTableTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.Equal(count, sheet.Tables.Count);
         Assert.All(sheet.Tables, x => Assert.Equal(headerNames, x.Columns.Select(c => c.Name)));
-        Assert.Equal(count, sheet.Tables.Select(x => x.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.Distinct(sheet.Tables.Select(x => x.Name), StringComparer.OrdinalIgnoreCase);
     }
 
     [Theory, CombinatorialData]
@@ -743,7 +743,7 @@ public class SpreadsheetTableTests
         Assert.Equal(count, sheets.Count);
         Assert.All(sheets, x => Assert.Single(x.Tables));
         var allTables = sheets.SelectMany(x => x.Tables);
-        Assert.Equal(count, allTables.Select(x => x.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.Distinct(allTables.Select(x => x.Name), StringComparer.OrdinalIgnoreCase);
         Assert.All(allTables, x => Assert.Equal(headerNames, x.Columns.Select(c => c.Name)));
     }
 
