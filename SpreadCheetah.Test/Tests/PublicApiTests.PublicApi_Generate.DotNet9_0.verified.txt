@@ -550,7 +550,6 @@ namespace SpreadCheetah.Tables
     }
     public enum TableTotalRowFunction
     {
-        None = 0,
         Average = 1,
         Count = 2,
         CountNumbers = 3,

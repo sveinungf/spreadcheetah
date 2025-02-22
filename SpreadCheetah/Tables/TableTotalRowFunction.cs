@@ -2,8 +2,7 @@ namespace SpreadCheetah.Tables;
 
 public enum TableTotalRowFunction
 {
-    None, // TODO: Should this be publicly exposed?
-    Average,
+    Average = 1,
     Count,
     CountNumbers,
     Maximum,

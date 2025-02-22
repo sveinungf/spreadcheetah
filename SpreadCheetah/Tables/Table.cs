@@ -13,7 +13,7 @@ public sealed class Table
 
     public Table(TableStyle style, string? name = null)
     {
-        Style = style; // TODO: Validate
+        Style = Guard.DefinedEnumValue(style);
         Name = name; // TODO: Validate
     }
 

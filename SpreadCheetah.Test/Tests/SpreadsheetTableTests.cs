@@ -75,7 +75,6 @@ public class SpreadsheetTableTests
         string[] headerNames = ["Make", "Model", "Price"];
         table.Column(1).TotalRowLabel = "Average price";
         table.Column(3).TotalRowFunction = function;
-        TableTotalRowFunction? expectedFunction = function is TableTotalRowFunction.None ? null : function;
 
         // Act
         spreadsheet.StartTable(table);
@@ -95,7 +94,7 @@ public class SpreadsheetTableTests
         var columns = Enumerable.Range(1, 3).Select(table.Column);
         Assert.Equal(headerNames, actualColumns.Select(x => x.Name));
         Assert.Equal(columns.Select(x => x.TotalRowLabel), actualColumns.Select(x => x.TotalRowLabel));
-        Assert.Equal([null, null, expectedFunction], actualColumns.Select(x => x.TotalRowFunction));
+        Assert.Equal([null, null, function], actualColumns.Select(x => x.TotalRowFunction));
         Assert.Equal("Table1", actualTable.Name);
         Assert.Equal("TableStyleLight19", actualTable.TableStyle);
         Assert.Equal("A1:C4", actualTable.CellRangeReference);

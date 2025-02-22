@@ -155,8 +155,8 @@ file struct TableXmlWriter(
         string? totalRowLabel,
         TableTotalRowFunction? totalRowFunction)
     {
-        var labelAttribute = totalRowLabel is not null ? "\" totalsRowLabel=\""u8 : [];
-        var functionAttribute = totalRowFunction is (null or TableTotalRowFunction.None) ? [] : "\" totalsRowFunction=\""u8;
+        var labelAttribute = totalRowLabel is null ? [] : "\" totalsRowLabel=\""u8;
+        var functionAttribute = totalRowFunction is null ? [] : "\" totalsRowFunction=\""u8;
         var functionAttributeValue = GetFunctionAttributeValue(totalRowFunction);
 
         return buffer.TryWrite(
