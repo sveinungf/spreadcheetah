@@ -30,13 +30,12 @@ internal sealed class WorksheetTableInfo
         var headerNames = fullRowValues.Slice(tableOffset);
         Debug.Assert(!headerNames.IsEmpty);
 
-        if (Table.NumberOfColumns is { } numberOfColumns)
-        {
-            if (headerNames.Length < numberOfColumns)
-                TableThrowHelper.MissingHeaderNames(numberOfColumns, headerNames.Length);
+        var expectedColumns = Table.NumberOfColumns ?? Table.TotalRowMaxColumnNumber;
+        if (expectedColumns is { } columns && headerNames.Length < columns)
+            TableThrowHelper.MissingHeaderNames(columns, headerNames.Length);
 
+        if (Table.NumberOfColumns is { } numberOfColumns)
             headerNames = headerNames.Slice(0, numberOfColumns);
-        }
 
         var uniqueHeaderNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         for (var i = 0; i < headerNames.Length; i++)

@@ -5,14 +5,16 @@ internal readonly record struct ImmutableTable(
     TableStyle Style,
     bool BandedColumns,
     bool BandedRows,
-    bool HasTotalRow,
     int? NumberOfColumns,
+    int? TotalRowMaxColumnNumber,
     IReadOnlyDictionary<int, ImmutableTableColumnOptions>? ColumnOptions)
 {
+    public bool HasTotalRow => TotalRowMaxColumnNumber is not null;
+
     public static ImmutableTable From(Table table, string tableName)
     {
         Dictionary<int, ImmutableTableColumnOptions>? columnOptions = null;
-        var hasTotalRow = false;
+        int? totalRowMaxColumnNumber = null;
 
         if (table.ColumnOptions is not null)
         {
@@ -20,8 +22,15 @@ internal readonly record struct ImmutableTable(
 
             foreach (var (key, value) in table.ColumnOptions)
             {
+                // TODO: Ignore column if key > table.NumberOfColumns?
                 columnOptions[key] = ImmutableTableColumnOptions.From(value);
-                hasTotalRow = hasTotalRow || value.AffectsTotalRow;
+
+                if (value.AffectsTotalRow)
+                {
+                    var currentMax = totalRowMaxColumnNumber ?? 0;
+                    if (key > currentMax)
+                        totalRowMaxColumnNumber = key;
+                }
             }
         }
 
@@ -30,8 +39,8 @@ internal readonly record struct ImmutableTable(
             Style: table.Style,
             BandedColumns: table.BandedColumns,
             BandedRows: table.BandedRows,
-            HasTotalRow: hasTotalRow,
             NumberOfColumns: table.NumberOfColumns,
+            TotalRowMaxColumnNumber: totalRowMaxColumnNumber,
             ColumnOptions: columnOptions);
     }
 }

@@ -523,6 +523,25 @@ public class SpreadsheetTableTests
     }
 
     [Fact]
+    public async Task Spreadsheet_Table_HeaderRowShorterThanTotalRow()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+        table.Column(5).TotalRowFunction = TableTotalRowFunction.Sum;
+        string[] headerNames = ["A", "B", "C"];
+
+        // Act
+        spreadsheet.StartTable(table);
+        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync(headerNames).AsTask());
+
+        // Assert
+        Assert.IsType<SpreadCheetahException>(exception);
+        Assert.Equal("Table was expected to have 5 header names, but only 3 were supplied.", exception.Message);
+    }
+
+    [Fact]
     public async Task Spreadsheet_Table_HeaderRowEndingBeforeTableStart()
     {
         // Arrange
@@ -627,6 +646,7 @@ public class SpreadsheetTableTests
         Assert.All(sheet.Tables, x => Assert.Equal(headerNames, x.Columns.Select(c => c.Name)));
     }
 
+    // TODO: Test for table with total row, without header row, with/without setting NumberOfColumns.
     // TODO: Test for a very long header name
     // TODO: Test for multiple worksheets with tables.
     // TODO: Test for styling on top of table (differential/dxf?)
