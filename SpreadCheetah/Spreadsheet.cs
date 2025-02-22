@@ -8,6 +8,7 @@ using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Tables;
+using SpreadCheetah.Tables.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 using System.Diagnostics;
@@ -156,10 +157,16 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (!SpreadsheetUtility.TryParseColumnName(firstColumnName.AsSpan(), out var firstColumnNumber))
             ThrowHelper.ColumnNameInvalid(nameof(firstColumnName));
 
-        _fileCounter ??= new FileCounter();
-        _fileCounter.TableForCurrentWorksheet();
+        var fileCounter = _fileCounter ??= new FileCounter();
 
-        Worksheet.StartTable(table, firstColumnNumber);
+        var tableName = table.Name;
+        if (tableName is null)
+            tableName = fileCounter.AssignTableNameForCurrentWorksheet();
+        else if (!fileCounter.TryAssignTableNameForCurrentWorksheet(tableName))
+            TableThrowHelper.NameAlreadyExists(nameof(table));
+
+        var immutableTable = ImmutableTable.From(table, tableName);
+        Worksheet.StartTable(immutableTable, firstColumnNumber);
     }
 
     /// <summary>

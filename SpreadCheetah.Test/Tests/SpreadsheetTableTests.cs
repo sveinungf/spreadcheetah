@@ -644,11 +644,43 @@ public class SpreadsheetTableTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.Equal(count, sheet.Tables.Count);
         Assert.All(sheet.Tables, x => Assert.Equal(headerNames, x.Columns.Select(c => c.Name)));
+        Assert.Equal(count, sheet.Tables.Select(x => x.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_Table_MultipleWorksheetsWithTables(
+    [CombinatorialValues(2, 10, 100)] int count)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        var table = new Table(TableStyle.Light1);
+        table.Column(2).TotalRowFunction = TableTotalRowFunction.Sum;
+        string[] headerNames = ["Text", "Number"];
+
+        // Act
+        for (var i = 0; i < count; ++i)
+        {
+            await spreadsheet.StartWorksheetAsync($"Sheet {i}");
+            spreadsheet.StartTable(table);
+            await spreadsheet.AddHeaderRowAsync(headerNames);
+            await spreadsheet.AddRowAsync([new($"Number {i}"), new(i)]);
+            await spreadsheet.FinishTableAsync();
+        }
+
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheets = SpreadsheetAssert.Sheets(stream);
+        Assert.Equal(count, sheets.Count);
+        Assert.All(sheets, x => Assert.Single(x.Tables));
+        var allTables = sheets.SelectMany(x => x.Tables);
+        Assert.Equal(count, allTables.Select(x => x.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.All(allTables, x => Assert.Equal(headerNames, x.Columns.Select(c => c.Name)));
     }
 
     // TODO: Test for table with total row, without header row, with/without setting NumberOfColumns.
     // TODO: Test for a very long header name
-    // TODO: Test for multiple worksheets with tables.
     // TODO: Test for styling on top of table (differential/dxf?)
     // TODO: Test for valid table names
     // TODO: Test for invalid table names

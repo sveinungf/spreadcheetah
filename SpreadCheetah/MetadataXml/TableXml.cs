@@ -10,7 +10,7 @@ internal static class TableXml
 {
     public static async ValueTask WriteTablesAsync(
         this ZipArchiveManager zipArchiveManager,
-        Dictionary<string, WorksheetTableInfo> tables,
+        List<WorksheetTableInfo> tables,
         SpreadsheetBuffer buffer,
         FileCounter? fileCounter,
         CancellationToken token)
@@ -18,7 +18,7 @@ internal static class TableXml
         var fileStartIndex = fileCounter?.CurrentWorksheetTableFileStartIndex ?? 0;
         Debug.Assert(fileStartIndex > 0);
 
-        foreach (var (i, table) in tables.Values.Index())
+        foreach (var (i, table) in tables.Index())
         {
             var tableId = fileStartIndex + i;
             var entryName = StringHelper.Invariant($"xl/tables/table{tableId}.xml");

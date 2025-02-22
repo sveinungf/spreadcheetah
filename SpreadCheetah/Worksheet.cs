@@ -26,7 +26,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private string? _autoFilterRange;
 
     public Dictionary<SingleCellRelativeReference, string>? Notes { get; private set; }
-    public Dictionary<string, WorksheetTableInfo>? Tables { get; private set; }
+    public List<WorksheetTableInfo>? Tables { get; private set; }
     public List<WorksheetImage>? Images { get; private set; }
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer, bool writeCellReferenceAttributes)
@@ -61,25 +61,21 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         }
     }
 
-    public void StartTable(Table table, int firstColumnNumber)
+    public void StartTable(ImmutableTable table, int firstColumnNumber)
     {
-        Tables ??= new(StringComparer.OrdinalIgnoreCase);
+        var tables = Tables ??= [];
 
-        if (Tables.GetActive() is not null)
+        if (tables.GetActive() is not null)
             TableThrowHelper.OnlyOneActiveTableAllowed();
 
-        var tableName = table.Name;
-        if (tableName is null)
-            tableName = TableNameGenerator.GenerateUniqueTableName(Tables);
-        else if (Tables.ContainsKey(tableName))
-            TableThrowHelper.NameAlreadyExists(nameof(table));
-
-        Tables[tableName] = new WorksheetTableInfo
+        var worksheetTable = new WorksheetTableInfo
         {
             FirstColumn = (ushort)firstColumnNumber,
             FirstRow = _state.NextRowIndex,
-            Table = ImmutableTable.From(table, tableName)
+            Table = table
         };
+
+        tables.Add(worksheetTable);
     }
 
     public WorksheetTableInfo? GetActiveTable() => Tables?.GetActive();

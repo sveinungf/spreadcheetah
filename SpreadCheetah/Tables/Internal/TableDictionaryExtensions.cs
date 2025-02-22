@@ -3,10 +3,10 @@ namespace SpreadCheetah.Tables.Internal;
 internal static class TableDictionaryExtensions
 {
     public static WorksheetTableInfo? GetActive(
-        this Dictionary<string, WorksheetTableInfo>? tables) => tables.GetActive(out _);
+        this List<WorksheetTableInfo>? tables) => tables.GetActive(out _);
 
     public static WorksheetTableInfo? GetActive(
-        this Dictionary<string, WorksheetTableInfo>? tables,
+        this List<WorksheetTableInfo>? tables,
         out bool multipleActiveTables)
     {
         multipleActiveTables = false;
@@ -17,7 +17,7 @@ internal static class TableDictionaryExtensions
         WorksheetTableInfo? result = null;
         var activeTables = 0;
 
-        foreach (var table in tables.Values)
+        foreach (var table in tables)
         {
             if (!table.Active)
                 continue;
