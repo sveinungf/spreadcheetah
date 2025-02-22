@@ -136,32 +136,15 @@ file struct TableXmlWriter(
 
     private bool TryWriteTableColumns()
     {
-        if (worksheetTableInfo.HasHeaderRow)
+        var columnOptions = Table.ColumnOptions;
+
+        for (; _nextIndex < ColumnCount; ++_nextIndex)
         {
-            var headerNames = worksheetTableInfo.HeaderNames;
-            var length = Math.Min(headerNames.Length, ColumnCount);
+            var name = worksheetTableInfo.GetHeaderName(_nextIndex);
+            var options = columnOptions?.GetValueOrDefault(_nextIndex + 1);
 
-            for (; _nextIndex < length; ++_nextIndex)
-            {
-                var name = headerNames[_nextIndex];
-                Debug.Assert(!string.IsNullOrEmpty(name));
-
-                var (label, function) = Table.ColumnOptions is { } columns && columns.TryGetValue(_nextIndex + 1, out var options)
-                    ? (options.TotalRowLabel, options.TotalRowFunction)
-                    : (null, null);
-
-                if (!TryWriteTableColumn(name, label, function))
-                    return false;
-            }
-        }
-        else
-        {
-            for (; _nextIndex < ColumnCount; ++_nextIndex)
-            {
-                var name = StringHelper.Invariant($"Column{_nextIndex + 1}");
-                if (!TryWriteTableColumn(name, null, null))
-                    return false;
-            }
+            if (!TryWriteTableColumn(name, options?.TotalRowLabel, options?.TotalRowFunction))
+                return false;
         }
 
         _nextIndex = 0;

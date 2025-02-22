@@ -17,8 +17,31 @@ internal sealed class WorksheetTableInfo
     public bool Active => LastDataRow is null;
     public bool HasHeaderRow => _headerNames.Length > 0;
 
-    public ReadOnlySpan<string> HeaderNames => _headerNames.AsSpan();
-    public int ActualNumberOfColumns => Table.NumberOfColumns ?? HeaderNames.Length;
+    public int ActualNumberOfColumns
+    {
+        get
+        {
+            if (Table.NumberOfColumns is { } numberOfColumns)
+                return numberOfColumns;
+
+            var headerLength = _headerNames.Length;
+            if (headerLength == 0 && Table.TotalRowMaxColumnNumber is { } totalRowLength)
+                return totalRowLength;
+
+            return headerLength;
+        }
+    }
+
+    public string GetHeaderName(int index)
+    {
+        Debug.Assert(index < ActualNumberOfColumns);
+        var name = _headerNames.Length > 0
+            ? _headerNames[index]
+            : StringHelper.Invariant($"Column{index + 1}");
+
+        Debug.Assert(!string.IsNullOrEmpty(name));
+        return name;
+    }
 
     public void SetHeaderNames(ReadOnlySpan<string> fullRowValues)
     {
@@ -55,18 +78,17 @@ internal sealed class WorksheetTableInfo
     public List<Cell> CreateTotalRow()
     {
         var cells = new List<Cell>();
-        var allColumnOptions = Table.ColumnOptions; // TODO: What to do when this is null?
-        var headers = HeaderNames;
+        var allColumnOptions = Table.ColumnOptions; // TODO: Can this be null?
 
-        for (var i = 0; i < headers.Length; ++i)
+        for (var i = 0; i < ActualNumberOfColumns; ++i)
         {
-            Debug.Assert(!string.IsNullOrEmpty(headers[i]));
-            var columnOptions = allColumnOptions?.GetValueOrDefault(i + 1) ?? new();
+            var headerName = GetHeaderName(i);
+            var columnOptions = allColumnOptions?.GetValueOrDefault(i + 1);
 
             var cell = columnOptions switch
             {
                 { TotalRowLabel: { } label } => new Cell(label),
-                { TotalRowFunction: { } func } => new Cell(TotalRowFormula(func, headers[i])),
+                { TotalRowFunction: { } func } => new Cell(TotalRowFormula(func, headerName)),
                 _ => new Cell()
             };
 
