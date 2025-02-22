@@ -14,13 +14,7 @@ public sealed record Alignment
     public HorizontalAlignment Horizontal
     {
         get => _horizontal;
-        set
-        {
-            if (!EnumPolyfill.IsDefined(value))
-                ThrowHelper.EnumValueInvalid(nameof(value), value);
-            else
-                _horizontal = value;
-        }
+        set => _horizontal = Guard.DefinedEnumValue(value);
     }
 
     private HorizontalAlignment _horizontal;
@@ -29,13 +23,7 @@ public sealed record Alignment
     public VerticalAlignment Vertical
     {
         get => _vertical;
-        set
-        {
-            if (!EnumPolyfill.IsDefined(value))
-                ThrowHelper.EnumValueInvalid(nameof(value), value);
-            else
-                _vertical = value;
-        }
+        set => _vertical = Guard.DefinedEnumValue(value);
     }
 
     private VerticalAlignment _vertical;

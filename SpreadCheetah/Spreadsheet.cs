@@ -487,8 +487,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ThrowHelper.StyleNameStartsOrEndsWithWhiteSpace(nameof(name));
         if (name.Equals("Normal", StringComparison.OrdinalIgnoreCase))
             ThrowHelper.StyleNameCanNotEqualNormal(nameof(name));
-        if (nameVisibility is { } visibility && !EnumPolyfill.IsDefined(visibility))
-            ThrowHelper.EnumValueInvalid(nameof(nameVisibility), nameVisibility);
+        if (nameVisibility is { } visibility)
+            Guard.DefinedEnumValue(visibility);
 
         var styleManager = _styleManager ??= new(defaultDateTimeFormat: null);
         if (!styleManager.TryAddNamedStyle(name, style, nameVisibility, out var styleId))
