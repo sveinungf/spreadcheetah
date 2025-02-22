@@ -243,14 +243,26 @@ public class SpreadsheetTableTests
         Assert.Equal("A1:C2", actualTable.CellRangeReference);
     }
 
-    [Fact]
-    public async Task Spreadsheet_Table_WithOnlyDataAndTotalRows()
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_Table_WithOnlyDataAndTotalRows(bool numberOfColumnsSet)
     {
         // Arrange
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
         await spreadsheet.StartWorksheetAsync("Sheet");
-        var table = new Table(TableStyle.Light1);
+        var table = new Table(TableStyle.Light1)
+        {
+            NumberOfColumns = numberOfColumnsSet ? 5 : null
+        };
+
+        string[] expectedColumnNames = numberOfColumnsSet
+            ? ["Column1", "Column2", "Column3", "Column4", "Column5"]
+            : ["Column1", "Column2", "Column3"];
+
+        var expectedCellRangeReference = numberOfColumnsSet
+            ? "A1:E3"
+            : "A1:C3";
+
         table.Column(1).TotalRowLabel = "Total";
         table.Column(3).TotalRowFunction = TableTotalRowFunction.Sum;
 
@@ -264,11 +276,11 @@ public class SpreadsheetTableTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualTable = Assert.Single(sheet.Tables);
         var actualColumns = actualTable.Columns;
-        var columns = Enumerable.Range(1, 3).Select(table.Column);
-        Assert.Equal(["Column1", "Column2", "Column3"], actualColumns.Select(x => x.Name));
+        var columns = Enumerable.Range(1, actualColumns.Count).Select(table.Column);
+        Assert.Equal(expectedColumnNames, actualColumns.Select(x => x.Name));
         Assert.Equal(columns.Select(x => x.TotalRowLabel), actualColumns.Select(x => x.TotalRowLabel));
         Assert.Equal(columns.Select(x => x.TotalRowFunction), actualColumns.Select(x => x.TotalRowFunction));
-        Assert.Equal("A1:C3", actualTable.CellRangeReference);
+        Assert.Equal(expectedCellRangeReference, actualTable.CellRangeReference);
         Assert.Equal("Total", sheet["A3"].StringValue);
     }
 
@@ -552,6 +564,33 @@ public class SpreadsheetTableTests
     }
 
     [Fact]
+    public async Task Spreadsheet_Table_HeaderRowLongerThanTotalRow()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+        table.Column(1).TotalRowLabel = "Sum";
+        table.Column(3).TotalRowFunction = TableTotalRowFunction.Sum;
+        string[] headerNames = ["A", "B", "C", "D", "E"];
+
+        // Act
+        spreadsheet.StartTable(table);
+        await spreadsheet.AddHeaderRowAsync(headerNames);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualTable = Assert.Single(sheet.Tables);
+        var actualColumns = actualTable.Columns;
+        var columns = Enumerable.Range(1, 5).Select(table.Column);
+        Assert.Equal(headerNames, actualColumns.Select(x => x.Name));
+        Assert.Equal(columns.Select(x => x.TotalRowLabel), actualColumns.Select(x => x.TotalRowLabel));
+        Assert.Equal(columns.Select(x => x.TotalRowFunction), actualColumns.Select(x => x.TotalRowFunction));
+    }
+
+    [Fact]
     public async Task Spreadsheet_Table_HeaderRowShorterThanTotalRow()
     {
         // Arrange
@@ -708,9 +747,6 @@ public class SpreadsheetTableTests
         Assert.All(allTables, x => Assert.Equal(headerNames, x.Columns.Select(c => c.Name)));
     }
 
-    // TODO: If no header, but total row, and NumberOfColumns is set, column count = NumberOfColumns
-    // TODO: If header length is greater than total row length, use header length
-    // TODO: If header length is shorter than total row length, AddHeaderRow should throw
     // TODO: Test for a very long header name
     // TODO: Test for styling on top of table (differential/dxf?)
     // TODO: Test for valid table names
