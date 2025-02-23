@@ -9,7 +9,7 @@ public sealed class TableColumnOptions
     public TableTotalRowFunction? TotalRowFunction
     {
         get => _totalRowFunction;
-        set => _totalRowFunction = value is { } v ? Guard.DefinedEnumValue(v) : null;
+        set => _totalRowFunction = Guard.DefinedEnumValue(value);
     }
 
     private TableTotalRowFunction? _totalRowFunction;
