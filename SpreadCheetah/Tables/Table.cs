@@ -23,21 +23,20 @@ public sealed class Table
 
     private static void EnsureValidTableName(string name)
     {
-        if (name.Length == 0)
-            throw new NotImplementedException(); // TODO: Empty string not allowed.
+        if (string.IsNullOrWhiteSpace(name))
+            ThrowHelper.NameEmptyOrWhiteSpace(nameof(name));
+
         if (name.Length > 255)
-            throw new NotImplementedException(); // TODO: A table name can have up to 255 characters.
+            ThrowHelper.NameTooLong(255, nameof(name));
+
         if (name is "C" or "c" or "R" or "r")
-            throw new NotImplementedException(); // TODO: You can't use "C", "c", "R", or "r" for the name.
+            TableThrowHelper.NameCanNotBeCorR(nameof(name));
 
-        // TODO: Name must start with a letter, underscore, or '\'.
-        // TODO: Use letters, numbers, periods, and underscore characters for the rest of the name (and also '\')
         if (!Regexes.TableNameValidCharacters().IsMatch(name))
-            throw new NotImplementedException();
+            TableThrowHelper.NameHasInvalidCharacters(nameof(name));
 
-        // TODO: Don't allow A1 or R1C1 references (also with different casing)
         if (Regexes.TableNameCellReference().IsMatch(name))
-            throw new NotImplementedException();
+            TableThrowHelper.NameIsCellReference(nameof(name));
     }
 
     internal Dictionary<int, TableColumnOptions>? ColumnOptions { get; private set; }

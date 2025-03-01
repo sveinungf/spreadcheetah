@@ -59,6 +59,9 @@ internal static class ThrowHelper
     public static void NameEmptyOrWhiteSpace(string? paramName) => throw new ArgumentException("The name can not be empty or consist only of whitespace.", paramName);
 
     [DoesNotReturn]
+    public static void NameTooLong(int maxLength, string? paramName) => throw new ArgumentException(StringHelper.Invariant($"The name can not be more than {maxLength} characters."), paramName);
+
+    [DoesNotReturn]
     public static void NoteTextTooLong(string? paramName) => throw new ArgumentException($"Note text can not exceed {SpreadsheetConstants.MaxNoteTextLength} characters.", paramName);
 
     [DoesNotReturn]
@@ -108,7 +111,4 @@ internal static class ThrowHelper
 
     [DoesNotReturn]
     public static void WorksheetNameStartsOrEndsWithSingleQuote(string? paramName) => throw new ArgumentException("The name can not start or end with a single quote.", paramName);
-
-    [DoesNotReturn]
-    public static void WorksheetNameTooLong(string? paramName) => throw new ArgumentException("The name can not be more than 31 characters.", paramName);
 }

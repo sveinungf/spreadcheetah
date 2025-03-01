@@ -34,6 +34,18 @@ internal static class TableThrowHelper
         => throw new ArgumentException("A table with the given name already exists.", paramName);
 
     [DoesNotReturn]
+    public static void NameCanNotBeCorR(string? paramName)
+        => throw new ArgumentException("The name can not be any of 'C', 'c', 'R', or 'r'.", paramName);
+
+    [DoesNotReturn]
+    public static void NameHasInvalidCharacters(string? paramName)
+        => throw new ArgumentException("The name can only contain letters, numbers, '.', '_', and '\\'. The name must also start with a letter, '_', or '\\'.", paramName);
+
+    [DoesNotReturn]
+    public static void NameIsCellReference(string? paramName)
+        => throw new ArgumentException("The name can not be a cell reference.", paramName);
+
+    [DoesNotReturn]
     public static void NoActiveTables()
         => throw new SpreadCheetahException("There are no active tables.");
 
