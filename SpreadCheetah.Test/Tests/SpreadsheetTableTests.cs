@@ -748,6 +748,4 @@ public class SpreadsheetTableTests
 
     // TODO: Test for a very long header name
     // TODO: Test for styling on top of table (differential/dxf?)
-    // TODO: Test for valid table names
-    // TODO: Test for invalid table names
 }

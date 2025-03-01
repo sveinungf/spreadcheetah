@@ -233,7 +233,7 @@ public class SpreadsheetTests
     [InlineData("With\"Quotation\"Marks")]
     [InlineData("WithNorwegianCharactersÆØÅ")]
     [InlineData("Exactly 31 Characters Long Name")]
-    public async Task Spreadsheet_StartWorksheet_CorrectName(string name)
+    public async Task Spreadsheet_StartWorksheet_ValidName(string name)
     {
         // Arrange
         using var stream = new MemoryStream();

@@ -12,7 +12,7 @@ internal static partial class Regexes
     private const RegexOptions TableNameValidCharactersOptions = RegexOptions.IgnoreCase;
 
     [StringSyntax(StringSyntaxAttribute.Regex)]
-    private const string TableNameCellReferencePattern = "^([A-Z]{1,3}[0-9]{1,7}$|R[0-9]{1,7})";
+    private const string TableNameCellReferencePattern = "^[A-Z]{1,3}[0-9]{1,7}";
     private const RegexOptions TableNameCellReferenceOptions = RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture;
 
 #if NET7_0_OR_GREATER
