@@ -75,10 +75,12 @@ internal sealed class WorksheetTableInfo
         _headerNames = headerNames.ToArray();
     }
 
-    public List<Cell> CreateTotalRow()
+    public IList<Cell> CreateTotalRow()
     {
-        var cells = new List<Cell>();
-        var allColumnOptions = Table.ColumnOptions; // TODO: Can this be null?
+        if (Table.ColumnOptions is not { } allColumnOptions)
+            return [];
+
+        var cells = new List<Cell>(ActualNumberOfColumns);
 
         for (var i = 0; i < ActualNumberOfColumns; ++i)
         {
@@ -113,10 +115,7 @@ internal sealed class WorksheetTableInfo
             _ => 0
         };
 
-        if (functionNumber == 0)
-            return new Formula(); // TODO: Expected behavior?
-
-        // TODO: Do we need to adjust the tableName in any way?
+        Debug.Assert(functionNumber != 0);
         var formulaText = StringHelper.Invariant($"SUBTOTAL({functionNumber},{Table.Name}[{headerName}])");
         return new Formula(formulaText);
     }
