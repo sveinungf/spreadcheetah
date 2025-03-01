@@ -44,6 +44,7 @@ file struct TableXmlWriter(
 
     private Element _next;
     private int _nextIndex;
+    private int _currentNameIndex;
 
     private readonly ImmutableTable Table => worksheetTableInfo.Table;
     public readonly TableXmlWriter GetEnumerator() => this;
@@ -56,9 +57,9 @@ file struct TableXmlWriter(
         Current = _next switch
         {
             Element.Header => TryWriteHeader(),
-            Element.Name => buffer.TryWrite($"{Table.Name}"), // TODO: Can it be longer than minimum buffer length? Maybe it should be disallowed?
+            Element.Name => TryWriteName(),
             Element.NameEnd => buffer.TryWrite("\" displayName=\""u8),
-            Element.DisplayName => buffer.TryWrite($"{Table.Name}"), // TODO: Can it be longer than minimum buffer length? Maybe it should be disallowed?
+            Element.DisplayName => TryWriteName(),
             Element.DisplayNameEnd => buffer.TryWrite("\" ref=\""u8),
             Element.Reference => TryWriteTableReference(),
             Element.ReferenceEnd => TryWriteReferenceEnd(),
@@ -80,6 +81,15 @@ file struct TableXmlWriter(
     private readonly bool TryWriteHeader()
     {
         return buffer.TryWrite($"{Header}{tableId}{"\" name=\""u8}");
+    }
+
+    private bool TryWriteName()
+    {
+        var span = buffer.GetSpan();
+        var written = 0;
+        var result = SpanHelper.TryWriteLongString(Table.Name, ref _currentNameIndex, span, ref written);
+        buffer.Advance(written);
+        return result;
     }
 
     private readonly bool TryWriteTableReference()

@@ -746,6 +746,29 @@ public class SpreadsheetTableTests
         Assert.All(allTables, x => Assert.Equal(headerNames, x.Columns.Select(c => c.Name)));
     }
 
+    [Fact]
+    public async Task Spreadsheet_Table_WithMaxLengthName()
+    {
+        // Arrange
+        var name = new string('a', 255);
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1, name);
+
+        // Act
+        spreadsheet.StartTable(table);
+        await spreadsheet.AddHeaderRowAsync(["Make", "Model"]);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo")]);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualTable = Assert.Single(sheet.Tables);
+        Assert.Equal(name, actualTable.Name);
+    }
+
     // TODO: Test for a very long header name
     // TODO: Test for styling on top of table (differential/dxf?)
 }
