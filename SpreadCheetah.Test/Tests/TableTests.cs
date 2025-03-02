@@ -27,7 +27,7 @@ public static class TableTests
     }
 
     [Fact]
-    public static void Table_Create_ZeroNumberOfColumns()
+    public static void Table_Create_InvalidNumberOfColumns()
     {
         // Arrange
         var table = new Table(TableStyle.Light1);
