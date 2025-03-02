@@ -89,6 +89,10 @@ file struct TableXmlWriter(
         var written = 0;
         var result = SpanHelper.TryWriteLongString(Table.Name, ref _currentNameIndex, span, ref written);
         buffer.Advance(written);
+
+        if (result)
+            _currentNameIndex = 0;
+
         return result;
     }
 
