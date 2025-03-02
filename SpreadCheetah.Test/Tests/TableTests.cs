@@ -26,6 +26,16 @@ public static class TableTests
         Assert.Throws<ArgumentOutOfRangeException>(() => column.TotalRowFunction = function);
     }
 
+    [Fact]
+    public static void Table_Create_ZeroNumberOfColumns()
+    {
+        // Arrange
+        var table = new Table(TableStyle.Light1);
+
+        // Act & Assert
+        Assert.Throws<ArgumentOutOfRangeException>(() => table.NumberOfColumns = 0);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("cr")]

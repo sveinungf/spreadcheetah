@@ -684,6 +684,38 @@ public class SpreadsheetTableTests
         Assert.IsType<SpreadCheetahException>(exception);
     }
 
+    [Theory]
+    [InlineData(100)]
+    [InlineData(10000)]
+    public async Task Spreadsheet_Table_WithManyColumns(int count)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+        var headerNames = Enumerable
+            .Range(1, count)
+            .Select(SpreadsheetUtility.GetColumnName)
+            .ToList();
+
+        var values = Enumerable.Range(1, count)
+            .Select(x => new DataCell(x))
+            .ToList();
+
+        // Act
+        spreadsheet.StartTable(table);
+        await spreadsheet.AddHeaderRowAsync(headerNames);
+        await spreadsheet.AddRowAsync(values);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualTable = Assert.Single(sheet.Tables);
+        Assert.Equal(headerNames, actualTable.Columns.Select(x => x.Name));
+        Assert.Equal($"A1:{headerNames[^1]}2", actualTable.CellRangeReference);
+    }
+
     [Theory, CombinatorialData]
     public async Task Spreadsheet_Table_MultipleInWorksheet(
     [CombinatorialValues(2, 10, 100)] int count)

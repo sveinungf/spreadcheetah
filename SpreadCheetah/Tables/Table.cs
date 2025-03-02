@@ -9,7 +9,17 @@ public sealed class Table
 
     public bool BandedColumns { get; set; }
     public bool BandedRows { get; set; } = true;
-    public int? NumberOfColumns { get; set; } // TODO: Validate in setter. 0 should not be allowed. For comment: Should only be used if number of columns is different from header row columns.
+
+    // TODO: For comment: Should only be used if number of columns is different from header row columns.
+    public int? NumberOfColumns
+    {
+        get => _numberOfColumns;
+        set => _numberOfColumns = value <= 0
+            ? throw new ArgumentOutOfRangeException(nameof(value), value, "Value must be greater than 0.")
+            : value;
+    }
+
+    private int? _numberOfColumns;
 
     public Table(TableStyle style, string? name = null)
     {
@@ -46,7 +56,6 @@ public sealed class Table
         if (columnNumber is < 1 or > SpreadsheetConstants.MaxNumberOfColumns)
             ThrowHelper.ColumnNumberInvalid(nameof(columnNumber), columnNumber);
 
-        // TODO: Is there a limit of the number of columns in a table?
         ColumnOptions ??= [];
         if (!ColumnOptions.TryGetValue(columnNumber, out var options))
         {
