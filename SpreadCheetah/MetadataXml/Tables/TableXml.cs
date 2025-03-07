@@ -4,7 +4,7 @@ using SpreadCheetah.Tables;
 using SpreadCheetah.Tables.Internal;
 using System.Diagnostics;
 
-namespace SpreadCheetah.MetadataXml;
+namespace SpreadCheetah.MetadataXml.Tables;
 
 internal static class TableXml
 {
@@ -42,6 +42,7 @@ file struct TableXmlWriter(
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="""u8 + "\""u8;
 
+    private TableColumnXmlPart? _columnXml;
     private Element _next;
     private int _nextIndex;
     private int _currentNameIndex;
@@ -85,15 +86,13 @@ file struct TableXmlWriter(
 
     private bool TryWriteName()
     {
-        var span = buffer.GetSpan();
-        var written = 0;
-        var result = SpanHelper.TryWriteLongString(Table.Name, ref _currentNameIndex, span, ref written);
-        buffer.Advance(written);
-
-        if (result)
+        if (buffer.WriteLongString(Table.Name, ref _currentNameIndex))
+        {
             _currentNameIndex = 0;
+            return true;
+        }
 
-        return result;
+        return false;
     }
 
     private readonly bool TryWriteTableReference()
@@ -154,49 +153,28 @@ file struct TableXmlWriter(
 
         for (; _nextIndex < ColumnCount; ++_nextIndex)
         {
-            var name = worksheetTableInfo.GetHeaderName(_nextIndex);
-            var options = columnOptions?.GetValueOrDefault(_nextIndex + 1);
+            if (_columnXml is not { } xml)
+            {
+                var headerName = worksheetTableInfo.GetHeaderName(_nextIndex);
+                var options = columnOptions?.GetValueOrDefault(_nextIndex + 1);
 
-            if (!TryWriteTableColumn(name, options?.TotalRowLabel, options?.TotalRowFunction))
+                xml = _columnXml ??= new TableColumnXmlPart(
+                    buffer,
+                    _nextIndex,
+                    XmlUtility.XmlEncode(headerName),
+                    XmlUtility.XmlEncode(options?.TotalRowLabel),
+                    options?.TotalRowFunction);
+            }
+
+            if (!xml.TryWrite())
                 return false;
+
+            _columnXml = null;
         }
 
         _nextIndex = 0;
         return true;
     }
-
-    private readonly bool TryWriteTableColumn(string name,
-        string? totalRowLabel,
-        TableTotalRowFunction? totalRowFunction)
-    {
-        var labelAttribute = totalRowLabel is null ? [] : "\" totalsRowLabel=\""u8;
-        var functionAttribute = totalRowFunction is null ? [] : "\" totalsRowFunction=\""u8;
-        var functionAttributeValue = GetFunctionAttributeValue(totalRowFunction);
-
-        return buffer.TryWrite(
-            $"{"<tableColumn id=\""u8}" +
-            $"{_nextIndex + 1}" +
-            $"{"\" name=\""u8}" +
-            $"{name}" + // TODO: This can be longer than the minimum buffer length
-            $"{labelAttribute}" +
-            $"{totalRowLabel}" + // TODO: Can this be longer than the minimum buffer length?
-            $"{functionAttribute}" +
-            $"{functionAttributeValue}" +
-            $"{"\"/>"u8}");
-    }
-
-    private static ReadOnlySpan<byte> GetFunctionAttributeValue(TableTotalRowFunction? function) => function switch
-    {
-        TableTotalRowFunction.Average => "average"u8,
-        TableTotalRowFunction.Count => "count"u8,
-        TableTotalRowFunction.CountNumbers => "countNums"u8,
-        TableTotalRowFunction.Maximum => "max"u8,
-        TableTotalRowFunction.Minimum => "min"u8,
-        TableTotalRowFunction.StandardDeviation => "stdDev"u8,
-        TableTotalRowFunction.Sum => "sum"u8,
-        TableTotalRowFunction.Variance => "var"u8,
-        _ => []
-    };
 
     private readonly bool TryWriteTableStyleName()
     {

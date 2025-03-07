@@ -4,7 +4,7 @@ namespace SpreadCheetah.Tables;
 
 public sealed class TableColumnOptions
 {
-    public string? TotalRowLabel { get; set; } // TODO: Validate in setter
+    public string? TotalRowLabel { get; set; }
 
     public TableTotalRowFunction? TotalRowFunction
     {
