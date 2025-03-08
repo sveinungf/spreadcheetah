@@ -801,7 +801,32 @@ public class SpreadsheetTableTests
         Assert.Equal(name, actualTable.Name);
     }
 
-    // TODO: Test for a very long header name
+    [Fact]
+    public async Task Spreadsheet_Table_WithMaxLengthHeaderName()
+    {
+        // Arrange
+        var headerName = new string('a', 255);
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+
+        // Act
+        spreadsheet.StartTable(table);
+        await spreadsheet.AddHeaderRowAsync([headerName]);
+        await spreadsheet.AddRowAsync([new("Ford")]);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualTable = Assert.Single(sheet.Tables);
+        var actualColumn = Assert.Single(actualTable.Columns);
+        Assert.Equal(headerName, actualColumn.Name);
+        Assert.Equal(headerName, sheet["A1"].StringValue);
+    }
+
+    // TODO: AddHeaderRow should throw if header length is > 255 characters
     // TODO: Test for a very long total row label
     // TODO: Test for styling on top of table (differential/dxf?)
 }

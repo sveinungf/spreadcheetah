@@ -158,7 +158,7 @@ file struct TableXmlWriter(
                 var headerName = worksheetTableInfo.GetHeaderName(_nextIndex);
                 var options = columnOptions?.GetValueOrDefault(_nextIndex + 1);
 
-                xml = _columnXml ??= new TableColumnXmlPart(
+                xml = new TableColumnXmlPart(
                     buffer,
                     _nextIndex,
                     XmlUtility.XmlEncode(headerName),
@@ -167,7 +167,10 @@ file struct TableXmlWriter(
             }
 
             if (!xml.TryWrite())
+            {
+                _columnXml = xml;
                 return false;
+            }
 
             _columnXml = null;
         }
