@@ -1,5 +1,7 @@
+using SpreadCheetah.Styling;
 using SpreadCheetah.Tables;
 using SpreadCheetah.Test.Helpers;
+using System.Drawing;
 using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
 
 namespace SpreadCheetah.Test.Tests;
@@ -852,5 +854,55 @@ public class SpreadsheetTableTests
         Assert.Equal(totalRowLabel, sheet["A3"].StringValue);
     }
 
-    // TODO: Test for styling on top of table (differential/dxf?)
+    [Fact]
+    public async Task Spreadsheet_Table_HeaderRowCellsWithStyle()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Medium10);
+        var style = new Style
+        {
+            Fill = { Color = Color.Blue },
+            Font = { Italic = true }
+        };
+
+        var styleId = spreadsheet.AddStyle(style);
+
+        // Act
+        spreadsheet.StartTable(table);
+        await spreadsheet.AddHeaderRowAsync(["Make", "Model"], styleId);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo")]);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.All(sheet.Row(1), x => Assert.True(x.Style.Font.Italic));
+    }
+
+    [Fact]
+    public async Task Spreadsheet_Table_DataRowCellsWithStyle()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Medium10);
+        var colorStyle = new Style { Fill = { Color = Color.Blue } };
+        var italicStyle = new Style { Font = { Italic = true } };
+        var colorStyleId = spreadsheet.AddStyle(colorStyle);
+        var italicStyleId = spreadsheet.AddStyle(italicStyle);
+
+        // Act
+        spreadsheet.StartTable(table);
+        await spreadsheet.AddHeaderRowAsync(["Make", "Model"]);
+        await spreadsheet.AddRowAsync([new StyledCell("Ford", colorStyleId), new("Mondeo", null)]);
+        await spreadsheet.AddRowAsync([new StyledCell("Opel", null), new("Astra", italicStyleId)]);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.True(sheet["B3"].Style.Font.Italic);
+    }
 }
