@@ -1,3 +1,4 @@
+using SpreadCheetah.Tables;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.TestHelpers.Extensions;
 using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
@@ -82,5 +83,24 @@ public class HeaderRowTests
 
         // Assert
         Assert.IsType<ArgumentNullException>(exception);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddHeaderRow_HeaderLength(
+        [CombinatorialValues(255, 256)] int length, bool activeTable)
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var headerName = new string('a', length);
+
+        if (activeTable)
+            spreadsheet.StartTable(new Table(TableStyle.Light1));
+
+        // Act
+        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync([headerName]).AsTask());
+
+        // Assert
+        Assert.Equal(activeTable && length > 255, exception is not null);
     }
 }

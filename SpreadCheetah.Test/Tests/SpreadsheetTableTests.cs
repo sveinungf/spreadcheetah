@@ -718,7 +718,7 @@ public class SpreadsheetTableTests
 
     [Theory, CombinatorialData]
     public async Task Spreadsheet_Table_MultipleInWorksheet(
-    [CombinatorialValues(2, 10, 100)] int count)
+        [CombinatorialValues(2, 10, 100)] int count)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -748,7 +748,7 @@ public class SpreadsheetTableTests
 
     [Theory, CombinatorialData]
     public async Task Spreadsheet_Table_MultipleWorksheetsWithTables(
-    [CombinatorialValues(2, 10, 100)] int count)
+        [CombinatorialValues(2, 10, 100)] int count)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -826,7 +826,6 @@ public class SpreadsheetTableTests
         Assert.Equal(headerName, sheet["A1"].StringValue);
     }
 
-    // TODO: AddHeaderRow should throw if header length is > 255 characters
     // TODO: Test for a very long total row label
     // TODO: Test for styling on top of table (differential/dxf?)
 }

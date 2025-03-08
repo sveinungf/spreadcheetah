@@ -66,8 +66,10 @@ internal sealed class WorksheetTableInfo
             var headerName = headerNames[i];
             if (string.IsNullOrEmpty(headerName))
                 TableThrowHelper.HeaderNameNullOrEmpty(i + 1);
+            if (headerName.Length > 255)
+                TableThrowHelper.HeaderNameTooLong(i + 1, 255);
             if (char.IsWhiteSpace(headerName[0]) || char.IsWhiteSpace(headerName[^1]))
-                TableThrowHelper.HeaderNameCanNotBeginOrEndWithWhitespace();
+                TableThrowHelper.HeaderNameCanNotBeginOrEndWithWhitespace(i + 1);
             if (!uniqueHeaderNames.Add(headerName))
                 TableThrowHelper.DuplicateHeaderName(headerName);
         }
