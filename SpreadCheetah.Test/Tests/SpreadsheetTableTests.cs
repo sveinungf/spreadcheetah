@@ -826,6 +826,31 @@ public class SpreadsheetTableTests
         Assert.Equal(headerName, sheet["A1"].StringValue);
     }
 
-    // TODO: Test for a very long total row label
+    [Fact]
+    public async Task Spreadsheet_Table_WithLongTotalRowLabel()
+    {
+        // Arrange
+        var totalRowLabel = new string('a', 4096);
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+        table.Column(1).TotalRowLabel = totalRowLabel;
+
+        // Act
+        spreadsheet.StartTable(table);
+        await spreadsheet.AddHeaderRowAsync(["Make"]);
+        await spreadsheet.AddRowAsync([new("Ford")]);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualTable = Assert.Single(sheet.Tables);
+        var actualColumn = Assert.Single(actualTable.Columns);
+        Assert.Equal(totalRowLabel, actualColumn.TotalRowLabel);
+        Assert.Equal(totalRowLabel, sheet["A3"].StringValue);
+    }
+
     // TODO: Test for styling on top of table (differential/dxf?)
 }
