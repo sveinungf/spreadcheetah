@@ -22,7 +22,6 @@ internal readonly record struct ImmutableTable(
 
             foreach (var (key, value) in table.ColumnOptions)
             {
-                // TODO: Ignore column if key > table.NumberOfColumns?
                 columnOptions[key] = ImmutableTableColumnOptions.From(value);
 
                 if (value.AffectsTotalRow)

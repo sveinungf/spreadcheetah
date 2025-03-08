@@ -101,4 +101,28 @@ public static class TableTests
         // Assert
         Assert.Equal(valid, exception is null);
     }
+
+    [Fact]
+    public static void Table_Column_GreaterThanNumberOfColumns()
+    {
+        // Arrange
+        var table = new Table(TableStyle.Light1)
+        {
+            NumberOfColumns = 3
+        };
+
+        // Act & Assert
+        Assert.Throws<ArgumentOutOfRangeException>(() => table.Column(4));
+    }
+
+    [Fact]
+    public static void Table_NumberOfColumns_LessThanGreatestColumnNumber()
+    {
+        // Arrange
+        var table = new Table(TableStyle.Light1);
+        table.Column(4).TotalRowFunction = TableTotalRowFunction.Sum;
+
+        // Act & Assert
+        Assert.Throws<ArgumentOutOfRangeException>(() => table.NumberOfColumns = 3);
+    }
 }

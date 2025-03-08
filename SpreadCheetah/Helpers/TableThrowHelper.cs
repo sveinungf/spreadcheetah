@@ -1,10 +1,15 @@
 using SpreadCheetah.Tables;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah.Helpers;
 
 internal static class TableThrowHelper
 {
+    [DoesNotReturn]
+    public static void ColumnNumberGreaterThanNumberOfColumns(int columnNumber, [CallerArgumentExpression(nameof(columnNumber))] string? paramName = null)
+        => throw new ArgumentOutOfRangeException(paramName, columnNumber, $"Column number can not be greater than the value set for {nameof(Table)}.{nameof(Table.NumberOfColumns)}.");
+
     [DoesNotReturn]
     public static void DuplicateHeaderName(string headerName)
         => throw new SpreadCheetahException($"Duplicate header names are not allowed in a table. Header name '{headerName}' appeared more than once.");
@@ -60,6 +65,10 @@ internal static class TableThrowHelper
     [DoesNotReturn]
     public static void NoRows(string tableName)
         => throw new SpreadCheetahException($"Table '{tableName}' has no rows. Tables must have at least one row.");
+
+    [DoesNotReturn]
+    public static void NumberOfColumnsLessThanGreatestColumnNumber(int? numberOfColumns, [CallerArgumentExpression(nameof(numberOfColumns))] string? paramName = null)
+        => throw new ArgumentOutOfRangeException(paramName, numberOfColumns, $"The number of columns can not be less than the greatest column number used for {nameof(Table)}.{nameof(Table.Column)}.");
 
     [DoesNotReturn]
     public static void OnlyOneActiveTableAllowed()

@@ -14,9 +14,16 @@ public sealed class Table
     public int? NumberOfColumns
     {
         get => _numberOfColumns;
-        set => _numberOfColumns = value <= 0
-            ? throw new ArgumentOutOfRangeException(nameof(value), value, "Value must be greater than 0.")
-            : value;
+        set
+        {
+            if (value <= 0)
+                throw new ArgumentOutOfRangeException(nameof(value), value, "Value must be greater than 0.");
+
+            if (value < _greatestColumnNumber)
+                TableThrowHelper.NumberOfColumnsLessThanGreatestColumnNumber(value);
+
+            _numberOfColumns = value;
+        }
     }
 
     private int? _numberOfColumns;
@@ -49,6 +56,7 @@ public sealed class Table
             TableThrowHelper.NameIsCellReference(nameof(name));
     }
 
+    private int _greatestColumnNumber;
     internal Dictionary<int, TableColumnOptions>? ColumnOptions { get; private set; }
 
     public TableColumnOptions Column(int columnNumber)
@@ -56,11 +64,15 @@ public sealed class Table
         if (columnNumber is < 1 or > SpreadsheetConstants.MaxNumberOfColumns)
             ThrowHelper.ColumnNumberInvalid(nameof(columnNumber), columnNumber);
 
+        if (NumberOfColumns is { } columns && columnNumber > columns)
+            TableThrowHelper.ColumnNumberGreaterThanNumberOfColumns(columnNumber);
+
         ColumnOptions ??= [];
         if (!ColumnOptions.TryGetValue(columnNumber, out var options))
         {
             options = new TableColumnOptions();
             ColumnOptions[columnNumber] = options;
+            _greatestColumnNumber = Math.Max(_greatestColumnNumber, columnNumber);
         }
 
         return options;
