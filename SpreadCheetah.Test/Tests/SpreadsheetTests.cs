@@ -12,6 +12,8 @@ using Color = System.Drawing.Color;
 using DataValidation = SpreadCheetah.Validations.DataValidation;
 using Fill = SpreadCheetah.Styling.Fill;
 using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
+using Table = SpreadCheetah.Tables.Table;
+using TableStyle = SpreadCheetah.Tables.TableStyle;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -138,7 +140,7 @@ public class SpreadsheetTests
     }
 
     [Fact]
-    public async Task Spreadsheet_Finish_WorksheetWithAllFeaturesThatAffectWorksheetXml()
+    public async Task Spreadsheet_Finish_WorksheetWithAutoFilterAndOtherFeaturesThatAffectWorksheetXml()
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -155,13 +157,52 @@ public class SpreadsheetTests
 
         options.Column(2).Width = 80;
 
-        await spreadsheet.StartWorksheetAsync("Sheet", options);
+        await spreadsheet.StartWorksheetAsync("Hidden sheet", options);
 
         var validation = DataValidation.TextLengthLessThan(50);
         spreadsheet.AddDataValidation("A2:A100", validation);
         spreadsheet.AddImage(ImageCanvas.OriginalSize("B1".AsSpan()), embeddedImage);
         spreadsheet.AddNote("C1", "My note");
         spreadsheet.MergeCells("B2:F3");
+
+        await spreadsheet.StartWorksheetAsync("Visible sheet");
+
+        // Act
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_Finish_WorksheetWithTableAndOtherFeaturesThatAffectWorksheetXml()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        var options = new WorksheetOptions
+        {
+            FrozenColumns = 2,
+            FrozenRows = 1,
+            Visibility = WorksheetVisibility.Hidden
+        };
+
+        options.Column(2).Width = 80;
+
+        await spreadsheet.StartWorksheetAsync("Hidden sheet", options);
+
+        var validation = DataValidation.TextLengthLessThan(50);
+        spreadsheet.AddDataValidation("A2:A100", validation);
+        spreadsheet.AddImage(ImageCanvas.OriginalSize("B1".AsSpan()), embeddedImage);
+        spreadsheet.AddNote("C1", "My note");
+        spreadsheet.MergeCells("B2:F3");
+        spreadsheet.StartTable(new Table(TableStyle.Light8));
+
+        await spreadsheet.AddHeaderRowAsync(["Header"]);
+
+        await spreadsheet.StartWorksheetAsync("Visible sheet");
 
         // Act
         await spreadsheet.FinishAsync();

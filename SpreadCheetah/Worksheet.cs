@@ -4,7 +4,6 @@ using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.Styling.Internal;
-using SpreadCheetah.Tables;
 using SpreadCheetah.Tables.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
@@ -54,15 +53,14 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public async ValueTask WriteHeadAsync(WorksheetOptions? options, CancellationToken token)
     {
         await WorksheetStartXml.WriteAsync(options, _buffer, _stream, token).ConfigureAwait(false);
-
-        if (options?.AutoFilter is not null)
-        {
-            _autoFilterRange = options.AutoFilter.CellRange.Reference;
-        }
+        _autoFilterRange = options?.AutoFilter?.CellRange.Reference;
     }
 
     public void StartTable(ImmutableTable table, int firstColumnNumber)
     {
+        if (_autoFilterRange is not null)
+            TableThrowHelper.TablesNotAllowedOnWorksheetWithAutoFilter();
+
         var tables = Tables ??= [];
 
         if (tables.GetActive() is not null)

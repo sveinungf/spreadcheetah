@@ -1,6 +1,7 @@
 using SpreadCheetah.Styling;
 using SpreadCheetah.Tables;
 using SpreadCheetah.Test.Helpers;
+using SpreadCheetah.Worksheets;
 using System.Drawing;
 using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
 
@@ -936,5 +937,18 @@ public class SpreadsheetTableTests
 
         // Act & Assert
         Assert.Throws<ArgumentException>(() => spreadsheet.StartTable(table2));
+    }
+
+    [Fact]
+    public async Task Spreadsheet_Table_WorksheetWithAutoFilter()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        var options = new WorksheetOptions { AutoFilter = new AutoFilterOptions("A1:A4") };
+        await spreadsheet.StartWorksheetAsync("Sheet", options);
+        var table = new Table(TableStyle.Light1);
+
+        // Act & Assert
+        Assert.Throws<SpreadCheetahException>(() => spreadsheet.StartTable(table));
     }
 }

@@ -73,4 +73,8 @@ internal static class TableThrowHelper
     [DoesNotReturn]
     public static void OnlyOneActiveTableAllowed()
         => throw new SpreadCheetahException($"Currently there is support for having only one active table at a time. Another table can be added if the previous table is first finished by calling {nameof(Spreadsheet.FinishTableAsync)}.");
+
+    [DoesNotReturn]
+    public static void TablesNotAllowedOnWorksheetWithAutoFilter()
+        => throw new SpreadCheetahException("Tables can not be added to worksheets that have AutoFilter.");
 }
