@@ -5,7 +5,6 @@ using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using SpreadCheetah.Images;
 using SpreadCheetah.Test.Helpers;
 using System.IO.Compression;
-using System.Security.Cryptography.Xml;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -340,8 +339,8 @@ public class SpreadsheetImageTests
         Assert.Equal(count, pictures.Count);
         Assert.All(pictures, x => Assert.Equal(1, x.OriginalWidth));
         Assert.All(pictures, x => Assert.Equal(1, x.OriginalHeight));
-        Assert.Equal(count, pictures.Select(x => x.Name).ToHashSet(StringComparer.Ordinal).Count);
-        Assert.Equal(count, pictures.Select(x => x.TopLeftCell.Address.ToString()).ToHashSet(StringComparer.Ordinal).Count);
+        Assert.Distinct(pictures.Select(x => x.Name), StringComparer.Ordinal);
+        Assert.Distinct(pictures.Select(x => x.TopLeftCell.Address.ToString()), StringComparer.Ordinal);
     }
 
     [Fact]
@@ -373,7 +372,7 @@ public class SpreadsheetImageTests
         Assert.All(pictures, x => Assert.Equal(266, x.OriginalWidth));
         Assert.All(pictures, x => Assert.Equal(183, x.OriginalHeight));
         Assert.Equal(references, pictures.Select(x => x.TopLeftCell.Address.ToString()));
-        Assert.Equal(references.Length, pictures.Select(x => x.Name).ToHashSet(StringComparer.Ordinal).Count);
+        Assert.Distinct(pictures.Select(x => x.Name), StringComparer.Ordinal);
     }
 
     [Fact]
@@ -415,8 +414,7 @@ public class SpreadsheetImageTests
         var worksheet2Pictures = worksheet2.Pictures.ToList();
         Assert.Equal(worksheet2References, worksheet2Pictures.Select(x => x.TopLeftCell.Address.ToString()));
 
-        var imageNames = worksheet1Pictures.Concat(worksheet2Pictures).Select(x => x.Name).ToHashSet(StringComparer.Ordinal);
-        Assert.Equal(worksheet1References.Length + worksheet2References.Length, imageNames.Count);
+        Assert.Distinct(worksheet1Pictures.Concat(worksheet2Pictures).Select(x => x.Name), StringComparer.Ordinal);
     }
 
     [Fact]
@@ -496,8 +494,7 @@ public class SpreadsheetImageTests
         var worksheet2Pictures = worksheet2.Pictures.ToList();
         Assert.Equal(worksheet2References, worksheet2Pictures.Select(x => x.TopLeftCell.Address.ToString()));
 
-        var imageNames = worksheet1Pictures.Concat(worksheet2Pictures).Select(x => x.Name).ToHashSet(StringComparer.Ordinal);
-        Assert.Equal(worksheet1References.Length + worksheet2References.Length, imageNames.Count);
+        Assert.Distinct(worksheet1Pictures.Concat(worksheet2Pictures).Select(x => x.Name), StringComparer.Ordinal);
     }
 
     [Fact]

@@ -31,6 +31,8 @@ internal struct ContentTypesXml : IXmlWriter<ContentTypesXml>
     private static ReadOnlySpan<byte> Styles => """<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml" />"""u8;
     private static ReadOnlySpan<byte> DrawingStart => """<Override PartName="/xl/drawings/drawing"""u8;
     private static ReadOnlySpan<byte> DrawingEnd => """.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>"""u8;
+    private static ReadOnlySpan<byte> TableStart => """<Override PartName="/xl/tables/table"""u8;
+    private static ReadOnlySpan<byte> TableEnd => """.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml"/>"""u8;
     private static ReadOnlySpan<byte> SheetStart => """<Override PartName="/"""u8;
     private static ReadOnlySpan<byte> SheetEnd => "\" "u8 + """ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" />"""u8;
     private static ReadOnlySpan<byte> CommentStart => """<Override PartName="/xl/comments"""u8;
@@ -68,6 +70,7 @@ internal struct ContentTypesXml : IXmlWriter<ContentTypesXml>
             Element.Vml => TryWriteVml(),
             Element.Styles => TryWriteStyles(),
             Element.Drawings => TryWriteDrawings(),
+            Element.Tables => TryWriteTables(),
             Element.Worksheets => TryWriteWorksheets(),
             Element.Comments => TryWriteComments(),
             _ => _buffer.TryWrite(Footer)
@@ -109,6 +112,21 @@ internal struct ContentTypesXml : IXmlWriter<ContentTypesXml>
         {
             var success = _buffer.TryWrite($"{DrawingStart}{_nextIndex + 1}{DrawingEnd}");
             if (!success)
+                return false;
+        }
+
+        _nextIndex = 0;
+        return true;
+    }
+
+    private bool TryWriteTables()
+    {
+        if (_fileCounter is not { } counter)
+            return true;
+
+        for (; _nextIndex < counter.TotalTables; ++_nextIndex)
+        {
+            if (!_buffer.TryWrite($"{TableStart}{_nextIndex + 1}{TableEnd}"))
                 return false;
         }
 
@@ -161,6 +179,7 @@ internal struct ContentTypesXml : IXmlWriter<ContentTypesXml>
         Vml,
         Styles,
         Drawings,
+        Tables,
         Worksheets,
         Comments,
         Footer,

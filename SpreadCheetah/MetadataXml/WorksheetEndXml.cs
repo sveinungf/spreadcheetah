@@ -10,6 +10,7 @@ internal struct WorksheetEndXml
     private readonly string? _autoFilterRange;
     private readonly bool _hasImages;
     private readonly bool _hasNotes;
+    private readonly int _tableCount;
     private readonly SpreadsheetBuffer _buffer;
     private DataValidationXml? _validationXmlWriter;
     private Element _next;
@@ -21,13 +22,15 @@ internal struct WorksheetEndXml
         string? autoFilterRange,
         bool hasNotes,
         bool hasImages,
+        int tableCount,
         SpreadsheetBuffer buffer)
     {
         _cellMerges = cellMerges;
         _validations = validations;
         _autoFilterRange = autoFilterRange;
-        _hasImages = hasImages;
         _hasNotes = hasNotes;
+        _hasImages = hasImages;
+        _tableCount = tableCount;
         _buffer = buffer;
     }
 
@@ -37,6 +40,7 @@ internal struct WorksheetEndXml
         string? autoFilterRange,
         bool hasNotes,
         bool hasImages,
+        int tableCount,
         SpreadsheetBuffer buffer,
         Stream stream,
         CancellationToken token)
@@ -47,6 +51,7 @@ internal struct WorksheetEndXml
             autoFilterRange: autoFilterRange,
             hasNotes: hasNotes,
             hasImages: hasImages,
+            tableCount: tableCount,
             buffer: buffer);
 
         foreach (var success in writer)
@@ -75,6 +80,9 @@ internal struct WorksheetEndXml
             Element.ValidationsEnd => TryWriteValidationsEnd(),
             Element.Drawing => TryWriteDrawing(),
             Element.LegacyDrawing => TryWriteLegacyDrawing(),
+            Element.TablePartsStart => TryWriteTablePartsStart(),
+            Element.TableParts => TryWriteTableParts(),
+            Element.TablePartsEnd => TryWriteTablePartsEnd(),
             _ => _buffer.TryWrite("</worksheet>"u8)
         };
 
@@ -161,6 +169,27 @@ internal struct WorksheetEndXml
             $"{WorksheetRelationshipIds.VmlDrawing}" +
             $"{"\"/>"u8}");
 
+    private readonly bool TryWriteTablePartsStart()
+    {
+        return _tableCount == 0 || _buffer.TryWrite($"{"<tableParts count=\""u8}{_tableCount}{"\">"u8}");
+    }
+
+    private bool TryWriteTableParts()
+    {
+        for (; _nextIndex < _tableCount; ++_nextIndex)
+        {
+            var relationshipId = WorksheetRelationshipIds.TableStartId + _nextIndex;
+            var success = _buffer.TryWrite($"{"<tablePart r:id=\"rId"u8}{relationshipId}{"\"/>"u8}");
+            if (!success)
+                return false;
+        }
+        _nextIndex = 0;
+        return true;
+    }
+
+    private readonly bool TryWriteTablePartsEnd()
+        => _tableCount == 0 || _buffer.TryWrite("</tableParts>"u8);
+
     private enum Element
     {
         SheetDataEnd,
@@ -173,6 +202,9 @@ internal struct WorksheetEndXml
         ValidationsEnd,
         Drawing,
         LegacyDrawing,
+        TablePartsStart,
+        TableParts,
+        TablePartsEnd,
         Footer,
         Done
     }

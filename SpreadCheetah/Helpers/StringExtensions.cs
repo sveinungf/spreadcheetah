@@ -22,7 +22,7 @@ internal static class StringExtensions
             ThrowHelper.NameEmptyOrWhiteSpace(paramName);
 
         if (name.Length > 31)
-            ThrowHelper.WorksheetNameTooLong(paramName);
+            ThrowHelper.NameTooLong(31, paramName);
 
         if (name.StartsWith('\'') || name.EndsWith('\''))
             ThrowHelper.WorksheetNameStartsOrEndsWithSingleQuote(paramName);

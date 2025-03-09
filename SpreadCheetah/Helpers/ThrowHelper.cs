@@ -8,6 +8,9 @@ internal static class ThrowHelper
     public static void CantAddImageEmbeddedInOtherSpreadsheet() => throw new SpreadCheetahException("The image can't be added because it was embedded in another spreadsheet.");
 
     [DoesNotReturn]
+    public static void ColumnNameInvalid(string? paramName) => throw new ArgumentException("Invalid column name.", paramName);
+
+    [DoesNotReturn]
     public static void ColumnNumberInvalid(string? paramName, int number) => throw new ArgumentOutOfRangeException(paramName, number, "The column number must be greater than 0 and can't be larger than 16384.");
 
     [DoesNotReturn]
@@ -54,6 +57,9 @@ internal static class ThrowHelper
 
     [DoesNotReturn]
     public static void NameEmptyOrWhiteSpace(string? paramName) => throw new ArgumentException("The name can not be empty or consist only of whitespace.", paramName);
+
+    [DoesNotReturn]
+    public static void NameTooLong(int maxLength, string? paramName) => throw new ArgumentException(StringHelper.Invariant($"The name can not be more than {maxLength} characters."), paramName);
 
     [DoesNotReturn]
     public static void NoteTextTooLong(string? paramName) => throw new ArgumentException($"Note text can not exceed {SpreadsheetConstants.MaxNoteTextLength} characters.", paramName);
@@ -105,7 +111,4 @@ internal static class ThrowHelper
 
     [DoesNotReturn]
     public static void WorksheetNameStartsOrEndsWithSingleQuote(string? paramName) => throw new ArgumentException("The name can not start or end with a single quote.", paramName);
-
-    [DoesNotReturn]
-    public static void WorksheetNameTooLong(string? paramName) => throw new ArgumentException("The name can not be more than 31 characters.", paramName);
 }

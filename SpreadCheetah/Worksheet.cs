@@ -4,6 +4,7 @@ using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.Styling.Internal;
+using SpreadCheetah.Tables.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 
@@ -24,6 +25,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private string? _autoFilterRange;
 
     public Dictionary<SingleCellRelativeReference, string>? Notes { get; private set; }
+    public List<WorksheetTableInfo>? Tables { get; private set; }
     public List<WorksheetImage>? Images { get; private set; }
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer, bool writeCellReferenceAttributes)
@@ -51,12 +53,30 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public async ValueTask WriteHeadAsync(WorksheetOptions? options, CancellationToken token)
     {
         await WorksheetStartXml.WriteAsync(options, _buffer, _stream, token).ConfigureAwait(false);
-
-        if (options?.AutoFilter is not null)
-        {
-            _autoFilterRange = options.AutoFilter.CellRange.Reference;
-        }
+        _autoFilterRange = options?.AutoFilter?.CellRange.Reference;
     }
+
+    public void StartTable(ImmutableTable table, int firstColumnNumber)
+    {
+        if (_autoFilterRange is not null)
+            TableThrowHelper.TablesNotAllowedOnWorksheetWithAutoFilter();
+
+        var tables = Tables ??= [];
+
+        if (tables.GetActive() is not null)
+            TableThrowHelper.OnlyOneActiveTableAllowed();
+
+        var worksheetTable = new WorksheetTableInfo
+        {
+            FirstColumn = (ushort)firstColumnNumber,
+            FirstRow = _state.NextRowIndex,
+            Table = table
+        };
+
+        tables.Add(worksheetTable);
+    }
+
+    public WorksheetTableInfo? GetActiveTable() => Tables?.GetActive();
 
     public bool TryAddRow(IList<Cell> cells)
         => _cellWriter.TryAddRow(cells, _state.NextRowIndex++);
@@ -152,8 +172,41 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         _cellMerges.Add(cellRange);
     }
 
+    public async ValueTask FinishTableAsync(bool throwWhenNoTable, CancellationToken token)
+    {
+        var tableInfo = Tables.GetActive();
+        if (tableInfo is null && !throwWhenNoTable)
+            return;
+        if (tableInfo is null)
+            TableThrowHelper.NoActiveTables();
+
+        var tableRows = _state.NextRowIndex - tableInfo.FirstRow;
+        if (tableRows == 0)
+            TableThrowHelper.NoRows(tableInfo.Table.Name);
+        if (tableInfo.ActualNumberOfColumns == 0)
+            TableThrowHelper.NoColumns(tableInfo.Table.Name);
+
+        var tableHasOnlyHeaderRow = tableRows == 1 && tableInfo.HasHeaderRow;
+        if (tableHasOnlyHeaderRow && !TryAddRow(ReadOnlySpan<DataCell>.Empty))
+        {
+            // Add an empty row so that the table doesn't cause an error when opening the file in Excel
+            await AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token).ConfigureAwait(false);
+        }
+
+        tableInfo.LastDataRow = _state.NextRowIndex - 1;
+
+        if (!tableInfo.Table.HasTotalRow)
+            return;
+
+        var totalRow = tableInfo.CreateTotalRow();
+        if (!TryAddRow(totalRow))
+            await AddRowAsync(totalRow, token).ConfigureAwait(false);
+    }
+
     public async ValueTask FinishAsync(CancellationToken token)
     {
+        await FinishTableAsync(throwWhenNoTable: false, token).ConfigureAwait(false);
+
         using var cellMergesPooledArray = _cellMerges?.ToPooledArray();
         using var validationsPooledArray = _validations?.ToPooledArray();
 
@@ -163,6 +216,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
             autoFilterRange: _autoFilterRange,
             hasNotes: Notes is not null,
             hasImages: Images is not null,
+            tableCount: Tables?.Count ?? 0,
             buffer: _buffer,
             stream: _stream,
             token: token).ConfigureAwait(false);

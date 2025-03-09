@@ -1,3 +1,4 @@
+using SpreadCheetah.CellReferences;
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using System.Buffers;
@@ -88,6 +89,22 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             return Fail();
         }
 
+        /// <summary>
+        /// Writes '1' for true and '0' for false.
+        /// </summary>
+        public bool AppendFormatted(bool value)
+        {
+            var destination = GetSpan();
+            if (destination.Length > 0)
+            {
+                destination[0] = (byte)('0' + (value ? 1 : 0)); // Branchless on .NET 8+
+                _pos++;
+                return true;
+            }
+
+            return Fail();
+        }
+
         public bool AppendFormatted(int value)
         {
 #if NET8_0_OR_GREATER
@@ -168,6 +185,18 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (Utf8Formatter.TryFormat(value.Item1, GetSpan(), out var bytesWritten, value.Item2))
             {
                 _pos += bytesWritten;
+                return true;
+            }
+
+            return Fail();
+        }
+
+        public bool AppendFormatted(SimpleSingleCellReference reference)
+        {
+            var written = 0;
+            if (SpanHelper.TryWriteCellReference(reference.Column, reference.Row, GetSpan(), ref written))
+            {
+                _pos += written;
                 return true;
             }
 

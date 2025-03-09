@@ -120,6 +120,8 @@ csharp_using_directive_placement = outside_namespace:warning
 # .NET Analyzers Options      #
 ###############################
 [*.cs]
+# CA1008: Enums should have zero value
+dotnet_diagnostic.CA1008.severity = none
 # CA1303: Do not pass literals as localized parameters
 dotnet_diagnostic.CA1303.severity = none
 # CA1815: Override equals and operator equals on value types
@@ -138,6 +140,10 @@ dotnet_diagnostic.IDE0300.severity = warning
 dotnet_diagnostic.IDE0301.severity = warning
 # IDE0305: Use collection expression for fluent
 dotnet_diagnostic.IDE0305.severity = warning
+
+[{TableStyle.cs,TableTotalRowFunction.cs}]
+# CS1591: Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = none
 
 [{*SourceGeneration}**Attribute.cs]
 # CA1019: Define accessors for attribute arguments

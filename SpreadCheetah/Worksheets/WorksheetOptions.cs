@@ -39,13 +39,7 @@ public class WorksheetOptions
     public WorksheetVisibility Visibility
     {
         get => _visibility;
-        set
-        {
-            if (!EnumPolyfill.IsDefined(value))
-                ThrowHelper.EnumValueInvalid(nameof(value), value);
-            else
-                _visibility = value;
-        }
+        set => _visibility = Guard.DefinedEnumValue(value);
     }
 
     private WorksheetVisibility _visibility;

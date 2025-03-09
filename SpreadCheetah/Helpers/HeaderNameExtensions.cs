@@ -6,7 +6,7 @@ internal static class HeaderNameExtensions
 {
     public static void CopyToCells(
         this ReadOnlySpan<string> headerNames,
-        StyledCell[] cells,
+        Span<StyledCell> cells,
         StyleId? styleId)
     {
         for (var i = 0; i < headerNames.Length; ++i)

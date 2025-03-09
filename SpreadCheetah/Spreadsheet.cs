@@ -4,12 +4,14 @@ using SpreadCheetah.Images;
 using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.MetadataXml.Styles;
+using SpreadCheetah.MetadataXml.Tables;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
+using SpreadCheetah.Tables;
+using SpreadCheetah.Tables.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
-using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
@@ -146,6 +148,34 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes);
         await _worksheet.WriteHeadAsync(options, token).ConfigureAwait(false);
         _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
+    }
+
+    /// <summary>
+    /// Starts a table from the next row. To add headers to the table, make a subsequent call to
+    /// <see cref="AddHeaderRowAsync(IList{string}, StyleId?, CancellationToken)"/> or one of its overloads.
+    /// The table will get a total row depending on the column options set on the table.
+    /// The total row is written when the table is finished. The table automatically finishes when the
+    /// worksheet finishes, but you can also explicitly finish a table with <see cref="FinishTableAsync(CancellationToken)"/>.
+    /// Currently there can only be one active table at a time.
+    /// </summary>
+    public void StartTable(Table table, string firstColumnName = "A")
+    {
+        ArgumentNullException.ThrowIfNull(table);
+        ArgumentNullException.ThrowIfNull(firstColumnName);
+
+        if (!SpreadsheetUtility.TryParseColumnName(firstColumnName.AsSpan(), out var firstColumnNumber))
+            ThrowHelper.ColumnNameInvalid(nameof(firstColumnName));
+
+        var fileCounter = _fileCounter ??= new FileCounter();
+
+        var tableName = table.Name;
+        if (tableName is null)
+            tableName = fileCounter.AssignTableNameForCurrentWorksheet();
+        else if (!fileCounter.TryAssignTableNameForCurrentWorksheet(tableName))
+            TableThrowHelper.NameAlreadyExists(nameof(table));
+
+        var immutableTable = ImmutableTable.From(table, tableName);
+        Worksheet.StartTable(immutableTable, firstColumnNumber);
     }
 
     /// <summary>
@@ -349,22 +379,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public async ValueTask AddHeaderRowAsync(ReadOnlyMemory<string> headerNames, StyleId? styleId = null, CancellationToken token = default)
     {
-        if (headerNames.Length == 0)
-        {
-            await AddRowAsync([], token).ConfigureAwait(false);
-            return;
-        }
+        var headerNamesSpan = headerNames.Span;
+        var activeTable = Worksheet.GetActiveTable();
+        if (activeTable?.FirstRow == Worksheet.NextRowNumber)
+            activeTable.SetHeaderNames(headerNamesSpan);
 
-        var cells = ArrayPool<StyledCell>.Shared.Rent(headerNames.Length);
-        try
-        {
-            headerNames.Span.CopyToCells(cells, styleId);
-            await AddRowAsync(cells.AsMemory(0, headerNames.Length), token).ConfigureAwait(false);
-        }
-        finally
-        {
-            ArrayPool<StyledCell>.Shared.Return(cells);
-        }
+        using var cells = PooledArray<StyledCell>.Create(headerNamesSpan.Length);
+        headerNamesSpan.CopyToCells(cells.Span, styleId);
+        await AddRowAsync(cells.Memory, token).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -474,8 +496,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ThrowHelper.StyleNameStartsOrEndsWithWhiteSpace(nameof(name));
         if (name.Equals("Normal", StringComparison.OrdinalIgnoreCase))
             ThrowHelper.StyleNameCanNotEqualNormal(nameof(name));
-        if (nameVisibility is { } visibility && !EnumPolyfill.IsDefined(visibility))
-            ThrowHelper.EnumValueInvalid(nameof(nameVisibility), nameVisibility);
+        if (nameVisibility is { } visibility)
+            Guard.DefinedEnumValue(visibility);
 
         var styleManager = _styleManager ??= new(defaultDateTimeFormat: null);
         if (!styleManager.TryAddNamedStyle(name, style, nameVisibility, out var styleId))
@@ -631,6 +653,15 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             _fileCounter.ImageForCurrentWorksheet();
     }
 
+    /// <summary>
+    /// Finishes the currently active table. If there are no active table, a <see cref="SpreadCheetahException"/> will be thrown.
+    /// This call can be omitted if no more rows will be added to the worksheet, since finishing a worksheet will implicitly finish any active table.
+    /// </summary>
+    public ValueTask FinishTableAsync(CancellationToken token = default)
+    {
+        return Worksheet.FinishTableAsync(throwWhenNoTable: true, token);
+    }
+
     private async ValueTask FinishAndDisposeWorksheetAsync(CancellationToken token)
     {
         if (_worksheet is not { } worksheet) return;
@@ -654,6 +685,11 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             Debug.Assert(drawingsFileIndex > 0);
             await DrawingXml.WriteAsync(_zipArchiveManager, _buffer, drawingsFileIndex, images, token).ConfigureAwait(false);
             await DrawingRelsXml.WriteAsync(_zipArchiveManager, _buffer, drawingsFileIndex, images, token).ConfigureAwait(false);
+        }
+
+        if (worksheet.Tables is { } tables)
+        {
+            await _zipArchiveManager.WriteTablesAsync(tables, _buffer, _fileCounter, token).ConfigureAwait(false);
         }
 
         if (_fileCounter is { CurrentWorksheetHasRelationships: true } counter)

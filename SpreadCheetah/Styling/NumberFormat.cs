@@ -32,9 +32,7 @@ public readonly record struct NumberFormat
     /// <returns>A <see cref="NumberFormat"/> representing this standard format</returns>
     public static NumberFormat Standard(StandardNumberFormat format)
     {
-        if (!EnumPolyfill.IsDefined(format))
-            throw new ArgumentOutOfRangeException(nameof(format));
-
+        Guard.DefinedEnumValue(format);
         return new NumberFormat(format);
     }
 
