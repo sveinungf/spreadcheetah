@@ -176,9 +176,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public async ValueTask FinishTableAsync(bool throwWhenNoTable, CancellationToken token)
     {
-        var tableInfo = Tables.GetActive(out var multipleActiveTables);
-        if (multipleActiveTables)
-            TableThrowHelper.MultipleActiveTables();
+        var tableInfo = Tables.GetActive();
         if (tableInfo is null && !throwWhenNoTable)
             return;
         if (tableInfo is null)

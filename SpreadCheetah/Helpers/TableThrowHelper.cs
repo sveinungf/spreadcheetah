@@ -35,10 +35,6 @@ internal static class TableThrowHelper
         => throw new SpreadCheetahException(StringHelper.Invariant($"Table was expected to have {expectedCount} header names, but only {actualCount} were supplied."));
 
     [DoesNotReturn]
-    public static void MultipleActiveTables()
-        => throw new SpreadCheetahException("There are multiple active tables.");
-
-    [DoesNotReturn]
     public static void NameAlreadyExists(string? paramName)
         => throw new ArgumentException("A table with the given name already exists.", paramName);
 
