@@ -2,8 +2,14 @@ using SpreadCheetah.Helpers;
 
 namespace SpreadCheetah.Tables;
 
+/// <summary>
+/// Provides column options for a table.
+/// </summary>
 public sealed class TableColumnOptions
 {
+    /// <summary>
+    /// The total row label for the column.
+    /// </summary>
     public string? TotalRowLabel
     {
         get => _totalRowLabel;
@@ -18,6 +24,9 @@ public sealed class TableColumnOptions
 
     private string? _totalRowLabel;
 
+    /// <summary>
+    /// The total row function for the column.
+    /// </summary>
     public TableTotalRowFunction? TotalRowFunction
     {
         get => _totalRowFunction;

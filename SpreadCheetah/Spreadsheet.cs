@@ -150,6 +150,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
     }
 
+    /// <summary>
+    /// Starts a table from the next row. To add headers to the table, make a subsequent call to
+    /// <see cref="AddHeaderRowAsync(IList{string}, StyleId?, CancellationToken)"/> or one of its overloads.
+    /// The table will get a total row depending on the column options set on the table.
+    /// The total row is written when the table is finished. The table automatically finishes when the
+    /// worksheet finishes, but you can also explicitly finish a table with <see cref="FinishTableAsync(CancellationToken)"/>.
+    /// Currently there can only be one active table at a time.
+    /// </summary>
     public void StartTable(Table table, string firstColumnName = "A")
     {
         ArgumentNullException.ThrowIfNull(table);
@@ -645,6 +653,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             _fileCounter.ImageForCurrentWorksheet();
     }
 
+    /// <summary>
+    /// Finishes the currently active table. If there are no active table, a <see cref="SpreadCheetahException"/> will be thrown.
+    /// This call can be omitted if no more rows will be added to the worksheet, since finishing a worksheet will implicitly finish any active table.
+    /// </summary>
     public ValueTask FinishTableAsync(CancellationToken token = default)
     {
         return Worksheet.FinishTableAsync(throwWhenNoTable: true, token);
