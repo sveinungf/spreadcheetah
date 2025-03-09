@@ -102,6 +102,57 @@ public static class TableTests
         Assert.Equal(valid, exception is null);
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(16385)]
+    public static void Table_Column_InvalidColumnNumber(int columnNumber)
+    {
+        // Arrange
+        var table = new Table(TableStyle.Light1);
+
+        // Act & Assert
+        Assert.Throws<ArgumentOutOfRangeException>(() => table.Column(columnNumber));
+    }
+
+    [Fact]
+    public static void Table_Column_AssignTotalRowLabelWhenHasFunction()
+    {
+        // Arrange
+        var table = new Table(TableStyle.Light1);
+        table.Column(1).TotalRowFunction = TableTotalRowFunction.Sum;
+
+        // Act & Assert
+        Assert.Throws<SpreadCheetahException>(() => table.Column(1).TotalRowLabel = "Sum");
+    }
+
+    [Fact]
+    public static void Table_Column_AssignTotalRowFunctionWhenHasLabel()
+    {
+        // Arrange
+        var table = new Table(TableStyle.Light1);
+        table.Column(1).TotalRowLabel = "Sum";
+
+        // Act & Assert
+        Assert.Throws<SpreadCheetahException>(() => table.Column(1).TotalRowFunction = TableTotalRowFunction.Sum);
+    }
+
+    [Fact]
+    public static void Table_Column_AssignNullToTotalRowProperties()
+    {
+        // Arrange
+        var table = new Table(TableStyle.Light1);
+        table.Column(1).TotalRowLabel = "Sum";
+        table.Column(2).TotalRowFunction = TableTotalRowFunction.Count;
+
+        // Act
+        var exception1 = Record.Exception(() => table.Column(1).TotalRowFunction = null);
+        var exception2 = Record.Exception(() => table.Column(1).TotalRowLabel = null);
+
+        // Assert
+        Assert.Null(exception1);
+        Assert.Null(exception2);
+    }
+
     [Fact]
     public static void Table_Column_GreaterThanNumberOfColumns()
     {

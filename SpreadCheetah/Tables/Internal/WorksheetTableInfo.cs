@@ -87,7 +87,7 @@ internal sealed class WorksheetTableInfo
         for (var i = 0; i < ActualNumberOfColumns; ++i)
         {
             var headerName = GetHeaderName(i);
-            var columnOptions = allColumnOptions?.GetValueOrDefault(i + 1);
+            var columnOptions = allColumnOptions.GetValueOrDefault(i + 1);
 
             var cell = columnOptions switch
             {

@@ -7,6 +7,10 @@ namespace SpreadCheetah.Helpers;
 internal static class TableThrowHelper
 {
     [DoesNotReturn]
+    public static void ColumnCanNotHaveTotalRowFunctionAndLabel()
+        => throw new SpreadCheetahException("A table column can not have both a total row function and a total row label.");
+
+    [DoesNotReturn]
     public static void ColumnNumberGreaterThanNumberOfColumns(int columnNumber, [CallerArgumentExpression(nameof(columnNumber))] string? paramName = null)
         => throw new ArgumentOutOfRangeException(paramName, columnNumber, $"Column number can not be greater than the value set for {nameof(Table)}.{nameof(Table.NumberOfColumns)}.");
 

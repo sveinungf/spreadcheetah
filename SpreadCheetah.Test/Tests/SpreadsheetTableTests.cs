@@ -724,7 +724,8 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
         await spreadsheet.StartWorksheetAsync("Sheet");
         var table = new Table(TableStyle.Light1);
         table.Column(2).TotalRowFunction = TableTotalRowFunction.Sum;
@@ -754,7 +755,8 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
         var table = new Table(TableStyle.Light1);
         table.Column(2).TotalRowFunction = TableTotalRowFunction.Sum;
         string[] headerNames = ["Text", "Number"];
@@ -904,5 +906,35 @@ public class SpreadsheetTableTests
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.True(sheet["B3"].Style.Font.Italic);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_Table_InvalidFirstColumnName()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table = new Table(TableStyle.Light1);
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => spreadsheet.StartTable(table, "1"));
+    }
+
+    [Fact]
+    public async Task Spreadsheet_Table_DuplicateTableName()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        var table1 = new Table(TableStyle.Light1, "Table");
+        spreadsheet.StartTable(table1);
+        await spreadsheet.AddHeaderRowAsync(["Make", "Model"]);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo")]);
+        await spreadsheet.FinishTableAsync();
+
+        var table2 = new Table(TableStyle.Light2, "Table");
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => spreadsheet.StartTable(table2));
     }
 }

@@ -2,6 +2,7 @@ using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using OfficeOpenXml;
+using Polyfills;
 using SpreadCheetah.Images;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
@@ -11,7 +12,6 @@ using Color = System.Drawing.Color;
 using DataValidation = SpreadCheetah.Validations.DataValidation;
 using Fill = SpreadCheetah.Styling.Fill;
 using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
-using Polyfills;
 
 namespace SpreadCheetah.Test.Tests;
 
