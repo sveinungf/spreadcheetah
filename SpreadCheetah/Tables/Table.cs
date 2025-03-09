@@ -19,7 +19,7 @@ public sealed class Table
             if (value <= 0)
                 throw new ArgumentOutOfRangeException(nameof(value), value, "Value must be greater than 0.");
 
-            if (value < _greatestColumnNumber)
+            if (value < _maxColumnNumber)
                 TableThrowHelper.NumberOfColumnsLessThanGreatestColumnNumber(value);
 
             _numberOfColumns = value;
@@ -56,7 +56,7 @@ public sealed class Table
             TableThrowHelper.NameIsCellReference(nameof(name));
     }
 
-    private int _greatestColumnNumber;
+    private int _maxColumnNumber;
     internal Dictionary<int, TableColumnOptions>? ColumnOptions { get; private set; }
 
     public TableColumnOptions Column(int columnNumber)
@@ -72,7 +72,7 @@ public sealed class Table
         {
             options = new TableColumnOptions();
             ColumnOptions[columnNumber] = options;
-            _greatestColumnNumber = Math.Max(_greatestColumnNumber, columnNumber);
+            _maxColumnNumber = Math.Max(_maxColumnNumber, columnNumber);
         }
 
         return options;
