@@ -39,7 +39,7 @@ readonly record struct OADate(long Ticks)
         }
 
         if (value < TimeSpan.TicksPerDay)
-            value += DoubleDateOffset; // TODO: Can this lead to value < MinTicks?
+            value += DoubleDateOffset;
 
         Debug.Assert(value >= MinTicks);
 

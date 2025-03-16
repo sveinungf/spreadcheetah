@@ -11,6 +11,7 @@ public class OADateTests
     public static TheoryData<DateTime> DateTimes => new()
     {
         { DateTime.MinValue },
+        { new DateTime(1, 1, 1, 23, 59, 59) },
         { new DateTime(100, 1, 1, 0, 0, 0) },
         { new DateTime(1001, 2, 3, 4, 5, 6) },
         { new DateTime(1899, 12, 29, 23, 59, 59) },
