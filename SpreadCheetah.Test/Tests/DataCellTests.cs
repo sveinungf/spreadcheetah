@@ -64,4 +64,30 @@ public static class DataCellTests
         // Assert
         Assert.Null(exception);
     }
+
+    [Fact]
+    public static void DataCell_DateTime_MinValue()
+    {
+        // Arrange
+        var dateTime = DateTime.MinValue;
+
+        // Act
+        var exception = Record.Exception(() => new DataCell(dateTime));
+
+        // Assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public static void DataCell_NullableDateTime_MinValue()
+    {
+        // Arrange
+        DateTime? dateTime = DateTime.MinValue;
+
+        // Act
+        var exception = Record.Exception(() => new DataCell(dateTime));
+
+        // Assert
+        Assert.Null(exception);
+    }
 }
