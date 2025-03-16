@@ -3,7 +3,12 @@ using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah.Helpers;
 
-internal readonly struct OADate(long ticks)
+#if INTERNALS_EXPOSED_FOR_TESTS
+public
+#else
+internal
+#endif
+readonly record struct OADate(long Ticks)
 {
     // Implementation is based on DateTime.ToOADate(). These constants are taken from there.
     private const int DaysPerYear = 365;
@@ -24,7 +29,7 @@ internal readonly struct OADate(long ticks)
         if (destination.Length < 19)
             return false;
 
-        var value = ticks;
+        var value = Ticks;
         if (value == 0)
         {
             destination[0] = (byte)'0';
