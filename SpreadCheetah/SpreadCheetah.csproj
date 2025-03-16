@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net6.0;net8.0;net9.0</TargetFrameworks>
@@ -24,6 +24,12 @@
     <!-- Symbol package -->
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <!-- Make some internal types public for testing purposes. InternalsVisibleTo makes all internals public, which cause issues with polyfills. -->
+    <DefineConstants>INTERNALS_EXPOSED_FOR_TESTS</DefineConstants>
+    <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' != 'Debug'">

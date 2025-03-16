@@ -4,7 +4,12 @@ using System.Text;
 
 namespace SpreadCheetah.Helpers;
 
-internal static class XmlUtility
+#if INTERNALS_EXPOSED_FOR_TESTS
+public
+#else
+internal
+#endif
+static class XmlUtility
 {
 #if NET8_0_OR_GREATER
     private static ReadOnlySpan<char> CharsToEscape =>

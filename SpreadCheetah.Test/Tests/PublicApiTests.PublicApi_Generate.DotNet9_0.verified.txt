@@ -1,7 +1,5 @@
-﻿[assembly: System.CLSCompliant(true)]
-[assembly: System.Reflection.AssemblyMetadata("IsTrimmable", "True")]
+﻿[assembly: System.Reflection.AssemblyMetadata("IsTrimmable", "True")]
 [assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/sveinungf/spreadcheetah")]
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("SpreadCheetah.Test")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
 namespace SpreadCheetah
 {
