@@ -6,7 +6,7 @@ public static class DataCellTests
     public static void DataCell_DateTime_InvalidOADate()
     {
         // Arrange
-        var dateTime = new DateTime(99, 1, 1);
+        var dateTime = new DateTime(99, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
         string? expectedMessage = null;
         try
         {
@@ -31,7 +31,7 @@ public static class DataCellTests
     public static void DataCell_NullableDateTime_InvalidOADate()
     {
         // Arrange
-        DateTime? dateTime = new DateTime(99, 1, 1);
+        DateTime? dateTime = new DateTime(99, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
         string? expectedMessage = null;
         try
         {

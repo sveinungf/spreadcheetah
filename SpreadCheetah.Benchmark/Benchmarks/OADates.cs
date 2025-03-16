@@ -25,17 +25,14 @@ public class OADates
         var random = new Random(42);
         var origin = new DateTime(2025, 1, 1);
         _dateTimes = Enumerable.Range(0, Count)
-            .Select(_ =>
-            {
-                return WithFractions
+            .Select(_ => WithFractions
                     ? origin.AddSeconds(random.Next(-10000000, 10000000))
-                    : origin.AddDays(random.Next(-10000, 10000));
-            })
+                    : origin.AddDays(random.Next(-10000, 10000)))
             .ToList();
     }
 
     [Benchmark]
-    public List<string> DateTime_ToOADate()
+    public IList<string> DateTime_ToOADate()
     {
         var result = new List<string>(Count);
         Span<byte> destination = stackalloc byte[19];
@@ -52,7 +49,7 @@ public class OADates
     }
 
     [Benchmark]
-    public List<string> OADate_TryFormat()
+    public IList<string> OADate_TryFormat()
     {
         var result = new List<string>(Count);
         Span<byte> destination = stackalloc byte[19];

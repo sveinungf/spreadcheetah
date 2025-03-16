@@ -5,6 +5,7 @@ using System.Text;
 namespace SpreadCheetah.Helpers;
 
 #if INTERNALS_EXPOSED_FOR_TESTS
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 public
 #else
 internal
