@@ -1,5 +1,6 @@
 using SpreadCheetah.CellValues;
 using SpreadCheetah.CellValueWriters;
+using SpreadCheetah.Helpers;
 using System.Runtime.InteropServices;
 
 namespace SpreadCheetah;
@@ -131,8 +132,12 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(DateTime value)
     {
+        var ticks = value.Ticks;
+        if (ticks is >= TimeSpan.TicksPerDay and < OADate.MinTicks)
+            ThrowHelper.InvalidOADate();
+
         Type = CellWriterType.DateTime;
-        Value = new CellValue(new StringOrPrimitiveCellValue(new PrimitiveCellValue(value.ToOADate())));
+        Value = new CellValue(new StringOrPrimitiveCellValue(new PrimitiveCellValue(ticks)));
     }
 
     /// <summary>
@@ -142,8 +147,12 @@ public readonly record struct DataCell
     /// </summary>
     public DataCell(DateTime? value)
     {
+        var ticks = value.GetValueOrDefault().Ticks;
+        if (ticks is >= TimeSpan.TicksPerDay and < OADate.MinTicks)
+            ThrowHelper.InvalidOADate();
+
         Type = (CellWriterType)((value.HasValue ? 1 : 0) + 5);
-        Value = new CellValue(new StringOrPrimitiveCellValue(new PrimitiveCellValue(value.GetValueOrDefault().ToOADate())));
+        Value = new CellValue(new StringOrPrimitiveCellValue(new PrimitiveCellValue(ticks)));
     }
 
     /// <summary>

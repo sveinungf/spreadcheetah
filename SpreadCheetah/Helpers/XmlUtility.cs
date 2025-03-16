@@ -4,7 +4,13 @@ using System.Text;
 
 namespace SpreadCheetah.Helpers;
 
-internal static class XmlUtility
+#if INTERNALS_EXPOSED_FOR_TESTS
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+public
+#else
+internal
+#endif
+static class XmlUtility
 {
 #if NET8_0_OR_GREATER
     private static ReadOnlySpan<char> CharsToEscape =>

@@ -53,7 +53,8 @@ public class SpreadsheetDataValidationTests
         Assert.Equal(1, cell.Address.RowNumber);
         Assert.Equal(XLAllowedValues.Date, actualValidation.AllowedValues);
         Assert.Equal(expectedOperator, actualValidation.Operator);
-        Assert.Equal(value.ToOADate().ToString(CultureInfo.InvariantCulture), actualValidation.MinValue);
+        var actualMinValue = double.Parse(actualValidation.MinValue, CultureInfo.InvariantCulture);
+        Assert.Equal(value.ToOADate(), actualMinValue, 0.00000000005);
         Assert.Empty(actualValidation.MaxValue);
     }
 

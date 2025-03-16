@@ -76,14 +76,14 @@ public sealed class DataValidation
         if (max < min)
             ThrowHelper.MinGreaterThanMax(nameof(min));
 
-        var stringValue1 = min.ToOADate().ToStringInvariant();
-        var stringValue2 = max.ToOADate().ToStringInvariant();
+        var stringValue1 = min.ToOADateString();
+        var stringValue2 = max.ToOADateString();
         return new DataValidation(ValidationType.DateTime, op, stringValue1, stringValue2);
     }
 
     private static DataValidation CreateDateTime(ValidationOperator op, DateTime value)
     {
-        var stringValue = value.ToOADate().ToStringInvariant();
+        var stringValue = value.ToOADateString();
         return new(ValidationType.DateTime, op, stringValue);
     }
 

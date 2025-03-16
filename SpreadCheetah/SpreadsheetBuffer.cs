@@ -191,6 +191,17 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             return Fail();
         }
 
+        public bool AppendFormatted(OADate oaDate)
+        {
+            if (oaDate.TryFormat(GetSpan(), out var bytesWritten))
+            {
+                _pos += bytesWritten;
+                return true;
+            }
+
+            return Fail();
+        }
+
         public bool AppendFormatted(SimpleSingleCellReference reference)
         {
             var written = 0;
