@@ -51,6 +51,18 @@
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:SpreadCheetah.Tables.TableStyle</Target>
+    <Left>lib/net6.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:SpreadCheetah.Tables.TableTotalRowFunction</Target>
+    <Left>lib/net6.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:SpreadCheetah.Validations.ValidationErrorType</Target>
     <Left>lib/net6.0/SpreadCheetah.dll</Left>
     <Right>lib/net8.0/SpreadCheetah.dll</Right>
@@ -60,75 +72,5 @@
     <Target>T:SpreadCheetah.Worksheets.WorksheetVisibility</Target>
     <Left>lib/net6.0/SpreadCheetah.dll</Left>
     <Right>lib/net8.0/SpreadCheetah.dll</Right>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:SpreadCheetah.SourceGeneration.InheritedColumnsOrder</Target>
-    <Left>lib/net7.0/SpreadCheetah.dll</Left>
-    <Right>lib/net6.0/SpreadCheetah.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:SpreadCheetah.SpreadCheetahCompressionLevel</Target>
-    <Left>lib/net7.0/SpreadCheetah.dll</Left>
-    <Right>lib/net6.0/SpreadCheetah.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:SpreadCheetah.Styling.BorderStyle</Target>
-    <Left>lib/net7.0/SpreadCheetah.dll</Left>
-    <Right>lib/net6.0/SpreadCheetah.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:SpreadCheetah.Styling.DiagonalBorderType</Target>
-    <Left>lib/net7.0/SpreadCheetah.dll</Left>
-    <Right>lib/net6.0/SpreadCheetah.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:SpreadCheetah.Styling.HorizontalAlignment</Target>
-    <Left>lib/net7.0/SpreadCheetah.dll</Left>
-    <Right>lib/net6.0/SpreadCheetah.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:SpreadCheetah.Styling.StandardNumberFormat</Target>
-    <Left>lib/net7.0/SpreadCheetah.dll</Left>
-    <Right>lib/net6.0/SpreadCheetah.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:SpreadCheetah.Styling.StyleNameVisibility</Target>
-    <Left>lib/net7.0/SpreadCheetah.dll</Left>
-    <Right>lib/net6.0/SpreadCheetah.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:SpreadCheetah.Styling.VerticalAlignment</Target>
-    <Left>lib/net7.0/SpreadCheetah.dll</Left>
-    <Right>lib/net6.0/SpreadCheetah.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:SpreadCheetah.Validations.ValidationErrorType</Target>
-    <Left>lib/net7.0/SpreadCheetah.dll</Left>
-    <Right>lib/net6.0/SpreadCheetah.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:SpreadCheetah.Worksheets.WorksheetVisibility</Target>
-    <Left>lib/net7.0/SpreadCheetah.dll</Left>
-    <Right>lib/net6.0/SpreadCheetah.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
 </Suppressions>
