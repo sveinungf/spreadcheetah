@@ -6,56 +6,56 @@ namespace SpreadCheetah
     {
         public Cell(SpreadCheetah.DataCell value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, SpreadCheetah.Styling.StyleId? styleId = null) { }
-        public Cell(bool value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(System.DateTime value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(System.DateTime? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
-        public Cell(decimal value, SpreadCheetah.Styling.StyleId? styleId = null) { }
-        public Cell(double value, SpreadCheetah.Styling.StyleId? styleId = null) { }
-        public Cell(int value, SpreadCheetah.Styling.StyleId? styleId = null) { }
-        public Cell(long value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(System.ReadOnlyMemory<char> value, SpreadCheetah.Styling.StyleId? styleId = null) { }
-        public Cell(float value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(bool value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(bool? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(decimal value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(decimal? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(double value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(double? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(float value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(float? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(int value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(int? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(long value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(long? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(string? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, SpreadCheetah.DataCell cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
-        public Cell(SpreadCheetah.Formula formula, bool cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, System.DateTime cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, System.DateTime? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
-        public Cell(SpreadCheetah.Formula formula, decimal cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
-        public Cell(SpreadCheetah.Formula formula, double cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
-        public Cell(SpreadCheetah.Formula formula, int cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
-        public Cell(SpreadCheetah.Formula formula, long cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, System.ReadOnlyMemory<char> cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
-        public Cell(SpreadCheetah.Formula formula, float cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, bool cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, bool? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, decimal cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, decimal? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, double cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, double? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, float cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, float? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, int cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, int? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, long cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, long? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
         public Cell(SpreadCheetah.Formula formula, string? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
     }
     public readonly struct DataCell : System.IEquatable<SpreadCheetah.DataCell>
     {
-        public DataCell(bool value) { }
         public DataCell(System.DateTime value) { }
         public DataCell(System.DateTime? value) { }
-        public DataCell(decimal value) { }
-        public DataCell(double value) { }
-        public DataCell(int value) { }
-        public DataCell(long value) { }
         public DataCell(System.ReadOnlyMemory<char> value) { }
-        public DataCell(float value) { }
+        public DataCell(bool value) { }
         public DataCell(bool? value) { }
+        public DataCell(decimal value) { }
         public DataCell(decimal? value) { }
+        public DataCell(double value) { }
         public DataCell(double? value) { }
+        public DataCell(float value) { }
         public DataCell(float? value) { }
+        public DataCell(int value) { }
         public DataCell(int? value) { }
+        public DataCell(long value) { }
         public DataCell(long? value) { }
         public DataCell(string? value) { }
     }
@@ -142,20 +142,20 @@ namespace SpreadCheetah
     public readonly struct StyledCell : System.IEquatable<SpreadCheetah.StyledCell>
     {
         public StyledCell(SpreadCheetah.DataCell value, SpreadCheetah.Styling.StyleId? styleId) { }
-        public StyledCell(bool value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(System.DateTime value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(System.DateTime? value, SpreadCheetah.Styling.StyleId? styleId) { }
-        public StyledCell(decimal value, SpreadCheetah.Styling.StyleId? styleId) { }
-        public StyledCell(double value, SpreadCheetah.Styling.StyleId? styleId) { }
-        public StyledCell(int value, SpreadCheetah.Styling.StyleId? styleId) { }
-        public StyledCell(long value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(System.ReadOnlyMemory<char> value, SpreadCheetah.Styling.StyleId? styleId) { }
-        public StyledCell(float value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(bool value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(bool? value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(decimal value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(decimal? value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(double value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(double? value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(float value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(float? value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(int value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(int? value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(long value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(long? value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(string? value, SpreadCheetah.Styling.StyleId? styleId) { }
     }

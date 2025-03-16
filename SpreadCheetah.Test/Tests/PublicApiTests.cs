@@ -12,7 +12,7 @@ public class PublicApiTests
         var options = new ApiGeneratorOptions
         {
 #if DEBUG
-            ExcludeTypes = [typeof(XmlUtility)]
+            ExcludeTypes = [typeof(OADate), typeof(XmlUtility)]
 #endif
         };
 
