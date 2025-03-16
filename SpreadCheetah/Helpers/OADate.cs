@@ -18,7 +18,7 @@ readonly record struct OADate(long Ticks)
     private const int DaysTo1899 = DaysPer400Years * 4 + DaysPer100Years * 3 - 367;
     private const long DoubleDateOffset = DaysTo1899 * TimeSpan.TicksPerDay;
     private const long MillisecondsPerDay = TimeSpan.TicksPerDay / TimeSpan.TicksPerMillisecond;
-    private const long OADateMinAsTicks = (DaysPer100Years - DaysPerYear) * TimeSpan.TicksPerDay;
+    public const long MinTicks = (DaysPer100Years - DaysPerYear) * TimeSpan.TicksPerDay;
 
     public bool TryFormat(Span<byte> destination, out int bytesWritten)
     {
@@ -38,10 +38,9 @@ readonly record struct OADate(long Ticks)
         }
 
         if (value < TimeSpan.TicksPerDay)
-            value += DoubleDateOffset;
+            value += DoubleDateOffset; // TODO: Can this lead to value < MinTicks?
 
-        // TODO: Check in DataCell constructor and throw if below OADateMinAsTicks
-        Debug.Assert(value >= OADateMinAsTicks);
+        Debug.Assert(value >= MinTicks);
 
         var millis = (value - DoubleDateOffset) / TimeSpan.TicksPerMillisecond;
         var days = Math.DivRem(millis, MillisecondsPerDay, out var millisAfterMidnight);

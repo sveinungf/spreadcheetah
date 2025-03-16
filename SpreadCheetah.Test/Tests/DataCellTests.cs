@@ -26,4 +26,42 @@ public static class DataCellTests
         Assert.IsType<OverflowException>(exception);
         Assert.Equal(expectedMessage, exception.Message);
     }
+
+    [Fact]
+    public static void DataCell_NullableDateTime_InvalidOADate()
+    {
+        // Arrange
+        DateTime? dateTime = new DateTime(99, 1, 1);
+        string? expectedMessage = null;
+        try
+        {
+            dateTime.GetValueOrDefault().ToOADate();
+        }
+        catch (OverflowException e)
+        {
+            expectedMessage = e.Message;
+        }
+
+        Assert.NotNull(expectedMessage);
+
+        // Act
+        var exception = Record.Exception(() => new DataCell(dateTime));
+
+        // Assert
+        Assert.IsType<OverflowException>(exception);
+        Assert.Equal(expectedMessage, exception.Message);
+    }
+
+    [Fact]
+    public static void DataCell_NullableDateTime_NullValue()
+    {
+        // Arrange
+        DateTime? dateTime = null;
+
+        // Act
+        var exception = Record.Exception(() => new DataCell(dateTime));
+
+        // Assert
+        Assert.Null(exception);
+    }
 }
