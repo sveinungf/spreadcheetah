@@ -11,10 +11,6 @@
     <PackageReference Include="ClosedXML" />
     <PackageReference Include="DocumentFormat.OpenXml" />
     <PackageReference Include="EPPlusFree" />
-    <PackageReference Include="Polyfill">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="System.Drawing.Common" />
     <PackageReference Include="System.Reflection.Metadata" />
     <PackageReference Include="System.Text.RegularExpressions" />

@@ -3,13 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah.Helpers;
 
-#if INTERNALS_EXPOSED_FOR_TESTS
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-public
-#else
-internal
-#endif
-readonly record struct OADate(long Ticks)
+internal readonly record struct OADate(long Ticks)
 {
     // Implementation is based on DateTime.ToOADate(). These constants are taken from there.
     private const int DaysPerYear = 365;

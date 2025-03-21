@@ -1,4 +1,4 @@
-#if DEBUG
+using Polyfills;
 using SpreadCheetah.Helpers;
 using System.Text;
 
@@ -31,7 +31,7 @@ public static class XmlUtilityTests
         Assert.True(result);
 
         var bytes = buffer.AsSpan(0, bytesWritten);
-        var actual = Encoding.UTF8.GetString(bytes.ToArray());
+        var actual = Encoding.UTF8.GetString(bytes);
         Assert.Equal(expected, actual);
     }
 
@@ -56,4 +56,3 @@ public static class XmlUtilityTests
         Assert.Equal(expected, result);
     }
 }
-#endif

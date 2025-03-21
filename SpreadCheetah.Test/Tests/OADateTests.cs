@@ -1,8 +1,7 @@
-#if DEBUG
+using Polyfills;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Test.Helpers;
 using System.Globalization;
-using System.Text;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -79,4 +78,3 @@ public class OADateTests
         }
     }
 }
-#endif

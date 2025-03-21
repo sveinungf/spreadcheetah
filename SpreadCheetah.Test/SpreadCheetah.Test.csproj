@@ -22,10 +22,6 @@
     <PackageReference Include="DocumentFormat.OpenXml" />
     <PackageReference Include="EPPlusFree" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="Polyfill">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="PublicApiGenerator" />
     <PackageReference Include="System.Drawing.Common" />
     <PackageReference Include="System.Text.RegularExpressions" />
@@ -34,13 +30,6 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="Xunit.Combinatorial" />
     <PackageReference Include="xunit.runner.visualstudio">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(Configuration)' != 'Debug'">
-    <PackageReference Include="Polyfill">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
