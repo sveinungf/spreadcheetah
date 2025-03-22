@@ -13,7 +13,13 @@ internal readonly record struct OADate(long Ticks)
     private const int DaysTo1899 = DaysPer400Years * 4 + DaysPer100Years * 3 - 367;
     private const long DoubleDateOffset = DaysTo1899 * TimeSpan.TicksPerDay;
     private const long MillisecondsPerDay = TimeSpan.TicksPerDay / TimeSpan.TicksPerMillisecond;
-    public const long MinTicks = (DaysPer100Years - DaysPerYear) * TimeSpan.TicksPerDay;
+    private const long MinTicks = (DaysPer100Years - DaysPerYear) * TimeSpan.TicksPerDay;
+
+    public static void EnsureValidTicks(long ticks)
+    {
+        if (ticks is >= TimeSpan.TicksPerDay and < MinTicks)
+            ThrowHelper.InvalidOADate();
+    }
 
     public bool TryFormat(Span<byte> destination, out int bytesWritten)
     {

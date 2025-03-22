@@ -133,8 +133,7 @@ public readonly record struct DataCell
     public DataCell(DateTime value)
     {
         var ticks = value.Ticks;
-        if (ticks is >= TimeSpan.TicksPerDay and < OADate.MinTicks)
-            ThrowHelper.InvalidOADate();
+        OADate.EnsureValidTicks(ticks);
 
         Type = CellWriterType.DateTime;
         Value = new CellValue(new StringOrPrimitiveCellValue(new PrimitiveCellValue(ticks)));
@@ -148,8 +147,7 @@ public readonly record struct DataCell
     public DataCell(DateTime? value)
     {
         var ticks = value.GetValueOrDefault().Ticks;
-        if (ticks is >= TimeSpan.TicksPerDay and < OADate.MinTicks)
-            ThrowHelper.InvalidOADate();
+        OADate.EnsureValidTicks(ticks);
 
         Type = (CellWriterType)((value.HasValue ? 1 : 0) + 5);
         Value = new CellValue(new StringOrPrimitiveCellValue(new PrimitiveCellValue(ticks)));
