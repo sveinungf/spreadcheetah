@@ -23,7 +23,7 @@ public class OADates
     public void GlobalSetup()
     {
         var random = new Random(42);
-        var origin = new DateTime(2025, 1, 1);
+        var origin = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
         _dateTimes = Enumerable.Range(0, Count)
             .Select(_ => WithFractions
                     ? origin.AddSeconds(random.Next(-10000000, 10000000))
