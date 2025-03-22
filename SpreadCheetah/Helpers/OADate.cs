@@ -83,24 +83,6 @@ internal readonly record struct OADate(long Ticks)
         destination[bytesWritten] = (byte)'.';
         bytesWritten++;
 
-        if (fraction >= 10000000000)
-        {
-            var fractionDestination = destination.Slice(bytesWritten);
-            TryFormatLong(fraction, fractionDestination, out var fractionLength);
-            Debug.Assert(fractionLength == 11);
-
-            for (var i = fractionDestination.Length - 1; i >= 0; --i)
-            {
-                if (fractionDestination[i] > '0')
-                {
-                    bytesWritten += i + 1;
-                    return true;
-                }
-            }
-
-            return true;
-        }
-
         var quotient = Math.DivRem(fraction, 10000000000, out var remainder);
         destination[bytesWritten] = (byte)(quotient + '0');
         bytesWritten++;
