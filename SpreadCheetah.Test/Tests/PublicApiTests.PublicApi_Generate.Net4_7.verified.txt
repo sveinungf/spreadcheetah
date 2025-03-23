@@ -1,4 +1,6 @@
 ﻿[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/sveinungf/spreadcheetah")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("SpreadCheetah.Benchmark")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("SpreadCheetah.Test")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETStandard,Version=v2.0", FrameworkDisplayName=".NET Standard 2.0")]
 namespace SpreadCheetah
 {

@@ -1,5 +1,7 @@
 ﻿[assembly: System.Reflection.AssemblyMetadata("IsTrimmable", "True")]
 [assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/sveinungf/spreadcheetah")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("SpreadCheetah.Benchmark")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("SpreadCheetah.Test")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v8.0", FrameworkDisplayName=".NET 8.0")]
 namespace SpreadCheetah
 {

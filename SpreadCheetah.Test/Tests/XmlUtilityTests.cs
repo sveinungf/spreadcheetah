@@ -31,7 +31,7 @@ public static class XmlUtilityTests
         Assert.True(result);
 
         var bytes = buffer.AsSpan(0, bytesWritten);
-        var actual = Encoding.UTF8.GetString(bytes);
+        var actual = Encoding.UTF8.GetString(bytes.ToArray());
         Assert.Equal(expected, actual);
     }
 
