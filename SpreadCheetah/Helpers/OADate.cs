@@ -3,13 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah.Helpers;
 
-#if INTERNALS_EXPOSED_FOR_TESTS
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-public
-#else
-internal
-#endif
-readonly record struct OADate(long Ticks)
+internal readonly record struct OADate(long Ticks)
 {
     // Implementation is based on DateTime.ToOADate(). These constants are taken from there.
     private const int DaysPerYear = 365;
@@ -19,18 +13,44 @@ readonly record struct OADate(long Ticks)
     private const int DaysTo1899 = DaysPer400Years * 4 + DaysPer100Years * 3 - 367;
     private const long DoubleDateOffset = DaysTo1899 * TimeSpan.TicksPerDay;
     private const long MillisecondsPerDay = TimeSpan.TicksPerDay / TimeSpan.TicksPerMillisecond;
-    public const long MinTicks = (DaysPer100Years - DaysPerYear) * TimeSpan.TicksPerDay;
+    private const long MinTicks = (DaysPer100Years - DaysPerYear) * TimeSpan.TicksPerDay;
+
+    public static void EnsureValidTicks(long ticks)
+    {
+        if (ticks is >= TimeSpan.TicksPerDay and < MinTicks)
+            ThrowHelper.InvalidOADate();
+    }
 
     public bool TryFormat(Span<byte> destination, out int bytesWritten)
     {
-        bytesWritten = 0;
-
         // Days can be up to 7 digits (max = 2958465, min = -657434).
         // In this implementation, the fraction part is limited to 11 digits.
         if (destination.Length < 19)
+        {
+            bytesWritten = 0;
             return false;
+        }
 
         var value = Ticks;
+        return value >= TimeSpan.TicksPerDay
+            ? TryFormatCore(value, destination, out bytesWritten)
+            : TryFormatEdgeCases(value, destination, out bytesWritten);
+    }
+
+    private static bool TryFormatCore(long value, Span<byte> destination, out int bytesWritten)
+    {
+        Debug.Assert(value >= MinTicks);
+
+        var millis = (value - DoubleDateOffset) / TimeSpan.TicksPerMillisecond;
+        var days = Math.DivRem(millis, MillisecondsPerDay, out var millisAfterMidnight);
+
+        return millisAfterMidnight == 0
+            ? TryFormatLong(days, destination, out bytesWritten)
+            : TryFormatWithFraction(days, millisAfterMidnight, destination, out bytesWritten);
+    }
+
+    private static bool TryFormatEdgeCases(long value, Span<byte> destination, out int bytesWritten)
+    {
         if (value == 0)
         {
             destination[0] = (byte)'0';
@@ -41,24 +61,16 @@ readonly record struct OADate(long Ticks)
         if (value < TimeSpan.TicksPerDay)
             value += DoubleDateOffset;
 
-        Debug.Assert(value >= MinTicks);
-
-        var millis = (value - DoubleDateOffset) / TimeSpan.TicksPerMillisecond;
-        var days = Math.DivRem(millis, MillisecondsPerDay, out var millisAfterMidnight);
-
-        if (millisAfterMidnight == 0)
-            return TryFormatDays(days, destination, out bytesWritten);
-
-        return TryFormatWithFraction(days, millisAfterMidnight, destination, out bytesWritten);
+        return TryFormatCore(value, destination, out bytesWritten);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool TryFormatDays(long days, Span<byte> destination, out int bytesWritten)
+    private static bool TryFormatLong(long value, Span<byte> destination, out int bytesWritten)
     {
 #if NET8_0_OR_GREATER
-        return days.TryFormat(destination, out bytesWritten, provider: System.Globalization.NumberFormatInfo.InvariantInfo);
+        return value.TryFormat(destination, out bytesWritten, provider: System.Globalization.NumberFormatInfo.InvariantInfo);
 #else
-        return System.Buffers.Text.Utf8Formatter.TryFormat(days, destination, out bytesWritten);
+        return System.Buffers.Text.Utf8Formatter.TryFormat(value, destination, out bytesWritten);
 #endif
     }
 
@@ -73,7 +85,7 @@ readonly record struct OADate(long Ticks)
             fraction += 100000000000;
         }
 
-        TryFormatDays(days, destination, out bytesWritten);
+        TryFormatLong(days, destination, out bytesWritten);
         destination[bytesWritten] = (byte)'.';
         bytesWritten++;
 

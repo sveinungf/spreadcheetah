@@ -1,4 +1,4 @@
-#if DEBUG
+using Polyfills;
 using SpreadCheetah.Helpers;
 using System.Text;
 
@@ -56,4 +56,3 @@ public static class XmlUtilityTests
         Assert.Equal(expected, result);
     }
 }
-#endif

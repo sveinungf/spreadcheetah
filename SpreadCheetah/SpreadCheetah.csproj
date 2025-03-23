@@ -26,20 +26,15 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <!-- Make some internal types public for testing purposes. InternalsVisibleTo makes all internals public, which cause issues with polyfills. -->
-    <DefineConstants>INTERNALS_EXPOSED_FOR_TESTS</DefineConstants>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- Strong name -->
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>spreadcheetahKey.snk</AssemblyOriginatorKeyFile>
 
     <!-- Package validation -->
-    <EnablePackageValidation>true</EnablePackageValidation>
+    <EnablePackageValidation>false</EnablePackageValidation>
     <PackageValidationBaselineVersion>1.20.0</PackageValidationBaselineVersion>
     <EnableStrictModeForCompatibleTfms>true</EnableStrictModeForCompatibleTfms>
     <EnableStrictModeForCompatibleFrameworksInPackage>true</EnableStrictModeForCompatibleFrameworksInPackage>

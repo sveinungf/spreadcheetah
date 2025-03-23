@@ -1,8 +1,7 @@
-#if DEBUG
+using Polyfills;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Test.Helpers;
 using System.Globalization;
-using System.Text;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -21,6 +20,8 @@ public class OADateTests
         { new DateTime(2000, 1, 2, 6, 0, 0) },
         { new DateTime(2000, 1, 2, 6, 0, 0, DateTimeKind.Local) },
         { new DateTime(2000, 1, 2, 6, 0, 0, DateTimeKind.Utc) },
+        { new DateTime(2000, 1, 2, 9, 0, 0) },
+        { new DateTime(2000, 1, 2, 12, 0, 0) },
         { new DateTime(2025, 6, 2, 0, 0, 0) },
         { new DateTime(2025, 6, 2, 5, 8, 13, 67) },
         { new DateTime(2100, 1, 1, 0, 0, 1) },
@@ -79,4 +80,3 @@ public class OADateTests
         }
     }
 }
-#endif
