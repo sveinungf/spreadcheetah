@@ -41,6 +41,16 @@ public class DataValidationTests
     }
 
     [Fact]
+    public void DataValidation_DateTimeEqualTo_InvalidOADate()
+    {
+        // Arrange
+        var dateTime = new DateTime(99, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
+
+        // Act & Assert
+        Assert.Throws<OverflowException>(() => DataValidation.DateTimeEqualTo(dateTime));
+    }
+
+    [Fact]
     public void DataValidation_DateTimeBetween_MinGreaterThanMax()
     {
         // Arrange
