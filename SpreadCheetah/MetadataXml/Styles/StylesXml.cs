@@ -30,6 +30,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         """<dxfs count="0"/>"""u8 +
         """</styleSheet>"""u8;
 
+    private readonly List<ImmutableFont> _fontsList;
     private readonly List<StyleElement> _styles;
     private readonly List<(string, ImmutableStyle, StyleNameVisibility)>? _namedStyles;
     private readonly Dictionary<string, int>? _customNumberFormats;
@@ -41,7 +42,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
     private NumberFormatsXmlPart _numberFormatsXml;
     private BordersXmlPart _bordersXml;
     private FillsXmlPart _fillsXml;
-    private FontsXmlPart _fontsXml;
+    private FontXmlPart? _fontXml;
     private CellStylesXmlPart _cellStylesXml;
     private Element _next;
     private int _nextIndex;
@@ -60,7 +61,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         _numberFormatsXml = new NumberFormatsXmlPart(_customNumberFormats is { } formats ? [.. formats] : null, buffer);
         _bordersXml = new BordersXmlPart([.. _borders.Keys], buffer);
         _fillsXml = new FillsXmlPart([.. _fills.Keys], buffer);
-        _fontsXml = new FontsXmlPart([.. _fonts.Keys], buffer);
+        _fontsList = [.. _fonts.Keys];
         _cellStylesXml = new CellStylesXmlPart(namedStyles, buffer);
         _styles = styles;
         _namedStyles = namedStyles;
@@ -146,7 +147,9 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         {
             Element.Header => _buffer.TryWrite(Header),
             Element.NumberFormats => _numberFormatsXml.TryWrite(),
-            Element.Fonts => _fontsXml.TryWrite(),
+            Element.FontsStart => TryWriteFontsStart(),
+            Element.Fonts => TryWriteFonts(),
+            Element.FontsEnd => _buffer.TryWrite("</fonts>"u8),
             Element.Fills => _fillsXml.TryWrite(),
             Element.Borders => _bordersXml.TryWrite(),
             Element.CellStyleXfsStart => TryWriteCellStyleXfsStart(),
@@ -162,6 +165,42 @@ internal struct StylesXml : IXmlWriter<StylesXml>
             ++_next;
 
         return _next < Element.Done;
+    }
+
+    private readonly bool TryWriteFontsStart()
+    {
+        // The default font must be the first one (index 0)
+        var defaultFont = "\">"u8 +
+            """<font><sz val="11"/><name val="Calibri"/></font>"""u8;
+
+        return _buffer.TryWrite(
+            $"{"<fonts count=\""u8}" +
+            $"{_fontsList.Count}" +
+            $"{defaultFont}");
+    }
+
+    private bool TryWriteFonts()
+    {
+        var defaultFont = new ImmutableFont { Size = Font.DefaultSize };
+        var fontsLocal = _fontsList;
+
+        for (; _nextIndex < fontsLocal.Count; ++_nextIndex)
+        {
+            var font = fontsLocal[_nextIndex];
+            if (font.Equals(defaultFont)) continue;
+
+            var xml = _fontXml ?? new FontXmlPart(_buffer, font);
+            if (!xml.TryWrite())
+            {
+                _fontXml = xml;
+                return false;
+            }
+
+            _fontXml = null;
+        }
+
+        _nextIndex = 0;
+        return true;
     }
 
     private readonly bool TryWriteCellStyleXfsStart()
@@ -224,7 +263,9 @@ internal struct StylesXml : IXmlWriter<StylesXml>
     {
         Header,
         NumberFormats,
+        FontsStart,
         Fonts,
+        FontsEnd,
         Fills,
         Borders,
         CellStyleXfsStart,

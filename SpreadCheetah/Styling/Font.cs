@@ -16,7 +16,7 @@ public sealed record Font
     public string? Name
     {
         get => _name;
-        set => _name = XmlUtility.XmlEncode(value.WithEnsuredMaxLength(31));
+        set => _name = value.WithEnsuredMaxLength(31);
     }
 
     /// <summary>Bold font weight. Defaults to <see langword="false"/>.</summary>
