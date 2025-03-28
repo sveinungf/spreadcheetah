@@ -1,3 +1,4 @@
+using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.MetadataXml.Styles;
@@ -41,12 +42,22 @@ internal struct FontXmlPart(
         var bold = font.Bold ? "<b/>"u8 : ""u8;
         var italic = font.Italic ? "<i/>"u8 : ""u8;
         var strikethrough = font.Strikethrough ? "<strike/>"u8 : ""u8;
+        var underline = GetUnderlineElement(font.Underline);
 
         return buffer.TryWrite(
             $"{"<font>"u8}" +
-            $"{bold}{italic}{strikethrough}" +
+            $"{bold}{italic}{strikethrough}{underline}" +
             $"{"<sz val=\""u8}{font.Size}{"\"/>"u8}");
     }
+
+    private static ReadOnlySpan<byte> GetUnderlineElement(Underline underline) => underline switch
+    {
+        Underline.Single => "<u/>"u8,
+        Underline.SingleAccounting => """<u val="singleAccounting"/>"""u8,
+        Underline.Double => """<u val="double"/>"""u8,
+        Underline.DoubleAccounting => """<u val="doubleAccounting"/>"""u8,
+        _ => []
+    };
 
     private readonly bool TryWriteColor()
     {

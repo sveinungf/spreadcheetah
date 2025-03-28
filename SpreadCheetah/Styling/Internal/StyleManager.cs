@@ -16,7 +16,7 @@ internal sealed class StyleManager
         _defaultDateTimeFormat = defaultDateTimeFormat;
 
         // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
-        var defaultFont = new ImmutableFont(null, false, false, false, Font.DefaultSize, null);
+        var defaultFont = new ImmutableFont() with { Size = Font.DefaultSize };
         var defaultStyle = new ImmutableStyle(new ImmutableAlignment(), new ImmutableBorder(), new ImmutableFill(), defaultFont, null);
         var styleId = AddStyleIfNotExists(defaultStyle);
 

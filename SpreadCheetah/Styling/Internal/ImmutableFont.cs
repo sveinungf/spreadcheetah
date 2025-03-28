@@ -7,6 +7,7 @@ internal readonly record struct ImmutableFont(
     bool Bold,
     bool Italic,
     bool Strikethrough,
+    Underline Underline,
     double Size,
     Color? Color)
 {
@@ -15,6 +16,7 @@ internal readonly record struct ImmutableFont(
         Bold: font.Bold,
         Italic: font.Italic,
         Strikethrough: font.Strikethrough,
+        Underline: font.Underline,
         Size: font.Size,
         Color: font.Color);
 }
