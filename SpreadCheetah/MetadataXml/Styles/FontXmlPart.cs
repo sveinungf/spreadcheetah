@@ -1,4 +1,3 @@
-using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.MetadataXml.Styles;
@@ -54,15 +53,10 @@ internal struct FontXmlPart(
         if (font.Color is not { } color)
             return true;
 
-        // TODO: Add support for Color in buffer.TryWrite
-        var written = 0;
-        var span = buffer.GetSpan();
-        if (!"<color rgb=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(color, span, ref written)) return false;
-        if (!"\"/>"u8.TryCopyTo(span, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        return buffer.TryWrite(
+            $"{"<color rgb=\""u8}" +
+            $"{color}" +
+            $"{"\"/>"u8}");
     }
 
     private readonly bool TryWriteName()

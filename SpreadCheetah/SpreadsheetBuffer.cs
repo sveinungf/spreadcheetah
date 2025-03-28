@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Buffers.Text;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
@@ -185,6 +186,26 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (Utf8Formatter.TryFormat(value.Item1, GetSpan(), out var bytesWritten, value.Item2))
             {
                 _pos += bytesWritten;
+                return true;
+            }
+
+            return Fail();
+        }
+
+        public bool AppendFormatted(Color color)
+        {
+            var span = GetSpan();
+            if (span.Length >= 8)
+            {
+                var format = new StandardFormat('X', 2);
+                Utf8Formatter.TryFormat(color.A, span, out _, format);
+                span = span.Slice(2);
+                Utf8Formatter.TryFormat(color.R, span, out _, format);
+                span = span.Slice(2);
+                Utf8Formatter.TryFormat(color.G, span, out _, format);
+                span = span.Slice(2);
+                Utf8Formatter.TryFormat(color.B, span, out _, format);
+                _pos += 8;
                 return true;
             }
 
