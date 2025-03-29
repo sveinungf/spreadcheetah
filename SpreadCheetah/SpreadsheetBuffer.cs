@@ -212,6 +212,19 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             return Fail();
         }
 
+        public bool AppendFormatted(DateTime dateTime)
+        {
+            var span = GetSpan();
+            if (Utf8Formatter.TryFormat(dateTime, span, out _, new StandardFormat('O')))
+            {
+                span[19] = (byte)'Z';
+                _pos += 20;
+                return true;
+            }
+
+            return Fail();
+        }
+
         public bool AppendFormatted(OADate oaDate)
         {
             if (oaDate.TryFormat(GetSpan(), out var bytesWritten))
