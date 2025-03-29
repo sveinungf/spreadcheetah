@@ -1,6 +1,5 @@
 using Bogus;
 using SpreadCheetah.Styling;
-using System.Drawing;
 using Font = SpreadCheetah.Styling.Font;
 
 namespace SpreadCheetah.Test.Helpers;
@@ -46,7 +45,8 @@ internal static class StyleGenerator
             .RuleFor(x => x.Italic, f => f.Random.Bool())
             .RuleFor(x => x.Name, f => f.Commerce.ProductName().OrNull(f, .1f))
             .RuleFor(x => x.Size, f => f.Random.Number(10000, 72000) / 1000.0)
-            .RuleFor(x => x.Strikethrough, f => f.Random.Bool());
+            .RuleFor(x => x.Strikethrough, f => f.Random.Bool())
+            .RuleFor(x => x.Underline, f => f.Random.Enum<Underline>());
 
         var styles = new Faker<Style>()
             .StrictMode(true)
