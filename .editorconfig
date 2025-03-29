@@ -141,6 +141,10 @@ dotnet_diagnostic.IDE0301.severity = warning
 # IDE0305: Use collection expression for fluent
 dotnet_diagnostic.IDE0305.severity = warning
 
+[Underline.cs]
+# CA1720: Identifiers should not contain type names
+dotnet_diagnostic.CA1720.severity = none
+
 [{TableStyle.cs,TableTotalRowFunction.cs}]
 # CS1591: Missing XML comment for publicly visible type or member
 dotnet_diagnostic.CS1591.severity = none

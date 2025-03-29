@@ -28,6 +28,7 @@ public sealed record Font
     /// <summary>Adds a horizontal line through the center of the characters. Defaults to <see langword="false"/>.</summary>
     public bool Strikethrough { get; set; }
 
+    /// <summary>Font underline. Defaults to no underline.</summary>
     public Underline Underline
     {
         get => _underline;
