@@ -368,6 +368,7 @@ namespace SpreadCheetah.Styling
         public string? Name { get; set; }
         public double Size { get; set; }
         public bool Strikethrough { get; set; }
+        public SpreadCheetah.Styling.Underline Underline { get; set; }
     }
     public enum HorizontalAlignment
     {
@@ -459,6 +460,14 @@ namespace SpreadCheetah.Styling
     {
         Visible = 0,
         Hidden = 1,
+    }
+    public enum Underline
+    {
+        None = 0,
+        Single = 1,
+        SingleAccounting = 2,
+        Double = 3,
+        DoubleAccounting = 4,
     }
     public enum VerticalAlignment
     {

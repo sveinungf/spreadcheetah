@@ -10,14 +10,14 @@ public sealed record Font
 {
     internal const double DefaultSize = 11;
 
-    private string? _name;
-
     /// <summary>Font name. Defaults to Calibri.</summary>
     public string? Name
     {
         get => _name;
-        set => _name = XmlUtility.XmlEncode(value.WithEnsuredMaxLength(31));
+        set => _name = value.WithEnsuredMaxLength(31);
     }
+
+    private string? _name;
 
     /// <summary>Bold font weight. Defaults to <see langword="false"/>.</summary>
     public bool Bold { get; set; }
@@ -27,6 +27,15 @@ public sealed record Font
 
     /// <summary>Adds a horizontal line through the center of the characters. Defaults to <see langword="false"/>.</summary>
     public bool Strikethrough { get; set; }
+
+    /// <summary>Font underline. Defaults to no underline.</summary>
+    public Underline Underline
+    {
+        get => _underline;
+        set => _underline = Guard.DefinedEnumValue(value);
+    }
+
+    private Underline _underline;
 
     /// <summary>Font size. Defaults to 11.</summary>
     public double Size { get; set; } = DefaultSize;

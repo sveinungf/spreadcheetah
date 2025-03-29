@@ -14,6 +14,7 @@ using Fill = SpreadCheetah.Styling.Fill;
 using Font = SpreadCheetah.Styling.Font;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
+using Underline = SpreadCheetah.Styling.Underline;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -168,34 +169,52 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(italic, actualCell.Style.Font.Italic);
     }
 
-    [Theory]
-    [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_StrikethroughCellWithStringValue(bool strikethrough, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_StrikethroughCellWithStringValue(bool strikethrough, StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Italic test";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
 
-            var style = new Style();
-            style.Font.Strikethrough = strikethrough;
-            var styleId = spreadsheet.AddStyle(style);
-            var styledCell = CellFactory.Create(type, cellValue, styleId);
+        var style = new Style();
+        style.Font.Strikethrough = strikethrough;
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = CellFactory.Create(type, cellValue, styleId);
 
-            // Act
-            await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync();
-        }
+        // Act
+        await spreadsheet.AddRowAsync(styledCell, rowType);
+        await spreadsheet.FinishAsync();
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
-        Assert.Equal(cellValue, actualCell.Value);
-        Assert.Equal(strikethrough, actualCell.Style.Font.Strikethrough);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(cellValue, sheet["A1"].StringValue);
+        Assert.Equal(strikethrough, sheet["A1"].Style.Font.Strikethrough);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_UnderlineCellWithStringValue(Underline underline, StyledCellType type, RowCollectionType rowType)
+    {
+        // Arrange
+        const string cellValue = "Italic test";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+
+        var style = new Style();
+        style.Font.Underline = underline;
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = CellFactory.Create(type, cellValue, styleId);
+
+        // Act
+        await spreadsheet.AddRowAsync(styledCell, rowType);
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(cellValue, sheet["A1"].StringValue);
+        Assert.Equal(underline, sheet["A1"].Style.Font.Underline);
     }
 
     public static IEnumerable<object?[]> FontSizes() => TestData.CombineWithStyledCellTypes(

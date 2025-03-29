@@ -12,6 +12,7 @@ using SpreadCheetah.Tables;
 using SpreadCheetah.Tables.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
@@ -440,6 +441,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// This method is used to cache dependencies to avoid redundant lookups.
     /// The return type is immutable and the cache will return the same instance once it has been created.
     /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public WorksheetRowDependencyInfo GetOrCreateWorksheetRowDependencyInfo<T>(WorksheetRowTypeInfo<T> typeInfo)
     {
         var dictionary = _worksheetRowDependencyInfo ??= [];
