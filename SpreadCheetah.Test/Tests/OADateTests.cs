@@ -47,7 +47,7 @@ public class OADateTests
 
         var bytes = destination.Slice(0, bytesWritten);
         DoublePolyfill.TryParse(bytes, CultureInfo.InvariantCulture, out var actualValue);
-        Assert.Equal(expectedValue, actualValue, 0.00000000005);
+        Assert.Equal(expectedValue, actualValue, 0.00000002);
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class OADateTests
 
             var bytes = destination.Slice(0, bytesWritten);
             DoublePolyfill.TryParse(bytes, CultureInfo.InvariantCulture, out var actualValue);
-            Assert.Equal(dateTime.ToOADate(), actualValue, 0.00000000005);
+            Assert.Equal(dateTime.ToOADate(), actualValue, 0.00000002);
         }
     }
 }

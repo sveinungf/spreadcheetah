@@ -12,7 +12,6 @@ internal readonly record struct OADate(long Ticks)
     private const int DaysPer400Years = DaysPer100Years * 4 + 1;
     private const int DaysTo1899 = DaysPer400Years * 4 + DaysPer100Years * 3 - 367;
     private const long DoubleDateOffset = DaysTo1899 * TimeSpan.TicksPerDay;
-    private const long MillisecondsPerDay = TimeSpan.TicksPerDay / TimeSpan.TicksPerMillisecond;
     private const long MinTicks = (DaysPer100Years - DaysPerYear) * TimeSpan.TicksPerDay;
 
     public static void EnsureValidTicks(long ticks)
@@ -41,12 +40,12 @@ internal readonly record struct OADate(long Ticks)
     {
         Debug.Assert(value >= MinTicks);
 
-        var millis = (value - DoubleDateOffset) / TimeSpan.TicksPerMillisecond;
-        var days = Math.DivRem(millis, MillisecondsPerDay, out var millisAfterMidnight);
+        var days = Math.DivRem(value, TimeSpan.TicksPerDay, out var ticksAfterMidnight);
+        var oaDays = days - DaysTo1899;
 
-        return millisAfterMidnight == 0
-            ? TryFormatLong(days, destination, out bytesWritten)
-            : TryFormatWithFraction(days, millisAfterMidnight, destination, out bytesWritten);
+        return ticksAfterMidnight == 0
+            ? TryFormatLong(oaDays, destination, out bytesWritten)
+            : TryFormatWithFraction(oaDays, ticksAfterMidnight, destination, out bytesWritten);
     }
 
     private static bool TryFormatEdgeCases(long value, Span<byte> destination, out int bytesWritten)
@@ -75,10 +74,10 @@ internal readonly record struct OADate(long Ticks)
     }
 
 #pragma warning disable MA0051 // Method is too long
-    private static bool TryFormatWithFraction(long days, long millisAfterMidnight, Span<byte> destination, out int bytesWritten)
+    private static bool TryFormatWithFraction(long days, long ticksAfterMidnight, Span<byte> destination, out int bytesWritten)
 #pragma warning restore MA0051 // Method is too long
     {
-        var fraction = millisAfterMidnight * 1000000 / 864;
+        var fraction = ticksAfterMidnight * 100 / 864;
         if (fraction < 0)
         {
             days--;
