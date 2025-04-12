@@ -26,6 +26,9 @@ public class OADateTests
         { new DateTime(2025, 6, 2, 5, 8, 13, 67) },
         { new DateTime(2100, 1, 1, 0, 0, 1) },
         { new DateTime(3000, 1, 2, 6, 0, 0) },
+        { new DateTime(630823680086400000) },
+        { new DateTime(630823680008640000) },
+        { new DateTime(630823680000864000) },
         { DateTime.MaxValue },
     };
 
@@ -47,7 +50,7 @@ public class OADateTests
 
         var bytes = destination.Slice(0, bytesWritten);
         DoublePolyfill.TryParse(bytes, CultureInfo.InvariantCulture, out var actualValue);
-        Assert.Equal(expectedValue, actualValue, 0.00000000005);
+        Assert.Equal(expectedValue, actualValue, 0.00000002);
     }
 
     [Fact]
@@ -76,7 +79,7 @@ public class OADateTests
 
             var bytes = destination.Slice(0, bytesWritten);
             DoublePolyfill.TryParse(bytes, CultureInfo.InvariantCulture, out var actualValue);
-            Assert.Equal(dateTime.ToOADate(), actualValue, 0.00000000005);
+            Assert.Equal(dateTime.ToOADate(), actualValue, 0.00000002);
         }
     }
 }
