@@ -67,7 +67,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Initializes a new <see cref="Spreadsheet"/> that writes its output to a <see cref="Stream"/>.
     /// </summary>
-    public static async ValueTask<Spreadsheet> CreateNewAsync(
+    public static ValueTask<Spreadsheet> CreateNewAsync(
         Stream stream,
         SpreadCheetahOptions? options = null,
         CancellationToken cancellationToken = default)
@@ -84,14 +84,11 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             null => DocumentProperties.Default
         };
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
         var spreadsheet = new Spreadsheet(zipArchiveManager, bufferSize, defaultDateTimeFormat, documentProperties, writeCellReferenceAttributes);
-        await spreadsheet.InitializeAsync(cancellationToken).ConfigureAwait(false);
-        return spreadsheet;
-    }
-
-    private ValueTask InitializeAsync(CancellationToken token)
-    {
-        return RelationshipsXml.WriteAsync(_zipArchiveManager, _buffer, token);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+        _ = cancellationToken;
+        return new ValueTask<Spreadsheet>(spreadsheet);
     }
 
     /// <summary>
@@ -729,7 +726,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         await FinishAndDisposeWorksheetAsync(token).ConfigureAwait(false);
 
-        var hasStyles = _styleManager is not null;
         var zip = _zipArchiveManager;
 
         if (_documentProperties is not null)
@@ -738,7 +734,11 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             await zip.WriteCoreXmlAsync(_documentProperties, _buffer, token).ConfigureAwait(false);
         }
 
-        await ContentTypesXml.WriteAsync(zip, _buffer, _worksheets, _fileCounter, hasStyles, _documentProperties is not null, token).ConfigureAwait(false);
+        var hasStyles = _styleManager is not null;
+        var includeDocumentProperties = _documentProperties is not null;
+
+        await zip.WriteRelationshipsXmlAsync(includeDocumentProperties, _buffer, token).ConfigureAwait(false);
+        await ContentTypesXml.WriteAsync(zip, _buffer, _worksheets, _fileCounter, hasStyles, includeDocumentProperties, token).ConfigureAwait(false);
         await WorkbookRelsXml.WriteAsync(zip, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(zip, _buffer, _worksheets, token).ConfigureAwait(false);
 
