@@ -12,10 +12,11 @@ internal struct ContentTypesXml : IXmlWriter<ContentTypesXml>
         List<WorksheetMetadata> worksheets,
         FileCounter? fileCounter,
         bool hasStylesXml,
+        bool includeDocumentProperties,
         CancellationToken token)
     {
         const string entryName = "[Content_Types].xml";
-        var writer = new ContentTypesXml(worksheets, fileCounter, hasStylesXml, buffer);
+        var writer = new ContentTypesXml(worksheets, fileCounter, hasStylesXml, includeDocumentProperties, buffer);
         return zipArchiveManager.WriteAsync(writer, entryName, buffer, token);
     }
 
@@ -37,12 +38,16 @@ internal struct ContentTypesXml : IXmlWriter<ContentTypesXml>
     private static ReadOnlySpan<byte> SheetEnd => "\" "u8 + """ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" />"""u8;
     private static ReadOnlySpan<byte> CommentStart => """<Override PartName="/xl/comments"""u8;
     private static ReadOnlySpan<byte> CommentEnd => """.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml"/>"""u8;
+    private static ReadOnlySpan<byte> DocProps =>
+        """<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>"""u8 +
+        """<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>"""u8;
     private static ReadOnlySpan<byte> Footer => "</Types>"u8;
 
     private readonly List<WorksheetMetadata> _worksheets;
     private readonly FileCounter? _fileCounter;
     private readonly SpreadsheetBuffer _buffer;
     private readonly bool _hasStylesXml;
+    private readonly bool _includeDocumentProperties;
     private Element _next;
     private int _nextIndex;
 
@@ -50,11 +55,13 @@ internal struct ContentTypesXml : IXmlWriter<ContentTypesXml>
         List<WorksheetMetadata> worksheets,
         FileCounter? fileCounter,
         bool hasStylesXml,
+        bool includeDocumentProperties,
         SpreadsheetBuffer buffer)
     {
         _worksheets = worksheets;
         _fileCounter = fileCounter;
         _hasStylesXml = hasStylesXml;
+        _includeDocumentProperties = includeDocumentProperties;
         _buffer = buffer;
     }
 
@@ -73,6 +80,7 @@ internal struct ContentTypesXml : IXmlWriter<ContentTypesXml>
             Element.Tables => TryWriteTables(),
             Element.Worksheets => TryWriteWorksheets(),
             Element.Comments => TryWriteComments(),
+            Element.DocProps => TryWriteDocProps(),
             _ => _buffer.TryWrite(Footer)
         };
 
@@ -172,6 +180,9 @@ internal struct ContentTypesXml : IXmlWriter<ContentTypesXml>
         return true;
     }
 
+    private readonly bool TryWriteDocProps()
+        => !_includeDocumentProperties || _buffer.TryWrite(DocProps);
+
     private enum Element
     {
         Header,
@@ -182,6 +193,7 @@ internal struct ContentTypesXml : IXmlWriter<ContentTypesXml>
         Tables,
         Worksheets,
         Comments,
+        DocProps,
         Footer,
         Done
     }

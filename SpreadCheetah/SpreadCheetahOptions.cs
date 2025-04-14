@@ -1,3 +1,4 @@
+using SpreadCheetah.Metadata;
 using SpreadCheetah.Styling;
 
 namespace SpreadCheetah;
@@ -63,4 +64,7 @@ public class SpreadCheetahOptions
     /// Defaults to <see langword="false"/>.
     /// </summary>
     public bool WriteCellReferenceAttributes { get; set; }
+
+    // TODO: If set to "null", then the files are excluded
+    public DocumentProperties? DocumentProperties { get; set; } = new();
 }
