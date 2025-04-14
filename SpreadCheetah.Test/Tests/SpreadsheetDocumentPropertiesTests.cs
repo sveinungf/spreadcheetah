@@ -15,7 +15,6 @@ public class SpreadsheetDocumentPropertiesTests
 
         var options = new SpreadCheetahOptions
         {
-            BufferSize = SpreadCheetahOptions.MinimumBufferSize,
             DocumentProperties = new DocumentProperties
             {
                 Author = author,
@@ -39,6 +38,39 @@ public class SpreadsheetDocumentPropertiesTests
         var actualCreated = Assert.NotNull(actual.Created);
         Assert.Equal(DateTime.UtcNow, actualCreated, TimeSpan.FromSeconds(5));
         Assert.Equal("SpreadCheetah", actual.Application);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_DocumentProperties_VeryLongPropertyValues()
+    {
+        // Arrange
+        var author = string.Join(", ", Enumerable.Repeat("Author", 500));
+        var subject = string.Join(", ", Enumerable.Repeat("Subject", 500));
+        var title = string.Join(", ", Enumerable.Repeat("Title", 500));
+
+        var options = new SpreadCheetahOptions
+        {
+            BufferSize = SpreadCheetahOptions.MinimumBufferSize,
+            DocumentProperties = new DocumentProperties
+            {
+                Author = author,
+                Subject = subject,
+                Title = title
+            }
+        };
+
+        using var stream = new MemoryStream();
+
+        // Act
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await spreadsheet.StartWorksheetAsync("Sheet");
+        await spreadsheet.FinishAsync();
+
+        // Assert
+        var actual = SpreadsheetAssert.DocumentProperties(stream);
+        Assert.Equal(author, actual.Author);
+        Assert.Equal(subject, actual.Subject);
+        Assert.Equal(title, actual.Title);
     }
 
     [Fact]
