@@ -88,6 +88,7 @@ namespace SpreadCheetah
         public SpreadCheetah.Styling.NumberFormat? DefaultDateTimeFormat { get; set; }
         [System.Obsolete("Use SpreadCheetahOptions.DefaultDateTimeFormat instead")]
         public string? DefaultDateTimeNumberFormat { get; set; }
+        public SpreadCheetah.Metadata.DocumentProperties? DocumentProperties { get; set; }
         public bool WriteCellReferenceAttributes { get; set; }
     }
     public sealed class Spreadsheet : System.IAsyncDisposable, System.IDisposable
@@ -186,6 +187,16 @@ namespace SpreadCheetah.Images
     {
         public ImageOptions() { }
         public SpreadCheetah.Images.ImageOffset? Offset { get; set; }
+    }
+}
+namespace SpreadCheetah.Metadata
+{
+    public sealed class DocumentProperties : System.IEquatable<SpreadCheetah.Metadata.DocumentProperties>
+    {
+        public DocumentProperties() { }
+        public string? Author { get; set; }
+        public string? Subject { get; set; }
+        public string? Title { get; set; }
     }
 }
 namespace SpreadCheetah.SourceGeneration

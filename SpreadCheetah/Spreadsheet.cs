@@ -2,6 +2,7 @@ using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images;
 using SpreadCheetah.Images.Internal;
+using SpreadCheetah.Metadata;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.MetadataXml.Styles;
 using SpreadCheetah.MetadataXml.Tables;
@@ -31,6 +32,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly List<WorksheetMetadata> _worksheets = new(1);
     private readonly ZipArchiveManager _zipArchiveManager;
     private readonly SpreadsheetBuffer _buffer;
+    private readonly DocumentProperties? _documentProperties;
     private readonly bool _writeCellReferenceAttributes;
     private Dictionary<Type, WorksheetRowDependencyInfo>? _worksheetRowDependencyInfo;
     private FileCounter? _fileCounter;
@@ -48,10 +50,12 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         }
     }
 
-    private Spreadsheet(ZipArchiveManager zipArchiveManager, int bufferSize, NumberFormat? defaultDateTimeFormat, bool writeCellReferenceAttributes)
+    private Spreadsheet(ZipArchiveManager zipArchiveManager, int bufferSize, NumberFormat? defaultDateTimeFormat,
+        DocumentProperties? documentProperties, bool writeCellReferenceAttributes)
     {
         _zipArchiveManager = zipArchiveManager;
         _buffer = new SpreadsheetBuffer(bufferSize);
+        _documentProperties = documentProperties;
         _writeCellReferenceAttributes = writeCellReferenceAttributes;
 
         // If no style is ever added to the spreadsheet, then we can skip creating the styles.xml file.
@@ -63,7 +67,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Initializes a new <see cref="Spreadsheet"/> that writes its output to a <see cref="Stream"/>.
     /// </summary>
-    public static async ValueTask<Spreadsheet> CreateNewAsync(
+    public static ValueTask<Spreadsheet> CreateNewAsync(
         Stream stream,
         SpreadCheetahOptions? options = null,
         CancellationToken cancellationToken = default)
@@ -73,14 +77,18 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var defaultDateTimeFormat = options is null ? SpreadCheetahOptions.InitialDefaultDateTimeFormat : options.DefaultDateTimeFormat;
         var writeCellReferenceAttributes = options?.WriteCellReferenceAttributes ?? false;
 
-        var spreadsheet = new Spreadsheet(zipArchiveManager, bufferSize, defaultDateTimeFormat, writeCellReferenceAttributes);
-        await spreadsheet.InitializeAsync(cancellationToken).ConfigureAwait(false);
-        return spreadsheet;
-    }
+        var documentProperties = options switch
+        {
+            { DocumentProperties: { } docProps } => docProps with { },
+            { DocumentProperties: null } => null,
+            null => DocumentProperties.Default
+        };
 
-    private ValueTask InitializeAsync(CancellationToken token)
-    {
-        return RelationshipsXml.WriteAsync(_zipArchiveManager, _buffer, token);
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        var spreadsheet = new Spreadsheet(zipArchiveManager, bufferSize, defaultDateTimeFormat, documentProperties, writeCellReferenceAttributes);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+        _ = cancellationToken;
+        return new ValueTask<Spreadsheet>(spreadsheet);
     }
 
     /// <summary>
@@ -718,21 +726,31 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         await FinishAndDisposeWorksheetAsync(token).ConfigureAwait(false);
 
-        var hasStyles = _styleManager is not null;
+        var zip = _zipArchiveManager;
 
-        await ContentTypesXml.WriteAsync(_zipArchiveManager, _buffer, _worksheets, _fileCounter, hasStyles, token).ConfigureAwait(false);
-        await WorkbookRelsXml.WriteAsync(_zipArchiveManager, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
-        await WorkbookXml.WriteAsync(_zipArchiveManager, _buffer, _worksheets, token).ConfigureAwait(false);
+        if (_documentProperties is not null)
+        {
+            await zip.WriteAppXmlAsync(_buffer, token).ConfigureAwait(false);
+            await zip.WriteCoreXmlAsync(_documentProperties, _buffer, token).ConfigureAwait(false);
+        }
+
+        var hasStyles = _styleManager is not null;
+        var includeDocumentProperties = _documentProperties is not null;
+
+        await zip.WriteRelationshipsXmlAsync(includeDocumentProperties, _buffer, token).ConfigureAwait(false);
+        await ContentTypesXml.WriteAsync(zip, _buffer, _worksheets, _fileCounter, hasStyles, includeDocumentProperties, token).ConfigureAwait(false);
+        await WorkbookRelsXml.WriteAsync(zip, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
+        await WorkbookXml.WriteAsync(zip, _buffer, _worksheets, token).ConfigureAwait(false);
 
         if (_styleManager is not null)
-            await StylesXml.WriteAsync(_zipArchiveManager, _buffer, _styleManager, token).ConfigureAwait(false);
+            await StylesXml.WriteAsync(zip, _buffer, _styleManager, token).ConfigureAwait(false);
 
         _finished = true;
 
         // The XLSX can become corrupt if the archive is not flushed before the resulting stream is being used.
         // ZipArchive.Dispose() is currently (up to .NET 7) the only way to flush the archive to the resulting stream.
         // In case the user would use the resulting stream before Spreadsheet.Dispose(), the flush must happen here to prevent a corrupt XLSX.
-        _zipArchiveManager.Dispose();
+        zip.Dispose();
     }
 
     /// <inheritdoc/>

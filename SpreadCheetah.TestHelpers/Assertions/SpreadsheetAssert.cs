@@ -49,4 +49,21 @@ public static class SpreadsheetAssert
 
         stream.Position = 0;
     }
+
+    public static ISpreadsheetAssertDocumentProperties DocumentProperties(Stream stream)
+    {
+        if (stream is null)
+            throw new ArgumentNullException(nameof(stream));
+
+        Valid(stream);
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        var closedXmlWorkbook = new XLWorkbook(stream);
+        var openXmlDoc = SpreadsheetDocument.Open(stream, false);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
+        return new AssertDocumentProperties(
+            closedXmlWorkbook.Properties,
+            openXmlDoc.ExtendedFilePropertiesPart?.Properties);
+    }
 }

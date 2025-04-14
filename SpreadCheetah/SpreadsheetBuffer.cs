@@ -46,6 +46,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
     public bool TryWrite(scoped ReadOnlySpan<byte> utf8Value)
     {
+        Debug.Assert(utf8Value.Length <= SpreadCheetahOptions.MinimumBufferSize);
         if (utf8Value.TryCopyTo(GetSpan()))
         {
             Advance(utf8Value.Length);
@@ -206,6 +207,19 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
                 span = span.Slice(2);
                 Utf8Formatter.TryFormat(color.B, span, out _, format);
                 _pos += 8;
+                return true;
+            }
+
+            return Fail();
+        }
+
+        public bool AppendFormatted(DateTime dateTime)
+        {
+            var span = GetSpan();
+            if (Utf8Formatter.TryFormat(dateTime, span, out _, new StandardFormat('O')))
+            {
+                span[19] = (byte)'Z';
+                _pos += 20;
                 return true;
             }
 
