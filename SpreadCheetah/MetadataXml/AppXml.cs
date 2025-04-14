@@ -1,5 +1,4 @@
 using SpreadCheetah.Helpers;
-using System.Diagnostics;
 
 namespace SpreadCheetah.MetadataXml;
 
@@ -36,8 +35,6 @@ file struct AppXmlWriter(SpreadsheetBuffer buffer)
             """xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">"""u8 +
             """<Application>SpreadCheetah</Application>"""u8 +
             """</Properties>"""u8;
-
-        Debug.Assert(content.Length <= SpreadCheetahOptions.MinimumBufferSize);
 
         return buffer.TryWrite(content);
     }

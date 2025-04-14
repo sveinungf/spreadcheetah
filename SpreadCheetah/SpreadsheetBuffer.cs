@@ -46,6 +46,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
     public bool TryWrite(scoped ReadOnlySpan<byte> utf8Value)
     {
+        Debug.Assert(utf8Value.Length <= SpreadCheetahOptions.MinimumBufferSize);
         if (utf8Value.TryCopyTo(GetSpan()))
         {
             Advance(utf8Value.Length);
