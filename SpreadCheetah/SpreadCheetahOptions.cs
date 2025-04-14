@@ -65,6 +65,10 @@ public class SpreadCheetahOptions
     /// </summary>
     public bool WriteCellReferenceAttributes { get; set; }
 
-    // TODO: If set to "null", then the files are excluded
+    /// <summary>
+    /// Document properties, such as author and title. This generates the <c>docProps/app.xml</c> and <c>docProps/core.xml</c> files
+    /// inside the XLSX file. By default, these files are included for better compatibility with other spreadsheet applications.
+    /// The files can be excluded by setting this property to <see langword="null"/>.
+    /// </summary>
     public DocumentProperties? DocumentProperties { get; set; } = new();
 }
