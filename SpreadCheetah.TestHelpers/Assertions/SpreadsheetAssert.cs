@@ -58,8 +58,12 @@ public static class SpreadsheetAssert
         Valid(stream);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        var workbook = new XLWorkbook(stream);
+        var closedXmlWorkbook = new XLWorkbook(stream);
+        var openXmlDoc = SpreadsheetDocument.Open(stream, false);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-        return new ClosedXmlAssertDocumentProperties(workbook.Properties);
+
+        return new AssertDocumentProperties(
+            closedXmlWorkbook.Properties,
+            openXmlDoc.ExtendedFilePropertiesPart?.Properties);
     }
 }

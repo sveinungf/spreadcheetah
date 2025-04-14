@@ -38,6 +38,7 @@ public class SpreadsheetDocumentPropertiesTests
         Assert.Equal(title, actual.Title);
         var actualCreated = Assert.NotNull(actual.Created);
         Assert.Equal(DateTime.UtcNow, actualCreated, TimeSpan.FromSeconds(5));
+        Assert.Equal("SpreadCheetah", actual.Application);
     }
 
     [Fact]
@@ -62,6 +63,7 @@ public class SpreadsheetDocumentPropertiesTests
         Assert.Null(actual.Subject);
         Assert.Null(actual.Title);
         Assert.Null(actual.Created);
+        Assert.Null(actual.Application);
     }
 
     [Theory, CombinatorialData]
@@ -83,5 +85,6 @@ public class SpreadsheetDocumentPropertiesTests
         Assert.Null(actual.Title);
         var actualCreated = Assert.NotNull(actual.Created);
         Assert.Equal(DateTime.UtcNow, actualCreated, TimeSpan.FromSeconds(5));
+        Assert.Equal("SpreadCheetah", actual.Application);
     }
 }
