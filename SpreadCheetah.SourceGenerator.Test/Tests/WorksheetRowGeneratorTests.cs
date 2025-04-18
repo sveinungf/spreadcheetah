@@ -191,7 +191,9 @@ public class WorksheetRowGeneratorTests
     [InlineData("Short value")]
     [InlineData("Exact length!!!")]
     [InlineData("Long value that will be truncated")]
+#pragma warning disable S2479 // Whitespace and control characters in string literals should be explicit
     [InlineData("A couple 👨‍👩‍👧‍👦 with kids")]
+#pragma warning restore S2479 // Whitespace and control characters in string literals should be explicit
     [InlineData("")]
     [InlineData(null)]
     public async Task Spreadsheet_AddAsRow_ObjectWithCellValueTruncateAttribute(string? originalValue)
