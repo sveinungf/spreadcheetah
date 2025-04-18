@@ -8,6 +8,7 @@ namespace SpreadCheetah.Test.Tests;
 public class NamedStyleTests
 {
     private static readonly SpreadCheetahOptions SpreadCheetahOptions = new() { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
 
     [Theory]
     [InlineData(StyleNameVisibility.Visible)]
@@ -16,15 +17,15 @@ public class NamedStyleTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, SpreadCheetahOptions);
-        await spreadsheet.StartWorksheetAsync("My sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, SpreadCheetahOptions, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var style = new Style { Font = { Bold = true } };
         const string name = "My bold style";
 
         // Act
         var addedStyleId = spreadsheet.AddStyle(style, name, visibility);
         var returnedStyleId = spreadsheet.GetStyleId(name);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         Assert.Equal(addedStyleId, returnedStyleId);
@@ -41,15 +42,15 @@ public class NamedStyleTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, SpreadCheetahOptions);
-        await spreadsheet.StartWorksheetAsync("My sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, SpreadCheetahOptions, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var style = new Style { Font = { Bold = true } };
         const string name = "My bold style";
 
         // Act
         var addedStyleId = spreadsheet.AddStyle(style, name);
         var returnedStyleId = spreadsheet.GetStyleId(name);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         Assert.Equal(addedStyleId, returnedStyleId);
@@ -71,15 +72,15 @@ public class NamedStyleTests
         if (!withDefaultDateTimeFormat)
             options.DefaultDateTimeFormat = null;
 
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("My sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var style = new Style { Font = { Bold = true } };
         const string name = "My bold style";
 
         // Act
         var styleId = spreadsheet.AddStyle(style, name, StyleNameVisibility.Visible);
-        await spreadsheet.AddRowAsync([new StyledCell("My cell", styleId)]);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddRowAsync([new StyledCell("My cell", styleId)], token: Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -95,18 +96,18 @@ public class NamedStyleTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, SpreadCheetahOptions);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, SpreadCheetahOptions, Token);
         var style = new Style { Font = { Bold = true } };
         const string name = "My bold style";
 
         // Act
         var styleId = spreadsheet.AddStyle(style, name, StyleNameVisibility.Visible);
-        await spreadsheet.StartWorksheetAsync("Sheet 1");
-        await spreadsheet.AddRowAsync([new StyledCell("A1", styleId), new StyledCell(2, null), new StyledCell(3, styleId)]);
-        await spreadsheet.AddRowAsync([new StyledCell("A2", styleId)]);
-        await spreadsheet.StartWorksheetAsync("Sheet 2");
-        await spreadsheet.AddRowAsync([new StyledCell("A1", styleId)]);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
+        await spreadsheet.AddRowAsync([new StyledCell("A1", styleId), new StyledCell(2, null), new StyledCell(3, styleId)], token: Token);
+        await spreadsheet.AddRowAsync([new StyledCell("A2", styleId)], token: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
+        await spreadsheet.AddRowAsync([new StyledCell("A1", styleId)], token: Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -126,7 +127,7 @@ public class NamedStyleTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, SpreadCheetahOptions);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, SpreadCheetahOptions, Token);
         (string Name, Style Style)[] styles =
         [
             ("Bold", new Style { Font = { Bold = true } }),
@@ -138,12 +139,12 @@ public class NamedStyleTests
         // Act
         var styleIds = styles.Select(x => spreadsheet.AddStyle(x.Style, x.Name, StyleNameVisibility.Visible)).ToList();
 
-        await spreadsheet.StartWorksheetAsync("Sheet 1");
-        await spreadsheet.AddRowAsync([new StyledCell("A1", styleIds[0]), new StyledCell(2, null), new StyledCell(3, styleIds[1])]);
-        await spreadsheet.AddRowAsync([new StyledCell("A2", styleIds[2])]);
-        await spreadsheet.StartWorksheetAsync("Sheet 2");
-        await spreadsheet.AddRowAsync([new StyledCell("A1", styleIds[3])]);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
+        await spreadsheet.AddRowAsync([new StyledCell("A1", styleIds[0]), new StyledCell(2, null), new StyledCell(3, styleIds[1])], token: Token);
+        await spreadsheet.AddRowAsync([new StyledCell("A2", styleIds[2])], token: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
+        await spreadsheet.AddRowAsync([new StyledCell("A1", styleIds[3])], token: Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -161,7 +162,7 @@ public class NamedStyleTests
     public async Task Spreadsheet_AddStyle_NamedStyleWithInvalidVisibility()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions, Token);
         var style = new Style { Font = { Bold = true } };
 
         // Act & Assert
@@ -178,7 +179,7 @@ public class NamedStyleTests
     public async Task Spreadsheet_AddStyle_NamedStyleWithInvalidName(string? name)
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions, Token);
         var style = new Style { Font = { Bold = true } };
 
         // Act & Assert
@@ -189,7 +190,7 @@ public class NamedStyleTests
     public async Task Spreadsheet_AddStyle_NamedStyleWithTooLongName()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions, Token);
         var style = new Style { Font = { Bold = true } };
         var name = new string('c', 256);
 
@@ -203,7 +204,7 @@ public class NamedStyleTests
     public async Task Spreadsheet_AddStyle_NamedStyleWithDuplicateName(bool differentCasing)
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions, Token);
 
         var style = new Style { Font = { Bold = true } };
         const string name = "My bold style";
@@ -220,7 +221,7 @@ public class NamedStyleTests
     public async Task Spreadsheet_AddStyle_DuplicateNamedStylesReturnsDifferentStyleIds()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions, Token);
         var style1 = new Style { Font = { Bold = true } };
         var style2 = style1 with { };
 
@@ -236,7 +237,7 @@ public class NamedStyleTests
     public async Task Spreadsheet_AddStyle_NamedStyleDuplicateOfUnnamedStyleReturnsDifferentStyleIds()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions, Token);
         var style1 = new Style { Font = { Bold = true } };
         var style2 = style1 with { };
 
@@ -254,7 +255,7 @@ public class NamedStyleTests
     public async Task Spreadsheet_GetStyleId_IncorrectName(bool existingNamedStyle)
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, SpreadCheetahOptions, Token);
 
         if (existingNamedStyle)
         {

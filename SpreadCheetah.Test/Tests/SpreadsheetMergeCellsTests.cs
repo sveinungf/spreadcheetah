@@ -8,6 +8,8 @@ namespace SpreadCheetah.Test.Tests;
 
 public class SpreadsheetMergeCellsTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Theory]
     [InlineData("A1:A2")]
     [InlineData("A1:F1")]
@@ -16,12 +18,12 @@ public class SpreadsheetMergeCellsTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
         spreadsheet.MergeCells(cellRange);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -46,8 +48,8 @@ public class SpreadsheetMergeCellsTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act & Assert
         Assert.ThrowsAny<ArgumentException>(() => spreadsheet.MergeCells(cellRange!));
@@ -62,8 +64,8 @@ public class SpreadsheetMergeCellsTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
         for (var i = 0; i < count; ++i)
@@ -72,7 +74,7 @@ public class SpreadsheetMergeCellsTests
             spreadsheet.MergeCells(range);
         }
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -89,9 +91,9 @@ public class SpreadsheetMergeCellsTests
         const string dataValidationRange = "A2:A100";
         const string mergeRange = "B2:F3";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         var options = new WorksheetOptions { AutoFilter = new AutoFilterOptions(autoFilterRange) };
-        await spreadsheet.StartWorksheetAsync("Sheet", options);
+        await spreadsheet.StartWorksheetAsync("Sheet", options, Token);
 
         const int validationValue = 50;
         var validation = DataValidation.TextLengthLessThan(validationValue);
@@ -99,7 +101,7 @@ public class SpreadsheetMergeCellsTests
 
         // Act
         spreadsheet.MergeCells(mergeRange);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);

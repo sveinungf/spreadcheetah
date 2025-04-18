@@ -19,6 +19,8 @@ namespace SpreadCheetah.Test.Tests;
 
 public class SpreadsheetTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Fact]
     public async Task Spreadsheet_CreateNew_EmptyIsValid()
     {
@@ -26,10 +28,10 @@ public class SpreadsheetTests
         using var stream = new MemoryStream();
 
         // Act
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Name");
-            await spreadsheet.FinishAsync();
+            await spreadsheet.StartWorksheetAsync("Name", token: Token);
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -46,10 +48,10 @@ public class SpreadsheetTests
             : new WriteOnlyMemoryStream();
 
         // Act
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Name");
-            await spreadsheet.FinishAsync();
+            await spreadsheet.StartWorksheetAsync("Name", token: Token);
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -62,13 +64,13 @@ public class SpreadsheetTests
     public async Task Spreadsheet_Finish_ThrowsWhenNoWorksheet(bool hasWorksheet)
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
 
         if (hasWorksheet)
-            await spreadsheet.StartWorksheetAsync("Book 1");
+            await spreadsheet.StartWorksheetAsync("Book 1", token: Token);
 
         // Act
-        var exception = await Record.ExceptionAsync(async () => await spreadsheet.FinishAsync());
+        var exception = await Record.ExceptionAsync(async () => await spreadsheet.FinishAsync(Token));
 
         // Assert
         Assert.NotEqual(hasWorksheet, exception is SpreadCheetahException);
@@ -83,14 +85,14 @@ public class SpreadsheetTests
         var options = new SpreadCheetahOptions { DefaultDateTimeFormat = null };
 
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Book 1");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Book 1", token: Token);
 
         if (hasNote)
             spreadsheet.AddNote("B5", "My note");
 
         // Act
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var zip = new ZipArchive(stream);
@@ -111,12 +113,12 @@ public class SpreadsheetTests
             options.DefaultDateTimeFormat = null;
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
         {
-            await spreadsheet.StartWorksheetAsync("Book 1");
+            await spreadsheet.StartWorksheetAsync("Book 1", token: Token);
 
             // Act
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -131,9 +133,9 @@ public class SpreadsheetTests
         using var stream = new MemoryStream();
 
         // Act
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Name");
-        await spreadsheet.FinishAsync();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Name", token: Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -145,8 +147,8 @@ public class SpreadsheetTests
         // Arrange
         using var stream = new MemoryStream();
         using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         var options = new WorksheetOptions
         {
             AutoFilter = new AutoFilterOptions("A1:F1"),
@@ -157,7 +159,7 @@ public class SpreadsheetTests
 
         options.Column(2).Width = 80;
 
-        await spreadsheet.StartWorksheetAsync("Hidden sheet", options);
+        await spreadsheet.StartWorksheetAsync("Hidden sheet", options, Token);
 
         var validation = DataValidation.TextLengthLessThan(50);
         spreadsheet.AddDataValidation("A2:A100", validation);
@@ -165,10 +167,10 @@ public class SpreadsheetTests
         spreadsheet.AddNote("C1", "My note");
         spreadsheet.MergeCells("B2:F3");
 
-        await spreadsheet.StartWorksheetAsync("Visible sheet");
+        await spreadsheet.StartWorksheetAsync("Visible sheet", token: Token);
 
         // Act
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -180,8 +182,8 @@ public class SpreadsheetTests
         // Arrange
         using var stream = new MemoryStream();
         using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         var options = new WorksheetOptions
         {
             FrozenColumns = 2,
@@ -191,7 +193,7 @@ public class SpreadsheetTests
 
         options.Column(2).Width = 80;
 
-        await spreadsheet.StartWorksheetAsync("Hidden sheet", options);
+        await spreadsheet.StartWorksheetAsync("Hidden sheet", options, Token);
 
         var validation = DataValidation.TextLengthLessThan(50);
         spreadsheet.AddDataValidation("A2:A100", validation);
@@ -200,12 +202,12 @@ public class SpreadsheetTests
         spreadsheet.MergeCells("B2:F3");
         spreadsheet.StartTable(new Table(TableStyle.Light8));
 
-        await spreadsheet.AddHeaderRowAsync(["Header"]);
+        await spreadsheet.AddHeaderRowAsync(["Header"], token: Token);
 
-        await spreadsheet.StartWorksheetAsync("Visible sheet");
+        await spreadsheet.StartWorksheetAsync("Visible sheet", token: Token);
 
         // Act
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -219,8 +221,8 @@ public class SpreadsheetTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
 
         foreach (var row in Enumerable.Range(1, rowsAdded).Select(_ => new DataCell("Value")))
         {
@@ -242,15 +244,15 @@ public class SpreadsheetTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
 
         foreach (var row in Enumerable.Range(1, 5).Select(_ => new DataCell("Value")))
         {
             await spreadsheet.AddRowAsync(row);
         }
 
-        await spreadsheet.StartWorksheetAsync("Sheet 2");
+        await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
 
         foreach (var row in Enumerable.Range(1, rowsAdded).Select(_ => new DataCell("Value")))
         {
@@ -279,11 +281,11 @@ public class SpreadsheetTests
         // Arrange
         using var stream = new MemoryStream();
 
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
             // Act
-            await spreadsheet.StartWorksheetAsync(name);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.StartWorksheetAsync(name, token: Token);
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -310,10 +312,10 @@ public class SpreadsheetTests
     public async Task Spreadsheet_StartWorksheet_InvalidName(string name)
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
 
         // Act
-        var exception = await Record.ExceptionAsync(async () => await spreadsheet.StartWorksheetAsync(name));
+        var exception = await Record.ExceptionAsync(async () => await spreadsheet.StartWorksheetAsync(name, token: Token));
 
         // Assert
         Assert.NotNull(exception);
@@ -323,10 +325,10 @@ public class SpreadsheetTests
     public async Task Spreadsheet_StartWorksheet_NullName()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
 
         // Act
-        var exception = await Assert.ThrowsAsync<ArgumentNullException>(async () => await spreadsheet.StartWorksheetAsync(null!));
+        var exception = await Assert.ThrowsAsync<ArgumentNullException>(async () => await spreadsheet.StartWorksheetAsync(null!, token: Token));
 
         // Assert
         Assert.Equal("name", exception.ParamName);
@@ -340,8 +342,8 @@ public class SpreadsheetTests
     {
         // Arrange
         const string name = "Sheet";
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync(name);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync(name, token: Token);
         var nextName = duplicateName switch
         {
             true when sameCasing => name,
@@ -350,7 +352,7 @@ public class SpreadsheetTests
         };
 
         // Act
-        var exception = await Record.ExceptionAsync(async () => await spreadsheet.StartWorksheetAsync(nextName));
+        var exception = await Record.ExceptionAsync(async () => await spreadsheet.StartWorksheetAsync(nextName, token: Token));
 
         // Assert
         Assert.Equal(duplicateName, exception != null);
@@ -367,16 +369,16 @@ public class SpreadsheetTests
         var sheetNames = Enumerable.Range(1, count).Select(x => "Sheet " + x).ToList();
         using var stream = new MemoryStream();
         var spreadsheetOptions = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, spreadsheetOptions);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, spreadsheetOptions, Token);
 
         // Act
         foreach (var name in sheetNames)
         {
-            await spreadsheet.StartWorksheetAsync(name);
+            await spreadsheet.StartWorksheetAsync(name, token: Token);
             await spreadsheet.AddRowAsync(new DataCell(name));
         }
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheets = SpreadsheetAssert.Sheets(stream);
@@ -397,7 +399,7 @@ public class SpreadsheetTests
         var columnWidths = Enumerable.Range(1, count).Select(x => 20d + (x % 100)).ToList();
         using var stream = new MemoryStream();
         var spreadsheetOptions = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, spreadsheetOptions);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, spreadsheetOptions, Token);
         var options = new WorksheetOptions();
 
         // Act
@@ -406,8 +408,8 @@ public class SpreadsheetTests
             options.Column(i + 1).Width = columnWidth;
         }
 
-        await spreadsheet.StartWorksheetAsync("Sheet", options);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.StartWorksheetAsync("Sheet", options, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -424,12 +426,14 @@ public class SpreadsheetTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet 1", new WorksheetOptions { Visibility = firstHidden ? visibility : WorksheetVisibility.Visible });
-        await spreadsheet.StartWorksheetAsync("Sheet 2", new WorksheetOptions { Visibility = !firstHidden ? visibility : WorksheetVisibility.Visible });
-        await spreadsheet.FinishAsync();
+        var options1 = new WorksheetOptions { Visibility = firstHidden ? visibility : WorksheetVisibility.Visible };
+        await spreadsheet.StartWorksheetAsync("Sheet 1", options1, Token);
+        var options2 = new WorksheetOptions { Visibility = !firstHidden ? visibility : WorksheetVisibility.Visible };
+        await spreadsheet.StartWorksheetAsync("Sheet 2", options2, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -464,11 +468,11 @@ public class SpreadsheetTests
         var expectedWidth = width ?? defaultWidthInXml;
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
             // Act
-            await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -488,11 +492,11 @@ public class SpreadsheetTests
         var expectedHidden = hidden;
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
             // Act
-            await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -529,11 +533,11 @@ public class SpreadsheetTests
         };
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
             // Act
-            await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -554,11 +558,11 @@ public class SpreadsheetTests
         // Arrange
         var worksheetOptions = new WorksheetOptions();
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
             // Act
-            await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -573,13 +577,14 @@ public class SpreadsheetTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         const string cellRange = "A1:B10";
         var autoFilter = new AutoFilterOptions(cellRange);
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet 1", new WorksheetOptions { AutoFilter = autoFilter });
-        await spreadsheet.FinishAsync();
+        var sheetOptions = new WorksheetOptions { AutoFilter = autoFilter };
+        await spreadsheet.StartWorksheetAsync("Sheet 1", sheetOptions, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -594,14 +599,14 @@ public class SpreadsheetTests
     public async Task Spreadsheet_StartWorksheet_ThrowsWhenHasFinished(bool hasFinished)
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Book 1");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Book 1", token: Token);
 
         if (hasFinished)
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
 
         // Act
-        var exception = await Record.ExceptionAsync(async () => await spreadsheet.StartWorksheetAsync("Book 2"));
+        var exception = await Record.ExceptionAsync(async () => await spreadsheet.StartWorksheetAsync("Book 2", token: Token));
 
         // Assert
         Assert.Equal(hasFinished, exception is SpreadCheetahException);
@@ -611,8 +616,8 @@ public class SpreadsheetTests
     public async Task Spreadsheet_AddStyle_DuplicateStylesReturnTheSameStyleId()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Book 1");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Book 1", token: Token);
 
         var style1 = new Style { Fill = new Fill { Color = Color.Bisque } };
         var style2 = style1 with { };
@@ -631,8 +636,8 @@ public class SpreadsheetTests
     public async Task Spreadsheet_AddStyle_DefaultStyleGettingTheExpectedStyleId(bool defaultStyle)
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Book 1");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Book 1", token: Token);
 
         var style = new Style();
         if (!defaultStyle)

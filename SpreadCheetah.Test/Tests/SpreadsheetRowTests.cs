@@ -15,19 +15,21 @@ namespace SpreadCheetah.Test.Tests;
 
 public class SpreadsheetRowTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public async Task Spreadsheet_AddRow_ThrowsWhenNoWorksheet(bool hasWorksheet)
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
 
         if (hasWorksheet)
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
-        var exception = await Record.ExceptionAsync(async () => await spreadsheet.AddRowAsync([]));
+        var exception = await Record.ExceptionAsync(async () => await spreadsheet.AddRowAsync([], Token));
 
         // Assert
         Assert.NotEqual(hasWorksheet, exception is SpreadCheetahException);
@@ -39,14 +41,14 @@ public class SpreadsheetRowTests
     public async Task Spreadsheet_AddRow_ThrowsWhenAlreadyFinished(bool finished)
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         if (finished)
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
 
         // Act
-        var exception = await Record.ExceptionAsync(async () => await spreadsheet.AddRowAsync([]));
+        var exception = await Record.ExceptionAsync(async () => await spreadsheet.AddRowAsync([], Token));
 
         // Assert
         Assert.Equal(finished, exception != null);
@@ -58,9 +60,9 @@ public class SpreadsheetRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var addRowTask = type switch
             {
@@ -72,7 +74,7 @@ public class SpreadsheetRowTests
 
             // Act
             await addRowTask;
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -88,14 +90,14 @@ public class SpreadsheetRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             var cell = CellFactory.CreateWithoutValue(type);
 
             // Act
             await spreadsheet.AddRowAsync(cell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -129,13 +131,13 @@ public class SpreadsheetRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var cell = CellFactory.Create(type, value);
 
         // Act
         await spreadsheet.AddRowAsync(cell, rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -148,13 +150,13 @@ public class SpreadsheetRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var cell = CellFactory.Create(type, value.AsMemory());
 
         // Act
         await spreadsheet.AddRowAsync(cell, rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -168,13 +170,13 @@ public class SpreadsheetRowTests
         // Arrange
         const string value = "With\u0000Control\u0010\u001fCharacters";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var cell = CellFactory.Create(type, value);
 
         // Act
         await spreadsheet.AddRowAsync(cell, rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -201,14 +203,14 @@ public class SpreadsheetRowTests
         var value = new string('a', length);
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             var cell = CellFactory.Create(type, value);
 
             // Act
             await spreadsheet.AddRowAsync(cell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -234,14 +236,14 @@ public class SpreadsheetRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             var cell = CellFactory.Create(type, value);
 
             // Act
             await spreadsheet.AddRowAsync(cell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -273,14 +275,14 @@ public class SpreadsheetRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             var cell = CellFactory.Create(type, initialValue);
 
             // Act
             await spreadsheet.AddRowAsync(cell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -309,14 +311,14 @@ public class SpreadsheetRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             var cell = CellFactory.Create(type, initialValue);
 
             // Act
             await spreadsheet.AddRowAsync(cell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -350,14 +352,14 @@ public class SpreadsheetRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             var cell = CellFactory.Create(type, initialValue);
 
             // Act
             await spreadsheet.AddRowAsync(cell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -393,14 +395,14 @@ public class SpreadsheetRowTests
         // Arrange
         var decimalValue = initialValue != null ? decimal.Parse(initialValue, CultureInfo.InvariantCulture) : null as decimal?;
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             var cell = CellFactory.Create(type, decimalValue);
 
             // Act
             await spreadsheet.AddRowAsync(cell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -427,14 +429,14 @@ public class SpreadsheetRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             var cell = CellFactory.Create(type, value);
 
             // Act
             await spreadsheet.AddRowAsync(cell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -463,14 +465,14 @@ public class SpreadsheetRowTests
         var value = new DateTime(2022, 9, 11, 14, 7, 13, DateTimeKind.Unspecified);
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { DefaultDateTimeNumberFormat = defaultNumberFormat };
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             var cell = CellFactory.Create(type, value);
 
             // Act
             await spreadsheet.AddRowAsync(cell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         var expectedValue = DateTime.FromOADate(value.ToOADate());
@@ -496,14 +498,14 @@ public class SpreadsheetRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             var cell = CellFactory.Create(type, initialValue);
 
             // Act
             await spreadsheet.AddRowAsync(cell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -523,14 +525,14 @@ public class SpreadsheetRowTests
         // Arrange
         var values = Enumerable.Range(1, 1000).Select(x => x.ToString()).ToList();
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             var cells = values.ConvertAll(x => CellFactory.Create(type, x));
 
             // Act
             await spreadsheet.AddRowAsync(cells, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -548,13 +550,14 @@ public class SpreadsheetRowTests
         // Arrange
         var values = Enumerable.Range(1, 1000).Select(x => new string((char)('A' + (x % 26)), 1000)).ToList();
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize });
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var cells = values.ConvertAll(x => CellFactory.Create(type, x));
 
         // Act
         await spreadsheet.AddRowAsync(cells, rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -571,9 +574,9 @@ public class SpreadsheetRowTests
         // Arrange
         var values = Enumerable.Range(1, 1000).Select(x => x.ToString()).ToList();
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             foreach (var value in values)
@@ -581,7 +584,7 @@ public class SpreadsheetRowTests
                 await spreadsheet.AddRowAsync(CellFactory.Create(type, value), rowType);
             }
 
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -601,8 +604,8 @@ public class SpreadsheetRowTests
         var values = Enumerable.Repeat(cellValue, 1000);
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
         foreach (var value in values)
@@ -610,7 +613,7 @@ public class SpreadsheetRowTests
             await spreadsheet.AddRowAsync(CellFactory.Create(type, value), rowType);
         }
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -627,7 +630,7 @@ public class SpreadsheetRowTests
         // Arrange
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { DefaultDateTimeFormat = null, WriteCellReferenceAttributes = true };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
 
         var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(cellType, valueType, isNull, null, out var _)).ToList();
         var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(cellType, valueType, isNull, null, out var _)).ToList();
@@ -638,15 +641,15 @@ public class SpreadsheetRowTests
         var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1");
+        await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
         await spreadsheet.AddRowAsync(row2, rowType);
         await spreadsheet.AddRowAsync(row3, rowType);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2");
+        await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -677,7 +680,7 @@ public class SpreadsheetRowTests
         // Arrange
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize, WriteCellReferenceAttributes = true };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         var value = new string('a', options.BufferSize * 2);
 
         var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(cellType, value)).ToList();
@@ -689,15 +692,15 @@ public class SpreadsheetRowTests
         var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1");
+        await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
         await spreadsheet.AddRowAsync(row2, rowType);
         await spreadsheet.AddRowAsync(row3, rowType);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2");
+        await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -729,15 +732,15 @@ public class SpreadsheetRowTests
         // Arrange
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { WriteCellReferenceAttributes = true };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet1");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         DateTime? cellValue = isNull ? null : new DateTime(2019, 8, 7, 6, 5, 4, DateTimeKind.Utc);
         var cell = new Cell(cellValue);
 
         // Act
         await spreadsheet.AddRowAsync(cell);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -764,11 +767,11 @@ public class SpreadsheetRowTests
         var expectedHeight = height ?? 15;
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             await spreadsheet.AddRowAsync(CellFactory.Create(type, "My value"), rowType, rowOptions);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert

@@ -276,6 +276,9 @@ dotnet_diagnostic.S1694.severity = none
 # S6562: Always set the "DateTimeKind" when creating new "DateTime" instances
 dotnet_diagnostic.S6562.severity = none
 
+[{ReflectionHelper.cs,TestHelper.cs}]
+# S3011: Reflection should not be used to increase accessibility of classes, methods, or fields
+dotnet_diagnostic.S3011.severity = none
 
 [{*Test,*.Benchmark}/**.cs]
 # S927: Parameter names should match base declaration

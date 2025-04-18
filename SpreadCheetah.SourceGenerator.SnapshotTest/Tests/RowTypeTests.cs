@@ -5,6 +5,8 @@ namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 
 public class RowTypeTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Fact]
     public Task RowType_ClassWithNoProperties()
     {
@@ -22,7 +24,7 @@ public class RowTypeTests
             """;
 
         // Act & Assert
-        return context.RunAsync();
+        return context.RunAsync(Token);
     }
 
     [Fact]
@@ -43,7 +45,7 @@ public class RowTypeTests
             """;
 
         // Act & Assert
-        return context.RunAsync();
+        return context.RunAsync(Token);
     }
 
     [Fact]

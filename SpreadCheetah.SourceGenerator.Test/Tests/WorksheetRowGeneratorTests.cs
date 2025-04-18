@@ -23,6 +23,8 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests;
 
 public class WorksheetRowGeneratorTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Theory]
     [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddAsRow_ObjectWithMultipleProperties(ObjectType type)
@@ -34,24 +36,24 @@ public class WorksheetRowGeneratorTests
         var ctx = MultiplePropertiesContext.Default;
 
         using var stream = new MemoryStream();
-        await using (var s = await Spreadsheet.CreateNewAsync(stream))
+        await using (var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await s.StartWorksheetAsync("Sheet");
+            await s.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             var task = type switch
             {
-                ObjectType.Class => s.AddAsRowAsync(new ClassWithMultipleProperties(firstName, lastName, age), ctx.ClassWithMultipleProperties),
-                ObjectType.RecordClass => s.AddAsRowAsync(new RecordClassWithMultipleProperties(firstName, lastName, age), ctx.RecordClassWithMultipleProperties),
-                ObjectType.Struct => s.AddAsRowAsync(new StructWithMultipleProperties(firstName, lastName, age), ctx.StructWithMultipleProperties),
-                ObjectType.RecordStruct => s.AddAsRowAsync(new RecordStructWithMultipleProperties(firstName, lastName, age), ctx.RecordStructWithMultipleProperties),
-                ObjectType.ReadOnlyStruct => s.AddAsRowAsync(new ReadOnlyStructWithMultipleProperties(firstName, lastName, age), ctx.ReadOnlyStructWithMultipleProperties),
-                ObjectType.ReadOnlyRecordStruct => s.AddAsRowAsync(new ReadOnlyRecordStructWithMultipleProperties(firstName, lastName, age), ctx.ReadOnlyRecordStructWithMultipleProperties),
+                ObjectType.Class => s.AddAsRowAsync(new ClassWithMultipleProperties(firstName, lastName, age), ctx.ClassWithMultipleProperties, Token),
+                ObjectType.RecordClass => s.AddAsRowAsync(new RecordClassWithMultipleProperties(firstName, lastName, age), ctx.RecordClassWithMultipleProperties, Token),
+                ObjectType.Struct => s.AddAsRowAsync(new StructWithMultipleProperties(firstName, lastName, age), ctx.StructWithMultipleProperties, Token),
+                ObjectType.RecordStruct => s.AddAsRowAsync(new RecordStructWithMultipleProperties(firstName, lastName, age), ctx.RecordStructWithMultipleProperties, Token),
+                ObjectType.ReadOnlyStruct => s.AddAsRowAsync(new ReadOnlyStructWithMultipleProperties(firstName, lastName, age), ctx.ReadOnlyStructWithMultipleProperties, Token),
+                ObjectType.ReadOnlyRecordStruct => s.AddAsRowAsync(new ReadOnlyRecordStructWithMultipleProperties(firstName, lastName, age), ctx.ReadOnlyRecordStructWithMultipleProperties, Token),
                 _ => throw new NotImplementedException(),
             };
 
             await task;
-            await s.FinishAsync();
+            await s.FinishAsync(Token);
         }
 
         // Assert
@@ -69,24 +71,24 @@ public class WorksheetRowGeneratorTests
         // Arrange
         var ctx = NoPropertiesContext.Default;
         using var stream = new MemoryStream();
-        await using (var s = await Spreadsheet.CreateNewAsync(stream))
+        await using (var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await s.StartWorksheetAsync("Sheet");
+            await s.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             var task = type switch
             {
-                ObjectType.Class => s.AddAsRowAsync(new ClassWithNoProperties(), ctx.ClassWithNoProperties),
-                ObjectType.RecordClass => s.AddAsRowAsync(new RecordClassWithNoProperties(), ctx.RecordClassWithNoProperties),
-                ObjectType.Struct => s.AddAsRowAsync(new StructWithNoProperties(), ctx.StructWithNoProperties),
-                ObjectType.RecordStruct => s.AddAsRowAsync(new RecordStructWithNoProperties(), ctx.RecordStructWithNoProperties),
-                ObjectType.ReadOnlyStruct => s.AddAsRowAsync(new ReadOnlyStructWithNoProperties(), ctx.ReadOnlyStructWithNoProperties),
-                ObjectType.ReadOnlyRecordStruct => s.AddAsRowAsync(new ReadOnlyRecordStructWithNoProperties(), ctx.ReadOnlyRecordStructWithNoProperties),
+                ObjectType.Class => s.AddAsRowAsync(new ClassWithNoProperties(), ctx.ClassWithNoProperties, Token),
+                ObjectType.RecordClass => s.AddAsRowAsync(new RecordClassWithNoProperties(), ctx.RecordClassWithNoProperties, Token),
+                ObjectType.Struct => s.AddAsRowAsync(new StructWithNoProperties(), ctx.StructWithNoProperties, Token),
+                ObjectType.RecordStruct => s.AddAsRowAsync(new RecordStructWithNoProperties(), ctx.RecordStructWithNoProperties, Token),
+                ObjectType.ReadOnlyStruct => s.AddAsRowAsync(new ReadOnlyStructWithNoProperties(), ctx.ReadOnlyStructWithNoProperties, Token),
+                ObjectType.ReadOnlyRecordStruct => s.AddAsRowAsync(new ReadOnlyRecordStructWithNoProperties(), ctx.ReadOnlyRecordStructWithNoProperties, Token),
                 _ => throw new NotImplementedException(),
             };
 
             await task;
-            await s.FinishAsync();
+            await s.FinishAsync(Token);
         }
 
         // Assert
@@ -107,25 +109,25 @@ public class WorksheetRowGeneratorTests
         const string name = "Nordmann";
 
         using var stream = new MemoryStream();
-        await using (var s = await Spreadsheet.CreateNewAsync(stream))
+        await using (var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await s.StartWorksheetAsync("Sheet");
+            await s.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             if (explicitInternal)
             {
                 var obj = new InternalAccessibilityClassWithSingleProperty { Name = name };
                 var ctx = InternalAccessibilityContext.Default.InternalAccessibilityClassWithSingleProperty;
-                await s.AddAsRowAsync(obj, ctx);
+                await s.AddAsRowAsync(obj, ctx, Token);
             }
             else
             {
                 var obj = new DefaultAccessibilityClassWithSingleProperty { Name = name };
                 var ctx = DefaultAccessibilityContext.Default.DefaultAccessibilityClassWithSingleProperty;
-                await s.AddAsRowAsync(obj, ctx);
+                await s.AddAsRowAsync(obj, ctx, Token);
             }
 
-            await s.FinishAsync();
+            await s.FinishAsync(Token);
         }
 
         // Assert
@@ -141,14 +143,14 @@ public class WorksheetRowGeneratorTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
         var obj = new ClassWithAllSupportedTypes();
         var ctx = AllSupportedTypesContext.Default.ClassWithAllSupportedTypes;
-        await spreadsheet.AddAsRowAsync(obj, ctx);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, ctx, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         stream.Position = 0;
@@ -166,14 +168,14 @@ public class WorksheetRowGeneratorTests
         var customType = new CustomType("The name");
         var obj = new RecordClassWithCustomType(customType, value);
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
-            await spreadsheet.AddAsRowAsync(obj, CustomTypeContext.Default.RecordClassWithCustomType);
+            await spreadsheet.AddAsRowAsync(obj, CustomTypeContext.Default.RecordClassWithCustomType, Token);
 
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -189,7 +191,9 @@ public class WorksheetRowGeneratorTests
     [InlineData("Short value")]
     [InlineData("Exact length!!!")]
     [InlineData("Long value that will be truncated")]
+#pragma warning disable S2479 // Whitespace and control characters in string literals should be explicit
     [InlineData("A couple 👨‍👩‍👧‍👦 with kids")]
+#pragma warning restore S2479 // Whitespace and control characters in string literals should be explicit
     [InlineData("")]
     [InlineData(null)]
     public async Task Spreadsheet_AddAsRow_ObjectWithCellValueTruncateAttribute(string? originalValue)
@@ -202,12 +206,12 @@ public class WorksheetRowGeneratorTests
 
         var obj = new ClassWithTruncation { Value = originalValue };
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, TruncationContext.Default.ClassWithTruncation);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, TruncationContext.Default.ClassWithTruncation, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -220,12 +224,12 @@ public class WorksheetRowGeneratorTests
         // Arrange
         var obj = new ClassWithSingleAccessProperty("The value");
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, TruncationContext.Default.ClassWithSingleAccessProperty);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, TruncationContext.Default.ClassWithSingleAccessProperty, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -239,14 +243,14 @@ public class WorksheetRowGeneratorTests
         ClassWithMultipleProperties obj = null!;
         var typeInfo = MultiplePropertiesContext.Default.ClassWithMultipleProperties;
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
-            await spreadsheet.AddAsRowAsync(obj, typeInfo);
+            await spreadsheet.AddAsRowAsync(obj, typeInfo, Token);
 
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -264,11 +268,11 @@ public class WorksheetRowGeneratorTests
         // Arrange
         var obj = new ClassWithMultipleProperties("Ola", "Nordmann", 25);
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => spreadsheet.AddAsRowAsync(obj, null!).AsTask());
+        await Assert.ThrowsAsync<ArgumentNullException>(() => spreadsheet.AddAsRowAsync(obj, null!, Token).AsTask());
     }
 
     [Fact]
@@ -278,10 +282,10 @@ public class WorksheetRowGeneratorTests
         var obj = new ClassWithMultipleProperties("Ola", "Nordmann", 25);
         var typeInfo = MultiplePropertiesContext.Default.ClassWithMultipleProperties;
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
 
         // Act & Assert
-        await Assert.ThrowsAsync<SpreadCheetahException>(() => spreadsheet.AddAsRowAsync(obj, typeInfo).AsTask());
+        await Assert.ThrowsAsync<SpreadCheetahException>(() => spreadsheet.AddAsRowAsync(obj, typeInfo, Token).AsTask());
     }
 
     [Theory]
@@ -299,24 +303,24 @@ public class WorksheetRowGeneratorTests
         var ctx = MultiplePropertiesContext.Default;
 
         using var stream = new MemoryStream();
-        await using (var s = await Spreadsheet.CreateNewAsync(stream))
+        await using (var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await s.StartWorksheetAsync("Sheet");
+            await s.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             var task = type switch
             {
-                ObjectType.Class => s.AddRangeAsRowsAsync(values.Select(x => new ClassWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.ClassWithMultipleProperties),
-                ObjectType.RecordClass => s.AddRangeAsRowsAsync(values.Select(x => new RecordClassWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.RecordClassWithMultipleProperties),
-                ObjectType.Struct => s.AddRangeAsRowsAsync(values.Select(x => new StructWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.StructWithMultipleProperties),
-                ObjectType.RecordStruct => s.AddRangeAsRowsAsync(values.Select(x => new RecordStructWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.RecordStructWithMultipleProperties),
-                ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync(values.Select(x => new ReadOnlyStructWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.ReadOnlyStructWithMultipleProperties),
-                ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync(values.Select(x => new ReadOnlyRecordStructWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.ReadOnlyRecordStructWithMultipleProperties),
+                ObjectType.Class => s.AddRangeAsRowsAsync(values.Select(x => new ClassWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.ClassWithMultipleProperties, Token),
+                ObjectType.RecordClass => s.AddRangeAsRowsAsync(values.Select(x => new RecordClassWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.RecordClassWithMultipleProperties, Token),
+                ObjectType.Struct => s.AddRangeAsRowsAsync(values.Select(x => new StructWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.StructWithMultipleProperties, Token),
+                ObjectType.RecordStruct => s.AddRangeAsRowsAsync(values.Select(x => new RecordStructWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.RecordStructWithMultipleProperties, Token),
+                ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync(values.Select(x => new ReadOnlyStructWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.ReadOnlyStructWithMultipleProperties, Token),
+                ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync(values.Select(x => new ReadOnlyRecordStructWithMultipleProperties(x.FirstName, x.LastName, x.Age)), ctx.ReadOnlyRecordStructWithMultipleProperties, Token),
                 _ => throw new NotImplementedException()
             };
 
             await task;
-            await s.FinishAsync();
+            await s.FinishAsync(Token);
         }
 
         // Assert
@@ -361,23 +365,23 @@ public class WorksheetRowGeneratorTests
         var ctx = ColumnOrderingContext.Default;
 
         using var stream = new MemoryStream();
-        await using var s = await Spreadsheet.CreateNewAsync(stream);
-        await s.StartWorksheetAsync("Sheet");
+        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await s.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
         var task = type switch
         {
-            ObjectType.Class => s.AddRangeAsRowsAsync(values.Select(x => new ClassWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.ClassWithColumnOrdering),
-            ObjectType.RecordClass => s.AddRangeAsRowsAsync(values.Select(x => new RecordClassWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.RecordClassWithColumnOrdering),
-            ObjectType.Struct => s.AddRangeAsRowsAsync(values.Select(x => new StructWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.StructWithColumnOrdering),
-            ObjectType.RecordStruct => s.AddRangeAsRowsAsync(values.Select(x => new RecordStructWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.RecordStructWithColumnOrdering),
-            ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync(values.Select(x => new ReadOnlyStructWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.ReadOnlyStructWithColumnOrdering),
-            ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync(values.Select(x => new ReadOnlyRecordStructWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.ReadOnlyRecordStructWithColumnOrdering),
+            ObjectType.Class => s.AddRangeAsRowsAsync(values.Select(x => new ClassWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.ClassWithColumnOrdering, Token),
+            ObjectType.RecordClass => s.AddRangeAsRowsAsync(values.Select(x => new RecordClassWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.RecordClassWithColumnOrdering, Token),
+            ObjectType.Struct => s.AddRangeAsRowsAsync(values.Select(x => new StructWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.StructWithColumnOrdering, Token),
+            ObjectType.RecordStruct => s.AddRangeAsRowsAsync(values.Select(x => new RecordStructWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.RecordStructWithColumnOrdering, Token),
+            ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync(values.Select(x => new ReadOnlyStructWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.ReadOnlyStructWithColumnOrdering, Token),
+            ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync(values.Select(x => new ReadOnlyRecordStructWithColumnOrdering(x.FirstName, x.LastName, x.Gpa, x.Age)), ctx.ReadOnlyRecordStructWithColumnOrdering, Token),
             _ => throw new NotImplementedException()
         };
 
         await task;
-        await s.FinishAsync();
+        await s.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -396,24 +400,24 @@ public class WorksheetRowGeneratorTests
         var ctx = NoPropertiesContext.Default;
         var range = Enumerable.Range(0, 3).ToList();
         using var stream = new MemoryStream();
-        await using (var s = await Spreadsheet.CreateNewAsync(stream))
+        await using (var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await s.StartWorksheetAsync("Sheet");
+            await s.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             var task = type switch
             {
-                ObjectType.Class => s.AddRangeAsRowsAsync(range.Select(_ => new ClassWithNoProperties()), ctx.ClassWithNoProperties),
-                ObjectType.RecordClass => s.AddRangeAsRowsAsync(range.Select(_ => new RecordClassWithNoProperties()), ctx.RecordClassWithNoProperties),
-                ObjectType.Struct => s.AddRangeAsRowsAsync(range.Select(_ => new StructWithNoProperties()), ctx.StructWithNoProperties),
-                ObjectType.RecordStruct => s.AddRangeAsRowsAsync(range.Select(_ => new RecordStructWithNoProperties()), ctx.RecordStructWithNoProperties),
-                ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync(range.Select(_ => new ReadOnlyStructWithNoProperties()), ctx.ReadOnlyStructWithNoProperties),
-                ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync(range.Select(_ => new ReadOnlyRecordStructWithNoProperties()), ctx.ReadOnlyRecordStructWithNoProperties),
+                ObjectType.Class => s.AddRangeAsRowsAsync(range.Select(_ => new ClassWithNoProperties()), ctx.ClassWithNoProperties, Token),
+                ObjectType.RecordClass => s.AddRangeAsRowsAsync(range.Select(_ => new RecordClassWithNoProperties()), ctx.RecordClassWithNoProperties, Token),
+                ObjectType.Struct => s.AddRangeAsRowsAsync(range.Select(_ => new StructWithNoProperties()), ctx.StructWithNoProperties, Token),
+                ObjectType.RecordStruct => s.AddRangeAsRowsAsync(range.Select(_ => new RecordStructWithNoProperties()), ctx.RecordStructWithNoProperties, Token),
+                ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync(range.Select(_ => new ReadOnlyStructWithNoProperties()), ctx.ReadOnlyStructWithNoProperties, Token),
+                ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync(range.Select(_ => new ReadOnlyRecordStructWithNoProperties()), ctx.ReadOnlyRecordStructWithNoProperties, Token),
                 _ => throw new NotImplementedException()
             };
 
             await task;
-            await s.FinishAsync();
+            await s.FinishAsync(Token);
         }
 
         // Assert
@@ -433,24 +437,24 @@ public class WorksheetRowGeneratorTests
         var ctx = MultiplePropertiesContext.Default;
 
         using var stream = new MemoryStream();
-        await using (var s = await Spreadsheet.CreateNewAsync(stream))
+        await using (var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await s.StartWorksheetAsync("Sheet");
+            await s.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             var task = type switch
             {
-                ObjectType.Class => s.AddRangeAsRowsAsync([], ctx.ClassWithMultipleProperties),
-                ObjectType.RecordClass => s.AddRangeAsRowsAsync([], ctx.RecordClassWithMultipleProperties),
-                ObjectType.Struct => s.AddRangeAsRowsAsync([], ctx.StructWithMultipleProperties),
-                ObjectType.RecordStruct => s.AddRangeAsRowsAsync([], ctx.RecordStructWithMultipleProperties),
-                ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync([], ctx.ReadOnlyStructWithMultipleProperties),
-                ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync([], ctx.ReadOnlyRecordStructWithMultipleProperties),
+                ObjectType.Class => s.AddRangeAsRowsAsync([], ctx.ClassWithMultipleProperties, Token),
+                ObjectType.RecordClass => s.AddRangeAsRowsAsync([], ctx.RecordClassWithMultipleProperties, Token),
+                ObjectType.Struct => s.AddRangeAsRowsAsync([], ctx.StructWithMultipleProperties, Token),
+                ObjectType.RecordStruct => s.AddRangeAsRowsAsync([], ctx.RecordStructWithMultipleProperties, Token),
+                ObjectType.ReadOnlyStruct => s.AddRangeAsRowsAsync([], ctx.ReadOnlyStructWithMultipleProperties, Token),
+                ObjectType.ReadOnlyRecordStruct => s.AddRangeAsRowsAsync([], ctx.ReadOnlyRecordStructWithMultipleProperties, Token),
                 _ => throw new NotImplementedException(),
             };
 
             await task;
-            await s.FinishAsync();
+            await s.FinishAsync(Token);
         }
 
         // Assert
@@ -469,23 +473,23 @@ public class WorksheetRowGeneratorTests
         var ctx = MultiplePropertiesContext.Default;
 
         using var stream = new MemoryStream();
-        await using var s = await Spreadsheet.CreateNewAsync(stream);
-        await s.StartWorksheetAsync("Sheet");
+        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await s.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
         var task = type switch
         {
-            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassWithMultipleProperties),
-            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassWithMultipleProperties),
-            ObjectType.Struct => s.AddHeaderRowAsync(ctx.StructWithMultipleProperties),
-            ObjectType.RecordStruct => s.AddHeaderRowAsync(ctx.RecordStructWithMultipleProperties),
-            ObjectType.ReadOnlyStruct => s.AddHeaderRowAsync(ctx.ReadOnlyStructWithMultipleProperties),
-            ObjectType.ReadOnlyRecordStruct => s.AddHeaderRowAsync(ctx.ReadOnlyRecordStructWithMultipleProperties),
+            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassWithMultipleProperties, token: Token),
+            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassWithMultipleProperties, token: Token),
+            ObjectType.Struct => s.AddHeaderRowAsync(ctx.StructWithMultipleProperties, token: Token),
+            ObjectType.RecordStruct => s.AddHeaderRowAsync(ctx.RecordStructWithMultipleProperties, token: Token),
+            ObjectType.ReadOnlyStruct => s.AddHeaderRowAsync(ctx.ReadOnlyStructWithMultipleProperties, token: Token),
+            ObjectType.ReadOnlyRecordStruct => s.AddHeaderRowAsync(ctx.ReadOnlyRecordStructWithMultipleProperties, token: Token),
             _ => throw new NotImplementedException(),
         };
 
         await task;
-        await s.FinishAsync();
+        await s.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -502,23 +506,23 @@ public class WorksheetRowGeneratorTests
         // Arrange
         var ctx = NoPropertiesContext.Default;
         using var stream = new MemoryStream();
-        await using var s = await Spreadsheet.CreateNewAsync(stream);
-        await s.StartWorksheetAsync("Sheet");
+        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await s.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
         var task = type switch
         {
-            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassWithNoProperties),
-            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassWithNoProperties),
-            ObjectType.Struct => s.AddHeaderRowAsync(ctx.StructWithNoProperties),
-            ObjectType.RecordStruct => s.AddHeaderRowAsync(ctx.RecordStructWithNoProperties),
-            ObjectType.ReadOnlyStruct => s.AddHeaderRowAsync(ctx.ReadOnlyStructWithNoProperties),
-            ObjectType.ReadOnlyRecordStruct => s.AddHeaderRowAsync(ctx.ReadOnlyRecordStructWithNoProperties),
+            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassWithNoProperties, token: Token),
+            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassWithNoProperties, token: Token),
+            ObjectType.Struct => s.AddHeaderRowAsync(ctx.StructWithNoProperties, token: Token),
+            ObjectType.RecordStruct => s.AddHeaderRowAsync(ctx.RecordStructWithNoProperties, token: Token),
+            ObjectType.ReadOnlyStruct => s.AddHeaderRowAsync(ctx.ReadOnlyStructWithNoProperties, token: Token),
+            ObjectType.ReadOnlyRecordStruct => s.AddHeaderRowAsync(ctx.ReadOnlyRecordStructWithNoProperties, token: Token),
             _ => throw new NotImplementedException(),
         };
 
         await task;
-        await s.FinishAsync();
+        await s.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -533,15 +537,15 @@ public class WorksheetRowGeneratorTests
         var ctx = MultiplePropertiesContext.Default;
 
         using var stream = new MemoryStream();
-        await using var s = await Spreadsheet.CreateNewAsync(stream);
-        await s.StartWorksheetAsync("Sheet");
+        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await s.StartWorksheetAsync("Sheet", token: Token);
 
         var style = new Style { Font = { Bold = true } };
         var styleId = s.AddStyle(style);
 
         // Act
-        await s.AddHeaderRowAsync(ctx.ClassWithMultipleProperties, styleId);
-        await s.FinishAsync();
+        await s.AddHeaderRowAsync(ctx.ClassWithMultipleProperties, styleId, Token);
+        await s.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -560,23 +564,23 @@ public class WorksheetRowGeneratorTests
         var ctx = ColumnOrderingContext.Default;
 
         using var stream = new MemoryStream();
-        await using var s = await Spreadsheet.CreateNewAsync(stream);
-        await s.StartWorksheetAsync("Sheet");
+        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await s.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
         var task = type switch
         {
-            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassWithColumnOrdering),
-            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassWithColumnOrdering),
-            ObjectType.Struct => s.AddHeaderRowAsync(ctx.StructWithColumnOrdering),
-            ObjectType.RecordStruct => s.AddHeaderRowAsync(ctx.RecordStructWithColumnOrdering),
-            ObjectType.ReadOnlyStruct => s.AddHeaderRowAsync(ctx.ReadOnlyStructWithColumnOrdering),
-            ObjectType.ReadOnlyRecordStruct => s.AddHeaderRowAsync(ctx.ReadOnlyRecordStructWithColumnOrdering),
+            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassWithColumnOrdering, token: Token),
+            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassWithColumnOrdering, token: Token),
+            ObjectType.Struct => s.AddHeaderRowAsync(ctx.StructWithColumnOrdering, token: Token),
+            ObjectType.RecordStruct => s.AddHeaderRowAsync(ctx.RecordStructWithColumnOrdering, token: Token),
+            ObjectType.ReadOnlyStruct => s.AddHeaderRowAsync(ctx.ReadOnlyStructWithColumnOrdering, token: Token),
+            ObjectType.ReadOnlyRecordStruct => s.AddHeaderRowAsync(ctx.ReadOnlyRecordStructWithColumnOrdering, token: Token),
             _ => throw new NotImplementedException()
         };
 
         await task;
-        await s.FinishAsync();
+        await s.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -596,19 +600,19 @@ public class WorksheetRowGeneratorTests
         var ctx = InheritanceContext.Default;
 
         using var stream = new MemoryStream();
-        await using var s = await Spreadsheet.CreateNewAsync(stream);
-        await s.StartWorksheetAsync("Sheet");
+        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await s.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
         var task = type switch
         {
-            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassDog),
-            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassDog),
+            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassDog, token: Token),
+            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassDog, token: Token),
             _ => throw new NotImplementedException()
         };
 
         await task;
-        await s.FinishAsync();
+        await s.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -624,11 +628,11 @@ public class WorksheetRowGeneratorTests
         // Arrange
         WorksheetRowTypeInfo<ClassWithMultipleProperties> typeInfo = null!;
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => spreadsheet.AddHeaderRowAsync(typeInfo).AsTask());
+        await Assert.ThrowsAsync<ArgumentNullException>(() => spreadsheet.AddHeaderRowAsync(typeInfo, token: Token).AsTask());
     }
 
     [Fact]
@@ -637,10 +641,10 @@ public class WorksheetRowGeneratorTests
         // Arrange
         var typeInfo = MultiplePropertiesContext.Default.ClassWithMultipleProperties;
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
 
         // Act & Assert
-        await Assert.ThrowsAsync<SpreadCheetahException>(() => spreadsheet.AddHeaderRowAsync(typeInfo).AsTask());
+        await Assert.ThrowsAsync<SpreadCheetahException>(() => spreadsheet.AddHeaderRowAsync(typeInfo, token: Token).AsTask());
     }
 
     [Fact]
@@ -650,8 +654,8 @@ public class WorksheetRowGeneratorTests
         var ctx = ColumnHeaderContext.Default;
 
         using var stream = new MemoryStream();
-        await using var s = await Spreadsheet.CreateNewAsync(stream);
-        await s.StartWorksheetAsync("Sheet");
+        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await s.StartWorksheetAsync("Sheet", token: Token);
 
         IList<string> expectedValues =
         [
@@ -673,8 +677,8 @@ string: "", \)",
         ];
 
         // Act
-        await s.AddHeaderRowAsync(ctx.ClassWithSpecialCharacterColumnHeaders);
-        await s.FinishAsync();
+        await s.AddHeaderRowAsync(ctx.ClassWithSpecialCharacterColumnHeaders, token: Token);
+        await s.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -688,8 +692,8 @@ string: "", \)",
         var ctx = ColumnHeaderContext.Default;
 
         using var stream = new MemoryStream();
-        await using var s = await Spreadsheet.CreateNewAsync(stream);
-        await s.StartWorksheetAsync("Sheet");
+        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await s.StartWorksheetAsync("Sheet", token: Token);
 
         IList<string?> expectedValues =
         [
@@ -705,10 +709,10 @@ string: "", \)",
 
         // Act
         CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("nb-NO");
-        await s.AddHeaderRowAsync(ctx.ClassWithPropertyReferenceColumnHeaders);
+        await s.AddHeaderRowAsync(ctx.ClassWithPropertyReferenceColumnHeaders, token: Token);
         CultureInfo.CurrentUICulture = originalCulture;
 
-        await s.FinishAsync();
+        await s.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -720,8 +724,8 @@ string: "", \)",
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var s = await Spreadsheet.CreateNewAsync(stream);
-        await s.StartWorksheetAsync("Sheet");
+        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await s.StartWorksheetAsync("Sheet", token: Token);
 
         IList<string> expectedValues =
         [
@@ -735,8 +739,8 @@ string: "", \)",
         ];
 
         // Act
-        await s.AddHeaderRowAsync(ColumnAttributesContext.Default.ClassWithColumnAttributes);
-        await s.FinishAsync();
+        await s.AddHeaderRowAsync(ColumnAttributesContext.Default.ClassWithColumnAttributes, token: Token);
+        await s.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -749,8 +753,8 @@ string: "", \)",
         // Arrange
         var ctx = ColumnAttributesContext.Default.ClassWithColumnAttributes;
         using var stream = new MemoryStream();
-        await using var s = await Spreadsheet.CreateNewAsync(stream);
-        await s.StartWorksheetAsync("Sheet", ctx);
+        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await s.StartWorksheetAsync("Sheet", ctx, Token);
         s.AddStyle(new Style { Font = { Bold = true } }, "Year style");
 
         var obj = new ClassWithColumnAttributes(
@@ -763,8 +767,8 @@ string: "", \)",
             length: 428.4m);
 
         // Act
-        await s.AddAsRowAsync(obj, ctx);
-        await s.FinishAsync();
+        await s.AddAsRowAsync(obj, ctx, Token);
+        await s.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -790,20 +794,20 @@ string: "", \)",
         // Arrange
         var ctx = ColumnWidthContext.Default.ClassWithColumnWidth;
         using var stream = new MemoryStream();
-        await using var s = await Spreadsheet.CreateNewAsync(stream);
+        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
 
         // Act
         if (createWorksheetOptions)
         {
             var worksheetOptions = ctx.CreateWorksheetOptions();
-            await s.StartWorksheetAsync("Sheet", worksheetOptions);
+            await s.StartWorksheetAsync("Sheet", worksheetOptions, Token);
         }
         else
         {
-            await s.StartWorksheetAsync("Sheet", ctx);
+            await s.StartWorksheetAsync("Sheet", ctx, Token);
         }
 
-        await s.FinishAsync();
+        await s.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);

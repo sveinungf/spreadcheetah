@@ -9,6 +9,8 @@ namespace SpreadCheetah.SourceGenerator.SnapshotTest.Helpers;
 
 internal static class TestHelper
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     private static PortableExecutableReference[] GetAssemblyReferences()
     {
         var dotNetAssemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location) ?? throw new InvalidOperationException();
@@ -30,7 +32,7 @@ internal static class TestHelper
         bool replaceEscapedLineEndings = false,
         params object?[] parameters) where T : IIncrementalGenerator, new()
     {
-        var syntaxTree = CSharpSyntaxTree.ParseText(source);
+        var syntaxTree = CSharpSyntaxTree.ParseText(source, cancellationToken: Token);
         var references = GetAssemblyReferences();
         var compilation = CSharpCompilation.Create("Tests", [syntaxTree], references);
 
@@ -38,7 +40,7 @@ internal static class TestHelper
 #pragma warning disable S3220 // Method calls should not resolve ambiguously to overloads with "params"
         var driver = CSharpGeneratorDriver.Create(generator);
 #pragma warning restore S3220 // Method calls should not resolve ambiguously to overloads with "params"
-        var target = driver.RunGenerators(compilation);
+        var target = driver.RunGenerators(compilation, Token);
 
         var settings = new VerifySettings();
         settings.UseDirectory("../Snapshots");
@@ -64,7 +66,7 @@ internal static class TestHelper
         bool assertOutputs = true)
         where T : IIncrementalGenerator, new()
     {
-        var syntaxTree = CSharpSyntaxTree.ParseText(source);
+        var syntaxTree = CSharpSyntaxTree.ParseText(source, cancellationToken: Token);
         var references = GetAssemblyReferences();
         var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         var compilation = CSharpCompilation.Create("SpreadCheetah.Generated", [syntaxTree], references, options);
@@ -94,13 +96,13 @@ internal static class TestHelper
 
         // Do the initial run
         // Note that we store the returned driver value, as it contains cached previous outputs
-        driver = driver.RunGenerators(compilation);
+        driver = driver.RunGenerators(compilation, Token);
         GeneratorDriverRunResult runResult = driver.GetRunResult();
 
         if (assertOutput)
         {
             // Run again, using the same driver, with a clone of the compilation
-            var runResult2 = driver.RunGenerators(clone).GetRunResult();
+            var runResult2 = driver.RunGenerators(clone, Token).GetRunResult();
 
             // Compare all the tracked outputs, throw if there's a failure
             AssertRunsEqual(runResult, runResult2, trackingNames);
@@ -207,7 +209,7 @@ internal static class TestHelper
             // If the object is a collection, check each of the values
             if (node is IEnumerable collection and not string)
             {
-                foreach (object element in collection)
+                foreach (var element in collection)
                 {
                     // recursively check each element in the collection
                     Visit(element);

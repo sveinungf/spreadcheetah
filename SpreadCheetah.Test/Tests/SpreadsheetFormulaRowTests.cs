@@ -11,6 +11,8 @@ namespace SpreadCheetah.Test.Tests;
 
 public class SpreadsheetFormulaRowTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Theory]
     [InlineData("1 + 2")]
     [InlineData("A1")]
@@ -24,15 +26,15 @@ public class SpreadsheetFormulaRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             var formula = new Formula(formulaText);
             var cell = new Cell(formula);
 
             // Act
             await spreadsheet.AddRowAsync(cell);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -52,8 +54,8 @@ public class SpreadsheetFormulaRowTests
         // Arrange
         const string formulaText = "SUM(A1,A2)";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var style = new Style();
         style.Font.Bold = bold;
@@ -64,7 +66,7 @@ public class SpreadsheetFormulaRowTests
 
         // Act
         await spreadsheet.AddRowAsync(cell);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -84,15 +86,15 @@ public class SpreadsheetFormulaRowTests
         const string formulaText = "SUM(A1,A2)";
         object? cachedValue;
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             var formula = new Formula(formulaText);
             var cell = CellFactory.Create(formula, valueType, isNull, null, out cachedValue);
 
             // Act
             await spreadsheet.AddRowAsync(cell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -112,15 +114,15 @@ public class SpreadsheetFormulaRowTests
         const string formulaText = "SUM(A1,A2)";
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { DefaultDateTimeFormat = null };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var formula = new Formula(formulaText);
         var cachedValue = new DateTime(2020, 1, 2, 3, 4, 5, DateTimeKind.Utc);
         var cell = new Cell(formula, cachedValue);
 
         // Act
         await spreadsheet.AddRowAsync(cell);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -140,8 +142,8 @@ public class SpreadsheetFormulaRowTests
         // Arrange
         const string formulaText = "SUM(A1,A2)";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var style = new Style();
         style.Font.Italic = italic;
@@ -152,7 +154,7 @@ public class SpreadsheetFormulaRowTests
 
         // Act
         await spreadsheet.AddRowAsync(cell, rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -177,16 +179,16 @@ public class SpreadsheetFormulaRowTests
         var formulaText = FormulaGenerator.Generate(length);
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var formula = new Formula(formulaText);
             var cell = new Cell(formula);
 
             // Act
             await spreadsheet.AddRowAsync(cell);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -212,16 +214,16 @@ public class SpreadsheetFormulaRowTests
         var cachedValue = new string('c', length);
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var formula = new Formula(formulaText);
             var cell = new Cell(formula, cachedValue);
 
             // Act
             await spreadsheet.AddRowAsync(cell);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -247,16 +249,16 @@ public class SpreadsheetFormulaRowTests
         const string cachedValue = "";
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var formula = new Formula(formulaText);
             var cell = new Cell(formula, cachedValue);
 
             // Act
             await spreadsheet.AddRowAsync(cell);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -285,15 +287,15 @@ public class SpreadsheetFormulaRowTests
         object? cachedValue;
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             var formula = new Formula(formulaText);
             var cell = CellFactory.Create(formula, cachedValueType, cachedValueIsNull, null, out cachedValue);
 
             // Act
             await spreadsheet.AddRowAsync(cell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -320,9 +322,9 @@ public class SpreadsheetFormulaRowTests
         var color = Color.Navy;
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var style = new Style();
             style.Fill.Color = color;
@@ -333,7 +335,7 @@ public class SpreadsheetFormulaRowTests
 
             // Act
             await spreadsheet.AddRowAsync(cell);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -361,9 +363,9 @@ public class SpreadsheetFormulaRowTests
         var numberFormat = NumberFormat.Standard(StandardNumberFormat.Percent);
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var style = new Style { Format = numberFormat };
             var styleId = spreadsheet.AddStyle(style);
@@ -373,7 +375,7 @@ public class SpreadsheetFormulaRowTests
 
             // Act
             await spreadsheet.AddRowAsync(cell);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         const int expectedNumberFormatId = (int)StandardNumberFormat.Percent;
@@ -395,7 +397,7 @@ public class SpreadsheetFormulaRowTests
         // Arrange
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { DefaultDateTimeFormat = null, WriteCellReferenceAttributes = true };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         var formula = new Formula("SUM(A1,A2)");
 
         var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(formula, valueType, isNull, null, out var _)).ToList();
@@ -407,15 +409,15 @@ public class SpreadsheetFormulaRowTests
         var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1");
+        await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
         await spreadsheet.AddRowAsync(row2, rowType);
         await spreadsheet.AddRowAsync(row3, rowType);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2");
+        await spreadsheet.StartWorksheetAsync("Sheet2", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -446,7 +448,7 @@ public class SpreadsheetFormulaRowTests
         // Arrange
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { WriteCellReferenceAttributes = true };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         var formula = new Formula("SUM(A1,A2)");
         var style = new Style();
         style.Fill.Color = Color.SaddleBrown;
@@ -461,15 +463,15 @@ public class SpreadsheetFormulaRowTests
         var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1");
+        await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
         await spreadsheet.AddRowAsync(row2, rowType);
         await spreadsheet.AddRowAsync(row3, rowType);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2");
+        await spreadsheet.StartWorksheetAsync("Sheet2", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -500,7 +502,7 @@ public class SpreadsheetFormulaRowTests
         // Arrange
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize, WriteCellReferenceAttributes = true };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         var formula = new Formula(FormulaGenerator.Generate(options.BufferSize * 2));
 
         var row1 = Enumerable.Range(1, 10).Select(_ => CellFactory.Create(formula, valueType, isNull, null, out var _)).ToList();
@@ -512,15 +514,15 @@ public class SpreadsheetFormulaRowTests
         var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1");
+        await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
         await spreadsheet.AddRowAsync(row2, rowType);
         await spreadsheet.AddRowAsync(row3, rowType);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2");
+        await spreadsheet.StartWorksheetAsync("Sheet2", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -551,7 +553,7 @@ public class SpreadsheetFormulaRowTests
         // Arrange
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize, WriteCellReferenceAttributes = true };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         var formula = new Formula(FormulaGenerator.Generate(options.BufferSize * 2));
         var style = new Style();
         style.Fill.Color = Color.LightGoldenrodYellow;
@@ -566,15 +568,15 @@ public class SpreadsheetFormulaRowTests
         var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1");
+        await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
         await spreadsheet.AddRowAsync(row2, rowType);
         await spreadsheet.AddRowAsync(row3, rowType);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2");
+        await spreadsheet.StartWorksheetAsync("Sheet2", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);

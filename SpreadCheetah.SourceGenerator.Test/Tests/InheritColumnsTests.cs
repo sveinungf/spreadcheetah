@@ -7,13 +7,15 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests;
 
 public class InheritColumnsTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Fact]
     public async Task InheritColumns_DerivedClassWithoutInheritColumns()
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var obj = new DerivedClassWithoutInheritColumns
         {
             BaseClassProperty = "Base",
@@ -21,8 +23,8 @@ public class InheritColumnsTests
         };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, InheritColumnsContext.Default.DerivedClassWithoutInheritColumns);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, InheritColumnsContext.Default.DerivedClassWithoutInheritColumns, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -34,8 +36,8 @@ public class InheritColumnsTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var obj = new ClassWithInheritedColumnsFirst
         {
             BaseClassProperty = "Base",
@@ -43,8 +45,8 @@ public class InheritColumnsTests
         };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, InheritColumnsContext.Default.ClassWithInheritedColumnsFirst);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, InheritColumnsContext.Default.ClassWithInheritedColumnsFirst, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -56,8 +58,8 @@ public class InheritColumnsTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var obj = new ClassWithInheritedColumnsLast
         {
             BaseClassProperty = "Base",
@@ -65,8 +67,8 @@ public class InheritColumnsTests
         };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, InheritColumnsContext.Default.ClassWithInheritedColumnsLast);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, InheritColumnsContext.Default.ClassWithInheritedColumnsLast, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -78,8 +80,8 @@ public class InheritColumnsTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var obj = new TwoLevelInheritanceClassWithInheritedColumns
         {
             BaseClassProperty = "Base",
@@ -88,8 +90,8 @@ public class InheritColumnsTests
         };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, InheritColumnsContext.Default.TwoLevelInheritanceClassWithInheritedColumns);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, InheritColumnsContext.Default.TwoLevelInheritanceClassWithInheritedColumns, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);

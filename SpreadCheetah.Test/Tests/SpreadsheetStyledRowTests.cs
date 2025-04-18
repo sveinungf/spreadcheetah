@@ -20,6 +20,8 @@ namespace SpreadCheetah.Test.Tests;
 
 public class SpreadsheetStyledRowTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Theory]
     [MemberData(nameof(TestData.StyledCellAndValueTypes), MemberType = typeof(TestData))]
     public async Task Spreadsheet_AddRow_StyledCellWithValue(CellValueType valueType, bool isNull, CellType cellType, RowCollectionType rowType)
@@ -27,9 +29,9 @@ public class SpreadsheetStyledRowTests
         // Arrange
         object? value;
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var style = new Style();
             style.Font.Bold = true;
@@ -38,7 +40,7 @@ public class SpreadsheetStyledRowTests
 
             // Act
             await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -60,8 +62,8 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Bold test";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var style = new Style();
         style.Font.Bold = bold;
@@ -70,7 +72,7 @@ public class SpreadsheetStyledRowTests
 
         // Act
         await spreadsheet.AddRowAsync(styledCell, rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -87,8 +89,8 @@ public class SpreadsheetStyledRowTests
         const string firstCellValue = "First";
         const string secondCellValue = "Second";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var style = new Style();
         style.Font.Bold = bold;
@@ -99,7 +101,7 @@ public class SpreadsheetStyledRowTests
 
         // Act
         await spreadsheet.AddRowAsync([firstCell, secondCell], rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -119,8 +121,8 @@ public class SpreadsheetStyledRowTests
         const string firstCellValue = "First";
         const string secondCellValue = "Second";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var style = new Style();
         style.Font.Bold = true;
@@ -131,7 +133,7 @@ public class SpreadsheetStyledRowTests
 
         // Act
         await spreadsheet.AddRowAsync([firstCell, secondCell], rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -150,8 +152,8 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Italic test";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var style = new Style();
         style.Font.Italic = italic;
@@ -160,7 +162,7 @@ public class SpreadsheetStyledRowTests
 
         // Act
         await spreadsheet.AddRowAsync(styledCell, rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -175,8 +177,8 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Italic test";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var style = new Style();
         style.Font.Strikethrough = strikethrough;
@@ -185,7 +187,7 @@ public class SpreadsheetStyledRowTests
 
         // Act
         await spreadsheet.AddRowAsync(styledCell, rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -199,8 +201,8 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Italic test";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var style = new Style();
         style.Font.Underline = underline;
@@ -209,7 +211,7 @@ public class SpreadsheetStyledRowTests
 
         // Act
         await spreadsheet.AddRowAsync(styledCell, rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -230,9 +232,9 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Font size test";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var style = new Style();
             style.Font.Size = size;
@@ -241,7 +243,7 @@ public class SpreadsheetStyledRowTests
 
             // Act
             await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -261,9 +263,9 @@ public class SpreadsheetStyledRowTests
         const string cellValue = "Color test";
         var color = Color.Blue;
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var style = new Style();
             style.Font.Color = color;
@@ -272,7 +274,7 @@ public class SpreadsheetStyledRowTests
 
             // Act
             await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -292,9 +294,9 @@ public class SpreadsheetStyledRowTests
         const string cellValue = "Color test";
         var color = Color.Brown;
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var style = new Style();
             style.Fill.Color = color;
@@ -303,7 +305,7 @@ public class SpreadsheetStyledRowTests
 
             // Act
             await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -331,9 +333,9 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Font name test";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var style = new Style();
             style.Font.Name = fontName;
@@ -342,7 +344,7 @@ public class SpreadsheetStyledRowTests
 
             // Act
             await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -387,9 +389,9 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Number format test";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
 #pragma warning disable CS0618 // Type or member is obsolete - Testing legacy behaviour
             var style = new Style { NumberFormat = numberFormat };
@@ -399,7 +401,7 @@ public class SpreadsheetStyledRowTests
 
             // Act
             await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         var expectedNumberFormatId = NumberFormatHelper.GetStandardNumberFormatId(numberFormat) ?? 0;
@@ -427,9 +429,9 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Number format test";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
 #pragma warning disable CS0618 // Type or member is obsolete - Testing legacy behaviour
             var style = new Style { NumberFormat = numberFormat };
@@ -439,7 +441,7 @@ public class SpreadsheetStyledRowTests
 
             // Act
             await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -466,15 +468,15 @@ public class SpreadsheetStyledRowTests
         };
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var cells = styles.Select(x => CellFactory.Create(type, cellValue, spreadsheet.AddStyle(x))).ToList();
 
             // Act
             await spreadsheet.AddRowAsync(cells, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -497,8 +499,8 @@ public class SpreadsheetStyledRowTests
 
         var value = new DateTime(2021, 2, 3, 4, 5, 6, DateTimeKind.Unspecified);
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var style = new Style { Font = { Italic = true } };
         var styleId = spreadsheet.AddStyle(style);
@@ -507,7 +509,7 @@ public class SpreadsheetStyledRowTests
 
         // Act
         await spreadsheet.AddRowAsync(styledCell, rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -525,8 +527,8 @@ public class SpreadsheetStyledRowTests
         var expectedNumberFormat = withExplicitNumberFormat ? explicitNumberFormat : NumberFormats.DateTimeSortable;
         var value = new DateTime(2021, 2, 3, 4, 5, 6, DateTimeKind.Unspecified);
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var style = new Style();
         style.Font.Italic = true;
@@ -538,7 +540,7 @@ public class SpreadsheetStyledRowTests
 
         // Act
         await spreadsheet.AddRowAsync(styledCell, rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -554,8 +556,8 @@ public class SpreadsheetStyledRowTests
         // Arrange
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var format = new string('"', 255);
         var style = new Style { Format = NumberFormat.Custom(format) };
@@ -564,7 +566,7 @@ public class SpreadsheetStyledRowTests
 
         // Act
         await spreadsheet.AddRowAsync(styledCell, rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -581,9 +583,9 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Border style test";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var style = new Style { Border = new Border { Left = new EdgeBorder { BorderStyle = borderStyle } } };
             var styleId = spreadsheet.AddStyle(style);
@@ -591,7 +593,7 @@ public class SpreadsheetStyledRowTests
 
             // Act
             await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         var expectedBorderStyle = borderStyle.GetClosedXmlBorderStyle();
@@ -620,9 +622,9 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Border style test";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var style = new Style
             {
@@ -641,7 +643,7 @@ public class SpreadsheetStyledRowTests
 
             // Act
             await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -672,9 +674,9 @@ public class SpreadsheetStyledRowTests
         var colors = new[] { Color.Firebrick, Color.ForestGreen, Color.Black, Color.Blue };
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var style = new Style
             {
@@ -691,7 +693,7 @@ public class SpreadsheetStyledRowTests
 
             // Act
             await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -725,8 +727,8 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Alignment test";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var style = new Style();
         style.Alignment.Horizontal = alignment;
         var styleId = spreadsheet.AddStyle(style);
@@ -735,7 +737,7 @@ public class SpreadsheetStyledRowTests
 
         // Act
         await spreadsheet.AddRowAsync(styledCell, rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -759,8 +761,8 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Alignment test";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var style = new Style();
         style.Alignment.Vertical = alignment;
         var styleId = spreadsheet.AddStyle(style);
@@ -769,7 +771,7 @@ public class SpreadsheetStyledRowTests
 
         // Act
         await spreadsheet.AddRowAsync(styledCell, rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -791,8 +793,8 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Alignment test";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var style = new Style
         {
             Alignment = new Alignment
@@ -809,7 +811,7 @@ public class SpreadsheetStyledRowTests
 
         // Act
         await spreadsheet.AddRowAsync(styledCell, rowType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -834,9 +836,9 @@ public class SpreadsheetStyledRowTests
         var fillColor = formatting ? Color.Green as Color? : null;
         var fontColor = formatting ? Color.Red as Color? : null;
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var style = new Style();
             style.Fill.Color = fillColor;
@@ -851,7 +853,7 @@ public class SpreadsheetStyledRowTests
 
             // Act
             await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -882,9 +884,9 @@ public class SpreadsheetStyledRowTests
         };
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var cells = elements.Select(x =>
             {
@@ -909,7 +911,7 @@ public class SpreadsheetStyledRowTests
 
             // Act
             await spreadsheet.AddRowAsync(cells, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -941,8 +943,8 @@ public class SpreadsheetStyledRowTests
         const string firstCellValue = "First";
         const string secondCellValue = "Second";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var style = new Style();
         style.Font.Bold = true;
@@ -960,7 +962,7 @@ public class SpreadsheetStyledRowTests
             await spreadsheet.AddRowAsync(CellFactory.Create(type, secondCellValue, styleId), rowType);
         }
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -979,8 +981,8 @@ public class SpreadsheetStyledRowTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var style = new Style();
         style.Font.Bold = true;
@@ -993,7 +995,7 @@ public class SpreadsheetStyledRowTests
 
         // Act
         await spreadsheet.AddRowAsync(styledCell);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -1009,8 +1011,9 @@ public class SpreadsheetStyledRowTests
         const int count = 1000;
         const string cellValue = "Fill test";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize });
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var styles = StyleGenerator.Generate(count);
         var uniqueStyleIds = new HashSet<int>();
 
@@ -1023,7 +1026,7 @@ public class SpreadsheetStyledRowTests
             await spreadsheet.AddRowAsync(new StyledCell(cellValue, styleId));
         }
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         Assert.True(uniqueStyleIds.Count > count * .8f);
@@ -1041,7 +1044,7 @@ public class SpreadsheetStyledRowTests
         // Arrange
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize, WriteCellReferenceAttributes = true };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         var style = new Style();
         style.Fill.Color = Color.LightSeaGreen;
         var styleId = spreadsheet.AddStyle(style);
@@ -1055,15 +1058,15 @@ public class SpreadsheetStyledRowTests
         var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1");
+        await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
         await spreadsheet.AddRowAsync(row2, rowType);
         await spreadsheet.AddRowAsync(row3, rowType);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2");
+        await spreadsheet.StartWorksheetAsync("Sheet2", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -1094,7 +1097,7 @@ public class SpreadsheetStyledRowTests
         // Arrange
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         var value = new string('a', options.BufferSize * 2);
         var style = new Style();
         style.Fill.Color = Color.Thistle;
@@ -1105,15 +1108,15 @@ public class SpreadsheetStyledRowTests
         var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(cellType, value, styleId)).ToList();
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1");
+        await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
         await spreadsheet.AddRowAsync(row2, rowType);
         await spreadsheet.AddRowAsync(row3, rowType);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2");
+        await spreadsheet.StartWorksheetAsync("Sheet2", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -1138,7 +1141,7 @@ public class SpreadsheetStyledRowTests
         // Arrange
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize, WriteCellReferenceAttributes = true };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         var value = new string('a', options.BufferSize * 2);
         var style = new Style();
         style.Fill.Color = Color.Thistle;
@@ -1153,15 +1156,15 @@ public class SpreadsheetStyledRowTests
         var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1");
+        await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
         await spreadsheet.AddRowAsync(row2, rowType);
         await spreadsheet.AddRowAsync(row3, rowType);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2");
+        await spreadsheet.StartWorksheetAsync("Sheet2", token: Token);
         await spreadsheet.AddRowAsync(row1, rowType);
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -1194,9 +1197,9 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Number format test";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var style = new Style { Format = NumberFormat.Standard(numberFormat) };
             var styleId = spreadsheet.AddStyle(style);
@@ -1204,7 +1207,7 @@ public class SpreadsheetStyledRowTests
 
             // Act
             await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         var expectedNumberFormatId = (int)numberFormat;
@@ -1258,9 +1261,9 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Number format test";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             var style = new Style { Format = NumberFormat.Custom(numberFormat) };
             var styleId = spreadsheet.AddStyle(style);
@@ -1268,7 +1271,7 @@ public class SpreadsheetStyledRowTests
 
             // Act
             await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert

@@ -5,6 +5,8 @@ namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 
 public class CellValueConverterTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Fact]
     public Task CellValueConverter_ClassWithMultipleConverters()
     {
@@ -112,7 +114,7 @@ public class CellValueConverterTests
             """;
 
         // Act & Assert
-        return context.RunAsync();
+        return context.RunAsync(Token);
     }
 
     [Fact]
@@ -175,7 +177,7 @@ public class CellValueConverterTests
             """;
 
         // Act & Assert
-        return context.RunAsync();
+        return context.RunAsync(Token);
     }
 
     [Fact]
@@ -233,7 +235,7 @@ public class CellValueConverterTests
             """;
 
         // Act & Assert
-        return context.RunAsync();
+        return context.RunAsync(Token);
     }
 
     [Fact]
@@ -262,7 +264,7 @@ public class CellValueConverterTests
             """;
 
         // Act & Assert
-        return context.RunAsync();
+        return context.RunAsync(Token);
     }
 
     [Fact]
@@ -324,6 +326,6 @@ public class CellValueConverterTests
             """;
 
         // Act & Assert
-        return context.RunAsync();
+        return context.RunAsync(Token);
     }
 }

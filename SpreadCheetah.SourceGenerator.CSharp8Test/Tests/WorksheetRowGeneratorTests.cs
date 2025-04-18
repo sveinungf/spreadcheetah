@@ -2,6 +2,7 @@ using SpreadCheetah.SourceGenerator.CSharp8Test.Models;
 using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -9,6 +10,8 @@ namespace SpreadCheetah.SourceGenerator.CSharp8Test.Tests
 {
     public class WorksheetRowGeneratorTests
     {
+        private static CancellationToken Token => TestContext.Current.CancellationToken;
+
         [Fact]
         public async Task Spreadsheet_AddAsRow_ClassWithMultipleProperties()
         {
@@ -22,16 +25,16 @@ namespace SpreadCheetah.SourceGenerator.CSharp8Test.Tests
 
             var ctx = ClassWithMultiplePropertiesContext.Default.ClassWithMultipleProperties;
             using var stream = new MemoryStream();
-            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
             {
-                await spreadsheet.StartWorksheetAsync("Sheet", ctx);
+                await spreadsheet.StartWorksheetAsync("Sheet", ctx, Token);
                 spreadsheet.AddStyle(new Style { Font = { Bold = true } }, "Id style");
                 spreadsheet.AddStyle(new Style { Font = { Italic = true } }, "Last name style");
 
                 // Act
-                await spreadsheet.AddAsRowAsync(obj, ctx);
+                await spreadsheet.AddAsRowAsync(obj, ctx, Token);
 
-                await spreadsheet.FinishAsync();
+                await spreadsheet.FinishAsync(Token);
             }
 
             // Assert
@@ -55,14 +58,14 @@ namespace SpreadCheetah.SourceGenerator.CSharp8Test.Tests
             var obj = new ClassWithNoProperties();
 
             using var stream = new MemoryStream();
-            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+            await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
             {
-                await spreadsheet.StartWorksheetAsync("Sheet");
+                await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
                 // Act
-                await spreadsheet.AddAsRowAsync(obj, ClassWithNoPropertiesContext.Default.ClassWithNoProperties);
+                await spreadsheet.AddAsRowAsync(obj, ClassWithNoPropertiesContext.Default.ClassWithNoProperties, Token);
 
-                await spreadsheet.FinishAsync();
+                await spreadsheet.FinishAsync(Token);
             }
 
             // Assert

@@ -9,6 +9,8 @@ namespace SpreadCheetah.Test.Tests;
 
 public class SpreadsheetNoteTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Theory]
     [InlineData("A1", new[] { 2, 1.6, 1, 1 })]
     [InlineData("A2", new[] { 2, 1.6, 1, 11 })]
@@ -20,13 +22,13 @@ public class SpreadsheetNoteTests
         const string noteText = "My note";
         const string cellValue = "My value";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         await spreadsheet.AddRowAsync(new Cell(cellValue));
 
         // Act
         spreadsheet.AddNote(reference, noteText);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -57,12 +59,12 @@ public class SpreadsheetNoteTests
         // Arrange
         const string reference = "A2";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
         spreadsheet.AddNote(reference, noteText);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -80,14 +82,14 @@ public class SpreadsheetNoteTests
         const string sheet1Note = "Note 1";
         const string sheet2Note = "Note 2";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         spreadsheet.AddNote(reference, sheet1Note);
-        await spreadsheet.StartWorksheetAsync("Sheet 2");
+        await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
         spreadsheet.AddNote(reference, sheet2Note);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -116,12 +118,12 @@ public class SpreadsheetNoteTests
         const string reference = "A2";
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
         spreadsheet.AddNote(reference, noteText);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -147,8 +149,8 @@ public class SpreadsheetNoteTests
         var references = new[] { "A2", "B4", "C6" };
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
         foreach (var reference in references)
@@ -156,7 +158,7 @@ public class SpreadsheetNoteTests
             spreadsheet.AddNote(reference, noteText);
         }
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -174,8 +176,8 @@ public class SpreadsheetNoteTests
         // Arrange
         var noteText = new string('a', textLength);
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
         var exception = Record.Exception(() => spreadsheet.AddNote("A1", noteText));
@@ -199,8 +201,8 @@ public class SpreadsheetNoteTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act & Assert
         Assert.ThrowsAny<ArgumentException>(() => spreadsheet.AddNote(reference!, "My note"));
@@ -217,12 +219,12 @@ public class SpreadsheetNoteTests
         // Arrange
         const string noteText = "My note";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
         spreadsheet.AddNote(reference, noteText);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -231,7 +233,7 @@ public class SpreadsheetNoteTests
         var vmlDrawing = sheetPart.VmlDrawingParts.Single();
         using var vmlStream = vmlDrawing.GetStream();
         using var reader = new StreamReader(vmlStream);
-        var vml = await reader.ReadToEndAsync();
+        var vml = await reader.ReadToEndAsync(Token);
         const string styleAttribute = " style=\"";
         var styleStartIndex = vml.IndexOf(styleAttribute, StringComparison.OrdinalIgnoreCase);
         var styleStartIndexActual = styleStartIndex + styleAttribute.Length;
@@ -250,13 +252,13 @@ public class SpreadsheetNoteTests
         const string noteText = "My note";
         const string cellValue = "My value";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         await spreadsheet.AddRowAsync(new Cell(cellValue));
 
         // Act
         spreadsheet.AddNote("A1", noteText);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -275,8 +277,8 @@ public class SpreadsheetNoteTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var notes = Enumerable.Range(1, count)
             .Select(x => SpreadsheetUtility.GetColumnName(x) + x)
             .Select(x => (Reference: x, NoteText: "Note for " + x))
@@ -288,7 +290,7 @@ public class SpreadsheetNoteTests
             spreadsheet.AddNote(reference, noteText);
         }
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -305,13 +307,13 @@ public class SpreadsheetNoteTests
         const string reference = "A1";
         const string noteText = "My note";
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet 1");
-        await spreadsheet.StartWorksheetAsync("Sheet 2");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
 
         // Act
         spreadsheet.AddNote(reference, noteText);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -331,14 +333,14 @@ public class SpreadsheetNoteTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         if (noteInSecondSheet)
-            await spreadsheet.StartWorksheetAsync("Sheet 2");
+            await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
 
         // Act
         spreadsheet.AddNote("A1", "My note");
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var zip = new ZipArchive(stream);
@@ -357,7 +359,7 @@ public class SpreadsheetNoteTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         var notes = Enumerable.Range(1, count)
             .Select(x => SpreadsheetUtility.GetColumnName(x) + x)
             .Select(x => (Reference: x, NoteText: "Note for " + x))
@@ -367,11 +369,11 @@ public class SpreadsheetNoteTests
         for (var i = 0; i < notes.Count; i++)
         {
             var (reference, noteText) = notes[i];
-            await spreadsheet.StartWorksheetAsync("Sheet " + i);
+            await spreadsheet.StartWorksheetAsync("Sheet " + i, token: Token);
             spreadsheet.AddNote(reference, noteText);
         }
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);

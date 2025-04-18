@@ -5,6 +5,8 @@ namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 
 public class PropertyTypeTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Fact]
     public Task PropertyType_ClassWithUnsupportedProperty()
     {
@@ -26,7 +28,7 @@ public class PropertyTypeTests
             """;
 
         // Act & Assert
-        return context.RunAsync();
+        return context.RunAsync(Token);
     }
 
     [Fact]
@@ -51,7 +53,7 @@ public class PropertyTypeTests
             """;
 
         // Act & Assert
-        return context.RunAsync();
+        return context.RunAsync(Token);
     }
 
     [Fact]

@@ -5,6 +5,8 @@ namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 
 public class CellFormatTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Fact]
     public Task CellFormat_ClassWithMultipleAttributes()
     {
@@ -62,7 +64,7 @@ public class CellFormatTests
             """;
 
         // Act & Assert
-        return context.RunAsync();
+        return context.RunAsync(Token);
     }
 
     [Fact]
@@ -87,6 +89,6 @@ public class CellFormatTests
             """;
 
         // Act & Assert
-        return context.RunAsync();
+        return context.RunAsync(Token);
     }
 }

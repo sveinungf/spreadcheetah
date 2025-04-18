@@ -4,6 +4,8 @@ namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 
 public class ColumnIgnoreTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Fact]
     public Task ColumnIgnore_ClassPropertyWithAnotherSpreadCheetahAttribute()
     {
@@ -27,7 +29,7 @@ public class ColumnIgnoreTests
             """;
 
         // Act & Assert
-        return context.RunAsync();
+        return context.RunAsync(Token);
     }
 
     [Fact]
@@ -53,7 +55,7 @@ public class ColumnIgnoreTests
             """;
 
         // Act & Assert
-        return context.RunAsync();
+        return context.RunAsync(Token);
     }
 
     [Fact]
@@ -81,6 +83,6 @@ public class ColumnIgnoreTests
             """;
 
         // Act & Assert
-        return context.RunAsync();
+        return context.RunAsync(Token);
     }
 }

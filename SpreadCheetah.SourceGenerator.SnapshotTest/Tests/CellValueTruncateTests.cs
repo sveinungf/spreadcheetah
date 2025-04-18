@@ -5,6 +5,8 @@ namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 
 public class CellValueTruncateTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Fact]
     public Task CellValueTruncate_ClassWithCellValueTruncate()
     {
@@ -80,7 +82,7 @@ public class CellValueTruncateTests
             """;
 
         // Act & Assert
-        return context.RunAsync();
+        return context.RunAsync(Token);
     }
 
     [Fact]
@@ -104,6 +106,6 @@ public class CellValueTruncateTests
             """;
 
         // Act & Assert
-        return context.RunAsync();
+        return context.RunAsync(Token);
     }
 }
