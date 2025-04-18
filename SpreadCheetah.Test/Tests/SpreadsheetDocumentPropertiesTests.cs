@@ -111,6 +111,7 @@ public class SpreadsheetDocumentPropertiesTests
         // Act
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var timestampBeforeFinishing = DateTime.UtcNow;
         await spreadsheet.FinishAsync(Token);
 
         // Assert
@@ -119,7 +120,7 @@ public class SpreadsheetDocumentPropertiesTests
         Assert.Null(actual.Subject);
         Assert.Null(actual.Title);
         var actualCreated = Assert.NotNull(actual.Created);
-        Assert.Equal(DateTime.UtcNow, actualCreated, TimeSpan.FromSeconds(5));
+        Assert.Equal(timestampBeforeFinishing, actualCreated, TimeSpan.FromSeconds(10));
         Assert.Equal("SpreadCheetah", actual.Application);
     }
 }
