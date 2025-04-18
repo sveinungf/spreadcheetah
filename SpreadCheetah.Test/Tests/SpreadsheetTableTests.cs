@@ -9,26 +9,28 @@ namespace SpreadCheetah.Test.Tests;
 
 public class SpreadsheetTableTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Theory, CombinatorialData]
     public async Task Spreadsheet_Table_Success(bool explicitlyFinishTable)
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
         string[] headerNames = ["Make", "Model", "Year"];
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(headerNames);
-        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)]);
-        await spreadsheet.AddRowAsync([new("Volkswagen"), new("Polo"), new(1975)]);
+        await spreadsheet.AddHeaderRowAsync(headerNames, token: Token);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)], Token);
+        await spreadsheet.AddRowAsync([new("Volkswagen"), new("Polo"), new(1975)], Token);
 
         if (explicitlyFinishTable)
-            await spreadsheet.FinishTableAsync();
+            await spreadsheet.FinishTableAsync(Token);
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -49,16 +51,16 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(tableStyle);
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(["Make", "Model", "Year"]);
-        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)]);
-        await spreadsheet.FinishTableAsync();
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync(["Make", "Model", "Year"], token: Token);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)], Token);
+        await spreadsheet.FinishTableAsync(Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -72,8 +74,8 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light19);
         string[] headerNames = ["Make", "Model", "Price"];
         table.Column(1).TotalRowLabel = "Average price";
@@ -81,14 +83,14 @@ public class SpreadsheetTableTests
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(headerNames);
-        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(190000)]);
-        await spreadsheet.AddRowAsync([new("Volkswagen"), new("Polo"), new(150000)]);
+        await spreadsheet.AddHeaderRowAsync(headerNames, token: Token);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(190000)], Token);
+        await spreadsheet.AddRowAsync([new("Volkswagen"), new("Polo"), new(150000)], Token);
 
         if (explicitlyFinishTable)
-            await spreadsheet.FinishTableAsync();
+            await spreadsheet.FinishTableAsync(Token);
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -113,11 +115,11 @@ public class SpreadsheetTableTests
     public async Task Spreadsheet_Table_WithoutRows(bool rowBefore, bool totalRow)
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         if (rowBefore)
-            await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(190000)]);
+            await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(190000)], Token);
 
         var table = new Table(TableStyle.Light1) { NumberOfColumns = 1 };
 
@@ -126,7 +128,7 @@ public class SpreadsheetTableTests
 
         // Act
         spreadsheet.StartTable(table);
-        var exception = await Record.ExceptionAsync(() => spreadsheet.FinishTableAsync().AsTask());
+        var exception = await Record.ExceptionAsync(() => spreadsheet.FinishTableAsync(Token).AsTask());
 
         // Assert
         Assert.IsType<SpreadCheetahException>(exception);
@@ -137,15 +139,15 @@ public class SpreadsheetTableTests
     public async Task Spreadsheet_Table_WithoutColumns()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var table = new Table(TableStyle.Light1);
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddRowAsync([new("Hello"), new("World!")]);
-        var exception = await Record.ExceptionAsync(() => spreadsheet.FinishTableAsync().AsTask());
+        await spreadsheet.AddRowAsync([new("Hello"), new("World!")], Token);
+        var exception = await Record.ExceptionAsync(() => spreadsheet.FinishTableAsync(Token).AsTask());
 
         // Assert
         Assert.IsType<SpreadCheetahException>(exception);
@@ -156,8 +158,8 @@ public class SpreadsheetTableTests
     public async Task Spreadsheet_Table_EmptyHeaderRow(bool numberOfColumnsSet)
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1)
         {
             NumberOfColumns = numberOfColumnsSet ? 3 : null
@@ -165,7 +167,7 @@ public class SpreadsheetTableTests
 
         // Act
         spreadsheet.StartTable(table);
-        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync([]).AsTask());
+        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync([], token: Token).AsTask());
 
         // Assert
         Assert.IsType<SpreadCheetahException>(exception);
@@ -177,15 +179,15 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
         string[] headerNames = ["Make", "Model", "Year"];
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(headerNames);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync(headerNames, token: Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -199,8 +201,8 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
         string[] headerNames = ["Make", "Model", "Year"];
         table.Column(1).TotalRowLabel = "Result";
@@ -208,8 +210,8 @@ public class SpreadsheetTableTests
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(headerNames);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync(headerNames, token: Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -228,15 +230,15 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1) { NumberOfColumns = 3 };
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(190000)]);
-        await spreadsheet.AddRowAsync([new("Ford"), new("Sierra"), new(140000)]);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(190000)], Token);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Sierra"), new(140000)], Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -250,8 +252,8 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1)
         {
             NumberOfColumns = numberOfColumnsSet ? 5 : null
@@ -270,9 +272,9 @@ public class SpreadsheetTableTests
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(190000)]);
-        await spreadsheet.AddRowAsync([new("Ford"), new("Sierra"), new(140000)]);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(190000)], Token);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Sierra"), new(140000)], Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -292,24 +294,24 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
         string[] headerNames = ["Make", "Model", "Year"];
 
         for (var i = 1; i < startRow; i++)
         {
-            await spreadsheet.AddRowAsync([new(i)]);
+            await spreadsheet.AddRowAsync([new(i)], Token);
         }
 
         var expectedTableReference = $"A{startRow}:C{startRow + 2}";
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(headerNames);
-        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)]);
-        await spreadsheet.AddRowAsync([new("Volkswagen"), new("Polo"), new(1975)]);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync(headerNames, token: Token);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)], Token);
+        await spreadsheet.AddRowAsync([new("Volkswagen"), new("Polo"), new(1975)], Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -329,8 +331,8 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
         string[] headerNames = ["Make", "Model", "Year"];
         table.Column(1).TotalRowLabel = "Oldest";
@@ -338,17 +340,17 @@ public class SpreadsheetTableTests
 
         for (var i = 1; i < startRow; i++)
         {
-            await spreadsheet.AddRowAsync([new(i)]);
+            await spreadsheet.AddRowAsync([new(i)], Token);
         }
 
         var expectedTableReference = $"A{startRow}:C{startRow + 3}";
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(headerNames);
-        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)]);
-        await spreadsheet.AddRowAsync([new("Volkswagen"), new("Polo"), new(1975)]);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync(headerNames, token: Token);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)], Token);
+        await spreadsheet.AddRowAsync([new("Volkswagen"), new("Polo"), new(1975)], Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -372,8 +374,8 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
         var columnNumber = ColumnName.Parse(startColumn);
         var firstHeaderCells = Enumerable.Repeat("", columnNumber - 1);
@@ -385,10 +387,10 @@ public class SpreadsheetTableTests
 
         // Act
         spreadsheet.StartTable(table, startColumn);
-        await spreadsheet.AddHeaderRowAsync([.. firstHeaderCells, .. headerNames]);
-        await spreadsheet.AddRowAsync([.. firstDataCells, new("Ford"), new("Mondeo"), new(1993)]);
-        await spreadsheet.AddRowAsync([.. firstDataCells, new("Volkswagen"), new("Polo"), new(1975)]);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync([.. firstHeaderCells, .. headerNames], token: Token);
+        await spreadsheet.AddRowAsync([.. firstDataCells, new("Ford"), new("Mondeo"), new(1993)], Token);
+        await spreadsheet.AddRowAsync([.. firstDataCells, new("Volkswagen"), new("Polo"), new(1975)], Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -406,8 +408,8 @@ public class SpreadsheetTableTests
     public async Task Spreadsheet_Table_TwoActiveTables()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var table1 = new Table(TableStyle.Light1);
         var table2 = new Table(TableStyle.Light2);
@@ -425,13 +427,13 @@ public class SpreadsheetTableTests
     public async Task Spreadsheet_Table_FinishTableWithoutStartingIt()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
-        await spreadsheet.AddHeaderRowAsync(["Make", "Model", "Year"]);
-        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)]);
-        var exception = await Record.ExceptionAsync(() => spreadsheet.FinishTableAsync().AsTask());
+        await spreadsheet.AddHeaderRowAsync(["Make", "Model", "Year"], token: Token);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)], Token);
+        var exception = await Record.ExceptionAsync(() => spreadsheet.FinishTableAsync(Token).AsTask());
 
         // Assert
         Assert.IsType<SpreadCheetahException>(exception);
@@ -442,16 +444,16 @@ public class SpreadsheetTableTests
     public async Task Spreadsheet_Table_FinishTableTwice()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(["Make", "Model", "Year"]);
-        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)]);
-        await spreadsheet.FinishTableAsync();
-        var exception = await Record.ExceptionAsync(() => spreadsheet.FinishTableAsync().AsTask());
+        await spreadsheet.AddHeaderRowAsync(["Make", "Model", "Year"], token: Token);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(1993)], Token);
+        await spreadsheet.FinishTableAsync(Token);
+        var exception = await Record.ExceptionAsync(() => spreadsheet.FinishTableAsync(Token).AsTask());
 
         // Assert
         Assert.IsType<SpreadCheetahException>(exception);
@@ -463,17 +465,17 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
         string[] headerNames1 = ["Make", "Model", "Year"];
         string[] headerNames2 = ["Width", "Height", "Length"];
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(headerNames1);
-        await spreadsheet.AddHeaderRowAsync(headerNames2);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync(headerNames1, token: Token);
+        await spreadsheet.AddHeaderRowAsync(headerNames2, token: Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -487,8 +489,8 @@ public class SpreadsheetTableTests
     public async Task Spreadsheet_Table_DuplicateHeaderNames(bool differentCasing)
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
         string[] headerNames =
         [
@@ -499,7 +501,7 @@ public class SpreadsheetTableTests
 
         // Act
         spreadsheet.StartTable(table);
-        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync(headerNames).AsTask());
+        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync(headerNames, token: Token).AsTask());
 
         // Assert
         Assert.IsType<SpreadCheetahException>(exception);
@@ -510,14 +512,14 @@ public class SpreadsheetTableTests
     public async Task Spreadsheet_Table_HeaderRowWithEmptyString()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
         string[] headerNames = ["Make", "", "Model"];
 
         // Act
         spreadsheet.StartTable(table);
-        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync(headerNames).AsTask());
+        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync(headerNames, token: Token).AsTask());
 
         // Assert
         Assert.IsType<SpreadCheetahException>(exception);
@@ -530,15 +532,15 @@ public class SpreadsheetTableTests
         // Arrange
         const int numberOfColumns = 3;
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1) { NumberOfColumns = numberOfColumns };
         string[] headerNames = ["A", "B", "C", "D", "E"];
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(headerNames);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync(headerNames, token: Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -551,14 +553,14 @@ public class SpreadsheetTableTests
     public async Task Spreadsheet_Table_HeaderRowShorterThanTableColumns()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1) { NumberOfColumns = 5 };
         string[] headerNames = ["A", "B", "C"];
 
         // Act
         spreadsheet.StartTable(table);
-        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync(headerNames).AsTask());
+        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync(headerNames, token: Token).AsTask());
 
         // Assert
         Assert.IsType<SpreadCheetahException>(exception);
@@ -570,8 +572,8 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
         table.Column(1).TotalRowLabel = "Sum";
         table.Column(3).TotalRowFunction = TableTotalRowFunction.Sum;
@@ -579,8 +581,8 @@ public class SpreadsheetTableTests
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(headerNames);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync(headerNames, token: Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -596,15 +598,15 @@ public class SpreadsheetTableTests
     public async Task Spreadsheet_Table_HeaderRowShorterThanTotalRow()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
         table.Column(5).TotalRowFunction = TableTotalRowFunction.Sum;
         string[] headerNames = ["A", "B", "C"];
 
         // Act
         spreadsheet.StartTable(table);
-        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync(headerNames).AsTask());
+        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync(headerNames, token: Token).AsTask());
 
         // Assert
         Assert.IsType<SpreadCheetahException>(exception);
@@ -615,14 +617,14 @@ public class SpreadsheetTableTests
     public async Task Spreadsheet_Table_HeaderRowEndingBeforeTableStart()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
         string[] headerNames = ["A", "B", "C"];
 
         // Act
         spreadsheet.StartTable(table, "D");
-        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync(headerNames).AsTask());
+        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync(headerNames, token: Token).AsTask());
 
         // Assert
         Assert.IsType<SpreadCheetahException>(exception);
@@ -650,14 +652,14 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync([headerName]);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync([headerName], token: Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -675,13 +677,13 @@ public class SpreadsheetTableTests
     public async Task Spreadsheet_Table_InvalidHeaderName(string headerName)
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
 
         // Act
         spreadsheet.StartTable(table);
-        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync([headerName]).AsTask());
+        var exception = await Record.ExceptionAsync(() => spreadsheet.AddHeaderRowAsync([headerName], token: Token).AsTask());
 
         // Assert
         Assert.IsType<SpreadCheetahException>(exception);
@@ -694,8 +696,8 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
         var headerNames = Enumerable
             .Range(1, count)
@@ -708,9 +710,9 @@ public class SpreadsheetTableTests
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(headerNames);
-        await spreadsheet.AddRowAsync(values);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync(headerNames, token: Token);
+        await spreadsheet.AddRowAsync(values, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -726,8 +728,8 @@ public class SpreadsheetTableTests
         // Arrange
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
         table.Column(2).TotalRowFunction = TableTotalRowFunction.Sum;
         string[] headerNames = ["Text", "Number"];
@@ -736,12 +738,12 @@ public class SpreadsheetTableTests
         for (var i = 0; i < count; ++i)
         {
             spreadsheet.StartTable(table);
-            await spreadsheet.AddHeaderRowAsync(headerNames);
-            await spreadsheet.AddRowAsync([new($"Number {i}"), new(i)]);
-            await spreadsheet.FinishTableAsync();
+            await spreadsheet.AddHeaderRowAsync(headerNames, token: Token);
+            await spreadsheet.AddRowAsync([new($"Number {i}"), new(i)], Token);
+            await spreadsheet.FinishTableAsync(Token);
         }
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -757,7 +759,7 @@ public class SpreadsheetTableTests
         // Arrange
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         var table = new Table(TableStyle.Light1);
         table.Column(2).TotalRowFunction = TableTotalRowFunction.Sum;
         string[] headerNames = ["Text", "Number"];
@@ -765,14 +767,14 @@ public class SpreadsheetTableTests
         // Act
         for (var i = 0; i < count; ++i)
         {
-            await spreadsheet.StartWorksheetAsync($"Sheet {i}");
+            await spreadsheet.StartWorksheetAsync($"Sheet {i}", token: Token);
             spreadsheet.StartTable(table);
-            await spreadsheet.AddHeaderRowAsync(headerNames);
-            await spreadsheet.AddRowAsync([new($"Number {i}"), new(i)]);
-            await spreadsheet.FinishTableAsync();
+            await spreadsheet.AddHeaderRowAsync(headerNames, token: Token);
+            await spreadsheet.AddRowAsync([new($"Number {i}"), new(i)], Token);
+            await spreadsheet.FinishTableAsync(Token);
         }
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheets = SpreadsheetAssert.Sheets(stream);
@@ -790,15 +792,15 @@ public class SpreadsheetTableTests
         var name = new string('a', 255);
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1, name);
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(["Make", "Model"]);
-        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo")]);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync(["Make", "Model"], token: Token);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo")], Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -813,15 +815,15 @@ public class SpreadsheetTableTests
         var headerName = new string('a', 255);
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync([headerName]);
-        await spreadsheet.AddRowAsync([new("Ford")]);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync([headerName], token: Token);
+        await spreadsheet.AddRowAsync([new("Ford")], Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -838,16 +840,16 @@ public class SpreadsheetTableTests
         var totalRowLabel = new string('a', 4096);
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
         table.Column(1).TotalRowLabel = totalRowLabel;
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(["Make"]);
-        await spreadsheet.AddRowAsync([new("Ford")]);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync(["Make"], token: Token);
+        await spreadsheet.AddRowAsync([new("Ford")], Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -862,8 +864,8 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Medium10);
         var style = new Style
         {
@@ -875,9 +877,9 @@ public class SpreadsheetTableTests
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(["Make", "Model"], styleId);
-        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo")]);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync(["Make", "Model"], styleId, Token);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo")], Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -889,8 +891,8 @@ public class SpreadsheetTableTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Medium10);
         var colorStyle = new Style { Fill = { Color = Color.Blue } };
         var italicStyle = new Style { Font = { Italic = true } };
@@ -899,10 +901,10 @@ public class SpreadsheetTableTests
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(["Make", "Model"]);
-        await spreadsheet.AddRowAsync([new StyledCell("Ford", colorStyleId), new("Mondeo", null)]);
-        await spreadsheet.AddRowAsync([new StyledCell("Opel", null), new("Astra", italicStyleId)]);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync(["Make", "Model"], token: Token);
+        await spreadsheet.AddRowAsync([new StyledCell("Ford", colorStyleId), new("Mondeo", null)], Token);
+        await spreadsheet.AddRowAsync([new StyledCell("Opel", null), new("Astra", italicStyleId)], Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -913,8 +915,8 @@ public class SpreadsheetTableTests
     public async Task Spreadsheet_Table_InvalidFirstColumnName()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
 
         // Act & Assert
@@ -925,13 +927,13 @@ public class SpreadsheetTableTests
     public async Task Spreadsheet_Table_DuplicateTableName()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table1 = new Table(TableStyle.Light1, "Table");
         spreadsheet.StartTable(table1);
-        await spreadsheet.AddHeaderRowAsync(["Make", "Model"]);
-        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo")]);
-        await spreadsheet.FinishTableAsync();
+        await spreadsheet.AddHeaderRowAsync(["Make", "Model"], token: Token);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo")], Token);
+        await spreadsheet.FinishTableAsync(Token);
 
         var table2 = new Table(TableStyle.Light2, "Table");
 
@@ -943,9 +945,9 @@ public class SpreadsheetTableTests
     public async Task Spreadsheet_Table_WorksheetWithAutoFilter()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
         var options = new WorksheetOptions { AutoFilter = new AutoFilterOptions("A1:A4") };
-        await spreadsheet.StartWorksheetAsync("Sheet", options);
+        await spreadsheet.StartWorksheetAsync("Sheet", options, Token);
         var table = new Table(TableStyle.Light1);
 
         // Act & Assert

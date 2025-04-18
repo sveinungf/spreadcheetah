@@ -12,6 +12,8 @@ namespace SpreadCheetah.Test.Tests;
 
 public class SpreadsheetDataValidationTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Theory]
     [InlineData("eq", XLOperator.EqualTo)]
     [InlineData("neq", XLOperator.NotEqualTo)]
@@ -35,12 +37,12 @@ public class SpreadsheetDataValidationTests
         };
 
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
         spreadsheet.AddDataValidation("A1", validation);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -70,12 +72,12 @@ public class SpreadsheetDataValidationTests
         var expectedOperator = between ? XLOperator.Between : XLOperator.NotBetween;
 
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
         spreadsheet.AddDataValidation("A1", validation);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -115,13 +117,13 @@ public class SpreadsheetDataValidationTests
         };
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             spreadsheet.AddDataValidation("A1", validation);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -153,13 +155,13 @@ public class SpreadsheetDataValidationTests
         var expectedOperator = between ? XLOperator.Between : XLOperator.NotBetween;
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             spreadsheet.AddDataValidation("A1", validation);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -200,13 +202,13 @@ public class SpreadsheetDataValidationTests
         };
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             spreadsheet.AddDataValidation("A1", validation);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -238,13 +240,13 @@ public class SpreadsheetDataValidationTests
         var expectedOperator = between ? XLOperator.Between : XLOperator.NotBetween;
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             spreadsheet.AddDataValidation("A1", validation);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -285,13 +287,13 @@ public class SpreadsheetDataValidationTests
         };
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             spreadsheet.AddDataValidation("A1", validation);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -323,13 +325,13 @@ public class SpreadsheetDataValidationTests
         var expectedOperator = between ? XLOperator.Between : XLOperator.NotBetween;
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             spreadsheet.AddDataValidation("A1", validation);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -356,13 +358,13 @@ public class SpreadsheetDataValidationTests
         var validation = DataValidation.ListValues(values);
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             spreadsheet.AddDataValidation(reference, validation);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -386,13 +388,13 @@ public class SpreadsheetDataValidationTests
         var validation = DataValidation.ListValues(values, showDropdown);
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             spreadsheet.AddDataValidation("A1", validation);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -420,14 +422,14 @@ public class SpreadsheetDataValidationTests
         var validation = DataValidation.ListValuesFromCells(cellRange);
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
-            await spreadsheet.AddRowAsync(new DataCell[] { new("Apple"), new("Orange"), new("Pear") });
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+            await spreadsheet.AddRowAsync([new("Apple"), new("Orange"), new("Pear")], token: Token);
 
             // Act
             spreadsheet.AddDataValidation(reference, validation);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -454,15 +456,15 @@ public class SpreadsheetDataValidationTests
         var validation = DataValidation.ListValuesFromCells(valueSheetName, cellRange);
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync(valueSheetName);
-            await spreadsheet.AddRowAsync(new DataCell[] { new("Apple"), new("Orange"), new("Pear") });
-            await spreadsheet.StartWorksheetAsync("Data validation sheet");
+            await spreadsheet.StartWorksheetAsync(valueSheetName, token: Token);
+            await spreadsheet.AddRowAsync([new("Apple"), new("Orange"), new("Pear")], token: Token);
+            await spreadsheet.StartWorksheetAsync("Data validation sheet", token: Token);
 
             // Act
             spreadsheet.AddDataValidation(reference, validation);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -493,13 +495,13 @@ public class SpreadsheetDataValidationTests
         validation.ErrorType = ValidationErrorType.Warning;
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             spreadsheet.AddDataValidation("A1", validation);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -520,13 +522,13 @@ public class SpreadsheetDataValidationTests
         var validation = DataValidation.IntegerGreaterThan(0);
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
             // Act
             spreadsheet.AddDataValidation("A1:C10", validation);
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -564,9 +566,9 @@ public class SpreadsheetDataValidationTests
         var validation = DataValidation.IntegerGreaterThan(0);
 
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
 
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act & Assert
         Assert.ThrowsAny<ArgumentException>(() => spreadsheet.AddDataValidation(reference!, validation));
@@ -580,15 +582,15 @@ public class SpreadsheetDataValidationTests
         var validation = DataValidation.TextLengthLessThan(20);
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
-            await spreadsheet.StartWorksheetAsync("Sheet");
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             spreadsheet.AddDataValidation("A1", previousValidation);
 
             // Act
             spreadsheet.AddDataValidation("A1", validation);
 
-            await spreadsheet.FinishAsync();
+            await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
@@ -612,8 +614,8 @@ public class SpreadsheetDataValidationTests
         var validation = DataValidation.IntegerBetween(0, 9);
 
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         for (var i = 1; i <= 65534; ++i)
         {
@@ -623,7 +625,7 @@ public class SpreadsheetDataValidationTests
 
         // Act & Assert
         Assert.ThrowsAny<SpreadCheetahException>(() => spreadsheet.AddDataValidation("B1", validation));
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(stream);
     }
 
@@ -642,14 +644,14 @@ public class SpreadsheetDataValidationTests
         }
 
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         AddMaxNumberOfDataValidations("A", spreadsheet);
-        await spreadsheet.StartWorksheetAsync("Sheet 2");
+        await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
         AddMaxNumberOfDataValidations("B", spreadsheet);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -662,8 +664,8 @@ public class SpreadsheetDataValidationTests
         const int count = 1000;
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var dataValidations = DataValidationGenerator.Generate(count);
 
         for (var i = 0; i < dataValidations.Count; ++i)
@@ -674,7 +676,7 @@ public class SpreadsheetDataValidationTests
             spreadsheet.AddDataValidation(reference, dataValidations[i]);
         }
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);

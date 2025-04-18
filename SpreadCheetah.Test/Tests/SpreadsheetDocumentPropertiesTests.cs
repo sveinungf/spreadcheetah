@@ -5,6 +5,8 @@ namespace SpreadCheetah.Test.Tests;
 
 public class SpreadsheetDocumentPropertiesTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Fact]
     public async Task Spreadsheet_DocumentProperties_AllPropertiesSet()
     {
@@ -26,10 +28,10 @@ public class SpreadsheetDocumentPropertiesTests
         using var stream = new MemoryStream();
 
         // Act
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var timestampBeforeFinishing = DateTime.UtcNow;
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         var actual = SpreadsheetAssert.DocumentProperties(stream);
@@ -63,9 +65,9 @@ public class SpreadsheetDocumentPropertiesTests
         using var stream = new MemoryStream();
 
         // Act
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
-        await spreadsheet.FinishAsync();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         var actual = SpreadsheetAssert.DocumentProperties(stream);
@@ -86,9 +88,9 @@ public class SpreadsheetDocumentPropertiesTests
         using var stream = new MemoryStream();
 
         // Act
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
-        await spreadsheet.FinishAsync();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         var actual = SpreadsheetAssert.DocumentProperties(stream);
@@ -107,9 +109,9 @@ public class SpreadsheetDocumentPropertiesTests
         using var stream = new MemoryStream();
 
         // Act
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
-        await spreadsheet.FinishAsync();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         var actual = SpreadsheetAssert.DocumentProperties(stream);
