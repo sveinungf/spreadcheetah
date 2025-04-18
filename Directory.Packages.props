@@ -34,12 +34,12 @@
     <PackageVersion Include="System.Memory" Version="4.6.0" />
     <PackageVersion Include="System.Reflection.Metadata" Version="9.0.4" />
     <PackageVersion Include="System.Text.RegularExpressions" Version="4.3.1" />
-    <PackageVersion Include="TngTech.ArchUnitNET.xUnit" Version="0.11.3" />
+    <PackageVersion Include="TngTech.ArchUnitNET.xUnitV3" Version="0.11.3" />
     <PackageVersion Include="Verify.SourceGenerators" Version="2.5.0" />
-    <PackageVersion Include="Verify.Xunit" Version="29.2.0" />
-    <PackageVersion Include="xunit" Version="2.9.3" />
-    <PackageVersion Include="xunit.assert" Version="2.9.3" />
-    <PackageVersion Include="Xunit.Combinatorial" Version="1.6.24" />
+    <PackageVersion Include="Verify.XunitV3" Version="29.2.0" />
+    <PackageVersion Include="Xunit.Combinatorial" Version="2.0.24" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.2" />
+    <PackageVersion Include="xunit.v3" Version="2.0.1" />
+    <PackageVersion Include="xunit.v3.assert" Version="2.0.1" />
   </ItemGroup>
 </Project>

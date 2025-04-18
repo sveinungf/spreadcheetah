@@ -1,7 +1,6 @@
 using SpreadCheetah.Benchmark.Benchmarks;
 using SpreadCheetah.TestHelpers.Assertions;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace SpreadCheetah.Benchmark.Test.Tests;
 

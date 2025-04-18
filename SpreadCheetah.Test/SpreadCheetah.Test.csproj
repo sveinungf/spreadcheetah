@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net472;net8.0;net9.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,14 +26,14 @@
     <PackageReference Include="PublicApiGenerator" />
     <PackageReference Include="System.Drawing.Common" />
     <PackageReference Include="System.Text.RegularExpressions" />
-    <PackageReference Include="TngTech.ArchUnitNET.xUnit" />
-    <PackageReference Include="Verify.Xunit" />
-    <PackageReference Include="xunit" />
+    <PackageReference Include="TngTech.ArchUnitNET.xUnitV3" />
+    <PackageReference Include="Verify.XunitV3" />
     <PackageReference Include="Xunit.Combinatorial" />
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="xunit.v3" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">

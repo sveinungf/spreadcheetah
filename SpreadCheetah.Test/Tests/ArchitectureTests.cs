@@ -1,7 +1,7 @@
 #if !NET5_0_OR_GREATER
 using ArchUnitNET.Domain;
 using ArchUnitNET.Loader;
-using ArchUnitNET.xUnit;
+using ArchUnitNET.xUnitV3;
 using SpreadCheetah.Test.Helpers;
 using static ArchUnitNET.Fluent.ArchRuleDefinition;
 
