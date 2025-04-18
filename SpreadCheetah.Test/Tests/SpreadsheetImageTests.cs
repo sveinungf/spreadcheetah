@@ -19,7 +19,7 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
 
         // Act
-        var exception = await Record.ExceptionAsync(() => spreadsheet.EmbedImageAsync(null!).AsTask());
+        var exception = await Record.ExceptionAsync(() => spreadsheet.EmbedImageAsync(null!, Token).AsTask());
 
         // Assert
         var concreteException = Assert.IsType<ArgumentNullException>(exception);
@@ -34,7 +34,7 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
 
         // Act
-        var exception = await Record.ExceptionAsync(() => spreadsheet.EmbedImageAsync(writeOnlyStream).AsTask());
+        var exception = await Record.ExceptionAsync(() => spreadsheet.EmbedImageAsync(writeOnlyStream, Token).AsTask());
 
         // Assert
         var concreteException = Assert.IsType<ArgumentException>(exception);
@@ -47,7 +47,7 @@ public class SpreadsheetImageTests
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         pngStream.Position = pngStream.Length;
 
         // Act
@@ -64,7 +64,7 @@ public class SpreadsheetImageTests
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
 
         // Act
@@ -81,7 +81,7 @@ public class SpreadsheetImageTests
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         await spreadsheet.FinishAsync(Token);
 
@@ -102,7 +102,7 @@ public class SpreadsheetImageTests
         var imageStream = new MemoryStream(bytes);
 
         // Act
-        var exception = await Record.ExceptionAsync(() => spreadsheet.EmbedImageAsync(imageStream).AsTask());
+        var exception = await Record.ExceptionAsync(() => spreadsheet.EmbedImageAsync(imageStream, Token).AsTask());
 
         // Assert
         var concreteException = Assert.IsType<ArgumentException>(exception);
@@ -118,7 +118,7 @@ public class SpreadsheetImageTests
         // Arrange
         using var pngStream = EmbeddedResources.GetStream(filename);
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
 
         // Act
         var result = await spreadsheet.EmbedImageAsync(pngStream, Token);
@@ -147,7 +147,7 @@ public class SpreadsheetImageTests
         // Arrange
         using var pngStream = new AsyncReadOnlyMemoryStream(EmbeddedResources.GetStream("red-1x1.png"));
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
 
         // Act
         var exception = await Record.ExceptionAsync(() => spreadsheet.EmbedImageAsync(pngStream, Token).AsTask());
@@ -162,7 +162,7 @@ public class SpreadsheetImageTests
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("red-1x1.invalidpng");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
 
         // Act
         var exception = await Record.ExceptionAsync(() => spreadsheet.EmbedImageAsync(pngStream, Token).AsTask());
@@ -179,7 +179,7 @@ public class SpreadsheetImageTests
         const string reference = "B3";
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
@@ -210,7 +210,7 @@ public class SpreadsheetImageTests
         const string reference = "B3";
         using var pngStream = EmbeddedResources.GetStream("yellow-500x500-transparent.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
@@ -241,7 +241,7 @@ public class SpreadsheetImageTests
         const string reference = "B3";
         using var pngStream = EmbeddedResources.GetStream("orange-10000x10000.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
@@ -273,10 +273,10 @@ public class SpreadsheetImageTests
         const string worksheetName = "Sheet 2";
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
-        await spreadsheet.StartWorksheetAsync(worksheetName);
+        await spreadsheet.StartWorksheetAsync(worksheetName, token: Token);
         var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
 
         // Act
@@ -310,7 +310,7 @@ public class SpreadsheetImageTests
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImages = new List<EmbeddedImage>(count);
         for (var i = 0; i < count; i++)
         {
@@ -352,7 +352,7 @@ public class SpreadsheetImageTests
         var references = new[] { "A10", "B3", "J2" };
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
 
@@ -385,7 +385,7 @@ public class SpreadsheetImageTests
         var worksheet2References = new[] { "B10", "C1", "H20" };
         using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
 
         // Act
@@ -396,7 +396,7 @@ public class SpreadsheetImageTests
             spreadsheet.AddImage(canvas, embeddedImage);
         }
 
-        await spreadsheet.StartWorksheetAsync("Sheet 2");
+        await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
         foreach (var reference in worksheet2References)
         {
             var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
@@ -428,13 +428,13 @@ public class SpreadsheetImageTests
         using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
         using var outputStream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, options);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, options, Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
 
         // Act
         for (var i = 0; i < worksheetCount; i++)
         {
-            await spreadsheet.StartWorksheetAsync($"Sheet {i}");
+            await spreadsheet.StartWorksheetAsync($"Sheet {i}", token: Token);
             var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
             spreadsheet.AddImage(canvas, embeddedImage);
         }
@@ -458,7 +458,7 @@ public class SpreadsheetImageTests
         var worksheet2References = new[] { "B10", "C1" };
 
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImages = new Queue<EmbeddedImage>();
 
         foreach (var filename in imageFilenames)
@@ -476,7 +476,7 @@ public class SpreadsheetImageTests
             spreadsheet.AddImage(canvas, embeddedImages.Dequeue());
         }
 
-        await spreadsheet.StartWorksheetAsync("Sheet 2");
+        await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
         foreach (var reference in worksheet2References)
         {
             var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
@@ -507,7 +507,7 @@ public class SpreadsheetImageTests
         using var stream = new MemoryStream();
         using var otherStream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
-        await using var otherSpreadsheet = await Spreadsheet.CreateNewAsync(otherStream);
+        await using var otherSpreadsheet = await Spreadsheet.CreateNewAsync(otherStream, cancellationToken: Token);
         var embeddedImage = await otherSpreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         var canvas = ImageCanvas.OriginalSize("A1".AsSpan());
@@ -529,7 +529,7 @@ public class SpreadsheetImageTests
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         var canvas = ImageCanvas.FillCell("A1".AsSpan(), moveWithCells, resizeWithCells);
@@ -557,7 +557,7 @@ public class SpreadsheetImageTests
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         var canvas = ImageCanvas.Dimensions("D4".AsSpan(), width, height);
@@ -588,7 +588,7 @@ public class SpreadsheetImageTests
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         var canvas = ImageCanvas.Scaled("D4".AsSpan(), scale);
@@ -616,7 +616,7 @@ public class SpreadsheetImageTests
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         var canvas = ImageCanvas.Scaled("D4".AsSpan(), scale);
@@ -631,7 +631,7 @@ public class SpreadsheetImageTests
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         var canvas = ImageCanvas.FillCell("B3".AsSpan());
@@ -659,7 +659,7 @@ public class SpreadsheetImageTests
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         var canvas = ImageCanvas.FillCells("B3".AsSpan(), lowerRightReference.AsSpan());
@@ -689,7 +689,7 @@ public class SpreadsheetImageTests
         const string reference = "T20";
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
@@ -737,7 +737,7 @@ public class SpreadsheetImageTests
         var expectedHeight = cellPixelHeight - top + bottom;
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         var canvas = ImageCanvas.FillCell(reference.AsSpan());
@@ -772,7 +772,7 @@ public class SpreadsheetImageTests
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         ImageCanvas canvas = default;
