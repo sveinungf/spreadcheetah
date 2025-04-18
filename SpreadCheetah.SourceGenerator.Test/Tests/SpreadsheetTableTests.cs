@@ -7,13 +7,15 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests;
 
 public class SpreadsheetTableTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Fact]
     public async Task Spreadsheet_Table_RowsFromSourceGeneratedCode()
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
         var ctx = PersonContext.Default.Person;
         var person = new Person
@@ -25,9 +27,9 @@ public class SpreadsheetTableTests
 
         // Act
         spreadsheet.StartTable(table);
-        await spreadsheet.AddHeaderRowAsync(ctx);
-        await spreadsheet.AddAsRowAsync(person, ctx);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddHeaderRowAsync(ctx, token: Token);
+        await spreadsheet.AddAsRowAsync(person, ctx, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);

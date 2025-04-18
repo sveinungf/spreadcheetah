@@ -10,13 +10,15 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests;
 
 public class CellValueConverterTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Fact]
     public async Task CellValueConverter_ClassWithReusedConverter()
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var obj = new ClassWithReusedConverter
         {
             FirstName = "Ola",
@@ -26,8 +28,8 @@ public class CellValueConverterTests
         };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, CellValueConverterContext.Default.ClassWithReusedConverter);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, CellValueConverterContext.Default.ClassWithReusedConverter, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -40,8 +42,8 @@ public class CellValueConverterTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var obj = new ClassWithGenericConverter
         {
             FirstName = "Ola",
@@ -52,8 +54,8 @@ public class CellValueConverterTests
 
         // Act
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-        await spreadsheet.AddAsRowAsync(obj, CellValueConverterContext.Default.ClassWithGenericConverter);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, CellValueConverterContext.Default.ClassWithGenericConverter, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -66,8 +68,8 @@ public class CellValueConverterTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var obj1 = new ClassWithCellValueConverter { Name = "John" };
         var obj2 = new ClassWithReusedConverter
         {
@@ -78,9 +80,9 @@ public class CellValueConverterTests
         };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj1, CellValueConverterContext.Default.ClassWithCellValueConverter);
-        await spreadsheet.AddAsRowAsync(obj2, CellValueConverterContext.Default.ClassWithReusedConverter);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj1, CellValueConverterContext.Default.ClassWithCellValueConverter, Token);
+        await spreadsheet.AddAsRowAsync(obj2, CellValueConverterContext.Default.ClassWithReusedConverter, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -94,15 +96,15 @@ public class CellValueConverterTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var style = new Style { Font = { Bold = true } };
         spreadsheet.AddStyle(style, "ID style");
         var obj = new ClassWithCellValueConverterAndCellStyle { Id = "Abc123" };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, CellValueConverterContext.Default.ClassWithCellValueConverterAndCellStyle);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, CellValueConverterContext.Default.ClassWithCellValueConverterAndCellStyle, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -115,8 +117,8 @@ public class CellValueConverterTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var style = new Style { Font = { Bold = true } };
         spreadsheet.AddStyle(style, "PercentType");
         var obj = new ClassWithCellValueConverterOnCustomType
@@ -127,8 +129,8 @@ public class CellValueConverterTests
         };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, CellValueConverterContext.Default.ClassWithCellValueConverterOnCustomType);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, CellValueConverterContext.Default.ClassWithCellValueConverterOnCustomType, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);

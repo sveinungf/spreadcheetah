@@ -9,18 +9,20 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests;
 
 public class CellFormatTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Fact]
     public async Task CellFormat_ClassWithStandardFormat()
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var obj = new ClassWithCellStandardFormat { Price = 199.90m };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, CellFormatContext.Default.ClassWithCellStandardFormat);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, CellFormatContext.Default.ClassWithCellStandardFormat, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -33,13 +35,13 @@ public class CellFormatTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var obj = new ClassWithCellCustomFormat { Price = 199.90m };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, CellFormatContext.Default.ClassWithCellCustomFormat);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, CellFormatContext.Default.ClassWithCellCustomFormat, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -56,8 +58,8 @@ public class CellFormatTests
             ? new SpreadCheetahOptions()
             : new SpreadCheetahOptions { DefaultDateTimeFormat = null };
 
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var obj = new ClassWithDateTimeCellFormat
         {
             FromDate = DateTime.UtcNow.AddDays(-1),
@@ -65,8 +67,8 @@ public class CellFormatTests
         };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, CellFormatContext.Default.ClassWithDateTimeCellFormat);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, CellFormatContext.Default.ClassWithDateTimeCellFormat, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -79,8 +81,8 @@ public class CellFormatTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var obj = new ClassWithMultipleCellFormats
         {
             FromDate = DateTime.UtcNow,
@@ -89,8 +91,8 @@ public class CellFormatTests
         };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, CellFormatContext.Default.ClassWithMultipleCellFormats);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, CellFormatContext.Default.ClassWithMultipleCellFormats, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);

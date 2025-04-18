@@ -9,20 +9,22 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests;
 
 public class CellStyleTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Fact]
     public async Task CellStyle_ClassWithSingleAttribute()
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var style = new Style { Font = { Bold = true } };
         spreadsheet.AddStyle(style, "Price style");
         var obj = new ClassWithCellStyle { Price = 199.90m };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, CellStyleContext.Default.ClassWithCellStyle);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, CellStyleContext.Default.ClassWithCellStyle, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -35,8 +37,8 @@ public class CellStyleTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var boldStyle = new Style { Font = { Bold = true } };
         spreadsheet.AddStyle(boldStyle, "Name");
         var italicStyle = new Style { Font = { Italic = true } };
@@ -50,8 +52,8 @@ public class CellStyleTests
         };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, CellStyleContext.Default.ClassWithMultipleCellStyles);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, CellStyleContext.Default.ClassWithMultipleCellStyles, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -76,15 +78,15 @@ public class CellStyleTests
             ? new SpreadCheetahOptions()
             : new SpreadCheetahOptions { DefaultDateTimeFormat = null };
 
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var style = new Style { Font = { Bold = true } };
         spreadsheet.AddStyle(style, "Created style");
         var obj = new ClassWithCellStyleOnDateTimeProperty { CreatedDate = new DateTime(2022, 10, 23, 15, 16, 17, DateTimeKind.Utc) };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, CellStyleContext.Default.ClassWithCellStyleOnDateTimeProperty);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, CellStyleContext.Default.ClassWithCellStyleOnDateTimeProperty, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -99,15 +101,15 @@ public class CellStyleTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var style = new Style { Font = { Bold = true } };
         spreadsheet.AddStyle(style, "Name style");
         var obj = new ClassWithCellStyleOnTruncatedProperty { Name = "Ola Nordmann" };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj, CellStyleContext.Default.ClassWithCellStyleOnTruncatedProperty);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj, CellStyleContext.Default.ClassWithCellStyleOnTruncatedProperty, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -120,8 +122,8 @@ public class CellStyleTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var nameStyle = new Style { Font = { Italic = true } };
         var priceStyle = new Style { Font = { Bold = true } };
         spreadsheet.AddStyle(nameStyle, "Name style");
@@ -130,9 +132,9 @@ public class CellStyleTests
         var obj2 = new RecordWithCellStyle { Name = "Tom" };
 
         // Act
-        await spreadsheet.AddAsRowAsync(obj1, CellStyleContext.Default.ClassWithCellStyle);
-        await spreadsheet.AddAsRowAsync(obj2, CellStyleContext.Default.RecordWithCellStyle);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(obj1, CellStyleContext.Default.ClassWithCellStyle, Token);
+        await spreadsheet.AddAsRowAsync(obj2, CellStyleContext.Default.RecordWithCellStyle, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
@@ -147,22 +149,22 @@ public class CellStyleTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet 1");
+        await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         var priceStyle = new Style { Font = { Bold = true } };
         spreadsheet.AddStyle(priceStyle, "Price style");
         var obj1 = new ClassWithCellStyle { Price = 199.90m };
-        await spreadsheet.AddAsRowAsync(obj1, CellStyleContext.Default.ClassWithCellStyle);
+        await spreadsheet.AddAsRowAsync(obj1, CellStyleContext.Default.ClassWithCellStyle, Token);
 
-        await spreadsheet.StartWorksheetAsync("Sheet 2");
+        await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
         var nameStyle = new Style { Font = { Italic = true } };
         spreadsheet.AddStyle(nameStyle, "Name style");
         var obj2 = new RecordWithCellStyle { Name = "Tom" };
-        await spreadsheet.AddAsRowAsync(obj2, CellStyleContext.Default.RecordWithCellStyle);
+        await spreadsheet.AddAsRowAsync(obj2, CellStyleContext.Default.RecordWithCellStyle, Token);
 
-        await spreadsheet.FinishAsync();
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheets = SpreadsheetAssert.Sheets(stream);
@@ -181,12 +183,12 @@ public class CellStyleTests
     public async Task CellStyle_ClassWithMissingStyleName()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var obj = new ClassWithCellStyle { Price = 199.90m };
 
         // Act
-        var exception = await Record.ExceptionAsync(async () => await spreadsheet.AddAsRowAsync(obj, CellStyleContext.Default.ClassWithCellStyle));
+        var exception = await Record.ExceptionAsync(async () => await spreadsheet.AddAsRowAsync(obj, CellStyleContext.Default.ClassWithCellStyle, Token));
 
         // Assert
         var actual = Assert.IsType<SpreadCheetahException>(exception);
@@ -197,18 +199,18 @@ public class CellStyleTests
     public async Task CellStyle_WorksheetRowDependencyInfoCreatedOnlyOnce()
     {
         // Arrange
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
-        await spreadsheet.StartWorksheetAsync("Sheet");
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var style = new Style { Font = { Bold = true } };
         spreadsheet.AddStyle(style, "Price style");
         var typeInfo = CellStyleContext.Default.ClassWithCellStyle;
         var initialDependencyInfo = spreadsheet.GetOrCreateWorksheetRowDependencyInfo(typeInfo);
 
         // Act
-        await spreadsheet.AddAsRowAsync(new ClassWithCellStyle { Price = 10m }, typeInfo);
-        await spreadsheet.AddAsRowAsync(new ClassWithCellStyle { Price = 20m }, typeInfo);
-        await spreadsheet.AddAsRowAsync(new ClassWithCellStyle { Price = 30m }, typeInfo);
-        await spreadsheet.FinishAsync();
+        await spreadsheet.AddAsRowAsync(new ClassWithCellStyle { Price = 10m }, typeInfo, Token);
+        await spreadsheet.AddAsRowAsync(new ClassWithCellStyle { Price = 20m }, typeInfo, Token);
+        await spreadsheet.AddAsRowAsync(new ClassWithCellStyle { Price = 30m }, typeInfo, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         var subsequentDependencyInfo = spreadsheet.GetOrCreateWorksheetRowDependencyInfo(typeInfo);
