@@ -1,3 +1,4 @@
+using ClosedXML.Excel;
 using Polyfills;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Test.Helpers;
@@ -7,6 +8,8 @@ namespace SpreadCheetah.Test.Tests;
 
 public class OADateTests
 {
+    private readonly DateTime _negativeCutoff = new(1900, 03, 01);
+
     public static TheoryData<DateTime> DateTimes => new()
     {
         { DateTime.MinValue },
@@ -16,6 +19,9 @@ public class OADateTests
         { new DateTime(1899, 12, 29, 23, 59, 59) },
         { new DateTime(1899, 12, 30, 0, 0, 0) },
         { new DateTime(1899, 12, 30, 0, 0, 1) },
+        { new DateTime(1900, 01, 01) },
+        { new DateTime(1900, 02, 28) },
+        { new DateTime(1900, 03, 01) },
         { new DateTime(2000, 1, 2, 1, 2, 3) },
         { new DateTime(2000, 1, 2, 6, 0, 0) },
         { new DateTime(2000, 1, 2, 6, 0, 0, DateTimeKind.Local) },
@@ -38,6 +44,17 @@ public class OADateTests
     {
         // Arrange
         var expectedValue = dateTime.ToOADate();
+        if (dateTime < _negativeCutoff && dateTime != DateTime.MinValue)
+        {
+            // Subtract 1 from integer (day) portion for days before March 1, 1900
+            var remainder = expectedValue % 1;
+            expectedValue = ((int)expectedValue) - 1;
+            if (remainder * expectedValue < 0)
+            {
+                remainder *= -1;
+            }
+            expectedValue += remainder;
+        }
         Span<byte> destination = stackalloc byte[19];
         var oaDate = new OADate(dateTime.Ticks);
 
