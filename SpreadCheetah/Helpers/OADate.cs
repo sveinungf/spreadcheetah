@@ -10,7 +10,7 @@ internal readonly record struct OADate(long Ticks)
     private const int DaysPer4Years = DaysPerYear * 4 + 1;
     private const int DaysPer100Years = DaysPer4Years * 25 - 1;
     private const int DaysPer400Years = DaysPer100Years * 4 + 1;
-    private const int DaysTo1899 = DaysPer400Years * 4 + DaysPer100Years * 3 - 367;
+    private const int DaysTo1899 = DaysPer400Years * 4 + DaysPer100Years * 3 - 367; // Number of days from 1/1/0001 to 12/30/1899
     private const long DoubleDateOffset = DaysTo1899 * TimeSpan.TicksPerDay;
     private const long MinTicks = (DaysPer100Years - DaysPerYear) * TimeSpan.TicksPerDay;
 
@@ -41,6 +41,10 @@ internal readonly record struct OADate(long Ticks)
         Debug.Assert(value >= MinTicks);
 
         var days = Math.DivRem(value, TimeSpan.TicksPerDay, out var ticksAfterMidnight);
+        if (days < DaysTo1899 + 31 + 29 + 1) // Subtract 1 day if day is less than 03/01/1900
+        {
+            days -= 1;
+        }
         TryFormatLong(days - DaysTo1899, destination, out bytesWritten);
 
         if (ticksAfterMidnight != 0)
