@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/Solution items/">
+    <File Path=".editorconfig" />
+    <File Path=".globalconfig" />
+    <File Path="BannedSymbols.txt" />
+    <File Path="coverlet.runsettings" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="SpreadCheetah.AotCompatibilityCheck/SpreadCheetah.AotCompatibilityCheck.csproj" />
+  <Project Path="SpreadCheetah.Benchmark.Test/SpreadCheetah.Benchmark.Test.csproj" />
+  <Project Path="SpreadCheetah.Benchmark/SpreadCheetah.Benchmark.csproj" />
+  <Project Path="SpreadCheetah.SourceGenerator.CSharp8Test/SpreadCheetah.SourceGenerator.CSharp8Test.csproj" />
+  <Project Path="SpreadCheetah.SourceGenerator.SnapshotTest/SpreadCheetah.SourceGenerator.SnapshotTest.csproj" />
+  <Project Path="SpreadCheetah.SourceGenerator.Test/SpreadCheetah.SourceGenerator.Test.csproj" />
+  <Project Path="SpreadCheetah.SourceGenerator/SpreadCheetah.SourceGenerator.csproj" />
+  <Project Path="SpreadCheetah.Test/SpreadCheetah.Test.csproj" />
+  <Project Path="SpreadCheetah.TestHelpers/SpreadCheetah.TestHelpers.csproj" />
+  <Project Path="SpreadCheetah/SpreadCheetah.csproj" />
+</Solution>
