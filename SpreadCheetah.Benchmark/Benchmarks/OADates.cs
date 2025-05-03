@@ -1,5 +1,4 @@
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Jobs;
 using Polyfills;
 using SpreadCheetah.Benchmark.Helpers;
 using SpreadCheetah.Helpers;
@@ -8,7 +7,6 @@ using System.Text;
 
 namespace SpreadCheetah.Benchmark.Benchmarks;
 
-[SimpleJob(RuntimeMoniker.Net90)]
 [MemoryDiagnoser]
 public class OADates
 {
