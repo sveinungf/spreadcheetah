@@ -1,4 +1,9 @@
 <Solution>
+  <Configurations>
+    <BuildType Name="Benchmark" />
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+  </Configurations>
   <Folder Name="/Solution items/">
     <File Path=".editorconfig" />
     <File Path=".globalconfig" />
