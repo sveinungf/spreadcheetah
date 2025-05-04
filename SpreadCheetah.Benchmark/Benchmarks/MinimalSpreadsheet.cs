@@ -1,13 +1,11 @@
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Jobs;
 
 namespace SpreadCheetah.Benchmark.Benchmarks;
 
-[SimpleJob(RuntimeMoniker.Net90)]
 [MemoryDiagnoser]
 public class MinimalSpreadsheet
 {
-    private static readonly SpreadCheetahOptions Options = new() { DefaultDateTimeFormat = null };
+    private static readonly SpreadCheetahOptions Options = new() { DefaultDateTimeFormat = null, DocumentProperties = null };
 
     [Benchmark]
     public async Task SpreadCheetah()

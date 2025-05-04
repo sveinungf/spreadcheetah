@@ -7,6 +7,11 @@
     <AnalysisLevel>9-all</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+    <Configurations>Debug;Release;Benchmark</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Benchmark'">
+    <Optimize>true</Optimize>
   </PropertyGroup>
 
   <ItemGroup>

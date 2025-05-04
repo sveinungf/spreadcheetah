@@ -1,12 +1,8 @@
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Jobs;
 using SpreadCheetah.Benchmark.Helpers;
 
 namespace SpreadCheetah.Benchmark.Benchmarks;
 
-[SimpleJob(RuntimeMoniker.Net48)]
-[SimpleJob(RuntimeMoniker.Net80)]
-[SimpleJob(RuntimeMoniker.Net90)]
 [MemoryDiagnoser]
 public class MixedDataTypeCells
 {
