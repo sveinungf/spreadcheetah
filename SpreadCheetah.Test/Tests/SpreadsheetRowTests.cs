@@ -107,7 +107,8 @@ public class SpreadsheetRowTests
         Assert.Equal(string.Empty, actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> Strings() => TestData.CombineWithCellTypes(
+    public static IEnumerable<string?> Strings() =>
+    [
         "OneWord",
         "With whitespace",
         "With trailing whitespace ",
@@ -121,11 +122,14 @@ public class SpreadsheetRowTests
         "With\tValid\r\nControlCharacters",
         "WithCharacters\u00a0\u00c9\u00ffBetween160And255",
         "",
-        null);
+        null
+    ];
 
-    [Theory]
-    [MemberData(nameof(Strings))]
-    public async Task Spreadsheet_AddRow_CellWithStringValue(string? value, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithStringValue(
+        [CombinatorialMemberData(nameof(Strings))] string? value,
+        CellType type,
+        RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -142,9 +146,11 @@ public class SpreadsheetRowTests
         Assert.Equal(value, sheet["A1"].StringValue);
     }
 
-    [Theory]
-    [MemberData(nameof(Strings))]
-    public async Task Spreadsheet_AddRow_CellWithReadOnlyMemoryOfCharValue(string? value, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithReadOnlyMemoryOfCharValue(
+        [CombinatorialMemberData(nameof(Strings))] string? value,
+        CellType type,
+        RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -184,17 +190,11 @@ public class SpreadsheetRowTests
         Assert.Equal("WithControlCharacters", actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> StringLengths() => TestData.CombineWithCellTypes(
-        4095,
-        4096,
-        4097,
-        10000,
-        30000,
-        32767);
-
-    [Theory]
-    [MemberData(nameof(StringLengths))]
-    public async Task Spreadsheet_AddRow_CellWithVeryLongStringValue(int length, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithVeryLongStringValue(
+        [CombinatorialValues(4095, 4096, 4097, 10000, 30000, 32767)] int length,
+        CellType type,
+        RowCollectionType rowType)
     {
         // Arrange
         var value = new string('a', length);
@@ -219,17 +219,11 @@ public class SpreadsheetRowTests
         Assert.Equal(value, actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> Integers() => TestData.CombineWithCellTypes<int?>(
-        1234,
-        0,
-        -1234,
-        int.MinValue,
-        int.MaxValue,
-        null);
-
-    [Theory]
-    [MemberData(nameof(Integers))]
-    public async Task Spreadsheet_AddRow_CellWithIntegerValue(int? value, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithIntegerValue(
+        [CombinatorialValues(1234, 0, -1234, int.MinValue, int.MaxValue, null)] int? value,
+        CellType type,
+        RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -411,18 +405,21 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedValue, actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> DateTimes() => TestData.CombineWithCellTypes<DateTime?>(
+    public static IEnumerable<DateTime?> DateTimes() =>
+    [
         new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Unspecified),
         new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Unspecified),
         new DateTime(2001, 2, 3, 4, 5, 6, 789, DateTimeKind.Unspecified),
         DateTime.MaxValue,
         DateTime.MinValue,
         null
-    );
+    ];
 
-    [Theory]
-    [MemberData(nameof(DateTimes))]
-    public async Task Spreadsheet_AddRow_CellWithDateTimeValue(DateTime? value, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithDateTimeValue(
+        [CombinatorialMemberData(nameof(DateTimes))] DateTime? value,
+        CellType type,
+        RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -446,17 +443,11 @@ public class SpreadsheetRowTests
     }
 
 #pragma warning disable CS0618 // Type or member is obsolete - Testing for backwards compatibilty
-    public static IEnumerable<object?[]> DateTimeNumberFormats() => TestData.CombineWithCellTypes(
-        NumberFormats.DateTimeSortable,
-        NumberFormats.General,
-        "mm-dd-yy",
-        "yyyy",
-        null
-    );
-
-    [Theory]
-    [MemberData(nameof(DateTimeNumberFormats))]
-    public async Task Spreadsheet_AddRow_CellWithDateTimeValueAndDefaultNumberFormat(string? defaultNumberFormat, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithDateTimeValueAndDefaultNumberFormat(
+        [CombinatorialValues(NumberFormats.DateTimeSortable, NumberFormats.General, "mm-dd-yy", "yyyy", null)] string? defaultNumberFormat,
+        CellType type,
+        RowCollectionType rowType)
     {
         // Arrange
         var value = new DateTime(2022, 9, 11, 14, 7, 13, DateTimeKind.Unspecified);
@@ -742,16 +733,11 @@ public class SpreadsheetRowTests
         Assert.Equal("A1", actualCell.CellReference?.Value);
     }
 
-    public static IEnumerable<object?[]> RowHeights() => TestData.CombineWithCellTypes<double?>(
-        0.1,
-        10d,
-        123.456,
-        409d,
-        null);
-
-    [Theory]
-    [MemberData(nameof(RowHeights))]
-    public async Task Spreadsheet_AddRow_RowHeight(double? height, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_RowHeight(
+        [CombinatorialValues(0.1, 10d, 123.456, 409d, null)] double? height,
+        CellType type,
+        RowCollectionType rowType)
     {
         // Arrange
         var rowOptions = new RowOptions { Height = height };
