@@ -502,16 +502,23 @@ public class SpreadsheetRowTests
     }
 #pragma warning restore CS0618 // Type or member is obsolete
 
-    public static IEnumerable<object?[]> Booleans() => TestData.CombineTuplesWithCellTypes<bool?, string>(
+    private static IReadOnlyList<(bool?, string)> BooleansWithExpectedStrings =>
+    [
         (true, "1"),
         (false, "0"),
-        (null, ""));
+        (null, "")
+    ];
 
-    [Theory]
-    [MemberData(nameof(Booleans))]
-    public async Task Spreadsheet_AddRow_CellWithBooleanValue(bool? initialValue, string expectedValue, CellType type, RowCollectionType rowType)
+    public static IEnumerable<int> BooleanIndexes => Enumerable.Range(0, BooleansWithExpectedStrings.Count);
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithBooleanValue(
+        [CombinatorialMemberData(nameof(BooleanIndexes))] int memberDataIndex,
+        CellType type,
+        RowCollectionType rowType)
     {
         // Arrange
+        var (initialValue, expectedValue) = BooleansWithExpectedStrings[memberDataIndex];
         using var stream = new MemoryStream();
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {

@@ -4,23 +4,8 @@ namespace SpreadCheetah.Test.Helpers;
 
 internal static class TestData
 {
-    private static readonly CellType[] CellTypeArray = EnumPolyfill.GetValues<CellType>();
     private static readonly CellType[] StyledCellTypeArray = [CellType.StyledCell, CellType.Cell];
     private static readonly RowCollectionType[] RowCollectionTypeArray = EnumPolyfill.GetValues<RowCollectionType>();
-
-    public static IEnumerable<object?[]> CombineTuplesWithCellTypes<TFirst, TSecond>(params (TFirst?, TSecond?)[] values)
-    {
-        foreach (var (firstValue, secondValue) in values)
-        {
-            foreach (var cellType in CellTypeArray)
-            {
-                foreach (var rowType in RowCollectionTypeArray)
-                {
-                    yield return new object?[] { firstValue, secondValue, cellType, rowType };
-                }
-            }
-        }
-    }
 
     public static IEnumerable<object?[]> CombineWithStyledCellTypes<T>(params T?[] values)
     {
