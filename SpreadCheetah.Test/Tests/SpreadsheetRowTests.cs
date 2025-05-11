@@ -383,21 +383,21 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedValue, actualCell.InnerText);
     }
 
-    private static IReadOnlyList<(string?, string)> DecimalsWithExpectedStrings =>
+    private static IReadOnlyList<(decimal?, string)> DecimalsWithExpectedStrings =>
     [
-        ("1234", "1234"),
-        ("0.1", "0.1"),
-        ("0.0", "0"),
-        ("-0.1", "-0.1"),
-        ("-0.3333333", "-0.3333333"),
-        ("0.1111111111111", "0.1111111111111"),
-        ("11.1111111111111", "11.1111111111111"),
+        (1234m, "1234"),
+        (0.1m, "0.1"),
+        (0.0m, "0"),
+        (-0.1m, "-0.1"),
+        (-0.3333333m, "-0.3333333"),
+        (0.1111111111111m, "0.1111111111111"),
+        (11.1111111111111m, "11.1111111111111"),
 #if NET472_OR_GREATER
-        ("11.11111111111111111111", "11.1111111111111"),
-        ("0.123456789012345678901234567", "0.123456789012346"),
+        (11.11111111111111111111m, "11.1111111111111"),
+        (0.123456789012345678901234567m, "0.123456789012346"),
 #else
-        ("11.11111111111111111111", "11.11111111111111"),
-        ("0.123456789012345678901234567", "0.12345678901234568"),
+        (11.11111111111111111111m, "11.11111111111111"),
+        (0.123456789012345678901234567m, "0.12345678901234568"),
 #endif
         (null, "")
     ];
@@ -412,12 +412,11 @@ public class SpreadsheetRowTests
     {
         // Arrange
         var (initialValue, expectedValue) = DecimalsWithExpectedStrings[memberDataIndex];
-        var decimalValue = initialValue != null ? decimal.Parse(initialValue, CultureInfo.InvariantCulture) : null as decimal?;
         using var stream = new MemoryStream();
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
             await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-            var cell = CellFactory.Create(type, decimalValue);
+            var cell = CellFactory.Create(type, initialValue);
 
             // Act
             await spreadsheet.AddRowAsync(cell, rowType);
