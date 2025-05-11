@@ -25,8 +25,7 @@ public class WorksheetRowGeneratorTests
 {
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
-    [Theory]
-    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddAsRow_ObjectWithMultipleProperties(ObjectType type)
     {
         // Arrange
@@ -64,8 +63,7 @@ public class WorksheetRowGeneratorTests
         Assert.Equal(3, sheet.CellCount);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddAsRow_ObjectWithNoProperties(ObjectType type)
     {
         // Arrange
@@ -288,8 +286,7 @@ public class WorksheetRowGeneratorTests
         await Assert.ThrowsAsync<SpreadCheetahException>(() => spreadsheet.AddAsRowAsync(obj, typeInfo, Token).AsTask());
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRangeAsRows_ObjectWithMultipleProperties(ObjectType type)
     {
         // Arrange
@@ -350,8 +347,7 @@ public class WorksheetRowGeneratorTests
         Assert.Equal(3, rows.Count);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRangeAsRows_ObjectWithColumnOrdering(ObjectType type)
     {
         // Arrange
@@ -392,8 +388,7 @@ public class WorksheetRowGeneratorTests
         Assert.Equal(3, sheet.RowCount);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRangeAsRows_ObjectWithNoProperties(ObjectType type)
     {
         // Arrange
@@ -429,8 +424,7 @@ public class WorksheetRowGeneratorTests
         Assert.All(rows, row => Assert.Empty(row.Descendants<OpenXmlCell>()));
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRangeAsRows_EmptyEnumerable(ObjectType type)
     {
         // Arrange
@@ -465,8 +459,7 @@ public class WorksheetRowGeneratorTests
         Assert.Empty(rows);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddHeaderRow_ObjectWithMultipleProperties(ObjectType type)
     {
         // Arrange
@@ -499,8 +492,7 @@ public class WorksheetRowGeneratorTests
         Assert.Equal(3, sheet.CellCount);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddHeaderRow_ObjectWithNoProperties(ObjectType type)
     {
         // Arrange
@@ -556,8 +548,7 @@ public class WorksheetRowGeneratorTests
         Assert.Equal(3, sheet.CellCount);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.ObjectTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddHeaderRow_ObjectWithColumnOrdering(ObjectType type)
     {
         // Arrange
