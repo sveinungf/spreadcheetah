@@ -22,9 +22,8 @@ public class SpreadsheetStyledRowTests
 {
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellAndValueTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_StyledCellWithValue(CellValueType valueType, bool isNull, CellType cellType, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_StyledCellWithValue(CellValueType valueType, bool isNull, StyledCellType cellType, RowCollectionType rowType)
     {
         // Arrange
         object? value;
@@ -53,11 +52,8 @@ public class SpreadsheetStyledRowTests
         Assert.True(actualCell.Style.Font.Bold);
     }
 
-    public static IEnumerable<object?[]> TrueAndFalse => TestData.CombineWithStyledCellTypes(true, false);
-
-    [Theory]
-    [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_BoldCellWithStringValue(bool bold, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_BoldCellWithStringValue(bool bold, StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Bold test";
@@ -81,9 +77,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(bold, actualCell.Style.Font.Bold);
     }
 
-    [Theory]
-    [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_SameBoldStyleCells(bool bold, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_SameBoldStyleCells(bool bold, StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string firstCellValue = "First";
@@ -113,9 +108,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(bold, actualSecondCell.Style.Font.Bold);
     }
 
-    [Theory]
-    [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_MixedBoldStyleCells(bool firstCellBold, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_MixedBoldStyleCells(bool firstCellBold, StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string firstCellValue = "First";
@@ -145,9 +139,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(!firstCellBold, actualSecondCell.Style.Font.Bold);
     }
 
-    [Theory]
-    [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_ItalicCellWithStringValue(bool italic, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_ItalicCellWithStringValue(bool italic, StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Italic test";
@@ -219,15 +212,11 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(underline, sheet["A1"].Style.Font.Underline);
     }
 
-    public static IEnumerable<object?[]> FontSizes() => TestData.CombineWithStyledCellTypes(
-        8,
-        11,
-        11.5,
-        72);
-
-    [Theory]
-    [MemberData(nameof(FontSizes))]
-    public async Task Spreadsheet_AddRow_FontSizeCellWithStringValue(double size, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_FontSizeCellWithStringValue(
+        [CombinatorialValues(8, 11, 11.5, 72)] double size,
+        StyledCellType type,
+        RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Font size test";
@@ -255,9 +244,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(size, actualCell.Style.Font.FontSize);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_FontColorCellWithStringValue(CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_FontColorCellWithStringValue(StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Color test";
@@ -286,9 +274,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(color.ToArgb(), actualCell.Style.Font.FontColor.Color.ToArgb());
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_FillColorCellWithStringValue(CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_FillColorCellWithStringValue(StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Color test";
@@ -317,18 +304,22 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(color.ToArgb(), actualCell.Style.Fill.BackgroundColor.Color.ToArgb());
     }
 
-    public static IEnumerable<object?[]> FontNames() => TestData.CombineWithStyledCellTypes(
+    public static IEnumerable<string?> FontNames() =>
+    [
         "Arial",
         "SimSun-ExtB",
         "Times New Roman",
         "Name<With>Special&Chars",
         "NameThatIsExactly31CharsLong...",
         "<&><&><&><&><&><&><&><&><&><&>!",
-        null);
+        null
+    ];
 
-    [Theory]
-    [MemberData(nameof(FontNames))]
-    public async Task Spreadsheet_AddRow_FontNameCellWithStringValue(string? fontName, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_FontNameCellWithStringValue(
+        [CombinatorialMemberData(nameof(FontNames))] string? fontName,
+        StyledCellType type,
+        RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Font name test";
@@ -368,7 +359,8 @@ public class SpreadsheetStyledRowTests
     }
 
 #pragma warning disable CS0618 // Type or member is obsolete - Testing for backwards compatibilty
-    public static IEnumerable<object?[]> StandardNumberFormats() => TestData.CombineWithStyledCellTypes(
+    public static IEnumerable<string?> StandardNumberFormats() =>
+    [
         NumberFormats.Fraction,
         NumberFormats.FractionTwoDenominatorPlaces,
         NumberFormats.General,
@@ -379,12 +371,15 @@ public class SpreadsheetStyledRowTests
         NumberFormats.ThousandsSeparator,
         NumberFormats.ThousandsSeparatorTwoDecimalPlaces,
         NumberFormats.TwoDecimalPlaces,
-        null);
+        null
+    ];
 #pragma warning restore CS0618 // Type or member is obsolete
 
-    [Theory]
-    [MemberData(nameof(StandardNumberFormats))]
-    public async Task Spreadsheet_AddRow_StandardNumberFormatCellWithStringValue(string? numberFormat, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_StandardNumberFormatCellWithStringValue(
+        [CombinatorialMemberData(nameof(StandardNumberFormats))] string? numberFormat,
+        StyledCellType type,
+        RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Number format test";
@@ -415,16 +410,20 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(expectedNumberFormatId, actualCell.Style.NumberFormat.NumberFormatId);
     }
 
-    public static IEnumerable<object?[]> CustomNumberFormats() => TestData.CombineWithStyledCellTypes(
+    public static IEnumerable<string?> CustomNumberFormats() =>
+    [
         "0.0000",
         @"0.0\ %",
         "[<=9999]0000;General",
         @"[<=99999999]##_ ##_ ##_ ##;\(\+##\)_ ##_ ##_ ##_ ##",
-        @"_-* #,##0.0_-;\-* #,##0.0_-;_-* ""-""??_-;_-@_-");
+        @"_-* #,##0.0_-;\-* #,##0.0_-;_-* ""-""??_-;_-@_-"
+    ];
 
-    [Theory]
-    [MemberData(nameof(CustomNumberFormats))]
-    public async Task Spreadsheet_AddRow_CustomNumberFormatCellWithStringValue(string numberFormat, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CustomNumberFormatCellWithStringValue(
+        [CombinatorialMemberData(nameof(CustomNumberFormats))] string numberFormat,
+        StyledCellType type,
+        RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Number format test";
@@ -453,9 +452,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(numberFormat, actualCell.Style.NumberFormat.Format);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_MultipleStylesWithTheSameCustomNumberFormat(CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_MultipleStylesWithTheSameCustomNumberFormat(StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Number format test";
@@ -574,11 +572,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(format, actualCell.Style.NumberFormat.CustomFormat);
     }
 
-    public static IEnumerable<object?[]> BorderStyles() => TestData.CombineWithStyledCellTypes(EnumPolyfill.GetValues<BorderStyle>());
-
-    [Theory]
-    [MemberData(nameof(BorderStyles))]
-    public async Task Spreadsheet_AddRow_BorderStyle(BorderStyle borderStyle, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_BorderStyle(BorderStyle borderStyle, StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Border style test";
@@ -613,11 +608,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(XLBorderStyleValues.None, actualBorder.DiagonalBorder);
     }
 
-    public static IEnumerable<object?[]> DiagonalBorderTypes() => TestData.CombineWithStyledCellTypes(EnumPolyfill.GetValues<DiagonalBorderType>());
-
-    [Theory]
-    [MemberData(nameof(DiagonalBorderTypes))]
-    public async Task Spreadsheet_AddRow_DiagonalBorder(DiagonalBorderType borderType, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_DiagonalBorder(DiagonalBorderType borderType, StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Border style test";
@@ -663,9 +655,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(XLBorderStyleValues.None, actualBorder.BottomBorder);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_MultipleBorders(CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_MultipleBorders(StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Border style test";
@@ -718,11 +709,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(XLColor.Black, actualBorder.DiagonalBorderColor);
     }
 
-    public static IEnumerable<object?[]> HorizontalAlignments() => TestData.CombineWithStyledCellTypes(EnumPolyfill.GetValues<HorizontalAlignment>());
-
-    [Theory]
-    [MemberData(nameof(HorizontalAlignments))]
-    public async Task Spreadsheet_AddRow_HorizontalAlignment(HorizontalAlignment alignment, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_HorizontalAlignment(HorizontalAlignment alignment, StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Alignment test";
@@ -752,11 +740,8 @@ public class SpreadsheetStyledRowTests
         Assert.False(actualAlignment.WrapText);
     }
 
-    public static IEnumerable<object?[]> VerticalAlignments() => TestData.CombineWithStyledCellTypes(EnumPolyfill.GetValues<VerticalAlignment>());
-
-    [Theory]
-    [MemberData(nameof(VerticalAlignments))]
-    public async Task Spreadsheet_AddRow_VerticalAlignment(VerticalAlignment alignment, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_VerticalAlignment(VerticalAlignment alignment, StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Alignment test";
@@ -786,9 +771,8 @@ public class SpreadsheetStyledRowTests
         Assert.False(actualAlignment.WrapText);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_MixedAlignment(CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_MixedAlignment(StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Alignment test";
@@ -826,9 +810,8 @@ public class SpreadsheetStyledRowTests
         Assert.True(actualAlignment.WrapText);
     }
 
-    [Theory]
-    [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_MultiFormatCellWithStringValue(bool formatting, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_MultiFormatCellWithStringValue(bool formatting, StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Formatting test";
@@ -871,9 +854,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(formatting, actualCell.Style.NumberFormat.NumberFormatId == 9);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_MultipleCellsWithDifferentStyles(CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_MultipleCellsWithDifferentStyles(StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         var elements = new (string Value, Color FillColor, Color FontColor, string FontName, bool FontOption, double FontSize, NumberFormat Format)[]
@@ -935,9 +917,8 @@ public class SpreadsheetStyledRowTests
         });
     }
 
-    [Theory]
-    [MemberData(nameof(TrueAndFalse))]
-    public async Task Spreadsheet_AddRow_MixedCellTypeRows(bool firstRowStyled, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_MixedCellTypeRows(bool firstRowStyled, StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string firstCellValue = "First";
@@ -1037,9 +1018,8 @@ public class SpreadsheetStyledRowTests
         Assert.All(styles.Zip(actualStyles), x => SpreadCheetah.Test.Helpers.SpreadsheetAssert.EquivalentStyle(x.First, x.Second));
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellAndValueTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_ExplicitCellReferencesForStyledCells(CellValueType valueType, bool isNull, CellType cellType, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_ExplicitCellReferencesForStyledCells(CellValueType valueType, bool isNull, StyledCellType cellType, RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -1090,9 +1070,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_LongStringValueStyledCells(CellType cellType, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_LongStringValueStyledCells(StyledCellType cellType, RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -1134,9 +1113,8 @@ public class SpreadsheetStyledRowTests
         Assert.All(sheet2Row.Descendants<OpenXmlCell>(), x => Assert.Equal(value, x.InnerText));
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_ExplicitCellReferencesForLongStringValueStyledCells(CellType cellType, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_ExplicitCellReferencesForLongStringValueStyledCells(StyledCellType cellType, RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -1188,11 +1166,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
 
-    public static IEnumerable<object?[]> ExplicitStandardNumberFormats() => TestData.CombineWithStyledCellTypes(EnumPolyfill.GetValues<StandardNumberFormat>());
-
-    [Theory]
-    [MemberData(nameof(ExplicitStandardNumberFormats))]
-    public async Task Spreadsheet_AddRow_StandardNumberFormatCellExplicitly(StandardNumberFormat numberFormat, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_StandardNumberFormatCellExplicitly(StandardNumberFormat numberFormat, StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Number format test";
@@ -1222,7 +1197,11 @@ public class SpreadsheetStyledRowTests
     }
 
 #pragma warning disable CS0618 // Type or member is obsolete - Testing legacy behaviour
-    public static IEnumerable<object?[]> CustomNumberFormatsMatchingStandardFormats() => TestData.CombineWithStyledCellTypes(
+    public static IEnumerable<string?> ExplicitCustomNumberFormats() =>
+    [
+        .. CustomNumberFormats(),
+
+        // Check that old hardcoded standard number formats can be explictly specified as custom formats
         NumberFormats.General,
         NumberFormats.Fraction,
         NumberFormats.FractionTwoDenominatorPlaces,
@@ -1250,13 +1229,15 @@ public class SpreadsheetStyledRowTests
         "[h]:mm:ss",
         "mmss.0",
         "##0.0E+0",
-        NumberFormats.Text);
+        NumberFormats.Text
+    ];
 #pragma warning restore CS0618 // Type or member is obsolete
 
-    [Theory]
-    [MemberData(nameof(CustomNumberFormats))]
-    [MemberData(nameof(CustomNumberFormatsMatchingStandardFormats))] // Check that old hardcoded standard number formats can be explictly specified as custom formats
-    public async Task Spreadsheet_AddRow_CustomNumberFormatCellWithStringValueExplicitly(string numberFormat, CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CustomNumberFormatCellWithStringValueExplicitly(
+        [CombinatorialMemberData(nameof(ExplicitCustomNumberFormats))] string numberFormat,
+        StyledCellType type,
+        RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Number format test";
