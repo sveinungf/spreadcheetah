@@ -54,8 +54,7 @@ public class SpreadsheetRowTests
         Assert.Equal(finished, exception != null);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_EmptyRow(CellType type, RowCollectionType rowType)
     {
         // Arrange
@@ -84,8 +83,7 @@ public class SpreadsheetRowTests
         Assert.Empty(sheetPart.Worksheet.Descendants<OpenXmlCell>());
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_CellWithoutValue(CellType type, RowCollectionType rowType)
     {
         // Arrange
@@ -163,8 +161,7 @@ public class SpreadsheetRowTests
         Assert.Equal(value ?? "", sheet["A1"].StringValue);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_CellWithInvalidControlCharacterStringValue(CellType type, RowCollectionType rowType)
     {
         // Arrange
@@ -518,8 +515,7 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedValue, actualCell.InnerText);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_MultipleColumns(CellType type, RowCollectionType rowType)
     {
         // Arrange
@@ -543,8 +539,7 @@ public class SpreadsheetRowTests
         Assert.Equal(values, actualValues);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_MultipleColumnsWithVeryLongStringValues(CellType type, RowCollectionType rowType)
     {
         // Arrange
@@ -567,8 +562,7 @@ public class SpreadsheetRowTests
         Assert.Equal(values, actualValues);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_MultipleRows(CellType type, RowCollectionType rowType)
     {
         // Arrange
@@ -595,8 +589,7 @@ public class SpreadsheetRowTests
         Assert.Equal(values, actualValues);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_MultipleRowsWithCharactersToEscape(CellType type, RowCollectionType rowType)
     {
         // Arrange
@@ -623,8 +616,7 @@ public class SpreadsheetRowTests
         Assert.All(actualValues, x => Assert.Equal(cellValue, x));
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.CellAndValueTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_ExplicitCellReferences(CellValueType valueType, bool isNull, CellType cellType, RowCollectionType rowType)
     {
         // Arrange
@@ -673,8 +665,7 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.CellTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_ExplicitCellReferencesForLongStringValueCells(CellType cellType, RowCollectionType rowType)
     {
         // Arrange

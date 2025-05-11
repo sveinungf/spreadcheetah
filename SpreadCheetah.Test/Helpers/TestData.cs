@@ -9,17 +9,6 @@ internal static class TestData
     private static readonly CellValueType[] CellValueTypeArray = EnumPolyfill.GetValues<CellValueType>();
     private static readonly RowCollectionType[] RowCollectionTypeArray = EnumPolyfill.GetValues<RowCollectionType>();
 
-    public static IEnumerable<object?[]> CellTypes()
-    {
-        foreach (var cellType in CellTypeArray)
-        {
-            foreach (var rowType in RowCollectionTypeArray)
-            {
-                yield return new object?[] { cellType, rowType };
-            }
-        }
-    }
-
     public static IEnumerable<object?[]> StyledCellTypes()
     {
         foreach (var cellType in StyledCellTypeArray)
@@ -73,18 +62,6 @@ internal static class TestData
         }
     }
 
-    public static IEnumerable<object?[]> ValueTypes()
-    {
-        foreach (var valueType in CellValueTypeArray)
-        {
-            foreach (var rowType in RowCollectionTypeArray)
-            {
-                yield return new object?[] { valueType, rowType, true };
-                yield return new object?[] { valueType, rowType, false };
-            }
-        }
-    }
-
     public static IEnumerable<object?[]> CombineWithValueTypes<T>(params T?[] values)
     {
         foreach (var value in values)
@@ -95,21 +72,6 @@ internal static class TestData
                 {
                     yield return new object?[] { value, valueType, rowType, true };
                     yield return new object?[] { value, valueType, rowType, false };
-                }
-            }
-        }
-    }
-
-    public static IEnumerable<object?[]> CellAndValueTypes()
-    {
-        foreach (var valueType in CellValueTypeArray)
-        {
-            foreach (var cellType in CellTypeArray)
-            {
-                foreach (var rowType in RowCollectionTypeArray)
-                {
-                    yield return new object?[] { valueType, true, cellType, rowType };
-                    yield return new object?[] { valueType, false, cellType, rowType };
                 }
             }
         }

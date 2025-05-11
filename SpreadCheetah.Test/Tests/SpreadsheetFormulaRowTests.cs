@@ -78,8 +78,7 @@ public class SpreadsheetFormulaRowTests
         Assert.True(actualCell.CachedValue.IsBlank);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.ValueTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_CellWithFormulaAndCachedValue(CellValueType valueType, RowCollectionType rowType, bool isNull)
     {
         // Arrange
@@ -390,8 +389,7 @@ public class SpreadsheetFormulaRowTests
         Assert.Equal(cachedValue, actualCell.CachedValue.GetNumber(), 0.01);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.ValueTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_ExplicitCellReferencesForFormulaCells(CellValueType valueType, RowCollectionType rowType, bool isNull)
     {
         // Arrange
@@ -441,8 +439,7 @@ public class SpreadsheetFormulaRowTests
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.ValueTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_ExplicitCellReferencesForStyledFormulaCells(CellValueType valueType, RowCollectionType rowType, bool isNull)
     {
         // Arrange
@@ -495,8 +492,7 @@ public class SpreadsheetFormulaRowTests
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.ValueTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_ExplicitCellReferencesForLongFormulaCells(CellValueType valueType, RowCollectionType rowType, bool isNull)
     {
         // Arrange
@@ -546,8 +542,7 @@ public class SpreadsheetFormulaRowTests
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.ValueTypes), MemberType = typeof(TestData))]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_ExplicitCellReferencesForLongFormulaStyledCells(CellValueType valueType, RowCollectionType rowType, bool isNull)
     {
         // Arrange
