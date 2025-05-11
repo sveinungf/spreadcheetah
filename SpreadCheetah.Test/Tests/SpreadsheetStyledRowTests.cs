@@ -22,9 +22,8 @@ public class SpreadsheetStyledRowTests
 {
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellAndValueTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_StyledCellWithValue(CellValueType valueType, bool isNull, CellType cellType, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_StyledCellWithValue(CellValueType valueType, bool isNull, StyledCellType cellType, RowCollectionType rowType)
     {
         // Arrange
         object? value;
@@ -255,9 +254,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(size, actualCell.Style.Font.FontSize);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_FontColorCellWithStringValue(CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_FontColorCellWithStringValue(StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Color test";
@@ -286,9 +284,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(color.ToArgb(), actualCell.Style.Font.FontColor.Color.ToArgb());
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_FillColorCellWithStringValue(CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_FillColorCellWithStringValue(StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Color test";
@@ -453,9 +450,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(numberFormat, actualCell.Style.NumberFormat.Format);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_MultipleStylesWithTheSameCustomNumberFormat(CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_MultipleStylesWithTheSameCustomNumberFormat(StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Number format test";
@@ -663,9 +659,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(XLBorderStyleValues.None, actualBorder.BottomBorder);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_MultipleBorders(CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_MultipleBorders(StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Border style test";
@@ -786,9 +781,8 @@ public class SpreadsheetStyledRowTests
         Assert.False(actualAlignment.WrapText);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_MixedAlignment(CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_MixedAlignment(StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         const string cellValue = "Alignment test";
@@ -871,9 +865,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(formatting, actualCell.Style.NumberFormat.NumberFormatId == 9);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_MultipleCellsWithDifferentStyles(CellType type, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_MultipleCellsWithDifferentStyles(StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
         var elements = new (string Value, Color FillColor, Color FontColor, string FontName, bool FontOption, double FontSize, NumberFormat Format)[]
@@ -1037,9 +1030,8 @@ public class SpreadsheetStyledRowTests
         Assert.All(styles.Zip(actualStyles), x => SpreadCheetah.Test.Helpers.SpreadsheetAssert.EquivalentStyle(x.First, x.Second));
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellAndValueTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_ExplicitCellReferencesForStyledCells(CellValueType valueType, bool isNull, CellType cellType, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_ExplicitCellReferencesForStyledCells(CellValueType valueType, bool isNull, StyledCellType cellType, RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -1090,9 +1082,8 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_LongStringValueStyledCells(CellType cellType, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_LongStringValueStyledCells(StyledCellType cellType, RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -1134,9 +1125,8 @@ public class SpreadsheetStyledRowTests
         Assert.All(sheet2Row.Descendants<OpenXmlCell>(), x => Assert.Equal(value, x.InnerText));
     }
 
-    [Theory]
-    [MemberData(nameof(TestData.StyledCellTypes), MemberType = typeof(TestData))]
-    public async Task Spreadsheet_AddRow_ExplicitCellReferencesForLongStringValueStyledCells(CellType cellType, RowCollectionType rowType)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_ExplicitCellReferencesForLongStringValueStyledCells(StyledCellType cellType, RowCollectionType rowType)
     {
         // Arrange
         using var stream = new MemoryStream();

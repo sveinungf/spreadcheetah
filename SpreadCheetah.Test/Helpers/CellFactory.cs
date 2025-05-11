@@ -106,6 +106,12 @@ internal static class CellFactory
         _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
     };
 
+    public static object Create(StyledCellType styledCellType, CellValueType valueType, bool isNull, StyleId? styleId, out object? value)
+    {
+        var cellType = styledCellType.ToCellType();
+        return Create(cellType, valueType, isNull, styleId, out value);
+    }
+
     public static object Create(CellType cellType, CellValueType valueType, bool isNull, StyleId? styleId, out object? value) => valueType switch
     {
         CellValueType.BoolFalse => CreateForBool(cellType, isNull ? null : false, styleId, out value),
@@ -299,4 +305,11 @@ internal static class CellFactory
         value = actualValue;
         return new Cell(formula, actualValue, styleId);
     }
+
+    private static CellType ToCellType(this StyledCellType fromType) => fromType switch
+    {
+        StyledCellType.Cell => CellType.Cell,
+        StyledCellType.StyledCell => CellType.StyledCell,
+        _ => throw new ArgumentOutOfRangeException(nameof(fromType), fromType, null)
+    };
 }

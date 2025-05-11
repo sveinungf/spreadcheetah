@@ -246,7 +246,8 @@ public class SpreadsheetRowTests
         Assert.Equal(value?.ToString() ?? string.Empty, actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> Longs() => TestData.CombineTuplesWithCellTypes<long?, string>(
+    private static IReadOnlyList<(long?, string)> LongsWithExpectedStrings =>
+    [
         (1234L, "1234"),
         (0L, "0"),
         (-1234L, "-1234"),
@@ -258,13 +259,19 @@ public class SpreadsheetRowTests
         (long.MinValue, "-9.223372036854776E+18"),
         (long.MaxValue, "9.223372036854776E+18"),
 #endif
-        (null, ""));
+        (null, "")
+    ];
 
-    [Theory]
-    [MemberData(nameof(Longs))]
-    public async Task Spreadsheet_AddRow_CellWithLongValue(long? initialValue, string expectedValue, CellType type, RowCollectionType rowType)
+    public static IEnumerable<int> LongIndexes => Enumerable.Range(0, LongsWithExpectedStrings.Count);
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithLongValue(
+        [CombinatorialMemberData(nameof(LongIndexes))] int memberDataIndex,
+        CellType type,
+        RowCollectionType rowType)
     {
         // Arrange
+        var (initialValue, expectedValue) = LongsWithExpectedStrings[memberDataIndex];
         using var stream = new MemoryStream();
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
@@ -285,7 +292,8 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedValue, actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> Floats() => TestData.CombineTuplesWithCellTypes<float?, string>(
+    private static IReadOnlyList<(float?, string)> FloatsWithExpectedStrings =>
+    [
         (1234f, "1234"),
         (0.1f, "0.1"),
         (0.0f, "0"),
@@ -294,13 +302,19 @@ public class SpreadsheetRowTests
         (11.11111f, "11.11111"),
         (2.222222E+38f, "2.222222E+38"),
         (-0.3333333f, "-0.3333333"),
-        (null, ""));
+        (null, "")
+    ];
 
-    [Theory]
-    [MemberData(nameof(Floats))]
-    public async Task Spreadsheet_AddRow_CellWithFloatValue(float? initialValue, string expectedValue, CellType type, RowCollectionType rowType)
+    public static IEnumerable<int> FloatIndexes => Enumerable.Range(0, FloatsWithExpectedStrings.Count);
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithFloatValue(
+        [CombinatorialMemberData(nameof(FloatIndexes))] int memberDataIndex,
+        CellType type,
+        RowCollectionType rowType)
     {
         // Arrange
+        var (initialValue, expectedValue) = FloatsWithExpectedStrings[memberDataIndex];
         using var stream = new MemoryStream();
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
@@ -321,7 +335,8 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedValue, actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> Doubles() => TestData.CombineTuplesWithCellTypes<double?, string>(
+    private static IReadOnlyList<(double? Initial, string Expected)> DoublesWithExpectedStrings =>
+    [
         (1234d, "1234"),
         (0.1, "0.1"),
         (0.0, "0"),
@@ -335,13 +350,19 @@ public class SpreadsheetRowTests
 #endif
         (2.2222222222E+50, "2.2222222222E+50"),
         (-0.3333333, "-0.3333333"),
-        (null, ""));
+        (null, "")
+    ];
 
-    [Theory]
-    [MemberData(nameof(Doubles))]
-    public async Task Spreadsheet_AddRow_CellWithDoubleValue(double? initialValue, string expectedValue, CellType type, RowCollectionType rowType)
+    public static IEnumerable<int> DoubleIndexes => Enumerable.Range(0, DoublesWithExpectedStrings.Count);
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithDoubleValue(
+        [CombinatorialMemberData(nameof(DoubleIndexes))] int memberDataIndex,
+        CellType type,
+        RowCollectionType rowType)
     {
         // Arrange
+        var (initialValue, expectedValue) = DoublesWithExpectedStrings[memberDataIndex];
         using var stream = new MemoryStream();
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
@@ -362,7 +383,8 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedValue, actualCell.InnerText);
     }
 
-    public static IEnumerable<object?[]> Decimals() => TestData.CombineTuplesWithCellTypes(
+    private static IReadOnlyList<(string?, string)> DecimalsWithExpectedStrings =>
+    [
         ("1234", "1234"),
         ("0.1", "0.1"),
         ("0.0", "0"),
@@ -377,13 +399,19 @@ public class SpreadsheetRowTests
         ("11.11111111111111111111", "11.11111111111111"),
         ("0.123456789012345678901234567", "0.12345678901234568"),
 #endif
-        (null, ""));
+        (null, "")
+    ];
 
-    [Theory]
-    [MemberData(nameof(Decimals))]
-    public async Task Spreadsheet_AddRow_CellWithDecimalValue(string? initialValue, string expectedValue, CellType type, RowCollectionType rowType)
+    public static IEnumerable<int> DecimalIndexes => Enumerable.Range(0, DecimalsWithExpectedStrings.Count);
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithDecimalValue(
+        [CombinatorialMemberData(nameof(DecimalIndexes))] int memberDataIndex,
+        CellType type,
+        RowCollectionType rowType)
     {
         // Arrange
+        var (initialValue, expectedValue) = DecimalsWithExpectedStrings[memberDataIndex];
         var decimalValue = initialValue != null ? decimal.Parse(initialValue, CultureInfo.InvariantCulture) : null as decimal?;
         using var stream = new MemoryStream();
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
