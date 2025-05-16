@@ -32,12 +32,10 @@ public readonly record struct Formula
     public static Formula Hyperlink(Uri uri, string friendlyName)
     {
         ArgumentNullException.ThrowIfNull(friendlyName);
-        var absoluteUri = EnsureValidAbsoluteUri(uri);
-
-        // TODO: Use throw helpers
         if (friendlyName.Length > 255)
-            throw new ArgumentException("The URI friendly name can not exceed 255 characters.", nameof(uri));
+            ThrowHelper.HyperlinkFriendlyNameTooLong(nameof(friendlyName));
 
+        var absoluteUri = EnsureValidAbsoluteUri(uri);
         var xmlEncodedUri = XmlUtility.XmlEncode(absoluteUri);
         var xmlEncodedFriendlyName = XmlUtility.XmlEncode(friendlyName);
         return new Formula($"""HYPERLINK("{xmlEncodedUri}","{xmlEncodedFriendlyName}")""");
@@ -46,15 +44,14 @@ public readonly record struct Formula
     private static string EnsureValidAbsoluteUri(Uri uri)
     {
         ArgumentNullException.ThrowIfNull(uri);
-        // TODO: Use throw helpers
         if (!uri.IsAbsoluteUri)
-            throw new ArgumentException("The URI must be an absolute URI.", nameof(uri)); // TODO: Covered by IsWellFormedOriginalString?
+            ThrowHelper.UriMustBeAbsolute(nameof(uri));
         if (!uri.IsWellFormedOriginalString())
-            throw new ArgumentException("The URI is not well formed.", nameof(uri));
+            ThrowHelper.UriMustBeWellFormed(nameof(uri));
 
         var absoluteUri = uri.AbsoluteUri;
         if (absoluteUri.Length > 255)
-            throw new ArgumentException("The URI can not exceed 255 characters.", nameof(uri));
+            ThrowHelper.UriTooLong(nameof(uri));
 
         return absoluteUri;
     }
