@@ -1,5 +1,9 @@
 using SpreadCheetah.Helpers;
 
+#if !NET6_0_OR_GREATER
+using ArgumentNullException = SpreadCheetah.Helpers.Backporting.ArgumentNullExceptionBackport;
+#endif
+
 namespace SpreadCheetah;
 
 /// <summary>
@@ -27,11 +31,10 @@ public readonly record struct Formula
 
     public static Formula Hyperlink(Uri uri, string friendlyName)
     {
+        ArgumentNullException.ThrowIfNull(friendlyName);
         var absoluteUri = EnsureValidAbsoluteUri(uri);
 
         // TODO: Use throw helpers
-        if (friendlyName is null)
-            throw new ArgumentNullException(nameof(friendlyName));
         if (friendlyName.Length > 255)
             throw new ArgumentException("The URI friendly name can not exceed 255 characters.", nameof(uri));
 
@@ -42,9 +45,8 @@ public readonly record struct Formula
 
     private static string EnsureValidAbsoluteUri(Uri uri)
     {
+        ArgumentNullException.ThrowIfNull(uri);
         // TODO: Use throw helpers
-        if (uri is null)
-            throw new ArgumentNullException(nameof(uri));
         if (!uri.IsAbsoluteUri)
             throw new ArgumentException("The URI must be an absolute URI.", nameof(uri)); // TODO: Covered by IsWellFormedOriginalString?
         if (!uri.IsWellFormedOriginalString())
