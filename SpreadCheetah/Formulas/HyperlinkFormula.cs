@@ -11,8 +11,7 @@ internal static class HyperlinkFormula
     public static Formula From(Uri uri)
     {
         var absoluteUri = EnsureValidAbsoluteUri(uri);
-        var xmlEncodedUri = XmlUtility.XmlEncode(absoluteUri);
-        return new Formula($"""HYPERLINK("{xmlEncodedUri}")""");
+        return new Formula($"""HYPERLINK("{absoluteUri}")""");
     }
 
     public static Formula From(Uri uri, string friendlyName)
@@ -22,9 +21,7 @@ internal static class HyperlinkFormula
             ThrowHelper.HyperlinkFriendlyNameTooLong(nameof(friendlyName));
 
         var absoluteUri = EnsureValidAbsoluteUri(uri);
-        var xmlEncodedUri = XmlUtility.XmlEncode(absoluteUri);
-        var xmlEncodedFriendlyName = XmlUtility.XmlEncode(friendlyName);
-        return new Formula($"""HYPERLINK("{xmlEncodedUri}","{xmlEncodedFriendlyName}")""");
+        return new Formula($"""HYPERLINK("{absoluteUri}","{friendlyName}")""");
     }
 
     private static string EnsureValidAbsoluteUri(Uri uri)
