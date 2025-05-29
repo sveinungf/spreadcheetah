@@ -7,4 +7,5 @@ public interface ISpreadsheetAssertCell
     string? StringValue { get; }
     DateTime? DateTimeValue { get; }
     ISpreadsheetAssertStyle Style { get; }
+    string? Formula { get; }
 }

@@ -1,3 +1,5 @@
+using SpreadCheetah.Formulas;
+
 namespace SpreadCheetah;
 
 /// <summary>
@@ -15,4 +17,16 @@ public readonly record struct Formula
     {
         FormulaText = formulaText ?? "";
     }
+
+    /// <summary>
+    /// Creates a hyperlink formula that represents a link to the specified URI.
+    /// The URI must be an absolute URI, and cannot exceed 255 characters in length.
+    /// </summary>
+    public static Formula Hyperlink(Uri uri) => HyperlinkFormula.From(uri);
+
+    /// <summary>
+    /// Creates a hyperlink formula that represents a link to the specified URI with a friendly display name.
+    /// The URI must be an absolute URI. Both the URI and the friendly name cannot exceed 255 characters in length.
+    /// </summary>
+    public static Formula Hyperlink(Uri uri, string friendlyName) => HyperlinkFormula.From(uri, friendlyName);
 }

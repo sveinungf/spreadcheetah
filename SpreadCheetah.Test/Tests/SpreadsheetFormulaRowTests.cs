@@ -6,6 +6,7 @@ using SpreadCheetah.Test.Helpers;
 using System.Globalization;
 using Color = System.Drawing.Color;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -585,5 +586,78 @@ public class SpreadsheetFormulaRowTests
         var sheet2Row = sheetParts[1].Worksheet.Descendants<Row>().Single();
         var actualSheet2Refs = sheet2Row.Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
+    }
+
+    [Theory]
+    [InlineData("http://localhost:8080/")]
+    [InlineData("http://github.com/")]
+    [InlineData("https://github.com/")]
+    [InlineData("https://github.com/sveinungf/")]
+    [InlineData("https://github.com/?param=value")]
+    [InlineData("https://github.com/?param=with%20whitespace")]
+    [InlineData("https://github.com/?param1=val1&param2=val2")]
+    [InlineData("https://github.com/?param=val%22,)")]
+    public async Task Spreadsheet_AddRow_CellWithHyperlinkFormula(string value)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var formula = Formula.Hyperlink(new Uri(value));
+        var cell = new Cell(formula);
+
+        // Act
+        await spreadsheet.AddRowAsync(cell);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal($"""HYPERLINK("{value}")""", sheet["A1"].Formula);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("  ")]
+    [InlineData("GitHub")]
+    [InlineData("https://github.com/")]
+    [InlineData("),;")]
+    public async Task Spreadsheet_AddRow_CellWithHyperlinkFormulaWithFriendlyName(string value)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var uri = new Uri("https://" + "github.com/");
+        var formula = Formula.Hyperlink(uri, value);
+        var cell = new Cell(formula);
+
+        // Act
+        await spreadsheet.AddRowAsync(cell);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal($"""HYPERLINK("{uri.AbsoluteUri}","{value}")""", sheet["A1"].Formula);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddRow_CellWithHyperlinkFormulaWithFriendlyNameContainingDoubleQuotes()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var uri = new Uri("https://" + "github.com/");
+        const string friendlyName = "\"Link to \"GitHub\"\"";
+        var formula = Formula.Hyperlink(uri, friendlyName);
+        var cell = new Cell(formula);
+
+        // Act
+        await spreadsheet.AddRowAsync(cell);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(""""""HYPERLINK("https://github.com/","""Link to ""GitHub""""")"""""", sheet["A1"].Formula);
     }
 }

@@ -65,6 +65,8 @@ namespace SpreadCheetah
     public readonly struct Formula : System.IEquatable<SpreadCheetah.Formula>
     {
         public Formula(string? formulaText) { }
+        public static SpreadCheetah.Formula Hyperlink(System.Uri uri) { }
+        public static SpreadCheetah.Formula Hyperlink(System.Uri uri, string friendlyName) { }
     }
     public enum SpreadCheetahCompressionLevel
     {
