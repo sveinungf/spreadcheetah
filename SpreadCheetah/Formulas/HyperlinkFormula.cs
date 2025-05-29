@@ -21,7 +21,8 @@ internal static class HyperlinkFormula
             ThrowHelper.HyperlinkFriendlyNameTooLong(nameof(friendlyName));
 
         var absoluteUri = EnsureValidAbsoluteUri(uri);
-        return new Formula($"""HYPERLINK("{absoluteUri}","{friendlyName}")""");
+        var escapedFriendlyName = friendlyName.Replace("\"", "\"\"");
+        return new Formula($"""HYPERLINK("{absoluteUri}","{escapedFriendlyName}")""");
     }
 
     private static string EnsureValidAbsoluteUri(Uri uri)

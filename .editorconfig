@@ -268,9 +268,13 @@ dotnet_diagnostic.S3925.severity = none
 # S4136: Method overloads should be grouped together
 dotnet_diagnostic.S4136.severity = warning
 
-[{CellValueConverter.cs}]
+[CellValueConverter.cs]
 # S1694: An abstract class should have both abstract and concrete methods
 dotnet_diagnostic.S1694.severity = none
+
+[FormulaTests.cs]
+# S1075: URIs should not be hardcoded
+dotnet_diagnostic.S1075.severity = none
 
 [OADateTests.cs]
 # S6562: Always set the "DateTimeKind" when creating new "DateTime" instances

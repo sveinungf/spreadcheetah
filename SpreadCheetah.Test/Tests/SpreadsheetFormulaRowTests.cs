@@ -614,4 +614,50 @@ public class SpreadsheetFormulaRowTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.Equal($"""HYPERLINK("{value}")""", sheet["A1"].Formula);
     }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("  ")]
+    [InlineData("GitHub")]
+    [InlineData("https://github.com/")]
+    [InlineData("),;")]
+    public async Task Spreadsheet_AddRow_CellWithHyperlinkFormulaWithFriendlyName(string value)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var uri = new Uri("https://" + "github.com/");
+        var formula = Formula.Hyperlink(uri, value);
+        var cell = new Cell(formula);
+
+        // Act
+        await spreadsheet.AddRowAsync(cell);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal($"""HYPERLINK("{uri.AbsoluteUri}","{value}")""", sheet["A1"].Formula);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddRow_CellWithHyperlinkFormulaWithFriendlyNameContainingDoubleQuotes()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var uri = new Uri("https://" + "github.com/");
+        const string friendlyName = "\"Link to \"GitHub\"\"";
+        var formula = Formula.Hyperlink(uri, friendlyName);
+        var cell = new Cell(formula);
+
+        // Act
+        await spreadsheet.AddRowAsync(cell);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(""""""HYPERLINK("https://github.com/","""Link to ""GitHub""""")"""""", sheet["A1"].Formula);
+    }
 }
