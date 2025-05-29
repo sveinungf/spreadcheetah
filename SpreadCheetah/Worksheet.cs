@@ -7,6 +7,7 @@ using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Tables.Internal;
 using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
+using SpreadCheetah.Worksheets.Internal;
 
 namespace SpreadCheetah;
 
@@ -22,6 +23,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly CellWriterState _state;
     private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
     private HashSet<CellRangeRelativeReference>? _cellMerges;
+    private List<WorksheetRowHeightRun>? _rowHeightRuns;
     private string? _autoFilterRange;
 
     public Dictionary<SingleCellRelativeReference, string>? Notes { get; private set; }
@@ -84,12 +86,40 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         => _dataCellWriter.TryAddRow(cells, _state.NextRowIndex++);
     public bool TryAddRow(IList<StyledCell> cells)
         => _styledCellWriter.TryAddRow(cells, _state.NextRowIndex++);
+
     public bool TryAddRow(IList<Cell> cells, RowOptions options)
-        => _cellWriter.TryAddRow(cells, _state.NextRowIndex++, options);
+    {
+        var rowIndex = _state.NextRowIndex++;
+        return _cellWriter.TryAddRow(cells, rowIndex, options);
+    }
+
     public bool TryAddRow(IList<DataCell> cells, RowOptions options)
-        => _dataCellWriter.TryAddRow(cells, _state.NextRowIndex++, options);
+    {
+        var rowIndex = _state.NextRowIndex++;
+        return _dataCellWriter.TryAddRow(cells, rowIndex, options);
+    }
+
     public bool TryAddRow(IList<StyledCell> cells, RowOptions options)
-        => _styledCellWriter.TryAddRow(cells, _state.NextRowIndex++, options);
+    {
+        var rowIndex = _state.NextRowIndex++;
+        var result = _styledCellWriter.TryAddRow(cells, rowIndex, options);
+        if (result && options.Height is { } height)
+            UpdateRowHeightRuns(rowIndex, height);
+
+        return result;
+    }
+
+    private void UpdateRowHeightRuns(uint rowIndex, double height)
+    {
+        _rowHeightRuns ??= [];
+
+        if (_rowHeightRuns is [.., var lastRun] && lastRun.TryContinueWith(rowIndex, height))
+            return;
+
+        var newRun = new WorksheetRowHeightRun(rowIndex, height);
+        _rowHeightRuns.Add(newRun);
+    }
+
     public bool TryAddRow(ReadOnlySpan<Cell> cells)
         => _cellWriter.TryAddRow(cells, _state.NextRowIndex++);
     public bool TryAddRow(ReadOnlySpan<DataCell> cells)
