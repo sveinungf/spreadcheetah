@@ -21,7 +21,7 @@ internal static class HyperlinkFormula
             ThrowHelper.HyperlinkFriendlyNameTooLong(nameof(friendlyName));
 
         var absoluteUri = EnsureValidAbsoluteUri(uri);
-        var escapedFriendlyName = friendlyName.Replace("\"", "\"\"");
+        var escapedFriendlyName = EscapeDoubleQuotes(friendlyName);
         return new Formula($"""HYPERLINK("{absoluteUri}","{escapedFriendlyName}")""");
     }
 
@@ -38,5 +38,12 @@ internal static class HyperlinkFormula
             ThrowHelper.UriTooLong(nameof(uri));
 
         return absoluteUri;
+    }
+
+    private static string EscapeDoubleQuotes(string value)
+    {
+#pragma warning disable CA1307 // No StringComparison overload for .NET Standard 2.0
+        return value.Replace("\"", "\"\"");
+#pragma warning restore CA1307 // No StringComparison overload for .NET Standard 2.0
     }
 }
