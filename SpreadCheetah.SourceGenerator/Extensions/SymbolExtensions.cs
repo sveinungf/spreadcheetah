@@ -23,6 +23,11 @@ internal static class SymbolExtensions
         };
     }
 
+    public static bool IsFormula(this ITypeSymbol type)
+    {
+        return false; // TODO: Implement
+    }
+
     private static bool IsSupportedNullableType(this ITypeSymbol type)
     {
         if (type.NullableAnnotation != NullableAnnotation.Annotated)

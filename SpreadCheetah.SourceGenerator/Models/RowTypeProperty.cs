@@ -2,6 +2,7 @@ namespace SpreadCheetah.SourceGenerator.Models;
 
 internal sealed record RowTypeProperty(
     string Name,
+    bool IsFormula,
     CellFormat? CellFormat,
     CellStyle? CellStyle,
     CellValueConverter? CellValueConverter,

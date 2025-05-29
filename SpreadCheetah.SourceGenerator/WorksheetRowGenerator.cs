@@ -71,6 +71,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     {
         var implicitOrderProperties = new List<RowTypeProperty>();
         var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
+        var hasFormula = false;
         var hasStyleAttributes = false;
         var analyzer = new PropertyAnalyzer(NullDiagnosticsReporter.Instance);
 
@@ -88,6 +89,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
             var rowTypeProperty = new RowTypeProperty(
                 Name: property.Name,
+                IsFormula: data.CellValueConverter is null && property.Type.IsFormula(),
                 CellFormat: data.CellFormat,
                 CellStyle: data.CellStyle,
                 CellValueConverter: data.CellValueConverter,
@@ -95,6 +97,8 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 ColumnHeader: data.ColumnHeader?.ToColumnHeaderInfo(),
                 ColumnWidth: data.ColumnWidth);
 
+            if (rowTypeProperty.IsFormula)
+                hasFormula = true;
             if (rowTypeProperty.HasStyle)
                 hasStyleAttributes = true;
 
@@ -106,10 +110,18 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         explicitOrderProperties.AddWithImplicitKeys(implicitOrderProperties);
 
+        var cellType = (hasFormula, hasStyleAttributes) switch
+        {
+            (true, _) => CellType.Cell,
+            (_, true) => CellType.StyledCell,
+            _ => CellType.DataCell
+        };
+
         return new RowType(
             FullName: rowType.ToString(),
             HasStyleAttributes: hasStyleAttributes,
             IsReferenceType: rowType.IsReferenceType,
+            CellType: cellType,
             Name: rowType.Name,
             Properties: explicitOrderProperties.Values.ToEquatableArray());
     }
@@ -571,7 +583,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 _ => false
             };
 
-            var constructCell = ConstructCell(property, styleIdIndex, rowType.HasStyleAttributes, valueConverters);
+            var constructCell = ConstructCell(property, styleIdIndex, rowType, valueConverters);
 
             sb.AppendLine(FormattableString.Invariant($"""
                         cells[{i}] = {constructCell};
@@ -585,27 +597,40 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     }
 
     private static string ConstructCell(RowTypeProperty property, int? styleIdIndex,
-        bool hasStyleAttributes, Dictionary<string, string> valueConverters)
+        RowType rowType, Dictionary<string, string> valueConverters)
     {
         var value = $"obj.{property.Name}";
 
-        var constructDataCell = (property.CellValueConverter, property.CellValueTruncate) switch
-        {
-            ({ } converter, _) => $"{valueConverters[converter.ConverterTypeName]}.ConvertToDataCell({value})",
-            (null, { } truncate) => FormattableString.Invariant($"ConstructTruncatedDataCell({value}, {truncate.Value})"),
-            _ => $"new DataCell({value})"
-        };
-
-        var styleId = (hasStyleAttributes, styleIdIndex) switch
+        var styleId = (rowType.HasStyleAttributes, styleIdIndex) switch
         {
             (true, { } i) => FormattableString.Invariant($"styleIds[{i}]"),
             (true, _) => "null",
             _ => null
         };
 
-        return styleId is null
-            ? constructDataCell
-            : $"new StyledCell({constructDataCell}, {styleId})";
+        // TODO: Handle nullable Formula
+        if (property is { IsFormula: true, CellValueConverter: null })
+        {
+            return styleId is null
+                ? $"new Cell({value})"
+                : $"new Cell({value}, {styleId})";
+        }
+
+        var constructDataCell = (property.CellValueConverter, property.CellValueTruncate) switch
+        {
+            ({ } converter, _) => $"{valueConverters[converter.ConverterTypeName]}.ConvertToDataCell({value})",
+            (_, { } truncate) => FormattableString.Invariant($"ConstructTruncatedDataCell({value}, {truncate.Value})"),
+            _ => $"new DataCell({value})"
+        };
+
+        return (rowType.CellType, styleId) switch
+        {
+            (CellType.Cell, null) => $"new Cell({constructDataCell})",
+            (CellType.Cell, _) => $"new Cell({constructDataCell}, {styleId})",
+            (CellType.StyledCell, null) => $"new StyledCell({constructDataCell}, null)",
+            (CellType.StyledCell, _) => $"new StyledCell({constructDataCell}, {styleId})",
+            _ => constructDataCell
+        };
     }
 
     private static void GenerateConstructTruncatedDataCell(StringBuilder sb)
