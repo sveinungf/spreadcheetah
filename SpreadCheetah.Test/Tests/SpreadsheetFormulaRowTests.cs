@@ -596,6 +596,7 @@ public class SpreadsheetFormulaRowTests
     [InlineData("https://github.com/?param=value")]
     [InlineData("https://github.com/?param=with%20whitespace")]
     [InlineData("https://github.com/?param1=val1&param2=val2")]
+    [InlineData("https://github.com/?param=val%22,)")]
     public async Task Spreadsheet_AddRow_CellWithHyperlinkFormula(string value)
     {
         // Arrange
