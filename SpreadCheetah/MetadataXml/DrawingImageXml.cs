@@ -76,35 +76,36 @@ internal struct DrawingImageXml(
         var span = buffer.GetSpan();
         var written = 0;
 
-        var fromColumnOffset = image.Offset?.Left.PixelsToEmu() ?? 0;
-        var fromRowOffset = image.Offset?.Top.PixelsToEmu() ?? 0;
+        var fromColumnOffset = image.Offset?.Left ?? 0;
+        var fromRowOffset = image.Offset?.Top ?? 0;
 
         var column = image.Canvas.FromColumn;
         var row = image.Canvas.FromRow;
 
-        if (!TryWriteAnchorPart(span, ref written, column, row, fromColumnOffset, fromRowOffset)) return false;
+        if (!TryWriteAnchorPart(span, ref written, column, row, fromColumnOffset.PixelsToEmu(), fromRowOffset.PixelsToEmu())) return false;
         if (!"</xdr:rowOff></xdr:from><xdr:to><xdr:col>"u8.TryCopyTo(span, ref written)) return false;
 
         var (actualWidth, actualHeight) = CalculateActualDimensions(image);
         var fillCell = image.Canvas.Options.HasFlag(ImageCanvasOptions.FillCell);
 
         var (columnCount, toColumnOffset) = fillCell
-            ? (0, image.Offset?.Right.PixelsToEmu() ?? 0)
+            ? (0, image.Offset?.Right ?? 0)
             : CalculateColumns(fromColumnOffset, actualWidth, GetColumnWidths());
 
         var (rowCount, toRowOffset) = fillCell
-            ? (0, image.Offset?.Bottom.PixelsToEmu() ?? 0)
+            ? (0, image.Offset?.Bottom ?? 0)
             : CalculateRows(fromRowOffset, actualHeight, GetRowHeights());
 
         var toColumn = (ushort)(column + columnCount);
         var toRow = (uint)(row + rowCount);
 
-        if (!TryWriteAnchorPart(span, ref written, toColumn, toRow, toColumnOffset, toRowOffset)) return false;
+        if (!TryWriteAnchorPart(span, ref written, toColumn, toRow, toColumnOffset.PixelsToEmu(), toRowOffset.PixelsToEmu())) return false;
 
         buffer.Advance(written);
         return true;
     }
 
+    // TODO: Extension of collection of column widths?
     private static IEnumerable<double> GetColumnWidths()
     {
         for (var i = 0; i < SpreadsheetConstants.MaxNumberOfColumns; ++i)
@@ -113,6 +114,7 @@ internal struct DrawingImageXml(
         }
     }
 
+    // TODO: Extension on collection of WorksheetRowHeightRun?
     private static IEnumerable<double> GetRowHeights()
     {
         for (var i = 0; i < SpreadsheetConstants.MaxNumberOfRows; ++i)
@@ -121,51 +123,48 @@ internal struct DrawingImageXml(
         }
     }
 
-    private static (int ColumnCount, int ToColumnOffset) CalculateColumns(int fromColumnOffset, int imageWidth, IEnumerable<double> columnWidths)
+    private static (int ColumnCount, int ToColumnOffsetInPixels) CalculateColumns(int fromColumnOffsetInPixels, int imageWidth, IEnumerable<double> columnWidths)
     {
-        double remainingWidthInEmu = fromColumnOffset + imageWidth.PixelsToEmu();
+        var remainingWidthInPixels = fromColumnOffsetInPixels + imageWidth;
+        var toColumnOffsetInPixels = remainingWidthInPixels;
         var columnCount = 0;
-        var toColumnOffset = remainingWidthInEmu;
-        const double delta = 0.776275;
-        const double emuPerColumnWidthUnit = 609600 / (SpreadsheetConstants.DefaultColumnWidthInEmu + delta);
 
         foreach (var columnWidth in columnWidths)
         {
             Debug.Assert(columnWidth >= 0, "Column width must be non-negative.");
 
-            remainingWidthInEmu -= (columnWidth + delta) * emuPerColumnWidthUnit;
-            if (remainingWidthInEmu < 0)
-                return (columnCount, (int)toColumnOffset);
+            var widthInPixels = 8 + (int)Math.Round(columnWidth * 9, MidpointRounding.AwayFromZero);
+            remainingWidthInPixels -= widthInPixels;
+            if (remainingWidthInPixels < 0)
+                break;
 
             columnCount++;
-            toColumnOffset = remainingWidthInEmu;
+            toColumnOffsetInPixels = remainingWidthInPixels;
         }
 
-        // TODO: Unreachable?
-        return (columnCount, (int)toColumnOffset);
+        return (columnCount, toColumnOffsetInPixels);
     }
 
-    private static (int RowCount, int ToRowOffset) CalculateRows(int fromRowOffset, int imageHeight, IEnumerable<double> rowHeights)
+    private static (int RowCount, int ToRowOffsetInPixels) CalculateRows(int fromRowOffsetInPixels, int imageHeight, IEnumerable<double> rowHeights)
     {
-        double remainingHeightInEmu = fromRowOffset + imageHeight.PixelsToEmu();
+        var remainingHeightInPixels = fromRowOffsetInPixels + imageHeight;
+        var toRowOffsetInPixels = remainingHeightInPixels;
         var rowCount = 0;
-        var toRowOffset = remainingHeightInEmu;
-        const int emuPerRowHeightUnit = 12700;
 
         foreach (var rowHeight in rowHeights)
         {
             Debug.Assert(rowHeight >= 0, "Row height must be non-negative.");
 
-            remainingHeightInEmu -= rowHeight * emuPerRowHeightUnit;
-            if (remainingHeightInEmu < 0)
-                return (rowCount, (int)toRowOffset);
+            var heightInPixels = 1 + (int)Math.Round(rowHeight * 1.664, MidpointRounding.AwayFromZero);
+            remainingHeightInPixels -= heightInPixels;
+            if (remainingHeightInPixels < 0)
+                break;
 
             rowCount++;
-            toRowOffset = remainingHeightInEmu;
+            toRowOffsetInPixels = remainingHeightInPixels;
         }
 
-        // TODO: Unreachable?
-        return (rowCount, (int)toRowOffset);
+        return (rowCount, toRowOffsetInPixels);
     }
 
     private static bool TryWriteAnchorPart(Span<byte> bytes, ref int bytesWritten, ushort column, uint row, int columnEmuOffset, int rowEmuOffset)
