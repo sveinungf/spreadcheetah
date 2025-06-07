@@ -32,14 +32,6 @@ internal static class SpanHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryWrite(ushort value, Span<byte> bytes, ref int bytesWritten, StandardFormat format = default)
-    {
-        if (!Utf8Formatter.TryFormat(value, bytes.Slice(bytesWritten), out var length, format)) return false;
-        bytesWritten += length;
-        return true;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryWrite(double value, Span<byte> bytes, ref int bytesWritten, StandardFormat format = default)
     {
         if (!Utf8Formatter.TryFormat(value, bytes.Slice(bytesWritten), out var length, format)) return false;

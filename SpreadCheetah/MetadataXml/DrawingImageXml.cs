@@ -45,7 +45,9 @@ internal struct DrawingImageXml(
         Current = _next switch
         {
             Element.ImageStart => TryWriteImageStart(),
-            Element.Anchor => TryWriteAnchor(),
+            Element.FromAnchor => TryWriteFromAnchor(),
+            Element.BetweenAnchors => buffer.TryWrite("</xdr:rowOff></xdr:from><xdr:to><xdr:col>"u8),
+            Element.ToAnchor => TryWriteToAnchor(),
             _ => TryWriteImageEnd()
         };
 
@@ -71,19 +73,24 @@ internal struct DrawingImageXml(
         return buffer.TryWrite($"{ImageStart}{anchorAttribute}{AnchorStart}");
     }
 
-    private readonly bool TryWriteAnchor()
+    private readonly bool TryWriteFromAnchor()
     {
-        var span = buffer.GetSpan();
-        var written = 0;
-
         var fromColumnOffset = image.Offset?.Left ?? 0;
         var fromRowOffset = image.Offset?.Top ?? 0;
 
         var column = image.Canvas.FromColumn;
         var row = image.Canvas.FromRow;
 
-        if (!TryWriteAnchorPart(span, ref written, column, row, fromColumnOffset.PixelsToOffset(), fromRowOffset.PixelsToOffset())) return false;
-        if (!"</xdr:rowOff></xdr:from><xdr:to><xdr:col>"u8.TryCopyTo(span, ref written)) return false;
+        return TryWriteAnchorPart(column, row, fromColumnOffset.PixelsToOffset(), fromRowOffset.PixelsToOffset());
+    }
+
+    private readonly bool TryWriteToAnchor()
+    {
+        var fromColumnOffset = image.Offset?.Left ?? 0;
+        var fromRowOffset = image.Offset?.Top ?? 0;
+
+        var column = image.Canvas.FromColumn;
+        var row = image.Canvas.FromRow;
 
         var (actualWidth, actualHeight) = CalculateActualDimensions(image);
         var fillCell = image.Canvas.Options.HasFlag(ImageCanvasOptions.FillCell);
@@ -99,10 +106,7 @@ internal struct DrawingImageXml(
         var toColumn = (ushort)(column + columnCount);
         var toRow = row + rowCount;
 
-        if (!TryWriteAnchorPart(span, ref written, toColumn, toRow, toColumnOffset.PixelsToOffset(), toRowOffset.PixelsToOffset())) return false;
-
-        buffer.Advance(written);
-        return true;
+        return TryWriteAnchorPart(toColumn, toRow, toColumnOffset.PixelsToOffset(), toRowOffset.PixelsToOffset());
     }
 
     // TODO: Extension of collection of column widths?
@@ -170,16 +174,16 @@ internal struct DrawingImageXml(
 
     private static int Round(double value) => (int)Math.Round(value, MidpointRounding.AwayFromZero);
 
-    private static bool TryWriteAnchorPart(Span<byte> bytes, ref int bytesWritten, ushort column, uint row, int columnEmuOffset, int rowEmuOffset)
+    private readonly bool TryWriteAnchorPart(ushort column, uint row, int columnOffset, int rowOffset)
     {
-        if (!SpanHelper.TryWrite(column, bytes, ref bytesWritten)) return false;
-        if (!"</xdr:col><xdr:colOff>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
-        if (!SpanHelper.TryWrite(columnEmuOffset, bytes, ref bytesWritten)) return false;
-        if (!"</xdr:colOff><xdr:row>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
-        if (!SpanHelper.TryWrite(row, bytes, ref bytesWritten)) return false;
-        if (!"</xdr:row><xdr:rowOff>"u8.TryCopyTo(bytes, ref bytesWritten)) return false;
-        if (!SpanHelper.TryWrite(rowEmuOffset, bytes, ref bytesWritten)) return false;
-        return true;
+        return buffer.TryWrite(
+            $"{column}" +
+            $"{"</xdr:col><xdr:colOff>"u8}" +
+            $"{columnOffset}" +
+            $"{"</xdr:colOff><xdr:row>"u8}" +
+            $"{row}" +
+            $"{"</xdr:row><xdr:rowOff>"u8}" +
+            $"{rowOffset}");
     }
 
     private static (int Width, int Height) CalculateActualDimensions(in WorksheetImage image)
@@ -209,7 +213,9 @@ internal struct DrawingImageXml(
     private enum Element
     {
         ImageStart,
-        Anchor,
+        FromAnchor,
+        BetweenAnchors,
+        ToAnchor,
         ImageEnd,
         Done
     }
