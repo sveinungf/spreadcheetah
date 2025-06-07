@@ -82,7 +82,7 @@ internal struct DrawingImageXml(
         var column = image.Canvas.FromColumn;
         var row = image.Canvas.FromRow;
 
-        if (!TryWriteAnchorPart(span, ref written, column, row, fromColumnOffset.PixelsToEmu(), fromRowOffset.PixelsToEmu())) return false;
+        if (!TryWriteAnchorPart(span, ref written, column, row, fromColumnOffset.PixelsToWidthOffset(), fromRowOffset.PixelsToEmu())) return false;
         if (!"</xdr:rowOff></xdr:from><xdr:to><xdr:col>"u8.TryCopyTo(span, ref written)) return false;
 
         var (actualWidth, actualHeight) = CalculateActualDimensions(image);
@@ -99,7 +99,7 @@ internal struct DrawingImageXml(
         var toColumn = (ushort)(column + columnCount);
         var toRow = (uint)(row + rowCount);
 
-        if (!TryWriteAnchorPart(span, ref written, toColumn, toRow, toColumnOffset.PixelsToEmu(), toRowOffset.PixelsToEmu())) return false;
+        if (!TryWriteAnchorPart(span, ref written, toColumn, toRow, toColumnOffset.PixelsToWidthOffset(), toRowOffset.PixelsToEmu())) return false;
 
         buffer.Advance(written);
         return true;
@@ -133,7 +133,7 @@ internal struct DrawingImageXml(
         {
             Debug.Assert(columnWidth >= 0, "Column width must be non-negative.");
 
-            var widthInPixels = columnWidth * 9 + 8;
+            var widthInPixels = (columnWidth + 0.77671875) * 9;
             remainingWidthInPixels -= widthInPixels;
             if (remainingWidthInPixels < 0)
                 break;
