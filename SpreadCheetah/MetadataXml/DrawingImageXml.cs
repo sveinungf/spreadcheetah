@@ -89,15 +89,15 @@ internal struct DrawingImageXml(
         var fillCell = image.Canvas.Options.HasFlag(ImageCanvasOptions.FillCell);
 
         var (columnCount, toColumnOffset) = fillCell
-            ? (0, image.Offset?.Right ?? 0)
+            ? (image.Canvas.ColumnCount, image.Offset?.Right ?? 0)
             : CalculateColumns(fromColumnOffset, actualWidth, GetColumnWidths());
 
         var (rowCount, toRowOffset) = fillCell
-            ? (0, image.Offset?.Bottom ?? 0)
+            ? (image.Canvas.RowCount, image.Offset?.Bottom ?? 0)
             : CalculateRows(fromRowOffset, actualHeight, GetRowHeights());
 
         var toColumn = (ushort)(column + columnCount);
-        var toRow = (uint)(row + rowCount);
+        var toRow = row + rowCount;
 
         if (!TryWriteAnchorPart(span, ref written, toColumn, toRow, toColumnOffset.PixelsToOffset(), toRowOffset.PixelsToOffset())) return false;
 
@@ -123,11 +123,11 @@ internal struct DrawingImageXml(
         }
     }
 
-    private static (int ColumnCount, int ToColumnOffsetInPixels) CalculateColumns(int fromColumnOffsetInPixels, int imageWidth, IEnumerable<double> columnWidths)
+    private static (ushort ColumnCount, int ToColumnOffsetInPixels) CalculateColumns(int fromColumnOffsetInPixels, int imageWidth, IEnumerable<double> columnWidths)
     {
         double remainingWidthInPixels = fromColumnOffsetInPixels + imageWidth;
         var toColumnOffsetInPixels = remainingWidthInPixels;
-        var columnCount = 0;
+        ushort columnCount = 0;
 
         foreach (var columnWidth in columnWidths)
         {
@@ -145,11 +145,11 @@ internal struct DrawingImageXml(
         return (columnCount, Round(toColumnOffsetInPixels));
     }
 
-    private static (int RowCount, int ToRowOffsetInPixels) CalculateRows(int fromRowOffsetInPixels, int imageHeight, IEnumerable<double> rowHeights)
+    private static (uint RowCount, int ToRowOffsetInPixels) CalculateRows(int fromRowOffsetInPixels, int imageHeight, IEnumerable<double> rowHeights)
     {
         double remainingHeightInPixels = fromRowOffsetInPixels + imageHeight;
         var toRowOffsetInPixels = remainingHeightInPixels;
-        var rowCount = 0;
+        var rowCount = 0u;
 
         foreach (var rowHeight in rowHeights)
         {
