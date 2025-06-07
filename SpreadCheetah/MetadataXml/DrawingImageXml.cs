@@ -125,7 +125,7 @@ internal struct DrawingImageXml(
 
     private static (int ColumnCount, int ToColumnOffsetInPixels) CalculateColumns(int fromColumnOffsetInPixels, int imageWidth, IEnumerable<double> columnWidths)
     {
-        var remainingWidthInPixels = fromColumnOffsetInPixels + imageWidth;
+        double remainingWidthInPixels = fromColumnOffsetInPixels + imageWidth;
         var toColumnOffsetInPixels = remainingWidthInPixels;
         var columnCount = 0;
 
@@ -133,7 +133,7 @@ internal struct DrawingImageXml(
         {
             Debug.Assert(columnWidth >= 0, "Column width must be non-negative.");
 
-            var widthInPixels = 8 + (int)Math.Round(columnWidth * 9, MidpointRounding.AwayFromZero);
+            var widthInPixels = columnWidth * 9 + 8;
             remainingWidthInPixels -= widthInPixels;
             if (remainingWidthInPixels < 0)
                 break;
@@ -142,12 +142,12 @@ internal struct DrawingImageXml(
             toColumnOffsetInPixels = remainingWidthInPixels;
         }
 
-        return (columnCount, toColumnOffsetInPixels);
+        return (columnCount, Round(toColumnOffsetInPixels));
     }
 
     private static (int RowCount, int ToRowOffsetInPixels) CalculateRows(int fromRowOffsetInPixels, int imageHeight, IEnumerable<double> rowHeights)
     {
-        var remainingHeightInPixels = fromRowOffsetInPixels + imageHeight;
+        double remainingHeightInPixels = fromRowOffsetInPixels + imageHeight;
         var toRowOffsetInPixels = remainingHeightInPixels;
         var rowCount = 0;
 
@@ -155,7 +155,7 @@ internal struct DrawingImageXml(
         {
             Debug.Assert(rowHeight >= 0, "Row height must be non-negative.");
 
-            var heightInPixels = 1 + (int)Math.Round(rowHeight * 1.664, MidpointRounding.AwayFromZero);
+            var heightInPixels = rowHeight * 1.664 + 1;
             remainingHeightInPixels -= heightInPixels;
             if (remainingHeightInPixels < 0)
                 break;
@@ -164,8 +164,10 @@ internal struct DrawingImageXml(
             toRowOffsetInPixels = remainingHeightInPixels;
         }
 
-        return (rowCount, toRowOffsetInPixels);
+        return (rowCount, Round(toRowOffsetInPixels));
     }
+
+    private static int Round(double value) => (int)Math.Round(value, MidpointRounding.AwayFromZero);
 
     private static bool TryWriteAnchorPart(Span<byte> bytes, ref int bytesWritten, ushort column, uint row, int columnEmuOffset, int rowEmuOffset)
     {
