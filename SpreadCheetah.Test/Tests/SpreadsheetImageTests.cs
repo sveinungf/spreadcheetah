@@ -568,26 +568,21 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-
-        using var package = new ExcelPackage(outputStream);
-        var worksheet = Assert.Single(package.Workbook.Worksheets);
-        var drawing = Assert.Single(worksheet.Drawings);
-        var (actualWidth, actualHeight) = drawing.GetActualDimensions();
-        Assert.Equal(width, actualWidth);
-        Assert.Equal(height, actualHeight);
+        using var zip = new ZipArchive(outputStream);
+        using var drawingXml = zip.GetDrawingXmlStream();
+        await VerifyXml(drawingXml);
     }
 
     [Theory]
-    [InlineData(0.1, 27, 18)]
-    [InlineData(0.5, 133, 92)]
-    [InlineData(1.0, 266, 183)]
-    [InlineData(13.37, 3556, 2447)]
-    [InlineData(246.0, 65436, 45018)]
-    public async Task Spreadsheet_AddImage_PngWithCustomScale(float scale, int expectedWidth, int expectedHeight)
+    [InlineData(0.1)]
+    [InlineData(0.5)]
+    [InlineData(1.0)]
+    [InlineData(5.46)]
+    public async Task Spreadsheet_AddImage_PngWithCustomScale(float scale)
     {
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
-        using var outputStream = new MemoryStream();
+        using var outputStream = File.Create("test.xlsx");
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
@@ -599,13 +594,9 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-
-        using var package = new ExcelPackage(outputStream);
-        var worksheet = Assert.Single(package.Workbook.Worksheets);
-        var drawing = Assert.Single(worksheet.Drawings);
-        var (actualWidth, actualHeight) = drawing.GetActualDimensions();
-        Assert.Equal(expectedWidth, actualWidth);
-        Assert.Equal(expectedHeight, actualHeight);
+        using var zip = new ZipArchive(outputStream);
+        using var drawingXml = zip.GetDrawingXmlStream();
+        await VerifyXml(drawingXml);
     }
 
     [Theory]
