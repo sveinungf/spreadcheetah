@@ -744,20 +744,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-
-        // Use ClosedXML to verify offsets to be the same as originally passed (EPPlus calculates them differently)
-        using var workbook = new XLWorkbook(outputStream);
-        var worksheet = Assert.Single(workbook.Worksheets);
-        var picture = Assert.Single(worksheet.Pictures);
-        Assert.Equal(0, picture.Left);
-        Assert.Equal(0, picture.Top);
-
-        // Use EPPlus to verify the image dimensions (ClosedXML doesn't seem to calculate this)
-        using var package = new ExcelPackage(outputStream);
-        var ws = Assert.Single(package.Workbook.Worksheets);
-        var drawing = Assert.Single(ws.Drawings);
-        var (actualWidth, actualHeight) = drawing.GetActualDimensions();
-        Assert.Equal(266, actualWidth);
-        Assert.Equal(183, actualHeight);
+        using var zip = new ZipArchive(outputStream);
+        using var drawingXml = zip.GetDrawingXmlStream();
+        await VerifyXml(drawingXml);
     }
 }
