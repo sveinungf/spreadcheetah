@@ -10,6 +10,7 @@ namespace SpreadCheetah.MetadataXml;
 internal struct DrawingImageXml(
     WorksheetImage image,
     int worksheetImageIndex,
+    Worksheet worksheet,
     SpreadsheetBuffer buffer)
 {
     private static ReadOnlySpan<byte> ImageStart => "<xdr:twoCellAnchor editAs=\""u8;
@@ -97,34 +98,16 @@ internal struct DrawingImageXml(
 
         var (columnCount, toColumnOffset) = fillCell
             ? (image.Canvas.ColumnCount, image.Offset?.Right ?? 0)
-            : CalculateColumns(fromColumnOffset, actualWidth, GetColumnWidths());
+            : CalculateColumns(fromColumnOffset, actualWidth, worksheet.ColumnWidthRuns.GetColumnWidths());
 
         var (rowCount, toRowOffset) = fillCell
             ? (image.Canvas.RowCount, image.Offset?.Bottom ?? 0)
-            : CalculateRows(fromRowOffset, actualHeight, GetRowHeights());
+            : CalculateRows(fromRowOffset, actualHeight, worksheet.RowHeightRuns.GetRowHeights());
 
         var toColumn = (ushort)(column + columnCount);
         var toRow = row + rowCount;
 
         return TryWriteAnchorPart(toColumn, toRow, toColumnOffset.PixelsToOffset(), toRowOffset.PixelsToOffset());
-    }
-
-    // TODO: Extension of collection of column widths?
-    private static IEnumerable<double> GetColumnWidths()
-    {
-        for (var i = 0; i < SpreadsheetConstants.MaxNumberOfColumns; ++i)
-        {
-            yield return SpreadsheetConstants.DefaultColumnWidthInEmu;
-        }
-    }
-
-    // TODO: Extension on collection of WorksheetRowHeightRun?
-    private static IEnumerable<double> GetRowHeights()
-    {
-        for (var i = 0; i < SpreadsheetConstants.MaxNumberOfRows; ++i)
-        {
-            yield return SpreadsheetConstants.DefaultRowHeightInEmu;
-        }
     }
 
     private static (ushort ColumnCount, int ToColumnOffsetInPixels) CalculateColumns(int fromColumnOffsetInPixels, int imageWidth, IEnumerable<double> columnWidths)

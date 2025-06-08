@@ -2,8 +2,8 @@ namespace SpreadCheetah.Helpers;
 
 internal static class SpreadsheetConstants
 {
-    public const double DefaultColumnWidthInEmu = 8.11;
-    public const double DefaultRowHeightInEmu = 14.4;
+    public const double DefaultColumnWidth = 8.11;
+    public const double DefaultRowHeight = 14.4;
 
     // Limitation set by SpreadCheetah
     public const int MaxImageDimension = ushort.MaxValue;

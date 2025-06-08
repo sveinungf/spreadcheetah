@@ -24,18 +24,21 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly CellWriterState _state;
     private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
     private HashSet<CellRangeRelativeReference>? _cellMerges;
-    private List<WorksheetRowHeightRun>? _rowHeightRuns;
     private string? _autoFilterRange;
 
     public Dictionary<SingleCellRelativeReference, string>? Notes { get; private set; }
+    public List<WorksheetDimensionRun>? ColumnWidthRuns { get; }
+    public List<WorksheetDimensionRun>? RowHeightRuns { get; private set; }
     public List<WorksheetTableInfo>? Tables { get; private set; }
     public List<WorksheetImage>? Images { get; private set; }
 
-    public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer, bool writeCellReferenceAttributes)
+    public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer,
+        bool writeCellReferenceAttributes, List<WorksheetDimensionRun>? columnWidthRuns)
     {
         _stream = stream;
         _buffer = buffer;
         _state = new CellWriterState(buffer);
+        ColumnWidthRuns = columnWidthRuns;
 
         if (writeCellReferenceAttributes)
         {
@@ -127,13 +130,13 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     private void UpdateRowHeightRuns(uint rowIndex, double height)
     {
-        _rowHeightRuns ??= [];
+        RowHeightRuns ??= [];
 
-        if (_rowHeightRuns is [.., var lastRun] && lastRun.TryContinueWith(rowIndex, height))
+        if (RowHeightRuns is [.., var lastRun] && lastRun.TryContinueWith(rowIndex, height))
             return;
 
-        var newRun = new WorksheetRowHeightRun(rowIndex, height);
-        _rowHeightRuns.Add(newRun);
+        var newRun = new WorksheetDimensionRun(rowIndex, height);
+        RowHeightRuns.Add(newRun);
     }
 
     [OverloadResolutionPriority(1)]

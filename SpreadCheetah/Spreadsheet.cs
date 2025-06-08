@@ -154,7 +154,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         var path = StringHelper.Invariant($"xl/worksheets/sheet{_worksheets.Count + 1}.xml");
         var entryStream = _zipArchiveManager.OpenEntry(path);
-        _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes);
+        _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes, options?.GetColumnWidthRuns());
         await _worksheet.WriteHeadAsync(options, token).ConfigureAwait(false);
         _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
     }
@@ -672,7 +672,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         {
             var drawingsFileIndex = _fileCounter?.CurrentWorksheetDrawingsFileIndex ?? 0;
             Debug.Assert(drawingsFileIndex > 0);
-            await DrawingXml.WriteAsync(_zipArchiveManager, _buffer, drawingsFileIndex, images, token).ConfigureAwait(false);
+            await _zipArchiveManager.WriteDrawingAsync(_buffer, worksheet, drawingsFileIndex, images, token).ConfigureAwait(false);
             await DrawingRelsXml.WriteAsync(_zipArchiveManager, _buffer, drawingsFileIndex, images, token).ConfigureAwait(false);
         }
 
