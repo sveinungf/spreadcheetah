@@ -87,9 +87,6 @@ internal struct DrawingImageXml(
 
     private readonly bool TryWriteToAnchor()
     {
-        var fromColumnOffset = image.Offset?.Left ?? 0;
-        var fromRowOffset = image.Offset?.Top ?? 0;
-
         var column = image.Canvas.FromColumn;
         var row = image.Canvas.FromRow;
 
@@ -98,11 +95,11 @@ internal struct DrawingImageXml(
 
         var (columnCount, toColumnOffset) = fillCell
             ? (image.Canvas.ColumnCount, image.Offset?.Right ?? 0)
-            : CalculateColumns(fromColumnOffset, actualWidth, worksheet.ColumnWidthRuns.GetColumnWidths());
+            : CalculateColumns(column, actualWidth);
 
         var (rowCount, toRowOffset) = fillCell
             ? (image.Canvas.RowCount, image.Offset?.Bottom ?? 0)
-            : CalculateRows(fromRowOffset, actualHeight, worksheet.RowHeightRuns.GetRowHeights());
+            : CalculateRows((int)row, actualHeight);
 
         var toColumn = (ushort)(column + columnCount);
         var toRow = row + rowCount;
@@ -110,17 +107,19 @@ internal struct DrawingImageXml(
         return TryWriteAnchorPart(toColumn, toRow, toColumnOffset.PixelsToOffset(), toRowOffset.PixelsToOffset());
     }
 
-    private static (ushort ColumnCount, int ToColumnOffsetInPixels) CalculateColumns(int fromColumnOffsetInPixels, int imageWidth, IEnumerable<double> columnWidths)
+    private readonly (ushort ColumnCount, int ToColumnOffsetInPixels) CalculateColumns(int fromColumn, int imageWidth)
     {
+        var fromColumnOffsetInPixels = image.Offset?.Left ?? 0;
         double remainingWidthInPixels = fromColumnOffsetInPixels + imageWidth;
         var toColumnOffsetInPixels = remainingWidthInPixels;
+        var columnWidths = worksheet.ColumnWidthRuns.GetColumnWidths();
         ushort columnCount = 0;
 
-        foreach (var columnWidth in columnWidths)
+        foreach (var columnWidth in columnWidths.Skip(fromColumn))
         {
             Debug.Assert(columnWidth >= 0, "Column width must be non-negative.");
 
-            var widthInPixels = (columnWidth + 0.77671875) * 9;
+            var widthInPixels = columnWidth * 9;
             remainingWidthInPixels -= widthInPixels;
             if (remainingWidthInPixels < 0)
                 break;
@@ -132,13 +131,15 @@ internal struct DrawingImageXml(
         return (columnCount, Round(toColumnOffsetInPixels));
     }
 
-    private static (uint RowCount, int ToRowOffsetInPixels) CalculateRows(int fromRowOffsetInPixels, int imageHeight, IEnumerable<double> rowHeights)
+    private readonly (uint RowCount, int ToRowOffsetInPixels) CalculateRows(int fromRow, int imageHeight)
     {
+        var fromRowOffsetInPixels = image.Offset?.Top ?? 0;
         double remainingHeightInPixels = fromRowOffsetInPixels + imageHeight;
         var toRowOffsetInPixels = remainingHeightInPixels;
+        var rowHeights = worksheet.RowHeightRuns.GetRowHeights();
         var rowCount = 0u;
 
-        foreach (var rowHeight in rowHeights)
+        foreach (var rowHeight in rowHeights.Skip(fromRow))
         {
             Debug.Assert(rowHeight >= 0, "Row height must be non-negative.");
 

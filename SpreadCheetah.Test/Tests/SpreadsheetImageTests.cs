@@ -4,6 +4,7 @@ using OfficeOpenXml;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using SpreadCheetah.Images;
 using SpreadCheetah.Test.Helpers;
+using SpreadCheetah.Worksheets;
 using System.IO.Compression;
 
 namespace SpreadCheetah.Test.Tests;
@@ -727,16 +728,50 @@ public class SpreadsheetImageTests
         await VerifyXml(drawingXml);
     }
 
-    [Fact]
-    public async Task Spreadsheet_AddImage_PngWithDefaultCanvas()
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddImage_PngWithDefaultCanvas(bool withWorksheetOptions)
     {
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
-        await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
+        var options = withWorksheetOptions ? new WorksheetOptions() : null;
+        await spreadsheet.StartWorksheetAsync("Sheet 1", options, Token);
         ImageCanvas canvas = default;
+
+        // Act
+        spreadsheet.AddImage(canvas, embeddedImage);
+
+        // Assert
+        await spreadsheet.FinishAsync(Token);
+        SpreadsheetAssert.Valid(outputStream);
+        using var zip = new ZipArchive(outputStream);
+        using var drawingXml = zip.GetDrawingXmlStream();
+        var verifySettings = new VerifySettings();
+        verifySettings.IgnoreParametersForVerified();
+        await VerifyXml(drawingXml, verifySettings);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddImage_CustomColumnWidths()
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
+        var options = new WorksheetOptions();
+        options.Column(3).Width = 20.0;
+        options.Column(5).Width = 5.0;
+        options.Column(6).Width = 5.0;
+        options.Column(7).Width = 5.0;
+        options.Column(8).Width = 30.0;
+        options.Column(10).Width = 15.0;
+        options.Column(11).Width = 15.0;
+
+        await spreadsheet.StartWorksheetAsync("Sheet 1", options, Token);
+        var canvas = ImageCanvas.Dimensions("B2".AsSpan(), 1000, 1000);
 
         // Act
         spreadsheet.AddImage(canvas, embeddedImage);
