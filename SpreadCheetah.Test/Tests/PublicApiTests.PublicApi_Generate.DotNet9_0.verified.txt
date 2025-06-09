@@ -116,6 +116,7 @@ namespace SpreadCheetah
         public System.Threading.Tasks.ValueTask AddRowAsync(System.ReadOnlyMemory<SpreadCheetah.DataCell> cells, System.Threading.CancellationToken token = default) { }
         public System.Threading.Tasks.ValueTask AddRowAsync(System.ReadOnlyMemory<SpreadCheetah.StyledCell> cells, System.Threading.CancellationToken token = default) { }
         public System.Threading.Tasks.ValueTask AddRowAsync(SpreadCheetah.Cell[] cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
         public System.Threading.Tasks.ValueTask AddRowAsync(SpreadCheetah.DataCell[] cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
         public System.Threading.Tasks.ValueTask AddRowAsync(SpreadCheetah.StyledCell[] cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
         public System.Threading.Tasks.ValueTask AddRowAsync(System.Collections.Generic.IList<SpreadCheetah.Cell> cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
