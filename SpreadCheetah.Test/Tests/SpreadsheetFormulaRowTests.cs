@@ -34,7 +34,7 @@ public class SpreadsheetFormulaRowTests
             var cell = new Cell(formula);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync([cell], Token);
             await spreadsheet.FinishAsync(Token);
         }
 
@@ -66,7 +66,7 @@ public class SpreadsheetFormulaRowTests
         var cell = new Cell(formula, styleId);
 
         // Act
-        await spreadsheet.AddRowAsync(cell);
+        await spreadsheet.AddRowAsync([cell], Token);
         await spreadsheet.FinishAsync(Token);
 
         // Assert
@@ -121,7 +121,7 @@ public class SpreadsheetFormulaRowTests
         var cell = new Cell(formula, cachedValue);
 
         // Act
-        await spreadsheet.AddRowAsync(cell);
+        await spreadsheet.AddRowAsync([cell], Token);
         await spreadsheet.FinishAsync(Token);
 
         // Assert
@@ -184,7 +184,7 @@ public class SpreadsheetFormulaRowTests
             var cell = new Cell(formula);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync([cell], Token);
             await spreadsheet.FinishAsync(Token);
         }
 
@@ -219,7 +219,7 @@ public class SpreadsheetFormulaRowTests
             var cell = new Cell(formula, cachedValue);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync([cell], Token);
             await spreadsheet.FinishAsync(Token);
         }
 
@@ -254,7 +254,7 @@ public class SpreadsheetFormulaRowTests
             var cell = new Cell(formula, cachedValue);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync([cell], Token);
             await spreadsheet.FinishAsync(Token);
         }
 
@@ -326,7 +326,7 @@ public class SpreadsheetFormulaRowTests
             var cell = new Cell(formula, styleId);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync([cell], Token);
             await spreadsheet.FinishAsync(Token);
         }
 
@@ -366,7 +366,7 @@ public class SpreadsheetFormulaRowTests
             var cell = new Cell(formula, cachedValue, styleId);
 
             // Act
-            await spreadsheet.AddRowAsync(cell);
+            await spreadsheet.AddRowAsync([cell], Token);
             await spreadsheet.FinishAsync(Token);
         }
 
@@ -607,7 +607,7 @@ public class SpreadsheetFormulaRowTests
         var cell = new Cell(formula);
 
         // Act
-        await spreadsheet.AddRowAsync(cell);
+        await spreadsheet.AddRowAsync([cell], Token);
         await spreadsheet.FinishAsync(Token);
 
         // Assert
@@ -632,7 +632,7 @@ public class SpreadsheetFormulaRowTests
         var cell = new Cell(formula);
 
         // Act
-        await spreadsheet.AddRowAsync(cell);
+        await spreadsheet.AddRowAsync([cell], Token);
         await spreadsheet.FinishAsync(Token);
 
         // Assert
@@ -653,7 +653,7 @@ public class SpreadsheetFormulaRowTests
         var cell = new Cell(formula);
 
         // Act
-        await spreadsheet.AddRowAsync(cell);
+        await spreadsheet.AddRowAsync([cell], Token);
         await spreadsheet.FinishAsync(Token);
 
         // Assert

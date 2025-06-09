@@ -226,7 +226,7 @@ public class SpreadsheetTests
 
         foreach (var row in Enumerable.Range(1, rowsAdded).Select(_ => new DataCell("Value")))
         {
-            await spreadsheet.AddRowAsync(row);
+            await spreadsheet.AddRowAsync([row], Token);
         }
 
         // Act
@@ -249,14 +249,14 @@ public class SpreadsheetTests
 
         foreach (var row in Enumerable.Range(1, 5).Select(_ => new DataCell("Value")))
         {
-            await spreadsheet.AddRowAsync(row);
+            await spreadsheet.AddRowAsync([row], Token);
         }
 
         await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
 
         foreach (var row in Enumerable.Range(1, rowsAdded).Select(_ => new DataCell("Value")))
         {
-            await spreadsheet.AddRowAsync(row);
+            await spreadsheet.AddRowAsync([row], Token);
         }
 
         // Act
@@ -375,7 +375,7 @@ public class SpreadsheetTests
         foreach (var name in sheetNames)
         {
             await spreadsheet.StartWorksheetAsync(name, token: Token);
-            await spreadsheet.AddRowAsync(new DataCell(name));
+            await spreadsheet.AddRowAsync([new DataCell(name)], Token);
         }
 
         await spreadsheet.FinishAsync(Token);

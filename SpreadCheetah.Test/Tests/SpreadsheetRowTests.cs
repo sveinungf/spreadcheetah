@@ -752,7 +752,7 @@ public class SpreadsheetRowTests
         var cell = new Cell(cellValue);
 
         // Act
-        await spreadsheet.AddRowAsync(cell);
+        await spreadsheet.AddRowAsync([cell], Token);
         await spreadsheet.FinishAsync(Token);
 
         // Assert
