@@ -825,4 +825,32 @@ public class SpreadsheetImageTests
         using var drawingXml = zip.GetDrawingXmlStream();
         await VerifyXml(drawingXml);
     }
+
+    [Fact]
+    public async Task Spreadsheet_AddImage_HiddenColumns()
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
+        var options = new WorksheetOptions();
+        options.Column(3).Hidden = true;
+        options.Column(6).Hidden = true;
+        options.Column(7).Hidden = true;
+        options.Column(8).Hidden = true;
+
+        await spreadsheet.StartWorksheetAsync("Sheet 1", options, Token);
+        var canvas = ImageCanvas.Scaled("B2".AsSpan(), 2.0f);
+
+        // Act
+        spreadsheet.AddImage(canvas, embeddedImage);
+
+        // Assert
+        await spreadsheet.FinishAsync(Token);
+        SpreadsheetAssert.Valid(outputStream);
+        using var zip = new ZipArchive(outputStream);
+        using var drawingXml = zip.GetDrawingXmlStream();
+        await VerifyXml(drawingXml);
+    }
 }

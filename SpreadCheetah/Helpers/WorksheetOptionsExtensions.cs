@@ -15,9 +15,8 @@ internal static class WorksheetOptionsExtensions
 
         foreach (var (columnNumber, options) in columnOptions)
         {
-            // TODO: Hidden means width = 0?
-
-            if (options.Width is not { } width)
+            var actualWidth = options.Hidden ? 0 : options.Width;
+            if (actualWidth is not { } width)
                 continue;
 
             var number = (uint)columnNumber;
