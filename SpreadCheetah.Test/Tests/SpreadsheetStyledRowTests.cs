@@ -7,7 +7,6 @@ using SpreadCheetah.Test.Helpers;
 using System.Globalization;
 using Alignment = SpreadCheetah.Styling.Alignment;
 using Border = SpreadCheetah.Styling.Border;
-using CellType = SpreadCheetah.Test.Helpers.CellType;
 using Color = System.Drawing.Color;
 using DiagonalBorder = SpreadCheetah.Styling.DiagonalBorder;
 using Fill = SpreadCheetah.Styling.Fill;
@@ -975,7 +974,7 @@ public class SpreadsheetStyledRowTests
         var styledCell = new StyledCell("value", styleId);
 
         // Act
-        await spreadsheet.AddRowAsync(styledCell);
+        await spreadsheet.AddRowAsync([styledCell], Token);
         await spreadsheet.FinishAsync(Token);
 
         // Assert
@@ -1004,7 +1003,7 @@ public class SpreadsheetStyledRowTests
             uniqueStyleIds.Add(styleId.Id);
 
             // Act
-            await spreadsheet.AddRowAsync(new StyledCell(cellValue, styleId));
+            await spreadsheet.AddRowAsync([new StyledCell(cellValue, styleId)], Token);
         }
 
         await spreadsheet.FinishAsync(Token);

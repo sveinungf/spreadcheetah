@@ -3,20 +3,28 @@ using SpreadCheetah.Images.Internal;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct DrawingXml : IXmlWriter<DrawingXml>
+internal static class DrawingXml
 {
-    public static ValueTask WriteAsync(
-        ZipArchiveManager zipArchiveManager,
+    public static ValueTask WriteDrawingAsync(
+        this ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
+        Worksheet worksheet,
         int drawingsFileIndex,
         List<WorksheetImage> images,
         CancellationToken token)
     {
         var entryName = StringHelper.Invariant($"xl/drawings/drawing{drawingsFileIndex}.xml");
-        var writer = new DrawingXml(images, buffer);
+        var writer = new DrawingXmlWriter(images, buffer, worksheet);
         return zipArchiveManager.WriteAsync(writer, entryName, buffer, token);
     }
+}
 
+file struct DrawingXmlWriter(
+    List<WorksheetImage> images,
+    SpreadsheetBuffer buffer,
+    Worksheet worksheet)
+    : IXmlWriter<DrawingXmlWriter>
+{
     private static ReadOnlySpan<byte> Header => """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" """u8 +
         """xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" """u8 +
@@ -24,28 +32,20 @@ internal struct DrawingXml : IXmlWriter<DrawingXml>
 
     private static ReadOnlySpan<byte> Footer => """</xdr:wsDr>"""u8;
 
-    private readonly List<WorksheetImage> _images;
-    private readonly SpreadsheetBuffer _buffer;
     private DrawingImageXml? _currentImageXmlWriter;
     private Element _next;
     private int _nextIndex;
 
-    private DrawingXml(List<WorksheetImage> images, SpreadsheetBuffer buffer)
-    {
-        _images = images;
-        _buffer = buffer;
-    }
-
-    public readonly DrawingXml GetEnumerator() => this;
+    public readonly DrawingXmlWriter GetEnumerator() => this;
     public bool Current { get; private set; }
 
     public bool MoveNext()
     {
         Current = _next switch
         {
-            Element.Header => _buffer.TryWrite(Header),
+            Element.Header => buffer.TryWrite(Header),
             Element.Images => TryWriteImages(),
-            _ => _buffer.TryWrite(Footer)
+            _ => buffer.TryWrite(Footer)
         };
 
         if (Current)
@@ -56,12 +56,10 @@ internal struct DrawingXml : IXmlWriter<DrawingXml>
 
     private bool TryWriteImages()
     {
-        var images = _images;
-
         for (; _nextIndex < images.Count; ++_nextIndex)
         {
             var writer = _currentImageXmlWriter
-                ?? new DrawingImageXml(images[_nextIndex], _nextIndex, _buffer);
+                ?? new DrawingImageXml(images[_nextIndex], _nextIndex, worksheet, buffer);
 
             if (!writer.TryWrite())
             {

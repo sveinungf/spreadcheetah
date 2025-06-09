@@ -24,7 +24,7 @@ public class SpreadsheetNoteTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-        await spreadsheet.AddRowAsync(new Cell(cellValue));
+        await spreadsheet.AddRowAsync([new Cell(cellValue)], Token);
 
         // Act
         spreadsheet.AddNote(reference, noteText);
@@ -254,7 +254,7 @@ public class SpreadsheetNoteTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-        await spreadsheet.AddRowAsync(new Cell(cellValue));
+        await spreadsheet.AddRowAsync([new Cell(cellValue)], Token);
 
         // Act
         spreadsheet.AddNote("A1", noteText);

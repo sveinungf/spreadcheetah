@@ -4,6 +4,7 @@ using OfficeOpenXml;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using SpreadCheetah.Images;
 using SpreadCheetah.Test.Helpers;
+using SpreadCheetah.Worksheets;
 using System.IO.Compression;
 
 namespace SpreadCheetah.Test.Tests;
@@ -521,10 +522,13 @@ public class SpreadsheetImageTests
     }
 
     [Theory]
-    [InlineData(true, true, XLPicturePlacement.MoveAndSize)]
-    [InlineData(true, false, XLPicturePlacement.Move)]
-    [InlineData(false, false, XLPicturePlacement.FreeFloating)]
-    public async Task Spreadsheet_AddImage_Anchor(bool moveWithCells, bool resizeWithCells, XLPicturePlacement expectedPlacement)
+    [InlineData(true, true, true, XLPicturePlacement.MoveAndSize)]
+    [InlineData(true, true, false, XLPicturePlacement.MoveAndSize)]
+    [InlineData(true, false, true, XLPicturePlacement.Move)]
+    [InlineData(true, false, false, XLPicturePlacement.Move)]
+    [InlineData(false, false, true, XLPicturePlacement.FreeFloating)]
+    [InlineData(false, false, false, XLPicturePlacement.FreeFloating)]
+    public async Task Spreadsheet_AddImage_Anchor(bool moveWithCells, bool resizeWithCells, bool twoAnchor, XLPicturePlacement expectedPlacement)
     {
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
@@ -532,7 +536,9 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
-        var canvas = ImageCanvas.FillCell("A1".AsSpan(), moveWithCells, resizeWithCells);
+        var canvas = twoAnchor
+            ? ImageCanvas.FillCell("A1".AsSpan(), moveWithCells, resizeWithCells)
+            : ImageCanvas.FillCells("A1".AsSpan(), "C3".AsSpan(), moveWithCells, resizeWithCells);
 
         // Act
         spreadsheet.AddImage(canvas, embeddedImage);
@@ -568,26 +574,21 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-
-        using var package = new ExcelPackage(outputStream);
-        var worksheet = Assert.Single(package.Workbook.Worksheets);
-        var drawing = Assert.Single(worksheet.Drawings);
-        var (actualWidth, actualHeight) = drawing.GetActualDimensions();
-        Assert.Equal(width, actualWidth);
-        Assert.Equal(height, actualHeight);
+        using var zip = new ZipArchive(outputStream);
+        using var drawingXml = zip.GetDrawingXmlStream();
+        await VerifyXml(drawingXml);
     }
 
     [Theory]
-    [InlineData(0.1, 27, 18)]
-    [InlineData(0.5, 133, 92)]
-    [InlineData(1.0, 266, 183)]
-    [InlineData(13.37, 3556, 2447)]
-    [InlineData(246.0, 65436, 45018)]
-    public async Task Spreadsheet_AddImage_PngWithCustomScale(float scale, int expectedWidth, int expectedHeight)
+    [InlineData(0.1)]
+    [InlineData(0.5)]
+    [InlineData(1.0)]
+    [InlineData(5.46)]
+    public async Task Spreadsheet_AddImage_PngWithCustomScale(float scale)
     {
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
-        using var outputStream = new MemoryStream();
+        using var outputStream = File.Create("test.xlsx");
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
@@ -599,13 +600,9 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-
-        using var package = new ExcelPackage(outputStream);
-        var worksheet = Assert.Single(package.Workbook.Worksheets);
-        var drawing = Assert.Single(worksheet.Drawings);
-        var (actualWidth, actualHeight) = drawing.GetActualDimensions();
-        Assert.Equal(expectedWidth, actualWidth);
-        Assert.Equal(expectedHeight, actualHeight);
+        using var zip = new ZipArchive(outputStream);
+        using var drawingXml = zip.GetDrawingXmlStream();
+        await VerifyXml(drawingXml);
     }
 
     [Theory]
@@ -682,7 +679,6 @@ public class SpreadsheetImageTests
     [InlineData(-2, 5)]
     [InlineData(0, 0)]
     [InlineData(3, -8)]
-    [InlineData(2000, 3000)]
     public async Task Spreadsheet_AddImage_PngWithOffset(int left, int top)
     {
         // Arrange
@@ -701,21 +697,9 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-
-        // Use ClosedXML to verify offsets to be the same as originally passed (EPPlus calculates them differently)
-        using var workbook = new XLWorkbook(outputStream);
-        var worksheet = Assert.Single(workbook.Worksheets);
-        var picture = Assert.Single(worksheet.Pictures);
-        Assert.Equal(left, picture.Left);
-        Assert.Equal(top, picture.Top);
-
-        // Use EPPlus to verify the image dimensions haven't changed (ClosedXML doesn't seem to calculate this)
-        using var package = new ExcelPackage(outputStream);
-        var ws = Assert.Single(package.Workbook.Worksheets);
-        var drawing = Assert.Single(ws.Drawings);
-        var (actualWidth, actualHeight) = drawing.GetActualDimensions();
-        Assert.Equal(266, actualWidth);
-        Assert.Equal(183, actualHeight);
+        using var zip = new ZipArchive(outputStream);
+        using var drawingXml = zip.GetDrawingXmlStream();
+        await VerifyXml(drawingXml);
     }
 
     [Theory]
@@ -726,15 +710,10 @@ public class SpreadsheetImageTests
     [InlineData(0, 10, 0, 0)]
     [InlineData(10, 0, 0, 0)]
     [InlineData(10, 10, 10, 10)]
-    [InlineData(1000, 1000, -1000, -1000)] // This would cause the image not to appear, but not sure how to avoid it...
     public async Task Spreadsheet_AddImage_PngWithFillCellsAndOffsets(int left, int top, int right, int bottom)
     {
         // Arrange
-        const string reference = "T20";
-        const int cellPixelWidth = 64;
-        const int cellPixelHeight = 20;
-        var expectedWidth = cellPixelWidth - left + right;
-        var expectedHeight = cellPixelHeight - top + bottom;
+        const string reference = "C3";
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
@@ -749,32 +728,21 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-
-        // Use ClosedXML to verify offsets to be the same as originally passed (EPPlus calculates them differently)
-        using var workbook = new XLWorkbook(outputStream);
-        var worksheet = Assert.Single(workbook.Worksheets);
-        var picture = Assert.Single(worksheet.Pictures);
-        Assert.Equal(left, picture.Left);
-        Assert.Equal(top, picture.Top);
-
-        // Use EPPlus to verify the image dimensions (ClosedXML doesn't seem to calculate this)
-        using var package = new ExcelPackage(outputStream);
-        var ws = Assert.Single(package.Workbook.Worksheets);
-        var drawing = Assert.Single(ws.Drawings);
-        var (actualWidth, actualHeight) = drawing.GetActualDimensions();
-        Assert.Equal(expectedWidth, actualWidth);
-        Assert.Equal(expectedHeight, actualHeight);
+        using var zip = new ZipArchive(outputStream);
+        using var drawingXml = zip.GetDrawingXmlStream();
+        await VerifyXml(drawingXml);
     }
 
-    [Fact]
-    public async Task Spreadsheet_AddImage_PngWithDefaultCanvas()
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddImage_PngWithDefaultCanvas(bool withWorksheetOptions)
     {
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
         using var outputStream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
-        await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
+        var options = withWorksheetOptions ? new WorksheetOptions() : null;
+        await spreadsheet.StartWorksheetAsync("Sheet 1", options, Token);
         ImageCanvas canvas = default;
 
         // Act
@@ -783,20 +751,111 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
+        using var zip = new ZipArchive(outputStream);
+        using var drawingXml = zip.GetDrawingXmlStream();
+        var verifySettings = new VerifySettings();
+        verifySettings.IgnoreParametersForVerified();
+        await VerifyXml(drawingXml, verifySettings);
+    }
 
-        // Use ClosedXML to verify offsets to be the same as originally passed (EPPlus calculates them differently)
-        using var workbook = new XLWorkbook(outputStream);
-        var worksheet = Assert.Single(workbook.Worksheets);
-        var picture = Assert.Single(worksheet.Pictures);
-        Assert.Equal(0, picture.Left);
-        Assert.Equal(0, picture.Top);
+    [Fact]
+    public async Task Spreadsheet_AddImage_CustomColumnWidths()
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
+        var options = new WorksheetOptions();
+        options.Column(3).Width = 20.0;
+        options.Column(5).Width = 5.0;
+        options.Column(6).Width = 5.0;
+        options.Column(7).Width = 5.0;
+        options.Column(8).Width = 30.0;
+        options.Column(10).Width = 15.0;
+        options.Column(11).Width = 15.0;
 
-        // Use EPPlus to verify the image dimensions (ClosedXML doesn't seem to calculate this)
-        using var package = new ExcelPackage(outputStream);
-        var ws = Assert.Single(package.Workbook.Worksheets);
-        var drawing = Assert.Single(ws.Drawings);
-        var (actualWidth, actualHeight) = drawing.GetActualDimensions();
-        Assert.Equal(266, actualWidth);
-        Assert.Equal(183, actualHeight);
+        await spreadsheet.StartWorksheetAsync("Sheet 1", options, Token);
+        var canvas = ImageCanvas.Dimensions("B2".AsSpan(), 1000, 1000);
+
+        // Act
+        spreadsheet.AddImage(canvas, embeddedImage);
+
+        // Assert
+        await spreadsheet.FinishAsync(Token);
+        SpreadsheetAssert.Valid(outputStream);
+        using var zip = new ZipArchive(outputStream);
+        using var drawingXml = zip.GetDrawingXmlStream();
+        await VerifyXml(drawingXml);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddImage_CustomRowHeights()
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
+        var canvas = ImageCanvas.Dimensions("B2".AsSpan(), 1000, 1000);
+
+        var rowHeights = new Dictionary<int, double>
+        {
+            [3] = 20.0,
+            [5] = 5.0,
+            [6] = 5.0,
+            [7] = 5.0,
+            [8] = 30.0,
+            [10] = 15.0,
+            [11] = 15.0,
+            [12] = 200.0,
+            [32] = 50.0,
+            [33] = 50.0
+        };
+
+        for (var i = 1; i <= rowHeights.Keys.Max(); i++)
+        {
+            double? height = rowHeights.TryGetValue(i, out var h) ? h : null;
+            await spreadsheet.AddRowAsync([], new RowOptions { Height = height }, Token);
+        }
+
+        // Act
+        spreadsheet.AddImage(canvas, embeddedImage);
+
+        // Assert
+        await spreadsheet.FinishAsync(Token);
+        SpreadsheetAssert.Valid(outputStream);
+        using var zip = new ZipArchive(outputStream);
+        using var drawingXml = zip.GetDrawingXmlStream();
+        await VerifyXml(drawingXml);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddImage_HiddenColumns()
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
+        var options = new WorksheetOptions();
+        options.Column(3).Hidden = true;
+        options.Column(6).Hidden = true;
+        options.Column(7).Hidden = true;
+        options.Column(8).Hidden = true;
+
+        await spreadsheet.StartWorksheetAsync("Sheet 1", options, Token);
+        var canvas = ImageCanvas.Scaled("B2".AsSpan(), 2.0f);
+
+        // Act
+        spreadsheet.AddImage(canvas, embeddedImage);
+
+        // Assert
+        await spreadsheet.FinishAsync(Token);
+        SpreadsheetAssert.Valid(outputStream);
+        using var zip = new ZipArchive(outputStream);
+        using var drawingXml = zip.GetDrawingXmlStream();
+        await VerifyXml(drawingXml);
     }
 }

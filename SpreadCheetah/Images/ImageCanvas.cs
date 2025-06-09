@@ -16,20 +16,21 @@ public readonly record struct ImageCanvas
     /// <summary>Starts at 0, meaning row 1 = 0</summary>
     internal uint FromRow { get; }
     /// <summary>Starts at 0, meaning 'A' = 0</summary>
-    internal ushort ToColumn { get; }
+    internal ushort ColumnCount { get; }
     /// <summary>Starts at 0, meaning row 1 = 0</summary>
-    internal uint ToRow { get; }
+    internal uint RowCount { get; }
     internal float ScaleValue { get; }
     internal ushort DimensionWidth { get; }
     internal ushort DimensionHeight { get; }
 
-    private ImageCanvas(SingleCellRelativeReference fromReference, ImageCanvasOptions options, ushort toColumn = 0, uint toRow = 0, float scaleValue = 0, ushort dimensionWidth = 0, ushort dimensionHeight = 0)
+    private ImageCanvas(SingleCellRelativeReference fromReference, ImageCanvasOptions options, ushort columnCount = 0, uint rowCount = 0,
+        float scaleValue = 0, ushort dimensionWidth = 0, ushort dimensionHeight = 0)
     {
         FromColumn = (ushort)(fromReference.Column - 1);
         FromRow = fromReference.Row - 1;
         Options = options;
-        ToColumn = toColumn;
-        ToRow = toRow;
+        ColumnCount = columnCount;
+        RowCount = rowCount;
         ScaleValue = scaleValue;
         DimensionWidth = dimensionWidth;
         DimensionHeight = dimensionHeight;
@@ -84,7 +85,7 @@ public readonly record struct ImageCanvas
         return new ImageCanvas(reference, options, scaleValue: scale);
     }
 
-    private static ImageCanvas FillCell(SingleCellRelativeReference upperLeft, ushort lowerRightColumn, uint lowerRightRow, bool moveWithCells, bool resizeWithCells)
+    private static ImageCanvas FillCell(SingleCellRelativeReference upperLeft, ushort columnCount, uint rowCount, bool moveWithCells, bool resizeWithCells)
     {
         var options = ImageCanvasOptions.FillCell;
         if (moveWithCells)
@@ -92,7 +93,7 @@ public readonly record struct ImageCanvas
         if (resizeWithCells)
             options |= ImageCanvasOptions.ResizeWithCells;
 
-        return new ImageCanvas(upperLeft, options, lowerRightColumn, lowerRightRow);
+        return new ImageCanvas(upperLeft, options, columnCount, rowCount);
     }
 
     /// <summary>
@@ -110,7 +111,7 @@ public readonly record struct ImageCanvas
         if (resizeWithCells && !moveWithCells)
             ThrowHelper.ResizeAndMoveCellsCombinationNotSupported(nameof(resizeWithCells), nameof(moveWithCells));
 
-        return FillCell(upperLeft, upperLeft.Column, upperLeft.Row, moveWithCells, resizeWithCells);
+        return FillCell(upperLeft, columnCount: 1, rowCount: 1, moveWithCells, resizeWithCells);
     }
 
     /// <summary>
@@ -126,11 +127,13 @@ public readonly record struct ImageCanvas
     {
         var upperLeft = SingleCellRelativeReference.Create(upperLeftReference);
         var lowerRight = SingleCellRelativeReference.Create(lowerRightReference);
-        if (lowerRight.Column <= upperLeft.Column || lowerRight.Row <= upperLeft.Row)
+        var columnCount = lowerRight.Column - upperLeft.Column;
+        var rowCount = lowerRight.Row - upperLeft.Row;
+        if (columnCount <= 0 || rowCount <= 0)
             ThrowHelper.FillCellRangeMustContainAtLeastOneCell(nameof(lowerRightReference));
         if (resizeWithCells && !moveWithCells)
             ThrowHelper.ResizeAndMoveCellsCombinationNotSupported(nameof(resizeWithCells), nameof(moveWithCells));
 
-        return FillCell(upperLeft, (ushort)(lowerRight.Column - 1), lowerRight.Row - 1, moveWithCells, resizeWithCells);
+        return FillCell(upperLeft, (ushort)columnCount, rowCount, moveWithCells, resizeWithCells);
     }
 }

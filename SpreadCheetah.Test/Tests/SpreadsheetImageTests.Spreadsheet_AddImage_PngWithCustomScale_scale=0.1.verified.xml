@@ -1,0 +1,39 @@
+﻿<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <xdr:twoCellAnchor editAs="oneCell">
+    <xdr:from>
+      <xdr:col>3</xdr:col>
+      <xdr:colOff>0</xdr:colOff>
+      <xdr:row>3</xdr:row>
+      <xdr:rowOff>0</xdr:rowOff>
+    </xdr:from>
+    <xdr:to>
+      <xdr:col>3</xdr:col>
+      <xdr:colOff>205740</xdr:colOff>
+      <xdr:row>3</xdr:row>
+      <xdr:rowOff>137160</xdr:rowOff>
+    </xdr:to>
+    <xdr:pic>
+      <xdr:nvPicPr>
+        <xdr:cNvPr id="0" name="Image 1" descr=""></xdr:cNvPr>
+        <xdr:cNvPicPr />
+      </xdr:nvPicPr>
+      <xdr:blipFill>
+        <a:blip r:embed="rId1"></a:blip>
+        <a:stretch />
+      </xdr:blipFill>
+      <xdr:spPr>
+        <a:xfrm>
+          <a:off x="1" y="1" />
+          <a:ext cx="1" cy="1" />
+        </a:xfrm>
+        <a:prstGeom prst="rect">
+          <a:avLst />
+        </a:prstGeom>
+        <a:ln w="0">
+          <a:noFill />
+        </a:ln>
+      </xdr:spPr>
+    </xdr:pic>
+    <xdr:clientData />
+  </xdr:twoCellAnchor>
+</xdr:wsDr>
