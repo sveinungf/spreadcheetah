@@ -34,13 +34,24 @@ internal static class SpreadsheetExtensions
         _ => throw new ArgumentOutOfRangeException(nameof(obj), obj, null)
     };
 
-    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, IEnumerable<Cell> cells, RowCollectionType rowType, RowOptions? options = null) => rowType switch
+    public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, IEnumerable<Cell> cells, RowCollectionType rowType, RowOptions? options = null) => options switch
     {
-        RowCollectionType.Array => spreadsheet.AddRowAsync(cells.ToArray(), options),
-        RowCollectionType.ReadOnlyMemory => spreadsheet.AddRowAsync(cells.ToArray().AsMemory(), options),
-        RowCollectionType.List => spreadsheet.AddRowAsync(cells.ToList(), options),
-        RowCollectionType.ImmutableList => spreadsheet.AddRowAsync(cells.ToImmutableList(), options),
-        _ => throw new ArgumentOutOfRangeException(nameof(rowType), rowType, null)
+        null => rowType switch
+        {
+            RowCollectionType.Array => spreadsheet.AddRowAsync(cells.ToArray()),
+            RowCollectionType.ReadOnlyMemory => spreadsheet.AddRowAsync(cells.ToArray().AsMemory()),
+            RowCollectionType.List => spreadsheet.AddRowAsync(cells.ToList()),
+            RowCollectionType.ImmutableList => spreadsheet.AddRowAsync(cells.ToImmutableList()),
+            _ => throw new ArgumentOutOfRangeException(nameof(rowType), rowType, null)
+        },
+        _ => rowType switch
+        {
+            RowCollectionType.Array => spreadsheet.AddRowAsync(cells.ToArray(), options),
+            RowCollectionType.ReadOnlyMemory => spreadsheet.AddRowAsync(cells.ToArray().AsMemory(), options),
+            RowCollectionType.List => spreadsheet.AddRowAsync(cells.ToList(), options),
+            RowCollectionType.ImmutableList => spreadsheet.AddRowAsync(cells.ToImmutableList(), options),
+            _ => throw new ArgumentOutOfRangeException(nameof(rowType), rowType, null)
+        }
     };
 
     public static ValueTask AddRowAsync(this Spreadsheet spreadsheet, IEnumerable<DataCell> cells, RowCollectionType rowType, RowOptions? options = null) => rowType switch

@@ -522,10 +522,13 @@ public class SpreadsheetImageTests
     }
 
     [Theory]
-    [InlineData(true, true, XLPicturePlacement.MoveAndSize)]
-    [InlineData(true, false, XLPicturePlacement.Move)]
-    [InlineData(false, false, XLPicturePlacement.FreeFloating)]
-    public async Task Spreadsheet_AddImage_Anchor(bool moveWithCells, bool resizeWithCells, XLPicturePlacement expectedPlacement)
+    [InlineData(true, true, true, XLPicturePlacement.MoveAndSize)]
+    [InlineData(true, true, false, XLPicturePlacement.MoveAndSize)]
+    [InlineData(true, false, true, XLPicturePlacement.Move)]
+    [InlineData(true, false, false, XLPicturePlacement.Move)]
+    [InlineData(false, false, true, XLPicturePlacement.FreeFloating)]
+    [InlineData(false, false, false, XLPicturePlacement.FreeFloating)]
+    public async Task Spreadsheet_AddImage_Anchor(bool moveWithCells, bool resizeWithCells, bool twoAnchor, XLPicturePlacement expectedPlacement)
     {
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("red-1x1.png");
@@ -533,7 +536,9 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
-        var canvas = ImageCanvas.FillCell("A1".AsSpan(), moveWithCells, resizeWithCells);
+        var canvas = twoAnchor
+            ? ImageCanvas.FillCell("A1".AsSpan(), moveWithCells, resizeWithCells)
+            : ImageCanvas.FillCells("A1".AsSpan(), "C3".AsSpan(), moveWithCells, resizeWithCells);
 
         // Act
         spreadsheet.AddImage(canvas, embeddedImage);

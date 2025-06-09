@@ -5,7 +5,6 @@ using OfficeOpenXml;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
-using System.Globalization;
 using CellType = SpreadCheetah.Test.Helpers.CellType;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 using OpenXmlCellValue = DocumentFormat.OpenXml.Spreadsheet.CellValues;
@@ -588,29 +587,27 @@ public class SpreadsheetRowTests
     }
 
     [Theory, CombinatorialData]
-    public async Task Spreadsheet_AddRow_MultipleRows(CellType type, RowCollectionType rowType)
+    public async Task Spreadsheet_AddRow_MultipleRows(CellType type, RowCollectionType rowType, bool withEmptyRowOptions)
     {
         // Arrange
         var values = Enumerable.Range(1, 1000).Select(x => x.ToString()).ToList();
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        RowOptions? rowOptions = withEmptyRowOptions ? new() : null;
+
+        // Act
+        foreach (var value in values)
         {
-            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-
-            // Act
-            foreach (var value in values)
-            {
-                await spreadsheet.AddRowAsync(CellFactory.Create(type, value), rowType);
-            }
-
-            await spreadsheet.FinishAsync(Token);
+            await spreadsheet.AddRowAsync(CellFactory.Create(type, value), rowType, rowOptions);
         }
 
+        await spreadsheet.FinishAsync(Token);
+
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualValues = worksheet.Cells(true).Select(x => x.Value.GetText()).ToList();
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualValues = sheet.Column("A").Cells.Select(x => x.StringValue);
         Assert.Equal(values, actualValues);
     }
 

@@ -19,8 +19,18 @@ internal static class WorksheetDimensionRunExtensions
         double defaultValue,
         int maxIterations)
     {
+        return runs is { Count: > 0 }
+            ? runs.GetDimensionsInternal(defaultValue, maxIterations)
+            : Enumerable.Repeat(defaultValue, maxIterations);
+    }
+
+    private static IEnumerable<double> GetDimensionsInternal(
+        this List<WorksheetDimensionRun> runs,
+        double defaultValue,
+        int maxIterations)
+    {
         var runIndex = 0;
-        var currentRun = runs?.ElementAtOrDefault(runIndex);
+        var currentRun = runs[0];
 
         for (var i = 1u; i <= maxIterations; ++i)
         {
@@ -33,7 +43,7 @@ internal static class WorksheetDimensionRunExtensions
             if (i > currentRun.LastIndex)
             {
                 runIndex++;
-                currentRun = runs?.ElementAtOrDefault(runIndex);
+                currentRun = runs.ElementAtOrDefault(runIndex);
             }
 
             yield return currentRun?.ContainsIndex(i) is true
