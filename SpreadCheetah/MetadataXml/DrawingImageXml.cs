@@ -134,7 +134,7 @@ internal struct DrawingImageXml(
     private readonly (uint RowCount, int ToRowOffsetInPixels) CalculateRows(int fromRow, int imageHeight)
     {
         var fromRowOffsetInPixels = image.Offset?.Top ?? 0;
-        double remainingHeightInPixels = fromRowOffsetInPixels + imageHeight;
+        var remainingHeightInPixels = fromRowOffsetInPixels + imageHeight;
         var toRowOffsetInPixels = remainingHeightInPixels;
         var rowHeights = worksheet.RowHeightRuns.GetRowHeights();
         var rowCount = 0u;
@@ -143,9 +143,9 @@ internal struct DrawingImageXml(
         {
             Debug.Assert(rowHeight >= 0, "Row height must be non-negative.");
 
-            const double heightToPixels = 5.0 / 3.0;
-            var heightInPixels = rowHeight * heightToPixels;
-            remainingHeightInPixels -= heightInPixels;
+            const double heightToPixels = 4.0 / 3.0;
+            var heightInPixels = (rowHeight * heightToPixels) - 0.5;
+            remainingHeightInPixels -= Round(heightInPixels);
             if (remainingHeightInPixels < 0)
                 break;
 
@@ -153,7 +153,7 @@ internal struct DrawingImageXml(
             toRowOffsetInPixels = remainingHeightInPixels;
         }
 
-        return (rowCount, Round(toRowOffsetInPixels));
+        return (rowCount, toRowOffsetInPixels);
     }
 
     private static int Round(double value) => (int)Math.Round(value, MidpointRounding.AwayFromZero);

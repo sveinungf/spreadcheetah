@@ -783,4 +783,46 @@ public class SpreadsheetImageTests
         using var drawingXml = zip.GetDrawingXmlStream();
         await VerifyXml(drawingXml);
     }
+
+    [Fact]
+    public async Task Spreadsheet_AddImage_CustomRowHeights()
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
+        var canvas = ImageCanvas.Dimensions("B2".AsSpan(), 1000, 1000);
+
+        var rowHeights = new Dictionary<int, double>
+        {
+            [3] = 20.0,
+            [5] = 5.0,
+            [6] = 5.0,
+            [7] = 5.0,
+            [8] = 30.0,
+            [10] = 15.0,
+            [11] = 15.0,
+            [12] = 200.0,
+            [32] = 50.0,
+            [33] = 50.0
+        };
+
+        for (var i = 1; i <= rowHeights.Keys.Max(); i++)
+        {
+            double? height = rowHeights.TryGetValue(i, out var h) ? h : null;
+            await spreadsheet.AddRowAsync([], new RowOptions { Height = height }, Token);
+        }
+
+        // Act
+        spreadsheet.AddImage(canvas, embeddedImage);
+
+        // Assert
+        await spreadsheet.FinishAsync(Token);
+        SpreadsheetAssert.Valid(outputStream);
+        using var zip = new ZipArchive(outputStream);
+        using var drawingXml = zip.GetDrawingXmlStream();
+        await VerifyXml(drawingXml);
+    }
 }

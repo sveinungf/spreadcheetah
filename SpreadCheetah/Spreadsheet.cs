@@ -218,6 +218,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Adds a row of cells to the worksheet and increments the current row number by 1.
     /// </summary>
+    [OverloadResolutionPriority(1)]
     public ValueTask AddRowAsync(DataCell[] cells, RowOptions? options, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(cells);
