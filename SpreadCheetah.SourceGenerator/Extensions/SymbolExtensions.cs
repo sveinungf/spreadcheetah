@@ -25,7 +25,17 @@ internal static class SymbolExtensions
 
     public static bool IsFormula(this ITypeSymbol type)
     {
-        return false; // TODO: Implement
+        return type is INamedTypeSymbol
+        {
+            ContainingNamespace:
+            {
+                Name: "SpreadCheetah",
+                ContainingNamespace.IsGlobalNamespace: true
+            },
+            IsGenericType: false,
+            Name: "Formula",
+            TypeKind: TypeKind.Struct
+        };
     }
 
     private static bool IsSupportedNullableType(this ITypeSymbol type)
