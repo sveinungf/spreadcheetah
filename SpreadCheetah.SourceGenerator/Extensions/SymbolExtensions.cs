@@ -19,7 +19,7 @@ internal static class SymbolExtensions
             SpecialType.System_Int64 => true,
             SpecialType.System_Single => true,
             SpecialType.System_String => true,
-            _ => type.IsSupportedNullableType(),
+            _ => type.IsSupportedNullableType() || type.IsFormula()
         };
     }
 
