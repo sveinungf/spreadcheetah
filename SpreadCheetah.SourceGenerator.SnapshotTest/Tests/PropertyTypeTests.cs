@@ -61,6 +61,7 @@ public class PropertyTypeTests
     {
         // Arrange
         const string source = """
+            using SpreadCheetah;
             using SpreadCheetah.SourceGeneration;
             using System;
 
@@ -84,6 +85,8 @@ public class PropertyTypeTests
                 public DateTime? NullableDateTimeValue { get; set; }
                 public bool BoolValue { get; set; }
                 public bool? NullableBoolValue { get; set; }
+                public Formula FormulaValue { get; set; }
+                public Formula? NullableFormulaValue { get; set; }
             }
 
             [WorksheetRow(typeof(ClassWithAllSupportedTypes))]
