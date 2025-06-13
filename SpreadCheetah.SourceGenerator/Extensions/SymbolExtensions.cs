@@ -1,5 +1,6 @@
 using Microsoft.CodeAnalysis;
 using SpreadCheetah.SourceGenerator.Helpers;
+using SpreadCheetah.SourceGenerator.Models;
 using SpreadCheetah.SourceGenerator.Models.Values;
 using System.Diagnostics.CodeAnalysis;
 
@@ -8,6 +9,12 @@ namespace SpreadCheetah.SourceGenerator.Extensions;
 internal static class SymbolExtensions
 {
     public static bool IsSupportedType(this ITypeSymbol type)
+    {
+        return type.IsSupportedValueType()
+            || (type.IsNullableType(out var underlyingType) && underlyingType.IsSupportedValueType());
+    }
+
+    private static bool IsSupportedValueType(this ITypeSymbol type)
     {
         return type.SpecialType switch
         {
@@ -19,7 +26,7 @@ internal static class SymbolExtensions
             SpecialType.System_Int64 => true,
             SpecialType.System_Single => true,
             SpecialType.System_String => true,
-            _ => type.IsSupportedNullableType() || type.IsFormula()
+            _ => type.IsFormula()
         };
     }
 
@@ -38,22 +45,37 @@ internal static class SymbolExtensions
         };
     }
 
-    private static bool IsSupportedNullableType(this ITypeSymbol type)
+    public static PropertyFormula? ToPropertyFormula(this ITypeSymbol type)
     {
-        if (type.NullableAnnotation != NullableAnnotation.Annotated)
-            return false;
+        if (type.IsFormula())
+            return new PropertyFormula(Nullable: false);
+        if (type.IsNullableType(out var underlyingType) && underlyingType.IsFormula())
+            return new PropertyFormula(Nullable: true);
 
-        return type.ToDisplayString() switch
+        return null;
+    }
+
+    private static bool IsNullableType(this ITypeSymbol type, [NotNullWhen(true)] out ITypeSymbol? underlyingType)
+    {
+        if (type is INamedTypeSymbol
+            {
+                ContainingNamespace:
+                {
+                    Name: "System",
+                    ContainingNamespace.IsGlobalNamespace: true
+                },
+                IsGenericType: true,
+                Name: "Nullable",
+                TypeArguments: [ITypeSymbol typeArgument],
+                TypeKind: TypeKind.Struct
+            })
         {
-            "bool?" => true,
-            "decimal?" => true,
-            "double?" => true,
-            "float?" => true,
-            "int?" => true,
-            "long?" => true,
-            "System.DateTime?" => true,
-            _ => false,
-        };
+            underlyingType = typeArgument;
+            return true;
+        }
+
+        underlyingType = null;
+        return false;
     }
 
     public static bool IsInstancePropertyWithPublicGetter(

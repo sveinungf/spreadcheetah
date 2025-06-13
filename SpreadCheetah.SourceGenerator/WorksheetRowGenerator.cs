@@ -89,15 +89,15 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
             var rowTypeProperty = new RowTypeProperty(
                 Name: property.Name,
-                IsFormula: data.CellValueConverter is null && property.Type.IsFormula(),
                 CellFormat: data.CellFormat,
                 CellStyle: data.CellStyle,
                 CellValueConverter: data.CellValueConverter,
                 CellValueTruncate: data.CellValueTruncate,
                 ColumnHeader: data.ColumnHeader?.ToColumnHeaderInfo(),
-                ColumnWidth: data.ColumnWidth);
+                ColumnWidth: data.ColumnWidth,
+                Formula: data.CellValueConverter is null ? property.Type.ToPropertyFormula() : null);
 
-            if (rowTypeProperty.IsFormula)
+            if (rowTypeProperty.Formula is not null)
                 hasFormula = true;
             if (rowTypeProperty.HasStyle)
                 hasStyleAttributes = true;
@@ -608,12 +608,15 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             _ => null
         };
 
-        // TODO: Handle nullable Formula
-        if (property is { IsFormula: true, CellValueConverter: null })
+        if (property is { Formula: { } formula, CellValueConverter: null })
         {
-            return styleId is null
-                ? $"new Cell({value})"
-                : $"new Cell({value}, {styleId})";
+            return (formula.Nullable, styleId) switch
+            {
+                (false, null) => $"new Cell({value})",
+                (false, _) => $"new Cell({value}, {styleId})",
+                (true, null) => $"{value}.HasValue ? new Cell({value}.GetValueOrDefault()) : new Cell()",
+                (true, _) => $"{value}.HasValue ? new Cell({value}.GetValueOrDefault(), {styleId}) : new Cell(new DataCell(), {styleId})", // TODO: Access property only once
+            };
         }
 
         var constructDataCell = (property.CellValueConverter, property.CellValueTruncate) switch
