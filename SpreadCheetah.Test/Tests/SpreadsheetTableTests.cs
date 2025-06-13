@@ -174,15 +174,18 @@ public class SpreadsheetTableTests
         Assert.Equal("Table must have at least one header name.", exception.Message);
     }
 
-    [Fact]
-    public async Task Spreadsheet_Table_WithOnlyHeaderRow()
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_Table_WithOnlyHeaderRow(bool longHeaderRowValue)
     {
         // Arrange
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light1);
-        string[] headerNames = ["Make", "Model", "Year"];
+        string[] headerNames = longHeaderRowValue
+            ? ["Make", "Model", new string('\'', 28)] // Cause the empty row to be added asynchronously, due to buffer being full.
+            : ["Make", "Model", "Year"];
 
         // Act
         spreadsheet.StartTable(table);

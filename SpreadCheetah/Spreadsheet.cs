@@ -154,7 +154,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         var path = StringHelper.Invariant($"xl/worksheets/sheet{_worksheets.Count + 1}.xml");
         var entryStream = _zipArchiveManager.OpenEntry(path);
-        _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes);
+        _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes, options?.GetColumnWidthRuns());
         await _worksheet.WriteHeadAsync(options, token).ConfigureAwait(false);
         _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
     }
@@ -218,6 +218,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Adds a row of cells to the worksheet and increments the current row number by 1.
     /// </summary>
+    [OverloadResolutionPriority(1)]
     public ValueTask AddRowAsync(DataCell[] cells, RowOptions? options, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(cells);
@@ -247,9 +248,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, CancellationToken token = default)
     {
-        return Worksheet.TryAddRow(cells.Span)
-            ? default
-            : Worksheet.AddRowAsync(cells, token);
+        return AddRowAsync(cells, null, token);
     }
 
     /// <summary>
@@ -257,7 +256,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, RowOptions? options, CancellationToken token = default)
     {
-        if (options is null) return AddRowAsync(cells, token);
         return Worksheet.TryAddRow(cells.Span, options)
             ? default
             : Worksheet.AddRowAsync(cells, options, token);
@@ -268,9 +266,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, CancellationToken token = default)
     {
-        return Worksheet.TryAddRow(cells.Span)
-            ? default
-            : Worksheet.AddRowAsync(cells, token);
+        return AddRowAsync(cells, null, token);
     }
 
     /// <summary>
@@ -278,7 +274,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, RowOptions? options, CancellationToken token = default)
     {
-        if (options is null) return AddRowAsync(cells, token);
         return Worksheet.TryAddRow(cells.Span, options)
             ? default
             : Worksheet.AddRowAsync(cells, options, token);
@@ -289,9 +284,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, CancellationToken token = default)
     {
-        return Worksheet.TryAddRow(cells.Span)
-            ? default
-            : Worksheet.AddRowAsync(cells, token);
+        return AddRowAsync(cells, null, token);
     }
 
     /// <summary>
@@ -299,7 +292,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, RowOptions? options, CancellationToken token = default)
     {
-        if (options is null) return AddRowAsync(cells, token);
         return Worksheet.TryAddRow(cells.Span, options)
             ? default
             : Worksheet.AddRowAsync(cells, options, token);
@@ -310,10 +302,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(IList<Cell> cells, CancellationToken token = default)
     {
-        ArgumentNullException.ThrowIfNull(cells);
-        return Worksheet.TryAddRow(cells)
-            ? default
-            : Worksheet.AddRowAsync(cells, token);
+        return AddRowAsync(cells, null, token);
     }
 
     /// <summary>
@@ -321,7 +310,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(IList<Cell> cells, RowOptions? options, CancellationToken token = default)
     {
-        if (options is null) return AddRowAsync(cells, token);
         ArgumentNullException.ThrowIfNull(cells);
         return Worksheet.TryAddRow(cells, options)
             ? default
@@ -333,10 +321,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(IList<DataCell> cells, CancellationToken token = default)
     {
-        ArgumentNullException.ThrowIfNull(cells);
-        return Worksheet.TryAddRow(cells)
-            ? default
-            : Worksheet.AddRowAsync(cells, token);
+        return AddRowAsync(cells, null, token);
     }
 
     /// <summary>
@@ -344,7 +329,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(IList<DataCell> cells, RowOptions? options, CancellationToken token = default)
     {
-        if (options is null) return AddRowAsync(cells, token);
         ArgumentNullException.ThrowIfNull(cells);
         return Worksheet.TryAddRow(cells, options)
             ? default
@@ -356,10 +340,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(IList<StyledCell> cells, CancellationToken token = default)
     {
-        ArgumentNullException.ThrowIfNull(cells);
-        return Worksheet.TryAddRow(cells)
-            ? default
-            : Worksheet.AddRowAsync(cells, token);
+        return AddRowAsync(cells, null, token);
     }
 
     /// <summary>
@@ -367,7 +348,6 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(IList<StyledCell> cells, RowOptions? options, CancellationToken token = default)
     {
-        if (options is null) return AddRowAsync(cells, token);
         ArgumentNullException.ThrowIfNull(cells);
         return Worksheet.TryAddRow(cells, options)
             ? default
@@ -693,7 +673,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         {
             var drawingsFileIndex = _fileCounter?.CurrentWorksheetDrawingsFileIndex ?? 0;
             Debug.Assert(drawingsFileIndex > 0);
-            await DrawingXml.WriteAsync(_zipArchiveManager, _buffer, drawingsFileIndex, images, token).ConfigureAwait(false);
+            await _zipArchiveManager.WriteDrawingAsync(_buffer, worksheet, drawingsFileIndex, images, token).ConfigureAwait(false);
             await DrawingRelsXml.WriteAsync(_zipArchiveManager, _buffer, drawingsFileIndex, images, token).ConfigureAwait(false);
         }
 
