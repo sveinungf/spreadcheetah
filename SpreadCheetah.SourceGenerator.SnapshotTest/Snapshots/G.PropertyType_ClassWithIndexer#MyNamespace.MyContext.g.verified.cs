@@ -24,12 +24,5 @@ namespace MyNamespace
         private WorksheetRowTypeInfo<MyNamespace.MyClass>? _MyClass;
         public WorksheetRowTypeInfo<MyNamespace.MyClass> MyClass => _MyClass
             ??= EmptyWorksheetRowContext.CreateTypeInfo<MyNamespace.MyClass>();
-
-        private static DataCell ConstructTruncatedDataCell(string? value, int truncateLength)
-        {
-            return value is null || value.Length <= truncateLength
-                ? new DataCell(value)
-                : new DataCell(value.AsMemory(0, truncateLength));
-        }
     }
 }

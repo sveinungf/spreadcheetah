@@ -119,12 +119,5 @@ namespace MyNamespace
             cells[7] = new DataCell(obj.Note2);
             return spreadsheet.AddRowAsync(cells.AsMemory(0, 8), token);
         }
-
-        private static DataCell ConstructTruncatedDataCell(string? value, int truncateLength)
-        {
-            return value is null || value.Length <= truncateLength
-                ? new DataCell(value)
-                : new DataCell(value.AsMemory(0, truncateLength));
-        }
     }
 }

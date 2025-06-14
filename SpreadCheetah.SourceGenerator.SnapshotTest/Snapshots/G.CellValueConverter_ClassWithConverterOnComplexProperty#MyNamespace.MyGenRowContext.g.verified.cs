@@ -119,12 +119,5 @@ namespace MyNamespace
             cells[1] = new StyledCell(_valueConverter0.ConvertToDataCell(obj.Property2), styleIds[0]);
             return spreadsheet.AddRowAsync(cells.AsMemory(0, 2), token);
         }
-
-        private static DataCell ConstructTruncatedDataCell(string? value, int truncateLength)
-        {
-            return value is null || value.Length <= truncateLength
-                ? new DataCell(value)
-                : new DataCell(value.AsMemory(0, truncateLength));
-        }
     }
 }
