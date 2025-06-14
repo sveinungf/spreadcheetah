@@ -71,6 +71,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     {
         var implicitOrderProperties = new List<RowTypeProperty>();
         var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
+        var hasFormula = false;
         var hasStyleAttributes = false;
         var analyzer = new PropertyAnalyzer(NullDiagnosticsReporter.Instance);
 
@@ -93,8 +94,11 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 CellValueConverter: data.CellValueConverter,
                 CellValueTruncate: data.CellValueTruncate,
                 ColumnHeader: data.ColumnHeader?.ToColumnHeaderInfo(),
-                ColumnWidth: data.ColumnWidth);
+                ColumnWidth: data.ColumnWidth,
+                Formula: data.CellValueConverter is null ? property.Type.ToPropertyFormula() : null);
 
+            if (rowTypeProperty.Formula is not null)
+                hasFormula = true;
             if (rowTypeProperty.HasStyle)
                 hasStyleAttributes = true;
 
@@ -106,10 +110,18 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         explicitOrderProperties.AddWithImplicitKeys(implicitOrderProperties);
 
+        var cellType = (hasFormula, hasStyleAttributes) switch
+        {
+            (true, _) => CellType.Cell,
+            (_, true) => CellType.StyledCell,
+            _ => CellType.DataCell
+        };
+
         return new RowType(
             FullName: rowType.ToString(),
             HasStyleAttributes: hasStyleAttributes,
             IsReferenceType: rowType.IsReferenceType,
+            CellType: cellType,
             Name: rowType.Name,
             Properties: explicitOrderProperties.Values.ToEquatableArray());
     }
@@ -168,6 +180,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             """);
 
         var cellValueConverters = GenerateCellValueConverters(sb, contextClass.RowTypes);
+        var codeGenState = new CodeGenerationState(cellValueConverters);
 
         var rowTypeNames = new HashSet<string>(StringComparer.Ordinal);
 
@@ -178,11 +191,15 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             if (!rowTypeNames.Add(rowTypeName))
                 continue;
 
-            GenerateCodeForType(sb, typeIndex, cellValueConverters, rowType);
+            GenerateCodeForType(sb, typeIndex, codeGenState, rowType);
             ++typeIndex;
         }
 
-        GenerateConstructTruncatedDataCell(sb);
+        if (codeGenState.DoGenerateConstructNullableFormulaCell)
+            GenerateConstructNullableFormulaCell(sb);
+
+        if (codeGenState.DoGenerateConstructTruncatedDataCell)
+            GenerateConstructTruncatedDataCell(sb);
 
         sb.AppendLine("""
                 }
@@ -191,7 +208,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     }
 
     private static void GenerateCodeForType(StringBuilder sb, int typeIndex,
-        Dictionary<string, string> cellValueConverters, RowType rowType)
+        CodeGenerationState codeGenState, RowType rowType)
     {
         sb.AppendLine().AppendLine($$"""
                     private WorksheetRowTypeInfo<{{rowType.FullName}}>? _{{rowType.Name}};
@@ -238,7 +255,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         GenerateAddRangeAsRows(sb, rowType);
         GenerateAddAsRowInternal(sb, rowType);
         GenerateAddRangeAsRowsInternal(sb, rowType);
-        GenerateAddCellsAsRow(sb, rowType, styleLookup, cellValueConverters);
+        GenerateAddCellsAsRow(sb, rowType, styleLookup, codeGenState);
     }
 
     private static void GenerateCreateWorksheetOptions(StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)
@@ -538,7 +555,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     }
 
     private static void GenerateAddCellsAsRow(StringBuilder sb, RowType rowType,
-        StyleLookup? styleLookup, Dictionary<string, string> valueConverters)
+        StyleLookup? styleLookup, CodeGenerationState codeGenState)
     {
         var properties = rowType.Properties;
         Debug.Assert(properties.Count > 0);
@@ -571,7 +588,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 _ => false
             };
 
-            var constructCell = ConstructCell(property, styleIdIndex, rowType.HasStyleAttributes, valueConverters);
+            var constructCell = ConstructCell(property, styleIdIndex, rowType, codeGenState);
 
             sb.AppendLine(FormattableString.Invariant($"""
                         cells[{i}] = {constructCell};
@@ -585,27 +602,73 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     }
 
     private static string ConstructCell(RowTypeProperty property, int? styleIdIndex,
-        bool hasStyleAttributes, Dictionary<string, string> valueConverters)
+        RowType rowType, CodeGenerationState codeGenState)
     {
         var value = $"obj.{property.Name}";
 
-        var constructDataCell = (property.CellValueConverter, property.CellValueTruncate) switch
-        {
-            ({ } converter, _) => $"{valueConverters[converter.ConverterTypeName]}.ConvertToDataCell({value})",
-            (null, { } truncate) => FormattableString.Invariant($"ConstructTruncatedDataCell({value}, {truncate.Value})"),
-            _ => $"new DataCell({value})"
-        };
-
-        var styleId = (hasStyleAttributes, styleIdIndex) switch
+        var styleId = (rowType.HasStyleAttributes, styleIdIndex) switch
         {
             (true, { } i) => FormattableString.Invariant($"styleIds[{i}]"),
             (true, _) => "null",
             _ => null
         };
 
+        if (property is { Formula: { } formula, CellValueConverter: null })
+            return ConstructFormulaCell(formula, styleId, value, codeGenState);
+
+        var constructDataCell = ConstructDataCell(property, value, codeGenState);
+
+        return (rowType.CellType, styleId) switch
+        {
+            (CellType.Cell, null) => $"new Cell({constructDataCell})",
+            (CellType.Cell, _) => $"new Cell({constructDataCell}, {styleId})",
+            (CellType.StyledCell, null) => $"new StyledCell({constructDataCell}, null)",
+            (CellType.StyledCell, _) => $"new StyledCell({constructDataCell}, {styleId})",
+            _ => constructDataCell
+        };
+    }
+
+    private static string ConstructDataCell(RowTypeProperty property, string value, CodeGenerationState codeGenState)
+    {
+        if (property.CellValueConverter is { } converter)
+            return $"{codeGenState.GetValueConverter(converter.ConverterTypeName)}.ConvertToDataCell({value})";
+
+        if (property.CellValueTruncate is { } truncate)
+        {
+            codeGenState.RequireConstructTruncatedDataCell();
+            return FormattableString.Invariant($"ConstructTruncatedDataCell({value}, {truncate.Value})");
+        }
+
+        return $"new DataCell({value})";
+    }
+
+    private static string ConstructFormulaCell(PropertyFormula formula, string? styleId, string value, CodeGenerationState codeGenState)
+    {
+        if (!formula.Nullable)
+        {
+            return styleId is null
+                ? $"new Cell({value})"
+                : $"new Cell({value}, {styleId})";
+        }
+
+        codeGenState.RequireConstructNullableFormulaCell();
+
         return styleId is null
-            ? constructDataCell
-            : $"new StyledCell({constructDataCell}, {styleId})";
+            ? $"ConstructNullableFormulaCell({value})"
+            : $"ConstructNullableFormulaCell({value}, {styleId})";
+    }
+
+    private static void GenerateConstructNullableFormulaCell(StringBuilder sb)
+    {
+        sb.AppendLine("""
+
+                    private static Cell ConstructNullableFormulaCell(Formula? formula, StyleId? styleId = null)
+                    {
+                        return formula is { } f
+                            ? new Cell(f, styleId)
+                            : new Cell(new DataCell(), styleId);
+                    }
+            """);
     }
 
     private static void GenerateConstructTruncatedDataCell(StringBuilder sb)

@@ -28,7 +28,7 @@ namespace MyNamespace
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
-            var headerNames = ArrayPool<string?>.Shared.Rent(16);
+            var headerNames = ArrayPool<string?>.Shared.Rent(18);
             try
             {
                 headerNames[0] = "StringValue";
@@ -47,7 +47,9 @@ namespace MyNamespace
                 headerNames[13] = "NullableDateTimeValue";
                 headerNames[14] = "BoolValue";
                 headerNames[15] = "NullableBoolValue";
-                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 16)!, styleId, token).ConfigureAwait(false);
+                headerNames[16] = "FormulaValue";
+                headerNames[17] = "NullableFormulaValue";
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 18)!, styleId, token).ConfigureAwait(false);
             }
             finally
             {
@@ -60,7 +62,7 @@ namespace MyNamespace
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
             if (obj is null)
-                return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
+                return spreadsheet.AddRowAsync(ReadOnlyMemory<Cell>.Empty, token);
             return AddAsRowInternalAsync(spreadsheet, obj, token);
         }
 
@@ -79,7 +81,7 @@ namespace MyNamespace
             MyNamespace.ClassWithAllSupportedTypes obj,
             CancellationToken token)
         {
-            var cells = ArrayPool<DataCell>.Shared.Rent(16);
+            var cells = ArrayPool<Cell>.Shared.Rent(18);
             try
             {
                 var styleIds = Array.Empty<StyleId>();
@@ -87,7 +89,7 @@ namespace MyNamespace
             }
             finally
             {
-                ArrayPool<DataCell>.Shared.Return(cells, true);
+                ArrayPool<Cell>.Shared.Return(cells, true);
             }
         }
 
@@ -95,7 +97,7 @@ namespace MyNamespace
             IEnumerable<MyNamespace.ClassWithAllSupportedTypes?> objs,
             CancellationToken token)
         {
-            var cells = ArrayPool<DataCell>.Shared.Rent(16);
+            var cells = ArrayPool<Cell>.Shared.Rent(18);
             try
             {
                 var styleIds = Array.Empty<StyleId>();
@@ -106,41 +108,43 @@ namespace MyNamespace
             }
             finally
             {
-                ArrayPool<DataCell>.Shared.Return(cells, true);
+                ArrayPool<Cell>.Shared.Return(cells, true);
             }
         }
 
         private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet,
             MyNamespace.ClassWithAllSupportedTypes? obj,
-            DataCell[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
+            Cell[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
         {
             if (obj is null)
-                return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
+                return spreadsheet.AddRowAsync(ReadOnlyMemory<Cell>.Empty, token);
 
-            cells[0] = new DataCell(obj.StringValue);
-            cells[1] = new DataCell(obj.NullableStringValue);
-            cells[2] = new DataCell(obj.IntValue);
-            cells[3] = new DataCell(obj.NullableIntValue);
-            cells[4] = new DataCell(obj.LongValue);
-            cells[5] = new DataCell(obj.NullableLongValue);
-            cells[6] = new DataCell(obj.FloatValue);
-            cells[7] = new DataCell(obj.NullableFloatValue);
-            cells[8] = new DataCell(obj.DoubleValue);
-            cells[9] = new DataCell(obj.NullableDoubleValue);
-            cells[10] = new DataCell(obj.DecimalValue);
-            cells[11] = new DataCell(obj.NullableDecimalValue);
-            cells[12] = new DataCell(obj.DateTimeValue);
-            cells[13] = new DataCell(obj.NullableDateTimeValue);
-            cells[14] = new DataCell(obj.BoolValue);
-            cells[15] = new DataCell(obj.NullableBoolValue);
-            return spreadsheet.AddRowAsync(cells.AsMemory(0, 16), token);
+            cells[0] = new Cell(new DataCell(obj.StringValue));
+            cells[1] = new Cell(new DataCell(obj.NullableStringValue));
+            cells[2] = new Cell(new DataCell(obj.IntValue));
+            cells[3] = new Cell(new DataCell(obj.NullableIntValue));
+            cells[4] = new Cell(new DataCell(obj.LongValue));
+            cells[5] = new Cell(new DataCell(obj.NullableLongValue));
+            cells[6] = new Cell(new DataCell(obj.FloatValue));
+            cells[7] = new Cell(new DataCell(obj.NullableFloatValue));
+            cells[8] = new Cell(new DataCell(obj.DoubleValue));
+            cells[9] = new Cell(new DataCell(obj.NullableDoubleValue));
+            cells[10] = new Cell(new DataCell(obj.DecimalValue));
+            cells[11] = new Cell(new DataCell(obj.NullableDecimalValue));
+            cells[12] = new Cell(new DataCell(obj.DateTimeValue));
+            cells[13] = new Cell(new DataCell(obj.NullableDateTimeValue));
+            cells[14] = new Cell(new DataCell(obj.BoolValue));
+            cells[15] = new Cell(new DataCell(obj.NullableBoolValue));
+            cells[16] = new Cell(obj.FormulaValue);
+            cells[17] = ConstructNullableFormulaCell(obj.NullableFormulaValue);
+            return spreadsheet.AddRowAsync(cells.AsMemory(0, 18), token);
         }
 
-        private static DataCell ConstructTruncatedDataCell(string? value, int truncateLength)
+        private static Cell ConstructNullableFormulaCell(Formula? formula, StyleId? styleId = null)
         {
-            return value is null || value.Length <= truncateLength
-                ? new DataCell(value)
-                : new DataCell(value.AsMemory(0, truncateLength));
+            return formula is { } f
+                ? new Cell(f, styleId)
+                : new Cell(new DataCell(), styleId);
         }
     }
 }

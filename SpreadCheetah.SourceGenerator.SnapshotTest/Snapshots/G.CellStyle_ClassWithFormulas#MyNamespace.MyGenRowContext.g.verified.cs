@@ -20,18 +20,18 @@ namespace MyNamespace
         public MyGenRowContext()
         {
         }
-        private static readonly MyNamespace.ObjectConverter _valueConverter0 = new MyNamespace.ObjectConverter(); 
 
-        private WorksheetRowTypeInfo<MyNamespace.ClassWithConverterOnComplexProperty>? _ClassWithConverterOnComplexProperty;
-        public WorksheetRowTypeInfo<MyNamespace.ClassWithConverterOnComplexProperty> ClassWithConverterOnComplexProperty => _ClassWithConverterOnComplexProperty
-            ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithConverterOnComplexProperty>(
+        private WorksheetRowTypeInfo<MyNamespace.ClassWithCellStyle>? _ClassWithCellStyle;
+        public WorksheetRowTypeInfo<MyNamespace.ClassWithCellStyle> ClassWithCellStyle => _ClassWithCellStyle
+            ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithCellStyle>(
                 AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, null, CreateWorksheetRowDependencyInfo0);
 
         private static WorksheetRowDependencyInfo CreateWorksheetRowDependencyInfo0(Spreadsheet spreadsheet)
         {
             var styleIds = new[]
             {
-                spreadsheet.GetStyleId("object style"),
+                spreadsheet.GetStyleId("Italic"),
+                spreadsheet.GetStyleId("Bold"),
             };
             return new WorksheetRowDependencyInfo(styleIds);
         }
@@ -41,8 +41,8 @@ namespace MyNamespace
             var headerNames = ArrayPool<string?>.Shared.Rent(2);
             try
             {
-                headerNames[0] = "Property1";
-                headerNames[1] = "Property2";
+                headerNames[0] = "FirstName";
+                headerNames[1] = "LastName";
                 await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 2)!, styleId, token).ConfigureAwait(false);
             }
             finally
@@ -51,17 +51,17 @@ namespace MyNamespace
             }
         }
 
-        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithConverterOnComplexProperty? obj, CancellationToken token)
+        private static ValueTask AddAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet, MyNamespace.ClassWithCellStyle? obj, CancellationToken token)
         {
             if (spreadsheet is null)
                 throw new ArgumentNullException(nameof(spreadsheet));
             if (obj is null)
-                return spreadsheet.AddRowAsync(ReadOnlyMemory<StyledCell>.Empty, token);
+                return spreadsheet.AddRowAsync(ReadOnlyMemory<Cell>.Empty, token);
             return AddAsRowInternalAsync(spreadsheet, obj, token);
         }
 
         private static ValueTask AddRangeAsRowsAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            IEnumerable<MyNamespace.ClassWithConverterOnComplexProperty?> objs,
+            IEnumerable<MyNamespace.ClassWithCellStyle?> objs,
             CancellationToken token)
         {
             if (spreadsheet is null)
@@ -72,30 +72,30 @@ namespace MyNamespace
         }
 
         private static async ValueTask AddAsRowInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            MyNamespace.ClassWithConverterOnComplexProperty obj,
+            MyNamespace.ClassWithCellStyle obj,
             CancellationToken token)
         {
-            var cells = ArrayPool<StyledCell>.Shared.Rent(2);
+            var cells = ArrayPool<Cell>.Shared.Rent(2);
             try
             {
-                var worksheetRowDependencyInfo = spreadsheet.GetOrCreateWorksheetRowDependencyInfo(Default.ClassWithConverterOnComplexProperty);
+                var worksheetRowDependencyInfo = spreadsheet.GetOrCreateWorksheetRowDependencyInfo(Default.ClassWithCellStyle);
                 var styleIds = worksheetRowDependencyInfo.StyleIds;
                 await AddCellsAsRowAsync(spreadsheet, obj, cells, styleIds, token).ConfigureAwait(false);
             }
             finally
             {
-                ArrayPool<StyledCell>.Shared.Return(cells, true);
+                ArrayPool<Cell>.Shared.Return(cells, true);
             }
         }
 
         private static async ValueTask AddRangeAsRowsInternalAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            IEnumerable<MyNamespace.ClassWithConverterOnComplexProperty?> objs,
+            IEnumerable<MyNamespace.ClassWithCellStyle?> objs,
             CancellationToken token)
         {
-            var cells = ArrayPool<StyledCell>.Shared.Rent(2);
+            var cells = ArrayPool<Cell>.Shared.Rent(2);
             try
             {
-                var worksheetRowDependencyInfo = spreadsheet.GetOrCreateWorksheetRowDependencyInfo(Default.ClassWithConverterOnComplexProperty);
+                var worksheetRowDependencyInfo = spreadsheet.GetOrCreateWorksheetRowDependencyInfo(Default.ClassWithCellStyle);
                 var styleIds = worksheetRowDependencyInfo.StyleIds;
                 foreach (var obj in objs)
                 {
@@ -104,20 +104,27 @@ namespace MyNamespace
             }
             finally
             {
-                ArrayPool<StyledCell>.Shared.Return(cells, true);
+                ArrayPool<Cell>.Shared.Return(cells, true);
             }
         }
 
         private static ValueTask AddCellsAsRowAsync(SpreadCheetah.Spreadsheet spreadsheet,
-            MyNamespace.ClassWithConverterOnComplexProperty? obj,
-            StyledCell[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
+            MyNamespace.ClassWithCellStyle? obj,
+            Cell[] cells, IReadOnlyList<StyleId> styleIds, CancellationToken token)
         {
             if (obj is null)
-                return spreadsheet.AddRowAsync(ReadOnlyMemory<StyledCell>.Empty, token);
+                return spreadsheet.AddRowAsync(ReadOnlyMemory<Cell>.Empty, token);
 
-            cells[0] = new StyledCell(_valueConverter0.ConvertToDataCell(obj.Property1), null);
-            cells[1] = new StyledCell(_valueConverter0.ConvertToDataCell(obj.Property2), styleIds[0]);
+            cells[0] = new Cell(obj.FirstName, styleIds[0]);
+            cells[1] = ConstructNullableFormulaCell(obj.LastName, styleIds[1]);
             return spreadsheet.AddRowAsync(cells.AsMemory(0, 2), token);
+        }
+
+        private static Cell ConstructNullableFormulaCell(Formula? formula, StyleId? styleId = null)
+        {
+            return formula is { } f
+                ? new Cell(f, styleId)
+                : new Cell(new DataCell(), styleId);
         }
     }
 }
