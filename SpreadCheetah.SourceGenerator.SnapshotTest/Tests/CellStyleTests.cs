@@ -99,4 +99,31 @@ public class CellStyleTests
         // Act & Assert
         return context.RunAsync(Token);
     }
+
+    [Fact]
+    public Task CellStyle_ClassWithFormulas()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah;
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            public class ClassWithCellStyle
+            {
+                [CellStyle("Italic")]
+                public Formula FirstName { get; set; }
+            
+                [CellStyle("Bold")]
+                public Formula? LastName { get; set; }
+            }
+            
+            [WorksheetRow(typeof(ClassWithCellStyle))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
 }
