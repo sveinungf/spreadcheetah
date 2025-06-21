@@ -23,22 +23,6 @@ internal static class SpanHelper
         return true;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryWrite(uint value, Span<byte> bytes, ref int bytesWritten)
-    {
-        if (!Utf8Formatter.TryFormat(value, bytes.Slice(bytesWritten), out var length)) return false;
-        bytesWritten += length;
-        return true;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryWrite(double value, Span<byte> bytes, ref int bytesWritten, StandardFormat format = default)
-    {
-        if (!Utf8Formatter.TryFormat(value, bytes.Slice(bytesWritten), out var length, format)) return false;
-        bytesWritten += length;
-        return true;
-    }
-
     public static bool TryWrite(Color color, Span<byte> bytes, ref int bytesWritten)
     {
         var span = bytes.Slice(bytesWritten);
@@ -91,11 +75,12 @@ internal static class SpanHelper
     public static bool TryWriteCellReference(int column, uint row, Span<byte> destination, ref int bytesWritten)
     {
         var span = destination.Slice(bytesWritten);
+        if (!SpreadsheetUtility.TryGetColumnNameUtf8(column, span, out var nameLength)) return false;
 
-        if (!SpreadsheetUtility.TryGetColumnNameUtf8(column, span, out var written)) return false;
-        if (!TryWrite(row, span, ref written)) return false;
+        span = span.Slice(nameLength);
+        if (!Utf8Formatter.TryFormat(row, span, out var rowLength)) return false;
 
-        bytesWritten += written;
+        bytesWritten += nameLength + rowLength;
         return true;
     }
 }

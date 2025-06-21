@@ -1,5 +1,4 @@
 using SpreadCheetah.CellReferences;
-using SpreadCheetah.Helpers;
 using SpreadCheetah.Worksheets;
 
 namespace SpreadCheetah.MetadataXml;
@@ -14,17 +13,27 @@ internal struct WorksheetStartXml
     private static ReadOnlySpan<byte> SheetDataBegin => "<sheetData>"u8;
 
     private readonly WorksheetOptions? _options;
-    private readonly List<KeyValuePair<int, ColumnOptions>>? _columns;
+    private readonly List<(int ColumnIndex, ColumnOptions Options)>? _columns;
     private readonly SpreadsheetBuffer _buffer;
+    private WorksheetColumnXmlPart? _columnXml;
     private Element _next;
     private int _nextIndex;
-    private bool _anyColumnWritten;
 
     private WorksheetStartXml(WorksheetOptions? options, SpreadsheetBuffer buffer)
     {
         _options = options;
-        _columns = options?.ColumnOptions is { } columns ? [.. columns] : null;
         _buffer = buffer;
+
+        if (options?.ColumnOptions is not { } dictionary)
+            return;
+
+        _columns = new List<(int ColumnIndex, ColumnOptions Options)>(dictionary.Count);
+
+        foreach (var (columnIndex, option) in dictionary)
+        {
+            if (option.Width is not null || option.Hidden)
+                _columns.Add((columnIndex, option));
+        }
     }
 
     public static async ValueTask WriteAsync(
@@ -54,7 +63,9 @@ internal struct WorksheetStartXml
             Element.ColumnSplit => TryWriteColumnSplit(),
             Element.RowSplit => TryWriteRowSplit(),
             Element.SheetViewsEnd => TryWriteSheetViewsEnd(),
+            Element.ColumnsStart => TryWriteColumnsStart(),
             Element.Columns => TryWriteColumns(),
+            Element.ColumnsEnd => TryWriteColumnsEnd(),
             _ => _buffer.TryWrite(SheetDataBegin)
         };
 
@@ -120,51 +131,39 @@ internal struct WorksheetStartXml
             $"{"\"/></sheetView></sheetViews>"u8}");
     }
 
+    private readonly bool TryWriteColumnsStart()
+    {
+        return _columns is not { Count: > 0 } || _buffer.TryWrite("<cols>"u8);
+    }
+
     private bool TryWriteColumns()
     {
-        if (_columns is not { } columns) return true;
-
-        var anyColumnWritten = _anyColumnWritten;
+        if (_columns is not { Count: > 0 } columns)
+            return true;
 
         for (; _nextIndex < columns.Count; ++_nextIndex)
         {
             var (columnIndex, options) = columns[_nextIndex];
-            if (options.Width is null && !options.Hidden)
-                continue;
 
-            var span = _buffer.GetSpan();
-            var written = 0;
+            var xml = _columnXml ??
+                new WorksheetColumnXmlPart(_buffer, columnIndex, options);
 
-            if (!anyColumnWritten)
+            if (!xml.TryWrite())
             {
-                if (!"<cols>"u8.TryCopyTo(span, ref written)) return false;
-                anyColumnWritten = true;
+                _columnXml = xml;
+                return false;
             }
 
-            if (!"<col min=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(columnIndex, span, ref written)) return false;
-            if (!"\" max=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(columnIndex, span, ref written)) return false;
-            if (!"\""u8.TryCopyTo(span, ref written)) return false;
-            if (options.Width.HasValue)
-            {
-                if (!" width=\""u8.TryCopyTo(span, ref written)) return false;
-                if (!SpanHelper.TryWrite(options.Width.GetValueOrDefault(), span, ref written)) return false;
-                if (!"\" customWidth=\"1\""u8.TryCopyTo(span, ref written)) return false;
-            }
-
-            if (options.Hidden && !" hidden=\"1\""u8.TryCopyTo(span, ref written)) return false;
-            if (!" />"u8.TryCopyTo(span, ref written)) return false;
-
-            _anyColumnWritten = anyColumnWritten;
-
-            _buffer.Advance(written);
+            _columnXml = null;
         }
 
-        if (!anyColumnWritten)
-            return true;
+        _nextIndex = 0;
+        return true;
+    }
 
-        return _buffer.TryWrite("</cols>"u8);
+    private readonly bool TryWriteColumnsEnd()
+    {
+        return _columns is not { Count: > 0 } || _buffer.TryWrite("</cols>"u8);
     }
 
     private enum Element
@@ -174,7 +173,9 @@ internal struct WorksheetStartXml
         ColumnSplit,
         RowSplit,
         SheetViewsEnd,
+        ColumnsStart,
         Columns,
+        ColumnsEnd,
         SheetDataStart,
         Done
     }
