@@ -1,3 +1,4 @@
+using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Worksheets;
 
@@ -49,7 +50,10 @@ internal struct WorksheetStartXml
         Current = _next switch
         {
             Element.Header => _buffer.TryWrite(Header),
-            Element.SheetViews => TryWriteSheetViews(),
+            Element.SheetViewsStart => TryWriteSheetViewsStart(),
+            Element.ColumnSplit => TryWriteColumnSplit(),
+            Element.RowSplit => TryWriteRowSplit(),
+            Element.SheetViewsEnd => TryWriteSheetViewsEnd(),
             Element.Columns => TryWriteColumns(),
             _ => _buffer.TryWrite(SheetDataBegin)
         };
@@ -60,72 +64,60 @@ internal struct WorksheetStartXml
         return _next < Element.Done;
     }
 
-    private readonly bool TryWriteSheetViews()
+    private readonly bool TryWriteSheetViewsStart()
     {
-        var options = _options;
-        if (options?.FrozenColumns is null && options?.FrozenRows is null)
-            return true;
-
-        var span = _buffer.GetSpan();
-        var written = 0;
-
-        if (!"<sheetViews><sheetView workbookViewId=\"0\"><pane "u8.TryCopyTo(span, ref written)) return false;
-        if (!TryWritexSplit(span, ref written)) return false;
-        if (!TryWriteySplit(span, ref written)) return false;
-        if (!"topLeftCell=\""u8.TryCopyTo(span, ref written)) return false;
-
-        var column = (options.FrozenColumns ?? 0) + 1;
-        var row = (options.FrozenRows ?? 0) + 1;
-        if (!SpanHelper.TryWriteCellReference(column, (uint)row, span, ref written)) return false;
-
-        if (!"\" activePane=\""u8.TryCopyTo(span, ref written)) return false;
-
-        var activePane = options switch
-        {
-            { FrozenColumns: not null, FrozenRows: not null } => "bottomRight"u8,
-            { FrozenColumns: not null } => "topRight"u8,
-            _ => "bottomLeft"u8
-        };
-
-        if (!activePane.TryCopyTo(span, ref written)) return false;
-        if (!"\" state=\"frozen\"/>"u8.TryCopyTo(span, ref written)) return false;
-
-        var bottomRight = """<selection pane="bottomRight"/>"""u8;
-        if (options is { FrozenColumns: not null, FrozenRows: not null } && !bottomRight.TryCopyTo(span, ref written))
-            return false;
-
-        var bottomLeft = """<selection pane="bottomLeft"/>"""u8;
-        if (options.FrozenRows is not null && !bottomLeft.TryCopyTo(span, ref written))
-            return false;
-
-        var topRight = """<selection pane="topRight"/>"""u8;
-        if (options.FrozenColumns is not null && !topRight.TryCopyTo(span, ref written))
-            return false;
-
-        if (!"</sheetView></sheetViews>"u8.TryCopyTo(span, ref written)) return false;
-
-        _buffer.Advance(written);
-        return true;
+        return _options is null or { FrozenColumns: null, FrozenRows: null }
+            || _buffer.TryWrite("<sheetViews><sheetView workbookViewId=\"0\"><pane "u8);
     }
 
-    private readonly bool TryWritexSplit(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteColumnSplit()
     {
         if (_options?.FrozenColumns is not { } frozenColumns)
             return true;
 
-        if (!"xSplit=\""u8.TryCopyTo(bytes, ref bytesWritten)) return false;
-        if (!SpanHelper.TryWrite(frozenColumns, bytes, ref bytesWritten)) return false;
-        return "\" "u8.TryCopyTo(bytes, ref bytesWritten);
+        return _buffer.TryWrite(
+            $"{"xSplit=\""u8}" +
+            $"{frozenColumns}" +
+            $"{"\" "u8}");
     }
 
-    private readonly bool TryWriteySplit(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteRowSplit()
     {
         if (_options?.FrozenRows is not { } frozenRows)
             return true;
 
-        if (!"ySplit=\""u8.TryCopyTo(bytes, ref bytesWritten)) return false;
-        if (!SpanHelper.TryWrite(frozenRows, bytes, ref bytesWritten)) return false;
-        return "\" "u8.TryCopyTo(bytes, ref bytesWritten);
+        return _buffer.TryWrite(
+            $"{"ySplit=\""u8}" +
+            $"{frozenRows}" +
+            $"{"\" "u8}");
+    }
+
+    private readonly bool TryWriteSheetViewsEnd()
+    {
+        var frozenColumns = _options?.FrozenColumns;
+        var frozenRows = _options?.FrozenRows;
+        if (frozenColumns is null && frozenRows is null)
+            return true;
+
+        var activePane = (frozenColumns, frozenRows) switch
+        {
+            (not null, not null) => "bottomRight"u8,
+            (not null, _) => "topRight"u8,
+            _ => "bottomLeft"u8
+        };
+
+        var column = (frozenColumns ?? 0) + 1;
+        var row = (frozenRows ?? 0) + 1;
+        var cellReference = new SimpleSingleCellReference((ushort)column, (uint)row);
+
+        return _buffer.TryWrite(
+            $"{"topLeftCell=\""u8}" +
+            $"{cellReference}" +
+            $"{"\" activePane=\""u8}" +
+            $"{activePane}" +
+            $"{"\" state=\"frozen\"/><selection pane=\""u8}" +
+            $"{activePane}" +
+            $"{"\"/></sheetView></sheetViews>"u8}");
     }
 
     private bool TryWriteColumns()
@@ -178,9 +170,12 @@ internal struct WorksheetStartXml
     private enum Element
     {
         Header,
-        SheetViews,
+        SheetViewsStart,
+        ColumnSplit,
+        RowSplit,
+        SheetViewsEnd,
         Columns,
-        SheetDataBegin,
+        SheetDataStart,
         Done
     }
 }
