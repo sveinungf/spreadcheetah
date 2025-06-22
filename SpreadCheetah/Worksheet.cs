@@ -22,9 +22,9 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly BaseCellWriter<DataCell> _dataCellWriter;
     private readonly BaseCellWriter<StyledCell> _styledCellWriter;
     private readonly CellWriterState _state;
+    private readonly string? _autoFilterRange;
     private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
     private HashSet<CellRangeRelativeReference>? _cellMerges;
-    private string? _autoFilterRange;
 
     public Dictionary<SingleCellRelativeReference, string>? Notes { get; private set; }
     public List<WorksheetDimensionRun>? ColumnWidthRuns { get; }
@@ -33,12 +33,13 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public List<WorksheetImage>? Images { get; private set; }
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer,
-        bool writeCellReferenceAttributes, List<WorksheetDimensionRun>? columnWidthRuns)
+        bool writeCellReferenceAttributes, WorksheetOptions? options)
     {
         _stream = stream;
         _buffer = buffer;
         _state = new CellWriterState(buffer);
-        ColumnWidthRuns = columnWidthRuns;
+        _autoFilterRange = options?.AutoFilter?.CellRange.Reference;
+        ColumnWidthRuns = options?.GetColumnWidthRuns();
 
         if (writeCellReferenceAttributes)
         {
@@ -55,12 +56,6 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     }
 
     public int NextRowNumber => (int)_state.NextRowIndex;
-
-    public async ValueTask WriteHeadAsync(WorksheetOptions? options, CancellationToken token)
-    {
-        await WorksheetStartXml.WriteAsync(options, _buffer, _stream, token).ConfigureAwait(false);
-        _autoFilterRange = options?.AutoFilter?.CellRange.Reference;
-    }
 
     public void StartTable(ImmutableTable table, int firstColumnNumber)
     {

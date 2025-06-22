@@ -3,7 +3,29 @@ using SpreadCheetah.Worksheets;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct WorksheetStartXml
+internal static class WorksheetStartXml
+{
+    public static async ValueTask WriteAsync(
+        WorksheetOptions? options,
+        SpreadsheetBuffer buffer,
+        Stream entryStream,
+        CancellationToken token)
+    {
+        var writer = new WorksheetStartXmlWriter(options, buffer);
+
+        foreach (var success in writer)
+        {
+            if (!success)
+                await buffer.FlushToStreamAsync(entryStream, token).ConfigureAwait(false);
+        }
+
+        await buffer.FlushToStreamAsync(entryStream, token).ConfigureAwait(false);
+    }
+}
+
+file struct WorksheetStartXmlWriter(
+    WorksheetOptions? options,
+    SpreadsheetBuffer buffer)
 {
     private static ReadOnlySpan<byte> Header =>
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
@@ -12,53 +34,36 @@ internal struct WorksheetStartXml
 
     private static ReadOnlySpan<byte> SheetDataBegin => "<sheetData>"u8;
 
-    private readonly WorksheetOptions? _options;
-    private readonly List<(int ColumnIndex, ColumnOptions Options)>? _columns;
-    private readonly SpreadsheetBuffer _buffer;
+    private readonly List<(int ColumnIndex, ColumnOptions Options)>? _columns = GetColumns(options?.ColumnOptions);
     private WorksheetColumnXmlPart? _columnXml;
     private Element _next;
     private int _nextIndex;
 
-    private WorksheetStartXml(WorksheetOptions? options, SpreadsheetBuffer buffer)
+    private static List<(int ColumnIndex, ColumnOptions Options)>? GetColumns(
+        SortedDictionary<int, ColumnOptions>? dictionary)
     {
-        _options = options;
-        _buffer = buffer;
+        if (dictionary is null)
+            return null;
 
-        if (options?.ColumnOptions is not { } dictionary)
-            return;
-
-        _columns = new List<(int ColumnIndex, ColumnOptions Options)>(dictionary.Count);
+        var columns = new List<(int ColumnIndex, ColumnOptions Options)>(dictionary.Count);
 
         foreach (var (columnIndex, option) in dictionary)
         {
             if (option.Width is not null || option.Hidden)
-                _columns.Add((columnIndex, option));
+                columns.Add((columnIndex, option));
         }
+
+        return columns;
     }
 
-    public static async ValueTask WriteAsync(
-        WorksheetOptions? options,
-        SpreadsheetBuffer buffer,
-        Stream stream,
-        CancellationToken token)
-    {
-        var writer = new WorksheetStartXml(options, buffer);
-
-        foreach (var success in writer)
-        {
-            if (!success)
-                await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        }
-    }
-
-    public readonly WorksheetStartXml GetEnumerator() => this;
+    public readonly WorksheetStartXmlWriter GetEnumerator() => this;
     public bool Current { get; private set; }
 
     public bool MoveNext()
     {
         Current = _next switch
         {
-            Element.Header => _buffer.TryWrite(Header),
+            Element.Header => buffer.TryWrite(Header),
             Element.SheetViewsStart => TryWriteSheetViewsStart(),
             Element.ColumnSplit => TryWriteColumnSplit(),
             Element.RowSplit => TryWriteRowSplit(),
@@ -66,7 +71,7 @@ internal struct WorksheetStartXml
             Element.ColumnsStart => TryWriteColumnsStart(),
             Element.Columns => TryWriteColumns(),
             Element.ColumnsEnd => TryWriteColumnsEnd(),
-            _ => _buffer.TryWrite(SheetDataBegin)
+            _ => buffer.TryWrite(SheetDataBegin)
         };
 
         if (Current)
@@ -77,16 +82,16 @@ internal struct WorksheetStartXml
 
     private readonly bool TryWriteSheetViewsStart()
     {
-        return _options is null or { FrozenColumns: null, FrozenRows: null }
-            || _buffer.TryWrite("<sheetViews><sheetView workbookViewId=\"0\"><pane "u8);
+        return options is null or { FrozenColumns: null, FrozenRows: null }
+            || buffer.TryWrite("<sheetViews><sheetView workbookViewId=\"0\"><pane "u8);
     }
 
     private readonly bool TryWriteColumnSplit()
     {
-        if (_options?.FrozenColumns is not { } frozenColumns)
+        if (options?.FrozenColumns is not { } frozenColumns)
             return true;
 
-        return _buffer.TryWrite(
+        return buffer.TryWrite(
             $"{"xSplit=\""u8}" +
             $"{frozenColumns}" +
             $"{"\" "u8}");
@@ -94,10 +99,10 @@ internal struct WorksheetStartXml
 
     private readonly bool TryWriteRowSplit()
     {
-        if (_options?.FrozenRows is not { } frozenRows)
+        if (options?.FrozenRows is not { } frozenRows)
             return true;
 
-        return _buffer.TryWrite(
+        return buffer.TryWrite(
             $"{"ySplit=\""u8}" +
             $"{frozenRows}" +
             $"{"\" "u8}");
@@ -105,8 +110,8 @@ internal struct WorksheetStartXml
 
     private readonly bool TryWriteSheetViewsEnd()
     {
-        var frozenColumns = _options?.FrozenColumns;
-        var frozenRows = _options?.FrozenRows;
+        var frozenColumns = options?.FrozenColumns;
+        var frozenRows = options?.FrozenRows;
         if (frozenColumns is null && frozenRows is null)
             return true;
 
@@ -121,7 +126,7 @@ internal struct WorksheetStartXml
         var row = (frozenRows ?? 0) + 1;
         var cellReference = new SimpleSingleCellReference((ushort)column, (uint)row);
 
-        return _buffer.TryWrite(
+        return buffer.TryWrite(
             $"{"topLeftCell=\""u8}" +
             $"{cellReference}" +
             $"{"\" activePane=\""u8}" +
@@ -133,7 +138,7 @@ internal struct WorksheetStartXml
 
     private readonly bool TryWriteColumnsStart()
     {
-        return _columns is not { Count: > 0 } || _buffer.TryWrite("<cols>"u8);
+        return _columns is not { Count: > 0 } || buffer.TryWrite("<cols>"u8);
     }
 
     private bool TryWriteColumns()
@@ -143,10 +148,10 @@ internal struct WorksheetStartXml
 
         for (; _nextIndex < columns.Count; ++_nextIndex)
         {
-            var (columnIndex, options) = columns[_nextIndex];
+            var (columnIndex, columnOptions) = columns[_nextIndex];
 
             var xml = _columnXml ??
-                new WorksheetColumnXmlPart(_buffer, columnIndex, options);
+                new WorksheetColumnXmlPart(buffer, columnIndex, columnOptions);
 
             if (!xml.TryWrite())
             {
@@ -163,7 +168,7 @@ internal struct WorksheetStartXml
 
     private readonly bool TryWriteColumnsEnd()
     {
-        return _columns is not { Count: > 0 } || _buffer.TryWrite("</cols>"u8);
+        return _columns is not { Count: > 0 } || buffer.TryWrite("</cols>"u8);
     }
 
     private enum Element
