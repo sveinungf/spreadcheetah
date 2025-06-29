@@ -4,9 +4,10 @@ namespace SpreadCheetah.Helpers;
 
 internal static class WorksheetDimensionRunExtensions
 {
-    public static IEnumerable<double> GetColumnWidths(this List<WorksheetDimensionRun>? runs)
+    public static IEnumerable<double> GetColumnWidths(this List<WorksheetDimensionRun>? runs, double? defaultWidth)
     {
-        return runs.GetDimensions(SpreadsheetConstants.DefaultColumnWidth, SpreadsheetConstants.MaxNumberOfColumns);
+        var actualDefaultWidth = defaultWidth ?? SpreadsheetConstants.DefaultColumnWidth;
+        return runs.GetDimensions(actualDefaultWidth, SpreadsheetConstants.MaxNumberOfColumns);
     }
 
     public static IEnumerable<double> GetRowHeights(this List<WorksheetDimensionRun>? runs)

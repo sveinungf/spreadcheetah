@@ -68,6 +68,7 @@ file struct WorksheetStartXmlWriter(
             Element.ColumnSplit => TryWriteColumnSplit(),
             Element.RowSplit => TryWriteRowSplit(),
             Element.SheetViewsEnd => TryWriteSheetViewsEnd(),
+            Element.SheetFormatProperties => TryWriteSheetFormatProperties(),
             Element.ColumnsStart => TryWriteColumnsStart(),
             Element.Columns => TryWriteColumns(),
             Element.ColumnsEnd => TryWriteColumnsEnd(),
@@ -136,6 +137,17 @@ file struct WorksheetStartXmlWriter(
             $"{"\"/></sheetView></sheetViews>"u8}");
     }
 
+    private readonly bool TryWriteSheetFormatProperties()
+    {
+        if (options?.DefaultColumnWidth is not { } defaultColumnWidth)
+            return true;
+
+        return buffer.TryWrite(
+            $"{"<sheetFormatPr defaultColWidth=\""u8}" +
+            $"{defaultColumnWidth}" +
+            $"{"\"/>"u8}");
+    }
+
     private readonly bool TryWriteColumnsStart()
     {
         return _columns is not { Count: > 0 } || buffer.TryWrite("<cols>"u8);
@@ -178,6 +190,7 @@ file struct WorksheetStartXmlWriter(
         ColumnSplit,
         RowSplit,
         SheetViewsEnd,
+        SheetFormatProperties,
         ColumnsStart,
         Columns,
         ColumnsEnd,

@@ -31,6 +31,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public List<WorksheetDimensionRun>? RowHeightRuns { get; private set; }
     public List<WorksheetTableInfo>? Tables { get; private set; }
     public List<WorksheetImage>? Images { get; private set; }
+    public double? DefaultColumnWidth { get; }
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer,
         bool writeCellReferenceAttributes, WorksheetOptions? options)
@@ -40,6 +41,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         _state = new CellWriterState(buffer);
         _autoFilterRange = options?.AutoFilter?.CellRange.Reference;
         ColumnWidthRuns = options?.GetColumnWidthRuns();
+        DefaultColumnWidth = options?.DefaultColumnWidth;
 
         if (writeCellReferenceAttributes)
         {
