@@ -1,3 +1,5 @@
+using SpreadCheetah.Helpers;
+
 namespace SpreadCheetah.Worksheets;
 
 /// <summary>
@@ -7,14 +9,12 @@ public class ColumnOptions
 {
     /// <summary>
     /// The width of the column. The number represents how many characters can be displayed in the standard font.
-    /// It must be between 0 and 255. When not set Excel will default to 8.43.
+    /// It must be between 0 and 255. When not set Excel will default to approximately 8.89.
     /// </summary>
     public double? Width
     {
         get => _width;
-        set => _width = value is <= 0 or > 255
-            ? throw new ArgumentOutOfRangeException(nameof(value), value, "Column width must be between 0 and 255.")
-            : value;
+        set => _width = Guard.ColumnWidthInRange(value);
     }
 
     private double? _width;

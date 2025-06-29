@@ -17,6 +17,10 @@ internal static class ThrowHelper
         => throw new ArgumentOutOfRangeException(paramName, number, "The column number must be greater than 0 and can't be larger than 16384.");
 
     [DoesNotReturn]
+    public static void ColumnWidthOutOfRange(string? paramName, double value)
+        => throw new ArgumentOutOfRangeException(paramName, value, "Column width must be between 0 and 255.");
+
+    [DoesNotReturn]
     public static void SingleCellReferenceInvalid(string? paramName)
         => throw new ArgumentException("Invalid reference for a cell.", paramName);
 
