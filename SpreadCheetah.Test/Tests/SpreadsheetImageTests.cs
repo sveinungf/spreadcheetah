@@ -790,6 +790,30 @@ public class SpreadsheetImageTests
     }
 
     [Fact]
+    public async Task Spreadsheet_AddImage_CustomDefaultColumnWidth()
+    {
+        // Arrange
+        using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
+        using var outputStream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
+        var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
+        var options = new WorksheetOptions { DefaultColumnWidth = 20 };
+
+        await spreadsheet.StartWorksheetAsync("Sheet 1", options, Token);
+        var canvas = ImageCanvas.Dimensions("B2".AsSpan(), 1000, 1000);
+
+        // Act
+        spreadsheet.AddImage(canvas, embeddedImage);
+
+        // Assert
+        await spreadsheet.FinishAsync(Token);
+        SpreadsheetAssert.Valid(outputStream);
+        using var zip = new ZipArchive(outputStream);
+        using var drawingXml = zip.GetDrawingXmlStream();
+        await VerifyXml(drawingXml);
+    }
+
+    [Fact]
     public async Task Spreadsheet_AddImage_CustomRowHeights()
     {
         // Arrange

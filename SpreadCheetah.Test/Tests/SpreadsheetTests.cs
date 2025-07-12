@@ -484,7 +484,7 @@ public class SpreadsheetTests
     [InlineData(100d)]
     [InlineData(255d)]
     [InlineData(null)]
-    public async Task Spreadsheet_StartWorksheet_DefaultColumnWidth(double? width)
+    public async Task Spreadsheet_StartWorksheet_CustomDefaultColumnWidth(double? width)
     {
         // Arrange
         var worksheetOptions = new WorksheetOptions { DefaultColumnWidth = width };
@@ -505,7 +505,7 @@ public class SpreadsheetTests
     }
 
     [Fact]
-    public async Task Spreadsheet_StartWorksheet_DefaultColumnWidthOverridden()
+    public async Task Spreadsheet_StartWorksheet_CustomDefaultColumnWidthOverridden()
     {
         // Arrange
         const double defaultWidth = 50;
