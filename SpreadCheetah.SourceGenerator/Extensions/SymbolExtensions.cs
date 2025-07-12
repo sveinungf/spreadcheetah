@@ -11,7 +11,8 @@ internal static class SymbolExtensions
     public static bool IsSupportedType(this ITypeSymbol type)
     {
         return type.IsSupportedValueType()
-            || (type.IsNullableType(out var underlyingType) && underlyingType.IsSupportedValueType());
+            || (type.IsNullableType(out var underlyingType) && underlyingType.IsSupportedValueType())
+            || type.IsUri();
     }
 
     private static bool IsSupportedValueType(this ITypeSymbol type)
@@ -45,12 +46,29 @@ internal static class SymbolExtensions
         };
     }
 
+    public static bool IsUri(this ITypeSymbol type)
+    {
+        return type is INamedTypeSymbol
+        {
+            ContainingNamespace:
+            {
+                Name: "System",
+                ContainingNamespace.IsGlobalNamespace: true
+            },
+            IsGenericType: false,
+            Name: "Uri",
+            TypeKind: TypeKind.Class
+        };
+    }
+
     public static PropertyFormula? ToPropertyFormula(this ITypeSymbol type)
     {
+        if (type.IsUri())
+            return new PropertyFormula(FormulaType.HyperlinkFromUri);
         if (type.IsFormula())
-            return new PropertyFormula(Nullable: false);
+            return new PropertyFormula(FormulaType.GeneralNonNullable);
         if (type.IsNullableType(out var underlyingType) && underlyingType.IsFormula())
-            return new PropertyFormula(Nullable: true);
+            return new PropertyFormula(FormulaType.GeneralNullable);
 
         return null;
     }

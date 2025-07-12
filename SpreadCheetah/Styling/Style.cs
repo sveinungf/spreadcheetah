@@ -1,3 +1,5 @@
+using System.Drawing;
+
 namespace SpreadCheetah.Styling;
 
 /// <summary>
@@ -27,4 +29,6 @@ public sealed record Style
 
     /// <summary>Format that defines how a number or <see cref="DateTime"/> cell should be displayed.</summary>
     public NumberFormat? Format { get; set; }
+
+    public static Style Hyperlink => new() { Font = { Color = Color.FromArgb(0x00467886), Underline = Underline.Single } };
 }

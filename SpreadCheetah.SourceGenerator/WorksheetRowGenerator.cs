@@ -72,7 +72,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         var implicitOrderProperties = new List<RowTypeProperty>();
         var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
         var hasFormula = false;
-        var hasStyleAttributes = false;
+        var hasStyle = false;
         var analyzer = new PropertyAnalyzer(NullDiagnosticsReporter.Instance);
 
         var properties = rowType
@@ -100,7 +100,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             if (rowTypeProperty.Formula is not null)
                 hasFormula = true;
             if (rowTypeProperty.HasStyle)
-                hasStyleAttributes = true;
+                hasStyle = true;
 
             if (data.ColumnOrder is not { } order)
                 implicitOrderProperties.Add(rowTypeProperty);
@@ -110,7 +110,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         explicitOrderProperties.AddWithImplicitKeys(implicitOrderProperties);
 
-        var cellType = (hasFormula, hasStyleAttributes) switch
+        var cellType = (hasFormula, hasStyle) switch
         {
             (true, _) => CellType.Cell,
             (_, true) => CellType.StyledCell,
@@ -119,7 +119,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         return new RowType(
             FullName: rowType.ToString(),
-            HasStyleAttributes: hasStyleAttributes,
+            HasStyle: hasStyle,
             IsReferenceType: rowType.IsReferenceType,
             CellType: cellType,
             Name: rowType.Name,
@@ -200,6 +200,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         if (codeGenState.DoGenerateConstructTruncatedDataCell)
             GenerateConstructTruncatedDataCell(sb);
+
+        if (codeGenState.DoGenerateConstructHyperlinkFormulaCellFromUri)
+            GenerateConstructHyperlinkFormulaCellFromUri(sb);
 
         sb.AppendLine("""
                 }
@@ -309,6 +312,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             {
                 { CellFormat: { } format } => HandleCellFormat(sb, lookup, format),
                 { CellStyle: { } style } => HandleCellStyle(sb, lookup, style),
+                { Formula.Type: FormulaType.HyperlinkFromUri } => HandleUriStyle(sb, lookup),
                 _ => false
             };
         }
@@ -350,6 +354,17 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         sb.AppendLine($"""
                             spreadsheet.GetStyleId({style.StyleNameRawString}),
+            """);
+        return true;
+    }
+
+    private static bool HandleUriStyle(StringBuilder sb, StyleLookup styleLookup)
+    {
+        if (!styleLookup.TryAddUriStyle())
+            return false;
+
+        sb.AppendLine("""
+                            spreadsheet.AddStyle(Style.Hyperlink),
             """);
         return true;
     }
@@ -454,7 +469,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
     private static void GenerateGetStyleIdsPart(StringBuilder sb, RowType rowType)
     {
-        if (rowType.HasStyleAttributes)
+        if (rowType.HasStyle)
         {
             sb.AppendLine($"""
                             var worksheetRowDependencyInfo = spreadsheet.GetOrCreateWorksheetRowDependencyInfo(Default.{rowType.Name});
@@ -588,7 +603,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                 _ => false
             };
 
-            var constructCell = ConstructCell(property, styleIdIndex, rowType, codeGenState);
+            var constructCell = ConstructCell(property, styleIdIndex, rowType, styleLookup, codeGenState);
 
             sb.AppendLine(FormattableString.Invariant($"""
                         cells[{i}] = {constructCell};
@@ -602,11 +617,11 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     }
 
     private static string ConstructCell(RowTypeProperty property, int? styleIdIndex,
-        RowType rowType, CodeGenerationState codeGenState)
+        RowType rowType, StyleLookup? styleLookup, CodeGenerationState codeGenState)
     {
         var value = $"obj.{property.Name}";
 
-        var styleId = (rowType.HasStyleAttributes, styleIdIndex) switch
+        var styleId = (rowType.HasStyle, styleIdIndex) switch
         {
             (true, { } i) => FormattableString.Invariant($"styleIds[{i}]"),
             (true, _) => "null",
@@ -614,7 +629,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         };
 
         if (property is { Formula: { } formula, CellValueConverter: null })
-            return ConstructFormulaCell(formula, styleId, value, codeGenState);
+            return ConstructFormulaCell(formula, styleId, value, styleLookup, codeGenState);
 
         var constructDataCell = ConstructDataCell(property, value, codeGenState);
 
@@ -642,20 +657,33 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         return $"new DataCell({value})";
     }
 
-    private static string ConstructFormulaCell(PropertyFormula formula, string? styleId, string value, CodeGenerationState codeGenState)
+    private static string ConstructFormulaCell(PropertyFormula formula, string? styleId, string value,
+        StyleLookup? styleLookup, CodeGenerationState codeGenState)
     {
-        if (!formula.Nullable)
+        if (formula.Type == FormulaType.GeneralNonNullable)
         {
             return styleId is null
                 ? $"new Cell({value})"
                 : $"new Cell({value}, {styleId})";
         }
 
-        codeGenState.RequireConstructNullableFormulaCell();
+        if (formula.Type == FormulaType.GeneralNullable)
+        {
+            codeGenState.RequireConstructNullableFormulaCell();
 
-        return styleId is null
-            ? $"ConstructNullableFormulaCell({value})"
-            : $"ConstructNullableFormulaCell({value}, {styleId})";
+            return styleId is null
+                ? $"ConstructNullableFormulaCell({value})"
+                : $"ConstructNullableFormulaCell({value}, {styleId})";
+        }
+
+        var uriStyleIdIndex = styleLookup?.UriStyleIdIndex;
+        Debug.Assert(formula.Type == FormulaType.HyperlinkFromUri);
+        Debug.Assert(uriStyleIdIndex is not null);
+
+        codeGenState.RequireConstructHyperlinkFormulaCellFromUri();
+
+        var uriStyleId = FormattableString.Invariant($"styleIds[{uriStyleIdIndex}]");
+        return $"ConstructHyperlinkFormulaCellFromUri({value}, {uriStyleId})";
     }
 
     private static void GenerateConstructNullableFormulaCell(StringBuilder sb)
@@ -680,6 +708,19 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                         return value is null || value.Length <= truncateLength
                             ? new DataCell(value)
                             : new DataCell(value.AsMemory(0, truncateLength));
+                    }
+            """);
+    }
+
+    private static void GenerateConstructHyperlinkFormulaCellFromUri(StringBuilder sb)
+    {
+        sb.AppendLine("""
+
+                    private static Cell ConstructHyperlinkFormulaCellFromUri(Uri? uri, StyleId styleId)
+                    {
+                        return uri is not null
+                            ? new Cell(Formula.Hyperlink(uri), styleId)
+                            : new Cell(new DataCell(), null);
                     }
             """);
     }
