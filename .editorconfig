@@ -256,7 +256,7 @@ dotnet_diagnostic.RCS1163.severity = warning
 # RCS1205: Order named arguments according to the order of parameters
 dotnet_diagnostic.RCS1205.severity = none
 
-[{CellFormatAttribute.cs,ColumnHeaderAttribute.cs,ColumnOrderAttribute.cs,WorksheetRowAttribute.cs}]
+[WorksheetRowAttribute.cs]
 # RCS1163: Unused parameter
 dotnet_diagnostic.RCS1163.severity = none
 
