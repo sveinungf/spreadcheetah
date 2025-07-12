@@ -468,16 +468,64 @@ public class SpreadsheetTests
         var expectedWidth = width ?? defaultWidthInXml;
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
-        {
-            // Act
-            await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
-            await spreadsheet.FinishAsync(Token);
-        }
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.Equal(expectedWidth, sheet.Column("A").Width, 5);
+    }
+
+    [Theory]
+    [InlineData(10d)]
+    [InlineData(100d)]
+    [InlineData(255d)]
+    [InlineData(null)]
+    public async Task Spreadsheet_StartWorksheet_DefaultColumnWidth(double? width)
+    {
+        // Arrange
+        var worksheetOptions = new WorksheetOptions { DefaultColumnWidth = width };
+        const double defaultWidthInExcelUi = 8.43;
+        const double defaultWidthInXml = defaultWidthInExcelUi + 0.71062;
+        var expectedWidth = width ?? defaultWidthInXml;
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(expectedWidth, sheet.Column("A").Width, 2);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_StartWorksheet_DefaultColumnWidthOverridden()
+    {
+        // Arrange
+        const double defaultWidth = 50;
+        const double widthForThirdColumn = 40;
+        var worksheetOptions = new WorksheetOptions { DefaultColumnWidth = defaultWidth };
+        worksheetOptions.Column(3).Width = widthForThirdColumn;
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(defaultWidth, sheet.Column("A").Width, 2);
+        Assert.Equal(defaultWidth, sheet.Column("B").Width, 2);
+        Assert.Equal(widthForThirdColumn, sheet.Column("C").Width, 2);
+        Assert.Equal(defaultWidth, sheet.Column("D").Width, 2);
     }
 
     [Theory]
