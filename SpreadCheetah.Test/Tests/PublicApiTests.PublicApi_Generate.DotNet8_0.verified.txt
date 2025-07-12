@@ -658,6 +658,7 @@ namespace SpreadCheetah.Worksheets
     {
         public WorksheetOptions() { }
         public SpreadCheetah.Worksheets.AutoFilterOptions? AutoFilter { get; set; }
+        public double? DefaultColumnWidth { get; set; }
         public int? FrozenColumns { get; set; }
         public int? FrozenRows { get; set; }
         public SpreadCheetah.Worksheets.WorksheetVisibility Visibility { get; set; }

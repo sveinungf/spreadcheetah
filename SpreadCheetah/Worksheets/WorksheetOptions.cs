@@ -8,6 +8,18 @@ namespace SpreadCheetah.Worksheets;
 public class WorksheetOptions
 {
     /// <summary>
+    /// The default width of the columns in the worksheet. The number represents how many characters can be displayed in the standard font.
+    /// It must be between 0 and 255. When not set Excel will default to approximately 8.89.
+    /// </summary>
+    public double? DefaultColumnWidth
+    {
+        get => _defaultColumnWidth;
+        set => _defaultColumnWidth = Guard.ColumnWidthInRange(value);
+    }
+
+    private double? _defaultColumnWidth;
+
+    /// <summary>
     /// The number of left-most columns that should be frozen.
     /// </summary>
     public int? FrozenColumns

@@ -182,6 +182,13 @@ dotnet_diagnostic.CA2007.severity = none
 dotnet_diagnostic.CA5394.severity = none
 
 ###############################
+# ErrorProne.NET.Core         #
+###############################
+[*.cs]
+# EPC29: ExcludeFromCodeCoverageAttribute should provide a message (not possible for .NET Standard 2.0)
+dotnet_diagnostic.EPC29.severity = none
+
+###############################
 # ErrorProne.NET.Structs      #
 ###############################
 [*.cs]

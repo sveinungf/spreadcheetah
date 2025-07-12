@@ -1,9 +1,31 @@
-using SpreadCheetah.Helpers;
+using SpreadCheetah.CellReferences;
 using SpreadCheetah.Worksheets;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct WorksheetStartXml
+internal static class WorksheetStartXml
+{
+    public static async ValueTask WriteAsync(
+        WorksheetOptions? options,
+        SpreadsheetBuffer buffer,
+        Stream entryStream,
+        CancellationToken token)
+    {
+        var writer = new WorksheetStartXmlWriter(options, buffer);
+
+        foreach (var success in writer)
+        {
+            if (!success)
+                await buffer.FlushToStreamAsync(entryStream, token).ConfigureAwait(false);
+        }
+
+        await buffer.FlushToStreamAsync(entryStream, token).ConfigureAwait(false);
+    }
+}
+
+file struct WorksheetStartXmlWriter(
+    WorksheetOptions? options,
+    SpreadsheetBuffer buffer)
 {
     private static ReadOnlySpan<byte> Header =>
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
@@ -12,46 +34,45 @@ internal struct WorksheetStartXml
 
     private static ReadOnlySpan<byte> SheetDataBegin => "<sheetData>"u8;
 
-    private readonly WorksheetOptions? _options;
-    private readonly List<KeyValuePair<int, ColumnOptions>>? _columns;
-    private readonly SpreadsheetBuffer _buffer;
+    private readonly List<(int ColumnIndex, ColumnOptions Options)>? _columns = GetColumns(options?.ColumnOptions);
+    private WorksheetColumnXmlPart? _columnXml;
     private Element _next;
     private int _nextIndex;
-    private bool _anyColumnWritten;
 
-    private WorksheetStartXml(WorksheetOptions? options, SpreadsheetBuffer buffer)
+    private static List<(int ColumnIndex, ColumnOptions Options)>? GetColumns(
+        SortedDictionary<int, ColumnOptions>? dictionary)
     {
-        _options = options;
-        _columns = options?.ColumnOptions is { } columns ? [.. columns] : null;
-        _buffer = buffer;
-    }
+        if (dictionary is null)
+            return null;
 
-    public static async ValueTask WriteAsync(
-        WorksheetOptions? options,
-        SpreadsheetBuffer buffer,
-        Stream stream,
-        CancellationToken token)
-    {
-        var writer = new WorksheetStartXml(options, buffer);
+        var columns = new List<(int ColumnIndex, ColumnOptions Options)>(dictionary.Count);
 
-        foreach (var success in writer)
+        foreach (var (columnIndex, option) in dictionary)
         {
-            if (!success)
-                await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            if (option.Width is not null || option.Hidden)
+                columns.Add((columnIndex, option));
         }
+
+        return columns;
     }
 
-    public readonly WorksheetStartXml GetEnumerator() => this;
+    public readonly WorksheetStartXmlWriter GetEnumerator() => this;
     public bool Current { get; private set; }
 
     public bool MoveNext()
     {
         Current = _next switch
         {
-            Element.Header => _buffer.TryWrite(Header),
-            Element.SheetViews => TryWriteSheetViews(),
+            Element.Header => buffer.TryWrite(Header),
+            Element.SheetViewsStart => TryWriteSheetViewsStart(),
+            Element.ColumnSplit => TryWriteColumnSplit(),
+            Element.RowSplit => TryWriteRowSplit(),
+            Element.SheetViewsEnd => TryWriteSheetViewsEnd(),
+            Element.SheetFormatProperties => TryWriteSheetFormatProperties(),
+            Element.ColumnsStart => TryWriteColumnsStart(),
             Element.Columns => TryWriteColumns(),
-            _ => _buffer.TryWrite(SheetDataBegin)
+            Element.ColumnsEnd => TryWriteColumnsEnd(),
+            _ => buffer.TryWrite(SheetDataBegin)
         };
 
         if (Current)
@@ -60,127 +81,120 @@ internal struct WorksheetStartXml
         return _next < Element.Done;
     }
 
-    private readonly bool TryWriteSheetViews()
+    private readonly bool TryWriteSheetViewsStart()
     {
-        var options = _options;
-        if (options?.FrozenColumns is null && options?.FrozenRows is null)
+        return options is null or { FrozenColumns: null, FrozenRows: null }
+            || buffer.TryWrite("<sheetViews><sheetView workbookViewId=\"0\"><pane "u8);
+    }
+
+    private readonly bool TryWriteColumnSplit()
+    {
+        if (options?.FrozenColumns is not { } frozenColumns)
             return true;
 
-        var span = _buffer.GetSpan();
-        var written = 0;
+        return buffer.TryWrite(
+            $"{"xSplit=\""u8}" +
+            $"{frozenColumns}" +
+            $"{"\" "u8}");
+    }
 
-        if (!"<sheetViews><sheetView workbookViewId=\"0\"><pane "u8.TryCopyTo(span, ref written)) return false;
-        if (!TryWritexSplit(span, ref written)) return false;
-        if (!TryWriteySplit(span, ref written)) return false;
-        if (!"topLeftCell=\""u8.TryCopyTo(span, ref written)) return false;
+    private readonly bool TryWriteRowSplit()
+    {
+        if (options?.FrozenRows is not { } frozenRows)
+            return true;
 
-        var column = (options.FrozenColumns ?? 0) + 1;
-        var row = (options.FrozenRows ?? 0) + 1;
-        if (!SpanHelper.TryWriteCellReference(column, (uint)row, span, ref written)) return false;
+        return buffer.TryWrite(
+            $"{"ySplit=\""u8}" +
+            $"{frozenRows}" +
+            $"{"\" "u8}");
+    }
 
-        if (!"\" activePane=\""u8.TryCopyTo(span, ref written)) return false;
+    private readonly bool TryWriteSheetViewsEnd()
+    {
+        var frozenColumns = options?.FrozenColumns;
+        var frozenRows = options?.FrozenRows;
+        if (frozenColumns is null && frozenRows is null)
+            return true;
 
-        var activePane = options switch
+        var activePane = (frozenColumns, frozenRows) switch
         {
-            { FrozenColumns: not null, FrozenRows: not null } => "bottomRight"u8,
-            { FrozenColumns: not null } => "topRight"u8,
+            (not null, not null) => "bottomRight"u8,
+            (not null, _) => "topRight"u8,
             _ => "bottomLeft"u8
         };
 
-        if (!activePane.TryCopyTo(span, ref written)) return false;
-        if (!"\" state=\"frozen\"/>"u8.TryCopyTo(span, ref written)) return false;
+        var column = (frozenColumns ?? 0) + 1;
+        var row = (frozenRows ?? 0) + 1;
+        var cellReference = new SimpleSingleCellReference((ushort)column, (uint)row);
 
-        var bottomRight = """<selection pane="bottomRight"/>"""u8;
-        if (options is { FrozenColumns: not null, FrozenRows: not null } && !bottomRight.TryCopyTo(span, ref written))
-            return false;
-
-        var bottomLeft = """<selection pane="bottomLeft"/>"""u8;
-        if (options.FrozenRows is not null && !bottomLeft.TryCopyTo(span, ref written))
-            return false;
-
-        var topRight = """<selection pane="topRight"/>"""u8;
-        if (options.FrozenColumns is not null && !topRight.TryCopyTo(span, ref written))
-            return false;
-
-        if (!"</sheetView></sheetViews>"u8.TryCopyTo(span, ref written)) return false;
-
-        _buffer.Advance(written);
-        return true;
+        return buffer.TryWrite(
+            $"{"topLeftCell=\""u8}" +
+            $"{cellReference}" +
+            $"{"\" activePane=\""u8}" +
+            $"{activePane}" +
+            $"{"\" state=\"frozen\"/><selection pane=\""u8}" +
+            $"{activePane}" +
+            $"{"\"/></sheetView></sheetViews>"u8}");
     }
 
-    private readonly bool TryWritexSplit(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteSheetFormatProperties()
     {
-        if (_options?.FrozenColumns is not { } frozenColumns)
+        if (options?.DefaultColumnWidth is not { } defaultColumnWidth)
             return true;
 
-        if (!"xSplit=\""u8.TryCopyTo(bytes, ref bytesWritten)) return false;
-        if (!SpanHelper.TryWrite(frozenColumns, bytes, ref bytesWritten)) return false;
-        return "\" "u8.TryCopyTo(bytes, ref bytesWritten);
+        return buffer.TryWrite(
+            $"{"<sheetFormatPr defaultColWidth=\""u8}" +
+            $"{defaultColumnWidth}" +
+            $"{"\" defaultRowHeight=\"14.4\"/>"u8}");
     }
 
-    private readonly bool TryWriteySplit(Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteColumnsStart()
     {
-        if (_options?.FrozenRows is not { } frozenRows)
-            return true;
-
-        if (!"ySplit=\""u8.TryCopyTo(bytes, ref bytesWritten)) return false;
-        if (!SpanHelper.TryWrite(frozenRows, bytes, ref bytesWritten)) return false;
-        return "\" "u8.TryCopyTo(bytes, ref bytesWritten);
+        return _columns is not { Count: > 0 } || buffer.TryWrite("<cols>"u8);
     }
 
     private bool TryWriteColumns()
     {
-        if (_columns is not { } columns) return true;
-
-        var anyColumnWritten = _anyColumnWritten;
+        if (_columns is not { Count: > 0 } columns)
+            return true;
 
         for (; _nextIndex < columns.Count; ++_nextIndex)
         {
-            var (columnIndex, options) = columns[_nextIndex];
-            if (options.Width is null && !options.Hidden)
-                continue;
+            var (columnIndex, columnOptions) = columns[_nextIndex];
 
-            var span = _buffer.GetSpan();
-            var written = 0;
+            var xml = _columnXml ??
+                new WorksheetColumnXmlPart(buffer, columnIndex, columnOptions);
 
-            if (!anyColumnWritten)
+            if (!xml.TryWrite())
             {
-                if (!"<cols>"u8.TryCopyTo(span, ref written)) return false;
-                anyColumnWritten = true;
+                _columnXml = xml;
+                return false;
             }
 
-            if (!"<col min=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(columnIndex, span, ref written)) return false;
-            if (!"\" max=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(columnIndex, span, ref written)) return false;
-            if (!"\""u8.TryCopyTo(span, ref written)) return false;
-            if (options.Width.HasValue)
-            {
-                if (!" width=\""u8.TryCopyTo(span, ref written)) return false;
-                if (!SpanHelper.TryWrite(options.Width.GetValueOrDefault(), span, ref written)) return false;
-                if (!"\" customWidth=\"1\""u8.TryCopyTo(span, ref written)) return false;
-            }
-
-            if (options.Hidden && !" hidden=\"1\""u8.TryCopyTo(span, ref written)) return false;
-            if (!" />"u8.TryCopyTo(span, ref written)) return false;
-
-            _anyColumnWritten = anyColumnWritten;
-
-            _buffer.Advance(written);
+            _columnXml = null;
         }
 
-        if (!anyColumnWritten)
-            return true;
+        _nextIndex = 0;
+        return true;
+    }
 
-        return _buffer.TryWrite("</cols>"u8);
+    private readonly bool TryWriteColumnsEnd()
+    {
+        return _columns is not { Count: > 0 } || buffer.TryWrite("</cols>"u8);
     }
 
     private enum Element
     {
         Header,
-        SheetViews,
+        SheetViewsStart,
+        ColumnSplit,
+        RowSplit,
+        SheetViewsEnd,
+        SheetFormatProperties,
+        ColumnsStart,
         Columns,
-        SheetDataBegin,
+        ColumnsEnd,
+        SheetDataStart,
         Done
     }
 }

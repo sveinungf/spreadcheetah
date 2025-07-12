@@ -112,7 +112,7 @@ internal struct DrawingImageXml(
         var fromColumnOffsetInPixels = image.Offset?.Left ?? 0;
         double remainingWidthInPixels = fromColumnOffsetInPixels + imageWidth;
         var toColumnOffsetInPixels = remainingWidthInPixels;
-        var columnWidths = worksheet.ColumnWidthRuns.GetColumnWidths();
+        var columnWidths = worksheet.ColumnWidthRuns.GetColumnWidths(worksheet.DefaultColumnWidth);
         ushort columnCount = 0;
 
         foreach (var columnWidth in columnWidths.Skip(fromColumn))
