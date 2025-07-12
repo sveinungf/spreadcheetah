@@ -4,16 +4,16 @@
     <CentralPackageVersionOverrideEnabled>false</CentralPackageVersionOverrideEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <GlobalPackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.7.0-beta.1" />
-    <GlobalPackageReference Include="Meziantou.Analyzer" Version="2.0.201" />
+    <GlobalPackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.8.0-beta.1" />
+    <GlobalPackageReference Include="Meziantou.Analyzer" Version="2.0.205" />
     <GlobalPackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" />
     <GlobalPackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15" />
     <GlobalPackageReference Include="PrimaryConstructorAnalyzer" Version="1.0.6" />
     <GlobalPackageReference Include="Roslynator.Analyzers" Version="4.13.1" />
-    <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.11.0.117924" />
+    <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.13.0.120203" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="BenchmarkDotNet" Version="0.15.1" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.2" />
     <PackageVersion Include="Bogus" Version="35.6.3" />
     <PackageVersion Include="ClosedXML" Version="0.105.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
@@ -27,13 +27,13 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="Polyfill" Version="7.13.0" />
     <PackageVersion Include="PublicApiGenerator" Version="11.4.6" />
-    <PackageVersion Include="System.Collections.Immutable" Version="9.0.6" />
-    <PackageVersion Include="System.Drawing.Common" Version="9.0.6" />
-    <PackageVersion Include="System.Formats.Asn1" Version="9.0.6" />
+    <PackageVersion Include="System.Collections.Immutable" Version="9.0.7" />
+    <PackageVersion Include="System.Drawing.Common" Version="9.0.7" />
+    <PackageVersion Include="System.Formats.Asn1" Version="9.0.7" />
     <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
     <PackageVersion Include="System.Memory" Version="4.6.3" />
-    <PackageVersion Include="System.Reflection.Metadata" Version="9.0.6" />
-    <PackageVersion Include="TngTech.ArchUnitNET.xUnitV3" Version="0.11.4" />
+    <PackageVersion Include="System.Reflection.Metadata" Version="9.0.7" />
+    <PackageVersion Include="TngTech.ArchUnitNET.xUnitV3" Version="0.12.0" />
     <PackageVersion Include="Verify.SourceGenerators" Version="2.5.0" />
     <PackageVersion Include="Verify.XunitV3" Version="30.0.0" />
     <PackageVersion Include="Xunit.Combinatorial" Version="2.0.24" />
