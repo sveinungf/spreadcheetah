@@ -145,7 +145,7 @@ file struct WorksheetStartXmlWriter(
         return buffer.TryWrite(
             $"{"<sheetFormatPr defaultColWidth=\""u8}" +
             $"{defaultColumnWidth}" +
-            $"{"\"/>"u8}");
+            $"{"\" defaultRowHeight=\"14.4\"/>"u8}");
     }
 
     private readonly bool TryWriteColumnsStart()
