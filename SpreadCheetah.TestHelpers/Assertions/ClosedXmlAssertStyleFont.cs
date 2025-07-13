@@ -1,5 +1,6 @@
 using ClosedXML.Excel;
 using SpreadCheetah.Styling;
+using System.Drawing;
 
 namespace SpreadCheetah.TestHelpers.Assertions;
 
@@ -8,6 +9,7 @@ internal sealed class ClosedXmlAssertStyleFont(IXLFont font) : ISpreadsheetAsser
     public bool Bold => font.Bold;
     public bool Italic => font.Italic;
     public bool Strikethrough => font.Strikethrough;
+    public Color Color => font.FontColor.Color;
 
     public Underline Underline => font.Underline switch
     {
