@@ -24,11 +24,20 @@ namespace MyNamespace
         private WorksheetRowTypeInfo<MyNamespace.ClassWithAllSupportedTypes>? _ClassWithAllSupportedTypes;
         public WorksheetRowTypeInfo<MyNamespace.ClassWithAllSupportedTypes> ClassWithAllSupportedTypes => _ClassWithAllSupportedTypes
             ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithAllSupportedTypes>(
-                AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, null);
+                AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, null, CreateWorksheetRowDependencyInfo0);
+
+        private static WorksheetRowDependencyInfo CreateWorksheetRowDependencyInfo0(Spreadsheet spreadsheet)
+        {
+            var styleIds = new[]
+            {
+                spreadsheet.AddStyle(Style.Hyperlink),
+            };
+            return new WorksheetRowDependencyInfo(styleIds);
+        }
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
-            var headerNames = ArrayPool<string?>.Shared.Rent(18);
+            var headerNames = ArrayPool<string?>.Shared.Rent(20);
             try
             {
                 headerNames[0] = "StringValue";
@@ -49,7 +58,9 @@ namespace MyNamespace
                 headerNames[15] = "NullableBoolValue";
                 headerNames[16] = "FormulaValue";
                 headerNames[17] = "NullableFormulaValue";
-                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 18)!, styleId, token).ConfigureAwait(false);
+                headerNames[18] = "UriValue";
+                headerNames[19] = "NullableUriValue";
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 20)!, styleId, token).ConfigureAwait(false);
             }
             finally
             {
@@ -81,10 +92,11 @@ namespace MyNamespace
             MyNamespace.ClassWithAllSupportedTypes obj,
             CancellationToken token)
         {
-            var cells = ArrayPool<Cell>.Shared.Rent(18);
+            var cells = ArrayPool<Cell>.Shared.Rent(20);
             try
             {
-                var styleIds = Array.Empty<StyleId>();
+                var worksheetRowDependencyInfo = spreadsheet.GetOrCreateWorksheetRowDependencyInfo(Default.ClassWithAllSupportedTypes);
+                var styleIds = worksheetRowDependencyInfo.StyleIds;
                 await AddCellsAsRowAsync(spreadsheet, obj, cells, styleIds, token).ConfigureAwait(false);
             }
             finally
@@ -97,10 +109,11 @@ namespace MyNamespace
             IEnumerable<MyNamespace.ClassWithAllSupportedTypes?> objs,
             CancellationToken token)
         {
-            var cells = ArrayPool<Cell>.Shared.Rent(18);
+            var cells = ArrayPool<Cell>.Shared.Rent(20);
             try
             {
-                var styleIds = Array.Empty<StyleId>();
+                var worksheetRowDependencyInfo = spreadsheet.GetOrCreateWorksheetRowDependencyInfo(Default.ClassWithAllSupportedTypes);
+                var styleIds = worksheetRowDependencyInfo.StyleIds;
                 foreach (var obj in objs)
                 {
                     await AddCellsAsRowAsync(spreadsheet, obj, cells, styleIds, token).ConfigureAwait(false);
@@ -137,7 +150,9 @@ namespace MyNamespace
             cells[15] = new Cell(new DataCell(obj.NullableBoolValue));
             cells[16] = new Cell(obj.FormulaValue);
             cells[17] = ConstructNullableFormulaCell(obj.NullableFormulaValue);
-            return spreadsheet.AddRowAsync(cells.AsMemory(0, 18), token);
+            cells[18] = ConstructHyperlinkFormulaCellFromUri(obj.UriValue, styleIds[0]);
+            cells[19] = ConstructHyperlinkFormulaCellFromUri(obj.NullableUriValue, styleIds[0]);
+            return spreadsheet.AddRowAsync(cells.AsMemory(0, 20), token);
         }
 
         private static Cell ConstructNullableFormulaCell(Formula? formula, StyleId? styleId = null)
@@ -145,6 +160,13 @@ namespace MyNamespace
             return formula is { } f
                 ? new Cell(f, styleId)
                 : new Cell(new DataCell(), styleId);
+        }
+
+        private static Cell ConstructHyperlinkFormulaCellFromUri(Uri? uri, StyleId styleId)
+        {
+            return uri is not null
+                ? new Cell(Formula.Hyperlink(uri), styleId)
+                : new Cell(new DataCell(), null);
         }
     }
 }

@@ -10,5 +10,5 @@ internal sealed record RowTypeProperty(
     ColumnWidth? ColumnWidth,
     PropertyFormula? Formula)
 {
-    public bool HasStyle => this is not { CellFormat: null, CellStyle: null };
+    public bool HasStyle => CellFormat is not null || CellStyle is not null || Formula is { Type: FormulaType.HyperlinkFromUri };
 }

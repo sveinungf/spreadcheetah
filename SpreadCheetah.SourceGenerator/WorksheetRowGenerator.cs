@@ -621,12 +621,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     {
         var value = $"obj.{property.Name}";
 
-        var styleId = (rowType.HasStyle, styleIdIndex) switch
-        {
-            (true, { } i) => FormattableString.Invariant($"styleIds[{i}]"),
-            (true, _) => "null",
-            _ => null
-        };
+        var styleId = styleIdIndex is { } i
+            ? FormattableString.Invariant($"styleIds[{i}]")
+            : null;
 
         if (property is { Formula: { } formula, CellValueConverter: null })
             return ConstructFormulaCell(formula, styleId, value, styleLookup, codeGenState);
