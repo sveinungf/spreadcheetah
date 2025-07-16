@@ -96,6 +96,12 @@ internal static class SymbolExtensions
         return false;
     }
 
+    public static bool SupportsCellFormatAttribute(
+        this ITypeSymbol type)
+    {
+        return !type.IsUri() && type.IsSupportedType();
+    }
+
     public static bool IsInstancePropertyWithPublicGetter(
         this IPropertySymbol property)
     {
