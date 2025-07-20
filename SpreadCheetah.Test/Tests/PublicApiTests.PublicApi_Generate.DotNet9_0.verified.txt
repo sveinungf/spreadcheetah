@@ -466,6 +466,7 @@ namespace SpreadCheetah.Styling
         public SpreadCheetah.Styling.NumberFormat? Format { get; set; }
         [System.Obsolete("Use Style.Format instead")]
         public string? NumberFormat { get; set; }
+        public static SpreadCheetah.Styling.Style Hyperlink { get; }
     }
     public sealed class StyleId
     {
