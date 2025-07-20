@@ -32,7 +32,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
             _ = attribute.AttributeClass?.MetadataName switch
             {
-                Attributes.CellFormat => TryGetCellFormatAttribute(attribute, token),
+                Attributes.CellFormat => TryGetCellFormatAttribute(attribute, property.Type, token),
                 Attributes.CellStyle => TryGetCellStyleAttribute(attribute, token),
                 Attributes.CellValueConverter => TryGetCellValueConverterAttribute(attribute, property.Type, token),
                 Attributes.CellValueTruncate => TryGetCellValueTruncateAttribute(attribute, property.Type, token),
@@ -78,8 +78,15 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
     private bool TryGetCellFormatAttribute(
         AttributeData attribute,
+        ITypeSymbol propertyType,
         CancellationToken token)
     {
+        if (!propertyType.SupportsCellFormatAttribute())
+        {
+            diagnostics.ReportUnsupportedPropertyTypeForAttribute(attribute, propertyType, token);
+            return false;
+        }
+
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: { } value } arg])
             return false;

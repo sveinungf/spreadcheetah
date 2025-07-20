@@ -6,7 +6,7 @@ namespace SpreadCheetah.SourceGeneration;
 /// <para>
 /// Instructs the SpreadCheetah source generator about the width to use for a column.
 /// The number represents how many characters can be displayed in the standard font.
-/// It must be between 0 and 255. When not set Excel will default to 8.43.
+/// It must be between 0 and 255. When not set Excel will default to approximately 8.89.
 /// </para>
 /// <para>
 /// A worksheet will use column widths from this attribute by passing the

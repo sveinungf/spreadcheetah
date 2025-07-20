@@ -103,7 +103,7 @@ public class ContextTests
             
             namespace MyNamespace;
             
-            public record RecordA(string? Name, Uri? Uri);
+            public record RecordA(string? Name, UriBuilder? Uri);
             public record RecordB(string? Name);
             
             [WorksheetRow(typeof(RecordA))]

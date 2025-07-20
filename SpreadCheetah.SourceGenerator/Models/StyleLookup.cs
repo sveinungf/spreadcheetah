@@ -5,9 +5,12 @@ internal sealed class StyleLookup
     private Dictionary<CellFormat, int>? _cellFormatToStyleIdIndex;
     private Dictionary<CellStyle, int>? _cellStyleToStyleIdIndex;
 
+    public int? UriStyleIdIndex { get; private set; }
+
     private int StyleCount =>
         (_cellFormatToStyleIdIndex?.Count ?? 0)
-        + (_cellStyleToStyleIdIndex?.Count ?? 0);
+        + (_cellStyleToStyleIdIndex?.Count ?? 0)
+        + (UriStyleIdIndex is null ? 0 : 1);
 
     public bool TryAdd(CellFormat cellFormat)
     {
@@ -27,6 +30,15 @@ internal sealed class StyleLookup
             return false;
 
         dictionary[key] = StyleCount;
+        return true;
+    }
+
+    public bool TryAddUriStyle()
+    {
+        if (UriStyleIdIndex is not null)
+            return false;
+
+        UriStyleIdIndex = StyleCount;
         return true;
     }
 

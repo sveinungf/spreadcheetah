@@ -91,4 +91,29 @@ public class CellFormatTests
         // Act & Assert
         return context.RunAsync(Token);
     }
+
+    [Fact]
+    public Task CellFormat_ClassWithCellFormatOnUriProperty()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
+            using SpreadCheetah.SourceGeneration;
+            using System;
+
+            namespace MyNamespace;
+
+            public class ClassWithCellFormat
+            {
+                [{|SPCH1005:CellFormat("#.0#")|}]
+                public Uri? Value { get; set; }
+            }
+            
+            [WorksheetRow(typeof(ClassWithCellFormat))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return context.RunAsync(Token);
+    }
 }

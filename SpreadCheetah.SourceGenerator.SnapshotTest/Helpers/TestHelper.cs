@@ -23,6 +23,7 @@ internal static class TestHelper
             MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.Core.dll")),
             MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.Private.CoreLib.dll")),
             MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.Runtime.dll")),
+            MetadataReference.CreateFromFile(typeof(Uri).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(WorksheetRowAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(TestHelper).Assembly.Location)
         ];

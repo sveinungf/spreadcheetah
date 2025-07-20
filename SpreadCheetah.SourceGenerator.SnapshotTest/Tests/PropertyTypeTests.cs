@@ -87,6 +87,8 @@ public class PropertyTypeTests
                 public bool? NullableBoolValue { get; set; }
                 public Formula FormulaValue { get; set; }
                 public Formula? NullableFormulaValue { get; set; }
+                public Uri UriValue { get; set; } = null!;
+                public Uri? NullableUriValue { get; set; }
             }
 
             [WorksheetRow(typeof(ClassWithAllSupportedTypes))]

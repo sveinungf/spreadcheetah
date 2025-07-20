@@ -7,7 +7,7 @@ internal sealed record RowType(
     string FullName,
     bool IsReferenceType,
     CellType CellType,
-    bool HasStyleAttributes,
+    bool HasStyle,
     EquatableArray<RowTypeProperty> Properties)
 {
     public string FullNameWithNullableAnnotation => IsReferenceType ? $"{FullName}?" : FullName;

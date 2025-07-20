@@ -70,4 +70,24 @@ public class FormulaTests
         Assert.True(sheet["A1"].Style.Font.Bold);
         Assert.Equal("#.##", sheet["B1"].Style.NumberFormat.CustomFormat);
     }
+
+    [Fact]
+    public async Task Spreadsheet_AddAsRow_ClassWithUri()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var obj = new ClassWithUri { Uri = new Uri("https://github.com") };
+
+        // Act
+        await spreadsheet.AddAsRowAsync(obj, FormulaContext.Default.ClassWithUri, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal("""HYPERLINK("https://github.com/")""", sheet["A1"].Formula);
+        Assert.Equal(Underline.Single, sheet["A1"].Style.Font.Underline);
+        Assert.Equal(Style.Hyperlink.Font.Color, sheet["A1"].Style.Font.Color);
+    }
 }
