@@ -30,5 +30,8 @@ public sealed record Style
     /// <summary>Format that defines how a number or <see cref="DateTime"/> cell should be displayed.</summary>
     public NumberFormat? Format { get; set; }
 
+    /// <summary>
+    /// Creates a style with the font color and underline formatting that Excel creates for HYPERLINK formulas.
+    /// </summary>
     public static Style Hyperlink => new() { Font = { Color = Color.FromArgb(0x00467886), Underline = Underline.Single } };
 }
