@@ -31,7 +31,7 @@ public sealed record Style
     public NumberFormat? Format { get; set; }
 
     /// <summary>
-    /// Creates a style with the font color and underline formatting that Excel creates for HYPERLINK formulas.
+    /// Creates a style with the font color and underline formatting that Excel uses for HYPERLINK formulas.
     /// </summary>
     public static Style Hyperlink => new() { Font = { Color = Color.FromArgb(0x00467886), Underline = Underline.Single } };
 }
