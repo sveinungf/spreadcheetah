@@ -68,6 +68,27 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         return false;
     }
 
+    public bool TryWriteWithoutAdvancing(scoped ReadOnlySpan<byte> utf8Value, ref int bytesWritten)
+    {
+        Debug.Assert(utf8Value.Length <= SpreadCheetahOptions.MinimumBufferSize);
+        if (utf8Value.TryCopyTo(GetSpan()))
+        {
+            bytesWritten += utf8Value.Length;
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool TryWriteWithoutAdvancing(
+        [InterpolatedStringHandlerArgument("")] ref TryWriteInterpolatedStringHandler handler,
+        ref int bytesWritten)
+    {
+        var pos = handler._pos;
+        bytesWritten += pos;
+        return pos != 0;
+    }
+
     [InterpolatedStringHandler]
 #pragma warning disable CS9113 // Parameter is unread.
     public ref struct TryWriteInterpolatedStringHandler(int literalLength, int formattedCount, SpreadsheetBuffer buffer)

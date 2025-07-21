@@ -1,3 +1,5 @@
+using SpreadCheetah.Styling;
+
 namespace SpreadCheetah.Worksheets;
 
 /// <summary>
@@ -17,4 +19,6 @@ public class RowOptions
     }
 
     private double? _height;
+
+    public StyleId? DefaultStyleId { get; set; }
 }

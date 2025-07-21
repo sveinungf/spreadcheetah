@@ -118,10 +118,12 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private bool TryAddRowWithOptions<TCell, TWriter>(IList<TCell> cells, uint rowIndex, TWriter writer, RowOptions options)
         where TWriter : BaseCellWriter<TCell>
     {
+        // TODO: Update DefaultStyling if options.DefaultStyleId is not null
         var result = writer.TryAddRow(cells, rowIndex, options);
         if (result && options.Height is { } height)
             UpdateRowHeightRuns(rowIndex, height);
 
+        // TODO: Revert DefaultStyling if result is true
         return result;
     }
 
