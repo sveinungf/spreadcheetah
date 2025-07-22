@@ -11,7 +11,7 @@ public interface ISpreadsheetAssertSheet : IDisposable
 
     ISpreadsheetAssertColumn Column(string columnName);
     IReadOnlyList<ISpreadsheetAssertColumn> Columns { get; }
-    IEnumerable<ISpreadsheetAssertCell> Row(int rowNumber);
+    ISpreadsheetAssertRow Row(int rowNumber);
 
     IReadOnlyList<ISpreadsheetAssertTable> Tables { get; }
 }

@@ -28,7 +28,7 @@ public class InheritColumnsTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(["Derived"], sheet.Row(1).StringValues());
+        Assert.Equal(["Derived"], sheet.Row(1).Cells.StringValues());
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class InheritColumnsTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(["Base", "Derived"], sheet.Row(1).StringValues());
+        Assert.Equal(["Base", "Derived"], sheet.Row(1).Cells.StringValues());
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class InheritColumnsTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(["Derived", "Base"], sheet.Row(1).StringValues());
+        Assert.Equal(["Derived", "Base"], sheet.Row(1).Cells.StringValues());
     }
 
     [Fact]
@@ -95,6 +95,6 @@ public class InheritColumnsTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(["Derived", "Base", "Leaf"], sheet.Row(1).StringValues());
+        Assert.Equal(["Derived", "Base", "Leaf"], sheet.Row(1).Cells.StringValues());
     }
 }

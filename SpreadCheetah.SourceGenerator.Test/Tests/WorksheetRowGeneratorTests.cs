@@ -518,7 +518,7 @@ public class WorksheetRowGeneratorTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Empty(sheet.Row(1));
+        Assert.Empty(sheet.Row(1).Cells);
         Assert.Equal(0, sheet.CellCount);
     }
 
@@ -544,7 +544,7 @@ public class WorksheetRowGeneratorTests
         Assert.Equal("FirstName", sheet["A", 1].StringValue);
         Assert.Equal("LastName", sheet["B", 1].StringValue);
         Assert.Equal("Age", sheet["C", 1].StringValue);
-        Assert.All(sheet.Row(1), x => Assert.True(x.Style.Font.Bold));
+        Assert.All(sheet.Row(1).Cells, x => Assert.True(x.Style.Font.Bold));
         Assert.Equal(3, sheet.CellCount);
     }
 
@@ -673,7 +673,7 @@ string: "", \)",
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(expectedValues.Select(StringHelpers.ReplaceLineEndings), sheet.Row(1).StringValues().Select(StringHelpers.ReplaceLineEndings!));
+        Assert.Equal(expectedValues.Select(StringHelpers.ReplaceLineEndings), sheet.Row(1).Cells.StringValues().Select(StringHelpers.ReplaceLineEndings!));
     }
 
     [Fact]
@@ -707,7 +707,7 @@ string: "", \)",
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(expectedValues, sheet.Row(1).StringValues());
+        Assert.Equal(expectedValues, sheet.Row(1).Cells.StringValues());
     }
 
     [Fact]
@@ -735,7 +735,7 @@ string: "", \)",
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(expectedValues, sheet.Row(1).StringValues());
+        Assert.Equal(expectedValues, sheet.Row(1).Cells.StringValues());
     }
 
     [Fact]
