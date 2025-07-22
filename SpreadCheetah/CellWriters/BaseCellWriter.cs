@@ -137,7 +137,7 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
     {
         using var pooledArray = cells.ToPooledArray();
         await AddRowAsync(pooledArray.Memory, rowIndex, options, stream, token).ConfigureAwait(false);
-        // TODO: Revert DefaultStyling if there is a row style.
+        DefaultStyling?.ClearRowDateTimeStyleId();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

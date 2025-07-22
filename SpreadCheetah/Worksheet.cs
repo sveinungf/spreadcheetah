@@ -22,6 +22,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly BaseCellWriter<DataCell> _dataCellWriter;
     private readonly BaseCellWriter<StyledCell> _styledCellWriter;
     private readonly CellWriterState _state;
+    private readonly DefaultStyling? _defaultStyling;
     private readonly string? _autoFilterRange;
     private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
     private HashSet<CellRangeRelativeReference>? _cellMerges;
@@ -39,6 +40,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         _stream = stream;
         _buffer = buffer;
         _state = new CellWriterState(buffer);
+        _defaultStyling = defaultStyling;
         _autoFilterRange = options?.AutoFilter?.CellRange.Reference;
         ColumnWidthRuns = options?.GetColumnWidthRuns();
         DefaultColumnWidth = options?.DefaultColumnWidth;
@@ -118,12 +120,16 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private bool TryAddRowWithOptions<TCell, TWriter>(IList<TCell> cells, uint rowIndex, TWriter writer, RowOptions options)
         where TWriter : BaseCellWriter<TCell>
     {
-        // TODO: Update DefaultStyling if options.DefaultStyleId is not null
+        if (options.DefaultStyleId is { } styleId)
+            _defaultStyling?.SetRowDateTimeStyleId(rowIndex, styleId.DateTimeId);
+
         var result = writer.TryAddRow(cells, rowIndex, options);
         if (result && options.Height is { } height)
             UpdateRowHeightRuns(rowIndex, height);
 
-        // TODO: Revert DefaultStyling if result is true
+        if (result)
+            _defaultStyling?.ClearRowDateTimeStyleId();
+
         return result;
     }
 
