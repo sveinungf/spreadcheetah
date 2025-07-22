@@ -9,6 +9,7 @@ using CellType = SpreadCheetah.Test.Helpers.CellType;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 using OpenXmlCellValue = DocumentFormat.OpenXml.Spreadsheet.CellValues;
 using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
+using Style = SpreadCheetah.Styling.Style;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -777,6 +778,8 @@ public class SpreadsheetRowTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        // Act
         await spreadsheet.AddRowAsync(CellFactory.Create(type, "My value"), rowType, rowOptions);
         await spreadsheet.FinishAsync(Token);
 
@@ -784,5 +787,31 @@ public class SpreadsheetRowTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualHeight = sheet.Row(1).Height;
         Assert.Equal(expectedHeight, actualHeight, 5);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_RowStyle(
+        CellType type,
+        RowCollectionType rowType)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var fontColor = System.Drawing.Color.FromArgb(255, 255, 69);
+        var style = new Style { Font = { Color = fontColor } };
+        var styleId = spreadsheet.AddStyle(style);
+        var rowOptions = new RowOptions { DefaultStyleId = styleId };
+
+        // Act
+        await spreadsheet.AddRowAsync(CellFactory.Create(type, "My value"), rowType, rowOptions);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRowStyle = sheet.Row(1).Style;
+        var actualCellStyle = sheet["A1"].Style;
+        Assert.Equal(fontColor, actualRowStyle.Font.Color);
+        Assert.Equal(fontColor, actualCellStyle.Font.Color);
     }
 }
