@@ -775,18 +775,14 @@ public class SpreadsheetRowTests
         var expectedHeight = height ?? 15;
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-            await spreadsheet.AddRowAsync(CellFactory.Create(type, "My value"), rowType, rowOptions);
-            await spreadsheet.FinishAsync(Token);
-        }
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        await spreadsheet.AddRowAsync(CellFactory.Create(type, "My value"), rowType, rowOptions);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualHeight = worksheet.Row(1).Height;
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualHeight = sheet.Row(1).Height;
         Assert.Equal(expectedHeight, actualHeight, 5);
     }
 }
