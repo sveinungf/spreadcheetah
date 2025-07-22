@@ -14,28 +14,30 @@ internal static class CellRowHelper
         if (options is null or { DefaultStyleId: null, Height: null })
             return TryWriteRowStart(rowIndex, buffer);
 
-        var written = 0;
+        var indexBefore = buffer.Index;
 
-        if (!buffer.TryWriteWithoutAdvancing($"{RowStart}{rowIndex}", ref written))
-            return false;
+        if (!buffer.TryWrite($"{RowStart}{rowIndex}"))
+            return Fail();
 
         if (options.DefaultStyleId is { } styleId
-            && !buffer.TryWriteWithoutAdvancing($"{RowStyleStart}{styleId.Id}{RowStyleEnd}", ref written))
+            && !buffer.TryWrite($"{RowStyleStart}{styleId.Id}{RowStyleEnd}"))
         {
-            return false;
+            return Fail();
         }
 
         if (options.Height is { } height
-            && !buffer.TryWriteWithoutAdvancing($"{RowHeightStart}{height}{RowHeightEnd}", ref written))
+            && !buffer.TryWrite($"{RowHeightStart}{height}{RowHeightEnd}"))
         {
-            return false;
+            return Fail();
         }
 
-        if (!buffer.TryWriteWithoutAdvancing(RowStartEndTag, ref written))
-            return false;
+        return buffer.TryWrite(RowStartEndTag) || Fail();
 
-        buffer.Advance(written);
-        return true;
+        bool Fail()
+        {
+            buffer.Advance(indexBefore - buffer.Index);
+            return false;
+        }
     }
 
     private static ReadOnlySpan<byte> RowStart => "<row r=\""u8;
