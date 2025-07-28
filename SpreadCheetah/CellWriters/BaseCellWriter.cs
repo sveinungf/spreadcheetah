@@ -1,5 +1,6 @@
 using SpreadCheetah.CellValueWriters;
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Worksheets;
 using System.Diagnostics;
@@ -14,6 +15,7 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
     protected readonly CellWriterState State = state;
 
     protected abstract bool TryWriteCell(in T cell);
+    protected abstract bool TryWriteCell(in T cell, StyleId styleId);
     protected abstract bool WriteStartElement(in T cell);
     protected abstract bool TryWriteEndElement(in T cell);
     protected abstract bool FinishWritingCellValue(in T cell, ref int cellValueIndex);
@@ -51,7 +53,9 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
         }
 
         State.Column = 0;
-        return TryAddRowCells(cells);
+        return options.DefaultStyleId is { } styleId
+            ? TryAddRowCells(cells, styleId)
+            : TryAddRowCells(cells);
     }
 
     public bool TryAddRow(ReadOnlySpan<T> cells, uint rowIndex, RowOptions options)
@@ -63,7 +67,9 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
         }
 
         State.Column = 0;
-        return TryAddRowCellsForSpan(cells);
+        return options.DefaultStyleId is { } styleId
+            ? TryAddRowCellsForSpan(cells, styleId)
+            : TryAddRowCellsForSpan(cells);
     }
 
     private bool TryAddRowCells(IList<T> cells)
@@ -74,7 +80,19 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
 #if NET5_0_OR_GREATER
             List<T> cellList => TryAddRowCellsForSpan(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(cellList)),
 #endif
-            _ => TryAddRowCellsForIList(cells)
+            _ => TryAddRowCellsForIList(cells, styleId: null)
+        };
+    }
+
+    private bool TryAddRowCells(IList<T> cells, StyleId styleId)
+    {
+        return cells switch
+        {
+            T[] cellArray => TryAddRowCellsForSpan(cellArray, styleId),
+#if NET5_0_OR_GREATER
+            List<T> cellList => TryAddRowCellsForSpan(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(cellList), styleId),
+#endif
+            _ => TryAddRowCellsForIList(cells, styleId)
         };
     }
 
@@ -93,10 +111,27 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
         return TryWriteRowEnd();
     }
 
-    private bool TryAddRowCellsForIList(IList<T> cells)
+    private bool TryAddRowCellsForSpan(ReadOnlySpan<T> cells, StyleId styleId)
+    {
+        var writerState = State;
+        var column = writerState.Column;
+        while (column < cells.Length)
+        {
+            if (!TryWriteCell(cells[column], styleId))
+                return false;
+
+            writerState.Column = ++column;
+        }
+
+        return TryWriteRowEnd();
+    }
+
+    private bool TryAddRowCellsForIList(IList<T> cells, StyleId? styleId)
     {
         using var pooledArray = cells.ToPooledArray();
-        return TryAddRowCellsForSpan(pooledArray.Span);
+        return styleId is null
+            ? TryAddRowCellsForSpan(pooledArray.Span)
+            : TryAddRowCellsForSpan(pooledArray.Span, styleId);
     }
 
     private bool TryWriteRowEnd() => Buffer.TryWrite("</row>"u8);
@@ -112,7 +147,11 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
         {
             // Attempt to add row cells again
             var beforeIndex = State.Column;
-            if (TryAddRowCellsForSpan(cells.Span))
+            var success = options?.DefaultStyleId is { } styleId
+                ? TryAddRowCellsForSpan(cells.Span, styleId)
+                : TryAddRowCellsForSpan(cells.Span);
+
+            if (success)
                 return;
 
             // If no cells were added, the next cell is larger than the buffer.
