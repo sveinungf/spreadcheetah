@@ -519,19 +519,27 @@ public class SpreadsheetStyledRowTests
     }
 
     [Theory, CombinatorialData]
-    public async Task Spreadsheet_AddRow_DateTimeCellWithRowStyle(CellType type, RowCollectionType rowType)
+    public async Task Spreadsheet_AddRow_DateTimeCellWithRowStyle(
+        bool withDefaultDateTimeFormat,
+        CellType type,
+        RowCollectionType rowType)
     {
         // Arrange
         var value = new DateTime(2021, 2, 3, 4, 5, 6, DateTimeKind.Unspecified);
         const string numberFormat = "yyyy";
         using var stream = new MemoryStream();
-        var options = new SpreadCheetahOptions { DefaultDateTimeFormat = NumberFormat.Custom(numberFormat) };
+        var options = new SpreadCheetahOptions
+        {
+            DefaultDateTimeFormat = withDefaultDateTimeFormat ? NumberFormat.Custom(numberFormat) : null
+        };
+
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var cell = CellFactory.Create(type, value);
         var style = new Style { Font = { Italic = true } };
         var styleId = spreadsheet.AddStyle(style);
+        var expectedNumberFormat = withDefaultDateTimeFormat ? numberFormat : null;
         var rowOptions = new RowOptions { DefaultStyleId = styleId };
 
         // Act
@@ -542,8 +550,40 @@ public class SpreadsheetStyledRowTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualCell = sheet["A1"];
         Assert.Equal(value, actualCell.DateTimeValue);
-        Assert.Equal(numberFormat, actualCell.Style.NumberFormat.CustomFormat);
+        Assert.Equal(expectedNumberFormat, actualCell.Style.NumberFormat.CustomFormat);
         Assert.True(actualCell.Style.Font.Italic);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_DateTimeCellWithOverriddenRowStyle(bool withDefaultDateTimeFormat)
+    {
+        // Arrange
+        var value = new DateTime(2021, 2, 3, 4, 5, 6, DateTimeKind.Unspecified);
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions();
+        if (!withDefaultDateTimeFormat)
+            options.DefaultDateTimeFormat = null;
+
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        var rowStyle = new Style { Font = { Italic = true } };
+        var rowStyleId = spreadsheet.AddStyle(rowStyle);
+        var rowOptions = new RowOptions { DefaultStyleId = rowStyleId };
+        var cellStyle = new Style { Font = { Bold = true } };
+        var cellStyleId = spreadsheet.AddStyle(cellStyle);
+        var cell = new StyledCell(value, cellStyleId);
+
+        // Act
+        await spreadsheet.AddRowAsync([cell], rowOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.True(sheet.Row(1).Style.Font.Italic);
+        var actualCell = sheet["A1"];
+        Assert.True(actualCell.Style.Font.Bold);
+        Assert.False(actualCell.Style.Font.Italic);
     }
 
     [Theory, CombinatorialData]
