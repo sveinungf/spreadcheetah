@@ -819,9 +819,10 @@ public class SpreadsheetRowTests
     public async Task Spreadsheet_AddRow_RowStyleForMultipleCells()
     {
         // Arrange
-        const int cellCount = 1000;
+        const int cellCount = 10000;
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var fontColor = System.Drawing.Color.FromArgb(255, 255, 69);
         var style = new Style { Font = { Color = fontColor } };
