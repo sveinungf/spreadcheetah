@@ -842,6 +842,35 @@ public class SpreadsheetRowTests
     }
 
     [Fact]
+    public async Task Spreadsheet_AddRow_RowStyleForMultipleRows()
+    {
+        // Arrange
+        const int rowCount = 10000;
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new Style { Font = { Italic = true } };
+        var styleId = spreadsheet.AddStyle(style);
+        var random = new Random(42);
+        var rowOptions = new RowOptions { DefaultStyleId = styleId, Height = random.NextDouble() };
+
+        // Act
+        for (var i = 0; i < rowCount; i++)
+        {
+            await spreadsheet.AddRowAsync([new(1)], rowOptions, Token);
+        }
+
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRows = Enumerable.Range(1, rowCount).Select(sheet.Row).ToList();
+        Assert.All(actualRows, row => Assert.True(row.Style.Font.Italic));
+        Assert.All(actualRows, row => Assert.True(row.Cells.First().Style.Font.Italic));
+    }
+
+    [Fact]
     public async Task Spreadsheet_AddRow_RowStyleOnlyForOneRow()
     {
         // Arrange
