@@ -814,4 +814,82 @@ public class SpreadsheetRowTests
         Assert.Equal(fontColor, actualRowStyle.Font.Color);
         Assert.Equal(fontColor, actualCellStyle.Font.Color);
     }
+
+    [Fact]
+    public async Task Spreadsheet_AddRow_RowStyleForMultipleCells()
+    {
+        // Arrange
+        const int cellCount = 1000;
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var fontColor = System.Drawing.Color.FromArgb(255, 255, 69);
+        var style = new Style { Font = { Color = fontColor } };
+        var styleId = spreadsheet.AddStyle(style);
+        var rowOptions = new RowOptions { DefaultStyleId = styleId };
+        var cells = Enumerable.Range(1, cellCount).Select(x => new DataCell(x)).ToList();
+
+        // Act
+        await spreadsheet.AddRowAsync(cells, rowOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRow = sheet.Row(1);
+        var actualCells = actualRow.Cells.ToList();
+        Assert.Equal(cellCount, actualCells.Count);
+        Assert.All(actualCells, cell => Assert.Equal(fontColor, cell.Style.Font.Color));
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddRow_RowStyleOnlyForOneRow()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new Style { Font = { Italic = true } };
+        var styleId = spreadsheet.AddStyle(style);
+        var rowOptions = new RowOptions { DefaultStyleId = styleId };
+
+        // Act
+        await spreadsheet.AddRowAsync([new(1)], Token);
+        await spreadsheet.AddRowAsync([new(2)], rowOptions, Token);
+        await spreadsheet.AddRowAsync([new(3)], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var rows = Enumerable.Range(1, 3).Select(sheet.Row).ToList();
+        Assert.Equal([false, true, false], rows.Select(r => r.Style.Font.Italic));
+        Assert.Equal([false, true, false], rows.Select(r => r.Cells.First().Style.Font.Italic));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_MultipleRowOptions(
+        CellType type,
+        RowCollectionType rowType)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var fontColor = System.Drawing.Color.FromArgb(255, 255, 69);
+        var height = 20.0;
+        var style = new Style { Font = { Color = fontColor } };
+        var styleId = spreadsheet.AddStyle(style);
+        var rowOptions = new RowOptions { DefaultStyleId = styleId, Height = height };
+
+        // Act
+        await spreadsheet.AddRowAsync(CellFactory.Create(type, "My value"), rowType, rowOptions);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRow = sheet.Row(1);
+        var actualCellStyle = sheet["A1"].Style;
+        Assert.Equal(fontColor, actualRow.Style.Font.Color);
+        Assert.Equal(fontColor, actualCellStyle.Font.Color);
+        Assert.Equal(height, actualRow.Height, 5);
+    }
 }
