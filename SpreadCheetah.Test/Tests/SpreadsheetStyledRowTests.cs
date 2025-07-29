@@ -1088,7 +1088,12 @@ public class SpreadsheetStyledRowTests
     }
 
     [Theory, CombinatorialData]
-    public async Task Spreadsheet_AddRow_ExplicitCellReferencesForStyledCells(CellValueType valueType, bool isNull, StyledCellType cellType, RowCollectionType rowType)
+    public async Task Spreadsheet_AddRow_ExplicitCellReferencesForStyledCells(
+        CellValueType valueType,
+        bool isNull,
+        StyledCellType cellType,
+        RowCollectionType rowType,
+        bool withRowStyle)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -1106,14 +1111,17 @@ public class SpreadsheetStyledRowTests
         var expectedRow2Refs = CellReferenceFactory.RowReferences(2, 1);
         var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
 
+        var rowStyleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
+        var rowOptions = withRowStyle ? new RowOptions { DefaultStyleId = rowStyleId } : null;
+
         // Act
         await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);
-        await spreadsheet.AddRowAsync(row1, rowType);
-        await spreadsheet.AddRowAsync(row2, rowType);
-        await spreadsheet.AddRowAsync(row3, rowType);
+        await spreadsheet.AddRowAsync(row1, rowType, rowOptions);
+        await spreadsheet.AddRowAsync(row2, rowType, rowOptions);
+        await spreadsheet.AddRowAsync(row3, rowType, rowOptions);
 
         await spreadsheet.StartWorksheetAsync("Sheet2", token: Token);
-        await spreadsheet.AddRowAsync(row1, rowType);
+        await spreadsheet.AddRowAsync(row1, rowType, rowOptions);
 
         await spreadsheet.FinishAsync(Token);
 

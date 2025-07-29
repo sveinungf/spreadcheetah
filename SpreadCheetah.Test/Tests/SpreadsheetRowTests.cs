@@ -640,7 +640,12 @@ public class SpreadsheetRowTests
     }
 
     [Theory, CombinatorialData]
-    public async Task Spreadsheet_AddRow_ExplicitCellReferences(CellValueType valueType, bool isNull, CellType cellType, RowCollectionType rowType)
+    public async Task Spreadsheet_AddRow_ExplicitCellReferences(
+        CellValueType valueType,
+        bool isNull,
+        CellType cellType,
+        RowCollectionType rowType,
+        bool withRowStyle)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -655,14 +660,17 @@ public class SpreadsheetRowTests
         var expectedRow2Refs = CellReferenceFactory.RowReferences(2, 1);
         var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
 
+        var rowStyleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
+        var rowOptions = withRowStyle ? new RowOptions { DefaultStyleId = rowStyleId } : null;
+
         // Act
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
-        await spreadsheet.AddRowAsync(row1, rowType);
-        await spreadsheet.AddRowAsync(row2, rowType);
-        await spreadsheet.AddRowAsync(row3, rowType);
+        await spreadsheet.AddRowAsync(row1, rowType, rowOptions);
+        await spreadsheet.AddRowAsync(row2, rowType, rowOptions);
+        await spreadsheet.AddRowAsync(row3, rowType, rowOptions);
 
         await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
-        await spreadsheet.AddRowAsync(row1, rowType);
+        await spreadsheet.AddRowAsync(row1, rowType, rowOptions);
 
         await spreadsheet.FinishAsync(Token);
 
@@ -738,10 +746,8 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Spreadsheet_AddRow_ExplicitCellReferenceForDateTimeCellWithDefaultStyling(bool isNull)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_ExplicitCellReferenceForDateTimeCellWithDefaultStyling(bool isNull, bool withRowStyle)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -752,8 +758,11 @@ public class SpreadsheetRowTests
         DateTime? cellValue = isNull ? null : new DateTime(2019, 8, 7, 6, 5, 4, DateTimeKind.Utc);
         var cell = new Cell(cellValue);
 
+        var rowStyleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
+        var rowOptions = withRowStyle ? new RowOptions { DefaultStyleId = rowStyleId } : null;
+
         // Act
-        await spreadsheet.AddRowAsync([cell], Token);
+        await spreadsheet.AddRowAsync([cell], rowOptions, Token);
         await spreadsheet.FinishAsync(Token);
 
         // Assert
