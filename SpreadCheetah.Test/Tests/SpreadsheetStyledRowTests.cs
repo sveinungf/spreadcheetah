@@ -1102,9 +1102,9 @@ public class SpreadsheetStyledRowTests
         var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(cellType, valueType, isNull, styleId, out var _)).ToList();
         var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(cellType, valueType, isNull, styleId, out var _)).ToList();
 
-        var expectedRow1Refs = Enumerable.Range(1, 10).Select(x => SpreadsheetUtility.GetColumnName(x) + "1").OfType<string?>();
-        var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
-        var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
+        var expectedRow1Refs = CellReferenceFactory.RowReferences(1, 10);
+        var expectedRow2Refs = CellReferenceFactory.RowReferences(2, 1);
+        var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
 
         // Act
         await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);
@@ -1198,9 +1198,9 @@ public class SpreadsheetStyledRowTests
         var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(cellType, value, styleId)).ToList();
         var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(cellType, value, styleId)).ToList();
 
-        var expectedRow1Refs = Enumerable.Range(1, 10).Select(x => SpreadsheetUtility.GetColumnName(x) + "1").OfType<string?>();
-        var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
-        var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
+        var expectedRow1Refs = CellReferenceFactory.RowReferences(1, 10);
+        var expectedRow2Refs = CellReferenceFactory.RowReferences(2, 1);
+        var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
 
         // Act
         await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);
