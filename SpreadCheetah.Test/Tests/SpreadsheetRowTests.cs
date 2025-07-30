@@ -824,8 +824,8 @@ public class SpreadsheetRowTests
         Assert.Equal(fontColor, actualCellStyle.Font.Color);
     }
 
-    [Fact]
-    public async Task Spreadsheet_AddRow_RowStyleForMultipleCells()
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_RowStyleForMultipleCells(IListType listType)
     {
         // Arrange
         const int cellCount = 10000;
@@ -837,7 +837,7 @@ public class SpreadsheetRowTests
         var style = new Style { Font = { Color = fontColor } };
         var styleId = spreadsheet.AddStyle(style);
         var rowOptions = new RowOptions { DefaultStyleId = styleId };
-        var cells = Enumerable.Range(1, cellCount).Select(x => new DataCell(x)).ToList();
+        var cells = Enumerable.Range(1, cellCount).Select(x => new DataCell(x)).ToIList(listType);
 
         // Act
         await spreadsheet.AddRowAsync(cells, rowOptions, Token);
