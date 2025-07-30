@@ -851,8 +851,8 @@ public class SpreadsheetRowTests
         Assert.All(actualCells, cell => Assert.Equal(fontColor, cell.Style.Font.Color));
     }
 
-    [Fact]
-    public async Task Spreadsheet_AddRow_RowStyleForMultipleRows()
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_RowStyleForMultipleRows(bool withCustomHeight)
     {
         // Arrange
         const int rowCount = 10000;
@@ -863,7 +863,11 @@ public class SpreadsheetRowTests
         var style = new Style { Font = { Italic = true } };
         var styleId = spreadsheet.AddStyle(style);
         var random = new Random(42);
-        var rowOptions = new RowOptions { DefaultStyleId = styleId, Height = random.NextDouble() };
+        var rowOptions = new RowOptions
+        {
+            DefaultStyleId = styleId,
+            Height = withCustomHeight ? random.NextDouble() : null
+        };
 
         // Act
         for (var i = 0; i < rowCount; i++)
