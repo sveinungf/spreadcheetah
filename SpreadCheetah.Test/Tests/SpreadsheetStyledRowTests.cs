@@ -4,9 +4,11 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using Polyfills;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
+using SpreadCheetah.Worksheets;
 using System.Globalization;
 using Alignment = SpreadCheetah.Styling.Alignment;
 using Border = SpreadCheetah.Styling.Border;
+using CellType = SpreadCheetah.Test.Helpers.CellType;
 using Color = System.Drawing.Color;
 using DiagonalBorder = SpreadCheetah.Styling.DiagonalBorder;
 using Fill = SpreadCheetah.Styling.Fill;
@@ -517,6 +519,74 @@ public class SpreadsheetStyledRowTests
     }
 
     [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_DateTimeCellWithRowStyle(
+        bool withDefaultDateTimeFormat,
+        CellType type,
+        RowCollectionType rowType)
+    {
+        // Arrange
+        var value = new DateTime(2021, 2, 3, 4, 5, 6, DateTimeKind.Unspecified);
+        const string numberFormat = "yyyy";
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions
+        {
+            DefaultDateTimeFormat = withDefaultDateTimeFormat ? NumberFormat.Custom(numberFormat) : null
+        };
+
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        var cell = CellFactory.Create(type, value);
+        var style = new Style { Font = { Italic = true } };
+        var styleId = spreadsheet.AddStyle(style);
+        var expectedNumberFormat = withDefaultDateTimeFormat ? numberFormat : null;
+        var rowOptions = new RowOptions { DefaultStyleId = styleId };
+
+        // Act
+        await spreadsheet.AddRowAsync(cell, rowType, rowOptions);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(value, actualCell.DateTimeValue);
+        Assert.Equal(expectedNumberFormat, actualCell.Style.NumberFormat.CustomFormat);
+        Assert.True(actualCell.Style.Font.Italic);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_DateTimeCellWithOverriddenRowStyle(bool withDefaultDateTimeFormat)
+    {
+        // Arrange
+        var value = new DateTime(2021, 2, 3, 4, 5, 6, DateTimeKind.Unspecified);
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions();
+        if (!withDefaultDateTimeFormat)
+            options.DefaultDateTimeFormat = null;
+
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        var rowStyle = new Style { Font = { Italic = true } };
+        var rowStyleId = spreadsheet.AddStyle(rowStyle);
+        var rowOptions = new RowOptions { DefaultStyleId = rowStyleId };
+        var cellStyle = new Style { Font = { Bold = true } };
+        var cellStyleId = spreadsheet.AddStyle(cellStyle);
+        var cell = new StyledCell(value, cellStyleId);
+
+        // Act
+        await spreadsheet.AddRowAsync([cell], rowOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.True(sheet.Row(1).Style.Font.Italic);
+        var actualCell = sheet["A1"];
+        Assert.True(actualCell.Style.Font.Bold);
+        Assert.False(actualCell.Style.Font.Italic);
+    }
+
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_DateTimeNumberFormat(bool withExplicitNumberFormat, StyledCellType type, RowCollectionType rowType)
     {
         // Arrange
@@ -1018,7 +1088,12 @@ public class SpreadsheetStyledRowTests
     }
 
     [Theory, CombinatorialData]
-    public async Task Spreadsheet_AddRow_ExplicitCellReferencesForStyledCells(CellValueType valueType, bool isNull, StyledCellType cellType, RowCollectionType rowType)
+    public async Task Spreadsheet_AddRow_ExplicitCellReferencesForStyledCells(
+        CellValueType valueType,
+        bool isNull,
+        StyledCellType cellType,
+        RowCollectionType rowType,
+        bool withRowStyle)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -1032,18 +1107,21 @@ public class SpreadsheetStyledRowTests
         var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(cellType, valueType, isNull, styleId, out var _)).ToList();
         var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(cellType, valueType, isNull, styleId, out var _)).ToList();
 
-        var expectedRow1Refs = Enumerable.Range(1, 10).Select(x => SpreadsheetUtility.GetColumnName(x) + "1").OfType<string?>();
-        var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
-        var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
+        var expectedRow1Refs = CellReferenceFactory.RowReferences(1, 10);
+        var expectedRow2Refs = CellReferenceFactory.RowReferences(2, 1);
+        var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
+
+        var rowStyleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
+        var rowOptions = withRowStyle ? new RowOptions { DefaultStyleId = rowStyleId } : null;
 
         // Act
         await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);
-        await spreadsheet.AddRowAsync(row1, rowType);
-        await spreadsheet.AddRowAsync(row2, rowType);
-        await spreadsheet.AddRowAsync(row3, rowType);
+        await spreadsheet.AddRowAsync(row1, rowType, rowOptions);
+        await spreadsheet.AddRowAsync(row2, rowType, rowOptions);
+        await spreadsheet.AddRowAsync(row3, rowType, rowOptions);
 
         await spreadsheet.StartWorksheetAsync("Sheet2", token: Token);
-        await spreadsheet.AddRowAsync(row1, rowType);
+        await spreadsheet.AddRowAsync(row1, rowType, rowOptions);
 
         await spreadsheet.FinishAsync(Token);
 
@@ -1128,9 +1206,9 @@ public class SpreadsheetStyledRowTests
         var row2 = Enumerable.Range(1, 1).Select(_ => CellFactory.Create(cellType, value, styleId)).ToList();
         var row3 = Enumerable.Range(1, 100).Select(_ => CellFactory.Create(cellType, value, styleId)).ToList();
 
-        var expectedRow1Refs = Enumerable.Range(1, 10).Select(x => SpreadsheetUtility.GetColumnName(x) + "1").OfType<string?>();
-        var expectedRow2Refs = Enumerable.Range(1, 1).Select(x => SpreadsheetUtility.GetColumnName(x) + "2").OfType<string?>();
-        var expectedRow3Refs = Enumerable.Range(1, 100).Select(x => SpreadsheetUtility.GetColumnName(x) + "3").OfType<string?>();
+        var expectedRow1Refs = CellReferenceFactory.RowReferences(1, 10);
+        var expectedRow2Refs = CellReferenceFactory.RowReferences(2, 1);
+        var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
 
         // Act
         await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);

@@ -1,3 +1,5 @@
+using SpreadCheetah.Styling;
+
 namespace SpreadCheetah.Worksheets;
 
 /// <summary>
@@ -17,4 +19,10 @@ public class RowOptions
     }
 
     private double? _height;
+
+    /// <summary>
+    /// The default style ID for cells in the row. This style will be applied to all cells in the row
+    /// unless they have their own style set.
+    /// </summary>
+    public StyleId? DefaultStyleId { get; set; }
 }

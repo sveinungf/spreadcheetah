@@ -24,7 +24,7 @@ public class HeaderRowTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(headerNames, sheet.Row(1).StringValues());
+        Assert.Equal(headerNames, sheet.Row(1).Cells.StringValues());
     }
 
     [Theory, CombinatorialData]
@@ -42,7 +42,7 @@ public class HeaderRowTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(headerNames, sheet.Row(1).StringValues());
+        Assert.Equal(headerNames, sheet.Row(1).Cells.StringValues());
     }
 
     [Theory, CombinatorialData]
@@ -61,7 +61,7 @@ public class HeaderRowTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Empty(sheet.Row(1));
+        Assert.Empty(sheet.Row(1).Cells);
         Assert.Equal(subsequentRowValue, sheet["A2"].StringValue);
     }
 

@@ -322,7 +322,7 @@ public class SpreadsheetTableTests
         Assert.Equal(expectedTableReference, actualTable.CellRangeReference);
         Assert.Equal(headerNames, actualTable.Columns.Select(x => x.Name));
 
-        var actualHeaderNames = sheet.Row(startRow).Select(x => x.StringValue);
+        var actualHeaderNames = sheet.Row(startRow).Cells.Select(x => x.StringValue);
         Assert.Equal(headerNames, actualHeaderNames);
         var firstColumnValues = sheet.Column("A").Cells.Skip(startRow).Take(2).Select(x => x.StringValue);
         Assert.Equal(["Ford", "Volkswagen"], firstColumnValues);
@@ -365,7 +365,7 @@ public class SpreadsheetTableTests
         Assert.Equal(columns.Select(x => x.TotalRowLabel), actualColumns.Select(x => x.TotalRowLabel));
         Assert.Equal(columns.Select(x => x.TotalRowFunction), actualColumns.Select(x => x.TotalRowFunction));
 
-        var actualHeaderNames = sheet.Row(startRow).Select(x => x.StringValue);
+        var actualHeaderNames = sheet.Row(startRow).Cells.Select(x => x.StringValue);
         Assert.Equal(headerNames, actualHeaderNames);
         var firstColumnValues = sheet.Column("A").Cells.Skip(startRow).Take(3).Select(x => x.StringValue);
         Assert.Equal(["Ford", "Volkswagen", "Oldest"], firstColumnValues);
@@ -401,7 +401,7 @@ public class SpreadsheetTableTests
         Assert.Equal(expectedTableReference, actualTable.CellRangeReference);
         Assert.Equal(headerNames, actualTable.Columns.Select(x => x.Name));
 
-        var actualHeaderNames = sheet.Row(1).Select(x => x.StringValue);
+        var actualHeaderNames = sheet.Row(1).Cells.Select(x => x.StringValue);
         Assert.Equal(headerNames, actualHeaderNames);
         var firstColumnValues = sheet.Column(startColumn).Cells.Skip(1).Take(2).Select(x => x.StringValue);
         Assert.Equal(["Ford", "Volkswagen"], firstColumnValues);
@@ -484,8 +484,8 @@ public class SpreadsheetTableTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualTable = Assert.Single(sheet.Tables);
         Assert.Equal(headerNames1, actualTable.Columns.Select(x => x.Name));
-        Assert.Equal(headerNames1, sheet.Row(1).Select(x => x.StringValue));
-        Assert.Equal(headerNames2, sheet.Row(2).Select(x => x.StringValue));
+        Assert.Equal(headerNames1, sheet.Row(1).Cells.Select(x => x.StringValue));
+        Assert.Equal(headerNames2, sheet.Row(2).Cells.Select(x => x.StringValue));
     }
 
     [Theory, CombinatorialData]
@@ -549,7 +549,7 @@ public class SpreadsheetTableTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualTable = Assert.Single(sheet.Tables);
         Assert.Equal(headerNames.Take(numberOfColumns), actualTable.Columns.Select(x => x.Name));
-        Assert.Equal(headerNames, sheet.Row(1).Select(x => x.StringValue));
+        Assert.Equal(headerNames, sheet.Row(1).Cells.Select(x => x.StringValue));
     }
 
     [Fact]
@@ -668,7 +668,7 @@ public class SpreadsheetTableTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualTable = Assert.Single(sheet.Tables);
         Assert.Equal([headerName], actualTable.Columns.Select(x => x.Name));
-        Assert.Equal([headerName], sheet.Row(1).Select(x => x.StringValue));
+        Assert.Equal([headerName], sheet.Row(1).Cells.Select(x => x.StringValue));
     }
 
     [Theory]
@@ -886,7 +886,7 @@ public class SpreadsheetTableTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.All(sheet.Row(1), x => Assert.True(x.Style.Font.Italic));
+        Assert.All(sheet.Row(1).Cells, x => Assert.True(x.Style.Font.Italic));
     }
 
     [Fact]

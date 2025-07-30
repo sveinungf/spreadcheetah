@@ -11,13 +11,39 @@ internal static class CellRowHelper
 
     public static bool TryWriteRowStart(uint rowIndex, RowOptions options, SpreadsheetBuffer buffer)
     {
-        return options.Height is { } height
-            ? buffer.TryWrite($"{RowStart}{rowIndex}{RowHeightStart}{height}{RowHeightEnd}")
-            : TryWriteRowStart(rowIndex, buffer);
+        if (options is null or { DefaultStyleId: null, Height: null })
+            return TryWriteRowStart(rowIndex, buffer);
+
+        var indexBefore = buffer.Index;
+
+        if (!buffer.TryWrite($"{RowStart}{rowIndex}"))
+            return Fail();
+
+        if (options.DefaultStyleId is { } styleId
+            && !buffer.TryWrite($"{RowStyleStart}{styleId.Id}{RowStyleEnd}"))
+        {
+            return Fail();
+        }
+
+        if (options.Height is { } height
+            && !buffer.TryWrite($"{RowHeightStart}{height}{RowHeightEnd}"))
+        {
+            return Fail();
+        }
+
+        return buffer.TryWrite(RowStartEndTag) || Fail();
+
+        bool Fail()
+        {
+            buffer.Advance(indexBefore - buffer.Index);
+            return false;
+        }
     }
 
     private static ReadOnlySpan<byte> RowStart => "<row r=\""u8;
-    private static ReadOnlySpan<byte> RowStartEndTag => "\">"u8;
+    private static ReadOnlySpan<byte> RowStyleStart => "\" s=\""u8;
+    private static ReadOnlySpan<byte> RowStyleEnd => "\" customFormat=\"1"u8;
     private static ReadOnlySpan<byte> RowHeightStart => "\" ht=\""u8;
-    private static ReadOnlySpan<byte> RowHeightEnd => "\" customHeight=\"1\">"u8;
+    private static ReadOnlySpan<byte> RowHeightEnd => "\" customHeight=\"1"u8;
+    private static ReadOnlySpan<byte> RowStartEndTag => "\">"u8;
 }

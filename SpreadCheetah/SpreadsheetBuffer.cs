@@ -14,18 +14,18 @@ namespace SpreadCheetah;
 internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 {
     private readonly byte[] _buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-    private int _index;
 
     public void Dispose() => ArrayPool<byte>.Shared.Return(_buffer, true);
-    public Span<byte> GetSpan() => _buffer.AsSpan(_index);
-    private Span<byte> GetSpan(int start) => _buffer.AsSpan(_index + start);
-    public void Advance(int bytes) => _index += bytes;
+    public Span<byte> GetSpan() => _buffer.AsSpan(Index);
+    private Span<byte> GetSpan(int start) => _buffer.AsSpan(Index + start);
+    public int Index { get; private set; }
+    public void Advance(int bytes) => Index += bytes;
 
     public bool WriteLongString(ReadOnlySpan<char> value, ref int valueIndex)
     {
         var bytesWritten = 0;
         var result = SpanHelper.TryWriteLongString(value, ref valueIndex, GetSpan(), ref bytesWritten);
-        _index += bytesWritten;
+        Index += bytesWritten;
         return result;
     }
 
@@ -35,8 +35,8 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
     public ValueTask FlushToStreamAsync(Stream stream, CancellationToken token)
     {
-        var index = _index;
-        _index = 0;
+        var index = Index;
+        Index = 0;
 #if NETSTANDARD2_0
         return new ValueTask(stream.WriteAsync(_buffer, 0, index, token));
 #else

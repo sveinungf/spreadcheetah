@@ -42,12 +42,10 @@ internal sealed class ClosedXmlAssertSheet(XLWorkbook workbook, IXLWorksheet she
     public IReadOnlyList<ISpreadsheetAssertColumn> Columns => _columns ??=
         [.. sheet.Columns().Select(x => new ClosedXmlAssertColumn(x))];
 
-    public IEnumerable<ISpreadsheetAssertCell> Row(int rowNumber)
+    public ISpreadsheetAssertRow Row(int rowNumber)
     {
         var row = sheet.Row(rowNumber);
-        return row.IsEmpty()
-            ? []
-            : row.Cells(false).Select(x => new ClosedXmlAssertCell(x));
+        return new ClosedXmlAssertRow(row);
     }
 
     private IReadOnlyList<ISpreadsheetAssertTable>? _tables;

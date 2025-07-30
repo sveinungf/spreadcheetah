@@ -98,7 +98,7 @@ public sealed class StringCellsTests : IDisposable
 
         foreach (var (r, rowValues) in values.Index())
         {
-            var row = sheet.Row(r + 1).ToList();
+            var row = sheet.Row(r + 1).Cells.ToList();
             Assert.Equal(rowValues.Count, row.Count);
 
             foreach (var (c, cellValue) in rowValues.Index())
