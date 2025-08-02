@@ -200,23 +200,43 @@ public class SpreadsheetRowTests
         var value = new string('a', length);
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-            var cell = CellFactory.Create(type, value);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var cell = CellFactory.Create(type, value);
 
-            // Act
-            await spreadsheet.AddRowAsync(cell, rowType);
-            await spreadsheet.FinishAsync(Token);
-        }
+        // Act
+        await spreadsheet.AddRowAsync(cell, rowType);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var actual = SpreadsheetDocument.Open(stream, true);
-        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
-        var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
-        Assert.Equal(OpenXmlCellValue.InlineString, actualCell.DataType?.Value);
-        Assert.Equal(value, actualCell.InnerText);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(value, sheet["A1"].StringValue);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithVeryLongStringValueAndRowStyle(
+        [CombinatorialValues(4095, 4096, 4097, 10000, 30000, 32767)] int length,
+        CellType type,
+        RowCollectionType rowType)
+    {
+        // Arrange
+        var value = new string('a', length);
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var cell = CellFactory.Create(type, value);
+        var styleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
+        var rowOptions = new RowOptions { DefaultStyleId = styleId };
+
+        // Act
+        await spreadsheet.AddRowAsync(cell, rowType, rowOptions);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(value, sheet["A1"].StringValue);
+        Assert.True(sheet["A1"].Style.Font.Italic);
     }
 
     [Theory, CombinatorialData]
