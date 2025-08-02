@@ -48,9 +48,6 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
             : state.Buffer.TryWrite($"{state}{FormulaCellHelper.EndQuoteBeginFormula}");
     }
 
-    public override bool CanWriteValuePieceByPiece(in DataCell cell) => true;
-
     public override bool TryWriteEndElement(SpreadsheetBuffer buffer) => buffer.TryWrite(EndDefaultCell);
-
     public override bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer) => TryWriteEndElement(buffer);
 }

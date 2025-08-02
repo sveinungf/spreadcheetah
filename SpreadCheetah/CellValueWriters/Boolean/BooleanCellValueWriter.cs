@@ -49,9 +49,4 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
     {
         return state.Buffer.TryWrite($"{state}{EndReferenceBeginStyled}{styleId.Id}{"\"><v>"u8}");
     }
-
-    /// <summary>
-    /// Returns false because the value is written together with the end element.
-    /// </summary>
-    public override bool CanWriteValuePieceByPiece(in DataCell cell) => true;
 }

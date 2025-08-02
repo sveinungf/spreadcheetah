@@ -99,10 +99,5 @@ internal abstract class NullValueWriterBase : CellValueWriter
     public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => TryWriteCell(GetStyleId(styleId), buffer);
     public override bool WriteStartElementWithReference(CellWriterState state) => TryWriteCellWithReference(state);
     public override bool WriteStartElementWithReference(StyleId styleId, CellWriterState state) => TryWriteCellWithReference(GetStyleId(styleId), state);
-
-    /// <summary>
-    /// Returns false because there is no value to write for 'null'.
-    /// </summary>
-    public override bool CanWriteValuePieceByPiece(in DataCell cell) => false;
     public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex) => true;
 }

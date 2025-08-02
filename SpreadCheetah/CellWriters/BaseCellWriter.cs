@@ -220,10 +220,11 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
         // Write the formula
         if (cellValueIndex < formulaText.Length)
         {
-            if (!Buffer.WriteLongString(formulaText, ref cellValueIndex)) return false;
+            if (!Buffer.WriteLongString(formulaText, ref cellValueIndex))
+                return false;
 
-            // Finish if there is no cached value to write piece by piece
-            if (!writer.CanWriteValuePieceByPiece(cell.DataCell)) return true;
+            if (cell.DataCell.Type is CellWriterType.Null or CellWriterType.NullDateTime)
+                return true;
         }
 
         // If there is a cached value, we need to write "[FORMULA]</f><v>[CACHEDVALUE]"

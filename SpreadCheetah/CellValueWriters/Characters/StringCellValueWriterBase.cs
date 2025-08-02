@@ -133,8 +133,6 @@ internal abstract class StringCellValueWriterBase : CellValueWriter
         return state.Buffer.TryWrite($"{state}{EndReferenceBeginStyle}{styleId.Id}{EndStyleBeginInlineString}");
     }
 
-    public override bool CanWriteValuePieceByPiece(in DataCell cell) => true;
-
     public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)
     {
         return buffer.WriteLongString(GetSpan(cell.Value), ref valueIndex);
