@@ -50,15 +50,7 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
 
     public override bool CanWriteValuePieceByPiece(in DataCell cell) => true;
 
-    public override bool TryWriteEndElement(SpreadsheetBuffer buffer)
-    {
-        return buffer.TryWrite(EndDefaultCell);
-    }
+    public override bool TryWriteEndElement(SpreadsheetBuffer buffer) => buffer.TryWrite(EndDefaultCell);
 
-    public override bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer)
-    {
-        return cell.Formula is null
-            ? TryWriteEndElement(buffer)
-            : buffer.TryWrite(FormulaCellHelper.EndCachedValueEndCell);
-    }
+    public override bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer) => TryWriteEndElement(buffer);
 }
