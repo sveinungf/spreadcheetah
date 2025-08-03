@@ -27,15 +27,13 @@ internal sealed class CellWriter(CellWriterState state, DefaultStyling? defaultS
             : writer.TryWriteCell(cell.DataCell, actualStyleId, Buffer);
     }
 
-    protected override bool WriteStartElement(in Cell cell)
+    protected override bool WriteStartElement(in Cell cell, StyleId? styleId)
     {
+        var actualStyleId = cell.StyleId ?? styleId;
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
-        return cell switch
-        {
-            { Formula: not null } => writer.WriteFormulaStartElement(cell.StyleId, DefaultStyling, Buffer),
-            { StyleId: not null } => writer.WriteStartElement(cell.StyleId, Buffer),
-            _ => writer.WriteStartElement(Buffer)
-        };
+        return cell.Formula is not null
+            ? writer.WriteFormulaStartElement(actualStyleId, DefaultStyling, Buffer)
+            : writer.WriteStartElement(actualStyleId, Buffer);
     }
 
     protected override bool TryWriteEndElement(in Cell cell)

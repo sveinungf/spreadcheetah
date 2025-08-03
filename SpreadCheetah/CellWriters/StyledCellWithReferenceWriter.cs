@@ -22,12 +22,11 @@ internal sealed class StyledCellWithReferenceWriter(CellWriterState state, Defau
         return writer.TryWriteCellWithReference(cell.DataCell, actualStyleId, State);
     }
 
-    protected override bool WriteStartElement(in StyledCell cell)
+    protected override bool WriteStartElement(in StyledCell cell, StyleId? styleId)
     {
+        var actualStyleId = cell.StyleId ?? styleId;
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
-        return cell.StyleId is null
-            ? writer.WriteStartElementWithReference(State)
-            : writer.WriteStartElementWithReference(cell.StyleId, State);
+        return writer.WriteStartElementWithReference(actualStyleId, State);
     }
 
     protected override bool TryWriteEndElement(in StyledCell cell)
