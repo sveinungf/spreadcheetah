@@ -113,24 +113,18 @@ internal abstract class StringCellValueWriterBase : CellValueWriter
             : state.Buffer.TryWrite($"{state}{EndReferenceBeginFormula}");
     }
 
-    public override bool WriteStartElement(SpreadsheetBuffer buffer)
+    public override bool WriteStartElement(StyleId? styleId, SpreadsheetBuffer buffer)
     {
-        return buffer.TryWrite(BeginStringCell);
+        return styleId is null
+            ? buffer.TryWrite(BeginStringCell)
+            : buffer.TryWrite($"{BeginStyledStringCell}{styleId.Id}{EndStyleBeginInlineString}");
     }
 
-    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer)
+    public override bool WriteStartElementWithReference(StyleId? styleId, CellWriterState state)
     {
-        return buffer.TryWrite($"{BeginStyledStringCell}{styleId.Id}{EndStyleBeginInlineString}");
-    }
-
-    public override bool WriteStartElementWithReference(CellWriterState state)
-    {
-        return state.Buffer.TryWrite($"{state}{EndReferenceBeginString}");
-    }
-
-    public override bool WriteStartElementWithReference(StyleId styleId, CellWriterState state)
-    {
-        return state.Buffer.TryWrite($"{state}{EndReferenceBeginStyle}{styleId.Id}{EndStyleBeginInlineString}");
+        return styleId is null
+            ? state.Buffer.TryWrite($"{state}{EndReferenceBeginString}")
+            : state.Buffer.TryWrite($"{state}{EndReferenceBeginStyle}{styleId.Id}{EndStyleBeginInlineString}");
     }
 
     public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)

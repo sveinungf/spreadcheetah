@@ -12,24 +12,20 @@ internal abstract class NumberCellValueWriterBase : CellValueWriter
     protected static ReadOnlySpan<byte> EndQuoteBeginValue => "\"><v>"u8;
     protected static ReadOnlySpan<byte> EndDefaultCell => "</v></c>"u8;
 
-    public override bool WriteStartElement(SpreadsheetBuffer buffer)
+    public override bool WriteStartElement(StyleId? styleId, SpreadsheetBuffer buffer)
     {
-        return buffer.TryWrite(BeginDataCell);
-    }
+        if (styleId is null)
+            return buffer.TryWrite(BeginDataCell);
 
-    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer)
-    {
         var style = GetStyleId(styleId);
         return buffer.TryWrite($"{StyledCellHelper.BeginStyledNumberCell}{style}{EndQuoteBeginValue}");
     }
 
-    public override bool WriteStartElementWithReference(CellWriterState state)
+    public override bool WriteStartElementWithReference(StyleId? styleId, CellWriterState state)
     {
-        return state.Buffer.TryWrite($"{state}{EndQuoteBeginValue}");
-    }
+        if (styleId is null)
+            return state.Buffer.TryWrite($"{state}{EndQuoteBeginValue}");
 
-    public override bool WriteStartElementWithReference(StyleId styleId, CellWriterState state)
-    {
         var style = GetStyleId(styleId);
         return state.Buffer.TryWrite($"{state}{StyledCellHelper.EndReferenceBeginStyleId}{style}{EndQuoteBeginValue}");
     }

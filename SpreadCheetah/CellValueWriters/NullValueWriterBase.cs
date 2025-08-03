@@ -95,9 +95,19 @@ internal abstract class NullValueWriterBase : CellValueWriter
             : state.Buffer.TryWrite($"{state}{FormulaCellHelper.EndQuoteBeginFormula}");
     }
 
-    public override bool WriteStartElement(SpreadsheetBuffer buffer) => TryWriteCell(buffer);
-    public override bool WriteStartElement(StyleId styleId, SpreadsheetBuffer buffer) => TryWriteCell(GetStyleId(styleId), buffer);
-    public override bool WriteStartElementWithReference(CellWriterState state) => TryWriteCellWithReference(state);
-    public override bool WriteStartElementWithReference(StyleId styleId, CellWriterState state) => TryWriteCellWithReference(GetStyleId(styleId), state);
+    public override bool WriteStartElement(StyleId? styleId, SpreadsheetBuffer buffer)
+    {
+        return styleId is null
+            ? TryWriteCell(buffer)
+            : TryWriteCell(GetStyleId(styleId), buffer);
+    }
+
+    public override bool WriteStartElementWithReference(StyleId? styleId, CellWriterState state)
+    {
+        return styleId is null
+            ? TryWriteCellWithReference(state)
+            : TryWriteCellWithReference(GetStyleId(styleId), state);
+    }
+
     public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex) => true;
 }

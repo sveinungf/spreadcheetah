@@ -17,9 +17,9 @@ internal sealed class DataCellWithReferenceWriter(CellWriterState state, Default
         return CellValueWriter.GetWriter(cell.Type).TryWriteCellWithReference(cell, styleId, State);
     }
 
-    protected override bool WriteStartElement(in DataCell cell)
+    protected override bool WriteStartElement(in DataCell cell, StyleId? styleId)
     {
-        return CellValueWriter.GetWriter(cell.Type).WriteStartElementWithReference(State);
+        return CellValueWriter.GetWriter(cell.Type).WriteStartElementWithReference(styleId, State);
     }
 
     protected override bool TryWriteEndElement(in DataCell cell)

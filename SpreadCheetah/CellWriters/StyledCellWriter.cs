@@ -20,11 +20,10 @@ internal sealed class StyledCellWriter(CellWriterState state, DefaultStyling? de
         return CellValueWriter.GetWriter(cell.DataCell.Type).TryWriteCell(cell.DataCell, actualStyleId, Buffer);
     }
 
-    protected override bool WriteStartElement(in StyledCell cell)
+    protected override bool WriteStartElement(in StyledCell cell, StyleId? styleId)
     {
-        return cell.StyleId is null
-            ? CellValueWriter.GetWriter(cell.DataCell.Type).WriteStartElement(Buffer)
-            : CellValueWriter.GetWriter(cell.DataCell.Type).WriteStartElement(cell.StyleId, Buffer);
+        var actualStyleId = cell.StyleId ?? styleId;
+        return CellValueWriter.GetWriter(cell.DataCell.Type).WriteStartElement(actualStyleId, Buffer);
     }
 
     protected override bool TryWriteEndElement(in StyledCell cell)
