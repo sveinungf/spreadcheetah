@@ -29,18 +29,4 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
             ? state.Buffer.TryWrite($"{state}{EndReferenceBeginStyled}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}")
             : state.Buffer.TryWrite($"{state}{EndReferenceBeginFormula}");
     }
-
-    public override bool WriteStartElement(StyleId? styleId, SpreadsheetBuffer buffer)
-    {
-        return styleId is null
-            ? buffer.TryWrite("""<c t="b"><v>"""u8)
-            : buffer.TryWrite($"{BeginStyledBooleanCell}{styleId.Id}{"\"><v>"u8}");
-    }
-
-    public override bool WriteStartElementWithReference(StyleId? styleId, CellWriterState state)
-    {
-        return styleId is null
-            ? state.Buffer.TryWrite($"{state}{"\" t=\"b\"><v>"u8}")
-            : state.Buffer.TryWrite($"{state}{EndReferenceBeginStyled}{styleId.Id}{"\"><v>"u8}");
-    }
 }

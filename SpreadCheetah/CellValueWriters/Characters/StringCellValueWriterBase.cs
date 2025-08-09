@@ -113,14 +113,14 @@ internal abstract class StringCellValueWriterBase : CellValueWriter
             : state.Buffer.TryWrite($"{state}{EndReferenceBeginFormula}");
     }
 
-    public override bool WriteStartElement(StyleId? styleId, SpreadsheetBuffer buffer)
+    public static bool WriteStartElement(StyleId? styleId, SpreadsheetBuffer buffer)
     {
         return styleId is null
             ? buffer.TryWrite(BeginStringCell)
             : buffer.TryWrite($"{BeginStyledStringCell}{styleId.Id}{EndStyleBeginInlineString}");
     }
 
-    public override bool WriteStartElementWithReference(StyleId? styleId, CellWriterState state)
+    public static bool WriteStartElementWithReference(StyleId? styleId, CellWriterState state)
     {
         return styleId is null
             ? state.Buffer.TryWrite($"{state}{EndReferenceBeginString}")

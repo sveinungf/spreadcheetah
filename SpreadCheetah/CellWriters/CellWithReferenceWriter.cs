@@ -1,6 +1,8 @@
 using SpreadCheetah.CellValueWriters;
+using SpreadCheetah.CellValueWriters.Characters;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
+using System.Diagnostics;
 
 namespace SpreadCheetah.CellWriters;
 
@@ -30,10 +32,15 @@ internal sealed class CellWithReferenceWriter(CellWriterState state, DefaultStyl
     protected override bool WriteStartElement(in Cell cell, StyleId? styleId)
     {
         var actualStyleId = cell.StyleId ?? styleId;
-        var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
-        return cell.Formula is not null
-            ? writer.WriteFormulaStartElementWithReference(actualStyleId, DefaultStyling, State)
-            : writer.WriteStartElementWithReference(actualStyleId, State);
+
+        if (cell.Formula is not null)
+        {
+            var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
+            return writer.WriteFormulaStartElementWithReference(actualStyleId, DefaultStyling, State);
+        }
+
+        Debug.Assert(cell.DataCell.Type is CellWriterType.String or CellWriterType.ReadOnlyMemoryOfChar);
+        return StringCellValueWriterBase.WriteStartElementWithReference(actualStyleId, State);
     }
 
     protected override bool TryWriteEndElement(in Cell cell)
