@@ -273,23 +273,22 @@ public class SpreadsheetFormulaRowTests
         [CombinatorialValues(100, 511, 512, 513, 4100, 8192)] int formulaLength,
         CellValueType cachedValueType,
         RowCollectionType rowType,
+        bool withStyle,
         bool cachedValueIsNull)
     {
         // Arrange
         var formulaText = FormulaGenerator.Generate(formulaLength);
-        object? cachedValue;
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-            var formula = new Formula(formulaText);
-            var cell = CellFactory.Create(formula, cachedValueType, cachedValueIsNull, null, out cachedValue);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        var styleId = withStyle ? spreadsheet.AddStyle(new Style { Font = { Italic = true } }) : null;
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var formula = new Formula(formulaText);
+        var cell = CellFactory.Create(formula, cachedValueType, cachedValueIsNull, styleId, out var cachedValue);
 
-            // Act
-            await spreadsheet.AddRowAsync(cell, rowType);
-            await spreadsheet.FinishAsync(Token);
-        }
+        // Act
+        await spreadsheet.AddRowAsync(cell, rowType);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);

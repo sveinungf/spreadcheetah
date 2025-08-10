@@ -102,7 +102,7 @@ internal abstract class StringCellValueWriterBase : CellValueWriter
     public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
         return styleId is { } style
-            ? buffer.TryWrite($"{BeginStyledStringCell}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}")
+            ? buffer.TryWrite($"{BeginStyledStringFormulaCell}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}")
             : buffer.TryWrite(BeginStringFormulaCell);
     }
 
