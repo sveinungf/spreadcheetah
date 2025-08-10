@@ -39,7 +39,7 @@ internal sealed class CellWithReferenceWriter(CellWriterState state, DefaultStyl
             return writer.WriteFormulaStartElementWithReference(actualStyleId, DefaultStyling, State);
         }
 
-        Debug.Assert(cell.DataCell.Type is CellWriterType.String or CellWriterType.ReadOnlyMemoryOfChar);
+        Debug.Assert(CellValueWriter.GetWriter(cell.DataCell.Type) is StringCellValueWriterBase);
         return StringCellValueWriterBase.WriteStartElementWithReference(actualStyleId, State);
     }
 

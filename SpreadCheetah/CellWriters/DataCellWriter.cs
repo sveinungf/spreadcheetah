@@ -21,7 +21,7 @@ internal sealed class DataCellWriter(CellWriterState state, DefaultStyling? defa
 
     protected override bool WriteStartElement(in DataCell cell, StyleId? styleId)
     {
-        Debug.Assert(cell.Type is CellWriterType.String or CellWriterType.ReadOnlyMemoryOfChar);
+        Debug.Assert(CellValueWriter.GetWriter(cell.Type) is StringCellValueWriterBase);
         return StringCellValueWriterBase.WriteStartElement(styleId, Buffer);
     }
 

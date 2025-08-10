@@ -27,7 +27,7 @@ internal sealed class StyledCellWithReferenceWriter(CellWriterState state, Defau
     protected override bool WriteStartElement(in StyledCell cell, StyleId? styleId)
     {
         var actualStyleId = cell.StyleId ?? styleId;
-        Debug.Assert(cell.DataCell.Type is CellWriterType.String or CellWriterType.ReadOnlyMemoryOfChar);
+        Debug.Assert(CellValueWriter.GetWriter(cell.DataCell.Type) is StringCellValueWriterBase);
         return StringCellValueWriterBase.WriteStartElementWithReference(actualStyleId, State);
     }
 
