@@ -7,17 +7,16 @@ namespace SpreadCheetah.CellValueWriters.Boolean;
 
 internal sealed class TrueBooleanCellValueWriter : BooleanCellValueWriter
 {
-    private static ReadOnlySpan<byte> TrueBooleanCell => "<c t=\"b\"><v>1</v></c>"u8;
     private static ReadOnlySpan<byte> EndReferenceTrueBooleanValue => "\" t=\"b\"><v>1</v></c>"u8;
     private static ReadOnlySpan<byte> EndStyleTrueBooleanValue => "\"><v>1</v></c>"u8;
     private static ReadOnlySpan<byte> EndFormulaTrueBooleanValue => "</f><v>1</v></c>"u8;
 
-    protected override bool TryWriteCell(SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
     {
-        return buffer.TryWrite(TrueBooleanCell);
+        return buffer.TryWrite("<c t=\"b\"><v>1</v></c>"u8);
     }
 
-    protected override bool TryWriteCell(StyleId styleId, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
         return buffer.TryWrite($"{BeginStyledBooleanCell}{styleId.Id}{EndStyleTrueBooleanValue}");
     }
@@ -35,12 +34,12 @@ internal sealed class TrueBooleanCellValueWriter : BooleanCellValueWriter
         return buffer.TryWrite($"{BeginBooleanFormulaCell}{formulaText}{EndFormulaTrueBooleanValue}");
     }
 
-    protected override bool TryWriteCellWithReference(CellWriterState state)
+    public override bool TryWriteCellWithReference(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
     {
         return state.Buffer.TryWrite($"{state}{EndReferenceTrueBooleanValue}");
     }
 
-    protected override bool TryWriteCellWithReference(StyleId styleId, CellWriterState state)
+    public override bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state)
     {
         return state.Buffer.TryWrite($"{state}{EndReferenceBeginStyled}{styleId.Id}{EndStyleTrueBooleanValue}");
     }
@@ -61,8 +60,8 @@ internal sealed class TrueBooleanCellValueWriter : BooleanCellValueWriter
             $"{EndFormulaTrueBooleanValue}");
     }
 
-    public override bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer)
+    public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)
     {
-        return cell.Formula is null || buffer.TryWrite(EndFormulaTrueBooleanValue);
+        return buffer.TryWrite("1"u8);
     }
 }

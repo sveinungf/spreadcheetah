@@ -16,7 +16,7 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
 
     protected abstract bool TryWriteCell(in T cell);
     protected abstract bool TryWriteCell(in T cell, StyleId styleId);
-    protected abstract bool WriteStartElement(in T cell);
+    protected abstract bool WriteStartElement(in T cell, StyleId? styleId);
     protected abstract bool TryWriteEndElement(in T cell);
     protected abstract bool FinishWritingCellValue(in T cell, ref int cellValueIndex);
 
@@ -143,13 +143,15 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
 
         EnsureRowStartIsWritten(rowIndex, options);
 
+        var rowStyleId = options?.DefaultStyleId;
+
         while (State.Column < cells.Length)
         {
             // Attempt to add row cells again
             var beforeIndex = State.Column;
-            var success = options?.DefaultStyleId is { } styleId
-                ? TryAddRowCellsForSpan(cells.Span, styleId)
-                : TryAddRowCellsForSpan(cells.Span);
+            var success = rowStyleId is null
+                ? TryAddRowCellsForSpan(cells.Span)
+                : TryAddRowCellsForSpan(cells.Span, rowStyleId);
 
             if (success)
                 return;
@@ -157,7 +159,7 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
             // If no cells were added, the next cell is larger than the buffer.
             if (State.Column == beforeIndex)
             {
-                await WriteCellPieceByPieceAsync(cells.Span[State.Column], stream, token).ConfigureAwait(false);
+                await WriteCellPieceByPieceAsync(cells.Span[State.Column], rowStyleId, stream, token).ConfigureAwait(false);
                 ++State.Column;
             }
 
@@ -192,10 +194,10 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
         }
     }
 
-    private async ValueTask WriteCellPieceByPieceAsync(T cell, Stream stream, CancellationToken token)
+    private async ValueTask WriteCellPieceByPieceAsync(T cell, StyleId? styleId, Stream stream, CancellationToken token)
     {
         // Write start element
-        WriteStartElement(cell);
+        WriteStartElement(cell, styleId);
 
         // Write as much as possible from cell value
         var cellValueIndex = 0;
@@ -220,10 +222,11 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
         // Write the formula
         if (cellValueIndex < formulaText.Length)
         {
-            if (!Buffer.WriteLongString(formulaText, ref cellValueIndex)) return false;
+            if (!Buffer.WriteLongString(formulaText, ref cellValueIndex))
+                return false;
 
-            // Finish if there is no cached value to write piece by piece
-            if (!writer.CanWriteValuePieceByPiece(cell.DataCell)) return true;
+            if (cell.DataCell.Type is CellWriterType.Null or CellWriterType.NullDateTime)
+                return true;
         }
 
         // If there is a cached value, we need to write "[FORMULA]</f><v>[CACHEDVALUE]"

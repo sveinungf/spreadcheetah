@@ -1,6 +1,8 @@
 using SpreadCheetah.CellValueWriters;
+using SpreadCheetah.CellValueWriters.Characters;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
+using System.Diagnostics;
 
 namespace SpreadCheetah.CellWriters;
 
@@ -17,9 +19,10 @@ internal sealed class DataCellWriter(CellWriterState state, DefaultStyling? defa
         return CellValueWriter.GetWriter(cell.Type).TryWriteCell(cell, styleId, Buffer);
     }
 
-    protected override bool WriteStartElement(in DataCell cell)
+    protected override bool WriteStartElement(in DataCell cell, StyleId? styleId)
     {
-        return CellValueWriter.GetWriter(cell.Type).WriteStartElement(Buffer);
+        Debug.Assert(CellValueWriter.GetWriter(cell.Type) is StringCellValueWriterBase);
+        return StringCellValueWriterBase.WriteStartElement(styleId, Buffer);
     }
 
     protected override bool TryWriteEndElement(in DataCell cell)

@@ -273,23 +273,22 @@ public class SpreadsheetFormulaRowTests
         [CombinatorialValues(100, 511, 512, 513, 4100, 8192)] int formulaLength,
         CellValueType cachedValueType,
         RowCollectionType rowType,
+        bool withStyle,
         bool cachedValueIsNull)
     {
         // Arrange
         var formulaText = FormulaGenerator.Generate(formulaLength);
-        object? cachedValue;
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-            var formula = new Formula(formulaText);
-            var cell = CellFactory.Create(formula, cachedValueType, cachedValueIsNull, null, out cachedValue);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        var styleId = withStyle ? spreadsheet.AddStyle(new Style { Font = { Italic = true } }) : null;
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var formula = new Formula(formulaText);
+        var cell = CellFactory.Create(formula, cachedValueType, cachedValueIsNull, styleId, out var cachedValue);
 
-            // Act
-            await spreadsheet.AddRowAsync(cell, rowType);
-            await spreadsheet.FinishAsync(Token);
-        }
+        // Act
+        await spreadsheet.AddRowAsync(cell, rowType);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -301,44 +300,63 @@ public class SpreadsheetFormulaRowTests
         Assert.Equal(cachedValueType.GetExpectedDefaultNumberFormat() ?? "", actualCell.Style.NumberFormat.Format);
     }
 
-    [Theory]
-    [InlineData(100)]
-    [InlineData(511)]
-    [InlineData(512)]
-    [InlineData(513)]
-    [InlineData(4100)]
-    [InlineData(8192)]
-    public async Task Spreadsheet_AddRow_CellWithVeryLongFormulaAndStyle(int length)
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithVeryLongFormulaAndStyle(
+        [CombinatorialValues(100, 511, 512, 513, 4100, 8192)] int length)
     {
         // Arrange
         var formulaText = FormulaGenerator.Generate(length);
         var color = Color.Navy;
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
-            var style = new Style();
-            style.Fill.Color = color;
-            var styleId = spreadsheet.AddStyle(style);
+        var style = new Style { Fill = { Color = color } };
+        var styleId = spreadsheet.AddStyle(style);
 
-            var formula = new Formula(formulaText);
-            var cell = new Cell(formula, styleId);
+        var formula = new Formula(formulaText);
+        var cell = new Cell(formula, styleId);
 
-            // Act
-            await spreadsheet.AddRowAsync([cell], Token);
-            await spreadsheet.FinishAsync(Token);
-        }
+        // Act
+        await spreadsheet.AddRowAsync([cell], Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
-        Assert.Equal(formulaText, actualCell.FormulaA1);
-        Assert.Equal(color.ToArgb(), actualCell.Style.Fill.BackgroundColor.Color.ToArgb());
-        Assert.True(actualCell.CachedValue.IsBlank);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(formulaText, actualCell.Formula);
+        Assert.Equal(color.ToArgb(), actualCell.Style.Fill.Color.ToArgb());
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithVeryLongFormulaAndRowStyle(
+        [CombinatorialValues(100, 511, 512, 513, 4100, 8192)] int length)
+    {
+        // Arrange
+        var formulaText = FormulaGenerator.Generate(length);
+        var color = Color.Navy;
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        var formula = new Formula(formulaText);
+        var cell = new Cell(formula);
+
+        var style = new Style { Fill = { Color = color } };
+        var styleId = spreadsheet.AddStyle(style);
+        var rowOptions = new RowOptions { DefaultStyleId = styleId };
+
+        // Act
+        await spreadsheet.AddRowAsync([cell], rowOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(formulaText, actualCell.Formula);
+        Assert.Equal(color.ToArgb(), actualCell.Style.Fill.Color.ToArgb());
     }
 
     [Theory]
