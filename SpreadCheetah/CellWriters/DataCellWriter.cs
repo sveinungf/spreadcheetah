@@ -22,7 +22,8 @@ internal sealed class DataCellWriter : ICellWriter<DataCell>
     public void WriteStartElement(in DataCell cell, StyleId? styleId, CellWriterState state)
     {
         Debug.Assert(CellValueWriter.GetWriter(cell.Type) is StringCellValueWriterBase);
-        StringCellValueWriterBase.WriteStartElement(styleId, state.Buffer);
+        var result = StringCellValueWriterBase.WriteStartElement(styleId, state.Buffer);
+        Debug.Assert(result);
     }
 
     public bool TryWriteValue(in DataCell cell, ref int valueIndex, CellWriterState state)

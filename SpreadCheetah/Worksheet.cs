@@ -48,7 +48,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         if (writeCellReferenceAttributes)
         {
             _cellWriter = new CellWithReferenceWriter(_state, defaultStyling);
-            _dataCellRowWriter = new RowWriter<DataCell>(DataCellWriter.Instance, _state); // TODO: Use DataCellWithReferenceWriter
+            _dataCellRowWriter = new RowWriter<DataCell>(DataCellWithReferenceWriter.Instance, _state);
             _styledCellWriter = new StyledCellWithReferenceWriter(_state, defaultStyling);
         }
         else
