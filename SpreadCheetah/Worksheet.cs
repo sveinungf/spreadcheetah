@@ -3,6 +3,7 @@ using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml;
+using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Tables.Internal;
 using SpreadCheetah.Validations;
@@ -18,9 +19,9 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 #pragma warning disable CA2213 // Disposed by Spreadsheet
     private readonly SpreadsheetBuffer _buffer;
 #pragma warning restore CA2213 // Disposed by Spreadsheet
-    private readonly RowWriter<Cell> _cellRowWriter;
-    private readonly RowWriter<DataCell> _dataCellRowWriter;
-    private readonly RowWriter<StyledCell> _styledCellRowWriter;
+    private readonly BaseRowWriter<Cell> _cellRowWriter;
+    private readonly BaseRowWriter<DataCell> _dataCellRowWriter;
+    private readonly BaseRowWriter<StyledCell> _styledCellRowWriter;
     private readonly CellWriterState _state;
     private readonly string? _autoFilterRange;
     private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
@@ -43,20 +44,30 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         ColumnWidthRuns = options?.GetColumnWidthRuns();
         DefaultColumnWidth = options?.DefaultColumnWidth;
 
-        // TODO: When there are column styles, we need to use RowWithColumnStylesWriter
-
+        var columnStyles = options?.GetColumnStyles();
         if (writeCellReferenceAttributes)
         {
-            _cellRowWriter = new RowWriter<Cell>(CellWithReferenceWriter.Instance, _state);
-            _dataCellRowWriter = new RowWriter<DataCell>(DataCellWithReferenceWriter.Instance, _state);
-            _styledCellRowWriter = new RowWriter<StyledCell>(StyledCellWithReferenceWriter.Instance, _state);
+            _cellRowWriter = CreateRowWriter(CellWithReferenceWriter.Instance, columnStyles, _state);
+            _dataCellRowWriter = CreateRowWriter(DataCellWithReferenceWriter.Instance, columnStyles, _state);
+            _styledCellRowWriter = CreateRowWriter(StyledCellWithReferenceWriter.Instance, columnStyles, _state);
         }
         else
         {
-            _cellRowWriter = new RowWriter<Cell>(CellWriter.Instance, _state);
-            _dataCellRowWriter = new RowWriter<DataCell>(DataCellWriter.Instance, _state);
-            _styledCellRowWriter = new RowWriter<StyledCell>(StyledCellWriter.Instance, _state);
+            _cellRowWriter = CreateRowWriter(CellWriter.Instance, columnStyles, _state);
+            _dataCellRowWriter = CreateRowWriter(DataCellWriter.Instance, columnStyles, _state);
+            _styledCellRowWriter = CreateRowWriter(StyledCellWriter.Instance, columnStyles, _state);
         }
+    }
+
+    private static BaseRowWriter<T> CreateRowWriter<T>(
+        ICellWriter<T> cellWriter,
+        IReadOnlyDictionary<int, StyleId>? columnStyles,
+        CellWriterState state)
+        where T : struct
+    {
+        return columnStyles is null
+            ? new RowWriter<T>(cellWriter, state)
+            : new RowWithColumnStylesWriter<T>(cellWriter, state, columnStyles);
     }
 
     public int NextRowNumber => (int)_state.NextRowIndex;
