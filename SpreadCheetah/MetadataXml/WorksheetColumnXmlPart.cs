@@ -5,7 +5,8 @@ namespace SpreadCheetah.MetadataXml;
 internal struct WorksheetColumnXmlPart(
     SpreadsheetBuffer buffer,
     int columnIndex,
-    ColumnOptions options)
+    ColumnOptions options,
+    double? defaultColumnWidth)
 {
     private Element _next;
 
@@ -28,6 +29,7 @@ internal struct WorksheetColumnXmlPart(
         {
             Element.Header => TryWriteHeader(),
             Element.Width => TryWriteWidth(),
+            Element.Style => TryWriteStyle(),
             Element.Hidden => TryWriteHidden(),
             _ => buffer.TryWrite(" />"u8)
         };
@@ -50,13 +52,26 @@ internal struct WorksheetColumnXmlPart(
 
     private readonly bool TryWriteWidth()
     {
-        if (options.Width is not { } width)
+        if (options.Width is { } width)
+        {
+            return buffer.TryWrite(
+                $"{" width=\""u8}" +
+                $"{width}" +
+                $"{"\" customWidth=\"1\""u8}");
+        }
+
+        if (options.DefaultStyleId is null)
             return true;
 
-        return buffer.TryWrite(
-            $"{" width=\""u8}" +
-            $"{width}" +
-            $"{"\" customWidth=\"1\""u8}");
+        return defaultColumnWidth is { } defaultWidth
+            ? buffer.TryWrite($"{" width=\""u8}{defaultWidth}{"\""u8}")
+            : buffer.TryWrite(" width=\"8.88671875\""u8);
+    }
+
+    private readonly bool TryWriteStyle()
+    {
+        return options.DefaultStyleId is not { } styleId
+            || buffer.TryWrite($"{" style=\""u8}{styleId.Id}{"\""u8}");
     }
 
     private readonly bool TryWriteHidden()
@@ -68,6 +83,7 @@ internal struct WorksheetColumnXmlPart(
     {
         Header,
         Width,
+        Style,
         Hidden,
         Footer,
         Done

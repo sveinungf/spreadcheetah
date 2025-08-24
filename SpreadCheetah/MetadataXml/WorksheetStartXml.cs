@@ -162,8 +162,11 @@ file struct WorksheetStartXmlWriter(
         {
             var (columnIndex, columnOptions) = columns[_nextIndex];
 
-            var xml = _columnXml ??
-                new WorksheetColumnXmlPart(buffer, columnIndex, columnOptions);
+            var xml = _columnXml ?? new WorksheetColumnXmlPart(
+                buffer: buffer,
+                columnIndex: columnIndex,
+                options: columnOptions,
+                defaultColumnWidth: options?.DefaultColumnWidth);
 
             if (!xml.TryWrite())
             {
