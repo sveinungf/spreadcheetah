@@ -93,7 +93,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     private bool TryAddRow<TCell, TWriter>(ReadOnlySpan<TCell> cells, TWriter writer, RowOptions? options)
         where TCell : struct
-        where TWriter : RowWriter<TCell>
+        where TWriter : BaseRowWriter<TCell>
     {
         return options is null
             ? writer.TryAddRow(cells, _state.NextRowIndex++)
@@ -102,7 +102,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     private bool TryAddRow<TCell, TWriter>(IList<TCell> cells, TWriter writer, RowOptions? options)
         where TCell : struct
-        where TWriter : RowWriter<TCell>
+        where TWriter : BaseRowWriter<TCell>
     {
         return options is null
             ? writer.TryAddRow(cells, _state.NextRowIndex++)
@@ -111,7 +111,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     private bool TryAddRowWithOptions<TCell, TWriter>(ReadOnlySpan<TCell> cells, uint rowIndex, TWriter writer, RowOptions options)
         where TCell : struct
-        where TWriter : RowWriter<TCell>
+        where TWriter : BaseRowWriter<TCell>
     {
         var result = writer.TryAddRow(cells, rowIndex, options);
         if (result && options.Height is { } height)
@@ -122,7 +122,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     private bool TryAddRowWithOptions<TCell, TWriter>(IList<TCell> cells, uint rowIndex, TWriter writer, RowOptions options)
         where TCell : struct
-        where TWriter : RowWriter<TCell>
+        where TWriter : BaseRowWriter<TCell>
     {
         var result = writer.TryAddRow(cells, rowIndex, options);
         if (result && options.Height is { } height)
@@ -152,14 +152,14 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     private ValueTask AddRowAsync<TCell, TWriter>(IList<TCell> cells, TWriter writer, RowOptions? options, CancellationToken ct)
         where TCell : struct
-        where TWriter : RowWriter<TCell>
+        where TWriter : BaseRowWriter<TCell>
     {
         return writer.AddRowAsync(cells, _state.NextRowIndex - 1, options, _stream, ct);
     }
 
     private ValueTask AddRowAsync<TCell, TWriter>(ReadOnlyMemory<TCell> cells, TWriter writer, RowOptions? options, CancellationToken ct)
         where TCell : struct
-        where TWriter : RowWriter<TCell>
+        where TWriter : BaseRowWriter<TCell>
     {
         return writer.AddRowAsync(cells, _state.NextRowIndex - 1, options, _stream, ct);
     }
