@@ -49,8 +49,10 @@ file struct WorksheetStartXmlWriter(
 
         foreach (var (columnIndex, option) in dictionary)
         {
-            if (option.Width is not null || option.Hidden)
-                columns.Add((columnIndex, option));
+            if (option is { DefaultStyleId: null, Width: null, Hidden: false })
+                continue;
+
+            columns.Add((columnIndex, option));
         }
 
         return columns;

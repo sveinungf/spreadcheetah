@@ -848,7 +848,32 @@ public class SpreadsheetRowTests
         Assert.Equal(fontColor, actualCellStyle.Font.Color);
     }
 
-    // TODO: Spreadsheet_AddRow_ColumnStyle
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_ColumnStyle(
+        CellType type,
+        RowCollectionType rowType)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        var fontColor = System.Drawing.Color.FromArgb(255, 255, 69);
+        var style = new Style { Font = { Color = fontColor } };
+        var styleId = spreadsheet.AddStyle(style);
+        var worksheetOptions = new WorksheetOptions();
+        worksheetOptions.Column(1).DefaultStyleId = styleId;
+        await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, token: Token);
+
+        // Act
+        await spreadsheet.AddRowAsync(CellFactory.Create(type, "My value"), rowType);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualColumnStyle = sheet.Column("A").Style;
+        var actualCellStyle = sheet["A1"].Style;
+        Assert.Equal(fontColor, actualColumnStyle.Font.Color);
+        Assert.Equal(fontColor, actualCellStyle.Font.Color);
+    }
 
     [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_RowStyleForMultipleCells(IListType listType)

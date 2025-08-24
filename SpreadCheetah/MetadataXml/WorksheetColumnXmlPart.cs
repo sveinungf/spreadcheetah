@@ -31,7 +31,7 @@ internal struct WorksheetColumnXmlPart(
             Element.Width => TryWriteWidth(),
             Element.Style => TryWriteStyle(),
             Element.Hidden => TryWriteHidden(),
-            _ => buffer.TryWrite(" />"u8)
+            _ => buffer.TryWrite("/>"u8)
         };
 
         if (Current)
