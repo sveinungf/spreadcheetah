@@ -28,7 +28,7 @@ internal abstract class CellValueWriter
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static CellValueWriter GetWriter(CellWriterType type) => Writers[(int)type];
 
-    public abstract bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer);
+    public abstract bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer); // TODO: Pass CellWriterState
     public abstract bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer);
     public abstract bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer);
     public abstract bool TryWriteCellWithReference(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state);
