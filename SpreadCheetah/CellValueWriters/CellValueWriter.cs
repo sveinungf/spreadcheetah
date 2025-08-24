@@ -30,12 +30,12 @@ internal abstract class CellValueWriter
 
     public abstract bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer); // TODO: Pass CellWriterState
     public abstract bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer);
-    public abstract bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer);
-    public abstract bool TryWriteCellWithReference(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state);
+    public abstract bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer); // TODO: Pass CellWriterState
+    public abstract bool TryWriteCellWithReference(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state); // TODO: Remove DefaultStyling
     public abstract bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state);
-    public abstract bool TryWriteCellWithReference(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state);
-    public abstract bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer);
-    public abstract bool WriteFormulaStartElementWithReference(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state);
+    public abstract bool TryWriteCellWithReference(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state); // TODO: Remove DefaultStyling
+    public abstract bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer); // TODO: Pass CellWriterState
+    public abstract bool WriteFormulaStartElementWithReference(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state); // TODO: Remove DefaultStyling
     public abstract bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex);
     public abstract bool TryWriteEndElement(SpreadsheetBuffer buffer);
     public abstract bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer);
