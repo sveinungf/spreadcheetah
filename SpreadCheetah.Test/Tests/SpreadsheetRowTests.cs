@@ -239,6 +239,8 @@ public class SpreadsheetRowTests
         Assert.True(sheet["A1"].Style.Font.Italic);
     }
 
+    // TODO: Spreadsheet_AddRow_CellWithVeryLongStringValueAndColumnStyle
+
     [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_CellWithIntegerValue(
         [CombinatorialValues(1234, 0, -1234, int.MinValue, int.MaxValue, null)] int? value,
@@ -665,7 +667,7 @@ public class SpreadsheetRowTests
         bool isNull,
         CellType cellType,
         RowCollectionType rowType,
-        bool withRowStyle)
+        bool withRowStyle) // TODO: withColumnStyle
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -767,7 +769,9 @@ public class SpreadsheetRowTests
     }
 
     [Theory, CombinatorialData]
-    public async Task Spreadsheet_AddRow_ExplicitCellReferenceForDateTimeCellWithDefaultStyling(bool isNull, bool withRowStyle)
+    public async Task Spreadsheet_AddRow_ExplicitCellReferenceForDateTimeCellWithDefaultStyling(
+        bool isNull,
+        bool withRowStyle) // TODO: withColumnStyle
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -844,6 +848,8 @@ public class SpreadsheetRowTests
         Assert.Equal(fontColor, actualCellStyle.Font.Color);
     }
 
+    // TODO: Spreadsheet_AddRow_ColumnStyle
+
     [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_RowStyleForMultipleCells(IListType listType)
     {
@@ -870,6 +876,8 @@ public class SpreadsheetRowTests
         Assert.Equal(cellCount, actualCells.Count);
         Assert.All(actualCells, cell => Assert.Equal(fontColor, cell.Style.Font.Color));
     }
+
+    // TODO: Spreadsheet_AddRow_ColumnStyleForMultipleRows
 
     [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_RowStyleForMultipleRows(bool withCustomHeight)
@@ -903,6 +911,8 @@ public class SpreadsheetRowTests
         Assert.All(actualRows, row => Assert.True(row.Style.Font.Italic));
         Assert.All(actualRows, row => Assert.True(row.Cells.First().Style.Font.Italic));
     }
+
+    // TODO: Spreadsheet_AddRow_ColumnStyleForMultipleColumns
 
     [Fact]
     public async Task Spreadsheet_AddRow_RowStyleOnlyForOneRow()
@@ -955,4 +965,6 @@ public class SpreadsheetRowTests
         Assert.Equal(fontColor, actualCellStyle.Font.Color);
         Assert.Equal(height, actualRow.Height, 5);
     }
+
+    // TODO: Spreadsheet_AddRow_MultipleColumnOptions
 }
