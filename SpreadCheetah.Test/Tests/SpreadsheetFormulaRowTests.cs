@@ -408,7 +408,8 @@ public class SpreadsheetFormulaRowTests
         CellValueType valueType,
         RowCollectionType rowType,
         bool isNull,
-        bool withRowStyle) // TODO: withColumnStyle
+        bool withColumnStyle,
+        bool withRowStyle)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -424,16 +425,20 @@ public class SpreadsheetFormulaRowTests
         var expectedRow2Refs = CellReferenceFactory.RowReferences(2, 1);
         var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
 
-        var rowStyleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
-        var rowOptions = withRowStyle ? new RowOptions { DefaultStyleId = rowStyleId } : null;
+        var styleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
+        var rowOptions = withRowStyle ? new RowOptions { DefaultStyleId = styleId } : null;
+
+        var worksheetOptions = new WorksheetOptions();
+        if (withColumnStyle)
+            worksheetOptions.Column(2).DefaultStyleId = styleId;
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions, Token);
         await spreadsheet.AddRowAsync(row1, rowType, rowOptions);
         await spreadsheet.AddRowAsync(row2, rowType, rowOptions);
         await spreadsheet.AddRowAsync(row3, rowType, rowOptions);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2", token: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet2", worksheetOptions, Token);
         await spreadsheet.AddRowAsync(row1, rowType, rowOptions);
 
         await spreadsheet.FinishAsync(Token);
@@ -465,7 +470,8 @@ public class SpreadsheetFormulaRowTests
         CellValueType valueType,
         RowCollectionType rowType,
         bool isNull,
-        bool withRowStyle) // TODO: withColumnStyle
+        bool withColumnStyle,
+        bool withRowStyle)
     {
         // Arrange
         using var stream = new MemoryStream();
@@ -484,16 +490,20 @@ public class SpreadsheetFormulaRowTests
         var expectedRow2Refs = CellReferenceFactory.RowReferences(2, 1);
         var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
 
-        var rowStyleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
-        var rowOptions = withRowStyle ? new RowOptions { DefaultStyleId = rowStyleId } : null;
+        var italicStyleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
+        var rowOptions = withRowStyle ? new RowOptions { DefaultStyleId = italicStyleId } : null;
+
+        var worksheetOptions = new WorksheetOptions();
+        if (withColumnStyle)
+            worksheetOptions.Column(2).DefaultStyleId = italicStyleId;
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions, Token);
         await spreadsheet.AddRowAsync(row1, rowType, rowOptions);
         await spreadsheet.AddRowAsync(row2, rowType, rowOptions);
         await spreadsheet.AddRowAsync(row3, rowType, rowOptions);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2", token: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet2", worksheetOptions, Token);
         await spreadsheet.AddRowAsync(row1, rowType, rowOptions);
 
         await spreadsheet.FinishAsync(Token);
