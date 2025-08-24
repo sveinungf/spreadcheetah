@@ -15,9 +15,9 @@ internal sealed class CellWithReferenceWriter : ICellWriter<Cell>
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
         return cell switch
         {
-            { Formula: { } f } => writer.TryWriteCellWithReference(f.FormulaText, cell.DataCell, cell.StyleId, state.DefaultStyling, state),
+            { Formula: { } f } => writer.TryWriteCellWithReference(f.FormulaText, cell.DataCell, cell.StyleId, state),
             { StyleId: not null } => writer.TryWriteCellWithReference(cell.DataCell, cell.StyleId, state),
-            _ => writer.TryWriteCellWithReference(cell.DataCell, state.DefaultStyling, state)
+            _ => writer.TryWriteCellWithReference(cell.DataCell, state)
         };
     }
 
@@ -26,7 +26,7 @@ internal sealed class CellWithReferenceWriter : ICellWriter<Cell>
         var actualStyleId = cell.StyleId ?? styleId;
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
         return cell.Formula is { } formula
-            ? writer.TryWriteCellWithReference(formula.FormulaText, cell.DataCell, actualStyleId, state.DefaultStyling, state)
+            ? writer.TryWriteCellWithReference(formula.FormulaText, cell.DataCell, actualStyleId, state)
             : writer.TryWriteCellWithReference(cell.DataCell, actualStyleId, state);
     }
 
@@ -37,7 +37,7 @@ internal sealed class CellWithReferenceWriter : ICellWriter<Cell>
         if (cell.Formula is not null)
         {
             var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
-            var ok = writer.WriteFormulaStartElementWithReference(actualStyleId, state.DefaultStyling, state);
+            var ok = writer.WriteFormulaStartElementWithReference(actualStyleId, state);
             Debug.Assert(ok);
             return;
         }

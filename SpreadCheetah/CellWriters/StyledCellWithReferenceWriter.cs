@@ -13,7 +13,7 @@ internal sealed class StyledCellWithReferenceWriter : ICellWriter<StyledCell>
     {
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
         return cell.StyleId is null
-            ? writer.TryWriteCellWithReference(cell.DataCell, state.DefaultStyling, state)
+            ? writer.TryWriteCellWithReference(cell.DataCell, state)
             : writer.TryWriteCellWithReference(cell.DataCell, cell.StyleId, state);
     }
 

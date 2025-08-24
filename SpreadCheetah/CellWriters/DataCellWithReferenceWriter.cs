@@ -11,7 +11,7 @@ internal sealed class DataCellWithReferenceWriter : ICellWriter<DataCell>
 
     public bool TryWrite(in DataCell cell, CellWriterState state)
     {
-        return CellValueWriter.GetWriter(cell.Type).TryWriteCellWithReference(cell, state.DefaultStyling, state);
+        return CellValueWriter.GetWriter(cell.Type).TryWriteCellWithReference(cell, state);
     }
 
     public bool TryWrite(in DataCell cell, StyleId styleId, CellWriterState state)

@@ -11,7 +11,7 @@ internal sealed class DataCellWriter : ICellWriter<DataCell>
 
     public bool TryWrite(in DataCell cell, CellWriterState state)
     {
-        return CellValueWriter.GetWriter(cell.Type).TryWriteCell(cell, state.DefaultStyling, state.Buffer);
+        return CellValueWriter.GetWriter(cell.Type).TryWriteCell(cell, state);
     }
 
     public bool TryWrite(in DataCell cell, StyleId styleId, CellWriterState state)

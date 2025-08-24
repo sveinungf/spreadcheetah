@@ -12,7 +12,7 @@ internal sealed class StyledCellWriter : ICellWriter<StyledCell>
     public bool TryWrite(in StyledCell cell, CellWriterState state)
     {
         return cell.StyleId is null
-            ? CellValueWriter.GetWriter(cell.DataCell.Type).TryWriteCell(cell.DataCell, state.DefaultStyling, state.Buffer)
+            ? CellValueWriter.GetWriter(cell.DataCell.Type).TryWriteCell(cell.DataCell, state)
             : CellValueWriter.GetWriter(cell.DataCell.Type).TryWriteCell(cell.DataCell, cell.StyleId, state.Buffer);
     }
 

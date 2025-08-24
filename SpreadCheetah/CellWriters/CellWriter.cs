@@ -15,9 +15,9 @@ internal sealed class CellWriter : ICellWriter<Cell>
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
         return cell switch
         {
-            { Formula: { } formula } => writer.TryWriteCell(formula.FormulaText, cell.DataCell, cell.StyleId, state.DefaultStyling, state.Buffer),
+            { Formula: { } formula } => writer.TryWriteCell(formula.FormulaText, cell.DataCell, cell.StyleId, state),
             { StyleId: not null } => writer.TryWriteCell(cell.DataCell, cell.StyleId, state.Buffer),
-            _ => writer.TryWriteCell(cell.DataCell, state.DefaultStyling, state.Buffer)
+            _ => writer.TryWriteCell(cell.DataCell, state)
         };
     }
 
@@ -26,7 +26,7 @@ internal sealed class CellWriter : ICellWriter<Cell>
         var actualStyleId = cell.StyleId ?? styleId;
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
         return cell.Formula is { } formula
-            ? writer.TryWriteCell(formula.FormulaText, cell.DataCell, actualStyleId, state.DefaultStyling, state.Buffer)
+            ? writer.TryWriteCell(formula.FormulaText, cell.DataCell, actualStyleId, state)
             : writer.TryWriteCell(cell.DataCell, actualStyleId, state.Buffer);
     }
 
@@ -37,7 +37,7 @@ internal sealed class CellWriter : ICellWriter<Cell>
         if (cell.Formula is not null)
         {
             var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
-            var ok = writer.WriteFormulaStartElement(actualStyleId, state.DefaultStyling, state.Buffer);
+            var ok = writer.WriteFormulaStartElement(actualStyleId, state);
             Debug.Assert(ok);
             return;
         }

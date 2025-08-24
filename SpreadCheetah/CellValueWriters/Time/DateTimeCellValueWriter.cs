@@ -2,7 +2,6 @@ using SpreadCheetah.CellValueWriters.Number;
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
-using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.CellValueWriters.Time;
 
@@ -10,11 +9,11 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
 {
     protected override int GetStyleId(StyleId styleId) => styleId.DateTimeId;
 
-    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, CellWriterState state)
     {
-        return defaultStyling?.DateTimeStyleId is { } styleId
-            ? TryWriteDateTimeCell(cell, styleId, buffer)
-            : buffer.TryWrite($"{BeginDataCell}{new OADate(cell.Value.StringOrPrimitive.PrimitiveValue.LongValue)}{EndDefaultCell}");
+        return state.DefaultStyling?.DateTimeStyleId is { } styleId
+            ? TryWriteDateTimeCell(cell, styleId, state.Buffer)
+            : state.Buffer.TryWrite($"{BeginDataCell}{new OADate(cell.Value.StringOrPrimitive.PrimitiveValue.LongValue)}{EndDefaultCell}");
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
@@ -22,12 +21,12 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
         return TryWriteDateTimeCell(cell, styleId.DateTimeId, buffer);
     }
 
-    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, CellWriterState state)
     {
-        var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
+        var actualStyleId = styleId?.DateTimeId ?? state.DefaultStyling?.DateTimeStyleId;
         if (actualStyleId is { } style)
         {
-            return buffer.TryWrite(
+            return state.Buffer.TryWrite(
                 $"{StyledCellHelper.BeginStyledNumberCell}{style}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
@@ -35,7 +34,7 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
                 $"{FormulaCellHelper.EndCachedValueEndCell}");
         }
 
-        return buffer.TryWrite(
+        return state.Buffer.TryWrite(
             $"{FormulaCellHelper.BeginNumberFormulaCell}" +
             $"{formulaText}" +
             $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
@@ -51,9 +50,9 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
             $"{EndDefaultCell}");
     }
 
-    public override bool TryWriteCellWithReference(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
+    public override bool TryWriteCellWithReference(in DataCell cell, CellWriterState state)
     {
-        if (defaultStyling?.DateTimeStyleId is { } styleId)
+        if (state.DefaultStyling?.DateTimeStyleId is { } styleId)
             return TryWriteDateTimeCellWithReference(cell, styleId, state);
 
         return state.Buffer.TryWrite(
@@ -67,9 +66,9 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
         return TryWriteDateTimeCellWithReference(cell, styleId.DateTimeId, state);
     }
 
-    public override bool TryWriteCellWithReference(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
+    public override bool TryWriteCellWithReference(string formulaText, in DataCell cachedValue, StyleId? styleId, CellWriterState state)
     {
-        var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
+        var actualStyleId = styleId?.DateTimeId ?? state.DefaultStyling?.DateTimeStyleId;
         if (actualStyleId is { } style)
         {
             return state.Buffer.TryWrite(
@@ -96,15 +95,15 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
             $"{EndDefaultCell}");
     }
 
-    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool WriteFormulaStartElement(StyleId? styleId, CellWriterState state)
     {
-        var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
-        return WriteFormulaStartElement(actualStyleId, buffer);
+        var actualStyleId = styleId?.DateTimeId ?? state.DefaultStyling?.DateTimeStyleId;
+        return WriteFormulaStartElement(actualStyleId, state.Buffer);
     }
 
-    public override bool WriteFormulaStartElementWithReference(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
+    public override bool WriteFormulaStartElementWithReference(StyleId? styleId, CellWriterState state)
     {
-        var actualStyleId = styleId?.DateTimeId ?? defaultStyling?.DateTimeStyleId;
+        var actualStyleId = styleId?.DateTimeId ?? state.DefaultStyling?.DateTimeStyleId;
         return WriteFormulaStartElementWithReference(actualStyleId, state);
     }
 
