@@ -1,44 +1,45 @@
 using SpreadCheetah.CellValueWriters;
 using SpreadCheetah.CellValueWriters.Characters;
 using SpreadCheetah.Styling;
-using SpreadCheetah.Styling.Internal;
 using System.Diagnostics;
 
 namespace SpreadCheetah.CellWriters;
 
-internal sealed class StyledCellWithReferenceWriter(CellWriterState state, DefaultStyling? defaultStyling)
-    : BaseCellWriter<StyledCell>(state, defaultStyling)
+internal sealed class StyledCellWithReferenceWriter : ICellWriter<StyledCell>
 {
-    protected override bool TryWriteCell(in StyledCell cell)
+    public static StyledCellWithReferenceWriter Instance { get; } = new();
+
+    public bool TryWrite(in StyledCell cell, CellWriterState state)
     {
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
         return cell.StyleId is null
-            ? writer.TryWriteCellWithReference(cell.DataCell, DefaultStyling, State)
-            : writer.TryWriteCellWithReference(cell.DataCell, cell.StyleId, State);
+            ? writer.TryWriteCellWithReference(cell.DataCell, state.DefaultStyling, state)
+            : writer.TryWriteCellWithReference(cell.DataCell, cell.StyleId, state);
     }
 
-    protected override bool TryWriteCell(in StyledCell cell, StyleId styleId)
+    public bool TryWrite(in StyledCell cell, StyleId styleId, CellWriterState state)
     {
         var actualStyleId = cell.StyleId ?? styleId;
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
-        return writer.TryWriteCellWithReference(cell.DataCell, actualStyleId, State);
+        return writer.TryWriteCellWithReference(cell.DataCell, actualStyleId, state);
     }
 
-    protected override bool WriteStartElement(in StyledCell cell, StyleId? styleId)
+    public void WriteStartElement(in StyledCell cell, StyleId? styleId, CellWriterState state)
     {
         var actualStyleId = cell.StyleId ?? styleId;
         Debug.Assert(CellValueWriter.GetWriter(cell.DataCell.Type) is StringCellValueWriterBase);
-        return StringCellValueWriterBase.WriteStartElementWithReference(actualStyleId, State);
+        var result = StringCellValueWriterBase.WriteStartElementWithReference(actualStyleId, state);
+        Debug.Assert(result);
     }
 
-    protected override bool TryWriteEndElement(in StyledCell cell)
+    public bool TryWriteValue(in StyledCell cell, ref int valueIndex, CellWriterState state)
+    {
+        return state.Buffer.WriteLongString(cell.DataCell.Value.StringOrPrimitive.StringValue, ref valueIndex);
+    }
+
+    public bool TryWriteEndElement(in StyledCell cell, CellWriterState state)
     {
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
-        return writer.TryWriteEndElement(Buffer);
-    }
-
-    protected override bool FinishWritingCellValue(in StyledCell cell, ref int cellValueIndex)
-    {
-        return Buffer.WriteLongString(cell.DataCell.Value.StringOrPrimitive.StringValue, ref cellValueIndex);
+        return writer.TryWriteEndElement(state.Buffer);
     }
 }

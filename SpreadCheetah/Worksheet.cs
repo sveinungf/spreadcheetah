@@ -20,7 +20,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 #pragma warning restore CA2213 // Disposed by Spreadsheet
     private readonly BaseCellWriter<Cell> _cellWriter;
     private readonly RowWriter<DataCell> _dataCellRowWriter;
-    private readonly BaseCellWriter<StyledCell> _styledCellWriter;
+    private readonly RowWriter<StyledCell> _styledCellRowWriter;
     private readonly CellWriterState _state;
     private readonly string? _autoFilterRange;
     private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
@@ -49,13 +49,13 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         {
             _cellWriter = new CellWithReferenceWriter(_state, defaultStyling);
             _dataCellRowWriter = new RowWriter<DataCell>(DataCellWithReferenceWriter.Instance, _state);
-            _styledCellWriter = new StyledCellWithReferenceWriter(_state, defaultStyling);
+            _styledCellRowWriter = new RowWriter<StyledCell>(StyledCellWithReferenceWriter.Instance, _state);
         }
         else
         {
             _cellWriter = new CellWriter(_state, defaultStyling);
             _dataCellRowWriter = new RowWriter<DataCell>(DataCellWriter.Instance, _state);
-            _styledCellWriter = new StyledCellWriter(_state, defaultStyling);
+            _styledCellRowWriter = new RowWriter<StyledCell>(StyledCellWriter.Instance, _state);
         }
     }
 
@@ -85,10 +85,10 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     [OverloadResolutionPriority(1)]
     public bool TryAddRow(ReadOnlySpan<DataCell> cells, RowOptions? options) => TryAddRow2(cells, _dataCellRowWriter, options);
-    public bool TryAddRow(ReadOnlySpan<StyledCell> cells, RowOptions? options) => TryAddRow(cells, _styledCellWriter, options);
+    public bool TryAddRow(ReadOnlySpan<StyledCell> cells, RowOptions? options) => TryAddRow2(cells, _styledCellRowWriter, options);
     public bool TryAddRow(ReadOnlySpan<Cell> cells, RowOptions? options) => TryAddRow(cells, _cellWriter, options);
     public bool TryAddRow(IList<DataCell> cells, RowOptions? options) => TryAddRow2(cells, _dataCellRowWriter, options);
-    public bool TryAddRow(IList<StyledCell> cells, RowOptions? options) => TryAddRow(cells, _styledCellWriter, options);
+    public bool TryAddRow(IList<StyledCell> cells, RowOptions? options) => TryAddRow2(cells, _styledCellRowWriter, options);
     public bool TryAddRow(IList<Cell> cells, RowOptions? options) => TryAddRow(cells, _cellWriter, options);
 
     // TODO: Rename when the other method has been completely replaced.
@@ -184,10 +184,10 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     [OverloadResolutionPriority(1)]
     public ValueTask AddRowAsync(IList<DataCell> cells, RowOptions? options, CancellationToken ct) => AddRow2Async(cells, _dataCellRowWriter, options, ct);
-    public ValueTask AddRowAsync(IList<StyledCell> cells, RowOptions? options, CancellationToken ct) => AddRowAsync(cells, _styledCellWriter, options, ct);
+    public ValueTask AddRowAsync(IList<StyledCell> cells, RowOptions? options, CancellationToken ct) => AddRow2Async(cells, _styledCellRowWriter, options, ct);
     public ValueTask AddRowAsync(IList<Cell> cells, RowOptions? options, CancellationToken ct) => AddRowAsync(cells, _cellWriter, options, ct);
     public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, RowOptions? options, CancellationToken ct) => AddRow2Async(cells, _dataCellRowWriter, options, ct);
-    public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, RowOptions? options, CancellationToken ct) => AddRowAsync(cells, _styledCellWriter, options, ct);
+    public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, RowOptions? options, CancellationToken ct) => AddRow2Async(cells, _styledCellRowWriter, options, ct);
     public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, RowOptions? options, CancellationToken ct) => AddRowAsync(cells, _cellWriter, options, ct);
 
     // TODO: Rename when the other method has been completely replaced.
