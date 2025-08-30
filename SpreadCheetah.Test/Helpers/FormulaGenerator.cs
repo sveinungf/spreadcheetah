@@ -1,5 +1,4 @@
 using System.Text;
-using Xunit;
 
 namespace SpreadCheetah.Test.Helpers;
 
@@ -7,7 +6,7 @@ internal static class FormulaGenerator
 {
     public static string Generate(int length)
     {
-        var sb = new StringBuilder("CONCAT(A1; ");
+        var sb = new StringBuilder("CONCAT(A1, ");
         var remaining = length - sb.Length - 1;
         if (remaining < 3)
             throw new ArgumentException("Length is too small", nameof(length));
@@ -21,7 +20,7 @@ internal static class FormulaGenerator
                 sb.Append('"');
                 sb.Append(value);
                 sb.Append('"');
-                sb.Append("; ");
+                sb.Append(", ");
                 var after = sb.Length;
                 remaining -= after - before;
                 continue;

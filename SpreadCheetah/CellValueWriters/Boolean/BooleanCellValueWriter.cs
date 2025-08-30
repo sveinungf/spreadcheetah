@@ -1,7 +1,6 @@
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
-using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.CellValueWriters.Boolean;
 
@@ -16,14 +15,14 @@ internal abstract class BooleanCellValueWriter : CellValueWriter
 
     public override bool TryWriteEndElement(in Cell cell, SpreadsheetBuffer buffer) => TryWriteEndElement(buffer);
 
-    public override bool WriteFormulaStartElement(StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool WriteFormulaStartElement(StyleId? styleId, CellWriterState state)
     {
         return styleId is { } style
-            ? buffer.TryWrite($"{BeginStyledBooleanCell}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}")
-            : buffer.TryWrite(BeginBooleanFormulaCell);
+            ? state.Buffer.TryWrite($"{BeginStyledBooleanCell}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}")
+            : state.Buffer.TryWrite(BeginBooleanFormulaCell);
     }
 
-    public override bool WriteFormulaStartElementWithReference(StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
+    public override bool WriteFormulaStartElementWithReference(StyleId? styleId, CellWriterState state)
     {
         return styleId is { } style
             ? state.Buffer.TryWrite($"{state}{EndReferenceBeginStyled}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}")

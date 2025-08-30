@@ -1,28 +1,27 @@
-using SpreadCheetah.CellValueWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
-using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Worksheets;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah.CellWriters;
 
-internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling? defaultStyling)
+internal abstract class BaseRowWriter<T>(
+    ICellWriter<T> cellWriter,
+    CellWriterState state)
+    where T : struct
 {
-    protected readonly DefaultStyling? DefaultStyling = defaultStyling;
-    protected readonly SpreadsheetBuffer Buffer = state.Buffer;
+    private readonly SpreadsheetBuffer _buffer = state.Buffer;
+
+    protected readonly ICellWriter<T> CellWriter = cellWriter;
     protected readonly CellWriterState State = state;
 
-    protected abstract bool TryWriteCell(in T cell);
-    protected abstract bool TryWriteCell(in T cell, StyleId styleId);
-    protected abstract bool WriteStartElement(in T cell, StyleId? styleId);
-    protected abstract bool TryWriteEndElement(in T cell);
-    protected abstract bool FinishWritingCellValue(in T cell, ref int cellValueIndex);
+    protected abstract bool TryAddRowCellsForSpan(ReadOnlySpan<T> cells);
+    protected abstract void WriteStartElement(in T cell, StyleId? rowStyleId);
 
     public bool TryAddRow(IList<T> cells, uint rowIndex)
     {
-        if (!CellRowHelper.TryWriteRowStart(rowIndex, Buffer))
+        if (!CellRowHelper.TryWriteRowStart(rowIndex, _buffer))
         {
             State.Column = -1;
             return false;
@@ -34,7 +33,7 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
 
     public bool TryAddRow(ReadOnlySpan<T> cells, uint rowIndex)
     {
-        if (!CellRowHelper.TryWriteRowStart(rowIndex, Buffer))
+        if (!CellRowHelper.TryWriteRowStart(rowIndex, _buffer))
         {
             State.Column = -1;
             return false;
@@ -46,7 +45,7 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
 
     public bool TryAddRow(IList<T> cells, uint rowIndex, RowOptions options)
     {
-        if (!CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer))
+        if (!CellRowHelper.TryWriteRowStart(rowIndex, options, _buffer))
         {
             State.Column = -1;
             return false;
@@ -60,7 +59,7 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
 
     public bool TryAddRow(ReadOnlySpan<T> cells, uint rowIndex, RowOptions options)
     {
-        if (!CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer))
+        if (!CellRowHelper.TryWriteRowStart(rowIndex, options, _buffer))
         {
             State.Column = -1;
             return false;
@@ -96,28 +95,13 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
         };
     }
 
-    private bool TryAddRowCellsForSpan(ReadOnlySpan<T> cells)
-    {
-        var writerState = State;
-        var column = writerState.Column;
-        while (column < cells.Length)
-        {
-            if (!TryWriteCell(cells[column]))
-                return false;
-
-            writerState.Column = ++column;
-        }
-
-        return TryWriteRowEnd();
-    }
-
     private bool TryAddRowCellsForSpan(ReadOnlySpan<T> cells, StyleId styleId)
     {
         var writerState = State;
         var column = writerState.Column;
         while (column < cells.Length)
         {
-            if (!TryWriteCell(cells[column], styleId))
+            if (!CellWriter.TryWrite(cells[column], styleId, writerState))
                 return false;
 
             writerState.Column = ++column;
@@ -134,12 +118,12 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
             : TryAddRowCellsForSpan(pooledArray.Span, styleId);
     }
 
-    private bool TryWriteRowEnd() => Buffer.TryWrite("</row>"u8);
+    protected bool TryWriteRowEnd() => _buffer.TryWrite("</row>"u8);
 
     public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, uint rowIndex, RowOptions? options, Stream stream, CancellationToken token)
     {
         // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
-        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        await _buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
         EnsureRowStartIsWritten(rowIndex, options);
 
@@ -164,13 +148,13 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
             }
 
             // One or more cells were added, repeat.
-            await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            await _buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }
 
         if (TryWriteRowEnd())
             return;
 
-        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        await _buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         TryWriteRowEnd();
     }
 
@@ -186,66 +170,32 @@ internal abstract class BaseCellWriter<T>(CellWriterState state, DefaultStyling?
         if (State.Column == -1)
         {
             var result = options is null
-                ? CellRowHelper.TryWriteRowStart(rowIndex, Buffer)
-                : CellRowHelper.TryWriteRowStart(rowIndex, options, Buffer);
+                ? CellRowHelper.TryWriteRowStart(rowIndex, _buffer)
+                : CellRowHelper.TryWriteRowStart(rowIndex, options, _buffer);
 
             Debug.Assert(result);
             State.Column = 0;
         }
     }
 
-    private async ValueTask WriteCellPieceByPieceAsync(T cell, StyleId? styleId, Stream stream, CancellationToken token)
+    private async ValueTask WriteCellPieceByPieceAsync(T cell, StyleId? rowStyleId, Stream stream, CancellationToken token)
     {
         // Write start element
-        WriteStartElement(cell, styleId);
+        WriteStartElement(cell, rowStyleId);
 
         // Write as much as possible from cell value
         var cellValueIndex = 0;
-        while (!FinishWritingCellValue(cell, ref cellValueIndex))
+        while (!CellWriter.TryWriteValue(cell, ref cellValueIndex, State))
         {
-            await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+            await _buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
         }
 
         // Write end element if it fits in the buffer.
-        if (TryWriteEndElement(cell))
+        if (CellWriter.TryWriteEndElement(cell, State))
             return;
 
         // Flush if the end element doesn't fit. It should always fit after flushing due to the minimum buffer size.
-        await Buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
-        TryWriteEndElement(cell);
-    }
-
-    protected bool FinishWritingFormulaCellValue(in Cell cell, string formulaText, ref int cellValueIndex)
-    {
-        var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
-
-        // Write the formula
-        if (cellValueIndex < formulaText.Length)
-        {
-            if (!Buffer.WriteLongString(formulaText, ref cellValueIndex))
-                return false;
-
-            if (cell.DataCell.Type is CellWriterType.Null or CellWriterType.NullDateTime)
-                return true;
-        }
-
-        // If there is a cached value, we need to write "[FORMULA]</f><v>[CACHEDVALUE]"
-        var cachedValueStartIndex = formulaText.Length + 1;
-
-        // Write the "</f><v>" part
-        if (cellValueIndex < cachedValueStartIndex)
-        {
-            if (!FormulaCellHelper.EndFormulaBeginCachedValue.TryCopyTo(Buffer.GetSpan()))
-                return false;
-
-            Buffer.Advance(FormulaCellHelper.EndFormulaBeginCachedValue.Length);
-            cellValueIndex = cachedValueStartIndex;
-        }
-
-        // Write the cached value
-        var cachedValueIndex = cellValueIndex - cachedValueStartIndex;
-        var result = writer.WriteValuePieceByPiece(cell.DataCell, Buffer, ref cachedValueIndex);
-        cellValueIndex = cachedValueIndex + cachedValueStartIndex;
-        return result;
+        await _buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
+        CellWriter.TryWriteEndElement(cell, State);
     }
 }

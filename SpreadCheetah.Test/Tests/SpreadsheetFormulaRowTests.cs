@@ -359,6 +359,38 @@ public class SpreadsheetFormulaRowTests
         Assert.Equal(color.ToArgb(), actualCell.Style.Fill.Color.ToArgb());
     }
 
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithVeryLongFormulaAndColumnStyle(
+        [CombinatorialValues(100, 511, 512, 513, 4100, 8192)] int length)
+    {
+        // Arrange
+        var formulaText = FormulaGenerator.Generate(length);
+        var color = Color.Navy;
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+
+        var formula = new Formula(formulaText);
+        var cell = new Cell(formula);
+
+        var style = new Style { Fill = { Color = color } };
+        var styleId = spreadsheet.AddStyle(style);
+        var worksheetOptions = new WorksheetOptions();
+        worksheetOptions.Column(1).DefaultStyleId = styleId;
+
+        await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, Token);
+
+        // Act
+        await spreadsheet.AddRowAsync([cell], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(formulaText, actualCell.Formula);
+        Assert.Equal(color.ToArgb(), actualCell.Style.Fill.Color.ToArgb());
+    }
+
     [Theory]
     [InlineData(100)]
     [InlineData(511)]
@@ -406,6 +438,7 @@ public class SpreadsheetFormulaRowTests
         CellValueType valueType,
         RowCollectionType rowType,
         bool isNull,
+        bool withColumnStyle,
         bool withRowStyle)
     {
         // Arrange
@@ -422,16 +455,20 @@ public class SpreadsheetFormulaRowTests
         var expectedRow2Refs = CellReferenceFactory.RowReferences(2, 1);
         var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
 
-        var rowStyleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
-        var rowOptions = withRowStyle ? new RowOptions { DefaultStyleId = rowStyleId } : null;
+        var styleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
+        var rowOptions = withRowStyle ? new RowOptions { DefaultStyleId = styleId } : null;
+
+        var worksheetOptions = new WorksheetOptions();
+        if (withColumnStyle)
+            worksheetOptions.Column(2).DefaultStyleId = styleId;
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions, Token);
         await spreadsheet.AddRowAsync(row1, rowType, rowOptions);
         await spreadsheet.AddRowAsync(row2, rowType, rowOptions);
         await spreadsheet.AddRowAsync(row3, rowType, rowOptions);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2", token: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet2", worksheetOptions, Token);
         await spreadsheet.AddRowAsync(row1, rowType, rowOptions);
 
         await spreadsheet.FinishAsync(Token);
@@ -463,6 +500,7 @@ public class SpreadsheetFormulaRowTests
         CellValueType valueType,
         RowCollectionType rowType,
         bool isNull,
+        bool withColumnStyle,
         bool withRowStyle)
     {
         // Arrange
@@ -482,16 +520,20 @@ public class SpreadsheetFormulaRowTests
         var expectedRow2Refs = CellReferenceFactory.RowReferences(2, 1);
         var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
 
-        var rowStyleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
-        var rowOptions = withRowStyle ? new RowOptions { DefaultStyleId = rowStyleId } : null;
+        var italicStyleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
+        var rowOptions = withRowStyle ? new RowOptions { DefaultStyleId = italicStyleId } : null;
+
+        var worksheetOptions = new WorksheetOptions();
+        if (withColumnStyle)
+            worksheetOptions.Column(2).DefaultStyleId = italicStyleId;
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions, Token);
         await spreadsheet.AddRowAsync(row1, rowType, rowOptions);
         await spreadsheet.AddRowAsync(row2, rowType, rowOptions);
         await spreadsheet.AddRowAsync(row3, rowType, rowOptions);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2", token: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet2", worksheetOptions, Token);
         await spreadsheet.AddRowAsync(row1, rowType, rowOptions);
 
         await spreadsheet.FinishAsync(Token);

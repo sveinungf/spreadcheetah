@@ -49,8 +49,10 @@ file struct WorksheetStartXmlWriter(
 
         foreach (var (columnIndex, option) in dictionary)
         {
-            if (option.Width is not null || option.Hidden)
-                columns.Add((columnIndex, option));
+            if (option is { DefaultStyleId: null, Width: null, Hidden: false })
+                continue;
+
+            columns.Add((columnIndex, option));
         }
 
         return columns;
@@ -162,8 +164,11 @@ file struct WorksheetStartXmlWriter(
         {
             var (columnIndex, columnOptions) = columns[_nextIndex];
 
-            var xml = _columnXml ??
-                new WorksheetColumnXmlPart(buffer, columnIndex, columnOptions);
+            var xml = _columnXml ?? new WorksheetColumnXmlPart(
+                buffer: buffer,
+                columnIndex: columnIndex,
+                options: columnOptions,
+                defaultColumnWidth: options?.DefaultColumnWidth);
 
             if (!xml.TryWrite())
             {

@@ -555,6 +555,43 @@ public class SpreadsheetStyledRowTests
     }
 
     [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_DateTimeCellWithColumnStyle(
+        bool withDefaultDateTimeFormat,
+        CellType type,
+        RowCollectionType rowType)
+    {
+        // Arrange
+        var value = new DateTime(2021, 2, 3, 4, 5, 6, DateTimeKind.Unspecified);
+        const string numberFormat = "yyyy";
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions
+        {
+            DefaultDateTimeFormat = withDefaultDateTimeFormat ? NumberFormat.Custom(numberFormat) : null
+        };
+
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, cancellationToken: Token);
+
+        var cell = CellFactory.Create(type, value);
+        var style = new Style { Font = { Italic = true } };
+        var styleId = spreadsheet.AddStyle(style);
+        var expectedNumberFormat = withDefaultDateTimeFormat ? numberFormat : null;
+        var worksheetOptions = new WorksheetOptions();
+        worksheetOptions.Column(1).DefaultStyleId = styleId;
+        await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, Token);
+
+        // Act
+        await spreadsheet.AddRowAsync(cell, rowType);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(value, actualCell.DateTimeValue);
+        Assert.Equal(expectedNumberFormat, actualCell.Style.NumberFormat.CustomFormat);
+        Assert.True(actualCell.Style.Font.Italic);
+    }
+
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_DateTimeCellWithOverriddenRowStyle(bool withDefaultDateTimeFormat)
     {
         // Arrange
@@ -581,6 +618,38 @@ public class SpreadsheetStyledRowTests
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.True(sheet.Row(1).Style.Font.Italic);
+        var actualCell = sheet["A1"];
+        Assert.True(actualCell.Style.Font.Bold);
+        Assert.False(actualCell.Style.Font.Italic);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_DateTimeCellWithOverriddenColumnStyle(bool withDefaultDateTimeFormat)
+    {
+        // Arrange
+        var value = new DateTime(2021, 2, 3, 4, 5, 6, DateTimeKind.Unspecified);
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions();
+        if (!withDefaultDateTimeFormat)
+            options.DefaultDateTimeFormat = null;
+
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, cancellationToken: Token);
+        var columnStyle = new Style { Font = { Italic = true } };
+        var columnStyleId = spreadsheet.AddStyle(columnStyle);
+        var worksheetOptions = new WorksheetOptions();
+        worksheetOptions.Column(1).DefaultStyleId = columnStyleId;
+        await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, Token);
+        var cellStyle = new Style { Font = { Bold = true } };
+        var cellStyleId = spreadsheet.AddStyle(cellStyle);
+        var cell = new StyledCell(value, cellStyleId);
+
+        // Act
+        await spreadsheet.AddRowAsync([cell], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.True(sheet.Column("A").Style.Font.Italic);
         var actualCell = sheet["A1"];
         Assert.True(actualCell.Style.Font.Bold);
         Assert.False(actualCell.Style.Font.Italic);
@@ -1093,6 +1162,7 @@ public class SpreadsheetStyledRowTests
         bool isNull,
         StyledCellType cellType,
         RowCollectionType rowType,
+        bool withColumnStyle,
         bool withRowStyle)
     {
         // Arrange
@@ -1111,16 +1181,20 @@ public class SpreadsheetStyledRowTests
         var expectedRow2Refs = CellReferenceFactory.RowReferences(2, 1);
         var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
 
-        var rowStyleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
-        var rowOptions = withRowStyle ? new RowOptions { DefaultStyleId = rowStyleId } : null;
+        var italicStyleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
+        var rowOptions = withRowStyle ? new RowOptions { DefaultStyleId = italicStyleId } : null;
+
+        var worksheetOptions = new WorksheetOptions();
+        if (withColumnStyle)
+            worksheetOptions.Column(2).DefaultStyleId = italicStyleId;
 
         // Act
-        await spreadsheet.StartWorksheetAsync("Sheet1", token: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions, Token);
         await spreadsheet.AddRowAsync(row1, rowType, rowOptions);
         await spreadsheet.AddRowAsync(row2, rowType, rowOptions);
         await spreadsheet.AddRowAsync(row3, rowType, rowOptions);
 
-        await spreadsheet.StartWorksheetAsync("Sheet2", token: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet2", worksheetOptions, Token);
         await spreadsheet.AddRowAsync(row1, rowType, rowOptions);
 
         await spreadsheet.FinishAsync(Token);

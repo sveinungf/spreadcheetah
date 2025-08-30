@@ -1,58 +1,62 @@
 using SpreadCheetah.CellValueWriters;
 using SpreadCheetah.CellValueWriters.Characters;
+using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
-using SpreadCheetah.Styling.Internal;
 using System.Diagnostics;
 
 namespace SpreadCheetah.CellWriters;
 
-internal sealed class CellWriter(CellWriterState state, DefaultStyling? defaultStyling)
-    : BaseCellWriter<Cell>(state, defaultStyling)
+internal sealed class CellWriter : ICellWriter<Cell>
 {
-    protected override bool TryWriteCell(in Cell cell)
+    public static CellWriter Instance { get; } = new();
+
+    public bool TryWrite(in Cell cell, CellWriterState state)
     {
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
         return cell switch
         {
-            { Formula: { } formula } => writer.TryWriteCell(formula.FormulaText, cell.DataCell, cell.StyleId, DefaultStyling, Buffer),
-            { StyleId: not null } => writer.TryWriteCell(cell.DataCell, cell.StyleId, Buffer),
-            _ => writer.TryWriteCell(cell.DataCell, DefaultStyling, Buffer)
+            { Formula: { } formula } => writer.TryWriteCell(formula.FormulaText, cell.DataCell, cell.StyleId, state),
+            { StyleId: not null } => writer.TryWriteCell(cell.DataCell, cell.StyleId, state.Buffer),
+            _ => writer.TryWriteCell(cell.DataCell, state)
         };
     }
 
-    protected override bool TryWriteCell(in Cell cell, StyleId styleId)
+    public bool TryWrite(in Cell cell, StyleId styleId, CellWriterState state)
     {
         var actualStyleId = cell.StyleId ?? styleId;
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
         return cell.Formula is { } formula
-            ? writer.TryWriteCell(formula.FormulaText, cell.DataCell, actualStyleId, DefaultStyling, Buffer)
-            : writer.TryWriteCell(cell.DataCell, actualStyleId, Buffer);
+            ? writer.TryWriteCell(formula.FormulaText, cell.DataCell, actualStyleId, state)
+            : writer.TryWriteCell(cell.DataCell, actualStyleId, state.Buffer);
     }
 
-    protected override bool WriteStartElement(in Cell cell, StyleId? styleId)
+    public void WriteStartElement(in Cell cell, StyleId? styleId, CellWriterState state)
     {
         var actualStyleId = cell.StyleId ?? styleId;
 
         if (cell.Formula is not null)
         {
             var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
-            return writer.WriteFormulaStartElement(actualStyleId, DefaultStyling, Buffer);
+            var ok = writer.WriteFormulaStartElement(actualStyleId, state);
+            Debug.Assert(ok);
+            return;
         }
 
         Debug.Assert(CellValueWriter.GetWriter(cell.DataCell.Type) is StringCellValueWriterBase);
-        return StringCellValueWriterBase.WriteStartElement(actualStyleId, Buffer);
+        var result = StringCellValueWriterBase.WriteStartElement(actualStyleId, state.Buffer);
+        Debug.Assert(result);
     }
 
-    protected override bool TryWriteEndElement(in Cell cell)
-    {
-        var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
-        return writer.TryWriteEndElement(cell, Buffer);
-    }
-
-    protected override bool FinishWritingCellValue(in Cell cell, ref int cellValueIndex)
+    public bool TryWriteValue(in Cell cell, ref int valueIndex, CellWriterState state)
     {
         return cell.Formula is { } formula
-            ? FinishWritingFormulaCellValue(cell, formula.FormulaText, ref cellValueIndex)
-            : CellValueWriter.GetWriter(cell.DataCell.Type).WriteValuePieceByPiece(cell.DataCell, Buffer, ref cellValueIndex);
+            ? FormulaCellHelper.FinishWritingFormulaCellValue(cell, formula.FormulaText, ref valueIndex, state.Buffer)
+            : CellValueWriter.GetWriter(cell.DataCell.Type).WriteValuePieceByPiece(cell.DataCell, state.Buffer, ref valueIndex);
+    }
+
+    public bool TryWriteEndElement(in Cell cell, CellWriterState state)
+    {
+        var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
+        return writer.TryWriteEndElement(cell, state.Buffer);
     }
 }

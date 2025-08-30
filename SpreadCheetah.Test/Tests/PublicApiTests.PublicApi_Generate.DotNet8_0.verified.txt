@@ -647,6 +647,7 @@ namespace SpreadCheetah.Worksheets
     public class ColumnOptions
     {
         public ColumnOptions() { }
+        public SpreadCheetah.Styling.StyleId? DefaultStyleId { get; set; }
         public bool Hidden { get; set; }
         public double? Width { get; set; }
     }

@@ -3,6 +3,7 @@ using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml;
+using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Tables.Internal;
 using SpreadCheetah.Validations;
@@ -18,9 +19,9 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 #pragma warning disable CA2213 // Disposed by Spreadsheet
     private readonly SpreadsheetBuffer _buffer;
 #pragma warning restore CA2213 // Disposed by Spreadsheet
-    private readonly BaseCellWriter<Cell> _cellWriter;
-    private readonly BaseCellWriter<DataCell> _dataCellWriter;
-    private readonly BaseCellWriter<StyledCell> _styledCellWriter;
+    private readonly BaseRowWriter<Cell> _cellRowWriter;
+    private readonly BaseRowWriter<DataCell> _dataCellRowWriter;
+    private readonly BaseRowWriter<StyledCell> _styledCellRowWriter;
     private readonly CellWriterState _state;
     private readonly string? _autoFilterRange;
     private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
@@ -38,23 +39,35 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     {
         _stream = stream;
         _buffer = buffer;
-        _state = new CellWriterState(buffer);
+        _state = new CellWriterState(buffer, defaultStyling);
         _autoFilterRange = options?.AutoFilter?.CellRange.Reference;
         ColumnWidthRuns = options?.GetColumnWidthRuns();
         DefaultColumnWidth = options?.DefaultColumnWidth;
 
+        var columnStyles = options?.GetColumnStyles();
         if (writeCellReferenceAttributes)
         {
-            _cellWriter = new CellWithReferenceWriter(_state, defaultStyling);
-            _dataCellWriter = new DataCellWithReferenceWriter(_state, defaultStyling);
-            _styledCellWriter = new StyledCellWithReferenceWriter(_state, defaultStyling);
+            _cellRowWriter = CreateRowWriter(CellWithReferenceWriter.Instance, columnStyles, _state);
+            _dataCellRowWriter = CreateRowWriter(DataCellWithReferenceWriter.Instance, columnStyles, _state);
+            _styledCellRowWriter = CreateRowWriter(StyledCellWithReferenceWriter.Instance, columnStyles, _state);
         }
         else
         {
-            _cellWriter = new CellWriter(_state, defaultStyling);
-            _dataCellWriter = new DataCellWriter(_state, defaultStyling);
-            _styledCellWriter = new StyledCellWriter(_state, defaultStyling);
+            _cellRowWriter = CreateRowWriter(CellWriter.Instance, columnStyles, _state);
+            _dataCellRowWriter = CreateRowWriter(DataCellWriter.Instance, columnStyles, _state);
+            _styledCellRowWriter = CreateRowWriter(StyledCellWriter.Instance, columnStyles, _state);
         }
+    }
+
+    private static BaseRowWriter<T> CreateRowWriter<T>(
+        ICellWriter<T> cellWriter,
+        IReadOnlyDictionary<int, StyleId>? columnStyles,
+        CellWriterState state)
+        where T : struct
+    {
+        return columnStyles is null
+            ? new RowWriter<T>(cellWriter, state)
+            : new RowWithColumnStylesWriter<T>(cellWriter, state, columnStyles);
     }
 
     public int NextRowNumber => (int)_state.NextRowIndex;
@@ -82,15 +95,16 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public WorksheetTableInfo? GetActiveTable() => Tables?.GetActive();
 
     [OverloadResolutionPriority(1)]
-    public bool TryAddRow(ReadOnlySpan<DataCell> cells, RowOptions? options) => TryAddRow(cells, _dataCellWriter, options);
-    public bool TryAddRow(ReadOnlySpan<StyledCell> cells, RowOptions? options) => TryAddRow(cells, _styledCellWriter, options);
-    public bool TryAddRow(ReadOnlySpan<Cell> cells, RowOptions? options) => TryAddRow(cells, _cellWriter, options);
-    public bool TryAddRow(IList<DataCell> cells, RowOptions? options) => TryAddRow(cells, _dataCellWriter, options);
-    public bool TryAddRow(IList<StyledCell> cells, RowOptions? options) => TryAddRow(cells, _styledCellWriter, options);
-    public bool TryAddRow(IList<Cell> cells, RowOptions? options) => TryAddRow(cells, _cellWriter, options);
+    public bool TryAddRow(ReadOnlySpan<DataCell> cells, RowOptions? options) => TryAddRow(cells, _dataCellRowWriter, options);
+    public bool TryAddRow(ReadOnlySpan<StyledCell> cells, RowOptions? options) => TryAddRow(cells, _styledCellRowWriter, options);
+    public bool TryAddRow(ReadOnlySpan<Cell> cells, RowOptions? options) => TryAddRow(cells, _cellRowWriter, options);
+    public bool TryAddRow(IList<DataCell> cells, RowOptions? options) => TryAddRow(cells, _dataCellRowWriter, options);
+    public bool TryAddRow(IList<StyledCell> cells, RowOptions? options) => TryAddRow(cells, _styledCellRowWriter, options);
+    public bool TryAddRow(IList<Cell> cells, RowOptions? options) => TryAddRow(cells, _cellRowWriter, options);
 
     private bool TryAddRow<TCell, TWriter>(ReadOnlySpan<TCell> cells, TWriter writer, RowOptions? options)
-        where TWriter : BaseCellWriter<TCell>
+        where TCell : struct
+        where TWriter : BaseRowWriter<TCell>
     {
         return options is null
             ? writer.TryAddRow(cells, _state.NextRowIndex++)
@@ -98,7 +112,8 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     }
 
     private bool TryAddRow<TCell, TWriter>(IList<TCell> cells, TWriter writer, RowOptions? options)
-        where TWriter : BaseCellWriter<TCell>
+        where TCell : struct
+        where TWriter : BaseRowWriter<TCell>
     {
         return options is null
             ? writer.TryAddRow(cells, _state.NextRowIndex++)
@@ -106,7 +121,8 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     }
 
     private bool TryAddRowWithOptions<TCell, TWriter>(ReadOnlySpan<TCell> cells, uint rowIndex, TWriter writer, RowOptions options)
-        where TWriter : BaseCellWriter<TCell>
+        where TCell : struct
+        where TWriter : BaseRowWriter<TCell>
     {
         var result = writer.TryAddRow(cells, rowIndex, options);
         if (result && options.Height is { } height)
@@ -116,7 +132,8 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     }
 
     private bool TryAddRowWithOptions<TCell, TWriter>(IList<TCell> cells, uint rowIndex, TWriter writer, RowOptions options)
-        where TWriter : BaseCellWriter<TCell>
+        where TCell : struct
+        where TWriter : BaseRowWriter<TCell>
     {
         var result = writer.TryAddRow(cells, rowIndex, options);
         if (result && options.Height is { } height)
@@ -137,21 +154,23 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     }
 
     [OverloadResolutionPriority(1)]
-    public ValueTask AddRowAsync(IList<DataCell> cells, RowOptions? options, CancellationToken ct) => AddRowAsync(cells, _dataCellWriter, options, ct);
-    public ValueTask AddRowAsync(IList<StyledCell> cells, RowOptions? options, CancellationToken ct) => AddRowAsync(cells, _styledCellWriter, options, ct);
-    public ValueTask AddRowAsync(IList<Cell> cells, RowOptions? options, CancellationToken ct) => AddRowAsync(cells, _cellWriter, options, ct);
-    public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, RowOptions? options, CancellationToken ct) => AddRowAsync(cells, _dataCellWriter, options, ct);
-    public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, RowOptions? options, CancellationToken ct) => AddRowAsync(cells, _styledCellWriter, options, ct);
-    public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, RowOptions? options, CancellationToken ct) => AddRowAsync(cells, _cellWriter, options, ct);
+    public ValueTask AddRowAsync(IList<DataCell> cells, RowOptions? options, CancellationToken ct) => AddRowAsync(cells, _dataCellRowWriter, options, ct);
+    public ValueTask AddRowAsync(IList<StyledCell> cells, RowOptions? options, CancellationToken ct) => AddRowAsync(cells, _styledCellRowWriter, options, ct);
+    public ValueTask AddRowAsync(IList<Cell> cells, RowOptions? options, CancellationToken ct) => AddRowAsync(cells, _cellRowWriter, options, ct);
+    public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, RowOptions? options, CancellationToken ct) => AddRowAsync(cells, _dataCellRowWriter, options, ct);
+    public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, RowOptions? options, CancellationToken ct) => AddRowAsync(cells, _styledCellRowWriter, options, ct);
+    public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, RowOptions? options, CancellationToken ct) => AddRowAsync(cells, _cellRowWriter, options, ct);
 
     private ValueTask AddRowAsync<TCell, TWriter>(IList<TCell> cells, TWriter writer, RowOptions? options, CancellationToken ct)
-        where TWriter : BaseCellWriter<TCell>
+        where TCell : struct
+        where TWriter : BaseRowWriter<TCell>
     {
         return writer.AddRowAsync(cells, _state.NextRowIndex - 1, options, _stream, ct);
     }
 
     private ValueTask AddRowAsync<TCell, TWriter>(ReadOnlyMemory<TCell> cells, TWriter writer, RowOptions? options, CancellationToken ct)
-        where TWriter : BaseCellWriter<TCell>
+        where TCell : struct
+        where TWriter : BaseRowWriter<TCell>
     {
         return writer.AddRowAsync(cells, _state.NextRowIndex - 1, options, _stream, ct);
     }

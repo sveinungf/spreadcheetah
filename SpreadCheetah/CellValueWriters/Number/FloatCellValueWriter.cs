@@ -1,15 +1,14 @@
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
-using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.CellValueWriters.Number;
 
 internal sealed class FloatCellValueWriter : NumberCellValueWriter
 {
-    public override bool TryWriteCell(in DataCell cell, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, CellWriterState state)
     {
-        return buffer.TryWrite($"{BeginDataCell}{cell.Value.StringOrPrimitive.PrimitiveValue.FloatValue}{EndDefaultCell}");
+        return state.Buffer.TryWrite($"{BeginDataCell}{cell.Value.StringOrPrimitive.PrimitiveValue.FloatValue}{EndDefaultCell}");
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
@@ -20,11 +19,11 @@ internal sealed class FloatCellValueWriter : NumberCellValueWriter
             $"{EndDefaultCell}");
     }
 
-    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, CellWriterState state)
     {
         if (styleId is { } style)
         {
-            return buffer.TryWrite(
+            return state.Buffer.TryWrite(
                 $"{StyledCellHelper.BeginStyledNumberCell}{style.Id}{FormulaCellHelper.EndQuoteBeginFormula}" +
                 $"{formulaText}" +
                 $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
@@ -32,7 +31,7 @@ internal sealed class FloatCellValueWriter : NumberCellValueWriter
                 $"{FormulaCellHelper.EndCachedValueEndCell}");
         }
 
-        return buffer.TryWrite(
+        return state.Buffer.TryWrite(
             $"{FormulaCellHelper.BeginNumberFormulaCell}" +
             $"{formulaText}" +
             $"{FormulaCellHelper.EndFormulaBeginCachedValue}" +
@@ -40,7 +39,7 @@ internal sealed class FloatCellValueWriter : NumberCellValueWriter
             $"{FormulaCellHelper.EndCachedValueEndCell}");
     }
 
-    public override bool TryWriteCellWithReference(in DataCell cell, DefaultStyling? defaultStyling, CellWriterState state)
+    public override bool TryWriteCellWithReference(in DataCell cell, CellWriterState state)
     {
         return state.Buffer.TryWrite(
             $"{state}{EndQuoteBeginValue}" +
@@ -56,7 +55,7 @@ internal sealed class FloatCellValueWriter : NumberCellValueWriter
             $"{EndDefaultCell}");
     }
 
-    public override bool TryWriteCellWithReference(string formulaText, in DataCell cachedValue, StyleId? styleId, DefaultStyling? defaultStyling, CellWriterState state)
+    public override bool TryWriteCellWithReference(string formulaText, in DataCell cachedValue, StyleId? styleId, CellWriterState state)
     {
         if (styleId is { } style)
         {
