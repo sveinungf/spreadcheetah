@@ -17,6 +17,7 @@ internal abstract class BaseRowWriter<T>(
     protected readonly CellWriterState State = state;
 
     protected abstract bool TryAddRowCellsForSpan(ReadOnlySpan<T> cells);
+    protected abstract void WriteStartElement(in T cell, StyleId? rowStyleId);
 
     public bool TryAddRow(IList<T> cells, uint rowIndex)
     {
@@ -177,10 +178,10 @@ internal abstract class BaseRowWriter<T>(
         }
     }
 
-    private async ValueTask WriteCellPieceByPieceAsync(T cell, StyleId? styleId, Stream stream, CancellationToken token)
+    private async ValueTask WriteCellPieceByPieceAsync(T cell, StyleId? rowStyleId, Stream stream, CancellationToken token)
     {
         // Write start element
-        CellWriter.WriteStartElement(cell, styleId, State);
+        WriteStartElement(cell, rowStyleId);
 
         // Write as much as possible from cell value
         var cellValueIndex = 0;

@@ -1,3 +1,5 @@
+using SpreadCheetah.Styling;
+
 namespace SpreadCheetah.CellWriters;
 
 internal sealed class RowWriter<T>(
@@ -19,5 +21,10 @@ internal sealed class RowWriter<T>(
         }
 
         return TryWriteRowEnd();
+    }
+
+    protected override void WriteStartElement(in T cell, StyleId? rowStyleId)
+    {
+        CellWriter.WriteStartElement(cell, rowStyleId, State);
     }
 }

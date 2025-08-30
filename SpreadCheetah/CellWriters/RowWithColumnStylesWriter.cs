@@ -31,4 +31,10 @@ internal sealed class RowWithColumnStylesWriter<T>(
 
         return TryWriteRowEnd();
     }
+
+    protected override void WriteStartElement(in T cell, StyleId? rowStyleId)
+    {
+        var styleId = rowStyleId ?? columnStyles.GetValueOrDefault(State.Column);
+        CellWriter.WriteStartElement(cell, styleId, State);
+    }
 }
