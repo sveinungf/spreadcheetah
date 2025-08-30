@@ -1,13 +1,10 @@
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
-using SpreadCheetah.Styling;
 
 namespace SpreadCheetah.CellValueWriters.Number;
 
 internal abstract class NumberCellValueWriterBase : CellValueWriter
 {
-    protected abstract int GetStyleId(StyleId styleId);
-
     protected static ReadOnlySpan<byte> BeginDataCell => "<c><v>"u8;
     protected static ReadOnlySpan<byte> EndQuoteBeginValue => "\"><v>"u8;
     protected static ReadOnlySpan<byte> EndDefaultCell => "</v></c>"u8;

@@ -7,8 +7,6 @@ namespace SpreadCheetah.CellValueWriters.Time;
 
 internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
 {
-    protected override int GetStyleId(StyleId styleId) => styleId.DateTimeId;
-
     public override bool TryWriteCell(in DataCell cell, CellWriterState state)
     {
         return state.DefaultStyling?.DateTimeStyleId is { } styleId
