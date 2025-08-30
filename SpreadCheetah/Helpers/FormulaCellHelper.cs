@@ -29,10 +29,9 @@ internal static class FormulaCellHelper
         // Write the "</f><v>" part
         if (cellValueIndex < cachedValueStartIndex)
         {
-            if (!EndFormulaBeginCachedValue.TryCopyTo(buffer.GetSpan()))
+            if (!buffer.TryWrite(EndFormulaBeginCachedValue))
                 return false;
 
-            buffer.Advance(EndFormulaBeginCachedValue.Length);
             cellValueIndex = cachedValueStartIndex;
         }
 
