@@ -1087,7 +1087,6 @@ public class SpreadsheetRowTests
         Assert.Equal(height, actualRow.Height, 5);
     }
 
-    // TODO: Spreadsheet_AddRow_MultipleColumnOptions
     [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_MultipleColumnOptions(
         CellType type,

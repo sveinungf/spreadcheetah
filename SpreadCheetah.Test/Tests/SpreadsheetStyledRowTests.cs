@@ -554,7 +554,42 @@ public class SpreadsheetStyledRowTests
         Assert.True(actualCell.Style.Font.Italic);
     }
 
-    // TODO: Spreadsheet_AddRow_DateTimeCellWithColumnStyle
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_DateTimeCellWithColumnStyle(
+        bool withDefaultDateTimeFormat,
+        CellType type,
+        RowCollectionType rowType)
+    {
+        // Arrange
+        var value = new DateTime(2021, 2, 3, 4, 5, 6, DateTimeKind.Unspecified);
+        const string numberFormat = "yyyy";
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions
+        {
+            DefaultDateTimeFormat = withDefaultDateTimeFormat ? NumberFormat.Custom(numberFormat) : null
+        };
+
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, cancellationToken: Token);
+
+        var cell = CellFactory.Create(type, value);
+        var style = new Style { Font = { Italic = true } };
+        var styleId = spreadsheet.AddStyle(style);
+        var expectedNumberFormat = withDefaultDateTimeFormat ? numberFormat : null;
+        var worksheetOptions = new WorksheetOptions();
+        worksheetOptions.Column(1).DefaultStyleId = styleId;
+        await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, Token);
+
+        // Act
+        await spreadsheet.AddRowAsync(cell, rowType);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(value, actualCell.DateTimeValue);
+        Assert.Equal(expectedNumberFormat, actualCell.Style.NumberFormat.CustomFormat);
+        Assert.True(actualCell.Style.Font.Italic);
+    }
 
     [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_DateTimeCellWithOverriddenRowStyle(bool withDefaultDateTimeFormat)
@@ -588,7 +623,37 @@ public class SpreadsheetStyledRowTests
         Assert.False(actualCell.Style.Font.Italic);
     }
 
-    // TODO: Spreadsheet_AddRow_DateTimeCellWithOverriddenColumnStyle
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_DateTimeCellWithOverriddenColumnStyle(bool withDefaultDateTimeFormat)
+    {
+        // Arrange
+        var value = new DateTime(2021, 2, 3, 4, 5, 6, DateTimeKind.Unspecified);
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions();
+        if (!withDefaultDateTimeFormat)
+            options.DefaultDateTimeFormat = null;
+
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, cancellationToken: Token);
+        var columnStyle = new Style { Font = { Italic = true } };
+        var columnStyleId = spreadsheet.AddStyle(columnStyle);
+        var worksheetOptions = new WorksheetOptions();
+        worksheetOptions.Column(1).DefaultStyleId = columnStyleId;
+        await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, Token);
+        var cellStyle = new Style { Font = { Bold = true } };
+        var cellStyleId = spreadsheet.AddStyle(cellStyle);
+        var cell = new StyledCell(value, cellStyleId);
+
+        // Act
+        await spreadsheet.AddRowAsync([cell], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.True(sheet.Column("A").Style.Font.Italic);
+        var actualCell = sheet["A1"];
+        Assert.True(actualCell.Style.Font.Bold);
+        Assert.False(actualCell.Style.Font.Italic);
+    }
 
     [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_DateTimeNumberFormat(bool withExplicitNumberFormat, StyledCellType type, RowCollectionType rowType)
