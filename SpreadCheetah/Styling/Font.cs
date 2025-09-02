@@ -39,7 +39,13 @@ public sealed record Font
     private Underline _underline;
 
     /// <summary>Font size. Defaults to 11.</summary>
-    public double Size { get; set; } = DefaultSize;
+    public double Size
+    {
+        get => _size;
+        set => _size = Guard.FontSizeInRange(value);
+    }
+
+    private double _size = DefaultSize;
 
     /// <summary>ARGB (alpha, red, green, blue) color of the font.</summary>
     public Color? Color { get; set; }

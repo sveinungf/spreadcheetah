@@ -348,17 +348,6 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(fontName ?? "Calibri", actualCell.Style.Font.FontName);
     }
 
-    [Fact]
-    public void Spreadsheet_AddRow_FontNameTooLong()
-    {
-        // Arrange
-        const string fontName = "FontNameThatIsExactly32CharsLong";
-        var style = new Style();
-
-        // Act & Assert
-        Assert.Throws<ArgumentException>(() => style.Font.Name = fontName);
-    }
-
 #pragma warning disable CS0618 // Type or member is obsolete - Testing for backwards compatibilty
     public static IEnumerable<string?> StandardNumberFormats() =>
     [

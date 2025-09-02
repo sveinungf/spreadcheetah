@@ -35,6 +35,15 @@ internal static class Guard
         return value;
     }
 
+    public static double FontSizeInRange(double size,
+        [CallerArgumentExpression(nameof(size))] string? paramName = null)
+    {
+        if (size < 1 || size > 409)
+            ThrowHelper.FontSizeOutOfRange(paramName, size);
+
+        return size;
+    }
+
     public static string? MaxLength(string? value, int maxLength,
         [CallerArgumentExpression(nameof(value))] string? paramName = null)
     {
