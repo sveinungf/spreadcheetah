@@ -10,11 +10,12 @@ public sealed record Font
 {
     internal const double DefaultSize = 11;
 
+    // TODO: Update comment
     /// <summary>Font name. Defaults to Calibri.</summary>
     public string? Name
     {
         get => _name;
-        set => _name = value.WithEnsuredMaxLength(31);
+        set => _name = Guard.MaxLength(value, 31);
     }
 
     private string? _name;

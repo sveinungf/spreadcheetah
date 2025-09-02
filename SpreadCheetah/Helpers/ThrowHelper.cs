@@ -161,6 +161,10 @@ internal static class ThrowHelper
         => throw new ArgumentOutOfRangeException(paramName, value, "The value can not be negative.");
 
     [DoesNotReturn]
+    public static void ValueTooLong(int maxLength, string? paramName)
+        => throw new ArgumentException(StringHelper.Invariant($"The value can not exceed {maxLength} characters."), paramName);
+
+    [DoesNotReturn]
     public static void WorksheetNameAlreadyExists(string? paramName)
         => throw new ArgumentException("A worksheet with the given name already exists.", paramName);
 

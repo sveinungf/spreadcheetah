@@ -44,19 +44,19 @@ public sealed class DataValidation
     public bool ShowInputMessage { get; set; } = true;
 
     /// <summary>Title for error alerts. Maximum 32 characters.</summary>
-    public string? ErrorTitle { get => _errorTitle; set => _errorTitle = value.WithEnsuredMaxLength(32); }
+    public string? ErrorTitle { get => _errorTitle; set => _errorTitle = Guard.MaxLength(value, 32); }
     private string? _errorTitle;
 
     /// <summary>Message for error alerts. Maximum 255 characters.</summary>
-    public string? ErrorMessage { get => _errorMessage; set => _errorMessage = value.WithEnsuredMaxLength(255); }
+    public string? ErrorMessage { get => _errorMessage; set => _errorMessage = Guard.MaxLength(value, 255); }
     private string? _errorMessage;
 
     /// <summary>Title for the input message box. Maximum 32 characters.</summary>
-    public string? InputTitle { get => _inputTitle; set => _inputTitle = value.WithEnsuredMaxLength(32); }
+    public string? InputTitle { get => _inputTitle; set => _inputTitle = Guard.MaxLength(value, 32); }
     private string? _inputTitle;
 
     /// <summary>Message for the input message box. Maximum 255 characters.</summary>
-    public string? InputMessage { get => _inputMessage; set => _inputMessage = value.WithEnsuredMaxLength(255); }
+    public string? InputMessage { get => _inputMessage; set => _inputMessage = Guard.MaxLength(value, 255); }
     private string? _inputMessage;
 
     /// <summary>

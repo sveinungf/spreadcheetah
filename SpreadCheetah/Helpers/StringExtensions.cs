@@ -11,11 +11,6 @@ internal static class StringExtensions
     private static readonly System.Buffers.SearchValues<char> InvalidSheetNameCharactersSearchValues = System.Buffers.SearchValues.Create(InvalidSheetNameCharacters);
 #endif
 
-    public static string? WithEnsuredMaxLength(this string? value, int maxLength) =>
-        value is not null && value.Length > maxLength
-            ? throw new ArgumentException(StringHelper.Invariant($"The value can not exceed {maxLength} characters."), nameof(value))
-            : value;
-
     public static void EnsureValidWorksheetName(this string name, [CallerArgumentExpression(nameof(name))] string? paramName = null)
     {
         if (string.IsNullOrWhiteSpace(name))
