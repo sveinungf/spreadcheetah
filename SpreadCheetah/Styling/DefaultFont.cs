@@ -2,8 +2,11 @@ using SpreadCheetah.Helpers;
 
 namespace SpreadCheetah.Styling;
 
-public sealed class DefaultFont
+public sealed record DefaultFont
 {
+    internal const string DefaultName = "Calibri";
+    internal const double DefaultSize = 11;
+
     /// <summary>Font name. Defaults to Calibri.</summary>
     public string? Name
     {
@@ -20,5 +23,5 @@ public sealed class DefaultFont
         set => _size = Guard.FontSizeInRange(value);
     }
 
-    private double _size = 11;
+    private double _size = DefaultSize;
 }

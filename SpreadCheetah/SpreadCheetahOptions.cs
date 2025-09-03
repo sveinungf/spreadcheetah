@@ -53,6 +53,8 @@ public class SpreadCheetahOptions
     /// </summary>
     public NumberFormat? DefaultDateTimeFormat { get; set; } = InitialDefaultDateTimeFormat;
 
+    public DefaultFont? DefaultFont { get; set; }
+
     /// <summary>
     /// Write the explicit cell reference attribute for each cell in the resulting spreadsheet.
     /// The attribute is optional according to the Open XML specification, but it can be required for some readers such as:

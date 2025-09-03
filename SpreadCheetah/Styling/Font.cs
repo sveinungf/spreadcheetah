@@ -8,8 +8,6 @@ namespace SpreadCheetah.Styling;
 /// </summary>
 public sealed record Font
 {
-    internal const double DefaultSize = 11;
-
     // TODO: Update comment
     /// <summary>Font name. Defaults to Calibri.</summary>
     public string? Name
@@ -39,13 +37,13 @@ public sealed record Font
     private Underline _underline;
 
     /// <summary>Font size. Defaults to 11.</summary>
-    public double Size
+    public double Size // TODO: Should use DefaultFont.Size if not set explicitly (or stay 'null')?
     {
         get => _size;
         set => _size = Guard.FontSizeInRange(value);
     }
 
-    private double _size = DefaultSize;
+    private double _size = DefaultFont.DefaultSize;
 
     /// <summary>ARGB (alpha, red, green, blue) color of the font.</summary>
     public Color? Color { get; set; }

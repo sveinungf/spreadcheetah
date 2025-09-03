@@ -13,11 +13,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         CancellationToken token)
     {
         const string entryName = "xl/styles.xml";
-        var writer = new StylesXml(
-            styles: styleManager.StyleElements,
-            namedStyles: styleManager.GetEmbeddedNamedStyles(),
-            namedStylesDictionary: styleManager.NamedStyles,
-            buffer: buffer);
+        var writer = new StylesXml(styleManager, buffer);
 
         return zipArchiveManager.WriteAsync(writer, entryName, buffer, token);
     }
@@ -31,13 +27,12 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         """</styleSheet>"""u8;
 
     private readonly List<ImmutableFont> _fontsList;
-    private readonly List<StyleElement> _styles;
     private readonly List<(string, ImmutableStyle, StyleNameVisibility)>? _namedStyles;
     private readonly Dictionary<string, int>? _customNumberFormats;
-    private readonly Dictionary<string, (StyleId StyleId, int NamedStyleIndex)>? _namedStylesDictionary;
     private readonly Dictionary<ImmutableBorder, int> _borders;
     private readonly Dictionary<ImmutableFill, int> _fills;
     private readonly Dictionary<ImmutableFont, int> _fonts;
+    private readonly StyleManager _styleManager;
     private readonly SpreadsheetBuffer _buffer;
     private NumberFormatsXmlPart _numberFormatsXml;
     private BordersXmlPart _bordersXml;
@@ -48,33 +43,31 @@ internal struct StylesXml : IXmlWriter<StylesXml>
     private int _nextIndex;
 
     private StylesXml(
-        List<StyleElement> styles,
-        List<(string, ImmutableStyle, StyleNameVisibility)>? namedStyles,
-        Dictionary<string, (StyleId StyleId, int NamedStyleIndex)>? namedStylesDictionary,
+        StyleManager styleManager,
         SpreadsheetBuffer buffer)
     {
-        _customNumberFormats = CreateCustomNumberFormatDictionary(styles);
-        _borders = CreateBorderDictionary(styles);
-        _fills = CreateFillDictionary(styles);
-        _fonts = CreateFontDictionary(styles);
+        _styleManager = styleManager;
+        _customNumberFormats = CreateCustomNumberFormatDictionary();
+        _borders = CreateBorderDictionary();
+        _fills = CreateFillDictionary();
+        _fonts = CreateFontDictionary();
         _buffer = buffer;
         _numberFormatsXml = new NumberFormatsXmlPart(_customNumberFormats is { } formats ? [.. formats] : null, buffer);
         _bordersXml = new BordersXmlPart([.. _borders.Keys], buffer);
         _fillsXml = new FillsXmlPart([.. _fills.Keys], buffer);
         _fontsList = [.. _fonts.Keys];
-        _cellStylesXml = new CellStylesXmlPart(namedStyles, buffer);
-        _styles = styles;
-        _namedStyles = namedStyles;
-        _namedStylesDictionary = namedStylesDictionary;
+        _namedStyles = styleManager.GetEmbeddedNamedStyles();
+        _cellStylesXml = new CellStylesXmlPart(_namedStyles, buffer);
     }
 
     public readonly StylesXml GetEnumerator() => this;
     public bool Current { get; private set; }
 
-    private static Dictionary<string, int>? CreateCustomNumberFormatDictionary(List<StyleElement> styles)
+    private readonly Dictionary<string, int>? CreateCustomNumberFormatDictionary()
     {
         Dictionary<string, int>? dictionary = null;
         var numberFormatId = 165; // Custom formats start sequentially from this ID
+        var styles = _styleManager.StyleElements;
 
         foreach (var (style, _, _) in styles)
         {
@@ -90,13 +83,14 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         return dictionary;
     }
 
-    private static Dictionary<ImmutableBorder, int> CreateBorderDictionary(List<StyleElement> styles)
+    private readonly Dictionary<ImmutableBorder, int> CreateBorderDictionary()
     {
         var defaultBorder = new ImmutableBorder();
         const int defaultCount = 1;
 
         var uniqueBorders = new Dictionary<ImmutableBorder, int> { { defaultBorder, 0 } };
         var borderIndex = defaultCount;
+        var styles = _styleManager.StyleElements;
 
         foreach (var (style, _, _) in styles)
         {
@@ -107,13 +101,14 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         return uniqueBorders;
     }
 
-    private static Dictionary<ImmutableFill, int> CreateFillDictionary(List<StyleElement> styles)
+    private readonly Dictionary<ImmutableFill, int> CreateFillDictionary()
     {
         var defaultFill = new ImmutableFill();
         const int defaultCount = 2;
 
         var uniqueFills = new Dictionary<ImmutableFill, int> { { defaultFill, 0 } };
         var fillIndex = defaultCount;
+        var styles = _styleManager.StyleElements;
 
         foreach (var (style, _, _) in styles)
         {
@@ -124,13 +119,14 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         return uniqueFills;
     }
 
-    private static Dictionary<ImmutableFont, int> CreateFontDictionary(List<StyleElement> styles)
+    private readonly Dictionary<ImmutableFont, int> CreateFontDictionary()
     {
-        var defaultFont = new ImmutableFont { Size = Font.DefaultSize };
+        var defaultFont = ImmutableFont.From(_styleManager.DefaultFont);
         const int defaultCount = 1;
 
         var uniqueFonts = new Dictionary<ImmutableFont, int> { { defaultFont, 0 } };
         var fontIndex = defaultCount;
+        var styles = _styleManager.StyleElements;
 
         foreach (var (style, _, _) in styles)
         {
@@ -171,7 +167,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
     {
         // The default font must be the first one (index 0)
         var defaultFont = "\">"u8 +
-            """<font><sz val="11"/><name val="Calibri"/></font>"""u8;
+            """<font><sz val="11"/><name val="Calibri"/></font>"""u8; // TODO: Handle default font
 
         return _buffer.TryWrite(
             $"{"<fonts count=\""u8}" +
@@ -181,7 +177,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
     private bool TryWriteFonts()
     {
-        var defaultFont = new ImmutableFont { Size = Font.DefaultSize };
+        var defaultFont = ImmutableFont.From(_styleManager.DefaultFont);
         var fontsLocal = _fontsList;
 
         for (; _nextIndex < fontsLocal.Count; ++_nextIndex)
@@ -234,20 +230,21 @@ internal struct StylesXml : IXmlWriter<StylesXml>
     {
         return _buffer.TryWrite(
             $"{"</cellStyleXfs><cellXfs count=\""u8}" +
-            $"{_styles.Count}" +
+            $"{_styleManager.StyleElements.Count}" +
             $"{"\">"u8}");
     }
 
     private bool TryWriteCellXfsEntries()
     {
         var xfXml = new XfXmlPart(_buffer, _customNumberFormats, _borders, _fills, _fonts, true);
-        var styles = _styles;
+        var styles = _styleManager.StyleElements;
+        var namedStylesDictionary = _styleManager.NamedStyles;
 
         for (; _nextIndex < styles.Count; ++_nextIndex)
         {
-            var (style, name, visibility) = _styles[_nextIndex];
+            var (style, name, visibility) = styles[_nextIndex];
             int? embeddedNamedStyleIndex = name is not null && visibility is not null
-                && _namedStylesDictionary is { } namedStyles && namedStyles.TryGetValue(name, out var value)
+                && namedStylesDictionary is { } namedStyles && namedStyles.TryGetValue(name, out var value)
                 ? value.NamedStyleIndex
                 : null;
 

@@ -50,18 +50,30 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         }
     }
 
-    private Spreadsheet(ZipArchiveManager zipArchiveManager, int bufferSize, NumberFormat? defaultDateTimeFormat,
-        DocumentProperties? documentProperties, bool writeCellReferenceAttributes)
+    private Spreadsheet(Stream stream, SpreadCheetahOptions? options)
     {
-        _zipArchiveManager = zipArchiveManager;
+        var bufferSize = options?.BufferSize ?? SpreadCheetahOptions.DefaultBufferSize;
+
+        _zipArchiveManager = new ZipArchiveManager(stream, options?.CompressionLevel);
         _buffer = new SpreadsheetBuffer(bufferSize);
-        _documentProperties = documentProperties;
-        _writeCellReferenceAttributes = writeCellReferenceAttributes;
+        _writeCellReferenceAttributes = options?.WriteCellReferenceAttributes ?? false;
+
+        _documentProperties = options switch
+        {
+            { DocumentProperties: { } docProps } => docProps with { },
+            { DocumentProperties: null } => null,
+            null => DocumentProperties.Default
+        };
 
         // If no style is ever added to the spreadsheet, then we can skip creating the styles.xml file.
         // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
+        var defaultDateTimeFormat = options is null ? SpreadCheetahOptions.InitialDefaultDateTimeFormat : options.DefaultDateTimeFormat;
         if (defaultDateTimeFormat is { } format)
-            _styleManager = new(format);
+        {
+            // Make a copy to avoid side effects of changes to the original instance after this point.
+            var defaultFontCopy = options?.DefaultFont is { } font ? font with { } : null;
+            _styleManager = new(format, defaultFontCopy); // TODO: Create the StyleManager as soon as DefaultFont has been set?
+        }
     }
 
     /// <summary>
@@ -72,20 +84,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         SpreadCheetahOptions? options = null,
         CancellationToken cancellationToken = default)
     {
-        var zipArchiveManager = new ZipArchiveManager(stream, options?.CompressionLevel);
-        var bufferSize = options?.BufferSize ?? SpreadCheetahOptions.DefaultBufferSize;
-        var defaultDateTimeFormat = options is null ? SpreadCheetahOptions.InitialDefaultDateTimeFormat : options.DefaultDateTimeFormat;
-        var writeCellReferenceAttributes = options?.WriteCellReferenceAttributes ?? false;
-
-        var documentProperties = options switch
-        {
-            { DocumentProperties: { } docProps } => docProps with { },
-            { DocumentProperties: null } => null,
-            null => DocumentProperties.Default
-        };
-
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        var spreadsheet = new Spreadsheet(zipArchiveManager, bufferSize, defaultDateTimeFormat, documentProperties, writeCellReferenceAttributes);
+        var spreadsheet = new Spreadsheet(stream, options);
 #pragma warning restore CA2000 // Dispose objects before losing scope
         _ = cancellationToken;
         return new ValueTask<Spreadsheet>(spreadsheet);
