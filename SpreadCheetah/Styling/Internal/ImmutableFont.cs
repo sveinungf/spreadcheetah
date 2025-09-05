@@ -17,7 +17,7 @@ internal readonly record struct ImmutableFont(
         Italic: font.Italic,
         Strikethrough: font.Strikethrough,
         Underline: font.Underline,
-        Size: font.Size, // TODO: Use size from defaultFont?
+        Size: font.ActualSize ?? defaultFont?.Size ?? DefaultFont.DefaultSize,
         Color: font.Color);
 
     public static ImmutableFont From(DefaultFont? defaultFont) => new(

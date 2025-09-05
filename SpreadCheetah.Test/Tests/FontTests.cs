@@ -32,6 +32,17 @@ public class FontTests
     }
 
     [Fact]
+    public void Font_Size_DefaultValue()
+    {
+        // Act
+        var font = new Font();
+
+        // Assert
+        Assert.Equal(DefaultFont.DefaultSize, font.Size);
+        Assert.Null(font.ActualSize);
+    }
+
+    [Fact]
     public void Font_Underline_InvalidValue()
     {
         // Arrange
