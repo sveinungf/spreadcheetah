@@ -40,6 +40,7 @@ internal static class StyleGenerator
 
         var testFonts = new Faker<Font>()
             .StrictMode(true)
+            .Ignore(x => x.ActualSize)
             .RuleFor(x => x.Bold, f => f.Random.Bool())
             .RuleFor(x => x.Color, f => f.Random.Color().OrNull(f, .1f))
             .RuleFor(x => x.Italic, f => f.Random.Bool())

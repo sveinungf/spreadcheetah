@@ -53,10 +53,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private Spreadsheet(Stream stream, SpreadCheetahOptions? options)
     {
         var bufferSize = options?.BufferSize ?? SpreadCheetahOptions.DefaultBufferSize;
-
-        _zipArchiveManager = new ZipArchiveManager(stream, options?.CompressionLevel);
         _buffer = new SpreadsheetBuffer(bufferSize);
+        _styleManager = CreateStyleManager(options);
         _writeCellReferenceAttributes = options?.WriteCellReferenceAttributes ?? false;
+        _zipArchiveManager = new ZipArchiveManager(stream, options?.CompressionLevel);
 
         _documentProperties = options switch
         {
@@ -64,16 +64,21 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             { DocumentProperties: null } => null,
             null => DocumentProperties.Default
         };
+    }
 
-        // If no style is ever added to the spreadsheet, then we can skip creating the styles.xml file.
-        // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
-        var defaultDateTimeFormat = options is null ? SpreadCheetahOptions.InitialDefaultDateTimeFormat : options.DefaultDateTimeFormat;
-        if (defaultDateTimeFormat is { } format)
-        {
-            // Make a copy to avoid side effects of changes to the original instance after this point.
-            var defaultFontCopy = options?.DefaultFont is { } font ? font with { } : null;
-            _styleManager = new(format, defaultFontCopy); // TODO: Create the StyleManager as soon as DefaultFont has been set?
-        }
+    private static StyleManager? CreateStyleManager(SpreadCheetahOptions? options)
+    {
+        // If no style is ever added to the spreadsheet, then we can skip creating the style manager.
+        if (options is { DefaultDateTimeFormat: null, DefaultFont: null })
+            return null;
+
+        var defaultDateTimeFormat = options is null
+            ? SpreadCheetahOptions.InitialDefaultDateTimeFormat
+            : options.DefaultDateTimeFormat;
+
+        // Make a copy to avoid potential side effects of changes to the original instance after this point.
+        var defaultFontCopy = options?.DefaultFont is { } font ? font with { } : null;
+        return new StyleManager(defaultDateTimeFormat, defaultFontCopy);
     }
 
     /// <summary>
@@ -450,8 +455,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(style);
 
-        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null);
-        return styleManager.AddStyleIfNotExists(ImmutableStyle.From(style));
+        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null, defaultFont: null);
+        var immutableStyle = ImmutableStyle.From(style, styleManager.DefaultFont);
+        return styleManager.AddStyleIfNotExists(immutableStyle);
     }
 
     /// <summary>
@@ -490,7 +496,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (nameVisibility is { } visibility)
             Guard.DefinedEnumValue(visibility);
 
-        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null);
+        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null, defaultFont: null);
         if (!styleManager.TryAddNamedStyle(name, style, nameVisibility, out var styleId))
             ThrowHelper.StyleNameAlreadyExists(nameof(name));
 

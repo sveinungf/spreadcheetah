@@ -59,7 +59,7 @@ internal sealed class StyleManager
         if (namedStyles.ContainsKey(name))
             return false;
 
-        var immutableStyle = ImmutableStyle.From(style);
+        var immutableStyle = ImmutableStyle.From(style, DefaultFont);
 
         var id = StyleElements.Count;
         StyleElements.Add(new StyleElement(immutableStyle, name, visibility));
