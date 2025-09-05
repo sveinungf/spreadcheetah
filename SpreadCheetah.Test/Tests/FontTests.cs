@@ -4,11 +4,13 @@ namespace SpreadCheetah.Test.Tests;
 
 public class FontTests
 {
-    [Fact]
-    public void Font_Name_TooLong()
+    [Theory]
+    [InlineData(2)]
+    [InlineData(32)]
+    public void Font_Name_InvalidLength(int length)
     {
         // Arrange
-        const string fontName = "FontNameThatIsExactly32CharsLong";
+        var fontName = new string('a', length);
         var font = new Font();
 
         // Act & Assert

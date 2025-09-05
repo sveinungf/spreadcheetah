@@ -1,6 +1,7 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
+using System.Diagnostics;
 
 namespace SpreadCheetah.MetadataXml.Styles;
 
@@ -165,14 +166,19 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
     private readonly bool TryWriteFontsStart()
     {
-        // The default font must be the first one (index 0)
-        var defaultFont = "\">"u8 +
-            """<font><sz val="11"/><name val="Calibri"/></font>"""u8; // TODO: Handle default font
+        var defaultFont = _styleManager.DefaultFont;
+        var defaultFontSize = defaultFont?.Size ?? DefaultFont.DefaultSize;
+        var defaultFontName = defaultFont?.Name ?? DefaultFont.DefaultName;
+        Debug.Assert(defaultFontName.Length <= 31);
 
         return _buffer.TryWrite(
             $"{"<fonts count=\""u8}" +
             $"{_fontsList.Count}" +
-            $"{defaultFont}");
+            $"{"\"><font><sz val=\""u8}" +
+            $"{defaultFontSize}" +
+            $"{"\"/><name val=\""u8}" +
+            $"{defaultFontName}" +
+            $"{"\"/></font>"u8}");
     }
 
     private bool TryWriteFonts()

@@ -169,6 +169,10 @@ internal static class ThrowHelper
         => throw new ArgumentException(StringHelper.Invariant($"The value can not exceed {maxLength} characters."), paramName);
 
     [DoesNotReturn]
+    public static void ValueTooShort(int minLength, string? paramName)
+        => throw new ArgumentException(StringHelper.Invariant($"The value must be at least {minLength} characters."), paramName);
+
+    [DoesNotReturn]
     public static void WorksheetNameAlreadyExists(string? paramName)
         => throw new ArgumentException("A worksheet with the given name already exists.", paramName);
 

@@ -13,7 +13,7 @@ public sealed record Font
     public string? Name
     {
         get => _name;
-        set => _name = Guard.MaxLength(value, 31);
+        set => _name = Guard.FontNameLengthInRange(value);
     }
 
     private string? _name;

@@ -44,6 +44,19 @@ internal static class Guard
         return size;
     }
 
+    public static string? FontNameLengthInRange(string? value,
+        [CallerArgumentExpression(nameof(value))] string? paramName = null)
+    {
+        if (value is null)
+            return null;
+        if (value.Length < 3)
+            ThrowHelper.ValueTooShort(3, paramName);
+        if (value.Length > 31)
+            ThrowHelper.ValueTooLong(31, paramName);
+
+        return value;
+    }
+
     public static string? MaxLength(string? value, int maxLength,
         [CallerArgumentExpression(nameof(value))] string? paramName = null)
     {
