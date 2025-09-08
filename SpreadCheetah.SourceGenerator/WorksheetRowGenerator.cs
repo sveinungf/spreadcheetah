@@ -169,11 +169,15 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         sb.AppendLine($$"""
             {
+                [global::System.CodeDom.Compiler.GeneratedCodeAttribute("SpreadCheetah.SourceGenerator", "1.0.0")]
                 {{accessibility}} partial class {{contextClass.Name}}
                 {
                     private static {{contextClass.Name}}? _default;
+
+                    /// <summary>The default context instance.</summary>
                     public static {{contextClass.Name}} Default => _default ??= new {{contextClass.Name}}();
 
+                    /// <inheritdoc/>
                     public {{contextClass.Name}}()
                     {
                     }
@@ -215,6 +219,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     {
         sb.AppendLine().AppendLine($$"""
                     private WorksheetRowTypeInfo<{{rowType.FullName}}>? _{{rowType.Name}};
+
+                    /// <summary>
+                    /// Defines the source generated worksheet row metadata for a given type.
+                    /// </summary>
                     public WorksheetRowTypeInfo<{{rowType.FullName}}> {{rowType.Name}} => _{{rowType.Name}}
             """);
 
