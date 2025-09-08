@@ -325,27 +325,22 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Font name test";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
-            var style = new Style();
-            style.Font.Name = fontName;
-            var styleId = spreadsheet.AddStyle(style);
-            var styledCell = CellFactory.Create(type, cellValue, styleId);
+        var style = new Style();
+        style.Font.Name = fontName;
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = CellFactory.Create(type, cellValue, styleId);
 
-            // Act
-            await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync(Token);
-        }
+        // Act
+        await spreadsheet.AddRowAsync(styledCell, rowType);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
-        Assert.Equal(cellValue, actualCell.Value);
-        Assert.Equal(fontName ?? "Calibri", actualCell.Style.Font.FontName);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(cellValue, sheet["A1"].StringValue);
+        Assert.Equal(fontName ?? "Calibri", sheet["A1"].Style.Font.Name);
     }
 
 #pragma warning disable CS0618 // Type or member is obsolete - Testing for backwards compatibilty
