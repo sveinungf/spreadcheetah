@@ -53,6 +53,9 @@ public class SpreadCheetahOptions
     /// </summary>
     public NumberFormat? DefaultDateTimeFormat { get; set; } = InitialDefaultDateTimeFormat;
 
+    /// <summary>
+    /// The default font for all worksheets. When not set, the default is Calibri with size 11.
+    /// </summary>
     public DefaultFont? DefaultFont { get; set; }
 
     /// <summary>

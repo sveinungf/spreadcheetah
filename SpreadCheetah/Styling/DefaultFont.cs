@@ -2,6 +2,9 @@ using SpreadCheetah.Helpers;
 
 namespace SpreadCheetah.Styling;
 
+/// <summary>
+/// Represents the default font for worksheets.
+/// </summary>
 public sealed record DefaultFont
 {
     internal const string DefaultName = "Calibri";
