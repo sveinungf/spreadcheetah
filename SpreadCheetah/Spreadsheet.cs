@@ -61,8 +61,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _documentProperties = options switch
         {
             { DocumentProperties: { } docProps } => docProps with { },
-            { DocumentProperties: null } => null,
-            null => DocumentProperties.Default
+            null => DocumentProperties.Default,
+            _ => null
         };
     }
 
@@ -743,21 +743,26 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <inheritdoc/>
     public async ValueTask DisposeAsync()
     {
-        if (_disposed) return;
-        _disposed = true;
+        if (_disposed)
+            return;
 
         if (_worksheet != null)
             await _worksheet.DisposeAsync().ConfigureAwait(false);
 
         _buffer.Dispose();
+        _zipArchiveManager.Dispose();
+        _disposed = true;
     }
 
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
+        if (_disposed)
+            return;
+
         _worksheet?.Dispose();
         _buffer.Dispose();
+        _zipArchiveManager.Dispose();
+        _disposed = true;
     }
 }

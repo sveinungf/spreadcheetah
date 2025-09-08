@@ -4,8 +4,8 @@
     <CentralPackageVersionOverrideEnabled>false</CentralPackageVersionOverrideEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <GlobalPackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.8.0-beta.1" />
-    <GlobalPackageReference Include="Meziantou.Analyzer" Version="2.0.208" />
+    <GlobalPackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.8.2-beta.1" />
+    <GlobalPackageReference Include="Meziantou.Analyzer" Version="2.0.215" />
     <GlobalPackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" />
     <GlobalPackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15" />
     <GlobalPackageReference Include="PrimaryConstructorAnalyzer" Version="1.0.6" />
