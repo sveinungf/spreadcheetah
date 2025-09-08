@@ -7,6 +7,7 @@ using SpreadCheetah.Images;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
+using System.IO;
 using System.IO.Compression;
 using Color = System.Drawing.Color;
 using DataValidation = SpreadCheetah.Validations.DataValidation;
@@ -211,6 +212,36 @@ public class SpreadsheetTests
 
         // Assert
         SpreadsheetAssert.Valid(stream);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_Dispose_DisposeTwice()
+    {
+        // Arrange
+        var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+#pragma warning disable
+        spreadsheet.Dispose();
+#pragma warning restore
+
+        // Act
+        var exception = Record.Exception(() => spreadsheet.Dispose());
+
+        // Assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_DisposeAsync_DisposeTwice()
+    {
+        // Arrange
+        var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.DisposeAsync();
+
+        // Act
+        var exception = await Record.ExceptionAsync(() => spreadsheet.DisposeAsync().AsTask());
+
+        // Assert
+        Assert.Null(exception);
     }
 
     [Theory]
