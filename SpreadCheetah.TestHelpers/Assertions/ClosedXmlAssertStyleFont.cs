@@ -9,6 +9,7 @@ internal sealed class ClosedXmlAssertStyleFont(IXLFont font) : ISpreadsheetAsser
     public bool Bold => font.Bold;
     public bool Italic => font.Italic;
     public bool Strikethrough => font.Strikethrough;
+    public double Size => font.FontSize;
     public string Name => font.FontName;
     public Color Color => font.FontColor.Color;
 
