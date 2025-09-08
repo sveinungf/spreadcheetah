@@ -72,10 +72,9 @@ internal struct FontXmlPart(
 
     private readonly bool TryWriteName()
     {
-        var fontName = font.Name ?? "Calibri";
         return buffer.TryWrite(
             $"{"<name val=\""u8}" +
-            $"{fontName}" +
+            $"{font.Name}" +
             $"{"\"/></font>"u8}");
     }
 

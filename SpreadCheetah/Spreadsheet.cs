@@ -50,18 +50,35 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         }
     }
 
-    private Spreadsheet(ZipArchiveManager zipArchiveManager, int bufferSize, NumberFormat? defaultDateTimeFormat,
-        DocumentProperties? documentProperties, bool writeCellReferenceAttributes)
+    private Spreadsheet(Stream stream, SpreadCheetahOptions? options)
     {
-        _zipArchiveManager = zipArchiveManager;
+        var bufferSize = options?.BufferSize ?? SpreadCheetahOptions.DefaultBufferSize;
         _buffer = new SpreadsheetBuffer(bufferSize);
-        _documentProperties = documentProperties;
-        _writeCellReferenceAttributes = writeCellReferenceAttributes;
+        _styleManager = CreateStyleManager(options);
+        _writeCellReferenceAttributes = options?.WriteCellReferenceAttributes ?? false;
+        _zipArchiveManager = new ZipArchiveManager(stream, options?.CompressionLevel);
 
-        // If no style is ever added to the spreadsheet, then we can skip creating the styles.xml file.
-        // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
-        if (defaultDateTimeFormat is { } format)
-            _styleManager = new(format);
+        _documentProperties = options switch
+        {
+            { DocumentProperties: { } docProps } => docProps with { },
+            null => DocumentProperties.Default,
+            _ => null
+        };
+    }
+
+    private static StyleManager? CreateStyleManager(SpreadCheetahOptions? options)
+    {
+        // If no style is ever added to the spreadsheet, then we can skip creating the style manager.
+        if (options is { DefaultDateTimeFormat: null, DefaultFont: null })
+            return null;
+
+        var defaultDateTimeFormat = options is null
+            ? SpreadCheetahOptions.InitialDefaultDateTimeFormat
+            : options.DefaultDateTimeFormat;
+
+        // Make a copy to avoid potential side effects of changes to the original instance after this point.
+        var defaultFontCopy = options?.DefaultFont is { } font ? font with { } : null;
+        return new StyleManager(defaultDateTimeFormat, defaultFontCopy);
     }
 
     /// <summary>
@@ -72,20 +89,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         SpreadCheetahOptions? options = null,
         CancellationToken cancellationToken = default)
     {
-        var zipArchiveManager = new ZipArchiveManager(stream, options?.CompressionLevel);
-        var bufferSize = options?.BufferSize ?? SpreadCheetahOptions.DefaultBufferSize;
-        var defaultDateTimeFormat = options is null ? SpreadCheetahOptions.InitialDefaultDateTimeFormat : options.DefaultDateTimeFormat;
-        var writeCellReferenceAttributes = options?.WriteCellReferenceAttributes ?? false;
-
-        var documentProperties = options switch
-        {
-            { DocumentProperties: { } docProps } => docProps with { },
-            { DocumentProperties: null } => null,
-            null => DocumentProperties.Default
-        };
-
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        var spreadsheet = new Spreadsheet(zipArchiveManager, bufferSize, defaultDateTimeFormat, documentProperties, writeCellReferenceAttributes);
+        var spreadsheet = new Spreadsheet(stream, options);
 #pragma warning restore CA2000 // Dispose objects before losing scope
         _ = cancellationToken;
         return new ValueTask<Spreadsheet>(spreadsheet);
@@ -450,8 +455,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(style);
 
-        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null);
-        return styleManager.AddStyleIfNotExists(ImmutableStyle.From(style));
+        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null, defaultFont: null);
+        var immutableStyle = ImmutableStyle.From(style, styleManager.DefaultFont);
+        return styleManager.AddStyleIfNotExists(immutableStyle);
     }
 
     /// <summary>
@@ -490,7 +496,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (nameVisibility is { } visibility)
             Guard.DefinedEnumValue(visibility);
 
-        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null);
+        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null, defaultFont: null);
         if (!styleManager.TryAddNamedStyle(name, style, nameVisibility, out var styleId))
             ThrowHelper.StyleNameAlreadyExists(nameof(name));
 
@@ -737,21 +743,26 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <inheritdoc/>
     public async ValueTask DisposeAsync()
     {
-        if (_disposed) return;
-        _disposed = true;
+        if (_disposed)
+            return;
 
         if (_worksheet != null)
             await _worksheet.DisposeAsync().ConfigureAwait(false);
 
         _buffer.Dispose();
+        _zipArchiveManager.Dispose();
+        _disposed = true;
     }
 
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
+        if (_disposed)
+            return;
+
         _worksheet?.Dispose();
         _buffer.Dispose();
+        _zipArchiveManager.Dispose();
+        _disposed = true;
     }
 }

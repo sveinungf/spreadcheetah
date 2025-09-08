@@ -325,38 +325,145 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Font name test";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
-            var style = new Style();
-            style.Font.Name = fontName;
-            var styleId = spreadsheet.AddStyle(style);
-            var styledCell = CellFactory.Create(type, cellValue, styleId);
+        var style = new Style();
+        style.Font.Name = fontName;
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = CellFactory.Create(type, cellValue, styleId);
 
-            // Act
-            await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync(Token);
-        }
+        // Act
+        await spreadsheet.AddRowAsync(styledCell, rowType);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
-        Assert.Equal(cellValue, actualCell.Value);
-        Assert.Equal(fontName ?? "Calibri", actualCell.Style.Font.FontName);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(cellValue, sheet["A1"].StringValue);
+        Assert.Equal(fontName ?? "Calibri", sheet["A1"].Style.Font.Name);
     }
 
     [Fact]
-    public void Spreadsheet_AddRow_FontNameTooLong()
+    public async Task Spreadsheet_AddRow_HavingDefaultFontName()
     {
         // Arrange
-        const string fontName = "FontNameThatIsExactly32CharsLong";
-        var style = new Style();
+        const string fontName = "Courier New";
+        using var stream = new MemoryStream();
+        var defaultFont = new DefaultFont { Name = fontName };
+        var options = new SpreadCheetahOptions { DefaultFont = defaultFont };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
-        // Act & Assert
-        Assert.Throws<ArgumentException>(() => style.Font.Name = fontName);
+        // Act
+        await spreadsheet.AddRowAsync([new(1)], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(fontName, sheet["A1"].Style.Font.Name);
+        Assert.Equal(11, sheet["A1"].Style.Font.Size);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddRow_HavingDefaultFontSize()
+    {
+        // Arrange
+        const double fontSize = 15;
+        using var stream = new MemoryStream();
+        var defaultFont = new DefaultFont { Size = fontSize };
+        var options = new SpreadCheetahOptions { DefaultFont = defaultFont };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        // Act
+        await spreadsheet.AddRowAsync([new(1)], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(fontSize, sheet["A1"].Style.Font.Size);
+        Assert.Equal("Calibri", sheet["A1"].Style.Font.Name);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddRow_HavingDefaultFontOnSecondWorksheet()
+    {
+        // Arrange
+        const string fontName = "Courier New";
+        const double fontSize = 15;
+        using var stream = new MemoryStream();
+        var defaultFont = new DefaultFont { Name = fontName, Size = fontSize };
+        var options = new SpreadCheetahOptions { DefaultFont = defaultFont };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        await spreadsheet.AddRowAsync([new(1)], Token);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
+        await spreadsheet.AddRowAsync([new(1)], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheets = SpreadsheetAssert.Sheets(stream);
+        using var sheet2 = Assert.Single(sheets.Skip(1));
+        Assert.Equal(fontName, sheet2["A1"].Style.Font.Name);
+        Assert.Equal(fontSize, sheet2["A1"].Style.Font.Size);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_HavingOverriddenDefaultFontName(
+        StyledCellType type)
+    {
+        // Arrange
+        const string defaultFontName = "Courier New";
+        const double defaultFontSize = 15;
+        using var stream = new MemoryStream();
+        var defaultFont = new DefaultFont { Name = defaultFontName, Size = defaultFontSize };
+        var options = new SpreadCheetahOptions { DefaultFont = defaultFont };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        const string cellFontName = "Arial";
+        var style = new Style { Font = { Name = cellFontName } };
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = CellFactory.Create(type, "Value", styleId);
+
+        // Act
+        await spreadsheet.AddRowAsync(styledCell, RowCollectionType.List);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(cellFontName, sheet["A1"].Style.Font.Name);
+        Assert.Equal(defaultFontSize, sheet["A1"].Style.Font.Size);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_HavingOverriddenDefaultFontSize(
+        [CombinatorialValues(11, 15, 18)] double size,
+        StyledCellType type)
+    {
+        // Arrange
+        const string defaultFontName = "Courier New";
+        const double defaultFontSize = 15;
+        using var stream = new MemoryStream();
+        var defaultFont = new DefaultFont { Name = defaultFontName, Size = defaultFontSize };
+        var options = new SpreadCheetahOptions { DefaultFont = defaultFont };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        var style = new Style { Font = { Size = size } };
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = CellFactory.Create(type, "Value", styleId);
+
+        // Act
+        await spreadsheet.AddRowAsync(styledCell, RowCollectionType.List);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(size, sheet["A1"].Style.Font.Size);
+        Assert.Equal(defaultFontName, sheet["A1"].Style.Font.Name);
     }
 
 #pragma warning disable CS0618 // Type or member is obsolete - Testing for backwards compatibilty

@@ -8,6 +8,8 @@ public interface ISpreadsheetAssertStyleFont
     bool Bold { get; }
     bool Italic { get; }
     bool Strikethrough { get; }
+    double Size { get; }
+    string Name { get; }
     Color Color { get; }
     Underline Underline { get; }
 }

@@ -21,7 +21,7 @@ public readonly record struct NumberFormat
     /// <returns>A <see cref="NumberFormat"/> representing this custom format string</returns>
     public static NumberFormat Custom(string formatString)
     {
-        var customFormat = formatString.WithEnsuredMaxLength(255);
+        var customFormat = Guard.MaxLength(formatString, 255);
         return new NumberFormat(customFormat);
     }
 

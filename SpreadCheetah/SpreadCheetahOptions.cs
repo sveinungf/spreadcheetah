@@ -54,6 +54,11 @@ public class SpreadCheetahOptions
     public NumberFormat? DefaultDateTimeFormat { get; set; } = InitialDefaultDateTimeFormat;
 
     /// <summary>
+    /// The default font for all worksheets. When not set, the default is Calibri with size 11.
+    /// </summary>
+    public DefaultFont? DefaultFont { get; set; }
+
+    /// <summary>
     /// Write the explicit cell reference attribute for each cell in the resulting spreadsheet.
     /// The attribute is optional according to the Open XML specification, but it can be required for some readers such as:
     /// <list type="bullet">

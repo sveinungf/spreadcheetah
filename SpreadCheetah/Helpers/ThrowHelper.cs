@@ -37,6 +37,10 @@ internal static class ThrowHelper
         => throw new ArgumentOutOfRangeException(paramName, value, "The value is not a valid enum value.");
 
     [DoesNotReturn]
+    public static void FontSizeOutOfRange(string? paramName, double value)
+        => throw new ArgumentOutOfRangeException(paramName, value, "Font size must be between 1 and 409.");
+
+    [DoesNotReturn]
     public static void MaxNumberOfDataValidations()
         => throw new SpreadCheetahException($"Can't add more than {SpreadsheetConstants.MaxNumberOfDataValidations} data validations to a worksheet.");
 
@@ -159,6 +163,14 @@ internal static class ThrowHelper
     [DoesNotReturn]
     public static void ValueIsNegative<T>(string? paramName, T value)
         => throw new ArgumentOutOfRangeException(paramName, value, "The value can not be negative.");
+
+    [DoesNotReturn]
+    public static void ValueTooLong(int maxLength, string? paramName)
+        => throw new ArgumentException(StringHelper.Invariant($"The value can not exceed {maxLength} characters."), paramName);
+
+    [DoesNotReturn]
+    public static void ValueTooShort(int minLength, string? paramName)
+        => throw new ArgumentException(StringHelper.Invariant($"The value must be at least {minLength} characters."), paramName);
 
     [DoesNotReturn]
     public static void WorksheetNameAlreadyExists(string? paramName)

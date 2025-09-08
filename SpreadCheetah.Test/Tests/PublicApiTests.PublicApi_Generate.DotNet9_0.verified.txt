@@ -90,6 +90,7 @@ namespace SpreadCheetah
         public SpreadCheetah.Styling.NumberFormat? DefaultDateTimeFormat { get; set; }
         [System.Obsolete("Use SpreadCheetahOptions.DefaultDateTimeFormat instead")]
         public string? DefaultDateTimeNumberFormat { get; set; }
+        public SpreadCheetah.Styling.DefaultFont? DefaultFont { get; set; }
         public SpreadCheetah.Metadata.DocumentProperties? DocumentProperties { get; set; }
         public bool WriteCellReferenceAttributes { get; set; }
     }
@@ -347,6 +348,12 @@ namespace SpreadCheetah.Styling
         DashDotDot = 11,
         MediumDashDotDot = 12,
         SlantDashDot = 13,
+    }
+    public sealed class DefaultFont : System.IEquatable<SpreadCheetah.Styling.DefaultFont>
+    {
+        public DefaultFont() { }
+        public string? Name { get; set; }
+        public double Size { get; set; }
     }
     public sealed class DiagonalBorder : System.IEquatable<SpreadCheetah.Styling.DiagonalBorder>
     {

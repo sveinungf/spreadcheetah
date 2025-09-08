@@ -10,6 +10,7 @@ internal sealed class ZipArchiveManager : IDisposable
 {
     private readonly ZipArchive _zipArchive;
     private readonly CompressionLevel _compressionLevel;
+    private bool _disposed;
 
     public ZipArchiveManager(
         Stream stream,
@@ -118,6 +119,10 @@ internal sealed class ZipArchiveManager : IDisposable
 
     public void Dispose()
     {
+        if (_disposed)
+            return;
+
         _zipArchive.Dispose();
+        _disposed = true;
     }
 }

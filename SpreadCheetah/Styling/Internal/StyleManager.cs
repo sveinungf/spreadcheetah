@@ -7,17 +7,18 @@ internal sealed class StyleManager
     private readonly NumberFormat? _defaultDateTimeFormat;
     private readonly Dictionary<ImmutableStyle, int> _styleDictionary = [];
 
+    public DefaultFont? DefaultFont { get; }
     public DefaultStyling? DefaultStyling { get; }
     public List<StyleElement> StyleElements { get; } = [];
     public Dictionary<string, (StyleId StyleId, int NamedStyleIndex)>? NamedStyles { get; private set; }
 
-    public StyleManager(NumberFormat? defaultDateTimeFormat)
+    public StyleManager(NumberFormat? defaultDateTimeFormat, DefaultFont? defaultFont)
     {
         _defaultDateTimeFormat = defaultDateTimeFormat;
+        DefaultFont = defaultFont;
 
         // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
-        var defaultFont = new ImmutableFont() with { Size = Font.DefaultSize };
-        var defaultStyle = new ImmutableStyle(new ImmutableAlignment(), new ImmutableBorder(), new ImmutableFill(), defaultFont, null);
+        var defaultStyle = new ImmutableStyle() with { Font = ImmutableFont.From(defaultFont) };
         var styleId = AddStyleIfNotExists(defaultStyle);
 
         if (styleId.Id != styleId.DateTimeId)
@@ -58,7 +59,7 @@ internal sealed class StyleManager
         if (namedStyles.ContainsKey(name))
             return false;
 
-        var immutableStyle = ImmutableStyle.From(style);
+        var immutableStyle = ImmutableStyle.From(style, DefaultFont);
 
         var id = StyleElements.Count;
         StyleElements.Add(new StyleElement(immutableStyle, name, visibility));

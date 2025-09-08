@@ -4,7 +4,8 @@ namespace SpreadCheetah.Helpers;
 
 internal static class Guard
 {
-    public static double? ColumnWidthInRange(double? width, [CallerArgumentExpression(nameof(width))] string? paramName = null)
+    public static double? ColumnWidthInRange(double? width,
+        [CallerArgumentExpression(nameof(width))] string? paramName = null)
     {
         if (width is { } value and (< 0 or > 255))
             ThrowHelper.ColumnWidthOutOfRange(paramName, value);
@@ -12,7 +13,8 @@ internal static class Guard
         return width;
     }
 
-    public static TEnum DefinedEnumValue<TEnum>(TEnum value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
+    public static TEnum DefinedEnumValue<TEnum>(TEnum value,
+        [CallerArgumentExpression(nameof(value))] string? paramName = null)
         where TEnum : struct, Enum
     {
         if (!EnumPolyfill.IsDefined(value))
@@ -21,13 +23,45 @@ internal static class Guard
         return value;
     }
 
-    public static TEnum? DefinedEnumValue<TEnum>(TEnum? value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
+    public static TEnum? DefinedEnumValue<TEnum>(TEnum? value,
+        [CallerArgumentExpression(nameof(value))] string? paramName = null)
         where TEnum : struct, Enum
     {
         if (value is not { } actualValue)
             return null;
         if (!EnumPolyfill.IsDefined(actualValue))
             ThrowHelper.EnumValueInvalid(paramName, actualValue);
+
+        return value;
+    }
+
+    public static double FontSizeInRange(double size,
+        [CallerArgumentExpression(nameof(size))] string? paramName = null)
+    {
+        if (size < 1 || size > 409)
+            ThrowHelper.FontSizeOutOfRange(paramName, size);
+
+        return size;
+    }
+
+    public static string? FontNameLengthInRange(string? value,
+        [CallerArgumentExpression(nameof(value))] string? paramName = null)
+    {
+        if (value is null)
+            return null;
+        if (value.Length < 3)
+            ThrowHelper.ValueTooShort(3, paramName);
+        if (value.Length > 31)
+            ThrowHelper.ValueTooLong(31, paramName);
+
+        return value;
+    }
+
+    public static string? MaxLength(string? value, int maxLength,
+        [CallerArgumentExpression(nameof(value))] string? paramName = null)
+    {
+        if (value is not null && value.Length > maxLength)
+            ThrowHelper.ValueTooLong(maxLength, paramName);
 
         return value;
     }
