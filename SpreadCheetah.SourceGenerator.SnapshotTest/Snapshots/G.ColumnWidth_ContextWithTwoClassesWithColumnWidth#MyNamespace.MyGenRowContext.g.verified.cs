@@ -12,16 +12,24 @@ using System.Threading.Tasks;
 
 namespace MyNamespace
 {
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("SpreadCheetah.SourceGenerator", "1.0.0")]
     public partial class MyGenRowContext
     {
         private static MyGenRowContext? _default;
+
+        /// <summary>The default context instance.</summary>
         public static MyGenRowContext Default => _default ??= new MyGenRowContext();
 
+        /// <inheritdoc/>
         public MyGenRowContext()
         {
         }
 
         private WorksheetRowTypeInfo<MyNamespace.Class1WithColumnWidth>? _Class1WithColumnWidth;
+
+        /// <summary>
+        /// Defines the source generated worksheet row metadata for a given type.
+        /// </summary>
         public WorksheetRowTypeInfo<MyNamespace.Class1WithColumnWidth> Class1WithColumnWidth => _Class1WithColumnWidth
             ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.Class1WithColumnWidth>(
                 AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, CreateWorksheetOptions0);
@@ -114,6 +122,10 @@ namespace MyNamespace
         }
 
         private WorksheetRowTypeInfo<MyNamespace.Class2WithColumnWidth>? _Class2WithColumnWidth;
+
+        /// <summary>
+        /// Defines the source generated worksheet row metadata for a given type.
+        /// </summary>
         public WorksheetRowTypeInfo<MyNamespace.Class2WithColumnWidth> Class2WithColumnWidth => _Class2WithColumnWidth
             ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.Class2WithColumnWidth>(
                 AddHeaderRow1Async, AddAsRowAsync, AddRangeAsRowsAsync, CreateWorksheetOptions1);

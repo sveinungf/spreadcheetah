@@ -12,16 +12,24 @@ using System.Threading.Tasks;
 
 namespace MyNamespace
 {
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("SpreadCheetah.SourceGenerator", "1.0.0")]
     public partial class MyContext
     {
         private static MyContext? _default;
+
+        /// <summary>The default context instance.</summary>
         public static MyContext Default => _default ??= new MyContext();
 
+        /// <inheritdoc/>
         public MyContext()
         {
         }
 
         private WorksheetRowTypeInfo<MyNamespace.RecordA>? _RecordA;
+
+        /// <summary>
+        /// Defines the source generated worksheet row metadata for a given type.
+        /// </summary>
         public WorksheetRowTypeInfo<MyNamespace.RecordA> RecordA => _RecordA
             ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.RecordA>(
                 AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, null);
@@ -107,6 +115,10 @@ namespace MyNamespace
         }
 
         private WorksheetRowTypeInfo<MyNamespace.RecordB>? _RecordB;
+
+        /// <summary>
+        /// Defines the source generated worksheet row metadata for a given type.
+        /// </summary>
         public WorksheetRowTypeInfo<MyNamespace.RecordB> RecordB => _RecordB
             ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.RecordB>(
                 AddHeaderRow1Async, AddAsRowAsync, AddRangeAsRowsAsync, null);

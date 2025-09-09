@@ -12,16 +12,24 @@ using System.Threading.Tasks;
 
 namespace MyNamespace
 {
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("SpreadCheetah.SourceGenerator", "1.0.0")]
     public partial class MyGenRowContext
     {
         private static MyGenRowContext? _default;
+
+        /// <summary>The default context instance.</summary>
         public static MyGenRowContext Default => _default ??= new MyGenRowContext();
 
+        /// <inheritdoc/>
         public MyGenRowContext()
         {
         }
 
         private WorksheetRowTypeInfo<MyNamespace.ClassWithPropertyReferenceColumnHeaders>? _ClassWithPropertyReferenceColumnHeaders;
+
+        /// <summary>
+        /// Defines the source generated worksheet row metadata for a given type.
+        /// </summary>
         public WorksheetRowTypeInfo<MyNamespace.ClassWithPropertyReferenceColumnHeaders> ClassWithPropertyReferenceColumnHeaders => _ClassWithPropertyReferenceColumnHeaders
             ??= WorksheetRowMetadataServices.CreateObjectInfo<MyNamespace.ClassWithPropertyReferenceColumnHeaders>(
                 AddHeaderRow0Async, AddAsRowAsync, AddRangeAsRowsAsync, null);

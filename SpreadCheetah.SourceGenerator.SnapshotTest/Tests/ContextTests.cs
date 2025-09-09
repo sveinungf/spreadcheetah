@@ -137,4 +137,32 @@ public class ContextTests
         // Act & Assert
         return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
     }
+
+    [Fact]
+    public void Context_NoDocumentationWarningsFromGeneratedCode()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            /// <summary>My record.</summary>
+            public record MyRecord(string? Name);
+            
+            [WorksheetRow(typeof(MyRecord))]
+            public partial class MyContext : WorksheetRowContext;
+            """;
+
+        // Act
+        var diagnostics = TestHelper.CompileAndGetDiagnostics(source);
+
+        // Assert
+        // Ensure CS1591 is enabled by expecting only one instance of it.
+        // If there are more warnings, then those might be emitted from the generated code.
+        var expectedWarning = Assert.Single(diagnostics);
+        Assert.Equal("CS1591", expectedWarning.Id);
+        Assert.Equal(198, expectedWarning.Location.SourceSpan.Start);
+        Assert.Equal(207, expectedWarning.Location.SourceSpan.End);
+    }
 }
