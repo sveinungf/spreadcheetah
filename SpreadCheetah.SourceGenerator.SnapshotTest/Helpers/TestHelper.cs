@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerators;
 using System.Collections;
 using System.Collections.Immutable;
 using System.Reflection;
@@ -27,6 +28,29 @@ internal static class TestHelper
             MetadataReference.CreateFromFile(typeof(WorksheetRowAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(TestHelper).Assembly.Location)
         ];
+    }
+
+    public static ImmutableArray<Diagnostic> CompileAndGetDiagnostics(string source)
+    {
+        var parseOptions = new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose);
+        var syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions, cancellationToken: Token);
+        var references = GetAssemblyReferences();
+        var compilationOptions = new CSharpCompilationOptions(
+            outputKind: OutputKind.DynamicallyLinkedLibrary,
+            nullableContextOptions: NullableContextOptions.Enable);
+
+        var compilation = CSharpCompilation.Create("Tests", [syntaxTree], references, compilationOptions);
+
+        var generator = new WorksheetRowGenerator().AsSourceGenerator();
+        var driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions);
+        driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _, Token);
+
+        var emitResult = outputCompilation.Emit(
+            peStream: Stream.Null,
+            xmlDocumentationStream: Stream.Null,
+            cancellationToken: Token);
+
+        return emitResult.Diagnostics;
     }
 
     public static SettingsTask CompileAndVerify<T>(string source,
