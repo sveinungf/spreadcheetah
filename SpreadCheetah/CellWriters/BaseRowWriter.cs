@@ -43,31 +43,31 @@ internal abstract class BaseRowWriter<T>(
         return TryAddRowCellsForSpan(cells);
     }
 
-    public bool TryAddRow(IList<T> cells, uint rowIndex, RowOptions options)
+    public bool TryAddRow(IList<T> cells, uint rowIndex, RowOptions options, StyleId? rowStyleId)
     {
-        if (!CellRowHelper.TryWriteRowStart(rowIndex, options, _buffer))
+        if (!CellRowHelper.TryWriteRowStart(rowIndex, options, rowStyleId, _buffer))
         {
             State.Column = -1;
             return false;
         }
 
         State.Column = 0;
-        return options.DefaultStyleId is { } styleId
-            ? TryAddRowCells(cells, styleId)
+        return rowStyleId is not null
+            ? TryAddRowCells(cells, rowStyleId)
             : TryAddRowCells(cells);
     }
 
-    public bool TryAddRow(ReadOnlySpan<T> cells, uint rowIndex, RowOptions options)
+    public bool TryAddRow(ReadOnlySpan<T> cells, uint rowIndex, RowOptions options, StyleId? rowStyleId)
     {
-        if (!CellRowHelper.TryWriteRowStart(rowIndex, options, _buffer))
+        if (!CellRowHelper.TryWriteRowStart(rowIndex, options, rowStyleId, _buffer))
         {
             State.Column = -1;
             return false;
         }
 
         State.Column = 0;
-        return options.DefaultStyleId is { } styleId
-            ? TryAddRowCellsForSpan(cells, styleId)
+        return rowStyleId is not null
+            ? TryAddRowCellsForSpan(cells, rowStyleId)
             : TryAddRowCellsForSpan(cells);
     }
 
@@ -120,14 +120,13 @@ internal abstract class BaseRowWriter<T>(
 
     protected bool TryWriteRowEnd() => _buffer.TryWrite("</row>"u8);
 
-    public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, uint rowIndex, RowOptions? options, Stream stream, CancellationToken token)
+    public async ValueTask AddRowAsync(ReadOnlyMemory<T> cells, uint rowIndex,
+        RowOptions? options, StyleId? rowStyleId, Stream stream, CancellationToken token)
     {
         // If we get here that means that whatever we tried to write didn't fit in the buffer, so just flush right away.
         await _buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
 
-        EnsureRowStartIsWritten(rowIndex, options);
-
-        var rowStyleId = options?.DefaultStyleId;
+        EnsureRowStartIsWritten(rowIndex, options, rowStyleId);
 
         while (State.Column < cells.Length)
         {
@@ -158,20 +157,21 @@ internal abstract class BaseRowWriter<T>(
         TryWriteRowEnd();
     }
 
-    public async ValueTask AddRowAsync(IList<T> cells, uint rowIndex, RowOptions? options, Stream stream, CancellationToken token)
+    public async ValueTask AddRowAsync(IList<T> cells, uint rowIndex,
+        RowOptions? options, StyleId? rowStyleId, Stream stream, CancellationToken token)
     {
         using var pooledArray = cells.ToPooledArray();
-        await AddRowAsync(pooledArray.Memory, rowIndex, options, stream, token).ConfigureAwait(false);
+        await AddRowAsync(pooledArray.Memory, rowIndex, options, rowStyleId, stream, token).ConfigureAwait(false);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void EnsureRowStartIsWritten(uint rowIndex, RowOptions? options)
+    private void EnsureRowStartIsWritten(uint rowIndex, RowOptions? options, StyleId? rowStyleId)
     {
         if (State.Column == -1)
         {
             var result = options is null
                 ? CellRowHelper.TryWriteRowStart(rowIndex, _buffer)
-                : CellRowHelper.TryWriteRowStart(rowIndex, options, _buffer);
+                : CellRowHelper.TryWriteRowStart(rowIndex, options, rowStyleId, _buffer);
 
             Debug.Assert(result);
             State.Column = 0;

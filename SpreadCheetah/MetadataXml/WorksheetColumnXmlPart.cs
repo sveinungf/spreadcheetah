@@ -1,3 +1,4 @@
+using SpreadCheetah.Styling;
 using SpreadCheetah.Worksheets;
 
 namespace SpreadCheetah.MetadataXml;
@@ -6,6 +7,7 @@ internal struct WorksheetColumnXmlPart(
     SpreadsheetBuffer buffer,
     int columnIndex,
     ColumnOptions options,
+    StyleId? styleId,
     double? defaultColumnWidth)
 {
     private Element _next;
@@ -60,7 +62,7 @@ internal struct WorksheetColumnXmlPart(
                 $"{"\" customWidth=\"1\""u8}");
         }
 
-        if (options.DefaultStyleId is null)
+        if (options.DefaultStyle is null)
             return true;
 
         return defaultColumnWidth is { } defaultWidth
@@ -70,7 +72,7 @@ internal struct WorksheetColumnXmlPart(
 
     private readonly bool TryWriteStyle()
     {
-        return options.DefaultStyleId is not { } styleId
+        return styleId is null
             || buffer.TryWrite($"{" style=\""u8}{styleId.Id}{"\""u8}");
     }
 

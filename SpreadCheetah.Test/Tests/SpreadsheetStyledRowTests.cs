@@ -645,9 +645,8 @@ public class SpreadsheetStyledRowTests
 
         var cell = CellFactory.Create(type, value);
         var style = new Style { Font = { Italic = true } };
-        var styleId = spreadsheet.AddStyle(style);
         var expectedNumberFormat = withDefaultDateTimeFormat ? numberFormat : null;
-        var rowOptions = new RowOptions { DefaultStyleId = styleId };
+        var rowOptions = new RowOptions { DefaultStyle = style };
 
         // Act
         await spreadsheet.AddRowAsync(cell, rowType, rowOptions);
@@ -680,10 +679,9 @@ public class SpreadsheetStyledRowTests
 
         var cell = CellFactory.Create(type, value);
         var style = new Style { Font = { Italic = true } };
-        var styleId = spreadsheet.AddStyle(style);
         var expectedNumberFormat = withDefaultDateTimeFormat ? numberFormat : null;
         var worksheetOptions = new WorksheetOptions();
-        worksheetOptions.Column(1).DefaultStyleId = styleId;
+        worksheetOptions.Column(1).DefaultStyle = style;
         await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, Token);
 
         // Act
@@ -712,8 +710,7 @@ public class SpreadsheetStyledRowTests
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var rowStyle = new Style { Font = { Italic = true } };
-        var rowStyleId = spreadsheet.AddStyle(rowStyle);
-        var rowOptions = new RowOptions { DefaultStyleId = rowStyleId };
+        var rowOptions = new RowOptions { DefaultStyle = rowStyle };
         var cellStyle = new Style { Font = { Bold = true } };
         var cellStyleId = spreadsheet.AddStyle(cellStyle);
         var cell = new StyledCell(value, cellStyleId);
@@ -742,9 +739,8 @@ public class SpreadsheetStyledRowTests
 
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, cancellationToken: Token);
         var columnStyle = new Style { Font = { Italic = true } };
-        var columnStyleId = spreadsheet.AddStyle(columnStyle);
         var worksheetOptions = new WorksheetOptions();
-        worksheetOptions.Column(1).DefaultStyleId = columnStyleId;
+        worksheetOptions.Column(1).DefaultStyle = columnStyle;
         await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, Token);
         var cellStyle = new Style { Font = { Bold = true } };
         var cellStyleId = spreadsheet.AddStyle(cellStyle);
@@ -1288,12 +1284,12 @@ public class SpreadsheetStyledRowTests
         var expectedRow2Refs = CellReferenceFactory.RowReferences(2, 1);
         var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
 
-        var italicStyleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
-        var rowOptions = withRowStyle ? new RowOptions { DefaultStyleId = italicStyleId } : null;
+        var italicStyle = new Style { Font = { Italic = true } };
+        var rowOptions = withRowStyle ? new RowOptions { DefaultStyle = italicStyle } : null;
 
         var worksheetOptions = new WorksheetOptions();
         if (withColumnStyle)
-            worksheetOptions.Column(2).DefaultStyleId = italicStyleId;
+            worksheetOptions.Column(2).DefaultStyle = italicStyle;
 
         // Act
         await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions, Token);

@@ -15,6 +15,7 @@ using SpreadCheetah.Validations;
 using SpreadCheetah.Worksheets;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 #if !NET6_0_OR_GREATER
@@ -159,10 +160,30 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 
         var path = StringHelper.Invariant($"xl/worksheets/sheet{_worksheets.Count + 1}.xml");
         var entryStream = _zipArchiveManager.OpenEntry(path);
-        _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes, options);
+        var columnStyles = GetColumnStyles(options);
+        _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes, options, columnStyles);
         _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
 
-        await WorksheetStartXml.WriteAsync(options, _buffer, entryStream, token).ConfigureAwait(false);
+        await WorksheetStartXml.WriteAsync(options, columnStyles, _buffer, entryStream, token).ConfigureAwait(false);
+    }
+
+    private Dictionary<int, StyleId>? GetColumnStyles(WorksheetOptions? worksheetOptions)
+    {
+        if (worksheetOptions?.ColumnOptions is not { } columnOptions)
+            return null;
+
+        Dictionary<int, StyleId>? columnStyles = null;
+
+        foreach (var (columnNumber, options) in columnOptions)
+        {
+            if (options.DefaultStyle is not { } style)
+                continue;
+
+            columnStyles ??= [];
+            columnStyles[columnNumber - 1] = GetStyleId(style);
+        }
+
+        return columnStyles;
     }
 
     /// <summary>
@@ -262,9 +283,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, RowOptions? options, CancellationToken token = default)
     {
-        return Worksheet.TryAddRow(cells.Span, options)
+        var rowStyleId = GetStyleId(options?.DefaultStyle);
+        return Worksheet.TryAddRow(cells.Span, options, rowStyleId)
             ? default
-            : Worksheet.AddRowAsync(cells, options, token);
+            : Worksheet.AddRowAsync(cells, options, rowStyleId, token);
     }
 
     /// <summary>
@@ -280,9 +302,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, RowOptions? options, CancellationToken token = default)
     {
-        return Worksheet.TryAddRow(cells.Span, options)
+        var rowStyleId = GetStyleId(options?.DefaultStyle);
+        return Worksheet.TryAddRow(cells.Span, options, rowStyleId)
             ? default
-            : Worksheet.AddRowAsync(cells, options, token);
+            : Worksheet.AddRowAsync(cells, options, rowStyleId, token);
     }
 
     /// <summary>
@@ -298,9 +321,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, RowOptions? options, CancellationToken token = default)
     {
-        return Worksheet.TryAddRow(cells.Span, options)
+        var rowStyleId = GetStyleId(options?.DefaultStyle);
+        return Worksheet.TryAddRow(cells.Span, options, rowStyleId)
             ? default
-            : Worksheet.AddRowAsync(cells, options, token);
+            : Worksheet.AddRowAsync(cells, options, rowStyleId, token);
     }
 
     /// <summary>
@@ -317,9 +341,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public ValueTask AddRowAsync(IList<Cell> cells, RowOptions? options, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(cells);
-        return Worksheet.TryAddRow(cells, options)
+        var rowStyleId = GetStyleId(options?.DefaultStyle);
+        return Worksheet.TryAddRow(cells, options, rowStyleId)
             ? default
-            : Worksheet.AddRowAsync(cells, options, token);
+            : Worksheet.AddRowAsync(cells, options, rowStyleId, token);
     }
 
     /// <summary>
@@ -336,9 +361,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public ValueTask AddRowAsync(IList<DataCell> cells, RowOptions? options, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(cells);
-        return Worksheet.TryAddRow(cells, options)
+        var rowStyleId = GetStyleId(options?.DefaultStyle);
+        return Worksheet.TryAddRow(cells, options, rowStyleId)
             ? default
-            : Worksheet.AddRowAsync(cells, options, token);
+            : Worksheet.AddRowAsync(cells, options, rowStyleId, token);
     }
 
     /// <summary>
@@ -355,9 +381,21 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public ValueTask AddRowAsync(IList<StyledCell> cells, RowOptions? options, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(cells);
-        return Worksheet.TryAddRow(cells, options)
+        var rowStyleId = GetStyleId(options?.DefaultStyle);
+        return Worksheet.TryAddRow(cells, options, rowStyleId)
             ? default
-            : Worksheet.AddRowAsync(cells, options, token);
+            : Worksheet.AddRowAsync(cells, options, rowStyleId, token);
+    }
+
+    [return: NotNullIfNotNull(nameof(style))]
+    private StyleId? GetStyleId(Style? style)
+    {
+        if (style is null)
+            return null;
+
+        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null, defaultFont: null);
+        var immutableStyle = ImmutableStyle.From(style, styleManager.DefaultFont);
+        return styleManager.AddStyleIfNotExists(immutableStyle);
     }
 
     /// <summary>

@@ -1,3 +1,4 @@
+using SpreadCheetah.Styling;
 using SpreadCheetah.Worksheets;
 
 namespace SpreadCheetah.Helpers;
@@ -9,9 +10,10 @@ internal static class CellRowHelper
         return buffer.TryWrite($"{RowStart}{rowIndex}{RowStartEndTag}");
     }
 
-    public static bool TryWriteRowStart(uint rowIndex, RowOptions options, SpreadsheetBuffer buffer)
+    public static bool TryWriteRowStart(uint rowIndex,
+        RowOptions options, StyleId? rowStyleId, SpreadsheetBuffer buffer)
     {
-        if (options is null or { DefaultStyleId: null, Height: null })
+        if (options is null or { DefaultStyle: null, Height: null })
             return TryWriteRowStart(rowIndex, buffer);
 
         var indexBefore = buffer.Index;
@@ -19,7 +21,7 @@ internal static class CellRowHelper
         if (!buffer.TryWrite($"{RowStart}{rowIndex}"))
             return Fail();
 
-        if (options.DefaultStyleId is { } styleId
+        if (rowStyleId is { } styleId
             && !buffer.TryWrite($"{RowStyleStart}{styleId.Id}{RowStyleEnd}"))
         {
             return Fail();

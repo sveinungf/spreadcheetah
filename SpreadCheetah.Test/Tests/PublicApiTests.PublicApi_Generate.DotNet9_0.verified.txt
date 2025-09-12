@@ -656,14 +656,14 @@ namespace SpreadCheetah.Worksheets
     public class ColumnOptions
     {
         public ColumnOptions() { }
-        public SpreadCheetah.Styling.StyleId? DefaultStyleId { get; set; }
+        public SpreadCheetah.Styling.Style? DefaultStyle { get; set; }
         public bool Hidden { get; set; }
         public double? Width { get; set; }
     }
     public class RowOptions
     {
         public RowOptions() { }
-        public SpreadCheetah.Styling.StyleId? DefaultStyleId { get; set; }
+        public SpreadCheetah.Styling.Style? DefaultStyle { get; set; }
         public double? Height { get; set; }
     }
     public class WorksheetOptions
