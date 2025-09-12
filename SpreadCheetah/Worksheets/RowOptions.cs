@@ -7,6 +7,8 @@ namespace SpreadCheetah.Worksheets;
 /// </summary>
 public class RowOptions
 {
+    public Style? DefaultStyle { get; set; }
+
     /// <summary>
     /// The height of the row. Must be between 0 and 409. When not set Excel will default to 15.
     /// </summary>
