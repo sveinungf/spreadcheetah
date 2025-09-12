@@ -3,6 +3,7 @@ using ClosedXML.Excel;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using LargeXlsx;
 using OfficeOpenXml;
 using System.IO.Packaging;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
@@ -212,5 +213,23 @@ public class StringCells : IDisposable
         }
 
         workbook.SaveAs(Stream);
+    }
+
+    [Benchmark]
+    public void LargeXlsx()
+    {
+        using var xlsxWriter = new XlsxWriter(Stream);
+        using var worksheet = xlsxWriter.BeginWorksheet(SheetName);
+
+        for (var row = 0; row < Values.Count; ++row)
+        {
+            worksheet.BeginRow();
+
+            var rowValues = Values[row];
+            for (var col = 0; col < rowValues.Count; ++col)
+            {
+                xlsxWriter.Write(rowValues[col]);
+            }
+        }
     }
 }
