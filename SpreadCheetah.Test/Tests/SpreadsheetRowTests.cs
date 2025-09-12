@@ -251,9 +251,9 @@ public class SpreadsheetRowTests
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         var cell = CellFactory.Create(type, value);
-        var styleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
+        var style = new Style { Font = { Italic = true } };
         var worksheetOptions = new WorksheetOptions();
-        worksheetOptions.Column(1).DefaultStyleId = styleId;
+        worksheetOptions.Column(1).DefaultStyle = style;
         await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, Token);
 
         // Act
@@ -709,12 +709,11 @@ public class SpreadsheetRowTests
         var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
 
         var style = new Style { Font = { Italic = true } };
-        var styleId = spreadsheet.AddStyle(style);
         var rowOptions = withRowStyle ? new RowOptions { DefaultStyle = style } : null;
 
         var worksheetOptions = new WorksheetOptions();
         if (withColumnStyle)
-            worksheetOptions.Column(2).DefaultStyleId = styleId;
+            worksheetOptions.Column(2).DefaultStyle = style;
 
         // Act
         await spreadsheet.StartWorksheetAsync("Sheet 1", worksheetOptions, Token);
@@ -814,12 +813,11 @@ public class SpreadsheetRowTests
         var cell = new Cell(cellValue);
 
         var style = new Style { Font = { Italic = true } };
-        var styleId = spreadsheet.AddStyle(style);
         var rowOptions = withRowStyle ? new RowOptions { DefaultStyle = style } : null;
 
         var worksheetOptions = new WorksheetOptions();
         if (withColumnStyle)
-            worksheetOptions.Column(1).DefaultStyleId = styleId;
+            worksheetOptions.Column(1).DefaultStyle = style;
 
         await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, Token);
 
@@ -895,9 +893,8 @@ public class SpreadsheetRowTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         var fontColor = System.Drawing.Color.FromArgb(255, 255, 69);
         var style = new Style { Font = { Color = fontColor } };
-        var styleId = spreadsheet.AddStyle(style);
         var worksheetOptions = new WorksheetOptions();
-        worksheetOptions.Column(1).DefaultStyleId = styleId;
+        worksheetOptions.Column(1).DefaultStyle = style;
         await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, token: Token);
 
         // Act
@@ -980,9 +977,8 @@ public class SpreadsheetRowTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         var fontColor = System.Drawing.Color.FromArgb(255, 255, 69);
         var style = new Style { Font = { Color = fontColor } };
-        var styleId = spreadsheet.AddStyle(style);
         var worksheetOptions = new WorksheetOptions();
-        worksheetOptions.Column(2).DefaultStyleId = styleId;
+        worksheetOptions.Column(2).DefaultStyle = style;
         await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, Token);
         var cells = new DataCell[] { new(1), new(2), new(3) }.ToIList(listType);
 
@@ -1011,11 +1007,10 @@ public class SpreadsheetRowTests
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         var style = new Style { Font = { Italic = true } };
-        var styleId = spreadsheet.AddStyle(style);
         var worksheetOptions = new WorksheetOptions();
         for (var i = 1; i <= columnCount; i++)
         {
-            worksheetOptions.Column(i).DefaultStyleId = styleId;
+            worksheetOptions.Column(i).DefaultStyle = style;
             if (withCustomWidth)
                 worksheetOptions.Column(i).Width = random.NextDouble();
         }
@@ -1095,9 +1090,8 @@ public class SpreadsheetRowTests
         const double width = 20.0;
         var fontColor = System.Drawing.Color.FromArgb(255, 255, 69);
         var style = new Style { Font = { Color = fontColor } };
-        var styleId = spreadsheet.AddStyle(style);
         var worksheetOptions = new WorksheetOptions();
-        worksheetOptions.Column(1).DefaultStyleId = styleId;
+        worksheetOptions.Column(1).DefaultStyle = style;
         worksheetOptions.Column(1).Hidden = true;
         worksheetOptions.Column(1).Width = width;
         await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, Token);

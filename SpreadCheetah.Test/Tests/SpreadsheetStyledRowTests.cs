@@ -679,10 +679,9 @@ public class SpreadsheetStyledRowTests
 
         var cell = CellFactory.Create(type, value);
         var style = new Style { Font = { Italic = true } };
-        var styleId = spreadsheet.AddStyle(style);
         var expectedNumberFormat = withDefaultDateTimeFormat ? numberFormat : null;
         var worksheetOptions = new WorksheetOptions();
-        worksheetOptions.Column(1).DefaultStyleId = styleId;
+        worksheetOptions.Column(1).DefaultStyle = style;
         await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, Token);
 
         // Act
@@ -740,9 +739,8 @@ public class SpreadsheetStyledRowTests
 
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, cancellationToken: Token);
         var columnStyle = new Style { Font = { Italic = true } };
-        var columnStyleId = spreadsheet.AddStyle(columnStyle);
         var worksheetOptions = new WorksheetOptions();
-        worksheetOptions.Column(1).DefaultStyleId = columnStyleId;
+        worksheetOptions.Column(1).DefaultStyle = columnStyle;
         await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, Token);
         var cellStyle = new Style { Font = { Bold = true } };
         var cellStyleId = spreadsheet.AddStyle(cellStyle);
@@ -1287,12 +1285,11 @@ public class SpreadsheetStyledRowTests
         var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
 
         var italicStyle = new Style { Font = { Italic = true } };
-        var italicStyleId = spreadsheet.AddStyle(italicStyle);
         var rowOptions = withRowStyle ? new RowOptions { DefaultStyle = italicStyle } : null;
 
         var worksheetOptions = new WorksheetOptions();
         if (withColumnStyle)
-            worksheetOptions.Column(2).DefaultStyleId = italicStyleId;
+            worksheetOptions.Column(2).DefaultStyle = italicStyle;
 
         // Act
         await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions, Token);

@@ -373,9 +373,8 @@ public class SpreadsheetFormulaRowTests
         var cell = new Cell(formula);
 
         var style = new Style { Fill = { Color = color } };
-        var styleId = spreadsheet.AddStyle(style);
         var worksheetOptions = new WorksheetOptions();
-        worksheetOptions.Column(1).DefaultStyleId = styleId;
+        worksheetOptions.Column(1).DefaultStyle = style;
 
         await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, Token);
 
@@ -455,12 +454,11 @@ public class SpreadsheetFormulaRowTests
         var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
 
         var style = new Style { Font = { Italic = true } };
-        var styleId = spreadsheet.AddStyle(style);
         var rowOptions = withRowStyle ? new RowOptions { DefaultStyle = style } : null;
 
         var worksheetOptions = new WorksheetOptions();
         if (withColumnStyle)
-            worksheetOptions.Column(2).DefaultStyleId = styleId;
+            worksheetOptions.Column(2).DefaultStyle = style;
 
         // Act
         await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions, Token);
@@ -521,12 +519,11 @@ public class SpreadsheetFormulaRowTests
         var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
 
         var italicStyle = new Style { Font = { Italic = true } };
-        var italicStyleId = spreadsheet.AddStyle(italicStyle);
         var rowOptions = withRowStyle ? new RowOptions { DefaultStyle = italicStyle } : null;
 
         var worksheetOptions = new WorksheetOptions();
         if (withColumnStyle)
-            worksheetOptions.Column(2).DefaultStyleId = italicStyleId;
+            worksheetOptions.Column(2).DefaultStyle = italicStyle;
 
         // Act
         await spreadsheet.StartWorksheetAsync("Sheet1", worksheetOptions, Token);

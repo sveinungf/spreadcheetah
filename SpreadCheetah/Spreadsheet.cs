@@ -164,7 +164,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes, options, columnStyles);
         _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
 
-        await WorksheetStartXml.WriteAsync(options, _buffer, entryStream, token).ConfigureAwait(false);
+        await WorksheetStartXml.WriteAsync(options, columnStyles, _buffer, entryStream, token).ConfigureAwait(false);
     }
 
     private Dictionary<int, StyleId>? GetColumnStyles(WorksheetOptions? worksheetOptions)

@@ -1,4 +1,5 @@
 using SpreadCheetah.CellReferences;
+using SpreadCheetah.Styling;
 using SpreadCheetah.Worksheets;
 
 namespace SpreadCheetah.MetadataXml;
@@ -7,11 +8,12 @@ internal static class WorksheetStartXml
 {
     public static async ValueTask WriteAsync(
         WorksheetOptions? options,
+        IReadOnlyDictionary<int, StyleId>? columnStyles,
         SpreadsheetBuffer buffer,
         Stream entryStream,
         CancellationToken token)
     {
-        var writer = new WorksheetStartXmlWriter(options, buffer);
+        var writer = new WorksheetStartXmlWriter(options, columnStyles, buffer);
 
         foreach (var success in writer)
         {
@@ -25,6 +27,7 @@ internal static class WorksheetStartXml
 
 file struct WorksheetStartXmlWriter(
     WorksheetOptions? options,
+    IReadOnlyDictionary<int, StyleId>? columnStyles,
     SpreadsheetBuffer buffer)
 {
     private static ReadOnlySpan<byte> Header =>
@@ -49,7 +52,7 @@ file struct WorksheetStartXmlWriter(
 
         foreach (var (columnIndex, option) in dictionary)
         {
-            if (option is { DefaultStyleId: null, Width: null, Hidden: false })
+            if (option is { DefaultStyle: null, Width: null, Hidden: false })
                 continue;
 
             columns.Add((columnIndex, option));
@@ -163,11 +166,13 @@ file struct WorksheetStartXmlWriter(
         for (; _nextIndex < columns.Count; ++_nextIndex)
         {
             var (columnIndex, columnOptions) = columns[_nextIndex];
+            var styleId = columnStyles?.GetValueOrDefault(columnIndex - 1);
 
             var xml = _columnXml ?? new WorksheetColumnXmlPart(
                 buffer: buffer,
                 columnIndex: columnIndex,
                 options: columnOptions,
+                styleId: styleId,
                 defaultColumnWidth: options?.DefaultColumnWidth);
 
             if (!xml.TryWrite())

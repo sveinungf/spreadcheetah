@@ -9,11 +9,9 @@ namespace SpreadCheetah.Worksheets;
 public class ColumnOptions
 {
     /// <summary>
-    /// The default style ID for cells in the column. This style will be applied to all cells in the column
+    /// The default style for cells in the column. This style will be applied to all cells in the column
     /// unless they have their own style set, or if the row they are in has a style set.
     /// </summary>
-    public StyleId? DefaultStyleId { get; set; }
-
     public Style? DefaultStyle { get; set; }
 
     /// <summary>
