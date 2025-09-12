@@ -5,7 +5,7 @@ namespace SpreadCheetah.Styling.Internal;
 internal sealed class StyleManager
 {
     private readonly NumberFormat? _defaultDateTimeFormat;
-    private readonly Dictionary<ImmutableStyle, int> _styleDictionary = [];
+    private readonly Dictionary<ImmutableStyle, StyleId> _styleDictionary = [];
 
     public DefaultFont? DefaultFont { get; }
     public DefaultStyling? DefaultStyling { get; }
@@ -27,27 +27,37 @@ internal sealed class StyleManager
 
     public StyleId AddStyleIfNotExists(in ImmutableStyle style)
     {
-        var id = AddStyleIfNotExistsInternal(style);
-
-        if (_defaultDateTimeFormat is null || style.Format is not null)
-            return new StyleId(id, id);
-
-        // Optionally add another style for DateTime when there is no explicit number format in the new style.
-        var dateTimeStyle = style with { Format = _defaultDateTimeFormat };
-        var dateTimeId = AddStyleIfNotExistsInternal(dateTimeStyle);
-
-        return new StyleId(id, dateTimeId);
-    }
-
-    private int AddStyleIfNotExistsInternal(in ImmutableStyle style)
-    {
         if (_styleDictionary.TryGetValue(style, out var id))
             return id;
 
+        var newId = AssignStyleId(style, name: null, visibility: null);
+        var dateTimeId = AssignDateTimeStyleId(style) ?? newId;
+        var styleId = new StyleId(newId, dateTimeId);
+        _styleDictionary[style] = styleId;
+        return styleId;
+    }
+
+    private int AssignStyleId(in ImmutableStyle style, string? name, StyleNameVisibility? visibility)
+    {
         var newId = StyleElements.Count;
-        StyleElements.Add(new StyleElement(style, null, null));
-        _styleDictionary[style] = newId;
+        StyleElements.Add(new StyleElement(style, name, visibility));
         return newId;
+    }
+
+    private int? AssignDateTimeStyleId(in ImmutableStyle style)
+    {
+        if (style.Format is not null || _defaultDateTimeFormat is not { } dateTimeFormat)
+            return null;
+
+        // Optionally add another style for DateTime when there is no explicit number format in the new style.
+        var dateTimeStyle = style with { Format = dateTimeFormat };
+
+        if (_styleDictionary.TryGetValue(dateTimeStyle, out var existing))
+            return existing.Id;
+
+        var dateTimeId = AssignStyleId(dateTimeStyle, name: null, visibility: null);
+        _styleDictionary[dateTimeStyle] = new StyleId(dateTimeId, dateTimeId);
+        return dateTimeId;
     }
 
     public bool TryAddNamedStyle(string name, Style style, StyleNameVisibility? visibility,
@@ -61,19 +71,13 @@ internal sealed class StyleManager
 
         var immutableStyle = ImmutableStyle.From(style, DefaultFont);
 
-        var id = StyleElements.Count;
-        StyleElements.Add(new StyleElement(immutableStyle, name, visibility));
-        var dateTimeId = id;
-
-        if (_defaultDateTimeFormat is not null && style.Format is null)
-        {
-            var dateTimeStyle = immutableStyle with { Format = _defaultDateTimeFormat };
-
-            // Style names only refer to the regular style, not the DateTime style.
-            // Since the DateTime style doesn't have a name, it can be reused like regular styles.
-            dateTimeId = AddStyleIfNotExistsInternal(dateTimeStyle);
-        }
-
+        // When adding a named style, we don't want to check for an existing style for potential reuse.
+        // The reason is that if the named style would change, we only want it to affect parts where the
+        // style name has been used explicitly.
+        // Style names only refer to the main style, not the DateTime style.
+        // Since the DateTime style doesn't have a name, it can be reused like regular styles.
+        var id = AssignStyleId(immutableStyle, name, visibility);
+        var dateTimeId = AssignDateTimeStyleId(immutableStyle) ?? id;
         styleId = new StyleId(id, dateTimeId);
         namedStyles[name] = (styleId, namedStyles.Count);
         return true;
