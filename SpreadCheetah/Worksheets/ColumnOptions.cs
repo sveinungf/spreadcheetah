@@ -14,6 +14,8 @@ public class ColumnOptions
     /// </summary>
     public StyleId? DefaultStyleId { get; set; }
 
+    public Style? DefaultStyle { get; set; }
+
     /// <summary>
     /// The width of the column. The number represents how many characters can be displayed in the standard font.
     /// It must be between 0 and 255. When not set Excel will default to approximately 8.89.

@@ -35,7 +35,8 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public double? DefaultColumnWidth { get; }
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer,
-        bool writeCellReferenceAttributes, WorksheetOptions? options)
+        bool writeCellReferenceAttributes, WorksheetOptions? options,
+        IReadOnlyDictionary<int, StyleId>? columnStyles)
     {
         _stream = stream;
         _buffer = buffer;
@@ -44,7 +45,6 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         ColumnWidthRuns = options?.GetColumnWidthRuns();
         DefaultColumnWidth = options?.DefaultColumnWidth;
 
-        var columnStyles = options?.GetColumnStyles();
         if (writeCellReferenceAttributes)
         {
             _cellRowWriter = CreateRowWriter(CellWithReferenceWriter.Instance, columnStyles, _state);

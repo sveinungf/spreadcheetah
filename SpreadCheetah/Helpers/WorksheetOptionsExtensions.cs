@@ -1,4 +1,3 @@
-using SpreadCheetah.Styling;
 using SpreadCheetah.Worksheets;
 using SpreadCheetah.Worksheets.Internal;
 
@@ -31,24 +30,5 @@ internal static class WorksheetOptionsExtensions
         }
 
         return runs;
-    }
-
-    public static IReadOnlyDictionary<int, StyleId>? GetColumnStyles(this WorksheetOptions worksheetOptions)
-    {
-        if (worksheetOptions.ColumnOptions is not { } columnOptions)
-            return null;
-
-        Dictionary<int, StyleId>? columnStyles = null;
-
-        foreach (var (columnNumber, options) in columnOptions)
-        {
-            if (!(options.DefaultStyleId is { } styleId))
-                continue;
-
-            columnStyles ??= [];
-            columnStyles[columnNumber - 1] = styleId;
-        }
-
-        return columnStyles;
     }
 }
