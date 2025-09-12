@@ -645,9 +645,8 @@ public class SpreadsheetStyledRowTests
 
         var cell = CellFactory.Create(type, value);
         var style = new Style { Font = { Italic = true } };
-        var styleId = spreadsheet.AddStyle(style);
         var expectedNumberFormat = withDefaultDateTimeFormat ? numberFormat : null;
-        var rowOptions = new RowOptions { DefaultStyleId = styleId };
+        var rowOptions = new RowOptions { DefaultStyle = style };
 
         // Act
         await spreadsheet.AddRowAsync(cell, rowType, rowOptions);
@@ -712,8 +711,7 @@ public class SpreadsheetStyledRowTests
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var rowStyle = new Style { Font = { Italic = true } };
-        var rowStyleId = spreadsheet.AddStyle(rowStyle);
-        var rowOptions = new RowOptions { DefaultStyleId = rowStyleId };
+        var rowOptions = new RowOptions { DefaultStyle = rowStyle };
         var cellStyle = new Style { Font = { Bold = true } };
         var cellStyleId = spreadsheet.AddStyle(cellStyle);
         var cell = new StyledCell(value, cellStyleId);
@@ -1288,8 +1286,9 @@ public class SpreadsheetStyledRowTests
         var expectedRow2Refs = CellReferenceFactory.RowReferences(2, 1);
         var expectedRow3Refs = CellReferenceFactory.RowReferences(3, 100);
 
-        var italicStyleId = spreadsheet.AddStyle(new Style { Font = { Italic = true } });
-        var rowOptions = withRowStyle ? new RowOptions { DefaultStyleId = italicStyleId } : null;
+        var italicStyle = new Style { Font = { Italic = true } };
+        var italicStyleId = spreadsheet.AddStyle(italicStyle);
+        var rowOptions = withRowStyle ? new RowOptions { DefaultStyle = italicStyle } : null;
 
         var worksheetOptions = new WorksheetOptions();
         if (withColumnStyle)

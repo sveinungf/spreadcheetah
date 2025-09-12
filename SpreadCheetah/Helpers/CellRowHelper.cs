@@ -13,7 +13,7 @@ internal static class CellRowHelper
     public static bool TryWriteRowStart(uint rowIndex,
         RowOptions options, StyleId? rowStyleId, SpreadsheetBuffer buffer)
     {
-        if (options is null or { DefaultStyleId: null, Height: null })
+        if (options is null or { DefaultStyle: null, Height: null })
             return TryWriteRowStart(rowIndex, buffer);
 
         var indexBefore = buffer.Index;
