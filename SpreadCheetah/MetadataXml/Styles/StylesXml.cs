@@ -29,7 +29,6 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
     private readonly List<ImmutableFont> _fontsList;
     private readonly List<(string, ImmutableStyle, AddedStyle, StyleNameVisibility)>? _namedStyles;
-    private readonly Dictionary<string, int>? _customNumberFormats;
     private readonly StyleManager _styleManager;
     private readonly SpreadsheetBuffer _buffer;
     private NumberFormatsXmlPart _numberFormatsXml;
@@ -45,9 +44,9 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         SpreadsheetBuffer buffer)
     {
         _styleManager = styleManager;
-        _customNumberFormats = CreateCustomNumberFormatDictionary();
+        var customNumberFormats = CreateCustomNumberFormatDictionary();
         _buffer = buffer;
-        _numberFormatsXml = new NumberFormatsXmlPart(_customNumberFormats is { } formats ? [.. formats] : null, buffer);
+        _numberFormatsXml = new NumberFormatsXmlPart(customNumberFormats is { } formats ? [.. formats] : null, buffer);
         _bordersXml = new BordersXmlPart(styleManager.UniqueBorders.GetList(), buffer);
         _fillsXml = new FillsXmlPart(styleManager.UniqueFills.GetList(), buffer);
         _fontsList = styleManager.UniqueFonts.GetList();
@@ -158,7 +157,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         if (_namedStyles is not { } namedStyles)
             return true;
 
-        var xfXml = new XfXmlPart(_buffer, _customNumberFormats, false);
+        var xfXml = new XfXmlPart(_buffer, false);
 
         for (; _nextIndex < _namedStyles.Count; ++_nextIndex)
         {
@@ -181,7 +180,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
     private bool TryWriteCellXfsEntries()
     {
-        var xfXml = new XfXmlPart(_buffer, _customNumberFormats, true);
+        var xfXml = new XfXmlPart(_buffer, true);
         var styles = _styleManager.StyleElements;
         var addedStyles = _styleManager.AddedStyles;
         var namedStylesDictionary = _styleManager.NamedStyles;

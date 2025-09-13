@@ -17,7 +17,7 @@ internal sealed class StyleManager
     public ListSet<ImmutableBorder> UniqueBorders { get; } = new();
     public ListSet<ImmutableFill> UniqueFills { get; } = new();
     public ListSet<ImmutableFont> UniqueFonts { get; } = new();
-    public ListSet<NumberFormat> UniqueFormats { get; } = new();
+    public ListSet<string> UniqueCustomFormats { get; } = new();
 
     public List<AddedStyle> AddedStyles { get; } = [];
 
@@ -66,8 +66,8 @@ internal sealed class StyleManager
             ? UniqueFonts.Add(style.Font)
             : null;
 
-        int? formatIndex = style.Format is { } format
-            ? UniqueFormats.Add(format)
+        int? formatIndex = style.Format is { CustomFormat: { } format }
+            ? UniqueCustomFormats.Add(format)
             : null;
 
         var addedStyle = new AddedStyle(
@@ -75,7 +75,8 @@ internal sealed class StyleManager
             BorderIndex: borderIndex,
             FillIndex: fillIndex,
             FontIndex: fontIndex,
-            FormatIndex: formatIndex);
+            CustomFormatIndex: formatIndex,
+            StandardFormat: style.Format?.StandardFormat);
 
         AddedStyles.Add(addedStyle);
 

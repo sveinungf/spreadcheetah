@@ -6,7 +6,6 @@ namespace SpreadCheetah.MetadataXml.Styles;
 
 internal readonly struct XfXmlPart(
     SpreadsheetBuffer buffer,
-    Dictionary<string, int>? customNumberFormats,
     bool cellXfsEntry)
 {
     public bool TryWrite(in ImmutableStyle style, AddedStyle addedStyle, int? embeddedNamedStyleIndex)
@@ -14,7 +13,7 @@ internal readonly struct XfXmlPart(
         var span = buffer.GetSpan();
         var written = 0;
 
-        var numberFormatId = GetNumberFormatId(style.Format, customNumberFormats);
+        var numberFormatId = GetNumberFormatId(addedStyle);
 
         if (!"<xf numFmtId=\""u8.TryCopyTo(span, ref written)) return false;
         if (!SpanHelper.TryWrite(numberFormatId, span, ref written)) return false;
@@ -77,12 +76,16 @@ internal readonly struct XfXmlPart(
         return fillIndex == 0 || " applyFill=\"1\""u8.TryCopyTo(bytes, ref bytesWritten);
     }
 
-    private static int GetNumberFormatId(NumberFormat? numberFormat, Dictionary<string, int>? customNumberFormats)
+    private static int GetNumberFormatId(AddedStyle addedStyle)
     {
-        if (numberFormat is not { } format) return 0;
-        if (format.StandardFormat is { } standardFormat) return (int)standardFormat;
-        if (format.CustomFormat is null) return 0;
-        return customNumberFormats?.GetValueOrDefault(format.CustomFormat) ?? 0;
+        if (addedStyle.StandardFormat is { } standardFormat)
+            return (int)standardFormat;
+
+        const int customFormatStartId = 165;
+        if (addedStyle.CustomFormatIndex is { } customIndex)
+            return customIndex + customFormatStartId;
+
+        return 0;
     }
 
     private static bool TryWriteAlignment(ImmutableAlignment alignment, Span<byte> bytes, ref int bytesWritten)

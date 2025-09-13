@@ -1,6 +1,8 @@
+using SpreadCheetah.Styling;
+
 namespace SpreadCheetah.Helpers;
 
-internal sealed class ListSet<T> where T : struct
+internal sealed class ListSet<T>
 {
     private readonly List<T> _list = [];
 
@@ -22,4 +24,5 @@ internal readonly record struct AddedStyle(
     int? BorderIndex,
     int? FillIndex,
     int? FontIndex,
-    int? FormatIndex);
+    int? CustomFormatIndex,
+    StandardNumberFormat? StandardFormat);
