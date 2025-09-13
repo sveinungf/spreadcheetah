@@ -1,10 +1,11 @@
 using Bogus;
 using SpreadCheetah.Styling;
+using SpreadCheetah.TestHelpers.Extensions;
 using Font = SpreadCheetah.Styling.Font;
 
-namespace SpreadCheetah.Test.Helpers;
+namespace SpreadCheetah.TestHelpers.TestData;
 
-internal static class StyleGenerator
+public static class StyleGenerator
 {
     public static ICollection<Style> Generate(int count)
     {
@@ -40,7 +41,7 @@ internal static class StyleGenerator
 
         var testFonts = new Faker<Font>()
             .StrictMode(true)
-            .Ignore(x => x.ActualSize)
+            .Ignore("ActualSize")
             .RuleFor(x => x.Bold, f => f.Random.Bool())
             .RuleFor(x => x.Color, f => f.Random.Color().OrNull(f, .1f))
             .RuleFor(x => x.Italic, f => f.Random.Bool())

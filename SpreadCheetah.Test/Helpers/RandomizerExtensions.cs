@@ -1,6 +1,4 @@
 using Bogus;
-using SpreadCheetah.Styling;
-using System.Drawing;
 
 namespace SpreadCheetah.Test.Helpers;
 
@@ -20,28 +18,11 @@ internal static class RandomizerExtensions
         return $"{columnName1}{rowNo1}:{columnName2}{rowNo2}";
     }
 
-    public static Color Color(this Randomizer randomizer)
-    {
-        return System.Drawing.Color.FromArgb(randomizer.Number(int.MaxValue));
-    }
-
     public static int IntPair(this Randomizer randomizer, out int other)
     {
         var value1 = randomizer.Int();
         other = randomizer.Int(value1);
         return value1;
-    }
-
-    public static NumberFormat NumberFormat(this Randomizer randomizer)
-    {
-        string value;
-
-        do
-        {
-            value = randomizer.String2(2, 255, "dhmsy0.,;-#%?/[] ");
-        } while (string.Equals(value, "0%", StringComparison.Ordinal));
-
-        return Styling.NumberFormat.Custom(value);
     }
 
     public static double SimpleDouble(this Randomizer randomizer)

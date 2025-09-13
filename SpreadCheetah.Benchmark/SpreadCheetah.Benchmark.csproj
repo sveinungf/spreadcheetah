@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SpreadCheetah.TestHelpers\SpreadCheetah.TestHelpers.csproj" />
     <ProjectReference Include="..\SpreadCheetah\SpreadCheetah.csproj" />
     <ProjectReference Include="..\SpreadCheetah.SourceGenerator\SpreadCheetah.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
   </ItemGroup>

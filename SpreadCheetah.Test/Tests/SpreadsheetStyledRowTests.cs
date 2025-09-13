@@ -4,6 +4,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using Polyfills;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Helpers;
+using SpreadCheetah.TestHelpers.TestData;
 using SpreadCheetah.Worksheets;
 using System.Globalization;
 using Alignment = SpreadCheetah.Styling.Alignment;
