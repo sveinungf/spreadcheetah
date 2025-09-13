@@ -84,6 +84,17 @@ public sealed class StringCellsTests : IDisposable
         AssertCellValuesEqual();
     }
 
+    [Fact]
+    public void StringCells_LargeXlsx_CorrectCellValues()
+    {
+        // Act
+        _stringCells.LargeXlsx();
+
+        // Assert
+        WriteOutput();
+        AssertCellValuesEqual();
+    }
+
     private void WriteOutput()
     {
         _output.WriteLine("Stream length: " + _stringCells.Stream.Length);
