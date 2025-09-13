@@ -136,12 +136,13 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         if (_namedStyles is not { } namedStyles)
             return true;
 
-        var xfXml = new XfXmlPart(_buffer, false);
+        var alignments = _styleManager.UniqueAlignments.GetList();
+        var xfXml = new XfXmlPart(_buffer, alignments, false);
 
         for (; _nextIndex < _namedStyles.Count; ++_nextIndex)
         {
-            var (_, style, addedStyle, _) = namedStyles[_nextIndex];
-            if (!xfXml.TryWrite(style, addedStyle, null))
+            var (_, _, addedStyle, _) = namedStyles[_nextIndex];
+            if (!xfXml.TryWrite(addedStyle, null))
                 return false;
         }
 
@@ -159,21 +160,22 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
     private bool TryWriteCellXfsEntries()
     {
-        var xfXml = new XfXmlPart(_buffer, true);
+        var alignments = _styleManager.UniqueAlignments.GetList();
+        var xfXml = new XfXmlPart(_buffer, alignments, true);
         var styles = _styleManager.StyleElements;
         var addedStyles = _styleManager.AddedStyles;
         var namedStylesDictionary = _styleManager.NamedStyles;
 
         for (; _nextIndex < styles.Count; ++_nextIndex)
         {
-            var (style, name, visibility) = styles[_nextIndex];
+            var (_, name, visibility) = styles[_nextIndex];
             var addedStyle = addedStyles[_nextIndex];
             int? embeddedNamedStyleIndex = name is not null && visibility is not null
                 && namedStylesDictionary is { } namedStyles && namedStyles.TryGetValue(name, out var value)
                 ? value.NamedStyleIndex
                 : null;
 
-            if (!xfXml.TryWrite(style, addedStyle, embeddedNamedStyleIndex))
+            if (!xfXml.TryWrite(addedStyle, embeddedNamedStyleIndex))
                 return false;
         }
 

@@ -6,9 +6,10 @@ namespace SpreadCheetah.MetadataXml.Styles;
 
 internal readonly struct XfXmlPart(
     SpreadsheetBuffer buffer,
+    List<ImmutableAlignment> alignments,
     bool cellXfsEntry)
 {
-    public bool TryWrite(in ImmutableStyle style, AddedStyle addedStyle, int? embeddedNamedStyleIndex)
+    public bool TryWrite(AddedStyle addedStyle, int? embeddedNamedStyleIndex)
     {
         var span = buffer.GetSpan();
         var written = 0;
@@ -33,14 +34,15 @@ internal readonly struct XfXmlPart(
 
         if (cellXfsEntry && !TryWriteXfId(embeddedNamedStyleIndex, span, ref written)) return false;
 
-        if (style.Alignment == default)
+        if (addedStyle.AlignmentIndex is not { } alignmentIndex)
         {
             if (!"/>"u8.TryCopyTo(span, ref written)) return false;
         }
         else
         {
+            var alignment = alignments[alignmentIndex];
             if (!""" applyAlignment="1">"""u8.TryCopyTo(span, ref written)) return false;
-            if (!TryWriteAlignment(style.Alignment, span, ref written)) return false;
+            if (!TryWriteAlignment(alignment, span, ref written)) return false;
             if (!"</xf>"u8.TryCopyTo(span, ref written)) return false;
         }
 
