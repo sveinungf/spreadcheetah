@@ -31,7 +31,6 @@ internal struct StylesXml : IXmlWriter<StylesXml>
     private readonly List<(string, ImmutableStyle, AddedStyle, StyleNameVisibility)>? _namedStyles;
     private readonly Dictionary<string, int>? _customNumberFormats;
     private readonly Dictionary<ImmutableBorder, int> _borders;
-    private readonly Dictionary<ImmutableFill, int> _fills;
     private readonly Dictionary<ImmutableFont, int> _fonts;
     private readonly StyleManager _styleManager;
     private readonly SpreadsheetBuffer _buffer;
@@ -50,7 +49,6 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         _styleManager = styleManager;
         _customNumberFormats = CreateCustomNumberFormatDictionary();
         _borders = CreateBorderDictionary();
-        _fills = CreateFillDictionary();
         _fonts = CreateFontDictionary();
         _buffer = buffer;
         _numberFormatsXml = new NumberFormatsXmlPart(_customNumberFormats is { } formats ? [.. formats] : null, buffer);
@@ -100,24 +98,6 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         }
 
         return uniqueBorders;
-    }
-
-    private readonly Dictionary<ImmutableFill, int> CreateFillDictionary()
-    {
-        var defaultFill = new ImmutableFill();
-        const int defaultCount = 2;
-
-        var uniqueFills = new Dictionary<ImmutableFill, int> { { defaultFill, 0 } };
-        var fillIndex = defaultCount;
-        var styles = _styleManager.StyleElements;
-
-        foreach (var (style, _, _) in styles)
-        {
-            if (uniqueFills.TryAdd(style.Fill, fillIndex))
-                ++fillIndex;
-        }
-
-        return uniqueFills;
     }
 
     private readonly Dictionary<ImmutableFont, int> CreateFontDictionary()
@@ -219,7 +199,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         if (_namedStyles is not { } namedStyles)
             return true;
 
-        var xfXml = new XfXmlPart(_buffer, _customNumberFormats, _borders, _fills, _fonts, false);
+        var xfXml = new XfXmlPart(_buffer, _customNumberFormats, _borders, _fonts, false);
 
         for (; _nextIndex < _namedStyles.Count; ++_nextIndex)
         {
@@ -242,7 +222,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
     private bool TryWriteCellXfsEntries()
     {
-        var xfXml = new XfXmlPart(_buffer, _customNumberFormats, _borders, _fills, _fonts, true);
+        var xfXml = new XfXmlPart(_buffer, _customNumberFormats, _borders, _fonts, true);
         var styles = _styleManager.StyleElements;
         var addedStyles = _styleManager.AddedStyles;
         var namedStylesDictionary = _styleManager.NamedStyles;
