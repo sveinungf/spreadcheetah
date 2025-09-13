@@ -28,7 +28,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         """</styleSheet>"""u8;
 
     private readonly List<ImmutableFont> _fontsList;
-    private readonly List<(string, ImmutableStyle, StyleNameVisibility)>? _namedStyles;
+    private readonly List<(string, ImmutableStyle, AddedStyle, StyleNameVisibility)>? _namedStyles;
     private readonly Dictionary<string, int>? _customNumberFormats;
     private readonly Dictionary<ImmutableBorder, int> _borders;
     private readonly Dictionary<ImmutableFill, int> _fills;
@@ -55,7 +55,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         _buffer = buffer;
         _numberFormatsXml = new NumberFormatsXmlPart(_customNumberFormats is { } formats ? [.. formats] : null, buffer);
         _bordersXml = new BordersXmlPart([.. _borders.Keys], buffer);
-        _fillsXml = new FillsXmlPart([.. _fills.Keys], buffer);
+        _fillsXml = new FillsXmlPart(styleManager.UniqueFills.GetList(), buffer);
         _fontsList = [.. _fonts.Keys];
         _namedStyles = styleManager.GetEmbeddedNamedStyles();
         _cellStylesXml = new CellStylesXmlPart(_namedStyles, buffer);
@@ -223,8 +223,8 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
         for (; _nextIndex < _namedStyles.Count; ++_nextIndex)
         {
-            var (_, style, _) = namedStyles[_nextIndex];
-            if (!xfXml.TryWrite(style, null))
+            var (_, style, addedStyle, _) = namedStyles[_nextIndex];
+            if (!xfXml.TryWrite(style, addedStyle, null))
                 return false;
         }
 
@@ -244,17 +244,19 @@ internal struct StylesXml : IXmlWriter<StylesXml>
     {
         var xfXml = new XfXmlPart(_buffer, _customNumberFormats, _borders, _fills, _fonts, true);
         var styles = _styleManager.StyleElements;
+        var addedStyles = _styleManager.AddedStyles;
         var namedStylesDictionary = _styleManager.NamedStyles;
 
         for (; _nextIndex < styles.Count; ++_nextIndex)
         {
             var (style, name, visibility) = styles[_nextIndex];
+            var addedStyle = addedStyles[_nextIndex];
             int? embeddedNamedStyleIndex = name is not null && visibility is not null
                 && namedStylesDictionary is { } namedStyles && namedStyles.TryGetValue(name, out var value)
                 ? value.NamedStyleIndex
                 : null;
 
-            if (!xfXml.TryWrite(style, embeddedNamedStyleIndex))
+            if (!xfXml.TryWrite(style, addedStyle, embeddedNamedStyleIndex))
                 return false;
         }
 

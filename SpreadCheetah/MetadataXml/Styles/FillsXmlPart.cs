@@ -1,5 +1,6 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling.Internal;
+using System.Diagnostics;
 
 namespace SpreadCheetah.MetadataXml.Styles;
 
@@ -42,13 +43,13 @@ internal struct FillsXmlPart(List<ImmutableFill> fills, SpreadsheetBuffer buffer
         var written = 0;
 
         const int defaultCount = 2;
-        var totalCount = fills.Count + defaultCount - 1;
+        var totalCount = fills.Count + defaultCount;
 
         if (!"<fills count=\""u8.TryCopyTo(span, ref written)) return false;
         if (!SpanHelper.TryWrite(totalCount, span, ref written)) return false;
 
         // The 2 default fills must come first
-        ReadOnlySpan<byte> defaultFills = "\">"u8 +
+        var defaultFills = "\">"u8 +
             """<fill><patternFill patternType="none"/></fill>"""u8 +
             """<fill><patternFill patternType="gray125"/></fill>"""u8;
         if (!defaultFills.TryCopyTo(span, ref written)) return false;
@@ -64,7 +65,7 @@ internal struct FillsXmlPart(List<ImmutableFill> fills, SpreadsheetBuffer buffer
         for (; _nextIndex < fillsLocal.Count; ++_nextIndex)
         {
             var fill = fillsLocal[_nextIndex];
-            if (fill.Equals(default)) continue;
+            Debug.Assert(fill != default);
             if (fill.Color is not { } color) continue;
 
             var span = buffer.GetSpan();

@@ -12,7 +12,7 @@ internal readonly struct XfXmlPart(
     Dictionary<ImmutableFont, int> fonts,
     bool cellXfsEntry)
 {
-    public bool TryWrite(in ImmutableStyle style, int? embeddedNamedStyleIndex)
+    public bool TryWrite(in ImmutableStyle style, AddedStyle? addedStyle, int? embeddedNamedStyleIndex)
     {
         var span = buffer.GetSpan();
         var written = 0;
@@ -25,7 +25,7 @@ internal readonly struct XfXmlPart(
         if (numberFormatId > 0 && !" applyNumberFormat=\"1\""u8.TryCopyTo(span, ref written)) return false;
 
         if (!TryWriteFont(style.Font, span, ref written)) return false;
-        if (!TryWriteFill(style.Fill, span, ref written)) return false;
+        if (!TryWriteFill(style.Fill, addedStyle, span, ref written)) return false;
 
         if (borders.TryGetValue(style.Border, out var borderIndex) && borderIndex > 0)
         {
@@ -68,9 +68,13 @@ internal readonly struct XfXmlPart(
         return fontIndex == 0 || " applyFont=\"1\""u8.TryCopyTo(bytes, ref bytesWritten);
     }
 
-    private readonly bool TryWriteFill(ImmutableFill fill, Span<byte> bytes, ref int bytesWritten)
+    private readonly bool TryWriteFill(ImmutableFill fill, AddedStyle? addedStyle, Span<byte> bytes, ref int bytesWritten)
     {
-        var fillIndex = fills.GetValueOrDefault(fill);
+        const int defaultFills = 2;
+        var fillIndex = addedStyle is { } added
+            ? (added.FillIndex + defaultFills) ?? 0
+            : fills.GetValueOrDefault(fill);
+
         if (!" fillId=\""u8.TryCopyTo(bytes, ref bytesWritten)) return false;
         if (!SpanHelper.TryWrite(fillIndex, bytes, ref bytesWritten)) return false;
         if (!"\""u8.TryCopyTo(bytes, ref bytesWritten)) return false;

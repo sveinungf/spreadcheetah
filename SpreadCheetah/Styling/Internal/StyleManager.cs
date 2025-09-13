@@ -1,3 +1,4 @@
+using SpreadCheetah.Helpers;
 using System.Diagnostics.CodeAnalysis;
 
 namespace SpreadCheetah.Styling.Internal;
@@ -10,6 +11,16 @@ internal sealed class StyleManager
     public DefaultFont? DefaultFont { get; }
     public DefaultStyling? DefaultStyling { get; }
     public List<StyleElement> StyleElements { get; } = [];
+
+    // TODO: Null if nothing added
+    public ListSet<ImmutableAlignment> UniqueAlignments { get; } = new();
+    public ListSet<ImmutableBorder> UniqueBorders { get; } = new();
+    public ListSet<ImmutableFill> UniqueFills { get; } = new();
+    public ListSet<ImmutableFont> UniqueFonts { get; } = new();
+    public ListSet<NumberFormat> UniqueFormats { get; } = new();
+
+    public List<AddedStyle> AddedStyles { get; } = [];
+
     public Dictionary<string, (StyleId StyleId, int NamedStyleIndex)>? NamedStyles { get; private set; }
 
     public StyleManager(NumberFormat? defaultDateTimeFormat, DefaultFont? defaultFont)
@@ -39,6 +50,35 @@ internal sealed class StyleManager
 
     private int AssignStyleId(in ImmutableStyle style, string? name, StyleNameVisibility? visibility)
     {
+        int? alignmentIndex = style.Alignment != default
+            ? UniqueAlignments.Add(style.Alignment)
+            : null;
+
+        int? borderIndex = style.Border != default
+            ? UniqueBorders.Add(style.Border)
+            : null;
+
+        int? fillIndex = style.Fill != default
+            ? UniqueFills.Add(style.Fill)
+            : null;
+
+        int? fontIndex = style.Font != ImmutableFont.From(DefaultFont)
+            ? UniqueFonts.Add(style.Font)
+            : null;
+
+        int? formatIndex = style.Format is { } format
+            ? UniqueFormats.Add(format)
+            : null;
+
+        var addedStyle = new AddedStyle(
+            AlignmentIndex: alignmentIndex,
+            BorderIndex: borderIndex,
+            FillIndex: fillIndex,
+            FontIndex: fontIndex,
+            FormatIndex: formatIndex);
+
+        AddedStyles.Add(addedStyle);
+
         var newId = StyleElements.Count;
         StyleElements.Add(new StyleElement(style, name, visibility));
         return newId;
@@ -90,20 +130,25 @@ internal sealed class StyleManager
             : null;
     }
 
-    public List<(string, ImmutableStyle, StyleNameVisibility)>? GetEmbeddedNamedStyles()
+    public List<(string, ImmutableStyle, AddedStyle, StyleNameVisibility)>? GetEmbeddedNamedStyles()
     {
         if (NamedStyles is null)
             return null;
 
-        List<(string, ImmutableStyle, StyleNameVisibility)>? result = null;
+        List<(string, ImmutableStyle, AddedStyle, StyleNameVisibility)>? result = null;
 
+        var index = -1;
         foreach (var (style, name, visibility) in StyleElements)
         {
+            index++;
+
             if (name is null) continue;
             if (visibility is not { } nameVisibility) continue;
 
+            var addedStyle = AddedStyles[index];
+
             result ??= [];
-            result.Add((name, style, nameVisibility));
+            result.Add((name, style, addedStyle, nameVisibility));
         }
 
         return result;
