@@ -28,7 +28,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         """</styleSheet>"""u8;
 
     private readonly List<ImmutableFont> _fontsList;
-    private readonly List<(string, ImmutableStyle, AddedStyle, StyleNameVisibility)>? _namedStyles;
+    private readonly List<(string, AddedStyle, StyleNameVisibility)>? _namedStyles;
     private readonly StyleManager _styleManager;
     private readonly SpreadsheetBuffer _buffer;
     private NumberFormatsXmlPart _numberFormatsXml;
@@ -141,7 +141,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
         for (; _nextIndex < _namedStyles.Count; ++_nextIndex)
         {
-            var (_, _, addedStyle, _) = namedStyles[_nextIndex];
+            var (_, addedStyle, _) = namedStyles[_nextIndex];
             if (!xfXml.TryWrite(addedStyle, null))
                 return false;
         }
@@ -154,7 +154,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
     {
         return _buffer.TryWrite(
             $"{"</cellStyleXfs><cellXfs count=\""u8}" +
-            $"{_styleManager.StyleElements.Count}" +
+            $"{_styleManager.AddedStyles.Count}" +
             $"{"\">"u8}");
     }
 
@@ -162,15 +162,13 @@ internal struct StylesXml : IXmlWriter<StylesXml>
     {
         var alignments = _styleManager.UniqueAlignments.GetList();
         var xfXml = new XfXmlPart(_buffer, alignments, true);
-        var styles = _styleManager.StyleElements;
         var addedStyles = _styleManager.AddedStyles;
         var namedStylesDictionary = _styleManager.NamedStyles;
 
-        for (; _nextIndex < styles.Count; ++_nextIndex)
+        for (; _nextIndex < addedStyles.Count; ++_nextIndex)
         {
-            var (_, name, visibility) = styles[_nextIndex];
             var addedStyle = addedStyles[_nextIndex];
-            int? embeddedNamedStyleIndex = name is not null && visibility is not null
+            int? embeddedNamedStyleIndex = addedStyle is { Name: { } name, Visibility: not null }
                 && namedStylesDictionary is { } namedStyles && namedStyles.TryGetValue(name, out var value)
                 ? value.NamedStyleIndex
                 : null;

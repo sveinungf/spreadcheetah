@@ -25,4 +25,6 @@ internal readonly record struct AddedStyle(
     int? FillIndex,
     int? FontIndex,
     int? CustomFormatIndex,
-    StandardNumberFormat? StandardFormat);
+    StandardNumberFormat? StandardFormat,
+    string? Name,
+    StyleNameVisibility? Visibility);

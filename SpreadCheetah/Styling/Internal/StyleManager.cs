@@ -10,7 +10,6 @@ internal sealed class StyleManager
 
     public DefaultFont? DefaultFont { get; }
     public DefaultStyling? DefaultStyling { get; }
-    public List<StyleElement> StyleElements { get; } = [];
 
     // TODO: Null if nothing added
     public ListSet<ImmutableAlignment> UniqueAlignments { get; } = new();
@@ -76,12 +75,12 @@ internal sealed class StyleManager
             FillIndex: fillIndex,
             FontIndex: fontIndex,
             CustomFormatIndex: formatIndex,
-            StandardFormat: style.Format?.StandardFormat);
+            StandardFormat: style.Format?.StandardFormat,
+            Name: name,
+            Visibility: visibility);
 
+        var newId = AddedStyles.Count;
         AddedStyles.Add(addedStyle);
-
-        var newId = StyleElements.Count;
-        StyleElements.Add(new StyleElement(style, name, visibility));
         return newId;
     }
 
@@ -131,25 +130,20 @@ internal sealed class StyleManager
             : null;
     }
 
-    public List<(string, ImmutableStyle, AddedStyle, StyleNameVisibility)>? GetEmbeddedNamedStyles()
+    public List<(string, AddedStyle, StyleNameVisibility)>? GetEmbeddedNamedStyles()
     {
         if (NamedStyles is null)
             return null;
 
-        List<(string, ImmutableStyle, AddedStyle, StyleNameVisibility)>? result = null;
+        List<(string, AddedStyle, StyleNameVisibility)>? result = null;
 
-        var index = -1;
-        foreach (var (style, name, visibility) in StyleElements)
+        foreach (var addedStyle in AddedStyles)
         {
-            index++;
-
-            if (name is null) continue;
-            if (visibility is not { } nameVisibility) continue;
-
-            var addedStyle = AddedStyles[index];
+            if (addedStyle is not { Name: { } name, Visibility: { } visibility })
+                continue;
 
             result ??= [];
-            result.Add((name, style, addedStyle, nameVisibility));
+            result.Add((name, addedStyle, visibility));
         }
 
         return result;
