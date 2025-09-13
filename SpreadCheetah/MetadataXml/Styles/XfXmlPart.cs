@@ -7,7 +7,6 @@ namespace SpreadCheetah.MetadataXml.Styles;
 internal readonly struct XfXmlPart(
     SpreadsheetBuffer buffer,
     Dictionary<string, int>? customNumberFormats,
-    Dictionary<ImmutableBorder, int> borders,
     bool cellXfsEntry)
 {
     public bool TryWrite(in ImmutableStyle style, AddedStyle addedStyle, int? embeddedNamedStyleIndex)
@@ -25,10 +24,11 @@ internal readonly struct XfXmlPart(
         if (!TryWriteFont(addedStyle, span, ref written)) return false;
         if (!TryWriteFill(addedStyle, span, ref written)) return false;
 
-        if (borders.TryGetValue(style.Border, out var borderIndex) && borderIndex > 0)
+        if (addedStyle.BorderIndex is { } borderIndex)
         {
+            const int defaultBorders = 1;
             if (!" borderId=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(borderIndex, span, ref written)) return false;
+            if (!SpanHelper.TryWrite(borderIndex + defaultBorders, span, ref written)) return false;
             if (!"\" applyBorder=\"1\""u8.TryCopyTo(span, ref written)) return false;
         }
 

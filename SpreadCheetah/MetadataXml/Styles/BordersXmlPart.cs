@@ -1,6 +1,7 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
+using System.Diagnostics;
 using System.Drawing;
 
 namespace SpreadCheetah.MetadataXml.Styles;
@@ -65,7 +66,7 @@ internal struct BordersXmlPart(List<ImmutableBorder> borders, SpreadsheetBuffer 
         for (; _nextIndex < bordersLocal.Count; ++_nextIndex)
         {
             var border = bordersLocal[_nextIndex];
-            if (border.Equals(default)) continue;
+            Debug.Assert(border != default);
 
             var span = buffer.GetSpan();
             var written = 0;
