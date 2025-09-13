@@ -3,7 +3,7 @@ using SpreadCheetah.Helpers;
 namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct NumberFormatsXmlPart(
-    List<KeyValuePair<string, int>>? customNumberFormats,
+    List<string>? customNumberFormats,
     SpreadsheetBuffer buffer)
 {
     private Element _next;
@@ -70,11 +70,14 @@ internal struct NumberFormatsXmlPart(
 
             if (_currentXmlEncodedFormat is null)
             {
+                const int customFormatStartId = 165;
+                var id = _nextIndex + customFormatStartId;
+
                 if (!"<numFmt numFmtId=\""u8.TryCopyTo(span, ref written)) return false;
-                if (!SpanHelper.TryWrite(format.Value, span, ref written)) return false;
+                if (!SpanHelper.TryWrite(id, span, ref written)) return false;
                 if (!"\" formatCode=\""u8.TryCopyTo(span, ref written)) return false;
 
-                _currentXmlEncodedFormat = XmlUtility.XmlEncode(format.Key);
+                _currentXmlEncodedFormat = XmlUtility.XmlEncode(format);
                 _currentXmlEncodedFormatIndex = 0;
             }
 

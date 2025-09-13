@@ -44,9 +44,8 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         SpreadsheetBuffer buffer)
     {
         _styleManager = styleManager;
-        var customNumberFormats = CreateCustomNumberFormatDictionary();
         _buffer = buffer;
-        _numberFormatsXml = new NumberFormatsXmlPart(customNumberFormats is { } formats ? [.. formats] : null, buffer);
+        _numberFormatsXml = new NumberFormatsXmlPart(styleManager.UniqueCustomFormats.GetList(), buffer);
         _bordersXml = new BordersXmlPart(styleManager.UniqueBorders.GetList(), buffer);
         _fillsXml = new FillsXmlPart(styleManager.UniqueFills.GetList(), buffer);
         _fontsList = styleManager.UniqueFonts.GetList();
@@ -56,26 +55,6 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
     public readonly StylesXml GetEnumerator() => this;
     public bool Current { get; private set; }
-
-    private readonly Dictionary<string, int>? CreateCustomNumberFormatDictionary()
-    {
-        Dictionary<string, int>? dictionary = null;
-        var numberFormatId = 165; // Custom formats start sequentially from this ID
-        var styles = _styleManager.StyleElements;
-
-        foreach (var (style, _, _) in styles)
-        {
-            var numberFormat = style.Format;
-            if (numberFormat is not { } format) continue;
-            if (format.CustomFormat is null) continue;
-
-            dictionary ??= new Dictionary<string, int>(StringComparer.Ordinal);
-            if (dictionary.TryAdd(format.CustomFormat, numberFormatId))
-                ++numberFormatId;
-        }
-
-        return dictionary;
-    }
 
     public bool MoveNext()
     {
