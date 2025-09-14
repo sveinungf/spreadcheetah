@@ -26,6 +26,7 @@ namespace SpreadCheetah;
 
 /// <summary>
 /// The main class for generating spreadsheets with SpreadCheetah. Use <see cref="CreateNewAsync"/> to initialize a new instance.
+/// The class is not thread safe, meaning that a single instance should not be accessed concurrently from multiple threads.
 /// </summary>
 public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 {
