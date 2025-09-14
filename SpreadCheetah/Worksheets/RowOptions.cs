@@ -5,7 +5,7 @@ namespace SpreadCheetah.Worksheets;
 /// <summary>
 /// Provides optional row options to be used when adding a row to the spreadsheet.
 /// </summary>
-public class RowOptions
+public sealed class RowOptions
 {
     /// <summary>
     /// The default style for cells in the row. This style will be applied to all cells in the row

@@ -6,7 +6,7 @@ namespace SpreadCheetah.Worksheets;
 /// <summary>
 /// Provides column options to be used with <see cref="WorksheetOptions"/>.
 /// </summary>
-public class ColumnOptions
+public sealed class ColumnOptions
 {
     /// <summary>
     /// The default style for cells in the column. This style will be applied to all cells in the column
