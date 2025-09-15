@@ -6,7 +6,7 @@ using System.Drawing;
 
 namespace SpreadCheetah.MetadataXml.Styles;
 
-internal struct BordersXmlPart(List<ImmutableBorder> borders, SpreadsheetBuffer buffer)
+internal struct BordersXmlPart(IList<ImmutableBorder> borders, SpreadsheetBuffer buffer)
 {
     private Element _next;
     private int _nextIndex;

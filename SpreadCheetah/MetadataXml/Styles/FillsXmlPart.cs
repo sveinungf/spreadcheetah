@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace SpreadCheetah.MetadataXml.Styles;
 
-internal struct FillsXmlPart(List<ImmutableFill> fills, SpreadsheetBuffer buffer)
+internal struct FillsXmlPart(IList<ImmutableFill> fills, SpreadsheetBuffer buffer)
 {
     private Element _next;
     private int _nextIndex;

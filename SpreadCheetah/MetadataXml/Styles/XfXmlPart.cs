@@ -6,7 +6,7 @@ namespace SpreadCheetah.MetadataXml.Styles;
 
 internal readonly struct XfXmlPart(
     SpreadsheetBuffer buffer,
-    List<ImmutableAlignment> alignments,
+    IList<ImmutableAlignment> alignments,
     bool cellXfsEntry)
 {
     public bool TryWrite(AddedStyle addedStyle, int? embeddedNamedStyleIndex)

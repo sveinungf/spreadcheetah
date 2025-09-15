@@ -27,7 +27,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         """<dxfs count="0"/>"""u8 +
         """</styleSheet>"""u8;
 
-    private readonly List<ImmutableFont> _fontsList;
+    private readonly IList<ImmutableFont> _fontsList;
     private readonly List<(string, AddedStyle, StyleNameVisibility)>? _namedStyles;
     private readonly StyleManager _styleManager;
     private readonly SpreadsheetBuffer _buffer;

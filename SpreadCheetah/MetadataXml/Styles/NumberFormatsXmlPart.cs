@@ -3,7 +3,7 @@ using SpreadCheetah.Helpers;
 namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct NumberFormatsXmlPart(
-    List<string>? customNumberFormats,
+    IList<string>? customNumberFormats,
     SpreadsheetBuffer buffer)
 {
     private Element _next;

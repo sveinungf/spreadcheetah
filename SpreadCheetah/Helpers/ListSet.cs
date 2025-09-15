@@ -4,10 +4,22 @@ namespace SpreadCheetah.Helpers;
 
 internal sealed class ListSet<T> where T : notnull
 {
+#if NET9_0_OR_GREATER
+    private readonly OrderedDictionary<T, byte> _dictionary = [];
+
+    public IList<T> GetList() => _dictionary.Keys;
+
+    public int Add(in T item)
+    {
+        return _dictionary.TryAdd(item, 0)
+            ? _dictionary.Count - 1
+            : _dictionary.IndexOf(item);
+    }
+#else
     private readonly List<T> _list = [];
     private readonly Dictionary<T, int> _dictionary = [];
 
-    public List<T> GetList() => _list;
+    public IList<T> GetList() => _list;
 
     public int Add(in T item)
     {
@@ -19,6 +31,7 @@ internal sealed class ListSet<T> where T : notnull
         _dictionary[item] = newIndex;
         return newIndex;
     }
+#endif
 }
 
 internal readonly record struct AddedStyle(
