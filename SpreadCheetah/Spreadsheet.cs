@@ -180,7 +180,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
                 continue;
 
             columnStyles ??= [];
-            columnStyles[columnNumber - 1] = GetStyleId(style);
+            columnStyles[columnNumber - 1] = AddStyleInternal(style);
         }
 
         return columnStyles;
@@ -283,7 +283,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<Cell> cells, RowOptions? options, CancellationToken token = default)
     {
-        var rowStyleId = GetStyleId(options?.DefaultStyle);
+        var rowStyleId = AddStyleInternal(options?.DefaultStyle);
         return Worksheet.TryAddRow(cells.Span, options, rowStyleId)
             ? default
             : Worksheet.AddRowAsync(cells, options, rowStyleId, token);
@@ -302,7 +302,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<DataCell> cells, RowOptions? options, CancellationToken token = default)
     {
-        var rowStyleId = GetStyleId(options?.DefaultStyle);
+        var rowStyleId = AddStyleInternal(options?.DefaultStyle);
         return Worksheet.TryAddRow(cells.Span, options, rowStyleId)
             ? default
             : Worksheet.AddRowAsync(cells, options, rowStyleId, token);
@@ -321,7 +321,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public ValueTask AddRowAsync(ReadOnlyMemory<StyledCell> cells, RowOptions? options, CancellationToken token = default)
     {
-        var rowStyleId = GetStyleId(options?.DefaultStyle);
+        var rowStyleId = AddStyleInternal(options?.DefaultStyle);
         return Worksheet.TryAddRow(cells.Span, options, rowStyleId)
             ? default
             : Worksheet.AddRowAsync(cells, options, rowStyleId, token);
@@ -341,7 +341,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public ValueTask AddRowAsync(IList<Cell> cells, RowOptions? options, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(cells);
-        var rowStyleId = GetStyleId(options?.DefaultStyle);
+        var rowStyleId = AddStyleInternal(options?.DefaultStyle);
         return Worksheet.TryAddRow(cells, options, rowStyleId)
             ? default
             : Worksheet.AddRowAsync(cells, options, rowStyleId, token);
@@ -361,7 +361,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public ValueTask AddRowAsync(IList<DataCell> cells, RowOptions? options, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(cells);
-        var rowStyleId = GetStyleId(options?.DefaultStyle);
+        var rowStyleId = AddStyleInternal(options?.DefaultStyle);
         return Worksheet.TryAddRow(cells, options, rowStyleId)
             ? default
             : Worksheet.AddRowAsync(cells, options, rowStyleId, token);
@@ -381,21 +381,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public ValueTask AddRowAsync(IList<StyledCell> cells, RowOptions? options, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(cells);
-        var rowStyleId = GetStyleId(options?.DefaultStyle);
+        var rowStyleId = AddStyleInternal(options?.DefaultStyle);
         return Worksheet.TryAddRow(cells, options, rowStyleId)
             ? default
             : Worksheet.AddRowAsync(cells, options, rowStyleId, token);
-    }
-
-    [return: NotNullIfNotNull(nameof(style))]
-    private StyleId? GetStyleId(Style? style)
-    {
-        if (style is null)
-            return null;
-
-        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null, defaultFont: null);
-        var immutableStyle = ImmutableStyle.From(style, styleManager.DefaultFont);
-        return styleManager.AddStyleIfNotExists(immutableStyle);
     }
 
     /// <summary>
@@ -492,10 +481,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     public StyleId AddStyle(Style style)
     {
         ArgumentNullException.ThrowIfNull(style);
-
-        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null, defaultFont: null);
-        var immutableStyle = ImmutableStyle.From(style, styleManager.DefaultFont);
-        return styleManager.AddStyleIfNotExists(immutableStyle);
+        return AddStyleInternal(style);
     }
 
     /// <summary>
@@ -539,6 +525,16 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ThrowHelper.StyleNameAlreadyExists(nameof(name));
 
         return styleId;
+    }
+
+    [return: NotNullIfNotNull(nameof(style))]
+    private StyleId? AddStyleInternal(Style? style)
+    {
+        if (style is null)
+            return null;
+
+        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null, defaultFont: null);
+        return styleManager.AddStyleIfNotExists(style);
     }
 
     /// <summary>
