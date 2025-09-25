@@ -85,28 +85,30 @@ internal sealed class StyleManager
         return newStyleId;
     }
 
-    private AddedStyle MapToAddedStyle(Style styleParam, string? name, StyleNameVisibility? visibility)
+    private AddedStyle MapToAddedStyle(Style style, string? name, StyleNameVisibility? visibility)
     {
-        var style = ImmutableStyle.From(styleParam, DefaultFont);
-
-        int? alignmentIndex = style.Alignment != default
-            ? UniqueAlignments.Add(style.Alignment)
+        var alignment = ImmutableAlignment.From(style.Alignment);
+        int? alignmentIndex = alignment != default
+            ? UniqueAlignments.Add(alignment)
             : null;
 
-        int? borderIndex = style.Border != default
-            ? UniqueBorders.Add(style.Border)
+        var border = ImmutableBorder.From(style.Border);
+        int? borderIndex = border != default
+            ? UniqueBorders.Add(border)
             : null;
 
         int? customFormatIndex = style.Format?.CustomFormat is { } format
             ? UniqueCustomFormats.Add(format)
             : null;
 
-        int? fillIndex = style.Fill != default
-            ? UniqueFills.Add(style.Fill)
+        var fill = ImmutableFill.From(style.Fill);
+        int? fillIndex = fill != default
+            ? UniqueFills.Add(fill)
             : null;
 
-        int? fontIndex = style.Font != ImmutableFont.From(DefaultFont)
-            ? UniqueFonts.Add(style.Font)
+        var font = ImmutableFont.From(style.Font, DefaultFont);
+        int? fontIndex = font != ImmutableFont.From(DefaultFont)
+            ? UniqueFonts.Add(font)
             : null;
 
         return new AddedStyle(
