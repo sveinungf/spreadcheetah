@@ -12,9 +12,17 @@ internal sealed class StyleManager
     public IList<AddedStyle> AddedStyles => _styleDictionary.Keys;
 #else
     private readonly Dictionary<AddedStyle, StyleId> _styleDictionary = [];
-    private IList<AddedStyle>? _addedStyles;
-    public IList<AddedStyle> AddedStyles => _addedStyles ??= _styleDictionary.Keys.ToList(); // TODO: Order not correct?
+    private readonly List<AddedStyle> _addedStyles = [];
+    public IList<AddedStyle> AddedStyles => _addedStyles;
 #endif
+
+    private void AddStyle(in AddedStyle style, StyleId styleId)
+    {
+        _styleDictionary[style] = styleId;
+#if !NET9_0_OR_GREATER
+        _addedStyles.Add(style);
+#endif
+    }
 
     public DefaultFont? DefaultFont { get; }
     public DefaultStyling? DefaultStyling { get; }
@@ -58,7 +66,7 @@ internal sealed class StyleManager
             || _defaultDateTimeFormat is not { } dateTimeFormat)
         {
             styleId = new StyleId(newId, newId);
-            _styleDictionary[addedStyle] = styleId;
+            AddStyle(addedStyle, styleId);
             return styleId;
         }
 
@@ -74,8 +82,8 @@ internal sealed class StyleManager
         var dateTimeId = existingDateTimeStyleId?.Id ?? newId + 1;
 
         var newStyleId = new StyleId(newId, dateTimeId);
-        _styleDictionary[addedStyle] = newStyleId;
-        _styleDictionary[dateTimeStyle] = new StyleId(dateTimeId, dateTimeId);
+        AddStyle(addedStyle, newStyleId);
+        AddStyle(dateTimeStyle, new StyleId(dateTimeId, dateTimeId));
         return newStyleId;
     }
 
