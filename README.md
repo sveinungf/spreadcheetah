@@ -12,14 +12,14 @@ SpreadCheetah is a high-performance .NET library for generating spreadsheet (Mic
 - Async APIs
 - No dependency to Microsoft Excel
 - Supports .NET Standard 2.0 targets, such as .NET Framework
-- Supports .NET 6 to .NET 9, with more optimizations enabled for later versions
+- Supports .NET 6 to .NET 10, with more optimizations enabled for later versions
 - Trimmable and NativeAOT compatible
 
 SpreadCheetah is designed to create spreadsheet files in a forward-only manner.
 That means worksheets from left to right, rows from top to bottom, and row cells from left to right.
 This allows for creating spreadsheet files in a streaming manner, while also keeping a low memory footprint.
 
-Most basic spreadsheet functionality is supported, such as cells with different data types, basic styling, and formulas. More advanced functionality will be added in future releases. See the list of currently supported spreadsheet functionality [in the wiki](https://github.com/sveinungf/spreadcheetah/wiki#supported-spreadsheet-functionality).
+Most basic spreadsheet functionality is supported, such as cells with different data types, styling, and formulas. More advanced functionality will be added in future releases. See the list of currently supported spreadsheet functionality [in the wiki](https://github.com/sveinungf/spreadcheetah/wiki#supported-spreadsheet-functionality).
 
 See [Releases](https://github.com/sveinungf/spreadcheetah/releases) for release notes. This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -56,6 +56,8 @@ using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
     await spreadsheet.FinishAsync();
 }
 ```
+
+See the [Getting started](https://github.com/sveinungf/spreadcheetah/wiki#getting-started) guide in the wiki.
 
 ### Other examples
 - [Writing to a file](https://github.com/sveinungf/spreadcheetah-samples/blob/main/SpreadCheetahSamples/WriteToFile.cs)

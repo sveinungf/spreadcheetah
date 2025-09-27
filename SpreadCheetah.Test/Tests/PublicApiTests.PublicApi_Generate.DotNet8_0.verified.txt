@@ -651,14 +651,14 @@ namespace SpreadCheetah.Worksheets
     {
         public AutoFilterOptions(string cellRange) { }
     }
-    public class ColumnOptions
+    public sealed class ColumnOptions
     {
         public ColumnOptions() { }
         public SpreadCheetah.Styling.Style? DefaultStyle { get; set; }
         public bool Hidden { get; set; }
         public double? Width { get; set; }
     }
-    public class RowOptions
+    public sealed class RowOptions
     {
         public RowOptions() { }
         public SpreadCheetah.Styling.Style? DefaultStyle { get; set; }
