@@ -27,7 +27,6 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         """<dxfs count="0"/>"""u8 +
         """</styleSheet>"""u8;
 
-    private readonly IList<ImmutableFont> _fontsList;
     private readonly List<(string, AddedStyle, StyleNameVisibility)>? _namedStyles;
     private readonly StyleManager _styleManager;
     private readonly SpreadsheetBuffer _buffer;
@@ -48,7 +47,6 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         _numberFormatsXml = new NumberFormatsXmlPart(styleManager.UniqueCustomFormats.GetList(), buffer);
         _bordersXml = new BordersXmlPart(styleManager.UniqueBorders.GetList(), buffer);
         _fillsXml = new FillsXmlPart(styleManager.UniqueFills.GetList(), buffer);
-        _fontsList = styleManager.UniqueFonts.GetList();
         _namedStyles = styleManager.GetEmbeddedNamedStyles();
         _cellStylesXml = new CellStylesXmlPart(_namedStyles, buffer);
     }
@@ -84,6 +82,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
     private readonly bool TryWriteFontsStart()
     {
+        var fontCount = _styleManager.UniqueFonts?.GetList().Count ?? 0;
         var defaultFont = _styleManager.DefaultFont;
         var defaultFontSize = defaultFont?.Size ?? DefaultFont.DefaultSize;
         var defaultFontName = defaultFont?.Name ?? DefaultFont.DefaultName;
@@ -91,7 +90,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
         return _buffer.TryWrite(
             $"{"<fonts count=\""u8}" +
-            $"{_fontsList.Count}" +
+            $"{fontCount + 1}" +
             $"{"\"><font><sz val=\""u8}" +
             $"{defaultFontSize}" +
             $"{"\"/><name val=\""u8}" +
@@ -101,11 +100,13 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
     private bool TryWriteFonts()
     {
-        var fontsLocal = _fontsList;
+        var fontsList = _styleManager.UniqueFonts?.GetList();
+        if (fontsList is null)
+            return true;
 
-        for (; _nextIndex < fontsLocal.Count; ++_nextIndex)
+        for (; _nextIndex < fontsList.Count; ++_nextIndex)
         {
-            var font = fontsLocal[_nextIndex];
+            var font = fontsList[_nextIndex];
             Debug.Assert(font != ImmutableFont.From(_styleManager.DefaultFont));
 
             var xml = _fontXml ?? new FontXmlPart(_buffer, font);

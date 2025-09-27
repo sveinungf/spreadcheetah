@@ -8,12 +8,12 @@ internal sealed class StyleManager
     private readonly NumberFormat? _defaultDateTimeFormat;
 
 #if NET9_0_OR_GREATER
-    private readonly OrderedDictionary<AddedStyle, StyleId> _styleDictionary2 = [];
-    public IList<AddedStyle> AddedStyles => _styleDictionary2.Keys;
+    private readonly OrderedDictionary<AddedStyle, StyleId> _styleDictionary = [];
+    public IList<AddedStyle> AddedStyles => _styleDictionary.Keys;
 #else
-    private readonly Dictionary<AddedStyle, StyleId> _styleDictionary2 = [];
+    private readonly Dictionary<AddedStyle, StyleId> _styleDictionary = [];
     private IList<AddedStyle>? _addedStyles;
-    public IList<AddedStyle> AddedStyles => _addedStyles ??= _styleDictionary2.Keys.ToList(); // TODO: Order not correct?
+    public IList<AddedStyle> AddedStyles => _addedStyles ??= _styleDictionary.Keys.ToList(); // TODO: Order not correct?
 #endif
 
     public DefaultFont? DefaultFont { get; }
@@ -23,7 +23,7 @@ internal sealed class StyleManager
     public OrderedSet<ImmutableAlignment> UniqueAlignments { get; } = new();
     public OrderedSet<ImmutableBorder> UniqueBorders { get; } = new();
     public OrderedSet<ImmutableFill> UniqueFills { get; } = new();
-    public OrderedSet<ImmutableFont> UniqueFonts { get; } = new();
+    public OrderedSet<ImmutableFont>? UniqueFonts { get; private set; }
     public OrderedSet<string> UniqueCustomFormats { get; } = new();
 
     public Dictionary<string, (StyleId StyleId, int NamedStyleIndex)>? NamedStyles { get; private set; }
@@ -34,7 +34,7 @@ internal sealed class StyleManager
         DefaultFont = defaultFont;
 
         // If we have any style, the built-in default style must be the first one (meaning the first <xf> element in styles.xml).
-        var defaultStyle = new AddedStyle(); // TODO: Should the default font be set here?
+        var defaultStyle = new AddedStyle();
         var styleId = AddStyleIfNotExists(defaultStyle);
 
         if (styleId.Id != styleId.DateTimeId)
@@ -49,17 +49,17 @@ internal sealed class StyleManager
 
     private StyleId AddStyleIfNotExists(in AddedStyle addedStyle)
     {
-        if (_styleDictionary2.TryGetValue(addedStyle, out var styleId))
+        if (_styleDictionary.TryGetValue(addedStyle, out var styleId))
             return styleId;
 
-        var newId = _styleDictionary2.Count;
+        var newId = _styleDictionary.Count;
 
         if (addedStyle.CustomFormatIndex is not null
             || addedStyle.StandardFormat is not null
             || _defaultDateTimeFormat is not { } dateTimeFormat)
         {
             styleId = new StyleId(newId, newId);
-            _styleDictionary2[addedStyle] = styleId;
+            _styleDictionary[addedStyle] = styleId;
             return styleId;
         }
 
@@ -75,12 +75,12 @@ internal sealed class StyleManager
             Visibility = null // TODO: Correct?
         };
 
-        var existingDateTimeStyleId = _styleDictionary2.GetValueOrDefault(dateTimeStyle);
+        var existingDateTimeStyleId = _styleDictionary.GetValueOrDefault(dateTimeStyle);
         var dateTimeId = existingDateTimeStyleId?.Id ?? newId + 1;
 
         var newStyleId = new StyleId(newId, dateTimeId);
-        _styleDictionary2[addedStyle] = newStyleId;
-        _styleDictionary2[dateTimeStyle] = new StyleId(dateTimeId, dateTimeId);
+        _styleDictionary[addedStyle] = newStyleId;
+        _styleDictionary[dateTimeStyle] = new StyleId(dateTimeId, dateTimeId);
         return newStyleId;
     }
 
@@ -106,9 +106,12 @@ internal sealed class StyleManager
             : null;
 
         var font = ImmutableFont.From(style.Font, DefaultFont);
-        int? fontIndex = font != ImmutableFont.From(DefaultFont)
-            ? UniqueFonts.Add(font)
-            : null;
+        int? fontIndex = null;
+        if (font != ImmutableFont.From(DefaultFont))
+        {
+            var uniqueFonts = UniqueFonts ??= new();
+            fontIndex = uniqueFonts.Add(font);
+        }
 
         return new AddedStyle(
             AlignmentIndex: alignmentIndex,
