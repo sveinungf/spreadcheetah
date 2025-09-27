@@ -137,7 +137,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         if (_namedStyles is not { } namedStyles)
             return true;
 
-        var alignments = _styleManager.UniqueAlignments.GetList();
+        var alignments = _styleManager.UniqueAlignments?.GetList();
         var xfXml = new XfXmlPart(_buffer, alignments, false);
 
         for (; _nextIndex < _namedStyles.Count; ++_nextIndex)
@@ -161,7 +161,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
     private bool TryWriteCellXfsEntries()
     {
-        var alignments = _styleManager.UniqueAlignments.GetList();
+        var alignments = _styleManager.UniqueAlignments?.GetList();
         var xfXml = new XfXmlPart(_buffer, alignments, true);
         var addedStyles = _styleManager.AddedStyles;
         var namedStylesDictionary = _styleManager.NamedStyles;

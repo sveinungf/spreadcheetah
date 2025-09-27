@@ -19,12 +19,11 @@ internal sealed class StyleManager
     public DefaultFont? DefaultFont { get; }
     public DefaultStyling? DefaultStyling { get; }
 
-    // TODO: Null if nothing added
-    public OrderedSet<ImmutableAlignment> UniqueAlignments { get; } = new();
+    public OrderedSet<ImmutableAlignment>? UniqueAlignments { get; private set; }
     public OrderedSet<ImmutableBorder>? UniqueBorders { get; private set; }
     public OrderedSet<ImmutableFill>? UniqueFills { get; private set; }
     public OrderedSet<ImmutableFont>? UniqueFonts { get; private set; }
-    public OrderedSet<string> UniqueCustomFormats { get; } = new();
+    public OrderedSet<string> UniqueCustomFormats { get; } = new(); // TODO: Null if nothing added
 
     public Dictionary<string, (StyleId StyleId, int NamedStyleIndex)>? NamedStyles { get; private set; }
 
@@ -87,9 +86,12 @@ internal sealed class StyleManager
     private AddedStyle MapToAddedStyle(Style style, string? name, StyleNameVisibility? visibility)
     {
         var alignment = ImmutableAlignment.From(style.Alignment);
-        int? alignmentIndex = alignment != default
-            ? UniqueAlignments.Add(alignment)
-            : null;
+        int? alignmentIndex = null;
+        if (alignment != default)
+        {
+            var uniqueAlignments = UniqueAlignments ??= new();
+            alignmentIndex = uniqueAlignments.Add(alignment);
+        }
 
         var border = ImmutableBorder.From(style.Border);
         int? borderIndex = null;

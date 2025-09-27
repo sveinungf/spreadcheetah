@@ -6,7 +6,7 @@ namespace SpreadCheetah.MetadataXml.Styles;
 
 internal readonly struct XfXmlPart(
     SpreadsheetBuffer buffer,
-    IList<ImmutableAlignment> alignments,
+    IList<ImmutableAlignment>? alignments,
     bool cellXfsEntry)
 {
     public bool TryWrite(AddedStyle addedStyle, int? embeddedNamedStyleIndex)
@@ -38,7 +38,7 @@ internal readonly struct XfXmlPart(
         {
             if (!"/>"u8.TryCopyTo(span, ref written)) return false;
         }
-        else
+        else if (alignments is not null)
         {
             var alignment = alignments[alignmentIndex];
             if (!""" applyAlignment="1">"""u8.TryCopyTo(span, ref written)) return false;
