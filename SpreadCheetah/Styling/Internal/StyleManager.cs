@@ -20,12 +20,11 @@ internal sealed class StyleManager
     public DefaultStyling? DefaultStyling { get; }
 
     // TODO: Null if nothing added
-    // TODO: Rename to OrderedSet
-    public ListSet<ImmutableAlignment> UniqueAlignments { get; } = new();
-    public ListSet<ImmutableBorder> UniqueBorders { get; } = new();
-    public ListSet<ImmutableFill> UniqueFills { get; } = new();
-    public ListSet<ImmutableFont> UniqueFonts { get; } = new();
-    public ListSet<string> UniqueCustomFormats { get; } = new();
+    public OrderedSet<ImmutableAlignment> UniqueAlignments { get; } = new();
+    public OrderedSet<ImmutableBorder> UniqueBorders { get; } = new();
+    public OrderedSet<ImmutableFill> UniqueFills { get; } = new();
+    public OrderedSet<ImmutableFont> UniqueFonts { get; } = new();
+    public OrderedSet<string> UniqueCustomFormats { get; } = new();
 
     public Dictionary<string, (StyleId StyleId, int NamedStyleIndex)>? NamedStyles { get; private set; }
 

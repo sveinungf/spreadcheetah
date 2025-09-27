@@ -48,7 +48,7 @@ internal struct BordersXmlPart(IList<ImmutableBorder> borders, SpreadsheetBuffer
         var totalCount = borders.Count + defaultCount - 1;
 
         if (!"<borders count=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(totalCount, span, ref written)) return false;
+        if (!SpanHelper.TryWrite(totalCount, span, ref written)) return false; // TODO: The count does not include the default border. Need a snapshot test to verify it.
 
         // The default border must come first
         ReadOnlySpan<byte> defaultBorder = "\">"u8 +

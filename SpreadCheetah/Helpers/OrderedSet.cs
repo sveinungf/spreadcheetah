@@ -1,8 +1,6 @@
-using SpreadCheetah.Styling;
-
 namespace SpreadCheetah.Helpers;
 
-internal sealed class ListSet<T> where T : notnull
+internal sealed class OrderedSet<T> where T : notnull
 {
 #if NET9_0_OR_GREATER
     private readonly OrderedDictionary<T, byte> _dictionary = [];
@@ -33,13 +31,3 @@ internal sealed class ListSet<T> where T : notnull
     }
 #endif
 }
-
-internal readonly record struct AddedStyle(
-    int? AlignmentIndex,
-    int? BorderIndex,
-    int? FillIndex,
-    int? FontIndex,
-    int? CustomFormatIndex,
-    StandardNumberFormat? StandardFormat,
-    string? Name,
-    StyleNameVisibility? Visibility);
