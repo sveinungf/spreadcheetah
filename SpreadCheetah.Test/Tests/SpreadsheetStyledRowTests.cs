@@ -7,6 +7,7 @@ using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.TestHelpers.TestData;
 using SpreadCheetah.Worksheets;
 using System.Globalization;
+using System.IO.Compression;
 using Alignment = SpreadCheetah.Styling.Alignment;
 using Border = SpreadCheetah.Styling.Border;
 using CellType = SpreadCheetah.Test.Helpers.CellType;
@@ -23,6 +24,24 @@ namespace SpreadCheetah.Test.Tests;
 public class SpreadsheetStyledRowTests
 {
     private static CancellationToken Token => TestContext.Current.CancellationToken;
+
+    [Fact]
+    public async Task Spreadsheet_CreateEmpty_DefaultStylesXml()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+
+        // Act
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Name", token: Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var zip = new ZipArchive(stream);
+        using var stylesXml = zip.GetStylesXmlStream();
+        await VerifyXml(stylesXml);
+    }
 
     [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_StyledCellWithValue(CellValueType valueType, bool isNull, StyledCellType cellType, RowCollectionType rowType)

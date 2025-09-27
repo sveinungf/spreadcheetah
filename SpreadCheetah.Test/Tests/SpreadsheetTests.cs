@@ -29,11 +29,9 @@ public class SpreadsheetTests
         using var stream = new MemoryStream();
 
         // Act
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
-        {
-            await spreadsheet.StartWorksheetAsync("Name", token: Token);
-            await spreadsheet.FinishAsync(Token);
-        }
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Name", token: Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         SpreadsheetAssert.Valid(stream);
@@ -49,11 +47,9 @@ public class SpreadsheetTests
             : new WriteOnlyMemoryStream();
 
         // Act
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
-        {
-            await spreadsheet.StartWorksheetAsync("Name", token: Token);
-            await spreadsheet.FinishAsync(Token);
-        }
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Name", token: Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         Assert.True(stream.Position > 0);
