@@ -23,7 +23,7 @@ internal sealed class StyleManager
     public OrderedSet<ImmutableBorder>? UniqueBorders { get; private set; }
     public OrderedSet<ImmutableFill>? UniqueFills { get; private set; }
     public OrderedSet<ImmutableFont>? UniqueFonts { get; private set; }
-    public OrderedSet<string> UniqueCustomFormats { get; } = new(); // TODO: Null if nothing added
+    public OrderedSet<string>? UniqueCustomFormats { get; private set; }
 
     public Dictionary<string, (StyleId StyleId, int NamedStyleIndex)>? NamedStyles { get; private set; }
 
@@ -62,13 +62,9 @@ internal sealed class StyleManager
             return styleId;
         }
 
-        int? customFormatIndex = dateTimeFormat.CustomFormat is { } format
-            ? UniqueCustomFormats.Add(format)
-            : null;
-
         var dateTimeStyle = addedStyle with
         {
-            CustomFormatIndex = customFormatIndex,
+            CustomFormatIndex = GetOrAddCustomFormat(dateTimeFormat.CustomFormat),
             Name = null, // TODO: Correct?
             StandardFormat = dateTimeFormat.StandardFormat,
             Visibility = null // TODO: Correct?
@@ -101,10 +97,6 @@ internal sealed class StyleManager
             borderIndex = uniqueBorders.Add(border);
         }
 
-        int? customFormatIndex = style.Format?.CustomFormat is { } format
-            ? UniqueCustomFormats.Add(format)
-            : null;
-
         var fill = ImmutableFill.From(style.Fill);
         int? fillIndex = null;
         if (fill != default)
@@ -126,10 +118,19 @@ internal sealed class StyleManager
             BorderIndex: borderIndex,
             FillIndex: fillIndex,
             FontIndex: fontIndex,
-            CustomFormatIndex: customFormatIndex,
+            CustomFormatIndex: GetOrAddCustomFormat(style.Format?.CustomFormat),
             StandardFormat: style.Format?.StandardFormat,
             Name: name,
             Visibility: visibility);
+    }
+
+    private int? GetOrAddCustomFormat(string? customFormat)
+    {
+        if (customFormat is null)
+            return null;
+
+        var uniqueFormats = UniqueCustomFormats ??= new();
+        return uniqueFormats.Add(customFormat);
     }
 
     public bool TryAddNamedStyle(string name, Style style, StyleNameVisibility? visibility,

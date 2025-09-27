@@ -46,15 +46,10 @@ internal struct NumberFormatsXmlPart(
         if (customNumberFormats is not { } formats)
             return buffer.TryWrite("""<numFmts count="0"/>"""u8);
 
-        var span = buffer.GetSpan();
-        var written = 0;
-
-        if (!"<numFmts count=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(formats.Count, span, ref written)) return false;
-        if (!"\">"u8.TryCopyTo(span, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        return buffer.TryWrite(
+            $"{"<numFmts count=\""u8}" +
+            $"{formats.Count}" +
+            $"{"\">"u8}");
     }
 
     private bool TryWriteNumberFormats()
