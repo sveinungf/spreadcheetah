@@ -6,7 +6,7 @@ using System.Drawing;
 
 namespace SpreadCheetah.MetadataXml.Styles;
 
-internal struct BordersXmlPart(IList<ImmutableBorder> borders, SpreadsheetBuffer buffer)
+internal struct BordersXmlPart(IList<ImmutableBorder>? borders, SpreadsheetBuffer buffer)
 {
     private Element _next;
     private int _nextIndex;
@@ -42,7 +42,7 @@ internal struct BordersXmlPart(IList<ImmutableBorder> borders, SpreadsheetBuffer
     private readonly bool TryWriteHeader()
     {
         // The default border must come first
-        var count = borders.Count + 1;
+        var count = (borders?.Count ?? 0) + 1;
         return buffer.TryWrite(
             $"{"<borders count=\""u8}" +
             $"{count}" +
@@ -51,7 +51,8 @@ internal struct BordersXmlPart(IList<ImmutableBorder> borders, SpreadsheetBuffer
 
     private bool TryWriteBorders()
     {
-        var bordersLocal = borders;
+        if (borders is not { } bordersLocal)
+            return true;
 
         for (; _nextIndex < bordersLocal.Count; ++_nextIndex)
         {

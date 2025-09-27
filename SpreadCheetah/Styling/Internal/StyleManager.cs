@@ -21,8 +21,8 @@ internal sealed class StyleManager
 
     // TODO: Null if nothing added
     public OrderedSet<ImmutableAlignment> UniqueAlignments { get; } = new();
-    public OrderedSet<ImmutableBorder> UniqueBorders { get; } = new();
-    public OrderedSet<ImmutableFill> UniqueFills { get; } = new();
+    public OrderedSet<ImmutableBorder>? UniqueBorders { get; private set; }
+    public OrderedSet<ImmutableFill>? UniqueFills { get; private set; }
     public OrderedSet<ImmutableFont>? UniqueFonts { get; private set; }
     public OrderedSet<string> UniqueCustomFormats { get; } = new();
 
@@ -92,18 +92,24 @@ internal sealed class StyleManager
             : null;
 
         var border = ImmutableBorder.From(style.Border);
-        int? borderIndex = border != default
-            ? UniqueBorders.Add(border)
-            : null;
+        int? borderIndex = null;
+        if (border != default)
+        {
+            var uniqueBorders = UniqueBorders ??= new();
+            borderIndex = uniqueBorders.Add(border);
+        }
 
         int? customFormatIndex = style.Format?.CustomFormat is { } format
             ? UniqueCustomFormats.Add(format)
             : null;
 
         var fill = ImmutableFill.From(style.Fill);
-        int? fillIndex = fill != default
-            ? UniqueFills.Add(fill)
-            : null;
+        int? fillIndex = null;
+        if (fill != default)
+        {
+            var uniqueFills = UniqueFills ??= new();
+            fillIndex = uniqueFills.Add(fill);
+        }
 
         var font = ImmutableFont.From(style.Font, DefaultFont);
         int? fontIndex = null;

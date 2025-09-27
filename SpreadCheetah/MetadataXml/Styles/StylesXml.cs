@@ -45,8 +45,8 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         _styleManager = styleManager;
         _buffer = buffer;
         _numberFormatsXml = new NumberFormatsXmlPart(styleManager.UniqueCustomFormats.GetList(), buffer);
-        _bordersXml = new BordersXmlPart(styleManager.UniqueBorders.GetList(), buffer);
-        _fillsXml = new FillsXmlPart(styleManager.UniqueFills.GetList(), buffer);
+        _bordersXml = new BordersXmlPart(styleManager.UniqueBorders?.GetList(), buffer);
+        _fillsXml = new FillsXmlPart(styleManager.UniqueFills?.GetList(), buffer);
         _namedStyles = styleManager.GetEmbeddedNamedStyles();
         _cellStylesXml = new CellStylesXmlPart(_namedStyles, buffer);
     }
