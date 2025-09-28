@@ -73,9 +73,9 @@ internal sealed class StyleManager
         var dateTimeStyle = addedStyle with
         {
             CustomFormatIndex = GetOrAddCustomFormat(dateTimeFormat.CustomFormat),
-            Name = null, // TODO: Correct?
+            Name = null,
             StandardFormat = dateTimeFormat.StandardFormat,
-            Visibility = null // TODO: Correct?
+            Visibility = null
         };
 
         var existingDateTimeStyleId = _styleDictionary.GetValueOrDefault(dateTimeStyle);
