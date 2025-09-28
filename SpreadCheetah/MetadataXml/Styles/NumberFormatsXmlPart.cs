@@ -3,7 +3,7 @@ using SpreadCheetah.Helpers;
 namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct NumberFormatsXmlPart(
-    List<KeyValuePair<string, int>>? customNumberFormats,
+    IList<string>? customNumberFormats,
     SpreadsheetBuffer buffer)
 {
     private Element _next;
@@ -46,15 +46,10 @@ internal struct NumberFormatsXmlPart(
         if (customNumberFormats is not { } formats)
             return buffer.TryWrite("""<numFmts count="0"/>"""u8);
 
-        var span = buffer.GetSpan();
-        var written = 0;
-
-        if (!"<numFmts count=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(formats.Count, span, ref written)) return false;
-        if (!"\">"u8.TryCopyTo(span, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        return buffer.TryWrite(
+            $"{"<numFmts count=\""u8}" +
+            $"{formats.Count}" +
+            $"{"\">"u8}");
     }
 
     private bool TryWriteNumberFormats()
@@ -70,11 +65,14 @@ internal struct NumberFormatsXmlPart(
 
             if (_currentXmlEncodedFormat is null)
             {
+                const int customFormatStartId = 165;
+                var id = _nextIndex + customFormatStartId;
+
                 if (!"<numFmt numFmtId=\""u8.TryCopyTo(span, ref written)) return false;
-                if (!SpanHelper.TryWrite(format.Value, span, ref written)) return false;
+                if (!SpanHelper.TryWrite(id, span, ref written)) return false;
                 if (!"\" formatCode=\""u8.TryCopyTo(span, ref written)) return false;
 
-                _currentXmlEncodedFormat = XmlUtility.XmlEncode(format.Key);
+                _currentXmlEncodedFormat = XmlUtility.XmlEncode(format);
                 _currentXmlEncodedFormatIndex = 0;
             }
 

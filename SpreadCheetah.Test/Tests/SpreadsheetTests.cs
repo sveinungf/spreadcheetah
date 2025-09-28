@@ -29,6 +29,21 @@ public class SpreadsheetTests
         using var stream = new MemoryStream();
 
         // Act
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Name", token: Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_Finish_ValidSpreadsheetAfterDispose()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+
+        // Act
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
         {
             await spreadsheet.StartWorksheetAsync("Name", token: Token);
@@ -49,11 +64,9 @@ public class SpreadsheetTests
             : new WriteOnlyMemoryStream();
 
         // Act
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
-        {
-            await spreadsheet.StartWorksheetAsync("Name", token: Token);
-            await spreadsheet.FinishAsync(Token);
-        }
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Name", token: Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
         Assert.True(stream.Position > 0);
@@ -125,21 +138,6 @@ public class SpreadsheetTests
         // Assert
         using var zip = new ZipArchive(stream);
         Assert.Equal(hasStyle, zip.GetEntry("xl/styles.xml") is not null);
-    }
-
-    [Fact]
-    public async Task Spreadsheet_Finish_ValidSpreadsheetBeforeDispose()
-    {
-        // Arrange
-        using var stream = new MemoryStream();
-
-        // Act
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
-        await spreadsheet.StartWorksheetAsync("Name", token: Token);
-        await spreadsheet.FinishAsync(Token);
-
-        // Assert
-        SpreadsheetAssert.Valid(stream);
     }
 
     [Fact]

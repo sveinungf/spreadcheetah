@@ -1,11 +1,12 @@
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
+using System.Diagnostics;
 using System.Drawing;
 
 namespace SpreadCheetah.MetadataXml.Styles;
 
-internal struct BordersXmlPart(List<ImmutableBorder> borders, SpreadsheetBuffer buffer)
+internal struct BordersXmlPart(IList<ImmutableBorder>? borders, SpreadsheetBuffer buffer)
 {
     private Element _next;
     private int _nextIndex;
@@ -40,32 +41,23 @@ internal struct BordersXmlPart(List<ImmutableBorder> borders, SpreadsheetBuffer 
 
     private readonly bool TryWriteHeader()
     {
-        var span = buffer.GetSpan();
-        var written = 0;
-
-        const int defaultCount = 1;
-        var totalCount = borders.Count + defaultCount - 1;
-
-        if (!"<borders count=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(totalCount, span, ref written)) return false;
-
         // The default border must come first
-        ReadOnlySpan<byte> defaultBorder = "\">"u8 +
-            "<border><left/><right/><top/><bottom/><diagonal/></border>"u8;
-        if (!defaultBorder.TryCopyTo(span, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        var count = (borders?.Count ?? 0) + 1;
+        return buffer.TryWrite(
+            $"{"<borders count=\""u8}" +
+            $"{count}" +
+            $"{"\"><border><left/><right/><top/><bottom/><diagonal/></border>"u8}");
     }
 
     private bool TryWriteBorders()
     {
-        var bordersLocal = borders;
+        if (borders is not { } bordersLocal)
+            return true;
 
         for (; _nextIndex < bordersLocal.Count; ++_nextIndex)
         {
             var border = bordersLocal[_nextIndex];
-            if (border.Equals(default)) continue;
+            Debug.Assert(border != default);
 
             var span = buffer.GetSpan();
             var written = 0;
@@ -125,32 +117,42 @@ internal struct BordersXmlPart(List<ImmutableBorder> borders, SpreadsheetBuffer 
         return true;
     }
 
-    private static bool TryWriteBorderPartName(BorderPart borderPart, Span<byte> bytes, ref int bytesWritten) => borderPart switch
+    private static bool TryWriteBorderPartName(BorderPart borderPart, Span<byte> bytes, ref int bytesWritten)
     {
-        BorderPart.Left => "left"u8.TryCopyTo(bytes, ref bytesWritten),
-        BorderPart.Right => "right"u8.TryCopyTo(bytes, ref bytesWritten),
-        BorderPart.Top => "top"u8.TryCopyTo(bytes, ref bytesWritten),
-        BorderPart.Bottom => "bottom"u8.TryCopyTo(bytes, ref bytesWritten),
-        BorderPart.Diagonal => "diagonal"u8.TryCopyTo(bytes, ref bytesWritten),
-        _ => true
+        var name = GetBorderPartName(borderPart);
+        return name.TryCopyTo(bytes, ref bytesWritten);
+    }
+
+    private static bool TryWriteStyleAttributeValue(BorderStyle style, Span<byte> bytes, ref int bytesWritten)
+    {
+        var value = GetStyleAttributeValue(style);
+        return value.TryCopyTo(bytes, ref bytesWritten);
+    }
+
+    private static ReadOnlySpan<byte> GetBorderPartName(BorderPart borderPart) => borderPart switch
+    {
+        BorderPart.Left => "left"u8,
+        BorderPart.Right => "right"u8,
+        BorderPart.Top => "top"u8,
+        BorderPart.Bottom => "bottom"u8,
+        _ => "diagonal"u8
     };
 
-    private static bool TryWriteStyleAttributeValue(BorderStyle style, Span<byte> bytes, ref int bytesWritten) => style switch
+    private static ReadOnlySpan<byte> GetStyleAttributeValue(BorderStyle style) => style switch
     {
-        BorderStyle.DashDot => "dashDot"u8.TryCopyTo(bytes, ref bytesWritten),
-        BorderStyle.DashDotDot => "dashDotDot"u8.TryCopyTo(bytes, ref bytesWritten),
-        BorderStyle.Dashed => "dashed"u8.TryCopyTo(bytes, ref bytesWritten),
-        BorderStyle.Dotted => "dotted"u8.TryCopyTo(bytes, ref bytesWritten),
-        BorderStyle.DoubleLine => "double"u8.TryCopyTo(bytes, ref bytesWritten),
-        BorderStyle.Hair => "hair"u8.TryCopyTo(bytes, ref bytesWritten),
-        BorderStyle.Medium => "medium"u8.TryCopyTo(bytes, ref bytesWritten),
-        BorderStyle.MediumDashDot => "mediumDashDot"u8.TryCopyTo(bytes, ref bytesWritten),
-        BorderStyle.MediumDashDotDot => "mediumDashDotDot"u8.TryCopyTo(bytes, ref bytesWritten),
-        BorderStyle.MediumDashed => "mediumDashed"u8.TryCopyTo(bytes, ref bytesWritten),
-        BorderStyle.SlantDashDot => "slantDashDot"u8.TryCopyTo(bytes, ref bytesWritten),
-        BorderStyle.Thick => "thick"u8.TryCopyTo(bytes, ref bytesWritten),
-        BorderStyle.Thin => "thin"u8.TryCopyTo(bytes, ref bytesWritten),
-        _ => true
+        BorderStyle.DashDot => "dashDot"u8,
+        BorderStyle.DashDotDot => "dashDotDot"u8,
+        BorderStyle.Dashed => "dashed"u8,
+        BorderStyle.Dotted => "dotted"u8,
+        BorderStyle.DoubleLine => "double"u8,
+        BorderStyle.Hair => "hair"u8,
+        BorderStyle.Medium => "medium"u8,
+        BorderStyle.MediumDashDot => "mediumDashDot"u8,
+        BorderStyle.MediumDashDotDot => "mediumDashDotDot"u8,
+        BorderStyle.MediumDashed => "mediumDashed"u8,
+        BorderStyle.SlantDashDot => "slantDashDot"u8,
+        BorderStyle.Thick => "thick"u8,
+        _ => "thin"u8
     };
 
     private enum BorderPart

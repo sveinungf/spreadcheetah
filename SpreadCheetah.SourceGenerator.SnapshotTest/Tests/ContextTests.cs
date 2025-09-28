@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis.Text;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Helpers;
 using SpreadCheetah.SourceGenerators;
 
@@ -5,6 +6,8 @@ namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 
 public class ContextTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
     [Fact]
     public Task Context_InternalAccessibility()
     {
@@ -162,7 +165,10 @@ public class ContextTests
         // If there are more warnings, then those might be emitted from the generated code.
         var expectedWarning = Assert.Single(diagnostics);
         Assert.Equal("CS1591", expectedWarning.Id);
-        Assert.Equal(198, expectedWarning.Location.SourceSpan.Start);
-        Assert.Equal(207, expectedWarning.Location.SourceSpan.End);
+        var sourceTree = expectedWarning.Location.SourceTree;
+        Assert.NotNull(sourceTree);
+        var sourceText = sourceTree.GetText(Token);
+        var span = sourceText.ToString(expectedWarning.Location.SourceSpan);
+        Assert.Equal("MyContext", span);
     }
 }

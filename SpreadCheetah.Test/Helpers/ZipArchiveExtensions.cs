@@ -11,4 +11,12 @@ internal static class ZipArchiveExtensions
 
         return entry.Open();
     }
+
+    public static Stream GetStylesXmlStream(this ZipArchive zip)
+    {
+        var entry = zip.GetEntry("xl/styles.xml")
+            ?? throw new InvalidOperationException("Styles XML not found in the provided XLSX stream.");
+
+        return entry.Open();
+    }
 }

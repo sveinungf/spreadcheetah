@@ -6,44 +6,43 @@ namespace SpreadCheetah.MetadataXml.Styles;
 
 internal readonly struct XfXmlPart(
     SpreadsheetBuffer buffer,
-    Dictionary<string, int>? customNumberFormats,
-    Dictionary<ImmutableBorder, int> borders,
-    Dictionary<ImmutableFill, int> fills,
-    Dictionary<ImmutableFont, int> fonts,
+    IList<ImmutableAlignment>? alignments,
     bool cellXfsEntry)
 {
-    public bool TryWrite(in ImmutableStyle style, int? embeddedNamedStyleIndex)
+    public bool TryWrite(AddedStyle addedStyle, int? embeddedNamedStyleIndex)
     {
         var span = buffer.GetSpan();
         var written = 0;
 
-        var numberFormatId = GetNumberFormatId(style.Format, customNumberFormats);
+        var numberFormatId = GetNumberFormatId(addedStyle);
 
         if (!"<xf numFmtId=\""u8.TryCopyTo(span, ref written)) return false;
         if (!SpanHelper.TryWrite(numberFormatId, span, ref written)) return false;
         if (!"\""u8.TryCopyTo(span, ref written)) return false;
         if (numberFormatId > 0 && !" applyNumberFormat=\"1\""u8.TryCopyTo(span, ref written)) return false;
 
-        if (!TryWriteFont(style.Font, span, ref written)) return false;
-        if (!TryWriteFill(style.Fill, span, ref written)) return false;
+        if (!TryWriteFont(addedStyle, span, ref written)) return false;
+        if (!TryWriteFill(addedStyle, span, ref written)) return false;
 
-        if (borders.TryGetValue(style.Border, out var borderIndex) && borderIndex > 0)
+        if (addedStyle.BorderIndex is { } borderIndex)
         {
+            const int defaultBorders = 1;
             if (!" borderId=\""u8.TryCopyTo(span, ref written)) return false;
-            if (!SpanHelper.TryWrite(borderIndex, span, ref written)) return false;
+            if (!SpanHelper.TryWrite(borderIndex + defaultBorders, span, ref written)) return false;
             if (!"\" applyBorder=\"1\""u8.TryCopyTo(span, ref written)) return false;
         }
 
         if (cellXfsEntry && !TryWriteXfId(embeddedNamedStyleIndex, span, ref written)) return false;
 
-        if (style.Alignment == default)
+        if (addedStyle.AlignmentIndex is not { } alignmentIndex)
         {
             if (!"/>"u8.TryCopyTo(span, ref written)) return false;
         }
-        else
+        else if (alignments is not null)
         {
+            var alignment = alignments[alignmentIndex];
             if (!""" applyAlignment="1">"""u8.TryCopyTo(span, ref written)) return false;
-            if (!TryWriteAlignment(style.Alignment, span, ref written)) return false;
+            if (!TryWriteAlignment(alignment, span, ref written)) return false;
             if (!"</xf>"u8.TryCopyTo(span, ref written)) return false;
         }
 
@@ -59,30 +58,36 @@ internal readonly struct XfXmlPart(
         return "\""u8.TryCopyTo(span, ref written);
     }
 
-    private readonly bool TryWriteFont(ImmutableFont font, Span<byte> bytes, ref int bytesWritten)
+    private static bool TryWriteFont(AddedStyle addedStyle, Span<byte> bytes, ref int bytesWritten)
     {
-        var fontIndex = fonts.GetValueOrDefault(font);
+        const int defaultFonts = 1;
+        var fontIndex = (addedStyle.FontIndex + defaultFonts) ?? 0;
         if (!" fontId=\""u8.TryCopyTo(bytes, ref bytesWritten)) return false;
         if (!SpanHelper.TryWrite(fontIndex, bytes, ref bytesWritten)) return false;
         if (!"\""u8.TryCopyTo(bytes, ref bytesWritten)) return false;
         return fontIndex == 0 || " applyFont=\"1\""u8.TryCopyTo(bytes, ref bytesWritten);
     }
 
-    private readonly bool TryWriteFill(ImmutableFill fill, Span<byte> bytes, ref int bytesWritten)
+    private static bool TryWriteFill(AddedStyle addedStyle, Span<byte> bytes, ref int bytesWritten)
     {
-        var fillIndex = fills.GetValueOrDefault(fill);
+        const int defaultFills = 2;
+        var fillIndex = (addedStyle.FillIndex + defaultFills) ?? 0;
         if (!" fillId=\""u8.TryCopyTo(bytes, ref bytesWritten)) return false;
         if (!SpanHelper.TryWrite(fillIndex, bytes, ref bytesWritten)) return false;
         if (!"\""u8.TryCopyTo(bytes, ref bytesWritten)) return false;
         return fillIndex == 0 || " applyFill=\"1\""u8.TryCopyTo(bytes, ref bytesWritten);
     }
 
-    private static int GetNumberFormatId(NumberFormat? numberFormat, Dictionary<string, int>? customNumberFormats)
+    private static int GetNumberFormatId(AddedStyle addedStyle)
     {
-        if (numberFormat is not { } format) return 0;
-        if (format.StandardFormat is { } standardFormat) return (int)standardFormat;
-        if (format.CustomFormat is null) return 0;
-        return customNumberFormats?.GetValueOrDefault(format.CustomFormat) ?? 0;
+        if (addedStyle.StandardFormat is { } standardFormat)
+            return (int)standardFormat;
+
+        const int customFormatStartId = 165;
+        if (addedStyle.CustomFormatIndex is { } customIndex)
+            return customIndex + customFormatStartId;
+
+        return 0;
     }
 
     private static bool TryWriteAlignment(ImmutableAlignment alignment, Span<byte> bytes, ref int bytesWritten)

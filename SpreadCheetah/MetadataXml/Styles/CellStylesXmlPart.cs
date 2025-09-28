@@ -5,7 +5,7 @@ using SpreadCheetah.Styling.Internal;
 namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct CellStylesXmlPart(
-    List<(string, ImmutableStyle, StyleNameVisibility)>? namedStyles,
+    List<(string, AddedStyle, StyleNameVisibility)>? namedStyles,
     SpreadsheetBuffer buffer)
 {
     private string? _currentXmlEncodedName;

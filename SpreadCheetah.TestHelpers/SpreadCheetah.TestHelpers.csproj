@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Bogus" />
     <PackageReference Include="ClosedXML" />
     <PackageReference Include="Polyfill">
       <PrivateAssets>all</PrivateAssets>
