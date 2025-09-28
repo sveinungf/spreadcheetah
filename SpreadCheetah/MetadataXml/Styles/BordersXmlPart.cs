@@ -135,8 +135,7 @@ internal struct BordersXmlPart(IList<ImmutableBorder>? borders, SpreadsheetBuffe
         BorderPart.Right => "right"u8,
         BorderPart.Top => "top"u8,
         BorderPart.Bottom => "bottom"u8,
-        BorderPart.Diagonal => "diagonal"u8,
-        _ => []
+        _ => "diagonal"u8
     };
 
     private static ReadOnlySpan<byte> GetStyleAttributeValue(BorderStyle style) => style switch
@@ -153,8 +152,7 @@ internal struct BordersXmlPart(IList<ImmutableBorder>? borders, SpreadsheetBuffe
         BorderStyle.MediumDashed => "mediumDashed"u8,
         BorderStyle.SlantDashDot => "slantDashDot"u8,
         BorderStyle.Thick => "thick"u8,
-        BorderStyle.Thin => "thin"u8,
-        _ => []
+        _ => "thin"u8
     };
 
     private enum BorderPart
