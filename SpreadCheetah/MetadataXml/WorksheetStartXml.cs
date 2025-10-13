@@ -88,8 +88,13 @@ file struct WorksheetStartXmlWriter(
 
     private readonly bool TryWriteSheetViewsStart()
     {
-        return options is null or { FrozenColumns: null, FrozenRows: null }
-            || buffer.TryWrite("<sheetViews><sheetView workbookViewId=\"0\"><pane "u8);
+        if (options is null or { FrozenColumns: null, FrozenRows: null, ShowGridLines: null })
+            return true;
+
+        if (options.ShowGridLines is false)
+            return buffer.TryWrite("<sheetViews><sheetView showGridLines=\"0\" workbookViewId=\"0\"><pane "u8);
+
+        return buffer.TryWrite("<sheetViews><sheetView workbookViewId=\"0\"><pane "u8);
     }
 
     private readonly bool TryWriteColumnSplit()
@@ -118,7 +123,8 @@ file struct WorksheetStartXmlWriter(
     {
         var frozenColumns = options?.FrozenColumns;
         var frozenRows = options?.FrozenRows;
-        if (frozenColumns is null && frozenRows is null)
+        var showGridLines = options?.ShowGridLines;
+        if (frozenColumns is null && frozenRows is null && showGridLines is null)
             return true;
 
         var activePane = (frozenColumns, frozenRows) switch

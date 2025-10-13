@@ -153,7 +153,8 @@ public class SpreadsheetTests
             AutoFilter = new AutoFilterOptions("A1:F1"),
             FrozenColumns = 2,
             FrozenRows = 1,
-            Visibility = WorksheetVisibility.Hidden
+            Visibility = WorksheetVisibility.Hidden,
+            ShowGridLines = false
         };
 
         options.Column(2).Width = 80;
@@ -187,7 +188,8 @@ public class SpreadsheetTests
         {
             FrozenColumns = 2,
             FrozenRows = 1,
-            Visibility = WorksheetVisibility.Hidden
+            Visibility = WorksheetVisibility.Hidden,
+            ShowGridLines = false
         };
 
         options.Column(2).Width = 80;
