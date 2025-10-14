@@ -651,6 +651,28 @@ public class SpreadsheetTests
         Assert.Null(worksheet.SheetViews);
     }
 
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    [InlineData(null, true)]
+    public async Task Spreadsheet_StartWorksheet_ShowGridLines(bool? expectedShowGridLines, bool actualShowGridLines)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        
+        // Act
+        var sheetOptions = new WorksheetOptions { ShowGridLines = expectedShowGridLines };
+        await spreadsheet.StartWorksheetAsync("Sheet 1", sheetOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        Assert.Equal(worksheet.ShowGridLines, actualShowGridLines);
+    }
+
     [Fact]
     public async Task Spreadsheet_StartWorksheet_AutoFilter()
     {
