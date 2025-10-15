@@ -91,17 +91,12 @@ file struct WorksheetStartXmlWriter(
         if (options is null or { FrozenColumns: null, FrozenRows: null, ShowGridLines: null })
             return true;
 
-        var showGridLines = options.ShowGridLines switch
+        return options.ShowGridLines switch
         {
-            true => " showGridLines=\"1\""u8,
-            false => " showGridLines=\"0\""u8,
-            null => null
+            true => buffer.TryWrite("<sheetViews><sheetView showGridLines=\"1\" workbookViewId=\"0\"><pane "u8),
+            false => buffer.TryWrite("<sheetViews><sheetView showGridLines=\"0\" workbookViewId=\"0\"><pane "u8),
+            null => buffer.TryWrite("<sheetViews><sheetView workbookViewId=\"0\"><pane "u8)
         };
-
-        return buffer.TryWrite(
-            $"{"<sheetViews><sheetView"u8}" +
-            $"{showGridLines}" +
-            $"{" workbookViewId=\"0\"><pane "u8}");
     }
 
     private readonly bool TryWriteColumnSplit()
