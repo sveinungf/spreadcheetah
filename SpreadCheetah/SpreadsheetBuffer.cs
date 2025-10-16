@@ -1,6 +1,7 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
+using SpreadCheetah.MetadataXml.Attributes;
 using System.Buffers;
 using System.Buffers.Text;
 using System.Diagnostics;
@@ -247,6 +248,114 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             }
 
             return Fail();
+        }
+
+        public bool AppendFormatted(IntAttribute attribute)
+        {
+            if (attribute.Value is not { } value)
+                return true;
+
+            var span = GetSpan();
+            span[0] = (byte)' ';
+            _pos++;
+
+            if (!AppendFormatted(attribute.AttributeName))
+                return Fail();
+
+            span = GetSpan();
+            span[0] = (byte)'=';
+            span[1] = (byte)'"';
+            _pos += 2;
+
+            if (!AppendFormatted(value))
+                return Fail();
+
+            span = GetSpan();
+            span[0] = (byte)'"';
+            _pos++;
+
+            return true;
+        }
+
+        public bool AppendFormatted(BooleanAttribute attribute)
+        {
+            if (attribute.Value is not { } value)
+                return true;
+
+            var span = GetSpan();
+            span[0] = (byte)' ';
+            _pos++;
+
+            if (!AppendFormatted(attribute.AttributeName))
+                return Fail();
+
+            span = GetSpan();
+            span[0] = (byte)'=';
+            span[1] = (byte)'"';
+            _pos += 2;
+
+            if (!AppendFormatted(value))
+                return Fail();
+
+            span = GetSpan();
+            span[0] = (byte)'"';
+            _pos++;
+
+            return true;
+        }
+
+        public bool AppendFormatted(SpanByteAttribute attribute)
+        {
+            if (attribute.Value.IsEmpty)
+                return true;
+
+            var span = GetSpan();
+            span[0] = (byte)' ';
+            _pos++;
+
+            if (!AppendFormatted(attribute.AttributeName))
+                return Fail();
+
+            span = GetSpan();
+            span[0] = (byte)'=';
+            span[1] = (byte)'"';
+            _pos += 2;
+
+            if (!AppendFormatted(attribute.Value))
+                return Fail();
+
+            span = GetSpan();
+            span[0] = (byte)'"';
+            _pos++;
+
+            return true;
+        }
+        
+        public bool AppendFormatted(SimpleSingleCellReferenceAttribute attribute)
+        {
+            if (attribute.Value is not { } value)
+                return true;
+
+            var span = GetSpan();
+            span[0] = (byte)' ';
+            _pos++;
+
+            if (!AppendFormatted(attribute.AttributeName))
+                return Fail();
+
+            span = GetSpan();
+            span[0] = (byte)'=';
+            span[1] = (byte)'"';
+            _pos += 2;
+
+            if (!AppendFormatted(value))
+                return Fail();
+
+            span = GetSpan();
+            span[0] = (byte)'"';
+            _pos++;
+            
+            return true;
         }
 
         [ExcludeFromCodeCoverage]
