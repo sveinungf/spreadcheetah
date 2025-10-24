@@ -13,11 +13,12 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
     private PropertyAttributeData _result;
 
-    public PropertyAttributeData Analyze(IPropertySymbol property, CancellationToken token)
+    public PropertyAttributeData Analyze(RowProperty property, CancellationToken token)
     {
         _result = new();
 
-        var attributes = property
+        var symbol = property.PropertySymbol;
+        var attributes = symbol
             .GetAttributes()
             .Where(x => x.AttributeClass is { } c && c.HasSpreadCheetahSrcGenNamespace())
             .OrderBy(x => x, AttributeDataComparer);
@@ -32,10 +33,10 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
             _ = attribute.AttributeClass?.MetadataName switch
             {
-                Attributes.CellFormat => TryGetCellFormatAttribute(attribute, property.Type, token),
+                Attributes.CellFormat => TryGetCellFormatAttribute(attribute, symbol.Type, token),
                 Attributes.CellStyle => TryGetCellStyleAttribute(attribute, token),
-                Attributes.CellValueConverter => TryGetCellValueConverterAttribute(attribute, property.Type, token),
-                Attributes.CellValueTruncate => TryGetCellValueTruncateAttribute(attribute, property.Type, token),
+                Attributes.CellValueConverter => TryGetCellValueConverterAttribute(attribute, symbol.Type, token),
+                Attributes.CellValueTruncate => TryGetCellValueTruncateAttribute(attribute, symbol.Type, token),
                 Attributes.ColumnHeader => TryGetColumnHeaderAttribute(attribute, token),
                 Attributes.ColumnIgnore => TryGetColumnIgnoreAttribute(),
                 Attributes.ColumnOrder => TryGetColumnOrderAttribute(attribute),
@@ -43,6 +44,9 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
                 _ => false
             };
         }
+
+        if (property.ColumnHeaderLookupInfo is { } headerLookup && _result is { ColumnHeader: null, ColumnIgnore: null })
+            _result.ColumnHeader = GetColumnHeaderWithPropertyReference(headerLookup, symbol);
 
         return _result;
     }
@@ -186,17 +190,53 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
         if (args is [{ Value: string } arg])
             _result.ColumnHeader = new ColumnHeader(arg.ToCSharpString());
         else if (args is [{ Value: INamedTypeSymbol type }, { Value: string propertyName }])
-            _result.ColumnHeader = TryGetColumnHeaderWithPropertyReference(type, propertyName, attribute, token);
+            _result.ColumnHeader = GetColumnHeaderWithPropertyReference(type, propertyName, attribute, token);
 
         return _result.ColumnHeader is not null;
     }
 
-    private ColumnHeader? TryGetColumnHeaderWithPropertyReference(
+    private ColumnHeader? GetColumnHeaderWithPropertyReference(
         INamedTypeSymbol type,
         string propertyName,
         AttributeData attribute,
         CancellationToken token)
     {
+        var result = GetColumnHeaderWithPropertyReference(type, propertyName, out var missingReference, out var invalidReference);
+
+        if (missingReference)
+            diagnostics.ReportMissingPropertyReference(attribute, propertyName, type.ToDisplayString(), token);
+
+        if (invalidReference)
+            diagnostics.ReportInvalidPropertyReference(attribute, propertyName, type.ToDisplayString(), token);
+
+        return result;
+    }
+
+    private ColumnHeader? GetColumnHeaderWithPropertyReference(
+        ColumnHeaderLookupInfo columnHeaderLookup,
+        IPropertySymbol rowTypeProperty)
+    {
+        var type = columnHeaderLookup.Type;
+        var referencedPropertyName = columnHeaderLookup.Prefix + rowTypeProperty.Name + columnHeaderLookup.Suffix;
+        var result = GetColumnHeaderWithPropertyReference(type, referencedPropertyName, out var missingReference, out var invalidReference);
+
+        if (missingReference)
+            diagnostics.ReportMissingPropertyReference(rowTypeProperty, referencedPropertyName, type.ToDisplayString());
+
+        if (invalidReference)
+            diagnostics.ReportInvalidPropertyReference(rowTypeProperty, referencedPropertyName, type.ToDisplayString());
+
+        return result;
+    }
+
+    private static ColumnHeader? GetColumnHeaderWithPropertyReference(
+        INamedTypeSymbol type,
+        string propertyName,
+        out bool missingReference,
+        out bool invalidReference)
+    {
+        missingReference = false;
+        invalidReference = false;
         var typeFullName = type.ToDisplayString();
 
         foreach (var member in type.GetMembers())
@@ -204,17 +244,18 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
             if (!string.Equals(member.Name, propertyName, StringComparison.Ordinal))
                 continue;
 
-            if (!member.IsStaticPropertyWithPublicGetter(out var p))
-                break;
-
-            if (p.Type.SpecialType != SpecialType.System_String)
-                break;
+            if (!member.IsStaticPropertyWithPublicGetter(out var p)
+                || p.Type.SpecialType != SpecialType.System_String)
+            {
+                invalidReference = true;
+                return null;
+            }
 
             var propertyReference = new ColumnHeaderPropertyReference(typeFullName, propertyName);
             return new ColumnHeader(propertyReference);
         }
 
-        diagnostics.ReportInvalidPropertyReference(attribute, propertyName, typeFullName, token);
+        missingReference = true;
         return null;
     }
 

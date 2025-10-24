@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using SpreadCheetah.SourceGenerator.Helpers;
 using SpreadCheetah.SourceGenerator.Models;
 using SpreadCheetah.SourceGenerator.Models.Values;
@@ -134,7 +135,7 @@ internal static class SymbolExtensions
         return false;
     }
 
-    public static IEnumerable<IPropertySymbol> GetClassAndBaseClassProperties(this ITypeSymbol type)
+    public static IEnumerable<RowProperty> GetClassAndBaseClassProperties(this ITypeSymbol type)
     {
         if ("Object".Equals(type.Name, StringComparison.Ordinal))
             return [];
@@ -150,7 +151,11 @@ internal static class SymbolExtensions
             }
         }
 
-        var properties = type.GetMembers().OfType<IPropertySymbol>();
+        var columnHeaderLookupInfo = type.GetEffectiveColumnHeaderLookupInfo();
+        var properties = type
+            .GetMembers()
+            .OfType<IPropertySymbol>()
+            .Select(x => new RowProperty(x, columnHeaderLookupInfo));
 
         if (inheritedColumnOrder is null || type.BaseType is null)
             return properties;
@@ -159,10 +164,23 @@ internal static class SymbolExtensions
 
         return inheritedColumnOrder switch
         {
-            InheritedColumnsOrder.InheritedColumnsFirst => inheritedProperties.Concat(properties),
-            InheritedColumnsOrder.InheritedColumnsLast => properties.Concat(inheritedProperties),
+            InheritedColumnsOrder.InheritedColumnsFirst => [.. inheritedProperties, .. properties],
+            InheritedColumnsOrder.InheritedColumnsLast => [.. properties, .. inheritedProperties],
             _ => throw new ArgumentOutOfRangeException(nameof(type), "Unsupported inheritance strategy type")
         };
+    }
+
+    private static ColumnHeaderLookupInfo? GetEffectiveColumnHeaderLookupInfo(this ITypeSymbol type)
+    {
+        foreach (var attribute in type.GetAttributes())
+        {
+            if (attribute.TryGetColumnHeaderLookupAttribute(out var info))
+                return info;
+        }
+
+        return type.BaseType is { } baseType
+            ? baseType.GetEffectiveColumnHeaderLookupInfo()
+            : null;
     }
 
     private static bool TryGetInheritedColumnOrderingAttribute(this AttributeData attribute, out InheritedColumnsOrder result)
@@ -178,6 +196,41 @@ internal static class SymbolExtensions
             ? order
             : InheritedColumnsOrder.InheritedColumnsFirst;
 
+        return true;
+    }
+
+    private static bool TryGetColumnHeaderLookupAttribute(
+        this AttributeData attribute,
+        [NotNullWhen(true)] out ColumnHeaderLookupInfo? result)
+    {
+        result = null;
+
+        if (attribute is not { AttributeClass.MetadataName: Attributes.ColumnHeaderLookup })
+            return false;
+        if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace())
+            return false;
+
+        var args = attribute.ConstructorArguments;
+        if (args is not [{ Value: INamedTypeSymbol type }])
+            return false;
+
+        string? prefix = null;
+        string? suffix = null;
+
+        // TODO: Emit warning on invalid Prefix/Suffix values.
+
+        foreach (var (key, value) in attribute.NamedArguments)
+        {
+            if (value.Value is not string)
+                continue;
+
+            if (string.Equals(key, "Prefix", StringComparison.Ordinal))
+                prefix = value.ToCSharpString();
+            else if (string.Equals(key, "Suffix", StringComparison.Ordinal))
+                suffix = value.ToCSharpString();
+        }
+
+        result = new ColumnHeaderLookupInfo(type, prefix, suffix);
         return true;
     }
 

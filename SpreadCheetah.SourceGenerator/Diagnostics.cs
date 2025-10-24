@@ -17,7 +17,8 @@ internal static class Diagnostics
         InvalidAttributeArgumentDescriptor,
         AttributeTypeArgumentMustInheritDescriptor,
         AttributeCombinationNotSupportedDescriptor,
-        AttributeTypeArgumentMustHaveDefaultConstructorDescriptor
+        AttributeTypeArgumentMustHaveDefaultConstructorDescriptor,
+        MissingColumnHeaderPropertyReferenceDescriptor
     ];
 
     public static Diagnostic NoPropertiesFound(Location? location, string rowTypeName)
@@ -111,11 +112,22 @@ internal static class Diagnostics
     public static Diagnostic AttributeTypeArgumentMustHaveDefaultConstructor(Location? location, string typeName)
         => Diagnostic.Create(AttributeTypeArgumentMustHaveDefaultConstructorDescriptor, location, [typeName]);
 
-    public static readonly DiagnosticDescriptor AttributeTypeArgumentMustHaveDefaultConstructorDescriptor = new(
+    private static readonly DiagnosticDescriptor AttributeTypeArgumentMustHaveDefaultConstructorDescriptor = new(
         id: "SPCH1009",
         title: "Type must have a public parameterless constructor",
         messageFormat: "Type '{0}' must have a public parameterless constructor",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static Diagnostic MissingColumnHeaderPropertyReference(Location? location, string propertyName, string typeFullName)
+        => Diagnostic.Create(MissingColumnHeaderPropertyReferenceDescriptor, location, [propertyName, typeFullName]);
+
+    private static readonly DiagnosticDescriptor MissingColumnHeaderPropertyReferenceDescriptor = new(
+        id: "SPCH1010",
+        title: "Missing ColumnHeader property reference", // TODO: Find better title
+        messageFormat: "Could not find property '{0}' on type '{1}'",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 }

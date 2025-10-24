@@ -77,25 +77,26 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         var properties = rowType
             .GetClassAndBaseClassProperties()
-            .Where(x => x.IsInstancePropertyWithPublicGetter());
+            .Where(x => x.PropertySymbol.IsInstancePropertyWithPublicGetter());
 
         foreach (var property in properties)
         {
+            var propertySymbol = property.PropertySymbol;
             var data = analyzer.Analyze(property, token);
             if (data.ColumnIgnore is not null)
                 continue;
-            if (data.CellValueConverter is null && !property.Type.IsSupportedType())
+            if (data.CellValueConverter is null && !propertySymbol.Type.IsSupportedType())
                 continue;
 
             var rowTypeProperty = new RowTypeProperty(
-                Name: property.Name,
+                Name: propertySymbol.Name,
                 CellFormat: data.CellFormat,
                 CellStyle: data.CellStyle,
                 CellValueConverter: data.CellValueConverter,
                 CellValueTruncate: data.CellValueTruncate,
                 ColumnHeader: data.ColumnHeader?.ToColumnHeaderInfo(),
                 ColumnWidth: data.ColumnWidth,
-                Formula: data.CellValueConverter is null ? property.Type.ToPropertyFormula() : null);
+                Formula: data.CellValueConverter is null ? propertySymbol.Type.ToPropertyFormula() : null);
 
             if (rowTypeProperty.Formula is not null)
                 hasFormula = true;

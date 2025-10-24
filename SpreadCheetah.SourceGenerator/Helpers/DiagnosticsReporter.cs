@@ -31,8 +31,29 @@ internal sealed class DiagnosticsReporter(SymbolAnalysisContext context) : IDiag
 
     public void ReportInvalidPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
     {
-        var argList = GetArgumentList(attribute, token);
-        var diagnostic = Diagnostics.InvalidColumnHeaderPropertyReference(argList?.GetLocation(), propertyName, typeFullName);
+        var location = GetLocation(attribute, token);
+        var diagnostic = Diagnostics.InvalidColumnHeaderPropertyReference(location, propertyName, typeFullName);
+        context.ReportDiagnostic(diagnostic);
+    }
+
+    public void ReportInvalidPropertyReference(IPropertySymbol property, string referencedPropertyName, string typeFullName)
+    {
+        var location = property.Locations.FirstOrDefault(); // TODO: Verify that this has actual locations
+        var diagnostic = Diagnostics.InvalidColumnHeaderPropertyReference(location, referencedPropertyName, typeFullName);
+        context.ReportDiagnostic(diagnostic);
+    }
+
+    public void ReportMissingPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
+    {
+        var location = GetLocation(attribute, token);
+        var diagnostic = Diagnostics.MissingColumnHeaderPropertyReference(location, propertyName, typeFullName);
+        context.ReportDiagnostic(diagnostic);
+    }
+
+    public void ReportMissingPropertyReference(IPropertySymbol property, string referencedPropertyName, string typeFullName)
+    {
+        var location = property.Locations.FirstOrDefault(); // TODO: Verify that this has actual locations
+        var diagnostic = Diagnostics.MissingColumnHeaderPropertyReference(location, referencedPropertyName, typeFullName);
         context.ReportDiagnostic(diagnostic);
     }
 
@@ -84,5 +105,11 @@ internal sealed class DiagnosticsReporter(SymbolAnalysisContext context) : IDiag
     {
         var argList = GetArgumentList(attribute, token);
         return argList?.Arguments.FirstOrDefault();
+    }
+
+    private static Location? GetLocation(AttributeData attribute, CancellationToken token)
+    {
+        var argList = GetArgumentList(attribute, token);
+        return argList?.GetLocation();
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using SpreadCheetah.SourceGenerator;
 using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Helpers;
+using SpreadCheetah.SourceGenerator.Models;
 using System.Collections.Immutable;
 
 namespace SpreadCheetah.SourceGenerators;
@@ -61,6 +62,7 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
 
             var properties = rowType
                 .GetClassAndBaseClassProperties()
+                .Select(x => x.PropertySymbol)
                 .Where(x => x.IsInstancePropertyWithPublicGetter());
 
             var hasProperties = false;
@@ -105,7 +107,7 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
 
         foreach (var property in type.GetClassAndBaseClassProperties())
         {
-            var columnOrderAttribute = property.GetColumnOrderAttribute();
+            var columnOrderAttribute = property.PropertySymbol.GetColumnOrderAttribute();
             if (columnOrderAttribute is null)
                 continue;
 
@@ -127,7 +129,8 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
 
         var diagnostics = new DiagnosticsReporter(context);
         var analyzer = new PropertyAnalyzer(diagnostics);
+        var rowProperty = new RowProperty(property, null); // TODO: Should we pass "null" here?
 
-        analyzer.Analyze(property, context.CancellationToken);
+        analyzer.Analyze(rowProperty, context.CancellationToken);
     }
 }

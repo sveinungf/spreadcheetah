@@ -24,6 +24,18 @@ internal sealed class NullDiagnosticsReporter : IDiagnosticsReporter
     {
     }
 
+    public void ReportInvalidPropertyReference(IPropertySymbol property, string referencedPropertyName, string typeFullName)
+    {
+    }
+
+    public void ReportMissingPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
+    {
+    }
+
+    public void ReportMissingPropertyReference(IPropertySymbol property, string referencedPropertyName, string typeFullName)
+    {
+    }
+
     public void ReportNoPropertiesFound(AttributeData attribute, INamedTypeSymbol rowType, CancellationToken token)
     {
     }
