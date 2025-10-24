@@ -243,6 +243,14 @@ namespace SpreadCheetah.SourceGeneration
         public string? PropertyName { get; }
         public System.Type? Type { get; }
     }
+    [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple=false, Inherited=false)]
+    public sealed class ColumnHeaderLookupAttribute : System.Attribute
+    {
+        public ColumnHeaderLookupAttribute(System.Type type) { }
+        public string? Prefix { get; set; }
+        public string? Suffix { get; set; }
+        public System.Type? Type { get; }
+    }
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
     public sealed class ColumnIgnoreAttribute : System.Attribute
     {
