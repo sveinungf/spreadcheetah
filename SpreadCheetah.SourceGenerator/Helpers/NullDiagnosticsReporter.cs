@@ -20,11 +20,11 @@ internal sealed class NullDiagnosticsReporter : IDiagnosticsReporter
     {
     }
 
-    public void ReportInvalidPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
+    public void ReportUnsupportedPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
     {
     }
 
-    public void ReportInvalidPropertyReference(IPropertySymbol property, string referencedPropertyName, string typeFullName)
+    public void ReportUnsupportedPropertyReference(IPropertySymbol property, string referencedPropertyName, string typeFullName)
     {
     }
 

@@ -207,7 +207,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
             diagnostics.ReportMissingPropertyReference(attribute, propertyName, type.ToDisplayString(), token);
 
         if (invalidReference)
-            diagnostics.ReportInvalidPropertyReference(attribute, propertyName, type.ToDisplayString(), token);
+            diagnostics.ReportUnsupportedPropertyReference(attribute, propertyName, type.ToDisplayString(), token);
 
         return result;
     }
@@ -224,7 +224,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
             diagnostics.ReportMissingPropertyReference(rowTypeProperty, referencedPropertyName, type.ToDisplayString());
 
         if (invalidReference)
-            diagnostics.ReportInvalidPropertyReference(rowTypeProperty, referencedPropertyName, type.ToDisplayString());
+            diagnostics.ReportUnsupportedPropertyReference(rowTypeProperty, referencedPropertyName, type.ToDisplayString());
 
         return result;
     }

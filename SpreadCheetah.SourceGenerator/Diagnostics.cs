@@ -12,13 +12,13 @@ internal static class Diagnostics
         NoPropertiesFoundDescriptor,
         UnsupportedTypeForCellValueDescriptor,
         DuplicateColumnOrderDescriptor,
-        InvalidColumnHeaderPropertyReferenceDescriptor,
+        UnsupportedPropertyForColumnHeaderReferenceDescriptor,
         UnsupportedTypeForAttributeDescriptor,
         InvalidAttributeArgumentDescriptor,
         AttributeTypeArgumentMustInheritDescriptor,
         AttributeCombinationNotSupportedDescriptor,
         AttributeTypeArgumentMustHaveDefaultConstructorDescriptor,
-        MissingColumnHeaderPropertyReferenceDescriptor
+        MissingPropertyForColumnHeaderReferenceDescriptor
     ];
 
     public static Diagnostic NoPropertiesFound(Location? location, string rowTypeName)
@@ -54,13 +54,13 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static Diagnostic InvalidColumnHeaderPropertyReference(Location? location, string propertyName, string typeFullName)
-        => Diagnostic.Create(InvalidColumnHeaderPropertyReferenceDescriptor, location, [propertyName, typeFullName]);
+    public static Diagnostic UnsupportedPropertyForColumnHeaderReference(Location? location, string propertyName, string typeFullName)
+        => Diagnostic.Create(UnsupportedPropertyForColumnHeaderReferenceDescriptor, location, [propertyName, typeFullName]);
 
-    private static readonly DiagnosticDescriptor InvalidColumnHeaderPropertyReferenceDescriptor = new(
+    private static readonly DiagnosticDescriptor UnsupportedPropertyForColumnHeaderReferenceDescriptor = new(
         id: "SPCH1004",
-        title: "Invalid ColumnHeader property reference",
-        messageFormat: "'{0}' on type '{1}' is not a valid property reference. It must be a static property, have a public getter, and the return type must be a string (or string?).",
+        title: "Unsupported property for ColumnHeader reference",
+        messageFormat: "Can't use '{0}' on type '{1}'. It must be a static property, have a public getter, and the return type must be a string (or string?).",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
@@ -120,12 +120,12 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static Diagnostic MissingColumnHeaderPropertyReference(Location? location, string propertyName, string typeFullName)
-        => Diagnostic.Create(MissingColumnHeaderPropertyReferenceDescriptor, location, [propertyName, typeFullName]);
+    public static Diagnostic MissingPropertyForColumnHeaderReference(Location? location, string propertyName, string typeFullName)
+        => Diagnostic.Create(MissingPropertyForColumnHeaderReferenceDescriptor, location, [propertyName, typeFullName]);
 
-    private static readonly DiagnosticDescriptor MissingColumnHeaderPropertyReferenceDescriptor = new(
+    private static readonly DiagnosticDescriptor MissingPropertyForColumnHeaderReferenceDescriptor = new(
         id: "SPCH1010",
-        title: "Missing ColumnHeader property reference", // TODO: Find better title
+        title: "Missing property for ColumnHeader reference",
         messageFormat: "Could not find property '{0}' on type '{1}'",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Warning,

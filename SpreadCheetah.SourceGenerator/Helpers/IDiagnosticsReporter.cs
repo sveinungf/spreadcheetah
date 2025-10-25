@@ -10,9 +10,9 @@ internal interface IDiagnosticsReporter
 
     void ReportInvalidArgument(AttributeData attribute, CancellationToken token);
 
-    void ReportInvalidPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token);
+    void ReportUnsupportedPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token);
 
-    void ReportInvalidPropertyReference(IPropertySymbol property, string referencedPropertyName, string typeFullName);
+    void ReportUnsupportedPropertyReference(IPropertySymbol property, string referencedPropertyName, string typeFullName);
 
     void ReportMissingPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token);
 

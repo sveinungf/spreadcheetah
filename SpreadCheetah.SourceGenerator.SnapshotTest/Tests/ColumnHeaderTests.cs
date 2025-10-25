@@ -99,7 +99,7 @@ public class ColumnHeaderTests
     }
 
     [Fact]
-    public Task ColumnHeader_ClassWithPropertyReferenceColumnHeaders()
+    public Task ColumnHeader_ClassWithValidPropertiesForColumnHeaderReference()
     {
         // Arrange
         const string source = """
@@ -138,7 +138,7 @@ public class ColumnHeaderTests
     }
 
     [Fact]
-    public Task ColumnHeader_ClassWithInvalidPropertyReferenceColumnHeaders()
+    public Task ColumnHeader_ClassWithMissingPropertiesForColumnHeaderReference()
     {
         // Arrange
         var context = AnalyzerTest.CreateContext();
@@ -150,6 +150,36 @@ public class ColumnHeaderTests
             public class ColumnHeaders
             {
                 public static string Name => "The name";
+            }
+
+            public class ClassWithInvalidPropertyReferenceColumnHeaders
+            {
+                [ColumnHeader{|SPCH1010:(typeof(ColumnHeaders), "NonExistingProperty")|}]
+                public string PropertyA { get; set; }
+                [ColumnHeader{|SPCH1010:(typeof(ColumnHeaders), "name")|}]
+                public string PropertyB { get; set; }
+            }
+            
+            [WorksheetRow(typeof(ClassWithInvalidPropertyReferenceColumnHeaders))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return context.RunAsync(Token);
+    }
+
+    [Fact]
+    public Task ColumnHeader_ClassWithUnsupportedPropertiesForColumnHeaderReference()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            public class ColumnHeaders
+            {
                 public static string PrivateGetterProperty { private get; set; } = "Private getter property";
                 public static string WriteOnlyProperty { set => _ = value; }
                 public static int NonStringProperty => 2024;
@@ -159,10 +189,6 @@ public class ColumnHeaderTests
 
             public class ClassWithInvalidPropertyReferenceColumnHeaders
             {
-                [ColumnHeader{|SPCH1004:(typeof(ColumnHeaders), "NonExistingProperty")|}]
-                public string PropertyA { get; set; }
-                [ColumnHeader{|SPCH1004:(typeof(ColumnHeaders), "name")|}]
-                public string PropertyB { get; set; }
                 [ColumnHeader{|SPCH1004:(typeof(ColumnHeaders), nameof(ColumnHeaders.PrivateGetterProperty))|}]
                 public string PropertyC { get; set; }
                 [ColumnHeader{|SPCH1004:(typeof(ColumnHeaders), nameof(ColumnHeaders.WriteOnlyProperty))|}]
