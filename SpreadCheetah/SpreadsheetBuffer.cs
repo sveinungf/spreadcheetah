@@ -69,14 +69,50 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         return false;
     }
 
+    public bool TryWrite(int bytesToSkip, out int bytesWritten, [InterpolatedStringHandlerArgument("", "bytesToSkip")] ref TryWriteInterpolatedStringHandler handler)
+    {
+        var pos = handler._pos;
+        if (pos != 0)
+        {
+            Advance(pos);
+            bytesWritten = pos;
+            return true;
+        }
+
+        bytesWritten = 0;
+        return false;
+    }
+
     [InterpolatedStringHandler]
 #pragma warning disable CS9113 // Parameter is unread.
     public ref struct TryWriteInterpolatedStringHandler(int literalLength, int formattedCount, SpreadsheetBuffer buffer)
 #pragma warning restore CS9113 // Parameter is unread.
     {
         internal int _pos;
+        internal int _bytesToSkip;
+        internal bool _keepPosOnFail; // for backward compatibility
+
+        public TryWriteInterpolatedStringHandler(int literalLength, int formattedCount, SpreadsheetBuffer buffer, int bytesToSkip)
+            : this(literalLength, formattedCount, buffer)
+        {
+            _bytesToSkip = bytesToSkip;
+            _keepPosOnFail = true;
+        }
 
         private readonly Span<byte> GetSpan() => buffer.GetSpan(_pos);
+
+        private void Advance(int bytes)
+        {
+            if (_bytesToSkip >= bytes)
+            {
+                // Ideally, _bytesToSkip will never be negative. We can check for this.
+                _bytesToSkip -= bytes;
+            }
+            else
+            {
+                _pos += bytes;
+            }
+        }
 
         [ExcludeFromCodeCoverage]
         public bool AppendLiteral(string value)
@@ -85,7 +121,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
             if (value is not null && Utf8Helper.TryGetBytes(value.AsSpan(), GetSpan(), out var bytesWritten))
             {
-                _pos += bytesWritten;
+                Advance(bytesWritten);
                 return true;
             }
 
@@ -101,7 +137,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (destination.Length > 0)
             {
                 destination[0] = (byte)('0' + (value ? 1 : 0)); // Branchless on .NET 8+
-                _pos++;
+                Advance(1);
                 return true;
             }
 
@@ -116,7 +152,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
 #endif
             {
-                _pos += bytesWritten;
+                Advance(bytesWritten);
                 return true;
             }
 
@@ -131,7 +167,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
 #endif
             {
-                _pos += bytesWritten;
+                Advance(bytesWritten);
                 return true;
             }
 
@@ -146,7 +182,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
 #endif
             {
-                _pos += bytesWritten;
+                Advance(bytesWritten);
                 return true;
             }
 
@@ -161,7 +197,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
 #endif
             {
-                _pos += bytesWritten;
+                Advance(bytesWritten);
                 return true;
             }
 
@@ -176,7 +212,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
 #endif
             {
-                _pos += bytesWritten;
+                Advance(bytesWritten);
                 return true;
             }
 
@@ -187,7 +223,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         {
             if (Utf8Formatter.TryFormat(value.Item1, GetSpan(), out var bytesWritten, value.Item2))
             {
-                _pos += bytesWritten;
+                Advance(bytesWritten);
                 return true;
             }
 
@@ -207,7 +243,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
                 Utf8Formatter.TryFormat(color.G, span, out _, format);
                 span = span.Slice(2);
                 Utf8Formatter.TryFormat(color.B, span, out _, format);
-                _pos += 8;
+                Advance(8);
                 return true;
             }
 
@@ -220,7 +256,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (Utf8Formatter.TryFormat(dateTime, span, out _, new StandardFormat('O')))
             {
                 span[19] = (byte)'Z';
-                _pos += 20;
+                Advance(20);
                 return true;
             }
 
@@ -231,7 +267,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         {
             if (oaDate.TryFormat(GetSpan(), out var bytesWritten))
             {
-                _pos += bytesWritten;
+                Advance(bytesWritten);
                 return true;
             }
 
@@ -240,10 +276,10 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(SimpleSingleCellReference reference)
         {
-            var written = 0;
-            if (SpanHelper.TryWriteCellReference(reference.Column, reference.Row, GetSpan(), ref written))
+            var bytesWritten = 0;
+            if (SpanHelper.TryWriteCellReference(reference.Column, reference.Row, GetSpan(), ref bytesWritten))
             {
-                _pos += written;
+                Advance(bytesWritten);
                 return true;
             }
 
@@ -255,25 +291,21 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (attribute.Value is not { } value)
                 return true;
 
-            var span = GetSpan();
-            span[0] = (byte)' ';
-            _pos++;
+            if (!AppendFormatted(" "u8))
+                return Fail();
 
             if (!AppendFormatted(attribute.AttributeName))
                 return Fail();
 
-            span = GetSpan();
-            span[0] = (byte)'=';
-            span[1] = (byte)'"';
-            _pos += 2;
+            if (!AppendFormatted("=\""u8))
+                return Fail();
 
             if (!AppendFormatted(value))
                 return Fail();
 
-            span = GetSpan();
-            span[0] = (byte)'"';
-            _pos++;
-
+            if (!AppendFormatted("\""u8))
+                return Fail();
+            
             return true;
         }
 
@@ -284,7 +316,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
             var span = GetSpan();
             span[0] = (byte)' ';
-            _pos++;
+            Advance(1);
 
             if (!AppendFormatted(attribute.AttributeName))
                 return Fail();
@@ -292,14 +324,14 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             span = GetSpan();
             span[0] = (byte)'=';
             span[1] = (byte)'"';
-            _pos += 2;
+            Advance(2);
 
             if (!AppendFormatted(value))
                 return Fail();
 
             span = GetSpan();
             span[0] = (byte)'"';
-            _pos++;
+            Advance(1);
 
             return true;
         }
@@ -311,7 +343,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
             var span = GetSpan();
             span[0] = (byte)' ';
-            _pos++;
+            Advance(1);
 
             if (!AppendFormatted(attribute.AttributeName))
                 return Fail();
@@ -319,14 +351,14 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             span = GetSpan();
             span[0] = (byte)'=';
             span[1] = (byte)'"';
-            _pos += 2;
+            Advance(2);
 
             if (!AppendFormatted(attribute.Value))
                 return Fail();
 
             span = GetSpan();
             span[0] = (byte)'"';
-            _pos++;
+            Advance(1);
 
             return true;
         }
@@ -338,7 +370,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
             var span = GetSpan();
             span[0] = (byte)' ';
-            _pos++;
+            Advance(1);
 
             if (!AppendFormatted(attribute.AttributeName))
                 return Fail();
@@ -346,14 +378,14 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             span = GetSpan();
             span[0] = (byte)'=';
             span[1] = (byte)'"';
-            _pos += 2;
+            Advance(2);
 
             if (!AppendFormatted(value))
                 return Fail();
 
             span = GetSpan();
             span[0] = (byte)'"';
-            _pos++;
+            Advance(1);
             
             return true;
         }
@@ -379,7 +411,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
             if (XmlUtility.TryXmlEncodeToUtf8(value, GetSpan(), out var bytesWritten))
             {
-                _pos += bytesWritten;
+                Advance(bytesWritten);
                 return true;
             }
 
@@ -390,7 +422,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         {
             if (utf8Value.TryCopyTo(GetSpan()))
             {
-                _pos += utf8Value.Length;
+                Advance(utf8Value.Length);
                 return true;
             }
 
@@ -402,16 +434,28 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             var bytes = GetSpan();
             var bytesWritten = 0;
 
-            if (!"<c r=\""u8.TryCopyTo(bytes, ref bytesWritten)) return Fail();
-            if (!SpanHelper.TryWriteCellReference(state.Column + 1, state.NextRowIndex - 1, bytes, ref bytesWritten)) return Fail();
+            if (!"<c r=\""u8.TryCopyTo(bytes, ref bytesWritten))
+            {
+                Advance(bytesWritten);
+                return Fail();
+            }
+            if (!SpanHelper.TryWriteCellReference(state.Column + 1, state.NextRowIndex - 1, bytes, ref bytesWritten))
+            {
+                Advance(bytesWritten);
+                return Fail();
+            }
 
-            _pos += bytesWritten;
+            Advance(bytesWritten);
             return true;
         }
 
         private bool Fail()
         {
-            _pos = 0;
+            if (!_keepPosOnFail)
+            {
+                _pos = 0;
+            }
+
             return false;
         }
     }

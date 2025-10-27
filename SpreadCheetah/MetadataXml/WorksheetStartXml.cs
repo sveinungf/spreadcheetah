@@ -42,6 +42,7 @@ file struct WorksheetStartXmlWriter(
     private WorksheetColumnXmlPart? _columnXml;
     private Element _next;
     private int _nextIndex;
+    private int _previouslyWrittenBytes;
 
     private static List<(int ColumnIndex, ColumnOptions Options)>? GetColumns(
         SortedDictionary<int, ColumnOptions>? dictionary)
@@ -67,12 +68,13 @@ file struct WorksheetStartXmlWriter(
 
     public bool MoveNext()
     {
+        var bytesWritten = 0;
         Current = _next switch
         {
             Element.Header => buffer.TryWrite(Header),
-            Element.SheetViewsStart => TryWriteSheetViewsStart(),
-            Element.SheetViewPane => TryWriteSheetViewPane(),
-            Element.SheetViewSelection => TryWriteSheetViewSelection(),
+            Element.SheetViewsStart => TryWriteSheetViewsStart(_previouslyWrittenBytes, out bytesWritten),
+            Element.SheetViewPane => TryWriteSheetViewPane(_previouslyWrittenBytes, out bytesWritten),
+            Element.SheetViewSelection => TryWriteSheetViewSelection(_previouslyWrittenBytes, out bytesWritten),
             Element.SheetViewsEnd => TryWriteSheetViewsEnd(),
             Element.SheetFormatProperties => TryWriteSheetFormatProperties(),
             Element.ColumnsStart => TryWriteColumnsStart(),
@@ -82,28 +84,41 @@ file struct WorksheetStartXmlWriter(
         };
 
         if (Current)
+        {
+            _previouslyWrittenBytes = 0;
             ++_next;
+        }
+        else
+        {
+            _previouslyWrittenBytes += bytesWritten;
+        }
 
         return _next < Element.Done;
     }
 
-    private readonly bool TryWriteSheetViewsStart()
+    private readonly bool TryWriteSheetViewsStart(int bytesToSkip, out int bytesWritten)
     {
         if (options is null or { FrozenColumns: null, FrozenRows: null, ShowGridLines: null })
+        {
+            bytesWritten = 0;
             return true;
+        }
 
         var showGridLinesAttribute = new BooleanAttribute("showGridLines"u8, options.ShowGridLines);
 
-        return buffer.TryWrite(
+        return buffer.TryWrite(bytesToSkip, out bytesWritten,
             $"{"<sheetViews><sheetView"u8}" +
             $"{showGridLinesAttribute}" +
             $"{" workbookViewId=\"0\">"u8}");
     }
 
-    private readonly bool TryWriteSheetViewPane()
+    private readonly bool TryWriteSheetViewPane(int bytesToSkip, out int bytesWritten)
     {
         if (options is null or { FrozenColumns: null, FrozenRows: null })
+        {
+            bytesWritten = 0;
             return true;
+        }
 
         var frozenColumns = options.FrozenColumns;
         var frozenRows = options.FrozenRows;
@@ -125,7 +140,7 @@ file struct WorksheetStartXmlWriter(
         var cellReference = new SimpleSingleCellReference((ushort)column, (uint)row);
         var topLeftCellAttribute = new SimpleSingleCellReferenceAttribute("topLeftCell"u8, cellReference);
 
-        return buffer.TryWrite(
+        return buffer.TryWrite(bytesToSkip, out bytesWritten,
             $"{"<pane"u8}" +
             $"{xSplitAttribute}" +
             $"{ySplitAttribute}" +
@@ -135,10 +150,13 @@ file struct WorksheetStartXmlWriter(
         );
     }
 
-    private readonly bool TryWriteSheetViewSelection()
+    private readonly bool TryWriteSheetViewSelection(int bytesToSkip, out int bytesWritten)
     {
         if (options is null or { FrozenColumns: null, FrozenRows: null })
+        {
+            bytesWritten = 0;
             return true;
+        }
 
         var activePane = options switch
         {
@@ -148,7 +166,7 @@ file struct WorksheetStartXmlWriter(
         };
 
         var paneAttribute = new SpanByteAttribute("pane"u8, activePane);
-        return buffer.TryWrite(
+        return buffer.TryWrite(bytesToSkip, out bytesWritten,
             $"{"<selection"u8}" +
             $"{paneAttribute}" +
             $"{" />"u8}"
