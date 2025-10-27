@@ -69,6 +69,12 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         return false;
     }
 
+    /// <summary>
+    /// Write an interpolated string with a skipped number of bytes
+    /// </summary>
+    /// <param name="bytesToSkip">The number of bytes to skip. Must be equal to bytesWritten from the previous unsuccessful write attempt</param>
+    /// <param name="bytesWritten">Number of bytes written</param>
+    /// <returns>true - when successfully written to the buffer, false - not successfully or partially successfully written to the buffer</returns>
     public bool TryWrite(int bytesToSkip, out int bytesWritten, [InterpolatedStringHandlerArgument("", "bytesToSkip")] ref TryWriteInterpolatedStringHandler handler)
     {
         var (pos, isSuccess) = handler;
@@ -81,7 +87,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         {
             bytesWritten = 0;
         }
-        
+
         return isSuccess;
     }
 
