@@ -329,24 +329,20 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (attribute.Value is not { } value)
                 return Success();
 
-            var span = GetSpan();
-            span[0] = (byte)' ';
-            Advance(1);
+            if (!AppendFormatted(" "u8))
+                return Fail();
 
             if (!AppendFormatted(attribute.AttributeName))
                 return Fail();
 
-            span = GetSpan();
-            span[0] = (byte)'=';
-            span[1] = (byte)'"';
-            Advance(2);
+            if (!AppendFormatted("=\""u8))
+                return Fail();
 
             if (!AppendFormatted(value))
                 return Fail();
 
-            span = GetSpan();
-            span[0] = (byte)'"';
-            Advance(1);
+            if (!AppendFormatted("\""u8))
+                return Fail();
 
             return Success();
         }
@@ -356,24 +352,20 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (attribute.Value.IsEmpty)
                 return Success();
 
-            var span = GetSpan();
-            span[0] = (byte)' ';
-            Advance(1);
+            if (!AppendFormatted(" "u8))
+                return Fail();
 
             if (!AppendFormatted(attribute.AttributeName))
                 return Fail();
 
-            span = GetSpan();
-            span[0] = (byte)'=';
-            span[1] = (byte)'"';
-            Advance(2);
+            if (!AppendFormatted("=\""u8))
+                return Fail();
 
             if (!AppendFormatted(attribute.Value))
                 return Fail();
 
-            span = GetSpan();
-            span[0] = (byte)'"';
-            Advance(1);
+            if (!AppendFormatted("\""u8))
+                return Fail();
 
             return Success();
         }
@@ -381,26 +373,22 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         public bool AppendFormatted(SimpleSingleCellReferenceAttribute attribute)
         {
             if (attribute.Value is not { } value)
-                return true;
+                return Success();
 
-            var span = GetSpan();
-            span[0] = (byte)' ';
-            Advance(1);
+            if (!AppendFormatted(" "u8))
+                return Fail();
 
             if (!AppendFormatted(attribute.AttributeName))
                 return Fail();
 
-            span = GetSpan();
-            span[0] = (byte)'=';
-            span[1] = (byte)'"';
-            Advance(2);
+            if (!AppendFormatted("=\""u8))
+                return Fail();
 
             if (!AppendFormatted(value))
                 return Fail();
 
-            span = GetSpan();
-            span[0] = (byte)'"';
-            Advance(1);
+            if (!AppendFormatted("\""u8))
+                return Fail();
             
             return Success();
         }
