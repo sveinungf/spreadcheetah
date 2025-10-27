@@ -43,8 +43,7 @@ file struct WorksheetStartXmlWriter(
     private Element _next;
     private int _nextIndex;
     private int _previouslyWrittenBytes;
-    private int _deadlockDetector;
-
+    
     private static List<(int ColumnIndex, ColumnOptions Options)>? GetColumns(
         SortedDictionary<int, ColumnOptions>? dictionary)
     {
@@ -87,17 +86,12 @@ file struct WorksheetStartXmlWriter(
         if (Current)
         {
             _previouslyWrittenBytes = 0;
-            _deadlockDetector = 0;
             ++_next;
         }
         else
         {
             _previouslyWrittenBytes += bytesWritten;
-            ++_deadlockDetector;
         }
-
-        if (_deadlockDetector >= 10)
-            throw new SpreadCheetahException("A deadlock was encountered while attempting to write worksheet xml start");
 
         return _next < Element.Done;
     }
