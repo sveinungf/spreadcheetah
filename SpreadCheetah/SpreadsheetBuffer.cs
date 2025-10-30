@@ -60,7 +60,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
     public bool TryWrite([InterpolatedStringHandlerArgument("")] ref TryWriteInterpolatedStringHandler handler)
     {
         var (pos, isSuccess) = handler;
-        
+
         Advance(pos);
         return isSuccess;
     }
@@ -75,7 +75,6 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         private readonly Span<byte> GetSpan() => buffer.GetSpan(_pos);
 
-        
         [ExcludeFromCodeCoverage]
         public bool AppendLiteral(string value)
         {
@@ -273,7 +272,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
             if (!AppendFormatted("\""u8))
                 return Fail();
-            
+
             return true;
         }
 
@@ -322,7 +321,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
             return true;
         }
-        
+
         public bool AppendFormatted(SimpleSingleCellReferenceAttribute attribute)
         {
             if (attribute.Value is not { } value)
@@ -342,7 +341,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
             if (!AppendFormatted("\""u8))
                 return Fail();
-            
+
             return true;
         }
 

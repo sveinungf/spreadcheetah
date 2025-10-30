@@ -660,7 +660,7 @@ public class SpreadsheetTests
         // Arrange
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
-        
+
         // Act
         var sheetOptions = new WorksheetOptions { ShowGridLines = expectedShowGridLines };
         await spreadsheet.StartWorksheetAsync("Sheet 1", sheetOptions, Token);
