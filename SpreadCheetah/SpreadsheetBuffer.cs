@@ -59,14 +59,10 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
     public bool TryWrite([InterpolatedStringHandlerArgument("")] ref TryWriteInterpolatedStringHandler handler)
     {
-        var pos = handler._pos;
-        if (pos != 0)
-        {
-            Advance(pos);
-            return true;
-        }
-
-        return false;
+        var (pos, isSuccess) = handler;
+        
+        Advance(pos);
+        return isSuccess;
     }
 
     [InterpolatedStringHandler]
@@ -75,6 +71,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 #pragma warning restore CS9113 // Parameter is unread.
     {
         internal int _pos;
+        internal bool _isSuccess = true;
 
         private readonly Span<byte> GetSpan() => buffer.GetSpan(_pos);
 
@@ -91,6 +88,12 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             }
 
             return Fail();
+        }
+
+        public readonly void Deconstruct(out int pos, out bool isSuccess)
+        {
+            pos = _pos;
+            isSuccess = _isSuccess;
         }
 
         /// <summary>
@@ -397,6 +400,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         private bool Fail()
         {
             _pos = 0;
+            _isSuccess = false;
             return false;
         }
     }
