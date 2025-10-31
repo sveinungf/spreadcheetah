@@ -1,4 +1,5 @@
 using SpreadCheetah.CellReferences;
+using SpreadCheetah.MetadataXml.Attributes;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Worksheets;
 
@@ -70,8 +71,8 @@ file struct WorksheetStartXmlWriter(
         {
             Element.Header => buffer.TryWrite(Header),
             Element.SheetViewsStart => TryWriteSheetViewsStart(),
-            Element.ColumnSplit => TryWriteColumnSplit(),
-            Element.RowSplit => TryWriteRowSplit(),
+            Element.SheetViewPane => TryWriteSheetViewPane(),
+            Element.SheetViewSelection => TryWriteSheetViewSelection(),
             Element.SheetViewsEnd => TryWriteSheetViewsEnd(),
             Element.SheetFormatProperties => TryWriteSheetFormatProperties(),
             Element.ColumnsStart => TryWriteColumnsStart(),
@@ -88,38 +89,27 @@ file struct WorksheetStartXmlWriter(
 
     private readonly bool TryWriteSheetViewsStart()
     {
-        return options is null or { FrozenColumns: null, FrozenRows: null }
-            || buffer.TryWrite("<sheetViews><sheetView workbookViewId=\"0\"><pane "u8);
-    }
-
-    private readonly bool TryWriteColumnSplit()
-    {
-        if (options?.FrozenColumns is not { } frozenColumns)
+        if (options is null or { FrozenColumns: null, FrozenRows: null, ShowGridLines: null })
             return true;
+
+        var showGridLinesAttribute = new BooleanAttribute("showGridLines"u8, options.ShowGridLines);
 
         return buffer.TryWrite(
-            $"{"xSplit=\""u8}" +
-            $"{frozenColumns}" +
-            $"{"\" "u8}");
+            $"{"<sheetViews><sheetView"u8}" +
+            $"{showGridLinesAttribute}" +
+            $"{" workbookViewId=\"0\">"u8}");
     }
 
-    private readonly bool TryWriteRowSplit()
+    private readonly bool TryWriteSheetViewPane()
     {
-        if (options?.FrozenRows is not { } frozenRows)
+        if (options is null or { FrozenColumns: null, FrozenRows: null })
             return true;
 
-        return buffer.TryWrite(
-            $"{"ySplit=\""u8}" +
-            $"{frozenRows}" +
-            $"{"\" "u8}");
-    }
+        var frozenColumns = options.FrozenColumns;
+        var frozenRows = options.FrozenRows;
 
-    private readonly bool TryWriteSheetViewsEnd()
-    {
-        var frozenColumns = options?.FrozenColumns;
-        var frozenRows = options?.FrozenRows;
-        if (frozenColumns is null && frozenRows is null)
-            return true;
+        var xSplitAttribute = new IntAttribute("xSplit"u8, frozenColumns);
+        var ySplitAttribute = new IntAttribute("ySplit"u8, frozenRows);
 
         var activePane = (frozenColumns, frozenRows) switch
         {
@@ -128,18 +118,49 @@ file struct WorksheetStartXmlWriter(
             _ => "bottomLeft"u8
         };
 
+        var activePaneAttribute = new SpanByteAttribute("activePane"u8, activePane);
+
         var column = (frozenColumns ?? 0) + 1;
         var row = (frozenRows ?? 0) + 1;
         var cellReference = new SimpleSingleCellReference((ushort)column, (uint)row);
+        var topLeftCellAttribute = new SimpleSingleCellReferenceAttribute("topLeftCell"u8, cellReference);
 
         return buffer.TryWrite(
-            $"{"topLeftCell=\""u8}" +
-            $"{cellReference}" +
-            $"{"\" activePane=\""u8}" +
-            $"{activePane}" +
-            $"{"\" state=\"frozen\"/><selection pane=\""u8}" +
-            $"{activePane}" +
-            $"{"\"/></sheetView></sheetViews>"u8}");
+            $"{"<pane"u8}" +
+            $"{xSplitAttribute}" +
+            $"{ySplitAttribute}" +
+            $"{activePaneAttribute}" +
+            $"{topLeftCellAttribute}" +
+            $"{" state=\"frozen\"/>"u8}"
+        );
+    }
+
+    private readonly bool TryWriteSheetViewSelection()
+    {
+        if (options is null or { FrozenColumns: null, FrozenRows: null })
+            return true;
+
+        var activePane = options switch
+        {
+            { FrozenColumns: not null, FrozenRows: not null } => "bottomRight"u8,
+            { FrozenColumns: not null, FrozenRows: _ } => "topRight"u8,
+            { FrozenColumns: _, FrozenRows: _ } => "bottomLeft"u8
+        };
+
+        var paneAttribute = new SpanByteAttribute("pane"u8, activePane);
+        return buffer.TryWrite(
+            $"{"<selection"u8}" +
+            $"{paneAttribute}" +
+            $"{" />"u8}"
+        );
+    }
+
+    private readonly bool TryWriteSheetViewsEnd()
+    {
+        if (options is null or { FrozenColumns: null, FrozenRows: null, ShowGridLines: null })
+            return true;
+
+        return buffer.TryWrite("</sheetView></sheetViews>"u8);
     }
 
     private readonly bool TryWriteSheetFormatProperties()
@@ -197,8 +218,8 @@ file struct WorksheetStartXmlWriter(
     {
         Header,
         SheetViewsStart,
-        ColumnSplit,
-        RowSplit,
+        SheetViewPane,
+        SheetViewSelection,
         SheetViewsEnd,
         SheetFormatProperties,
         ColumnsStart,
