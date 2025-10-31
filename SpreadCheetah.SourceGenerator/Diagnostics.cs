@@ -18,7 +18,8 @@ internal static class Diagnostics
         AttributeTypeArgumentMustInheritDescriptor,
         AttributeCombinationNotSupportedDescriptor,
         AttributeTypeArgumentMustHaveDefaultConstructorDescriptor,
-        MissingPropertyForColumnHeaderDescriptor
+        MissingPropertyForColumnHeaderDescriptor,
+        PropertyForColumnHeaderMustBePublicDescriptor
     ];
 
     public static Diagnostic NoPropertiesFound(Location? location, string rowTypeName)

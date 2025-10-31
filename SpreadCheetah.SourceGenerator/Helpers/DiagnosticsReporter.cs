@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using SpreadCheetah.SourceGenerator.Models;
 
 namespace SpreadCheetah.SourceGenerator.Helpers;
 
@@ -29,31 +30,24 @@ internal sealed class DiagnosticsReporter(SymbolAnalysisContext context) : IDiag
         context.ReportDiagnostic(diagnostic);
     }
 
-    public void ReportUnsupportedPropertyForColumnHeader(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
+    public void ReportMissingPropertyForColumnHeader(IColumnHeaderDiagnosticData data, CancellationToken token)
     {
-        var location = GetLocation(attribute, token);
-        var diagnostic = Diagnostics.UnsupportedPropertyForColumnHeader(location, propertyName, typeFullName);
+        var location = data.GetLocation(token);
+        var diagnostic = Diagnostics.MissingPropertyForColumnHeader(location, data.ReferencedPropertyName, data.TypeFullName);
         context.ReportDiagnostic(diagnostic);
     }
 
-    public void ReportUnsupportedPropertyForColumnHeader(IPropertySymbol property, string referencedPropertyName, string typeFullName)
+    public void ReportNonPublicPropertyForColumnHeader(IColumnHeaderDiagnosticData data, CancellationToken token)
     {
-        var location = property.Locations.FirstOrDefault();
-        var diagnostic = Diagnostics.UnsupportedPropertyForColumnHeader(location, referencedPropertyName, typeFullName);
+        var location = data.GetLocation(token);
+        var diagnostic = Diagnostics.PropertyForColumnHeaderMustBePublic(location, data.ReferencedPropertyName, data.TypeFullName);
         context.ReportDiagnostic(diagnostic);
     }
 
-    public void ReportMissingPropertyForColumnHeader(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
+    public void ReportUnsupportedPropertyForColumnHeader(IColumnHeaderDiagnosticData data, CancellationToken token)
     {
-        var location = GetLocation(attribute, token);
-        var diagnostic = Diagnostics.MissingPropertyForColumnHeader(location, propertyName, typeFullName);
-        context.ReportDiagnostic(diagnostic);
-    }
-
-    public void ReportMissingPropertyForColumnHeader(IPropertySymbol property, string referencedPropertyName, string typeFullName)
-    {
-        var location = property.Locations.FirstOrDefault();
-        var diagnostic = Diagnostics.MissingPropertyForColumnHeader(location, referencedPropertyName, typeFullName);
+        var location = data.GetLocation(token);
+        var diagnostic = Diagnostics.UnsupportedPropertyForColumnHeader(location, data.ReferencedPropertyName, data.TypeFullName);
         context.ReportDiagnostic(diagnostic);
     }
 
@@ -105,11 +99,5 @@ internal sealed class DiagnosticsReporter(SymbolAnalysisContext context) : IDiag
     {
         var argList = GetArgumentList(attribute, token);
         return argList?.Arguments.FirstOrDefault();
-    }
-
-    private static Location? GetLocation(AttributeData attribute, CancellationToken token)
-    {
-        var argList = GetArgumentList(attribute, token);
-        return argList?.GetLocation();
     }
 }

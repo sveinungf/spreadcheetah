@@ -1,5 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Models;
 using SpreadCheetah.SourceGenerator.Models.Values;
@@ -199,15 +200,14 @@ internal sealed class PropertyAnalyzer(
         AttributeData attribute,
         CancellationToken token)
     {
-        var result = GetColumnHeaderWithPropertyReference(type, propertyName, out var missingReference, out var invalidReference);
+        var diagnosticData = new ColumnHeaderDiagnosticData
+        {
+            Attribute = attribute,
+            ReferencedPropertyName = propertyName,
+            TypeFullName = type.ToDisplayString()
+        };
 
-        if (missingReference)
-            diagnostics.ReportMissingPropertyForColumnHeader(attribute, propertyName, type.ToDisplayString(), token);
-
-        if (invalidReference)
-            diagnostics.ReportUnsupportedPropertyForColumnHeader(attribute, propertyName, type.ToDisplayString(), token);
-
-        return result;
+        return GetColumnHeaderWithPropertyReference(type, propertyName, diagnosticData, token);
     }
 
     private ColumnHeader? GetColumnHeaderWithPropertyReference(
@@ -216,25 +216,22 @@ internal sealed class PropertyAnalyzer(
     {
         var type = inferColumnHeaders.Type;
         var referencedPropertyName = inferColumnHeaders.Prefix + rowTypeProperty.Name + inferColumnHeaders.Suffix;
-        var result = GetColumnHeaderWithPropertyReference(type, referencedPropertyName, out var missingReference, out var invalidReference);
+        var diagnosticData = new InferColumnHeaderDiagnosticData
+        {
+            Property = rowTypeProperty,
+            ReferencedPropertyName = referencedPropertyName,
+            TypeFullName = type.ToDisplayString()
+        };
 
-        if (missingReference)
-            diagnostics.ReportMissingPropertyForColumnHeader(rowTypeProperty, referencedPropertyName, type.ToDisplayString());
-
-        if (invalidReference)
-            diagnostics.ReportUnsupportedPropertyForColumnHeader(rowTypeProperty, referencedPropertyName, type.ToDisplayString());
-
-        return result;
+        return GetColumnHeaderWithPropertyReference(type, referencedPropertyName, diagnosticData, CancellationToken.None);
     }
 
-    private static ColumnHeader? GetColumnHeaderWithPropertyReference(
+    private ColumnHeader? GetColumnHeaderWithPropertyReference(
         INamedTypeSymbol type,
         string propertyName,
-        out bool missingReference,
-        out bool invalidReference)
+        IColumnHeaderDiagnosticData diagnosticData,
+        CancellationToken token)
     {
-        missingReference = false;
-        invalidReference = false;
         var typeFullName = type.ToDisplayString();
 
         foreach (var member in type.GetMembers())
@@ -242,10 +239,16 @@ internal sealed class PropertyAnalyzer(
             if (!string.Equals(member.Name, propertyName, StringComparison.Ordinal))
                 continue;
 
-            if (!member.IsStaticPropertyWithPublicGetter(out var p)
+            if (!member.IsStaticPropertyWithGetter(out var p)
                 || p.Type.SpecialType != SpecialType.System_String)
             {
-                invalidReference = true;
+                diagnostics.ReportUnsupportedPropertyForColumnHeader(diagnosticData, token);
+                return null;
+            }
+
+            if (!p.HasPublicGetter())
+            {
+                diagnostics.ReportNonPublicPropertyForColumnHeader(diagnosticData, token);
                 return null;
             }
 
@@ -253,7 +256,7 @@ internal sealed class PropertyAnalyzer(
             return new ColumnHeader(propertyReference);
         }
 
-        missingReference = true;
+        diagnostics.ReportMissingPropertyForColumnHeader(diagnosticData, token);
         return null;
     }
 

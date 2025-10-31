@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using SpreadCheetah.SourceGenerator.Helpers;
 using SpreadCheetah.SourceGenerator.Models;
 using SpreadCheetah.SourceGenerator.Models.Values;
@@ -115,14 +114,13 @@ internal static class SymbolExtensions
         };
     }
 
-    public static bool IsStaticPropertyWithPublicGetter(
+    public static bool IsStaticPropertyWithGetter(
         this ISymbol symbol,
         [NotNullWhen(true)] out IPropertySymbol? property)
     {
         if (symbol is IPropertySymbol
             {
-                DeclaredAccessibility: Accessibility.Public,
-                GetMethod.DeclaredAccessibility: Accessibility.Public,
+                GetMethod: not null,
                 IsStatic: true,
                 IsWriteOnly: false
             } p)
@@ -133,6 +131,15 @@ internal static class SymbolExtensions
 
         property = null;
         return false;
+    }
+
+    public static bool HasPublicGetter(this IPropertySymbol symbol)
+    {
+        return symbol is
+        {
+            DeclaredAccessibility: Accessibility.Public,
+            GetMethod.DeclaredAccessibility: Accessibility.Public
+        };
     }
 
     public static IEnumerable<RowProperty> GetClassAndBaseClassProperties(this ITypeSymbol type)
