@@ -45,7 +45,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
             };
         }
 
-        if (property.ColumnHeaderLookupInfo is { } headerLookup && _result is { ColumnHeader: null, ColumnIgnore: null })
+        if (property.InferColumnHeadersInfo is { } headerLookup && _result is { ColumnHeader: null, ColumnIgnore: null })
             _result.ColumnHeader = GetColumnHeaderWithPropertyReference(headerLookup, symbol);
 
         return _result;
@@ -213,11 +213,11 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
     }
 
     private ColumnHeader? GetColumnHeaderWithPropertyReference(
-        ColumnHeaderLookupInfo columnHeaderLookup,
+        InferColumnHeadersInfo inferColumnHeaders,
         IPropertySymbol rowTypeProperty)
     {
-        var type = columnHeaderLookup.Type;
-        var referencedPropertyName = columnHeaderLookup.Prefix + rowTypeProperty.Name + columnHeaderLookup.Suffix;
+        var type = inferColumnHeaders.Type;
+        var referencedPropertyName = inferColumnHeaders.Prefix + rowTypeProperty.Name + inferColumnHeaders.Suffix;
         var result = GetColumnHeaderWithPropertyReference(type, referencedPropertyName, out var missingReference, out var invalidReference);
 
         if (missingReference)

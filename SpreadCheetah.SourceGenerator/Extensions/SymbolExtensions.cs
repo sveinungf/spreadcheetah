@@ -151,11 +151,11 @@ internal static class SymbolExtensions
             }
         }
 
-        var columnHeaderLookupInfo = type.GetEffectiveColumnHeaderLookupInfo();
+        var inferColumnHeadersInfo = type.GetEffectiveInferColumnHeadersInfo();
         var properties = type
             .GetMembers()
             .OfType<IPropertySymbol>()
-            .Select(x => new RowProperty(x, columnHeaderLookupInfo));
+            .Select(x => new RowProperty(x, inferColumnHeadersInfo));
 
         if (inheritedColumnOrder is null || type.BaseType is null)
             return properties;
@@ -170,16 +170,16 @@ internal static class SymbolExtensions
         };
     }
 
-    private static ColumnHeaderLookupInfo? GetEffectiveColumnHeaderLookupInfo(this ITypeSymbol type)
+    private static InferColumnHeadersInfo? GetEffectiveInferColumnHeadersInfo(this ITypeSymbol type)
     {
         foreach (var attribute in type.GetAttributes())
         {
-            if (attribute.TryGetColumnHeaderLookupAttribute(out var info))
+            if (attribute.TryGetInferColumnHeadersAttribute(out var info))
                 return info;
         }
 
         return type.BaseType is { } baseType
-            ? baseType.GetEffectiveColumnHeaderLookupInfo()
+            ? baseType.GetEffectiveInferColumnHeadersInfo()
             : null;
     }
 
@@ -199,13 +199,13 @@ internal static class SymbolExtensions
         return true;
     }
 
-    private static bool TryGetColumnHeaderLookupAttribute(
+    private static bool TryGetInferColumnHeadersAttribute(
         this AttributeData attribute,
-        [NotNullWhen(true)] out ColumnHeaderLookupInfo? result)
+        [NotNullWhen(true)] out InferColumnHeadersInfo? result)
     {
         result = null;
 
-        if (attribute is not { AttributeClass.MetadataName: Attributes.ColumnHeaderLookup })
+        if (attribute is not { AttributeClass.MetadataName: Attributes.InferColumnHeaders })
             return false;
         if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace())
             return false;
@@ -230,7 +230,7 @@ internal static class SymbolExtensions
                 suffix = value.ToCSharpString();
         }
 
-        result = new ColumnHeaderLookupInfo(type, prefix, suffix);
+        result = new InferColumnHeadersInfo(type, prefix, suffix);
         return true;
     }
 

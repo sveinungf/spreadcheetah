@@ -7,10 +7,10 @@ internal static class Attributes
     public const string CellValueConverter = "CellValueConverterAttribute";
     public const string CellValueTruncate = "CellValueTruncateAttribute";
     public const string ColumnHeader = "ColumnHeaderAttribute";
-    public const string ColumnHeaderLookup = "ColumnHeaderLookupAttribute";
     public const string ColumnIgnore = "ColumnIgnoreAttribute";
     public const string ColumnOrder = "ColumnOrderAttribute";
     public const string ColumnWidth = "ColumnWidthAttribute";
     public const string GenerationOptions = "WorksheetRowGenerationOptionsAttribute";
+    public const string InferColumnHeaders = "InferColumnHeadersAttribute";
     public const string InheritColumns = "InheritColumnsAttribute";
 }
