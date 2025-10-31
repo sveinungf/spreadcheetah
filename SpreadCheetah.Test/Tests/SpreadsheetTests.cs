@@ -153,7 +153,8 @@ public class SpreadsheetTests
             AutoFilter = new AutoFilterOptions("A1:F1"),
             FrozenColumns = 2,
             FrozenRows = 1,
-            Visibility = WorksheetVisibility.Hidden
+            Visibility = WorksheetVisibility.Hidden,
+            ShowGridLines = false
         };
 
         options.Column(2).Width = 80;
@@ -187,7 +188,8 @@ public class SpreadsheetTests
         {
             FrozenColumns = 2,
             FrozenRows = 1,
-            Visibility = WorksheetVisibility.Hidden
+            Visibility = WorksheetVisibility.Hidden,
+            ShowGridLines = false
         };
 
         options.Column(2).Width = 80;
@@ -647,6 +649,28 @@ public class SpreadsheetTests
         using var actual = SpreadsheetDocument.Open(stream, true);
         var worksheet = actual.WorkbookPart!.WorksheetParts.Select(x => x.Worksheet).Single();
         Assert.Null(worksheet.SheetViews);
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    [InlineData(null, true)]
+    public async Task Spreadsheet_StartWorksheet_ShowGridLines(bool? expectedShowGridLines, bool actualShowGridLines)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+
+        // Act
+        var sheetOptions = new WorksheetOptions { ShowGridLines = expectedShowGridLines };
+        await spreadsheet.StartWorksheetAsync("Sheet 1", sheetOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        Assert.Equal(worksheet.ShowGridLines, actualShowGridLines);
     }
 
     [Fact]

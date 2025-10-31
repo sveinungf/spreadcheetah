@@ -1,6 +1,7 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
+using SpreadCheetah.MetadataXml.Attributes;
 using System.Buffers;
 using System.Buffers.Text;
 using System.Diagnostics;
@@ -58,14 +59,10 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
     public bool TryWrite([InterpolatedStringHandlerArgument("")] ref TryWriteInterpolatedStringHandler handler)
     {
-        var pos = handler._pos;
-        if (pos != 0)
-        {
-            Advance(pos);
-            return true;
-        }
+        var (pos, isSuccess) = handler;
 
-        return false;
+        Advance(pos);
+        return isSuccess;
     }
 
     [InterpolatedStringHandler]
@@ -74,6 +71,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 #pragma warning restore CS9113 // Parameter is unread.
     {
         internal int _pos;
+        internal bool _isSuccess = true;
 
         private readonly Span<byte> GetSpan() => buffer.GetSpan(_pos);
 
@@ -89,6 +87,12 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             }
 
             return Fail();
+        }
+
+        public readonly void Deconstruct(out int pos, out bool isSuccess)
+        {
+            pos = _pos;
+            isSuccess = _isSuccess;
         }
 
         /// <summary>
@@ -249,6 +253,98 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             return Fail();
         }
 
+        public bool AppendFormatted(IntAttribute attribute)
+        {
+            if (attribute.Value is not { } value)
+                return true;
+
+            if (!AppendFormatted(" "u8))
+                return Fail();
+
+            if (!AppendFormatted(attribute.AttributeName))
+                return Fail();
+
+            if (!AppendFormatted("=\""u8))
+                return Fail();
+
+            if (!AppendFormatted(value))
+                return Fail();
+
+            if (!AppendFormatted("\""u8))
+                return Fail();
+
+            return true;
+        }
+
+        public bool AppendFormatted(BooleanAttribute attribute)
+        {
+            if (attribute.Value is not { } value)
+                return true;
+
+            if (!AppendFormatted(" "u8))
+                return Fail();
+
+            if (!AppendFormatted(attribute.AttributeName))
+                return Fail();
+
+            if (!AppendFormatted("=\""u8))
+                return Fail();
+
+            if (!AppendFormatted(value))
+                return Fail();
+
+            if (!AppendFormatted("\""u8))
+                return Fail();
+
+            return true;
+        }
+
+        public bool AppendFormatted(SpanByteAttribute attribute)
+        {
+            if (attribute.Value.IsEmpty)
+                return true;
+
+            if (!AppendFormatted(" "u8))
+                return Fail();
+
+            if (!AppendFormatted(attribute.AttributeName))
+                return Fail();
+
+            if (!AppendFormatted("=\""u8))
+                return Fail();
+
+            if (!AppendFormatted(attribute.Value))
+                return Fail();
+
+            if (!AppendFormatted("\""u8))
+                return Fail();
+
+            return true;
+        }
+
+        public bool AppendFormatted(SimpleSingleCellReferenceAttribute attribute)
+        {
+            if (attribute.Value is not { } value)
+                return true;
+
+            if (!AppendFormatted(" "u8))
+                return Fail();
+
+            if (!AppendFormatted(attribute.AttributeName))
+                return Fail();
+
+            if (!AppendFormatted("=\""u8))
+                return Fail();
+
+            if (!AppendFormatted(value))
+                return Fail();
+
+            if (!AppendFormatted("\""u8))
+                return Fail();
+
+            return true;
+        }
+
         [ExcludeFromCodeCoverage]
         public bool AppendFormatted<T>(T value)
         {
@@ -303,6 +399,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         private bool Fail()
         {
             _pos = 0;
+            _isSuccess = false;
             return false;
         }
     }
