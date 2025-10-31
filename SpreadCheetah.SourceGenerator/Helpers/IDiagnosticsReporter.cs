@@ -10,13 +10,13 @@ internal interface IDiagnosticsReporter
 
     void ReportInvalidArgument(AttributeData attribute, CancellationToken token);
 
-    void ReportUnsupportedPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token);
+    void ReportUnsupportedPropertyForColumnHeader(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token);
 
-    void ReportUnsupportedPropertyReference(IPropertySymbol property, string referencedPropertyName, string typeFullName);
+    void ReportUnsupportedPropertyForColumnHeader(IPropertySymbol property, string referencedPropertyName, string typeFullName);
 
-    void ReportMissingPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token);
+    void ReportMissingPropertyForColumnHeader(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token);
 
-    void ReportMissingPropertyReference(IPropertySymbol property, string referencedPropertyName, string typeFullName);
+    void ReportMissingPropertyForColumnHeader(IPropertySymbol property, string referencedPropertyName, string typeFullName);
 
     void ReportNoPropertiesFound(AttributeData attribute, INamedTypeSymbol rowType, CancellationToken token);
 

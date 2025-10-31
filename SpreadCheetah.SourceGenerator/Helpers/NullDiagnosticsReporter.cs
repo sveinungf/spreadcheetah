@@ -20,19 +20,19 @@ internal sealed class NullDiagnosticsReporter : IDiagnosticsReporter
     {
     }
 
-    public void ReportUnsupportedPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
+    public void ReportUnsupportedPropertyForColumnHeader(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
     {
     }
 
-    public void ReportUnsupportedPropertyReference(IPropertySymbol property, string referencedPropertyName, string typeFullName)
+    public void ReportUnsupportedPropertyForColumnHeader(IPropertySymbol property, string referencedPropertyName, string typeFullName)
     {
     }
 
-    public void ReportMissingPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
+    public void ReportMissingPropertyForColumnHeader(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
     {
     }
 
-    public void ReportMissingPropertyReference(IPropertySymbol property, string referencedPropertyName, string typeFullName)
+    public void ReportMissingPropertyForColumnHeader(IPropertySymbol property, string referencedPropertyName, string typeFullName)
     {
     }
 

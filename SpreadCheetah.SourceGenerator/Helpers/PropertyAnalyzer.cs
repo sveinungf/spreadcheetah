@@ -202,10 +202,10 @@ internal sealed class PropertyAnalyzer(
         var result = GetColumnHeaderWithPropertyReference(type, propertyName, out var missingReference, out var invalidReference);
 
         if (missingReference)
-            diagnostics.ReportMissingPropertyReference(attribute, propertyName, type.ToDisplayString(), token);
+            diagnostics.ReportMissingPropertyForColumnHeader(attribute, propertyName, type.ToDisplayString(), token);
 
         if (invalidReference)
-            diagnostics.ReportUnsupportedPropertyReference(attribute, propertyName, type.ToDisplayString(), token);
+            diagnostics.ReportUnsupportedPropertyForColumnHeader(attribute, propertyName, type.ToDisplayString(), token);
 
         return result;
     }
@@ -219,10 +219,10 @@ internal sealed class PropertyAnalyzer(
         var result = GetColumnHeaderWithPropertyReference(type, referencedPropertyName, out var missingReference, out var invalidReference);
 
         if (missingReference)
-            diagnostics.ReportMissingPropertyReference(rowTypeProperty, referencedPropertyName, type.ToDisplayString());
+            diagnostics.ReportMissingPropertyForColumnHeader(rowTypeProperty, referencedPropertyName, type.ToDisplayString());
 
         if (invalidReference)
-            diagnostics.ReportUnsupportedPropertyReference(rowTypeProperty, referencedPropertyName, type.ToDisplayString());
+            diagnostics.ReportUnsupportedPropertyForColumnHeader(rowTypeProperty, referencedPropertyName, type.ToDisplayString());
 
         return result;
     }

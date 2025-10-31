@@ -29,31 +29,31 @@ internal sealed class DiagnosticsReporter(SymbolAnalysisContext context) : IDiag
         context.ReportDiagnostic(diagnostic);
     }
 
-    public void ReportUnsupportedPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
+    public void ReportUnsupportedPropertyForColumnHeader(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
     {
         var location = GetLocation(attribute, token);
-        var diagnostic = Diagnostics.UnsupportedPropertyForColumnHeaderReference(location, propertyName, typeFullName);
+        var diagnostic = Diagnostics.UnsupportedPropertyForColumnHeader(location, propertyName, typeFullName);
         context.ReportDiagnostic(diagnostic);
     }
 
-    public void ReportUnsupportedPropertyReference(IPropertySymbol property, string referencedPropertyName, string typeFullName)
+    public void ReportUnsupportedPropertyForColumnHeader(IPropertySymbol property, string referencedPropertyName, string typeFullName)
     {
-        var location = property.Locations.FirstOrDefault(); // TODO: Verify that this has actual locations
-        var diagnostic = Diagnostics.UnsupportedPropertyForColumnHeaderReference(location, referencedPropertyName, typeFullName);
+        var location = property.Locations.FirstOrDefault();
+        var diagnostic = Diagnostics.UnsupportedPropertyForColumnHeader(location, referencedPropertyName, typeFullName);
         context.ReportDiagnostic(diagnostic);
     }
 
-    public void ReportMissingPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
+    public void ReportMissingPropertyForColumnHeader(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
     {
         var location = GetLocation(attribute, token);
-        var diagnostic = Diagnostics.MissingPropertyForColumnHeaderReference(location, propertyName, typeFullName);
+        var diagnostic = Diagnostics.MissingPropertyForColumnHeader(location, propertyName, typeFullName);
         context.ReportDiagnostic(diagnostic);
     }
 
-    public void ReportMissingPropertyReference(IPropertySymbol property, string referencedPropertyName, string typeFullName)
+    public void ReportMissingPropertyForColumnHeader(IPropertySymbol property, string referencedPropertyName, string typeFullName)
     {
-        var location = property.Locations.FirstOrDefault(); // TODO: Verify that this has actual locations
-        var diagnostic = Diagnostics.MissingPropertyForColumnHeaderReference(location, referencedPropertyName, typeFullName);
+        var location = property.Locations.FirstOrDefault();
+        var diagnostic = Diagnostics.MissingPropertyForColumnHeader(location, referencedPropertyName, typeFullName);
         context.ReportDiagnostic(diagnostic);
     }
 
