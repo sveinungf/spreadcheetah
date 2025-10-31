@@ -34,6 +34,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Models\InferColumnHeaders\InferColumnHeadersResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>InferColumnHeadersResources.resx</DependentUpon>
+    </Compile>
     <Compile Update="Models\ColumnHeader\ColumnHeaderResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -42,6 +47,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Models\InferColumnHeaders\InferColumnHeadersResources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>InferColumnHeadersResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="Models\ColumnHeader\ColumnHeaderResources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>ColumnHeaderResources.Designer.cs</LastGenOutput>

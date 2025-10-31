@@ -2,8 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace SpreadCheetah.SourceGenerator.Models;
 
-[StructLayout(LayoutKind.Auto)]
-internal record struct PropertyAttributeData
+internal sealed class PropertyAttributeData
 {
     public CellFormat? CellFormat { get; set; }
     public CellStyle? CellStyle { get; set; }

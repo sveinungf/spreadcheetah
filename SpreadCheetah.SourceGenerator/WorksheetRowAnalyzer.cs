@@ -92,21 +92,33 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
         if (context.Symbol is not INamedTypeSymbol type)
             return;
 
-        var typeHasColumnOrderAttribute = type
-            .GetMembers()
-            .OfType<IPropertySymbol>()
-            .Any(x => x.GetColumnOrderAttribute() is not null);
+        var inferColumnHeadersInfo = type.GetEffectiveInferColumnHeadersInfo();
 
-        // Avoid duplicate column order on base class from emitting the same error for each derived class.
-        // Also some extra work is avoided for types that don't use the attribute.
-        if (!typeHasColumnOrderAttribute)
-            return;
+        if (inferColumnHeadersInfo is null)
+        {
+            // TODO: Update this comment
+            // Avoid duplicate column order on base class from emitting the same error for each derived class.
+            // Also some extra work is avoided for types that don't use the attribute.
+            var typeHasColumnOrderAttribute = type
+                .GetMembers()
+                .OfType<IPropertySymbol>()
+                .Any(x => x.GetColumnOrderAttribute() is not null);
+
+            if (!typeHasColumnOrderAttribute)
+                return;
+        }
 
         var diagnostics = new DiagnosticsReporter(context);
         var columnOrderValues = new HashSet<int>();
 
         foreach (var property in type.GetClassAndBaseClassProperties())
         {
+            if (inferColumnHeadersInfo is not null)
+            {
+                var analyzer = new PropertyAnalyzer(diagnostics, property.PropertySymbol);
+                analyzer.Analyze(inferColumnHeadersInfo);
+            }
+
             var columnOrderAttribute = property.PropertySymbol.GetColumnOrderAttribute();
             if (columnOrderAttribute is null)
                 continue;
@@ -128,9 +140,7 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
             return;
 
         var diagnostics = new DiagnosticsReporter(context);
-        var analyzer = new PropertyAnalyzer(diagnostics);
-        var rowProperty = new RowProperty(property, null); // TODO: Should we pass "null" here?
-
-        analyzer.Analyze(rowProperty, context.CancellationToken);
+        var analyzer = new PropertyAnalyzer(diagnostics, property);
+        analyzer.Analyze(context.CancellationToken);
     }
 }

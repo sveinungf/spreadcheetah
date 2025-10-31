@@ -60,7 +60,7 @@ internal static class Diagnostics
     private static readonly DiagnosticDescriptor UnsupportedPropertyForColumnHeaderReferenceDescriptor = new(
         id: "SPCH1004",
         title: "Unsupported property for ColumnHeader reference",
-        messageFormat: "Can't use '{0}' on type '{1}'. It must be a static property, have a public getter, and the return type must be a string (or string?).",
+        messageFormat: "Can't use property '{0}' for column header on type '{1}'. It must be a static property, have a public getter, and the return type must be a string (or string?).",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
@@ -126,7 +126,7 @@ internal static class Diagnostics
     private static readonly DiagnosticDescriptor MissingPropertyForColumnHeaderReferenceDescriptor = new(
         id: "SPCH1010",
         title: "Missing property for ColumnHeader reference",
-        messageFormat: "Could not find property '{0}' on type '{1}'",
+        messageFormat: "Could not find property '{0}' for column header on type '{1}'",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);

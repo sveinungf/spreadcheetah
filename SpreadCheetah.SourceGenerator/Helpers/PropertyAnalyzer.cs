@@ -7,25 +7,22 @@ using System.Diagnostics;
 
 namespace SpreadCheetah.SourceGenerator.Helpers;
 
-internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
+internal sealed class PropertyAnalyzer(
+    IDiagnosticsReporter diagnostics,
+    IPropertySymbol propertySymbol)
 {
-    private static AttributeDataComparer AttributeDataComparer { get; } = new();
+    public PropertyAttributeData Result { get; } = new();
 
-    private PropertyAttributeData _result;
-
-    public PropertyAttributeData Analyze(RowProperty property, CancellationToken token)
+    public void Analyze(CancellationToken token)
     {
-        _result = new();
-
-        var symbol = property.PropertySymbol;
-        var attributes = symbol
+        var attributes = propertySymbol
             .GetAttributes()
             .Where(x => x.AttributeClass is { } c && c.HasSpreadCheetahSrcGenNamespace())
-            .OrderBy(x => x, AttributeDataComparer);
+            .OrderBy(x => x, AttributeDataComparer.Instance);
 
         foreach (var attribute in attributes)
         {
-            if (_result.ColumnIgnore is not null)
+            if (Result.ColumnIgnore is not null)
             {
                 diagnostics.ReportAttributeCombinationNotSupported(attribute, Attributes.ColumnIgnore, token);
                 continue;
@@ -33,10 +30,10 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
             _ = attribute.AttributeClass?.MetadataName switch
             {
-                Attributes.CellFormat => TryGetCellFormatAttribute(attribute, symbol.Type, token),
+                Attributes.CellFormat => TryGetCellFormatAttribute(attribute, propertySymbol.Type, token),
                 Attributes.CellStyle => TryGetCellStyleAttribute(attribute, token),
-                Attributes.CellValueConverter => TryGetCellValueConverterAttribute(attribute, symbol.Type, token),
-                Attributes.CellValueTruncate => TryGetCellValueTruncateAttribute(attribute, symbol.Type, token),
+                Attributes.CellValueConverter => TryGetCellValueConverterAttribute(attribute, propertySymbol.Type, token),
+                Attributes.CellValueTruncate => TryGetCellValueTruncateAttribute(attribute, propertySymbol.Type, token),
                 Attributes.ColumnHeader => TryGetColumnHeaderAttribute(attribute, token),
                 Attributes.ColumnIgnore => TryGetColumnIgnoreAttribute(),
                 Attributes.ColumnOrder => TryGetColumnOrderAttribute(attribute),
@@ -44,11 +41,12 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
                 _ => false
             };
         }
+    }
 
-        if (property.InferColumnHeadersInfo is { } headerLookup && _result is { ColumnHeader: null, ColumnIgnore: null })
-            _result.ColumnHeader = GetColumnHeaderWithPropertyReference(headerLookup, symbol);
-
-        return _result;
+    public void Analyze(InferColumnHeadersInfo inferColumnHeaders)
+    {
+        if (Result is { ColumnHeader: null, ColumnIgnore: null })
+            Result.ColumnHeader = GetColumnHeaderWithPropertyReference(inferColumnHeaders, propertySymbol);
     }
 
     private bool TryGetCellStyleAttribute(
@@ -57,7 +55,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
     {
         Debug.Assert(AttributeDataComparer.Compare(Attributes.CellFormat, Attributes.CellStyle) < 0);
 
-        if (_result.CellFormat is not null)
+        if (Result.CellFormat is not null)
         {
             diagnostics.ReportAttributeCombinationNotSupported(attribute, Attributes.CellFormat, token);
             return false;
@@ -76,7 +74,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
             return false;
         }
 
-        _result.CellStyle = new CellStyle(arg.ToCSharpString());
+        Result.CellStyle = new CellStyle(arg.ToCSharpString());
         return true;
     }
 
@@ -103,13 +101,13 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
                 return false;
             }
 
-            _result.CellFormat = new CellFormat(arg.ToCSharpString());
+            Result.CellFormat = new CellFormat(arg.ToCSharpString());
             return true;
         }
 
         if (value.IsEnum(out StandardNumberFormat standardFormat))
         {
-            _result.CellFormat = new CellFormat(standardFormat);
+            Result.CellFormat = new CellFormat(standardFormat);
             return true;
         }
 
@@ -145,7 +143,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
             return false;
         }
 
-        _result.CellValueConverter = new CellValueConverter(typeName);
+        Result.CellValueConverter = new CellValueConverter(typeName);
         return true;
     }
 
@@ -156,7 +154,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
     {
         Debug.Assert(AttributeDataComparer.Compare(Attributes.CellValueConverter, Attributes.CellValueTruncate) < 0);
 
-        if (_result.CellValueConverter is not null)
+        if (Result.CellValueConverter is not null)
         {
             diagnostics.ReportAttributeCombinationNotSupported(attribute, Attributes.CellValueConverter, token);
             return false;
@@ -178,7 +176,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
             return false;
         }
 
-        _result.CellValueTruncate = new CellValueTruncate(attributeValue);
+        Result.CellValueTruncate = new CellValueTruncate(attributeValue);
         return true;
     }
 
@@ -188,11 +186,11 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
     {
         var args = attribute.ConstructorArguments;
         if (args is [{ Value: string } arg])
-            _result.ColumnHeader = new ColumnHeader(arg.ToCSharpString());
+            Result.ColumnHeader = new ColumnHeader(arg.ToCSharpString());
         else if (args is [{ Value: INamedTypeSymbol type }, { Value: string propertyName }])
-            _result.ColumnHeader = GetColumnHeaderWithPropertyReference(type, propertyName, attribute, token);
+            Result.ColumnHeader = GetColumnHeaderWithPropertyReference(type, propertyName, attribute, token);
 
-        return _result.ColumnHeader is not null;
+        return Result.ColumnHeader is not null;
     }
 
     private ColumnHeader? GetColumnHeaderWithPropertyReference(
@@ -261,7 +259,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
 
     private bool TryGetColumnIgnoreAttribute()
     {
-        _result.ColumnIgnore = new ColumnIgnore();
+        Result.ColumnIgnore = new ColumnIgnore();
         return true;
     }
 
@@ -271,7 +269,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
         if (args is not [{ Value: int attributeValue }])
             return false;
 
-        _result.ColumnOrder = new ColumnOrder(attributeValue);
+        Result.ColumnOrder = new ColumnOrder(attributeValue);
         return true;
     }
 
@@ -289,7 +287,7 @@ internal sealed class PropertyAnalyzer(IDiagnosticsReporter diagnostics)
             return false;
         }
 
-        _result.ColumnWidth = new ColumnWidth(attributeValue);
+        Result.ColumnWidth = new ColumnWidth(attributeValue);
         return true;
     }
 }

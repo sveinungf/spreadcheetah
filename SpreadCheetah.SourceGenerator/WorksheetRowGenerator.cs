@@ -70,10 +70,9 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     private static RowType AnalyzeTypeProperties(ITypeSymbol rowType, CancellationToken token)
     {
         var implicitOrderProperties = new List<RowTypeProperty>();
-        var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
+        var explicitOrderProperties = new Dictionary<int, RowTypeProperty>();
         var hasFormula = false;
         var hasStyle = false;
-        var analyzer = new PropertyAnalyzer(NullDiagnosticsReporter.Instance);
 
         var properties = rowType
             .GetClassAndBaseClassProperties()
@@ -82,7 +81,15 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         foreach (var property in properties)
         {
             var propertySymbol = property.PropertySymbol;
-            var data = analyzer.Analyze(property, token);
+
+            var analyzer = new PropertyAnalyzer(NullDiagnosticsReporter.Instance, propertySymbol);
+            analyzer.Analyze(token);
+
+            if (property.InferColumnHeadersInfo is { } inferColumnHeadersInfo)
+                analyzer.Analyze(inferColumnHeadersInfo);
+
+            var data = analyzer.Result;
+
             if (data.ColumnIgnore is not null)
                 continue;
             if (data.CellValueConverter is null && !propertySymbol.Type.IsSupportedType())
@@ -124,7 +131,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             IsReferenceType: rowType.IsReferenceType,
             CellType: cellType,
             Name: rowType.Name,
-            Properties: explicitOrderProperties.Values.ToEquatableArray());
+            Properties: explicitOrderProperties.OrderBy(x => x.Key).Select(x => x.Value).ToEquatableArray());
     }
 
     private static void Execute(ContextClass? contextClass, SourceProductionContext context)

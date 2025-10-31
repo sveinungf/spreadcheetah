@@ -170,7 +170,7 @@ internal static class SymbolExtensions
         };
     }
 
-    private static InferColumnHeadersInfo? GetEffectiveInferColumnHeadersInfo(this ITypeSymbol type)
+    public static InferColumnHeadersInfo? GetEffectiveInferColumnHeadersInfo(this ITypeSymbol type)
     {
         foreach (var attribute in type.GetAttributes())
         {
@@ -221,13 +221,13 @@ internal static class SymbolExtensions
 
         foreach (var (key, value) in attribute.NamedArguments)
         {
-            if (value.Value is not string)
+            if (value.Value is not string stringValue)
                 continue;
 
             if (string.Equals(key, "Prefix", StringComparison.Ordinal))
-                prefix = value.ToCSharpString();
+                prefix = stringValue;
             else if (string.Equals(key, "Suffix", StringComparison.Ordinal))
-                suffix = value.ToCSharpString();
+                suffix = stringValue;
         }
 
         result = new InferColumnHeadersInfo(type, prefix, suffix);
