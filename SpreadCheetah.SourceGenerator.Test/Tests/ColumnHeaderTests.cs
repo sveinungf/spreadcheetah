@@ -1,6 +1,9 @@
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnHeader;
+using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers.Extensions;
+using System.Globalization;
 using System.Reflection;
 using Xunit;
 
@@ -8,6 +11,80 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests;
 
 public class ColumnHeaderTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
+    [Fact]
+    public async Task ColumnHeader_SpecialCharacterColumnHeaders()
+    {
+        // Arrange
+        var ctx = ColumnHeaderContext.Default;
+
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await s.StartWorksheetAsync("Sheet", token: Token);
+
+        IList<string> expectedValues =
+        [
+            "First name",
+            "",
+            "Nationality (escaped characters \", \', \\)",
+            "Address line 1 (escaped characters \r\n, \t)",
+            @"Address line 2 (verbatim
+string: "", \)",
+            """
+                Age (
+                    raw
+                    string
+                    literal
+                )
+            """,
+            "Note (unicode escape sequence 🌉, \ud83d\udc4d, \xE7)",
+            "Note 2 (constant interpolated string: This is a constant)"
+        ];
+
+        // Act
+        await s.AddHeaderRowAsync(ctx.ClassWithSpecialCharacterColumnHeaders, token: Token);
+        await s.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(expectedValues.Select(StringHelpers.ReplaceLineEndings), sheet.Row(1).Cells.StringValues().Select(StringHelpers.ReplaceLineEndings!));
+    }
+
+    [Fact]
+    public async Task ColumnHeader_PropertyReferenceColumnHeaders()
+    {
+        // Arrange
+        var ctx = ColumnHeaderContext.Default;
+
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await s.StartWorksheetAsync("Sheet", token: Token);
+
+        IList<string?> expectedValues =
+        [
+            "Fornavn",
+            "Last name",
+            "The nationality",
+            "Address line 1",
+            null,
+            $"Age (in {DateTime.UtcNow.Year})"
+        ];
+
+        var originalCulture = CultureInfo.CurrentUICulture;
+
+        // Act
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("nb-NO");
+        await s.AddHeaderRowAsync(ctx.ClassWithPropertyReferenceColumnHeaders, token: Token);
+        CultureInfo.CurrentUICulture = originalCulture;
+
+        await s.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(expectedValues, sheet.Row(1).Cells.StringValues());
+    }
+
     [Fact]
     public void ColumnHeader_ClassWithPropertyReferenceColumnHeaders_CanReadTypeAndPropertyName()
     {
