@@ -120,4 +120,10 @@
   <data name="Id" xml:space="preserve">
     <value>The ID</value>
   </data>
+  <data name="Header_Make" xml:space="preserve">
+    <value>The make</value>
+  </data>
+  <data name="Header_Model" xml:space="preserve">
+    <value>The model</value>
+  </data>
 </root>

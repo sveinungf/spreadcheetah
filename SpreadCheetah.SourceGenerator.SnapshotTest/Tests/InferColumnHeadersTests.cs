@@ -57,6 +57,7 @@ public class InferColumnHeadersTests
             {
             }
 
+            [InheritColumns]
             public class DerivedClassWithInferColumnHeaders : BaseClassWithInferColumnHeaders
             {
                 public string? FirstName { get; set; }
@@ -175,9 +176,43 @@ public class InferColumnHeadersTests
             {
             }
 
+            [InheritColumns]
             public class DerivedClassWithInferColumnHeaders : BaseClassWithInferColumnHeaders
             {
                 public string? {|SPCH1010:Name|} { get; set; }
+            }
+            
+            [WorksheetRow(typeof(DerivedClassWithInferColumnHeaders))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return context.RunAsync(Token);
+    }
+
+    [Fact]
+    public Task InferColumnHeaders_DerivedClassWithMissingReferenceAndNoInheritColumns()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            public class ColumnHeaders
+            {
+                public static string DateOfBirth => "Date of birth";
+            }
+
+            [InferColumnHeaders(typeof(ColumnHeaders))]
+            public abstract class BaseClassWithInferColumnHeaders
+            {
+            }
+
+            public class DerivedClassWithInferColumnHeaders : BaseClassWithInferColumnHeaders
+            {
+                public string? Name { get; set; }
             }
             
             [WorksheetRow(typeof(DerivedClassWithInferColumnHeaders))]
@@ -238,6 +273,7 @@ public class InferColumnHeadersTests
             {
             }
 
+            [InheritColumns]
             public class DerivedClassWithInferColumnHeaders : BaseClassWithInferColumnHeaders
             {
                 [ColumnIgnore]

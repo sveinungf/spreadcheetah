@@ -62,6 +62,24 @@ namespace SpreadCheetah.SourceGenerator.Test.Models.InferColumnHeaders {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The make.
+        /// </summary>
+        public static string Header_Make {
+            get {
+                return ResourceManager.GetString("Header_Make", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The model.
+        /// </summary>
+        public static string Header_Model {
+            get {
+                return ResourceManager.GetString("Header_Model", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The ID.
         /// </summary>
         public static string Id {
