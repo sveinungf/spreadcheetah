@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using SpreadCheetah.SourceGenerator;
 using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Helpers;
-using SpreadCheetah.SourceGenerator.Models;
 using System.Collections.Immutable;
 
 namespace SpreadCheetah.SourceGenerators;
@@ -92,33 +91,21 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
         if (context.Symbol is not INamedTypeSymbol type)
             return;
 
-        var inferColumnHeadersInfo = type.GetEffectiveInferColumnHeadersInfo();
+        var typeHasColumnOrderAttribute = type
+            .GetMembers()
+            .OfType<IPropertySymbol>()
+            .Any(x => x.GetColumnOrderAttribute() is not null);
 
-        if (inferColumnHeadersInfo is null)
-        {
-            // TODO: Update this comment
-            // Avoid duplicate column order on base class from emitting the same error for each derived class.
-            // Also some extra work is avoided for types that don't use the attribute.
-            var typeHasColumnOrderAttribute = type
-                .GetMembers()
-                .OfType<IPropertySymbol>()
-                .Any(x => x.GetColumnOrderAttribute() is not null);
-
-            if (!typeHasColumnOrderAttribute)
-                return;
-        }
+        // Avoid duplicate column order on base class from emitting the same error for each derived class.
+        // Also some extra work is avoided for types that don't use the attribute.
+        if (!typeHasColumnOrderAttribute)
+            return;
 
         var diagnostics = new DiagnosticsReporter(context);
         var columnOrderValues = new HashSet<int>();
 
         foreach (var property in type.GetClassAndBaseClassProperties())
         {
-            if (inferColumnHeadersInfo is not null)
-            {
-                var analyzer = new PropertyAnalyzer(diagnostics, property.PropertySymbol);
-                analyzer.Analyze(inferColumnHeadersInfo);
-            }
-
             var columnOrderAttribute = property.PropertySymbol.GetColumnOrderAttribute();
             if (columnOrderAttribute is null)
                 continue;
@@ -136,11 +123,17 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
     {
         if (context.Symbol is not IPropertySymbol property)
             return;
-        if (property.GetAttributes() is { Length: 0 })
+
+        var inferColumnHeaders = property.ContainingType.GetEffectiveInferColumnHeadersInfo();
+
+        if (inferColumnHeaders is null && property.GetAttributes().Length == 0)
             return;
 
         var diagnostics = new DiagnosticsReporter(context);
         var analyzer = new PropertyAnalyzer(diagnostics, property);
         analyzer.Analyze(context.CancellationToken);
+
+        if (inferColumnHeaders is not null)
+            analyzer.Analyze(inferColumnHeaders);
     }
 }

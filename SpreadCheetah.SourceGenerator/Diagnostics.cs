@@ -132,7 +132,6 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
-    // TODO: Emit this one
     public static Diagnostic PropertyForColumnHeaderMustBePublic(Location? location, string propertyName, string typeFullName)
         => Diagnostic.Create(PropertyForColumnHeaderMustBePublicDescriptor, location, [propertyName, typeFullName]);
 

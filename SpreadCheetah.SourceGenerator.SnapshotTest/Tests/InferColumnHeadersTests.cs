@@ -1,10 +1,5 @@
 using SpreadCheetah.SourceGenerator.SnapshotTest.Helpers;
 using SpreadCheetah.SourceGenerators;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SpreadCheetah.SourceGenerator.SnapshotTest.Tests;
 
@@ -35,6 +30,40 @@ public class InferColumnHeadersTests
             }
             
             [WorksheetRow(typeof(ClassWithInferColumnHeaders))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
+
+    [Fact]
+    public Task InferColumnHeaders_DerivedClassWithValidReferences()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            public class ColumnHeaders
+            {
+                public static string FirstName => "First name";
+                public static string LastName => "Last name";
+            }
+
+            [InferColumnHeaders(typeof(ColumnHeaders))]
+            public abstract class BaseClassWithInferColumnHeaders
+            {
+            }
+
+            public class DerivedClassWithInferColumnHeaders : BaseClassWithInferColumnHeaders
+            {
+                public string? FirstName { get; set; }
+                public string? LastName { get; set; }
+            }
+            
+            [WorksheetRow(typeof(DerivedClassWithInferColumnHeaders))]
             public partial class MyGenRowContext : WorksheetRowContext;
             """;
 
@@ -119,6 +148,103 @@ public class InferColumnHeadersTests
             }
             
             [WorksheetRow(typeof(ClassWithInferColumnHeaders))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return context.RunAsync(Token);
+    }
+
+    [Fact]
+    public Task InferColumnHeaders_DerivedClassWithMissingReference()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            public class ColumnHeaders
+            {
+                public static string DateOfBirth => "Date of birth";
+            }
+
+            [InferColumnHeaders(typeof(ColumnHeaders))]
+            public abstract class BaseClassWithInferColumnHeaders
+            {
+            }
+
+            public class DerivedClassWithInferColumnHeaders : BaseClassWithInferColumnHeaders
+            {
+                public string? {|SPCH1010:Name|} { get; set; }
+            }
+            
+            [WorksheetRow(typeof(DerivedClassWithInferColumnHeaders))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return context.RunAsync(Token);
+    }
+
+    [Fact]
+    public Task InferColumnHeaders_ClassWithMissingReferenceForPropertyWithColumnIgnore()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            public class ColumnHeaders
+            {
+                public static string DateOfBirth => "Date of birth";
+            }
+
+            [InferColumnHeaders(typeof(ColumnHeaders))]
+            public class ClassWithInferColumnHeaders
+            {
+                [ColumnIgnore]
+                public string? Name { get; set; }
+            }
+            
+            [WorksheetRow(typeof(ClassWithInferColumnHeaders))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return context.RunAsync(Token);
+    }
+
+    [Fact]
+    public Task InferColumnHeaders_DerivedClassWithMissingReferenceForPropertyWithColumnIgnore()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            public class ColumnHeaders
+            {
+                public static string DateOfBirth => "Date of birth";
+            }
+
+            [InferColumnHeaders(typeof(ColumnHeaders))]
+            public abstract class BaseClassWithInferColumnHeaders
+            {
+            }
+
+            public class DerivedClassWithInferColumnHeaders : BaseClassWithInferColumnHeaders
+            {
+                [ColumnIgnore]
+                public string? Name { get; set; }
+            }
+            
+            [WorksheetRow(typeof(DerivedClassWithInferColumnHeaders))]
             public partial class MyGenRowContext : WorksheetRowContext;
             """;
 
