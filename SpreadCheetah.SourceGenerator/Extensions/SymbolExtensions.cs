@@ -114,14 +114,13 @@ internal static class SymbolExtensions
         };
     }
 
-    public static bool IsStaticPropertyWithPublicGetter(
+    public static bool IsStaticPropertyWithGetter(
         this ISymbol symbol,
         [NotNullWhen(true)] out IPropertySymbol? property)
     {
         if (symbol is IPropertySymbol
             {
-                DeclaredAccessibility: Accessibility.Public,
-                GetMethod.DeclaredAccessibility: Accessibility.Public,
+                GetMethod: not null,
                 IsStatic: true,
                 IsWriteOnly: false
             } p)
@@ -134,7 +133,16 @@ internal static class SymbolExtensions
         return false;
     }
 
-    public static IEnumerable<IPropertySymbol> GetClassAndBaseClassProperties(this ITypeSymbol type)
+    public static bool HasPublicGetter(this IPropertySymbol symbol)
+    {
+        return symbol is
+        {
+            DeclaredAccessibility: Accessibility.Public,
+            GetMethod.DeclaredAccessibility: Accessibility.Public
+        };
+    }
+
+    public static IEnumerable<RowProperty> GetClassAndBaseClassProperties(this ITypeSymbol type)
     {
         if ("Object".Equals(type.Name, StringComparison.Ordinal))
             return [];
@@ -143,29 +151,50 @@ internal static class SymbolExtensions
 
         foreach (var attribute in type.GetAttributes())
         {
-            if (attribute.TryGetInheritedColumnOrderingAttribute(out var order))
+            if (attribute.TryGetInheritColumnsAttribute(out var order))
             {
                 inheritedColumnOrder = order;
                 break;
             }
         }
 
-        var properties = type.GetMembers().OfType<IPropertySymbol>();
+        var inferColumnHeadersInfo = type.GetEffectiveInferColumnHeadersInfo();
+        var properties = type
+            .GetMembers()
+            .OfType<IPropertySymbol>()
+            .Select(x => new RowProperty(x, inferColumnHeadersInfo));
 
         if (inheritedColumnOrder is null || type.BaseType is null)
             return properties;
 
         var inheritedProperties = GetClassAndBaseClassProperties(type.BaseType);
 
-        return inheritedColumnOrder switch
-        {
-            InheritedColumnsOrder.InheritedColumnsFirst => inheritedProperties.Concat(properties),
-            InheritedColumnsOrder.InheritedColumnsLast => properties.Concat(inheritedProperties),
-            _ => throw new ArgumentOutOfRangeException(nameof(type), "Unsupported inheritance strategy type")
-        };
+        return inheritedColumnOrder is InheritedColumnsOrder.InheritedColumnsLast
+            ? [.. properties, .. inheritedProperties]
+            : [.. inheritedProperties, .. properties];
     }
 
-    private static bool TryGetInheritedColumnOrderingAttribute(this AttributeData attribute, out InheritedColumnsOrder result)
+    public static InferColumnHeadersInfo? GetEffectiveInferColumnHeadersInfo(this ITypeSymbol type)
+    {
+        var hasInheritColumnsAttribute = false;
+
+        foreach (var attribute in type.GetAttributes())
+        {
+            if (attribute.TryGetInferColumnHeadersAttribute(out var info))
+                return info;
+
+            if (hasInheritColumnsAttribute)
+                continue;
+
+            hasInheritColumnsAttribute = attribute.TryGetInheritColumnsAttribute(out _);
+        }
+
+        return hasInheritColumnsAttribute && type.BaseType is { } baseType
+            ? baseType.GetEffectiveInferColumnHeadersInfo()
+            : null;
+    }
+
+    private static bool TryGetInheritColumnsAttribute(this AttributeData attribute, out InheritedColumnsOrder result)
     {
         result = default;
 
@@ -178,6 +207,39 @@ internal static class SymbolExtensions
             ? order
             : InheritedColumnsOrder.InheritedColumnsFirst;
 
+        return true;
+    }
+
+    private static bool TryGetInferColumnHeadersAttribute(
+        this AttributeData attribute,
+        [NotNullWhen(true)] out InferColumnHeadersInfo? result)
+    {
+        result = null;
+
+        if (attribute is not { AttributeClass.MetadataName: Attributes.InferColumnHeaders })
+            return false;
+        if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace())
+            return false;
+
+        var args = attribute.ConstructorArguments;
+        if (args is not [{ Value: INamedTypeSymbol type }])
+            return false;
+
+        string? prefix = null;
+        string? suffix = null;
+
+        foreach (var (key, value) in attribute.NamedArguments)
+        {
+            if (value.Value is not string stringValue)
+                continue;
+
+            if (string.Equals(key, "Prefix", StringComparison.Ordinal))
+                prefix = stringValue;
+            else if (string.Equals(key, "Suffix", StringComparison.Ordinal))
+                suffix = stringValue;
+        }
+
+        result = new InferColumnHeadersInfo(type, prefix, suffix);
         return true;
     }
 

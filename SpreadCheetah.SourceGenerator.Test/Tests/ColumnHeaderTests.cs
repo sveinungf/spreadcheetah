@@ -1,5 +1,9 @@
 using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnHeader;
+using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers.Extensions;
+using System.Globalization;
 using System.Reflection;
 using Xunit;
 
@@ -7,53 +11,122 @@ namespace SpreadCheetah.SourceGenerator.Test.Tests;
 
 public class ColumnHeaderTests
 {
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
+    [Fact]
+    public async Task ColumnHeader_SpecialCharacterColumnHeaders()
+    {
+        // Arrange
+        var ctx = ColumnHeaderContext.Default;
+
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await s.StartWorksheetAsync("Sheet", token: Token);
+
+        IList<string> expectedValues =
+        [
+            "First name",
+            "",
+            "Nationality (escaped characters \", \', \\)",
+            "Address line 1 (escaped characters \r\n, \t)",
+            @"Address line 2 (verbatim
+string: "", \)",
+            """
+                Age (
+                    raw
+                    string
+                    literal
+                )
+            """,
+            "Note (unicode escape sequence 🌉, \ud83d\udc4d, \xE7)",
+            "Note 2 (constant interpolated string: This is a constant)"
+        ];
+
+        // Act
+        await s.AddHeaderRowAsync(ctx.ClassWithSpecialCharacterColumnHeaders, token: Token);
+        await s.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(expectedValues.Select(StringHelpers.ReplaceLineEndings), sheet.Row(1).Cells.StringValues().Select(StringHelpers.ReplaceLineEndings!));
+    }
+
+    [Fact]
+    public async Task ColumnHeader_PropertyReferenceColumnHeaders()
+    {
+        // Arrange
+        var ctx = ColumnHeaderContext.Default;
+
+        using var stream = new MemoryStream();
+        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await s.StartWorksheetAsync("Sheet", token: Token);
+
+        IList<string?> expectedValues =
+        [
+            "Fornavn",
+            "Last name",
+            "The nationality",
+            "Address line 1",
+            null,
+            $"Age (in {DateTime.UtcNow.Year})"
+        ];
+
+        var originalCulture = CultureInfo.CurrentUICulture;
+
+        // Act
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("nb-NO");
+        await s.AddHeaderRowAsync(ctx.ClassWithPropertyReferenceColumnHeaders, token: Token);
+        CultureInfo.CurrentUICulture = originalCulture;
+
+        await s.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(expectedValues, sheet.Row(1).Cells.StringValues());
+    }
+
     [Fact]
     public void ColumnHeader_ClassWithPropertyReferenceColumnHeaders_CanReadTypeAndPropertyName()
     {
         // Arrange
-        var publicProperties = typeof(ClassWithPropertyReferenceColumnHeaders).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-        var firstNameProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithPropertyReferenceColumnHeaders.FirstName), StringComparison.Ordinal));
-        var lastNameProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithPropertyReferenceColumnHeaders.LastName), StringComparison.Ordinal));
-        var nationalityProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithPropertyReferenceColumnHeaders.Nationality), StringComparison.Ordinal));
-        var addressLine1Property = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithPropertyReferenceColumnHeaders.AddressLine1), StringComparison.Ordinal));
-        var addressLine2Property = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithPropertyReferenceColumnHeaders.AddressLine2), StringComparison.Ordinal));
-        var ageProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithPropertyReferenceColumnHeaders.Age), StringComparison.Ordinal));
+        var properties = typeof(ClassWithPropertyReferenceColumnHeaders).ToPropertyDictionary();
+
+        var firstNameProperty = properties[nameof(ClassWithPropertyReferenceColumnHeaders.FirstName)];
+        var lastNameProperty = properties[nameof(ClassWithPropertyReferenceColumnHeaders.LastName)];
+        var nationalityProperty = properties[nameof(ClassWithPropertyReferenceColumnHeaders.Nationality)];
+        var addressLine1Property = properties[nameof(ClassWithPropertyReferenceColumnHeaders.AddressLine1)];
+        var addressLine2Property = properties[nameof(ClassWithPropertyReferenceColumnHeaders.AddressLine2)];
+        var ageProperty = properties[nameof(ClassWithPropertyReferenceColumnHeaders.Age)];
 
         // Act
-        var firstNameColHeaderAttr = firstNameProperty?.GetCustomAttribute<ColumnHeaderAttribute>();
-        var lastNameColHeaderAttr = lastNameProperty?.GetCustomAttribute<ColumnHeaderAttribute>();
-        var nationalityColHeaderAttr = nationalityProperty?.GetCustomAttribute<ColumnHeaderAttribute>();
-        var addressLine1ColHeaderAttr = addressLine1Property?.GetCustomAttribute<ColumnHeaderAttribute>();
-        var addressLine2ColHeaderAttr = addressLine2Property?.GetCustomAttribute<ColumnHeaderAttribute>();
-        var ageColHeaderAttr = ageProperty?.GetCustomAttribute<ColumnHeaderAttribute>();
+        var firstNameColHeaderAttr = firstNameProperty.GetCustomAttribute<ColumnHeaderAttribute>();
+        var lastNameColHeaderAttr = lastNameProperty.GetCustomAttribute<ColumnHeaderAttribute>();
+        var nationalityColHeaderAttr = nationalityProperty.GetCustomAttribute<ColumnHeaderAttribute>();
+        var addressLine1ColHeaderAttr = addressLine1Property.GetCustomAttribute<ColumnHeaderAttribute>();
+        var addressLine2ColHeaderAttr = addressLine2Property.GetCustomAttribute<ColumnHeaderAttribute>();
+        var ageColHeaderAttr = ageProperty.GetCustomAttribute<ColumnHeaderAttribute>();
 
         // Assert
-        Assert.NotNull(firstNameProperty);
         Assert.NotNull(firstNameColHeaderAttr);
         Assert.Equal(typeof(ColumnHeaderResources), firstNameColHeaderAttr.Type);
         Assert.Equal(nameof(ColumnHeaderResources.Header_FirstName), firstNameColHeaderAttr.PropertyName);
 
-        Assert.NotNull(lastNameProperty);
         Assert.NotNull(lastNameColHeaderAttr);
         Assert.Equal(typeof(ColumnHeaderResources), lastNameColHeaderAttr.Type);
         Assert.Equal(nameof(ColumnHeaderResources.Header_LastName), lastNameColHeaderAttr.PropertyName);
 
-        Assert.NotNull(nationalityProperty);
         Assert.NotNull(nationalityColHeaderAttr);
         Assert.Equal(typeof(ColumnHeaders), nationalityColHeaderAttr.Type);
         Assert.Equal(nameof(ColumnHeaders.HeaderNationality), nationalityColHeaderAttr.PropertyName);
 
-        Assert.NotNull(addressLine1Property);
         Assert.NotNull(addressLine1ColHeaderAttr);
         Assert.Equal(typeof(ColumnHeaders), addressLine1ColHeaderAttr.Type);
         Assert.Equal(nameof(ColumnHeaders.HeaderAddressLine1), addressLine1ColHeaderAttr.PropertyName);
 
-        Assert.NotNull(addressLine2Property);
         Assert.NotNull(addressLine2ColHeaderAttr);
         Assert.Equal(typeof(ColumnHeaders), addressLine2ColHeaderAttr.Type);
         Assert.Equal(nameof(ColumnHeaders.HeaderAddressLine2), addressLine2ColHeaderAttr.PropertyName);
 
-        Assert.NotNull(ageProperty);
         Assert.NotNull(ageColHeaderAttr);
         Assert.Equal(typeof(ColumnHeaders), ageColHeaderAttr.Type);
         Assert.Equal(nameof(ColumnHeaders.HeaderAge), ageColHeaderAttr.PropertyName);
@@ -63,25 +136,26 @@ public class ColumnHeaderTests
     public void ColumnHeader_ClassWithSpecialCharacterColumnHeaders_CanReadName()
     {
         // Arrange
-        var publicProperties = typeof(ClassWithSpecialCharacterColumnHeaders).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-        var firstNameProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithSpecialCharacterColumnHeaders.FirstName), StringComparison.Ordinal));
-        var lastNameProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithSpecialCharacterColumnHeaders.LastName), StringComparison.Ordinal));
-        var nationalityProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithSpecialCharacterColumnHeaders.Nationality), StringComparison.Ordinal));
-        var addressLine1Property = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithSpecialCharacterColumnHeaders.AddressLine1), StringComparison.Ordinal));
-        var addressLine2Property = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithSpecialCharacterColumnHeaders.AddressLine2), StringComparison.Ordinal));
-        var ageProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithSpecialCharacterColumnHeaders.Age), StringComparison.Ordinal));
-        var noteProperty = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithSpecialCharacterColumnHeaders.Note), StringComparison.Ordinal));
-        var note2Property = publicProperties.SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithSpecialCharacterColumnHeaders.Note2), StringComparison.Ordinal));
+        var properties = typeof(ClassWithSpecialCharacterColumnHeaders).ToPropertyDictionary();
+
+        var firstNameProperty = properties[nameof(ClassWithSpecialCharacterColumnHeaders.FirstName)];
+        var lastNameProperty = properties[nameof(ClassWithSpecialCharacterColumnHeaders.LastName)];
+        var nationalityProperty = properties[nameof(ClassWithSpecialCharacterColumnHeaders.Nationality)];
+        var addressLine1Property = properties[nameof(ClassWithSpecialCharacterColumnHeaders.AddressLine1)];
+        var addressLine2Property = properties[nameof(ClassWithSpecialCharacterColumnHeaders.AddressLine2)];
+        var ageProperty = properties[nameof(ClassWithSpecialCharacterColumnHeaders.Age)];
+        var noteProperty = properties[nameof(ClassWithSpecialCharacterColumnHeaders.Note)];
+        var note2Property = properties[nameof(ClassWithSpecialCharacterColumnHeaders.Note2)];
 
         // Act
-        var firstNameColHeaderAttr = firstNameProperty?.GetCustomAttribute<ColumnHeaderAttribute>();
-        var lastNameColHeaderAttr = lastNameProperty?.GetCustomAttribute<ColumnHeaderAttribute>();
-        var nationalityColHeaderAttr = nationalityProperty?.GetCustomAttribute<ColumnHeaderAttribute>();
-        var addressLine1ColHeaderAttr = addressLine1Property?.GetCustomAttribute<ColumnHeaderAttribute>();
-        var addressLine2ColHeaderAttr = addressLine2Property?.GetCustomAttribute<ColumnHeaderAttribute>();
-        var ageColHeaderAttr = ageProperty?.GetCustomAttribute<ColumnHeaderAttribute>();
-        var noteColHeaderAttr = noteProperty?.GetCustomAttribute<ColumnHeaderAttribute>();
-        var note2ColHeaderAttr = note2Property?.GetCustomAttribute<ColumnHeaderAttribute>();
+        var firstNameColHeaderAttr = firstNameProperty.GetCustomAttribute<ColumnHeaderAttribute>();
+        var lastNameColHeaderAttr = lastNameProperty.GetCustomAttribute<ColumnHeaderAttribute>();
+        var nationalityColHeaderAttr = nationalityProperty.GetCustomAttribute<ColumnHeaderAttribute>();
+        var addressLine1ColHeaderAttr = addressLine1Property.GetCustomAttribute<ColumnHeaderAttribute>();
+        var addressLine2ColHeaderAttr = addressLine2Property.GetCustomAttribute<ColumnHeaderAttribute>();
+        var ageColHeaderAttr = ageProperty.GetCustomAttribute<ColumnHeaderAttribute>();
+        var noteColHeaderAttr = noteProperty.GetCustomAttribute<ColumnHeaderAttribute>();
+        var note2ColHeaderAttr = note2Property.GetCustomAttribute<ColumnHeaderAttribute>();
 
         // Assert
         Assert.NotNull(firstNameColHeaderAttr);

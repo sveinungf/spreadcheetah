@@ -12,12 +12,14 @@ internal static class Diagnostics
         NoPropertiesFoundDescriptor,
         UnsupportedTypeForCellValueDescriptor,
         DuplicateColumnOrderDescriptor,
-        InvalidColumnHeaderPropertyReferenceDescriptor,
+        UnsupportedPropertyForColumnHeaderDescriptor,
         UnsupportedTypeForAttributeDescriptor,
         InvalidAttributeArgumentDescriptor,
         AttributeTypeArgumentMustInheritDescriptor,
         AttributeCombinationNotSupportedDescriptor,
-        AttributeTypeArgumentMustHaveDefaultConstructorDescriptor
+        AttributeTypeArgumentMustHaveDefaultConstructorDescriptor,
+        MissingPropertyForColumnHeaderDescriptor,
+        PropertyForColumnHeaderMustBePublicDescriptor
     ];
 
     public static Diagnostic NoPropertiesFound(Location? location, string rowTypeName)
@@ -53,13 +55,13 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static Diagnostic InvalidColumnHeaderPropertyReference(Location? location, string propertyName, string typeFullName)
-        => Diagnostic.Create(InvalidColumnHeaderPropertyReferenceDescriptor, location, [propertyName, typeFullName]);
+    public static Diagnostic UnsupportedPropertyForColumnHeader(Location? location, string propertyName, string typeFullName)
+        => Diagnostic.Create(UnsupportedPropertyForColumnHeaderDescriptor, location, [propertyName, typeFullName]);
 
-    private static readonly DiagnosticDescriptor InvalidColumnHeaderPropertyReferenceDescriptor = new(
+    private static readonly DiagnosticDescriptor UnsupportedPropertyForColumnHeaderDescriptor = new(
         id: "SPCH1004",
-        title: "Invalid ColumnHeader property reference",
-        messageFormat: "'{0}' on type '{1}' is not a valid property reference. It must be a static property, have a public getter, and the return type must be a string (or string?).",
+        title: "Unsupported property for ColumnHeader",
+        messageFormat: "Can't use property '{0}' on type '{1}' for ColumnHeader. The property must be static, have a public getter, and the return type must be a string (or string?).",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
@@ -111,10 +113,32 @@ internal static class Diagnostics
     public static Diagnostic AttributeTypeArgumentMustHaveDefaultConstructor(Location? location, string typeName)
         => Diagnostic.Create(AttributeTypeArgumentMustHaveDefaultConstructorDescriptor, location, [typeName]);
 
-    public static readonly DiagnosticDescriptor AttributeTypeArgumentMustHaveDefaultConstructorDescriptor = new(
+    private static readonly DiagnosticDescriptor AttributeTypeArgumentMustHaveDefaultConstructorDescriptor = new(
         id: "SPCH1009",
         title: "Type must have a public parameterless constructor",
         messageFormat: "Type '{0}' must have a public parameterless constructor",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static Diagnostic MissingPropertyForColumnHeader(Location? location, string propertyName, string typeFullName)
+        => Diagnostic.Create(MissingPropertyForColumnHeaderDescriptor, location, [propertyName, typeFullName]);
+
+    private static readonly DiagnosticDescriptor MissingPropertyForColumnHeaderDescriptor = new(
+        id: "SPCH1010",
+        title: "Missing property for ColumnHeader",
+        messageFormat: "Could not find property '{0}' on type '{1}' for ColumnHeader",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+
+    public static Diagnostic PropertyForColumnHeaderMustBePublic(Location? location, string propertyName, string typeFullName)
+        => Diagnostic.Create(PropertyForColumnHeaderMustBePublicDescriptor, location, [propertyName, typeFullName]);
+
+    private static readonly DiagnosticDescriptor PropertyForColumnHeaderMustBePublicDescriptor = new(
+        id: "SPCH1011",
+        title: "Property for ColumnHeader must be public",
+        messageFormat: "Can't use property '{0}' on '{1}' for ColumnHeader, because the property does not have a public getter. If the type is a resource file, make sure it has its access modifier set to public.",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);

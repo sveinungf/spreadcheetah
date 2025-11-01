@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Helpers;
+using SpreadCheetah.SourceGenerator.Mapping;
 using SpreadCheetah.SourceGenerator.Models;
 using System.Diagnostics;
 using System.Text;
@@ -70,32 +71,32 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     private static RowType AnalyzeTypeProperties(ITypeSymbol rowType, CancellationToken token)
     {
         var implicitOrderProperties = new List<RowTypeProperty>();
-        var explicitOrderProperties = new SortedDictionary<int, RowTypeProperty>();
+        var explicitOrderProperties = new Dictionary<int, RowTypeProperty>();
         var hasFormula = false;
         var hasStyle = false;
-        var analyzer = new PropertyAnalyzer(NullDiagnosticsReporter.Instance);
 
         var properties = rowType
             .GetClassAndBaseClassProperties()
-            .Where(x => x.IsInstancePropertyWithPublicGetter());
+            .Where(x => x.PropertySymbol.IsInstancePropertyWithPublicGetter());
 
         foreach (var property in properties)
         {
-            var data = analyzer.Analyze(property, token);
+            var propertySymbol = property.PropertySymbol;
+
+            var analyzer = new PropertyAnalyzer(NullDiagnosticsReporter.Instance, propertySymbol);
+            analyzer.Analyze(token);
+
+            if (property.InferColumnHeadersInfo is { } inferColumnHeadersInfo)
+                analyzer.Analyze(inferColumnHeadersInfo);
+
+            var data = analyzer.Result;
+
             if (data.ColumnIgnore is not null)
                 continue;
-            if (data.CellValueConverter is null && !property.Type.IsSupportedType())
+            if (data.CellValueConverter is null && !propertySymbol.Type.IsSupportedType())
                 continue;
 
-            var rowTypeProperty = new RowTypeProperty(
-                Name: property.Name,
-                CellFormat: data.CellFormat,
-                CellStyle: data.CellStyle,
-                CellValueConverter: data.CellValueConverter,
-                CellValueTruncate: data.CellValueTruncate,
-                ColumnHeader: data.ColumnHeader?.ToColumnHeaderInfo(),
-                ColumnWidth: data.ColumnWidth,
-                Formula: data.CellValueConverter is null ? property.Type.ToPropertyFormula() : null);
+            var rowTypeProperty = data.ToRowTypeProperty(propertySymbol);
 
             if (rowTypeProperty.Formula is not null)
                 hasFormula = true;
@@ -123,7 +124,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             IsReferenceType: rowType.IsReferenceType,
             CellType: cellType,
             Name: rowType.Name,
-            Properties: explicitOrderProperties.Values.ToEquatableArray());
+            Properties: explicitOrderProperties.OrderBy(x => x.Key).Select(x => x.Value).ToEquatableArray());
     }
 
     private static void Execute(ContextClass? contextClass, SourceProductionContext context)

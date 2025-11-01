@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using SpreadCheetah.SourceGenerator.Models;
 
 namespace SpreadCheetah.SourceGenerator.Helpers;
 
@@ -29,10 +30,24 @@ internal sealed class DiagnosticsReporter(SymbolAnalysisContext context) : IDiag
         context.ReportDiagnostic(diagnostic);
     }
 
-    public void ReportInvalidPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
+    public void ReportMissingPropertyForColumnHeader(IColumnHeaderDiagnosticData data, CancellationToken token)
     {
-        var argList = GetArgumentList(attribute, token);
-        var diagnostic = Diagnostics.InvalidColumnHeaderPropertyReference(argList?.GetLocation(), propertyName, typeFullName);
+        var location = data.GetLocation(token);
+        var diagnostic = Diagnostics.MissingPropertyForColumnHeader(location, data.ReferencedPropertyName, data.TypeFullName);
+        context.ReportDiagnostic(diagnostic);
+    }
+
+    public void ReportNonPublicPropertyForColumnHeader(IColumnHeaderDiagnosticData data, CancellationToken token)
+    {
+        var location = data.GetLocation(token);
+        var diagnostic = Diagnostics.PropertyForColumnHeaderMustBePublic(location, data.ReferencedPropertyName, data.TypeFullName);
+        context.ReportDiagnostic(diagnostic);
+    }
+
+    public void ReportUnsupportedPropertyForColumnHeader(IColumnHeaderDiagnosticData data, CancellationToken token)
+    {
+        var location = data.GetLocation(token);
+        var diagnostic = Diagnostics.UnsupportedPropertyForColumnHeader(location, data.ReferencedPropertyName, data.TypeFullName);
         context.ReportDiagnostic(diagnostic);
     }
 

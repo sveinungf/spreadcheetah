@@ -1,6 +1,7 @@
-using System.Reflection;
 using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnWidth;
+using System.Reflection;
 using Xunit;
 
 namespace SpreadCheetah.SourceGenerator.Test.Tests;
@@ -11,15 +12,14 @@ public class ColumnWidthTests
     public void ColumnWidth_ClassWithColumnWidth_CanReadOrder()
     {
         // Arrange
-        var nameProperty = typeof(ClassWithColumnWidth).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithColumnWidth.Name), StringComparison.Ordinal));
+        var properties = typeof(ClassWithColumnWidth).ToPropertyDictionary();
+        var nameProperty = properties[nameof(ClassWithColumnWidth.Name)];
 
         // Act
-        var nameColWidthAttr = nameProperty?.GetCustomAttribute<ColumnWidthAttribute>();
+        var attribute = nameProperty.GetCustomAttribute<ColumnWidthAttribute>();
 
         // Assert
-        Assert.NotNull(nameProperty);
-        Assert.NotNull(nameColWidthAttr);
-        Assert.Equal(20, nameColWidthAttr.Width);
+        Assert.NotNull(attribute);
+        Assert.Equal(20, attribute.Width);
     }
 }
