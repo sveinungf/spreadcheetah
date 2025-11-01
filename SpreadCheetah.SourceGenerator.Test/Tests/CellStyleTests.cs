@@ -1,5 +1,6 @@
 using System.Reflection;
 using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models.CellStyle;
 using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
@@ -221,15 +222,14 @@ public class CellStyleTests
     public void CellStyle_ClassWithCellStyle_CanReadStyleName()
     {
         // Arrange
-        var property = typeof(ClassWithCellStyle).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithCellStyle.Price), StringComparison.Ordinal));
+        var properties = typeof(ClassWithCellStyle).ToPropertyDictionary();
+        var property = properties[nameof(ClassWithCellStyle.Price)];
 
         // Act
-        var cellStyleAttr = property?.GetCustomAttribute<CellStyleAttribute>();
+        var attribute = property.GetCustomAttribute<CellStyleAttribute>();
 
         // Assert
-        Assert.NotNull(property);
-        Assert.NotNull(cellStyleAttr);
-        Assert.Equal("Price style", cellStyleAttr.StyleName);
+        Assert.NotNull(attribute);
+        Assert.Equal("Price style", attribute.StyleName);
     }
 }

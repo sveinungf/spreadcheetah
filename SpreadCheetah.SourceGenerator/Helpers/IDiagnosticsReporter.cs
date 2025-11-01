@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using SpreadCheetah.SourceGenerator.Models;
 
 namespace SpreadCheetah.SourceGenerator.Helpers;
 
@@ -10,7 +11,11 @@ internal interface IDiagnosticsReporter
 
     void ReportInvalidArgument(AttributeData attribute, CancellationToken token);
 
-    void ReportInvalidPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token);
+    void ReportMissingPropertyForColumnHeader(IColumnHeaderDiagnosticData data, CancellationToken token);
+
+    void ReportNonPublicPropertyForColumnHeader(IColumnHeaderDiagnosticData data, CancellationToken token);
+
+    void ReportUnsupportedPropertyForColumnHeader(IColumnHeaderDiagnosticData data, CancellationToken token);
 
     void ReportNoPropertiesFound(AttributeData attribute, INamedTypeSymbol rowType, CancellationToken token);
 

@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using SpreadCheetah.SourceGenerator.Models;
 using System.Diagnostics.CodeAnalysis;
 
 namespace SpreadCheetah.SourceGenerator.Helpers;
@@ -20,7 +21,15 @@ internal sealed class NullDiagnosticsReporter : IDiagnosticsReporter
     {
     }
 
-    public void ReportInvalidPropertyReference(AttributeData attribute, string propertyName, string typeFullName, CancellationToken token)
+    public void ReportMissingPropertyForColumnHeader(IColumnHeaderDiagnosticData data, CancellationToken token)
+    {
+    }
+
+    public void ReportNonPublicPropertyForColumnHeader(IColumnHeaderDiagnosticData data, CancellationToken token)
+    {
+    }
+
+    public void ReportUnsupportedPropertyForColumnHeader(IColumnHeaderDiagnosticData data, CancellationToken token)
     {
     }
 

@@ -11,5 +11,6 @@ internal static class Attributes
     public const string ColumnOrder = "ColumnOrderAttribute";
     public const string ColumnWidth = "ColumnWidthAttribute";
     public const string GenerationOptions = "WorksheetRowGenerationOptionsAttribute";
+    public const string InferColumnHeaders = "InferColumnHeadersAttribute";
     public const string InheritColumns = "InheritColumnsAttribute";
 }

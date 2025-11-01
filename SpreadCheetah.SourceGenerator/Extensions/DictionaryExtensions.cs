@@ -1,9 +1,9 @@
 namespace SpreadCheetah.SourceGenerator.Extensions;
 
-internal static class SortedDictionaryExtensions
+internal static class DictionaryExtensions
 {
     public static void AddWithImplicitKeys<T>(
-        this SortedDictionary<int, T> dictionary,
+        this Dictionary<int, T> dictionary,
         IEnumerable<T> values)
     {
         var implicitKey = 1;

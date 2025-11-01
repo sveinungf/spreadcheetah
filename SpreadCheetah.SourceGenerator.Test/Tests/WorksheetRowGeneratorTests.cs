@@ -1,11 +1,8 @@
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using SpreadCheetah.SourceGeneration;
-using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models;
 using SpreadCheetah.SourceGenerator.Test.Models.Accessibility;
-using SpreadCheetah.SourceGenerator.Test.Models.CellValueTruncation;
-using SpreadCheetah.SourceGenerator.Test.Models.ColumnHeader;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnOrdering;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnWidth;
 using SpreadCheetah.SourceGenerator.Test.Models.Combinations;
@@ -15,7 +12,6 @@ using SpreadCheetah.SourceGenerator.Test.Models.NoProperties;
 using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
 using SpreadCheetah.TestHelpers.Extensions;
-using System.Globalization;
 using Xunit;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 
@@ -183,55 +179,6 @@ public class WorksheetRowGeneratorTests
         var cells = sheetPart.Worksheet.Descendants<OpenXmlCell>().ToList();
         var actualCell = Assert.Single(cells);
         Assert.Equal(value, actualCell.InnerText);
-    }
-
-    [Theory]
-    [InlineData("Short value")]
-    [InlineData("Exact length!!!")]
-    [InlineData("Long value that will be truncated")]
-#pragma warning disable S2479 // Whitespace and control characters in string literals should be explicit
-    [InlineData("A couple 👨‍👩‍👧‍👦 with kids")]
-#pragma warning restore S2479 // Whitespace and control characters in string literals should be explicit
-    [InlineData("")]
-    [InlineData(null)]
-    public async Task Spreadsheet_AddAsRow_ObjectWithCellValueTruncateAttribute(string? originalValue)
-    {
-        // Arrange
-        const int truncateLength = 15;
-        var expectedValue = originalValue is { Length: > truncateLength }
-            ? originalValue[..truncateLength]
-            : originalValue;
-
-        var obj = new ClassWithTruncation { Value = originalValue };
-        using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
-        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-
-        // Act
-        await spreadsheet.AddAsRowAsync(obj, TruncationContext.Default.ClassWithTruncation, Token);
-        await spreadsheet.FinishAsync(Token);
-
-        // Assert
-        using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(expectedValue, sheet["A1"].StringValue);
-    }
-
-    [Fact]
-    public async Task Spreadsheet_AddAsRow_ObjectWithCellValueTruncateAttributeForSingleAccessProperty()
-    {
-        // Arrange
-        var obj = new ClassWithSingleAccessProperty("The value");
-        using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
-        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-
-        // Act
-        await spreadsheet.AddAsRowAsync(obj, TruncationContext.Default.ClassWithSingleAccessProperty, Token);
-        await spreadsheet.FinishAsync(Token);
-
-        // Assert
-        using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal("T", sheet["A1"].StringValue);
     }
 
     [Fact]
@@ -548,71 +495,6 @@ public class WorksheetRowGeneratorTests
         Assert.Equal(3, sheet.CellCount);
     }
 
-    [Theory, CombinatorialData]
-    public async Task Spreadsheet_AddHeaderRow_ObjectWithColumnOrdering(ObjectType type)
-    {
-        // Arrange
-        var ctx = ColumnOrderingContext.Default;
-
-        using var stream = new MemoryStream();
-        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
-        await s.StartWorksheetAsync("Sheet", token: Token);
-
-        // Act
-        var task = type switch
-        {
-            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassWithColumnOrdering, token: Token),
-            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassWithColumnOrdering, token: Token),
-            ObjectType.Struct => s.AddHeaderRowAsync(ctx.StructWithColumnOrdering, token: Token),
-            ObjectType.RecordStruct => s.AddHeaderRowAsync(ctx.RecordStructWithColumnOrdering, token: Token),
-            ObjectType.ReadOnlyStruct => s.AddHeaderRowAsync(ctx.ReadOnlyStructWithColumnOrdering, token: Token),
-            ObjectType.ReadOnlyRecordStruct => s.AddHeaderRowAsync(ctx.ReadOnlyRecordStructWithColumnOrdering, token: Token),
-            _ => throw new NotImplementedException()
-        };
-
-        await task;
-        await s.FinishAsync(Token);
-
-        // Assert
-        using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal("LastName", sheet["A1"].StringValue);
-        Assert.Equal("FirstName", sheet["B1"].StringValue);
-        Assert.Equal("Age", sheet["C1"].StringValue);
-        Assert.Equal("Gpa", sheet["D1"].StringValue);
-        Assert.Equal(4, sheet.CellCount);
-    }
-
-    [Theory]
-    [InlineData(ObjectType.Class)]
-    [InlineData(ObjectType.RecordClass)]
-    public async Task Spreadsheet_AddHeaderRow_ObjectWithInheritance(ObjectType type)
-    {
-        // Arrange
-        var ctx = InheritanceContext.Default;
-
-        using var stream = new MemoryStream();
-        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
-        await s.StartWorksheetAsync("Sheet", token: Token);
-
-        // Act
-        var task = type switch
-        {
-            ObjectType.Class => s.AddHeaderRowAsync(ctx.ClassDog, token: Token),
-            ObjectType.RecordClass => s.AddHeaderRowAsync(ctx.RecordClassDog, token: Token),
-            _ => throw new NotImplementedException()
-        };
-
-        await task;
-        await s.FinishAsync(Token);
-
-        // Assert
-        using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal("CanWalk", sheet["A1"].StringValue);
-        Assert.Equal("DateOfBirth", sheet["B1"].StringValue);
-        Assert.Equal("Breed", sheet["C1"].StringValue);
-        Assert.Equal(3, sheet.CellCount);
-    }
-
     [Fact]
     public async Task Spreadsheet_AddHeaderRow_NullTypeInfo()
     {
@@ -636,78 +518,6 @@ public class WorksheetRowGeneratorTests
 
         // Act & Assert
         await Assert.ThrowsAsync<SpreadCheetahException>(() => spreadsheet.AddHeaderRowAsync(typeInfo, token: Token).AsTask());
-    }
-
-    [Fact]
-    public async Task Spreadsheet_AddHeaderRow_SpecialCharacterColumnHeaders()
-    {
-        // Arrange
-        var ctx = ColumnHeaderContext.Default;
-
-        using var stream = new MemoryStream();
-        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
-        await s.StartWorksheetAsync("Sheet", token: Token);
-
-        IList<string> expectedValues =
-        [
-            "First name",
-            "",
-            "Nationality (escaped characters \", \', \\)",
-            "Address line 1 (escaped characters \r\n, \t)",
-            @"Address line 2 (verbatim
-string: "", \)",
-            """
-                Age (
-                    raw
-                    string
-                    literal
-                )
-            """,
-            "Note (unicode escape sequence 🌉, \ud83d\udc4d, \xE7)",
-            "Note 2 (constant interpolated string: This is a constant)"
-        ];
-
-        // Act
-        await s.AddHeaderRowAsync(ctx.ClassWithSpecialCharacterColumnHeaders, token: Token);
-        await s.FinishAsync(Token);
-
-        // Assert
-        using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(expectedValues.Select(StringHelpers.ReplaceLineEndings), sheet.Row(1).Cells.StringValues().Select(StringHelpers.ReplaceLineEndings!));
-    }
-
-    [Fact]
-    public async Task Spreadsheet_AddHeaderRow_PropertyReferenceColumnHeaders()
-    {
-        // Arrange
-        var ctx = ColumnHeaderContext.Default;
-
-        using var stream = new MemoryStream();
-        await using var s = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
-        await s.StartWorksheetAsync("Sheet", token: Token);
-
-        IList<string?> expectedValues =
-        [
-            "Fornavn",
-            "Last name",
-            "The nationality",
-            "Address line 1",
-            null,
-            $"Age (in {DateTime.UtcNow.Year})"
-        ];
-
-        var originalCulture = CultureInfo.CurrentUICulture;
-
-        // Act
-        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("nb-NO");
-        await s.AddHeaderRowAsync(ctx.ClassWithPropertyReferenceColumnHeaders, token: Token);
-        CultureInfo.CurrentUICulture = originalCulture;
-
-        await s.FinishAsync(Token);
-
-        // Assert
-        using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(expectedValues, sheet.Row(1).Cells.StringValues());
     }
 
     [Fact]

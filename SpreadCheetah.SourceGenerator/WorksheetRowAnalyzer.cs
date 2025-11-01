@@ -61,6 +61,7 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
 
             var properties = rowType
                 .GetClassAndBaseClassProperties()
+                .Select(x => x.PropertySymbol)
                 .Where(x => x.IsInstancePropertyWithPublicGetter());
 
             var hasProperties = false;
@@ -105,7 +106,7 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
 
         foreach (var property in type.GetClassAndBaseClassProperties())
         {
-            var columnOrderAttribute = property.GetColumnOrderAttribute();
+            var columnOrderAttribute = property.PropertySymbol.GetColumnOrderAttribute();
             if (columnOrderAttribute is null)
                 continue;
 
@@ -122,12 +123,17 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
     {
         if (context.Symbol is not IPropertySymbol property)
             return;
-        if (property.GetAttributes() is { Length: 0 })
+
+        var classType = property.ContainingType;
+        if (classType.GetAttributes().Length == 0 && property.GetAttributes().Length == 0)
             return;
 
         var diagnostics = new DiagnosticsReporter(context);
-        var analyzer = new PropertyAnalyzer(diagnostics);
+        var analyzer = new PropertyAnalyzer(diagnostics, property);
+        analyzer.Analyze(context.CancellationToken);
 
-        analyzer.Analyze(property, context.CancellationToken);
+        var inferColumnHeaders = classType.GetEffectiveInferColumnHeadersInfo();
+        if (inferColumnHeaders is not null)
+            analyzer.Analyze(inferColumnHeaders);
     }
 }

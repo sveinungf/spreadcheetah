@@ -1,4 +1,5 @@
 using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models.CellFormat;
 using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
@@ -105,31 +106,29 @@ public class CellFormatTests
     public void CellFormat_ClassWithCellCustomFormat_CanReadCustomFormat()
     {
         // Arrange
-        var property = typeof(ClassWithCellCustomFormat).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithCellCustomFormat.Price), StringComparison.Ordinal));
+        var properties = typeof(ClassWithCellCustomFormat).ToPropertyDictionary();
+        var property = properties[nameof(ClassWithCellCustomFormat.Price)];
 
         // Act
-        var cellFormatAttr = property?.GetCustomAttribute<CellFormatAttribute>();
+        var attribute = property.GetCustomAttribute<CellFormatAttribute>();
 
         // Assert
-        Assert.NotNull(property);
-        Assert.NotNull(cellFormatAttr);
-        Assert.Equal("#.0#", cellFormatAttr.CustomFormat);
+        Assert.NotNull(attribute);
+        Assert.Equal("#.0#", attribute.CustomFormat);
     }
 
     [Fact]
     public void CellFormat_ClassWithCellStandardFormat_CanReadFormat()
     {
         // Arrange
-        var property = typeof(ClassWithCellStandardFormat).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithCellStandardFormat.Price), StringComparison.Ordinal));
+        var properties = typeof(ClassWithCellStandardFormat).ToPropertyDictionary();
+        var property = properties[nameof(ClassWithCellStandardFormat.Price)];
 
         // Act
-        var cellFormatAttr = property?.GetCustomAttribute<CellFormatAttribute>();
+        var attribute = property.GetCustomAttribute<CellFormatAttribute>();
 
         // Assert
-        Assert.NotNull(property);
-        Assert.NotNull(cellFormatAttr);
-        Assert.Equal(StandardNumberFormat.TwoDecimalPlaces, cellFormatAttr.Format);
+        Assert.NotNull(attribute);
+        Assert.Equal(StandardNumberFormat.TwoDecimalPlaces, attribute.Format);
     }
 }

@@ -4,6 +4,12 @@ namespace SpreadCheetah.SourceGenerator.Helpers;
 
 internal sealed class AttributeDataComparer : IComparer<AttributeData>
 {
+    public static AttributeDataComparer Instance { get; } = new();
+
+    private AttributeDataComparer()
+    {
+    }
+
     public int Compare(AttributeData x, AttributeData y)
     {
         return Compare(x.AttributeClass?.MetadataName, y.AttributeClass?.MetadataName);
