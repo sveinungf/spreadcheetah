@@ -99,7 +99,7 @@ public class ColumnHeaderTests
     }
 
     [Fact]
-    public Task ColumnHeader_ClassWithValidPropertiesForColumnHeaderReference()
+    public Task ColumnHeader_ClassWithValidReferences()
     {
         // Arrange
         const string source = """
@@ -138,7 +138,7 @@ public class ColumnHeaderTests
     }
 
     [Fact]
-    public Task ColumnHeader_ClassWithMissingPropertiesForColumnHeaderReference()
+    public Task ColumnHeader_ClassWithMissingReferences()
     {
         // Arrange
         var context = AnalyzerTest.CreateContext();
@@ -169,7 +169,7 @@ public class ColumnHeaderTests
     }
 
     [Fact]
-    public Task ColumnHeader_ClassWithUnsupportedPropertiesForColumnHeaderReference()
+    public Task ColumnHeader_ClassWithReferenceToInternalProperties()
     {
         // Arrange
         var context = AnalyzerTest.CreateContext();
@@ -181,27 +181,53 @@ public class ColumnHeaderTests
             public class ColumnHeaders
             {
                 public static string PrivateGetterProperty { private get; set; } = "Private getter property";
+                internal static string InternalProperty => "Internal property";
+            }
+
+            public class ClassWithColumnHeader
+            {
+                [ColumnHeader{|SPCH1011:(typeof(ColumnHeaders), nameof(ColumnHeaders.PrivateGetterProperty))|}]
+                public string PropertyC { get; set; }
+                [ColumnHeader{|SPCH1011:(typeof(ColumnHeaders), nameof(ColumnHeaders.InternalProperty))|}]
+                public string PropertyF { get; set; }
+            }
+            
+            [WorksheetRow(typeof(ClassWithColumnHeader))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return context.RunAsync(Token);
+    }
+
+    [Fact]
+    public Task ColumnHeader_ClassWithReferencesToUnsupportedProperties()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            public class ColumnHeaders
+            {
                 public static string WriteOnlyProperty { set => _ = value; }
                 public static int NonStringProperty => 2024;
-                internal static string InternalProperty => "Internal property";
                 public string NonStaticProperty => "Non static property";
             }
 
-            public class ClassWithInvalidPropertyReferenceColumnHeaders
+            public class ClassWithColumnHeader
             {
-                [ColumnHeader{|SPCH1004:(typeof(ColumnHeaders), nameof(ColumnHeaders.PrivateGetterProperty))|}]
-                public string PropertyC { get; set; }
                 [ColumnHeader{|SPCH1004:(typeof(ColumnHeaders), nameof(ColumnHeaders.WriteOnlyProperty))|}]
                 public string PropertyD { get; set; }
                 [ColumnHeader{|SPCH1004:(typeof(ColumnHeaders), nameof(ColumnHeaders.NonStringProperty))|}]
                 public string PropertyE { get; set; }
-                [ColumnHeader{|SPCH1004:(typeof(ColumnHeaders), nameof(ColumnHeaders.InternalProperty))|}]
-                public string PropertyF { get; set; }
                 [ColumnHeader{|SPCH1004:(typeof(ColumnHeaders), nameof(ColumnHeaders.NonStaticProperty))|}]
-                public string PropertyG { get; set; }
+                public string PropertyF { get; set; }
             }
             
-            [WorksheetRow(typeof(ClassWithInvalidPropertyReferenceColumnHeaders))]
+            [WorksheetRow(typeof(ClassWithColumnHeader))]
             public partial class MyGenRowContext : WorksheetRowContext;
             """;
 
