@@ -13,6 +13,36 @@ public class InferColumnHeadersTests
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
     [Fact]
+    public Task InferColumnHeaders_ClassWithValidReferences()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            public class ColumnHeaders
+            {
+                public static string FirstName => "First name";
+                public static string LastName => "Last name";
+            }
+
+            [InferColumnHeaders(typeof(ColumnHeaders))]
+            public class ClassWithInferColumnHeaders
+            {
+                public string? FirstName { get; set; }
+                public string? LastName { get; set; }
+            }
+            
+            [WorksheetRow(typeof(ClassWithInferColumnHeaders))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
+
+    [Fact]
     public Task InferColumnHeaders_ClassWithValidReferencesWithPrefix()
     {
         // Arrange
@@ -23,13 +53,43 @@ public class InferColumnHeadersTests
             namespace MyNamespace;
 
             [InferColumnHeaders(typeof(ColumnHeaderResources), Prefix = "Header_")]
-            public class ClassWithPropertyReferenceColumnHeaders
+            public class ClassWithInferColumnHeaders
             {
                 public string? FirstName { get; set; }
                 public string? LastName { get; set; }
             }
             
-            [WorksheetRow(typeof(ClassWithPropertyReferenceColumnHeaders))]
+            [WorksheetRow(typeof(ClassWithInferColumnHeaders))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return TestHelper.CompileAndVerify<WorksheetRowGenerator>(source);
+    }
+
+    [Fact]
+    public Task InferColumnHeaders_ClassWithValidReferencesWithSuffix()
+    {
+        // Arrange
+        const string source = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            public class ColumnHeaders
+            {
+                public static string FirstNameHeader => "First name";
+                public static string LastNameHeader => "Last name";
+            }
+
+            [InferColumnHeaders(typeof(ColumnHeaders), Suffix = "Header")]
+            public class ClassWithInferColumnHeaders
+            {
+                public string? FirstName { get; set; }
+                public string? LastName { get; set; }
+            }
+            
+            [WorksheetRow(typeof(ClassWithInferColumnHeaders))]
             public partial class MyGenRowContext : WorksheetRowContext;
             """;
 

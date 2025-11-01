@@ -39,8 +39,8 @@ namespace MyNamespace
             var headerNames = ArrayPool<string?>.Shared.Rent(2);
             try
             {
-                headerNames[0] = MyNamespace.ColumnHeaders.FirstName;
-                headerNames[1] = MyNamespace.ColumnHeaders.LastName;
+                headerNames[0] = SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaderResources.Header_FirstName;
+                headerNames[1] = SpreadCheetah.SourceGenerator.SnapshotTest.Models.ColumnHeader.ColumnHeaderResources.Header_LastName;
                 await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 2)!, styleId, token).ConfigureAwait(false);
             }
             finally
