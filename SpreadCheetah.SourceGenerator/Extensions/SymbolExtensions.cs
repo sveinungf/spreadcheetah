@@ -169,12 +169,9 @@ internal static class SymbolExtensions
 
         var inheritedProperties = GetClassAndBaseClassProperties(type.BaseType);
 
-        return inheritedColumnOrder switch
-        {
-            InheritedColumnsOrder.InheritedColumnsFirst => [.. inheritedProperties, .. properties],
-            InheritedColumnsOrder.InheritedColumnsLast => [.. properties, .. inheritedProperties],
-            _ => throw new ArgumentOutOfRangeException(nameof(type), "Unsupported inheritance strategy type")
-        };
+        return inheritedColumnOrder is InheritedColumnsOrder.InheritedColumnsLast
+            ? [.. properties, .. inheritedProperties]
+            : [.. inheritedProperties, .. properties];
     }
 
     public static InferColumnHeadersInfo? GetEffectiveInferColumnHeadersInfo(this ITypeSymbol type)

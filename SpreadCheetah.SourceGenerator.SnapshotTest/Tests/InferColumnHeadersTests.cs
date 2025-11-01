@@ -191,6 +191,47 @@ public class InferColumnHeadersTests
     }
 
     [Fact]
+    public Task InferColumnHeaders_DerivedClassWithMissingReferenceWhenBaseClassHasAnotherInferAttribute()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            public class BaseClassColumnHeaders
+            {
+                public static string Name => "The name";
+            }
+
+            public class DerivedClassColumnHeaders
+            {
+                public static string DateOfBirth => "Date of birth";
+            }
+
+            [InferColumnHeaders(typeof(BaseClassColumnHeaders))]
+            public abstract class BaseClass
+            {
+            }
+
+            [InheritColumns]
+            [System.Diagnostics.DebuggerDisplay("Some other attribute here...")]
+            [InferColumnHeaders(typeof(DerivedClassColumnHeaders))]
+            public class DerivedClass : BaseClass
+            {
+                public string? {|SPCH1010:Name|} { get; set; }
+            }
+            
+            [WorksheetRow(typeof(DerivedClass))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return context.RunAsync(Token);
+    }
+
+    [Fact]
     public Task InferColumnHeaders_DerivedClassWithMissingReferenceAndNoInheritColumns()
     {
         // Arrange
