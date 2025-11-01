@@ -1,6 +1,7 @@
-using System.Reflection;
 using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models.CellValueTruncation;
+using System.Reflection;
 using Xunit;
 
 namespace SpreadCheetah.SourceGenerator.Test.Tests;
@@ -11,15 +12,14 @@ public class CellValueTruncateTests
     public void CellValueTruncate_ClassWithSingleAccessProperty_CanReadLength()
     {
         // Arrange
-        var property = typeof(ClassWithSingleAccessProperty).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithSingleAccessProperty.Value), StringComparison.Ordinal));
+        var properties = typeof(ClassWithSingleAccessProperty).ToPropertyDictionary();
+        var property = properties[nameof(ClassWithSingleAccessProperty.Value)];
 
         // Act
-        var cellValueTruncateAttr = property?.GetCustomAttribute<CellValueTruncateAttribute>();
+        var attribute = property.GetCustomAttribute<CellValueTruncateAttribute>();
 
         // Assert
-        Assert.NotNull(property);
-        Assert.NotNull(cellValueTruncateAttr);
-        Assert.Equal(1, cellValueTruncateAttr.Length);
+        Assert.NotNull(attribute);
+        Assert.Equal(1, attribute.Length);
     }
 }

@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Reflection;
 using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models.CellValueConverter;
 using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Assertions;
@@ -146,15 +147,14 @@ public class CellValueConverterTests
     public void CellFormat_ClassWithCellValueConverter_CanReadConverterType()
     {
         // Arrange
-        var property = typeof(ClassWithCellValueConverter).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .SingleOrDefault(p => string.Equals(p.Name, nameof(ClassWithCellValueConverter.Name), StringComparison.Ordinal));
+        var properties = typeof(ClassWithCellValueConverter).ToPropertyDictionary();
+        var property = properties[nameof(ClassWithCellValueConverter.Name)];
 
         // Act
-        var cellValueConverterAttr = property?.GetCustomAttribute<CellValueConverterAttribute>();
+        var attribute = property.GetCustomAttribute<CellValueConverterAttribute>();
 
         // Assert
-        Assert.NotNull(property);
-        Assert.NotNull(cellValueConverterAttr);
-        Assert.Equal(typeof(UpperCaseValueConverter), cellValueConverterAttr.ConverterType);
+        Assert.NotNull(attribute);
+        Assert.Equal(typeof(UpperCaseValueConverter), attribute.ConverterType);
     }
 }

@@ -1,4 +1,5 @@
 using SpreadCheetah.SourceGeneration;
+using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnHeader;
 using System.Reflection;
 using Xunit;
@@ -11,16 +12,14 @@ public class ColumnHeaderTests
     public void ColumnHeader_ClassWithPropertyReferenceColumnHeaders_CanReadTypeAndPropertyName()
     {
         // Arrange
-        var publicProperties = typeof(ClassWithPropertyReferenceColumnHeaders)
-            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .ToDictionary(x => x.Name, StringComparer.Ordinal);
+        var properties = typeof(ClassWithPropertyReferenceColumnHeaders).ToPropertyDictionary();
 
-        var firstNameProperty = publicProperties[nameof(ClassWithPropertyReferenceColumnHeaders.FirstName)];
-        var lastNameProperty = publicProperties[nameof(ClassWithPropertyReferenceColumnHeaders.LastName)];
-        var nationalityProperty = publicProperties[nameof(ClassWithPropertyReferenceColumnHeaders.Nationality)];
-        var addressLine1Property = publicProperties[nameof(ClassWithPropertyReferenceColumnHeaders.AddressLine1)];
-        var addressLine2Property = publicProperties[nameof(ClassWithPropertyReferenceColumnHeaders.AddressLine2)];
-        var ageProperty = publicProperties[nameof(ClassWithPropertyReferenceColumnHeaders.Age)];
+        var firstNameProperty = properties[nameof(ClassWithPropertyReferenceColumnHeaders.FirstName)];
+        var lastNameProperty = properties[nameof(ClassWithPropertyReferenceColumnHeaders.LastName)];
+        var nationalityProperty = properties[nameof(ClassWithPropertyReferenceColumnHeaders.Nationality)];
+        var addressLine1Property = properties[nameof(ClassWithPropertyReferenceColumnHeaders.AddressLine1)];
+        var addressLine2Property = properties[nameof(ClassWithPropertyReferenceColumnHeaders.AddressLine2)];
+        var ageProperty = properties[nameof(ClassWithPropertyReferenceColumnHeaders.Age)];
 
         // Act
         var firstNameColHeaderAttr = firstNameProperty.GetCustomAttribute<ColumnHeaderAttribute>();
@@ -60,18 +59,16 @@ public class ColumnHeaderTests
     public void ColumnHeader_ClassWithSpecialCharacterColumnHeaders_CanReadName()
     {
         // Arrange
-        var publicProperties = typeof(ClassWithSpecialCharacterColumnHeaders)
-            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .ToDictionary(x => x.Name, StringComparer.Ordinal);
+        var properties = typeof(ClassWithSpecialCharacterColumnHeaders).ToPropertyDictionary();
 
-        var firstNameProperty = publicProperties[nameof(ClassWithSpecialCharacterColumnHeaders.FirstName)];
-        var lastNameProperty = publicProperties[nameof(ClassWithSpecialCharacterColumnHeaders.LastName)];
-        var nationalityProperty = publicProperties[nameof(ClassWithSpecialCharacterColumnHeaders.Nationality)];
-        var addressLine1Property = publicProperties[nameof(ClassWithSpecialCharacterColumnHeaders.AddressLine1)];
-        var addressLine2Property = publicProperties[nameof(ClassWithSpecialCharacterColumnHeaders.AddressLine2)];
-        var ageProperty = publicProperties[nameof(ClassWithSpecialCharacterColumnHeaders.Age)];
-        var noteProperty = publicProperties[nameof(ClassWithSpecialCharacterColumnHeaders.Note)];
-        var note2Property = publicProperties[nameof(ClassWithSpecialCharacterColumnHeaders.Note2)];
+        var firstNameProperty = properties[nameof(ClassWithSpecialCharacterColumnHeaders.FirstName)];
+        var lastNameProperty = properties[nameof(ClassWithSpecialCharacterColumnHeaders.LastName)];
+        var nationalityProperty = properties[nameof(ClassWithSpecialCharacterColumnHeaders.Nationality)];
+        var addressLine1Property = properties[nameof(ClassWithSpecialCharacterColumnHeaders.AddressLine1)];
+        var addressLine2Property = properties[nameof(ClassWithSpecialCharacterColumnHeaders.AddressLine2)];
+        var ageProperty = properties[nameof(ClassWithSpecialCharacterColumnHeaders.Age)];
+        var noteProperty = properties[nameof(ClassWithSpecialCharacterColumnHeaders.Note)];
+        var note2Property = properties[nameof(ClassWithSpecialCharacterColumnHeaders.Note2)];
 
         // Act
         var firstNameColHeaderAttr = firstNameProperty.GetCustomAttribute<ColumnHeaderAttribute>();
