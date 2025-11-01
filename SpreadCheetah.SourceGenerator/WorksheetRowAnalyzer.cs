@@ -124,15 +124,15 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
         if (context.Symbol is not IPropertySymbol property)
             return;
 
-        var inferColumnHeaders = property.ContainingType.GetEffectiveInferColumnHeadersInfo();
-
-        if (inferColumnHeaders is null && property.GetAttributes().Length == 0)
+        var classType = property.ContainingType;
+        if (classType.GetAttributes().Length == 0 && property.GetAttributes().Length == 0)
             return;
 
         var diagnostics = new DiagnosticsReporter(context);
         var analyzer = new PropertyAnalyzer(diagnostics, property);
         analyzer.Analyze(context.CancellationToken);
 
+        var inferColumnHeaders = classType.GetEffectiveInferColumnHeadersInfo();
         if (inferColumnHeaders is not null)
             analyzer.Analyze(inferColumnHeaders);
     }

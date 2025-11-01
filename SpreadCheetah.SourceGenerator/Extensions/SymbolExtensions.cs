@@ -151,7 +151,7 @@ internal static class SymbolExtensions
 
         foreach (var attribute in type.GetAttributes())
         {
-            if (attribute.TryGetInheritedColumnOrderingAttribute(out var order))
+            if (attribute.TryGetInheritColumnsAttribute(out var order))
             {
                 inheritedColumnOrder = order;
                 break;
@@ -179,18 +179,25 @@ internal static class SymbolExtensions
 
     public static InferColumnHeadersInfo? GetEffectiveInferColumnHeadersInfo(this ITypeSymbol type)
     {
+        var hasInheritColumnsAttribute = false;
+
         foreach (var attribute in type.GetAttributes())
         {
             if (attribute.TryGetInferColumnHeadersAttribute(out var info))
                 return info;
+
+            if (hasInheritColumnsAttribute)
+                continue;
+
+            hasInheritColumnsAttribute = attribute.TryGetInheritColumnsAttribute(out _);
         }
 
-        return type.BaseType is { } baseType
+        return hasInheritColumnsAttribute && type.BaseType is { } baseType
             ? baseType.GetEffectiveInferColumnHeadersInfo()
             : null;
     }
 
-    private static bool TryGetInheritedColumnOrderingAttribute(this AttributeData attribute, out InheritedColumnsOrder result)
+    private static bool TryGetInheritColumnsAttribute(this AttributeData attribute, out InheritedColumnsOrder result)
     {
         result = default;
 
@@ -223,8 +230,6 @@ internal static class SymbolExtensions
 
         string? prefix = null;
         string? suffix = null;
-
-        // TODO: Emit warning on invalid Prefix/Suffix values.
 
         foreach (var (key, value) in attribute.NamedArguments)
         {
