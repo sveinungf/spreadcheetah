@@ -253,6 +253,36 @@ public class InferColumnHeadersTests
     }
 
     [Fact]
+    public Task InferColumnHeaders_ClassWithMissingReferenceForPropertyWithExplicitColumnHeader()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            public class ColumnHeaders
+            {
+                public static string DateOfBirth => "Date of birth";
+            }
+
+            [InferColumnHeaders(typeof(ColumnHeaders))]
+            public class ClassWithInferColumnHeaders
+            {
+                [ColumnHeader("Explicit column header")]
+                public string? Name { get; set; }
+            }
+            
+            [WorksheetRow(typeof(ClassWithInferColumnHeaders))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return context.RunAsync(Token);
+    }
+
+    [Fact]
     public Task InferColumnHeaders_ClassWithReferenceToInternalProperty()
     {
         // Arrange
