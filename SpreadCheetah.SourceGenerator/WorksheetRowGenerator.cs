@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SpreadCheetah.SourceGenerator.Extensions;
 using SpreadCheetah.SourceGenerator.Helpers;
+using SpreadCheetah.SourceGenerator.Mapping;
 using SpreadCheetah.SourceGenerator.Models;
 using System.Diagnostics;
 using System.Text;
@@ -95,15 +96,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             if (data.CellValueConverter is null && !propertySymbol.Type.IsSupportedType())
                 continue;
 
-            var rowTypeProperty = new RowTypeProperty(
-                Name: propertySymbol.Name,
-                CellFormat: data.CellFormat,
-                CellStyle: data.CellStyle,
-                CellValueConverter: data.CellValueConverter,
-                CellValueTruncate: data.CellValueTruncate,
-                ColumnHeader: data.ColumnHeader?.ToColumnHeaderInfo(),
-                ColumnWidth: data.ColumnWidth,
-                Formula: data.CellValueConverter is null ? propertySymbol.Type.ToPropertyFormula() : null);
+            var rowTypeProperty = data.ToRowTypeProperty(propertySymbol);
 
             if (rowTypeProperty.Formula is not null)
                 hasFormula = true;
