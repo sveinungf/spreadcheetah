@@ -89,10 +89,10 @@ file struct WorksheetStartXmlWriter(
 
     private readonly bool TryWriteSheetViewsStart()
     {
-        if (options is null or { FrozenColumns: null, FrozenRows: null, ShowGridLines: null })
+        if (options is null or { FrozenColumns: null, FrozenRows: null, ShowGridlines: null })
             return true;
 
-        var showGridLinesAttribute = new BooleanAttribute("showGridLines"u8, options.ShowGridLines);
+        var showGridLinesAttribute = new BooleanAttribute("showGridLines"u8, options.ShowGridlines);
 
         return buffer.TryWrite(
             $"{"<sheetViews><sheetView"u8}" +
@@ -157,7 +157,7 @@ file struct WorksheetStartXmlWriter(
 
     private readonly bool TryWriteSheetViewsEnd()
     {
-        if (options is null or { FrozenColumns: null, FrozenRows: null, ShowGridLines: null })
+        if (options is null or { FrozenColumns: null, FrozenRows: null, ShowGridlines: null })
             return true;
 
         return buffer.TryWrite("</sheetView></sheetViews>"u8);

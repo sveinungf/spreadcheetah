@@ -154,7 +154,7 @@ public class SpreadsheetTests
             FrozenColumns = 2,
             FrozenRows = 1,
             Visibility = WorksheetVisibility.Hidden,
-            ShowGridLines = false
+            ShowGridlines = false
         };
 
         options.Column(2).Width = 80;
@@ -189,7 +189,7 @@ public class SpreadsheetTests
             FrozenColumns = 2,
             FrozenRows = 1,
             Visibility = WorksheetVisibility.Hidden,
-            ShowGridLines = false
+            ShowGridlines = false
         };
 
         options.Column(2).Width = 80;
@@ -662,7 +662,7 @@ public class SpreadsheetTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
 
         // Act
-        var sheetOptions = new WorksheetOptions { ShowGridLines = expectedShowGridLines };
+        var sheetOptions = new WorksheetOptions { ShowGridlines = expectedShowGridLines };
         await spreadsheet.StartWorksheetAsync("Sheet 1", sheetOptions, Token);
         await spreadsheet.FinishAsync(Token);
 

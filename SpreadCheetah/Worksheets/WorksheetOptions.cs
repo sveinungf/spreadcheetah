@@ -5,7 +5,7 @@ namespace SpreadCheetah.Worksheets;
 /// <summary>
 /// Provides options to be used when starting a worksheet with <see cref="Spreadsheet"/>.
 /// </summary>
-public class WorksheetOptions
+public sealed class WorksheetOptions
 {
     /// <summary>
     /// The default width of the columns in the worksheet. The number represents how many characters can be displayed in the standard font.
@@ -62,9 +62,9 @@ public class WorksheetOptions
     public AutoFilterOptions? AutoFilter { get; set; }
 
     /// <summary>
-    /// Option to hide the sheet grid
+    /// Option to show or hide the sheet grid.
     /// </summary>
-    public bool? ShowGridLines { get; set; }
+    public bool? ShowGridlines { get; set; }
 
     internal SortedDictionary<int, ColumnOptions>? ColumnOptions { get; private set; }
 

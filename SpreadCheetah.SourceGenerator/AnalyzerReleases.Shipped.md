@@ -47,3 +47,12 @@ Rule ID | Category | Severity | Notes
 SPCH1007 | SpreadCheetah.SourceGenerator | Error | AttributeTypeArgumentMustInherit
 SPCH1008 | SpreadCheetah.SourceGenerator | Error | AttributeCombinationNotSupported
 SPCH1009 | SpreadCheetah.SourceGenerator | Error | AttributeTypeArgumentMustHaveDefaultConstructor
+
+
+## Release 1.24.0
+
+### New Rules
+Rule ID | Category | Severity | Notes
+--------|----------|----------|--------------------
+SPCH1010 | SpreadCheetah.SourceGenerator | Warning | MissingPropertyForColumnHeader
+SPCH1011 | SpreadCheetah.SourceGenerator | Error   | PropertyForColumnHeaderMustBePublic
