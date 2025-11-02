@@ -5,7 +5,7 @@ namespace SpreadCheetah.Worksheets;
 /// <summary>
 /// Provides auto filter options to be used with <see cref="WorksheetOptions"/>.
 /// </summary>
-public class AutoFilterOptions
+public sealed class AutoFilterOptions
 {
     /// <summary>
     /// The cell range to filter. Not exposed publicly in case there will be a more dynamic way to set the range in the future.

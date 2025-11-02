@@ -5,7 +5,7 @@ namespace SpreadCheetah.Worksheets;
 /// <summary>
 /// Provides options to be used when starting a worksheet with <see cref="Spreadsheet"/>.
 /// </summary>
-public class WorksheetOptions
+public sealed class WorksheetOptions
 {
     /// <summary>
     /// The default width of the columns in the worksheet. The number represents how many characters can be displayed in the standard font.

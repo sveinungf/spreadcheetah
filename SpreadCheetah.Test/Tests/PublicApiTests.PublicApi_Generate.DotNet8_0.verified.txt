@@ -655,7 +655,7 @@ namespace SpreadCheetah.Validations
 }
 namespace SpreadCheetah.Worksheets
 {
-    public class AutoFilterOptions
+    public sealed class AutoFilterOptions
     {
         public AutoFilterOptions(string cellRange) { }
     }
@@ -672,7 +672,7 @@ namespace SpreadCheetah.Worksheets
         public SpreadCheetah.Styling.Style? DefaultStyle { get; set; }
         public double? Height { get; set; }
     }
-    public class WorksheetOptions
+    public sealed class WorksheetOptions
     {
         public WorksheetOptions() { }
         public SpreadCheetah.Worksheets.AutoFilterOptions? AutoFilter { get; set; }
