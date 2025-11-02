@@ -678,7 +678,7 @@ namespace SpreadCheetah.Worksheets
         public double? DefaultColumnWidth { get; set; }
         public int? FrozenColumns { get; set; }
         public int? FrozenRows { get; set; }
-        public bool? ShowGridLines { get; set; }
+        public bool? ShowGridlines { get; set; }
         public SpreadCheetah.Worksheets.WorksheetVisibility Visibility { get; set; }
         public SpreadCheetah.Worksheets.ColumnOptions Column(int columnNumber) { }
     }

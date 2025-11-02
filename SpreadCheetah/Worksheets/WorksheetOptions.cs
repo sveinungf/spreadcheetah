@@ -62,9 +62,9 @@ public class WorksheetOptions
     public AutoFilterOptions? AutoFilter { get; set; }
 
     /// <summary>
-    /// Option to hide the sheet grid
+    /// Option to show or hide the sheet grid.
     /// </summary>
-    public bool? ShowGridLines { get; set; }
+    public bool? ShowGridlines { get; set; }
 
     internal SortedDictionary<int, ColumnOptions>? ColumnOptions { get; private set; }
 
