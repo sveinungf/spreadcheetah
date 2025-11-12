@@ -17,7 +17,7 @@ internal static class Guard
         [CallerArgumentExpression(nameof(value))] string? paramName = null)
         where TEnum : struct, Enum
     {
-        if (!EnumPolyfill.IsDefined(value))
+        if (!Enum.IsDefined(value))
             ThrowHelper.EnumValueInvalid(paramName, value);
 
         return value;
@@ -29,7 +29,7 @@ internal static class Guard
     {
         if (value is not { } actualValue)
             return null;
-        if (!EnumPolyfill.IsDefined(actualValue))
+        if (!Enum.IsDefined(actualValue))
             ThrowHelper.EnumValueInvalid(paramName, actualValue);
 
         return value;

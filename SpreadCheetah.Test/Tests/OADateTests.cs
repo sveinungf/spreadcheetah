@@ -65,11 +65,7 @@ public class OADateTests
         Assert.True(bytesWritten > 0);
 
         var bytes = destination.Slice(0, bytesWritten);
-#if NET10_0_OR_GREATER
         double.TryParse(bytes, CultureInfo.InvariantCulture, out var actualValue);
-#else
-        DoublePolyfill.TryParse(bytes, CultureInfo.InvariantCulture, out var actualValue);
-#endif
         Assert.Equal(expectedValue, actualValue, 0.00000002);
     }
 
@@ -98,11 +94,7 @@ public class OADateTests
             Assert.True(bytesWritten > 0);
 
             var bytes = destination.Slice(0, bytesWritten);
-#if NET10_0_OR_GREATER
             double.TryParse(bytes, CultureInfo.InvariantCulture, out var actualValue);
-#else
-            DoublePolyfill.TryParse(bytes, CultureInfo.InvariantCulture, out var actualValue);
-#endif
             Assert.Equal(dateTime.ToOADate(), actualValue, 0.00000002);
         }
     }
