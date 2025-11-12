@@ -30,10 +30,6 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         return result;
     }
 
-#if NETSTANDARD2_0
-    public bool WriteLongString(string? value, ref int valueIndex) => WriteLongString(value.AsSpan(), ref valueIndex);
-#endif
-
     public ValueTask FlushToStreamAsync(Stream stream, CancellationToken token)
     {
         var index = Index;
