@@ -38,11 +38,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
     {
         var index = Index;
         Index = 0;
-#if NETSTANDARD2_0
-        return new ValueTask(stream.WriteAsync(_buffer, 0, index, token));
-#else
         return stream.WriteAsync(_buffer.AsMemory(0, index), token);
-#endif
     }
 
     public bool TryWrite(scoped ReadOnlySpan<byte> utf8Value)
