@@ -6,17 +6,17 @@ using System.IO.Compression;
 
 namespace SpreadCheetah.Helpers;
 
-internal sealed class ZipArchiveManager : IDisposable
+internal sealed class ZipArchiveManager : IDisposable, IAsyncDisposable
 {
     private readonly ZipArchive _zipArchive;
     private readonly CompressionLevel _compressionLevel;
     private bool _disposed;
 
-    public ZipArchiveManager(
-        Stream stream,
+    private ZipArchiveManager(
+        ZipArchive zipArchive,
         SpreadCheetahCompressionLevel? compressionLevel)
     {
-        _zipArchive = new ZipArchive(stream, ZipArchiveMode.Create, true);
+        _zipArchive = zipArchive;
 
         var level = compressionLevel ?? SpreadCheetahOptions.DefaultCompressionLevel;
         _compressionLevel = level is SpreadCheetahCompressionLevel.Optimal
@@ -24,9 +24,24 @@ internal sealed class ZipArchiveManager : IDisposable
             : CompressionLevel.Fastest;
     }
 
-    public Stream OpenEntry(string entryName)
+    public static async Task<ZipArchiveManager> CreateAsync(
+        Stream stream,
+        SpreadCheetahCompressionLevel? compressionLevel,
+        CancellationToken token)
     {
-        return _zipArchive.CreateEntry(entryName, _compressionLevel).Open();
+        var zipArchive = await ZipArchive.CreateAsync(
+            stream: stream,
+            mode: ZipArchiveMode.Create,
+            leaveOpen: true,
+            entryNameEncoding: null,
+            cancellationToken: token).ConfigureAwait(false);
+
+        return new ZipArchiveManager(zipArchive, compressionLevel);
+    }
+
+    public Task<Stream> OpenEntryAsync(string entryName)
+    {
+        return _zipArchive.CreateEntry(entryName, _compressionLevel).OpenAsync();
     }
 
     public async ValueTask WriteAsync<T>(
@@ -36,7 +51,7 @@ internal sealed class ZipArchiveManager : IDisposable
         CancellationToken token)
         where T : struct, IXmlWriter<T>
     {
-        var stream = OpenEntry(entryName);
+        var stream = await OpenEntryAsync(entryName).ConfigureAwait(false);
 #if NETSTANDARD2_0
         using (stream)
 #else
@@ -69,7 +84,7 @@ internal sealed class ZipArchiveManager : IDisposable
         };
 
         var entryName = StringHelper.Invariant($"xl/media/image{embeddedImageId}{fileExtension}");
-        var entryStream = OpenEntry(entryName);
+        var entryStream = await OpenEntryAsync(entryName).ConfigureAwait(false);
 #if NETSTANDARD2_0
         using (entryStream)
 #else
@@ -123,6 +138,15 @@ internal sealed class ZipArchiveManager : IDisposable
             return;
 
         _zipArchive.Dispose();
+        _disposed = true;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+            return;
+
+        await _zipArchive.DisposeAsync().ConfigureAwait(false);
         _disposed = true;
     }
 }

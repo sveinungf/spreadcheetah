@@ -1,3 +1,8 @@
+M:System.IO.Compression.ZipArchive.#ctor(System.IO.Stream);Use ZipArchive.CreateAsync()
+M:System.IO.Compression.ZipArchive.#ctor(System.IO.Stream,System.IO.Compression.ZipArchiveMode);Use ZipArchive.CreateAsync()
+M:System.IO.Compression.ZipArchive.#ctor(System.IO.Stream,System.IO.Compression.ZipArchiveMode,System.Boolean);Use ZipArchive.CreateAsync()
+M:System.IO.Compression.ZipArchive.#ctor(System.IO.Stream,System.IO.Compression.ZipArchiveMode,System.Boolean,System.Text.Encoding);Use ZipArchive.CreateAsync()
 M:System.IO.Compression.ZipArchive.CreateEntry(System.String);Pass CompressionLevel parameter
+M:System.IO.Compression.ZipArchiveEntry.Open();Use OpenAsync()
 M:System.Net.WebUtility.HtmlEncode(System.String);Use XmlUtility.XmlEncode
 P:System.Nullable`1.Value;GetValueOrDefault() or the coalesce operator do less work

@@ -297,6 +297,10 @@ dotnet_diagnostic.S1075.severity = none
 # S6562: Always set the "DateTimeKind" when creating new "DateTime" instances
 dotnet_diagnostic.S6562.severity = none
 
+[ZipArchiveExtensions.cs]
+# S2325: Methods and properties that don't access instance data should be static (false positive in version 10.15.0.120848)
+dotnet_diagnostic.S2325.severity = none
+
 [{ReflectionHelper.cs,TestHelper.cs}]
 # S3011: Reflection should not be used to increase accessibility of classes, methods, or fields
 dotnet_diagnostic.S3011.severity = none

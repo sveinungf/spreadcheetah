@@ -48,13 +48,14 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         }
     }
 
-    private Spreadsheet(Stream stream, SpreadCheetahOptions? options)
+    private Spreadsheet(ZipArchiveManager zipArchiveManager, SpreadCheetahOptions? options)
     {
+        _zipArchiveManager = zipArchiveManager;
+
         var bufferSize = options?.BufferSize ?? SpreadCheetahOptions.DefaultBufferSize;
         _buffer = new SpreadsheetBuffer(bufferSize);
         _styleManager = CreateStyleManager(options);
         _writeCellReferenceAttributes = options?.WriteCellReferenceAttributes ?? false;
-        _zipArchiveManager = new ZipArchiveManager(stream, options?.CompressionLevel);
 
         _documentProperties = options switch
         {
@@ -82,16 +83,16 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// <summary>
     /// Initializes a new <see cref="Spreadsheet"/> that writes its output to a <see cref="Stream"/>.
     /// </summary>
-    public static ValueTask<Spreadsheet> CreateNewAsync(
+    public static async ValueTask<Spreadsheet> CreateNewAsync(
         Stream stream,
         SpreadCheetahOptions? options = null,
         CancellationToken cancellationToken = default)
     {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        var spreadsheet = new Spreadsheet(stream, options);
+        var zipManager = await ZipArchiveManager.CreateAsync(stream, options?.CompressionLevel, cancellationToken).ConfigureAwait(false);
+        var spreadsheet = new Spreadsheet(zipManager, options);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-        _ = cancellationToken;
-        return new ValueTask<Spreadsheet>(spreadsheet);
+        return spreadsheet;
     }
 
     /// <summary>
@@ -156,7 +157,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         await FinishAndDisposeWorksheetAsync(token).ConfigureAwait(false);
 
         var path = StringHelper.Invariant($"xl/worksheets/sheet{_worksheets.Count + 1}.xml");
-        var entryStream = _zipArchiveManager.OpenEntry(path);
+        var entryStream = await _zipArchiveManager.OpenEntryAsync(path).ConfigureAwait(false);
         var columnStyles = GetColumnStyles(options);
         _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes, options, columnStyles);
         _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
@@ -766,9 +767,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _finished = true;
 
         // The XLSX can become corrupt if the archive is not flushed before the resulting stream is being used.
-        // ZipArchive.Dispose() is currently (up to .NET 7) the only way to flush the archive to the resulting stream.
+        // ZipArchive.Dispose{Async}() is currently (up to .NET 10) the only way to flush the archive to the resulting stream.
         // In case the user would use the resulting stream before Spreadsheet.Dispose(), the flush must happen here to prevent a corrupt XLSX.
-        zip.Dispose();
+        await zip.DisposeAsync().ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -781,7 +782,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             await _worksheet.DisposeAsync().ConfigureAwait(false);
 
         _buffer.Dispose();
-        _zipArchiveManager.Dispose();
+        await _zipArchiveManager.DisposeAsync().ConfigureAwait(false);
         _disposed = true;
     }
 
