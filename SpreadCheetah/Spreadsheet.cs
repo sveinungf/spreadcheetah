@@ -157,7 +157,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         await FinishAndDisposeWorksheetAsync(token).ConfigureAwait(false);
 
         var path = StringHelper.Invariant($"xl/worksheets/sheet{_worksheets.Count + 1}.xml");
-        var entryStream = await _zipArchiveManager.OpenEntryAsync(path).ConfigureAwait(false);
+        var entryStream = await _zipArchiveManager.OpenEntryAsync(path, token).ConfigureAwait(false);
         var columnStyles = GetColumnStyles(options);
         _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes, options, columnStyles);
         _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));

@@ -39,9 +39,9 @@ internal sealed class ZipArchiveManager : IDisposable, IAsyncDisposable
         return new ZipArchiveManager(zipArchive, compressionLevel);
     }
 
-    public Task<Stream> OpenEntryAsync(string entryName)
+    public Task<Stream> OpenEntryAsync(string entryName, CancellationToken token)
     {
-        return _zipArchive.CreateEntry(entryName, _compressionLevel).OpenAsync();
+        return _zipArchive.CreateEntry(entryName, _compressionLevel).OpenAsync(token);
     }
 
     public async ValueTask WriteAsync<T>(
@@ -51,7 +51,7 @@ internal sealed class ZipArchiveManager : IDisposable, IAsyncDisposable
         CancellationToken token)
         where T : struct, IXmlWriter<T>
     {
-        var stream = await OpenEntryAsync(entryName).ConfigureAwait(false);
+        var stream = await OpenEntryAsync(entryName, token).ConfigureAwait(false);
 #if NETSTANDARD2_0
         using (stream)
 #else
@@ -84,7 +84,7 @@ internal sealed class ZipArchiveManager : IDisposable, IAsyncDisposable
         };
 
         var entryName = StringHelper.Invariant($"xl/media/image{embeddedImageId}{fileExtension}");
-        var entryStream = await OpenEntryAsync(entryName).ConfigureAwait(false);
+        var entryStream = await OpenEntryAsync(entryName, token).ConfigureAwait(false);
 #if NETSTANDARD2_0
         using (entryStream)
 #else
