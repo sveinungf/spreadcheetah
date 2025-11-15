@@ -10,7 +10,7 @@ internal static class ZipArchiveExtensions
             Stream stream,
             CancellationToken cancellationToken = default)
         {
-            return ZipArchive.CreateAsync(stream, ZipArchiveMode.Create, leaveOpen: true, entryNameEncoding: null, cancellationToken);
+            return ZipArchive.CreateAsync(stream, ZipArchiveMode.Read, leaveOpen: false, entryNameEncoding: null, cancellationToken);
         }
     }
 }
