@@ -11,38 +11,14 @@ public sealed record Alignment
     public bool WrapText { get; set; }
 
     /// <summary>Horizontal alignment for the cell.</summary>
-    public HorizontalAlignment Horizontal
-    {
-        get => _horizontal;
-        set => _horizontal = Guard.DefinedEnumValue(value);
-    }
-
-    private HorizontalAlignment _horizontal;
+    public HorizontalAlignment Horizontal { get; set => field = Guard.DefinedEnumValue(value); }
 
     /// <summary>Vertical alignment for the cell.</summary>
-    public VerticalAlignment Vertical
-    {
-        get => _vertical;
-        set => _vertical = Guard.DefinedEnumValue(value);
-    }
-
-    private VerticalAlignment _vertical;
+    public VerticalAlignment Vertical { get; set => field = Guard.DefinedEnumValue(value); }
 
     /// <summary>
     /// Indentation for the cell. The value represents the number of character widths in Excel.
     /// The value can not be negative.
     /// </summary>
-    public int Indent
-    {
-        get => _indent;
-        set
-        {
-            if (value < 0)
-                ThrowHelper.ValueIsNegative(nameof(value), value);
-            else
-                _indent = value;
-        }
-    }
-
-    private int _indent;
+    public int Indent { get; set => field = Guard.NotNegative(value); }
 }

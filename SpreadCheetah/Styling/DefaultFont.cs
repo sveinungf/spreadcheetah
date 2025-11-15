@@ -11,20 +11,8 @@ public sealed record DefaultFont
     internal const double DefaultSize = 11;
 
     /// <summary>Font name. Defaults to Calibri.</summary>
-    public string? Name
-    {
-        get => _name;
-        set => _name = Guard.FontNameLengthInRange(value);
-    }
-
-    private string? _name;
+    public string? Name { get; set => field = Guard.FontNameLengthInRange(value); }
 
     /// <summary>Font size. Defaults to 11.</summary>
-    public double Size
-    {
-        get => _size;
-        set => _size = Guard.FontSizeInRange(value);
-    }
-
-    private double _size = DefaultSize;
+    public double Size { get; set => field = Guard.FontSizeInRange(value); } = DefaultSize;
 }

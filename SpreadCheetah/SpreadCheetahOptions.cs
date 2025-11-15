@@ -1,3 +1,4 @@
+using SpreadCheetah.Helpers;
 using SpreadCheetah.Metadata;
 using SpreadCheetah.Styling;
 
@@ -28,15 +29,7 @@ public class SpreadCheetahOptions
     /// <summary>
     /// The buffer size in number of bytes. The default size is 65536. The minimum allowed size is 512.
     /// </summary>
-    public int BufferSize
-    {
-        get => _bufferSize;
-        set => _bufferSize = value < MinimumBufferSize
-            ? throw new ArgumentOutOfRangeException(nameof(value), value, "Buffer size must be at least " + MinimumBufferSize)
-            : value;
-    }
-
-    private int _bufferSize = DefaultBufferSize;
+    public int BufferSize { get; set => field = Guard.SufficientBufferSize(value); } = DefaultBufferSize;
 
     /// <summary>
     /// The default number format used for <see cref="DateTime"/> cells. Defaults to <see cref="NumberFormats.DateTimeSortable"/>.

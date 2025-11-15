@@ -278,6 +278,8 @@ dotnet_diagnostic.RCS1163.severity = none
 dotnet_diagnostic.S1125.severity = warning
 # S1133: Deprecated code should be removed
 dotnet_diagnostic.S1133.severity = none
+# S2325: Methods and properties that don't access instance data should be static (false positives in version 10.15.0.120848)
+dotnet_diagnostic.S2325.severity = none
 # S3903: Types should be defined in named namespaces
 dotnet_diagnostic.S3903.severity = warning
 # S3925: "ISerializable" should be implemented correctly
@@ -296,10 +298,6 @@ dotnet_diagnostic.S1075.severity = none
 [OADateTests.cs]
 # S6562: Always set the "DateTimeKind" when creating new "DateTime" instances
 dotnet_diagnostic.S6562.severity = none
-
-[ZipArchiveExtensions.cs]
-# S2325: Methods and properties that don't access instance data should be static (false positive in version 10.15.0.120848)
-dotnet_diagnostic.S2325.severity = none
 
 [{ReflectionHelper.cs,TestHelper.cs}]
 # S3011: Reflection should not be used to increase accessibility of classes, methods, or fields

@@ -57,6 +57,26 @@ internal static class Guard
         return value;
     }
 
+    public static int? FrozenColumnsInRange(int? value,
+        [CallerArgumentExpression(nameof(value))] string? paramName = null)
+    {
+        const int maxValue = SpreadsheetConstants.MaxNumberOfColumns;
+        if (value is < 1 or > maxValue)
+            throw new ArgumentOutOfRangeException(paramName, value, $"Number of frozen columns must be between 1 and {maxValue}");
+
+        return value;
+    }
+
+    public static int? FrozenRowsInRange(int? value,
+        [CallerArgumentExpression(nameof(value))] string? paramName = null)
+    {
+        const int maxValue = SpreadsheetConstants.MaxNumberOfRows;
+        if (value is < 1 or > maxValue)
+            throw new ArgumentOutOfRangeException(paramName, value, $"Number of frozen rows must be between 1 and {maxValue}");
+
+        return value;
+    }
+
     public static string? MaxLength(string? value, int maxLength,
         [CallerArgumentExpression(nameof(value))] string? paramName = null)
     {
@@ -64,5 +84,33 @@ internal static class Guard
             ThrowHelper.ValueTooLong(maxLength, paramName);
 
         return value;
+    }
+
+    public static int NotNegative(int value,
+        [CallerArgumentExpression(nameof(value))] string? paramName = null)
+    {
+        if (value < 0)
+            ThrowHelper.ValueIsNegative(paramName, value);
+
+        return value;
+    }
+
+    public static double? RowHeightInRange(double? value,
+        [CallerArgumentExpression(nameof(value))] string? paramName = null)
+    {
+        if (value is <= 0 or > 409)
+            throw new ArgumentOutOfRangeException(paramName, value, "Row height must be between 0 and 409.");
+
+        return value;
+    }
+
+    public static int SufficientBufferSize(int size,
+    [CallerArgumentExpression(nameof(size))] string? paramName = null)
+    {
+        var minimumSize = SpreadCheetahOptions.MinimumBufferSize;
+        if (size < minimumSize)
+            throw new ArgumentOutOfRangeException(paramName, size, "Buffer size must be at least " + minimumSize);
+
+        return size;
     }
 }

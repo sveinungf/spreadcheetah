@@ -40,32 +40,22 @@ public sealed class DataValidation
     public bool ShowInputMessage { get; set; } = true;
 
     /// <summary>Title for error alerts. Maximum 32 characters.</summary>
-    public string? ErrorTitle { get => _errorTitle; set => _errorTitle = Guard.MaxLength(value, 32); }
-    private string? _errorTitle;
+    public string? ErrorTitle { get; set => field = Guard.MaxLength(value, 32); }
 
     /// <summary>Message for error alerts. Maximum 255 characters.</summary>
-    public string? ErrorMessage { get => _errorMessage; set => _errorMessage = Guard.MaxLength(value, 255); }
-    private string? _errorMessage;
+    public string? ErrorMessage { get; set => field = Guard.MaxLength(value, 255); }
 
     /// <summary>Title for the input message box. Maximum 32 characters.</summary>
-    public string? InputTitle { get => _inputTitle; set => _inputTitle = Guard.MaxLength(value, 32); }
-    private string? _inputTitle;
+    public string? InputTitle { get; set => field = Guard.MaxLength(value, 32); }
 
     /// <summary>Message for the input message box. Maximum 255 characters.</summary>
-    public string? InputMessage { get => _inputMessage; set => _inputMessage = Guard.MaxLength(value, 255); }
-    private string? _inputMessage;
+    public string? InputMessage { get; set => field = Guard.MaxLength(value, 255); }
 
     /// <summary>
     /// Specify how the user is informed about cells with invalid data.
     /// Defaults to <see cref="ValidationErrorType.Blocking"/>.
     /// </summary>
-    public ValidationErrorType ErrorType
-    {
-        get => _errorType;
-        set => _errorType = Guard.DefinedEnumValue(value);
-    }
-
-    private ValidationErrorType _errorType;
+    public ValidationErrorType ErrorType { get; set => field = Guard.DefinedEnumValue(value); }
 
     private static DataValidation CreateDateTime(ValidationOperator op, DateTime min, DateTime max)
     {
