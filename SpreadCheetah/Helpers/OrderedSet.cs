@@ -9,9 +9,14 @@ internal sealed class OrderedSet<T> where T : notnull
 
     public int Add(in T item)
     {
+#if NET10_0_OR_GREATER
+        _dictionary.TryAdd(item, 0, out var index);
+        return index;
+#else
         return _dictionary.TryAdd(item, 0)
             ? _dictionary.Count - 1
             : _dictionary.IndexOf(item);
+#endif
     }
 #else
     private readonly List<T> _list = [];
