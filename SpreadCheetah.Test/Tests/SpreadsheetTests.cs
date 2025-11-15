@@ -5,9 +5,9 @@ using OfficeOpenXml;
 using Polyfills;
 using SpreadCheetah.Images;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
-using System.IO;
 using System.IO.Compression;
 using Color = System.Drawing.Color;
 using DataValidation = SpreadCheetah.Validations.DataValidation;
@@ -109,7 +109,7 @@ public class SpreadsheetTests
         await spreadsheet.FinishAsync(Token);
 
         // Assert
-        using var zip = new ZipArchive(stream);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
         var filenames = zip.Entries.Select(x => x.FullName).ToList();
         Assert.Equal(hasNote, filenames.Contains("xl/comments1.xml", StringComparer.OrdinalIgnoreCase));
         Assert.Equal(hasNote, filenames.Contains("xl/drawings/vmlDrawing1.vml", StringComparer.OrdinalIgnoreCase));
@@ -136,7 +136,7 @@ public class SpreadsheetTests
         }
 
         // Assert
-        using var zip = new ZipArchive(stream);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
         Assert.Equal(hasStyle, zip.GetEntry("xl/styles.xml") is not null);
     }
 

@@ -3,6 +3,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Polyfills;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.TestHelpers.TestData;
 using SpreadCheetah.Worksheets;
@@ -38,8 +39,8 @@ public class SpreadsheetStyledRowTests
 
         // Assert
         SpreadsheetAssert.Valid(stream);
-        using var zip = new ZipArchive(stream);
-        using var stylesXml = zip.GetStylesXmlStream();
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var stylesXml = await zip.GetStylesXmlStreamAsync(Token);
         await VerifyXml(stylesXml);
     }
 

@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Images\*" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="Images\*" />
   </ItemGroup>
 

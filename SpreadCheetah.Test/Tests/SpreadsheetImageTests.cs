@@ -2,7 +2,9 @@ using ClosedXML.Excel;
 using ClosedXML.Excel.Drawings;
 using OfficeOpenXml;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
+using Polyfills;
 using SpreadCheetah.Images;
+using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
 using System.IO.Compression;
@@ -132,11 +134,11 @@ public class SpreadsheetImageTests
         Assert.Equal(expectedWidth, result.Width);
         Assert.Equal(expectedHeight, result.Height);
 
-        using var archive = new ZipArchive(outputStream);
+        using var archive = await ZipArchive.CreateAsync(outputStream, Token);
         var entry = archive.GetEntry("xl/media/image1.png");
         Assert.NotNull(entry);
 
-        using var actualPngStream = entry.Open();
+        using var actualPngStream = await entry.OpenAsync(Token);
         var actualPngBytes = await actualPngStream.ToByteArrayAsync();
         var expectedPngBytes = await pngStream.ToByteArrayAsync();
         Assert.Equal(expectedPngBytes, actualPngBytes);
@@ -574,8 +576,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         await VerifyXml(drawingXml);
     }
 
@@ -600,8 +602,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         await VerifyXml(drawingXml);
     }
 
@@ -697,8 +699,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         await VerifyXml(drawingXml);
     }
 
@@ -728,8 +730,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         await VerifyXml(drawingXml);
     }
 
@@ -751,8 +753,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         var verifySettings = new VerifySettings();
         verifySettings.IgnoreParametersForVerified();
         await VerifyXml(drawingXml, verifySettings);
@@ -784,8 +786,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         await VerifyXml(drawingXml);
     }
 
@@ -808,8 +810,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         await VerifyXml(drawingXml);
     }
 
@@ -850,8 +852,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         await VerifyXml(drawingXml);
     }
 
@@ -878,8 +880,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         await VerifyXml(drawingXml);
     }
 }

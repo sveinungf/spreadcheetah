@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
 using System.IO.Compression;
 using System.Text;
@@ -343,7 +344,7 @@ public class SpreadsheetNoteTests
         await spreadsheet.FinishAsync(Token);
 
         // Assert
-        using var zip = new ZipArchive(stream);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
         var filenames = zip.Entries.Select(x => x.FullName).ToList();
         Assert.Contains("xl/comments1.xml", filenames);
         Assert.Contains("xl/drawings/vmlDrawing1.vml", filenames);
