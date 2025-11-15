@@ -1,6 +1,6 @@
 using BenchmarkDotNet.Attributes;
+using SpreadCheetah.Benchmark.TestData;
 using SpreadCheetah.Styling;
-using SpreadCheetah.TestHelpers.TestData;
 
 namespace SpreadCheetah.Benchmark.Benchmarks;
 
