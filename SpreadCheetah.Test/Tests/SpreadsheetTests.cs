@@ -163,7 +163,7 @@ public class SpreadsheetTests
 
         var validation = DataValidation.TextLengthLessThan(50);
         spreadsheet.AddDataValidation("A2:A100", validation);
-        spreadsheet.AddImage(ImageCanvas.OriginalSize("B1".AsSpan()), embeddedImage);
+        spreadsheet.AddImage(ImageCanvas.OriginalSize("B1"), embeddedImage);
         spreadsheet.AddNote("C1", "My note");
         spreadsheet.MergeCells("B2:F3");
 
@@ -198,7 +198,7 @@ public class SpreadsheetTests
 
         var validation = DataValidation.TextLengthLessThan(50);
         spreadsheet.AddDataValidation("A2:A100", validation);
-        spreadsheet.AddImage(ImageCanvas.OriginalSize("B1".AsSpan()), embeddedImage);
+        spreadsheet.AddImage(ImageCanvas.OriginalSize("B1"), embeddedImage);
         spreadsheet.AddNote("C1", "My note");
         spreadsheet.MergeCells("B2:F3");
         spreadsheet.StartTable(new Table(TableStyle.Light8));

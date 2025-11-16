@@ -197,7 +197,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(table);
         ArgumentNullException.ThrowIfNull(firstColumnName);
 
-        if (!SpreadsheetUtility.TryParseColumnName(firstColumnName.AsSpan(), out var firstColumnNumber))
+        if (!SpreadsheetUtility.TryParseColumnName(firstColumnName, out var firstColumnNumber))
             ThrowHelper.ColumnNameInvalid(nameof(firstColumnName));
 
         var fileCounter = _fileCounter ??= new FileCounter();

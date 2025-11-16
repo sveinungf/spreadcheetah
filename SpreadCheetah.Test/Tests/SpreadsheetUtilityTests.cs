@@ -1,5 +1,4 @@
 using System.Text;
-using Xunit;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -144,7 +143,7 @@ public static class SpreadsheetUtilityTests
     public static void SpreadsheetUtility_TryParseColumnName_Success(int number, string name)
     {
         // Act
-        var result = SpreadsheetUtility.TryParseColumnName(name.AsSpan(), out var actualNumber);
+        var result = SpreadsheetUtility.TryParseColumnName(name, out var actualNumber);
 
         // Assert
         Assert.True(result);
@@ -166,7 +165,7 @@ public static class SpreadsheetUtilityTests
     public static void SpreadsheetUtility_TryParseColumnName_Invalid(string name)
     {
         // Act
-        var result = SpreadsheetUtility.TryParseColumnName(name.AsSpan(), out var columnNumber);
+        var result = SpreadsheetUtility.TryParseColumnName(name, out var columnNumber);
 
         // Assert
         Assert.False(result);

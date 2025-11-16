@@ -72,7 +72,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         {
             Debug.Fail("Use ReadOnlySpan<byte> instead of string literals");
 
-            if (value is not null && Utf8Helper.TryGetBytes(value.AsSpan(), GetSpan(), out var bytesWritten))
+            if (value is not null && Utf8Helper.TryGetBytes(value, GetSpan(), out var bytesWritten))
             {
                 _pos += bytesWritten;
                 return true;

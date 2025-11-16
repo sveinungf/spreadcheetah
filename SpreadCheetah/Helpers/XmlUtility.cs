@@ -150,7 +150,7 @@ internal static class XmlUtility
         if (value is null)
             return null;
 
-        var index = IndexOfCharToEscape(value.AsSpan());
+        var index = IndexOfCharToEscape(value);
         if (index == -1)
             return value;
 

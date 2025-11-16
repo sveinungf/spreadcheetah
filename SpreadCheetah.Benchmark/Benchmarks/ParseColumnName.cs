@@ -22,7 +22,7 @@ public class ParseColumnName
         var sum = 0;
         for (var i = 0; i < _names.Length; i++)
         {
-            if (SpreadsheetUtility.TryParseColumnName(_names[i].AsSpan(), out var number))
+            if (SpreadsheetUtility.TryParseColumnName(_names[i], out var number))
                 sum += number;
         }
         return sum;
@@ -34,7 +34,7 @@ public class ParseColumnName
         var sum = 0;
         for (var i = 0; i < _names.Length; i++)
         {
-            if (TryParseColumnNameLoop(_names[i].AsSpan(), out var number))
+            if (TryParseColumnNameLoop(_names[i], out var number))
                 sum += number;
         }
         return sum;

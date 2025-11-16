@@ -80,7 +80,7 @@ internal readonly partial record struct SingleCellRelativeReference
         if (!match.Success || match.Groups is not [_, var columnGroup, var rowGroup])
             return false;
 
-        if (!TryParseColumnName(columnGroup.Value.AsSpan(), out column))
+        if (!TryParseColumnName(columnGroup.Value, out column))
             return false;
 
         return uint.TryParse(rowGroup.Value, NumberStyles.None, NumberFormatInfo.InvariantInfo, out row);
