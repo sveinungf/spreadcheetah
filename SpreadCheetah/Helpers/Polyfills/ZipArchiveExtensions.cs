@@ -26,7 +26,7 @@ internal static class ZipArchiveExtensions
 #pragma warning disable MA0042 // Do not use blocking calls in an async method
             zipArchive.Dispose();
 #pragma warning restore MA0042 // Do not use blocking calls in an async method
-            return ValueTask.CompletedTask;
+            return new ValueTask();
         }
     }
 }

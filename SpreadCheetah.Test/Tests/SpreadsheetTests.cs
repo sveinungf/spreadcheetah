@@ -72,6 +72,23 @@ public class SpreadsheetTests
         Assert.True(stream.Position > 0);
     }
 
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_CreateNew_WithCompressionLevel(SpreadCheetahCompressionLevel level)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { CompressionLevel = level };
+
+        // Act
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Name", token: Token);
+        await spreadsheet.AddRowAsync([new("Hello"), new(123)], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
