@@ -93,13 +93,8 @@ internal sealed class ZipArchiveManager : IDisposable, IAsyncDisposable
         {
             await entryStream.WriteAsync(header, token).ConfigureAwait(false);
 
-            var task = type switch
-            {
-                ImageType.Png => CopyPngToAsync(stream, entryStream, header, embeddedImageId, spreadsheetGuid, token),
-                _ => ValueTask.FromResult(new EmbeddedImage(0, 0, embeddedImageId, spreadsheetGuid))
-            };
-
-            return await task.ConfigureAwait(false);
+            Debug.Assert(type is ImageType.Png);
+            return await CopyPngToAsync(stream, entryStream, header, embeddedImageId, spreadsheetGuid, token).ConfigureAwait(false);
         }
     }
 
