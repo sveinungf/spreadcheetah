@@ -9,7 +9,7 @@ internal sealed class ClosedXmlAssertStyleNumberFormat(IXLNumberFormat numberFor
     public string? CustomFormat => numberFormat.Format is { Length: > 0 } format ? format : null;
 
     public StandardNumberFormat? StandardFormat =>
-        (StandardNumberFormat)numberFormat.NumberFormatId is var format && EnumPolyfill.IsDefined(format)
+        (StandardNumberFormat)numberFormat.NumberFormatId is var format && Enum.IsDefined(format)
             ? format
             : null;
 }

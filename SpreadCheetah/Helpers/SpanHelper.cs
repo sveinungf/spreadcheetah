@@ -37,11 +37,6 @@ internal static class SpanHelper
         return true;
     }
 
-#if NETSTANDARD2_0
-    public static bool TryWrite(string? value, Span<byte> bytes, ref int bytesWritten)
-        => TryWrite(value.AsSpan(), bytes, ref bytesWritten);
-#endif
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryWrite(ReadOnlySpan<char> value, Span<byte> bytes, ref int bytesWritten)
     {
@@ -49,11 +44,6 @@ internal static class SpanHelper
         bytesWritten += length;
         return true;
     }
-
-#if NETSTANDARD2_0
-    public static bool TryWriteLongString(string? value, ref int valueIndex, Span<byte> bytes, ref int bytesWritten)
-        => TryWriteLongString(value.AsSpan(), ref valueIndex, bytes, ref bytesWritten);
-#endif
 
     public static bool TryWriteLongString(ReadOnlySpan<char> value, ref int valueIndex, Span<byte> bytes, ref int bytesWritten)
     {

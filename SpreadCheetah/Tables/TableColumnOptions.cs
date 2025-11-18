@@ -12,34 +12,30 @@ public sealed class TableColumnOptions
     /// </summary>
     public string? TotalRowLabel
     {
-        get => _totalRowLabel;
+        get;
         set
         {
             if (value is not null && TotalRowFunction is not null)
                 TableThrowHelper.ColumnCanNotHaveTotalRowFunctionAndLabel();
 
-            _totalRowLabel = value;
+            field = value;
         }
     }
-
-    private string? _totalRowLabel;
 
     /// <summary>
     /// The total row function for the column.
     /// </summary>
     public TableTotalRowFunction? TotalRowFunction
     {
-        get => _totalRowFunction;
+        get;
         set
         {
             if (value is not null && TotalRowLabel is not null)
                 TableThrowHelper.ColumnCanNotHaveTotalRowFunctionAndLabel();
 
-            _totalRowFunction = Guard.DefinedEnumValue(value);
+            field = Guard.DefinedEnumValue(value);
         }
     }
-
-    private TableTotalRowFunction? _totalRowFunction;
 
     internal bool AffectsTotalRow => TotalRowLabel is not null || TotalRowFunction is not null;
 }

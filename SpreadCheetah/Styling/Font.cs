@@ -9,13 +9,7 @@ namespace SpreadCheetah.Styling;
 public sealed record Font
 {
     /// <summary>Font name. Defaults to Calibri.</summary>
-    public string? Name
-    {
-        get => _name;
-        set => _name = Guard.FontNameLengthInRange(value);
-    }
-
-    private string? _name;
+    public string? Name { get; set => field = Guard.FontNameLengthInRange(value); }
 
     /// <summary>Bold font weight. Defaults to <see langword="false"/>.</summary>
     public bool Bold { get; set; }
@@ -27,13 +21,7 @@ public sealed record Font
     public bool Strikethrough { get; set; }
 
     /// <summary>Font underline. Defaults to no underline.</summary>
-    public Underline Underline
-    {
-        get => _underline;
-        set => _underline = Guard.DefinedEnumValue(value);
-    }
-
-    private Underline _underline;
+    public Underline Underline { get; set => field = Guard.DefinedEnumValue(value); }
 
     /// <summary>Font size. Defaults to 11.</summary>
     public double Size

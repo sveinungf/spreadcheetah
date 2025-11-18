@@ -3,13 +3,13 @@ using SpreadCheetah.Tables;
 
 namespace SpreadCheetah.TestHelpers.Assertions;
 
-internal sealed class ClosedXmlAssertTableColumn(IXLTableField field)
+internal sealed class ClosedXmlAssertTableColumn(IXLTableField tableField)
     : ISpreadsheetAssertTableColumn
 {
-    public string Name => field.Name;
-    public string? TotalRowLabel => field.TotalsRowLabel;
+    public string Name => tableField.Name;
+    public string? TotalRowLabel => tableField.TotalsRowLabel;
 
-    public TableTotalRowFunction? TotalRowFunction => field.TotalsRowFunction switch
+    public TableTotalRowFunction? TotalRowFunction => tableField.TotalsRowFunction switch
     {
         XLTotalsRowFunction.Average => TableTotalRowFunction.Average,
         XLTotalsRowFunction.Count => TableTotalRowFunction.Count,

@@ -72,17 +72,6 @@ internal readonly record struct OADate(long Ticks)
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static (ulong Quotient, ulong Remainder) DivRemUlong(ulong left, ulong right)
-    {
-#if NET6_0_OR_GREATER
-        return Math.DivRem(left, right);
-#else
-        var quotient = Math.DivRem((long)left, (long)right, out var remainder);
-        return ((ulong)quotient, (ulong)remainder);
-#endif
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryFormatLong(long value, Span<byte> destination, out int bytesWritten)
     {
 #if NET8_0_OR_GREATER
@@ -99,43 +88,43 @@ internal readonly record struct OADate(long Ticks)
         destination[0] = (byte)'.';
 
         var fraction = ticksAfterMidnight * 100 / 864;
-        var (quotient, remainder) = DivRemUlong(fraction, 10000000000);
+        var (quotient, remainder) = Math.DivRem(fraction, 10000000000);
         destination[1] = (byte)(quotient + '0');
         if (remainder == 0) return 2;
 
-        (quotient, remainder) = DivRemUlong(remainder, 1000000000);
+        (quotient, remainder) = Math.DivRem(remainder, 1000000000);
         destination[2] = (byte)(quotient + '0');
         if (remainder == 0) return 3;
 
-        (quotient, remainder) = DivRemUlong(remainder, 100000000);
+        (quotient, remainder) = Math.DivRem(remainder, 100000000);
         destination[3] = (byte)(quotient + '0');
         if (remainder == 0) return 4;
 
-        (quotient, remainder) = DivRemUlong(remainder, 10000000);
+        (quotient, remainder) = Math.DivRem(remainder, 10000000);
         destination[4] = (byte)(quotient + '0');
         if (remainder == 0) return 5;
 
-        (quotient, remainder) = DivRemUlong(remainder, 1000000);
+        (quotient, remainder) = Math.DivRem(remainder, 1000000);
         destination[5] = (byte)(quotient + '0');
         if (remainder == 0) return 6;
 
-        (quotient, remainder) = DivRemUlong(remainder, 100000);
+        (quotient, remainder) = Math.DivRem(remainder, 100000);
         destination[6] = (byte)(quotient + '0');
         if (remainder == 0) return 7;
 
-        (quotient, remainder) = DivRemUlong(remainder, 10000);
+        (quotient, remainder) = Math.DivRem(remainder, 10000);
         destination[7] = (byte)(quotient + '0');
         if (remainder == 0) return 8;
 
-        (quotient, remainder) = DivRemUlong(remainder, 1000);
+        (quotient, remainder) = Math.DivRem(remainder, 1000);
         destination[8] = (byte)(quotient + '0');
         if (remainder == 0) return 9;
 
-        (quotient, remainder) = DivRemUlong(remainder, 100);
+        (quotient, remainder) = Math.DivRem(remainder, 100);
         destination[9] = (byte)(quotient + '0');
         if (remainder == 0) return 10;
 
-        (quotient, remainder) = DivRemUlong(remainder, 10);
+        (quotient, remainder) = Math.DivRem(remainder, 10);
         destination[10] = (byte)(quotient + '0');
         if (remainder == 0) return 11;
 

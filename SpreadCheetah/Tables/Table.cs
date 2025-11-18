@@ -46,7 +46,7 @@ public sealed class Table
     /// </summary>
     public int? NumberOfColumns
     {
-        get => _numberOfColumns;
+        get;
         set
         {
             if (value <= 0)
@@ -55,11 +55,9 @@ public sealed class Table
             if (value < _maxColumnNumber)
                 TableThrowHelper.NumberOfColumnsLessThanGreatestColumnNumber(value);
 
-            _numberOfColumns = value;
+            field = value;
         }
     }
-
-    private int? _numberOfColumns;
 
     private static void EnsureValidTableName(string name)
     {

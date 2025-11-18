@@ -30,19 +30,11 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         return result;
     }
 
-#if NETSTANDARD2_0
-    public bool WriteLongString(string? value, ref int valueIndex) => WriteLongString(value.AsSpan(), ref valueIndex);
-#endif
-
     public ValueTask FlushToStreamAsync(Stream stream, CancellationToken token)
     {
         var index = Index;
         Index = 0;
-#if NETSTANDARD2_0
-        return new ValueTask(stream.WriteAsync(_buffer, 0, index, token));
-#else
         return stream.WriteAsync(_buffer.AsMemory(0, index), token);
-#endif
     }
 
     public bool TryWrite(scoped ReadOnlySpan<byte> utf8Value)
@@ -80,7 +72,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         {
             Debug.Fail("Use ReadOnlySpan<byte> instead of string literals");
 
-            if (value is not null && Utf8Helper.TryGetBytes(value.AsSpan(), GetSpan(), out var bytesWritten))
+            if (value is not null && Utf8Helper.TryGetBytes(value, GetSpan(), out var bytesWritten))
             {
                 _pos += bytesWritten;
                 return true;

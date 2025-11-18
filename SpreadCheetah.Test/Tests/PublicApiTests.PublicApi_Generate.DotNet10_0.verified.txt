@@ -1,0 +1,695 @@
+﻿[assembly: System.Reflection.AssemblyMetadata("IsAotCompatible", "True")]
+[assembly: System.Reflection.AssemblyMetadata("IsTrimmable", "True")]
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/sveinungf/spreadcheetah")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("SpreadCheetah.Benchmark")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("SpreadCheetah.Test")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v10.0", FrameworkDisplayName=".NET 10.0")]
+namespace SpreadCheetah
+{
+    public readonly struct Cell : System.IEquatable<SpreadCheetah.Cell>
+    {
+        public Cell(SpreadCheetah.DataCell value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(System.DateTime value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(System.DateTime? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(System.ReadOnlyMemory<char> value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(bool value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(bool? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(decimal value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(decimal? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(double value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(double? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(float value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(float? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(int value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(int? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(long value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(long? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(string? value, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, SpreadCheetah.DataCell cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, System.DateTime cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, System.DateTime? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, System.ReadOnlyMemory<char> cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, bool cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, bool? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, decimal cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, decimal? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, double cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, double? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, float cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, float? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, int cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, int? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, long cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, long? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+        public Cell(SpreadCheetah.Formula formula, string? cachedValue, SpreadCheetah.Styling.StyleId? styleId = null) { }
+    }
+    public readonly struct DataCell : System.IEquatable<SpreadCheetah.DataCell>
+    {
+        public DataCell(System.DateTime value) { }
+        public DataCell(System.DateTime? value) { }
+        public DataCell(System.ReadOnlyMemory<char> value) { }
+        public DataCell(bool value) { }
+        public DataCell(bool? value) { }
+        public DataCell(decimal value) { }
+        public DataCell(decimal? value) { }
+        public DataCell(double value) { }
+        public DataCell(double? value) { }
+        public DataCell(float value) { }
+        public DataCell(float? value) { }
+        public DataCell(int value) { }
+        public DataCell(int? value) { }
+        public DataCell(long value) { }
+        public DataCell(long? value) { }
+        public DataCell(string? value) { }
+    }
+    public readonly struct Formula : System.IEquatable<SpreadCheetah.Formula>
+    {
+        public Formula(string? formulaText) { }
+        public static SpreadCheetah.Formula Hyperlink(System.Uri uri) { }
+        public static SpreadCheetah.Formula Hyperlink(System.Uri uri, string friendlyName) { }
+    }
+    public enum SpreadCheetahCompressionLevel
+    {
+        Optimal = 0,
+        Fastest = 1,
+    }
+    public class SpreadCheetahException : System.Exception
+    {
+        public SpreadCheetahException() { }
+        public SpreadCheetahException(string message) { }
+        public SpreadCheetahException(string message, System.Exception exception) { }
+    }
+    public class SpreadCheetahOptions
+    {
+        public static readonly int DefaultBufferSize;
+        public static readonly SpreadCheetah.SpreadCheetahCompressionLevel DefaultCompressionLevel;
+        public static readonly int MinimumBufferSize;
+        public SpreadCheetahOptions() { }
+        public int BufferSize { get; set; }
+        public SpreadCheetah.SpreadCheetahCompressionLevel CompressionLevel { get; set; }
+        public SpreadCheetah.Styling.NumberFormat? DefaultDateTimeFormat { get; set; }
+        [System.Obsolete("Use SpreadCheetahOptions.DefaultDateTimeFormat instead")]
+        public string? DefaultDateTimeNumberFormat { get; set; }
+        public SpreadCheetah.Styling.DefaultFont? DefaultFont { get; set; }
+        public SpreadCheetah.Metadata.DocumentProperties? DocumentProperties { get; set; }
+        public bool WriteCellReferenceAttributes { get; set; }
+    }
+    public sealed class Spreadsheet : System.IAsyncDisposable, System.IDisposable
+    {
+        public int NextRowNumber { get; }
+        public System.Threading.Tasks.ValueTask AddAsRowAsync<T>(T obj, SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> typeInfo, System.Threading.CancellationToken token = default) { }
+        public void AddDataValidation(string reference, SpreadCheetah.Validations.DataValidation validation) { }
+        public System.Threading.Tasks.ValueTask AddHeaderRowAsync(System.Collections.Generic.IList<string> headerNames, SpreadCheetah.Styling.StyleId? styleId = null, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddHeaderRowAsync(System.ReadOnlyMemory<string> headerNames, SpreadCheetah.Styling.StyleId? styleId = null, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddHeaderRowAsync(string[] headerNames, SpreadCheetah.Styling.StyleId? styleId = null, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddHeaderRowAsync<T>(SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> typeInfo, SpreadCheetah.Styling.StyleId? styleId = null, System.Threading.CancellationToken token = default) { }
+        public void AddImage(SpreadCheetah.Images.ImageCanvas canvas, SpreadCheetah.Images.EmbeddedImage image, SpreadCheetah.Images.ImageOptions? options = null) { }
+        public void AddNote(string cellReference, string noteText) { }
+        public System.Threading.Tasks.ValueTask AddRangeAsRowsAsync<T>(System.Collections.Generic.IEnumerable<T> objs, SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> typeInfo, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddRowAsync(SpreadCheetah.Cell[] cells, System.Threading.CancellationToken token = default) { }
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        public System.Threading.Tasks.ValueTask AddRowAsync(SpreadCheetah.DataCell[] cells, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddRowAsync(SpreadCheetah.StyledCell[] cells, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddRowAsync(System.Collections.Generic.IList<SpreadCheetah.Cell> cells, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddRowAsync(System.Collections.Generic.IList<SpreadCheetah.DataCell> cells, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddRowAsync(System.Collections.Generic.IList<SpreadCheetah.StyledCell> cells, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddRowAsync(System.ReadOnlyMemory<SpreadCheetah.Cell> cells, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddRowAsync(System.ReadOnlyMemory<SpreadCheetah.DataCell> cells, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddRowAsync(System.ReadOnlyMemory<SpreadCheetah.StyledCell> cells, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddRowAsync(SpreadCheetah.Cell[] cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        public System.Threading.Tasks.ValueTask AddRowAsync(SpreadCheetah.DataCell[] cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddRowAsync(SpreadCheetah.StyledCell[] cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddRowAsync(System.Collections.Generic.IList<SpreadCheetah.Cell> cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddRowAsync(System.Collections.Generic.IList<SpreadCheetah.DataCell> cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddRowAsync(System.Collections.Generic.IList<SpreadCheetah.StyledCell> cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddRowAsync(System.ReadOnlyMemory<SpreadCheetah.Cell> cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddRowAsync(System.ReadOnlyMemory<SpreadCheetah.DataCell> cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask AddRowAsync(System.ReadOnlyMemory<SpreadCheetah.StyledCell> cells, SpreadCheetah.Worksheets.RowOptions? options, System.Threading.CancellationToken token = default) { }
+        public SpreadCheetah.Styling.StyleId AddStyle(SpreadCheetah.Styling.Style style) { }
+        public SpreadCheetah.Styling.StyleId AddStyle(SpreadCheetah.Styling.Style style, string name, SpreadCheetah.Styling.StyleNameVisibility? nameVisibility = default) { }
+        public void Dispose() { }
+        public System.Threading.Tasks.ValueTask DisposeAsync() { }
+        public System.Threading.Tasks.ValueTask<SpreadCheetah.Images.EmbeddedImage> EmbedImageAsync(System.IO.Stream stream, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask FinishAsync(System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask FinishTableAsync(System.Threading.CancellationToken token = default) { }
+        public SpreadCheetah.SourceGeneration.WorksheetRowDependencyInfo GetOrCreateWorksheetRowDependencyInfo<T>(SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> typeInfo) { }
+        public SpreadCheetah.Styling.StyleId GetStyleId(string name) { }
+        public void MergeCells(string cellRange) { }
+        public void StartTable(SpreadCheetah.Tables.Table table, string firstColumnName = "A") { }
+        public System.Threading.Tasks.ValueTask StartWorksheetAsync(string name, SpreadCheetah.Worksheets.WorksheetOptions? options = null, System.Threading.CancellationToken token = default) { }
+        public System.Threading.Tasks.ValueTask StartWorksheetAsync<T>(string name, SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> typeInfo, System.Threading.CancellationToken token = default) { }
+        public bool TryAddDataValidation(string reference, SpreadCheetah.Validations.DataValidation validation) { }
+        public static System.Threading.Tasks.ValueTask<SpreadCheetah.Spreadsheet> CreateNewAsync(System.IO.Stream stream, SpreadCheetah.SpreadCheetahOptions? options = null, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public static class SpreadsheetUtility
+    {
+        public static string GetColumnName(int columnNumber) { }
+        public static bool TryGetColumnNameUtf8(int columnNumber, System.Span<byte> destination, out int bytesWritten) { }
+        public static bool TryParseColumnName(System.ReadOnlySpan<char> columnName, out int columnNumber) { }
+    }
+    public readonly struct StyledCell : System.IEquatable<SpreadCheetah.StyledCell>
+    {
+        public StyledCell(SpreadCheetah.DataCell value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(System.DateTime value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(System.DateTime? value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(System.ReadOnlyMemory<char> value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(bool value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(bool? value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(decimal value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(decimal? value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(double value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(double? value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(float value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(float? value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(int value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(int? value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(long value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(long? value, SpreadCheetah.Styling.StyleId? styleId) { }
+        public StyledCell(string? value, SpreadCheetah.Styling.StyleId? styleId) { }
+    }
+}
+namespace SpreadCheetah.Images
+{
+    public sealed class EmbeddedImage
+    {
+        public int Height { get; }
+        public int Width { get; }
+    }
+    public readonly struct ImageCanvas : System.IEquatable<SpreadCheetah.Images.ImageCanvas>
+    {
+        public static SpreadCheetah.Images.ImageCanvas Dimensions(System.ReadOnlySpan<char> upperLeftReference, int width, int height, bool moveWithCells = true) { }
+        public static SpreadCheetah.Images.ImageCanvas FillCell(System.ReadOnlySpan<char> cellReference, bool moveWithCells = true, bool resizeWithCells = true) { }
+        public static SpreadCheetah.Images.ImageCanvas FillCells(System.ReadOnlySpan<char> upperLeftReference, System.ReadOnlySpan<char> lowerRightReference, bool moveWithCells = true, bool resizeWithCells = true) { }
+        public static SpreadCheetah.Images.ImageCanvas OriginalSize(System.ReadOnlySpan<char> upperLeftReference, bool moveWithCells = true) { }
+        public static SpreadCheetah.Images.ImageCanvas Scaled(System.ReadOnlySpan<char> upperLeftReference, float scale, bool moveWithCells = true) { }
+    }
+    public readonly struct ImageOffset : System.IEquatable<SpreadCheetah.Images.ImageOffset>
+    {
+        public static SpreadCheetah.Images.ImageOffset Pixels(int left, int top, int right, int bottom) { }
+    }
+    public sealed class ImageOptions
+    {
+        public ImageOptions() { }
+        public SpreadCheetah.Images.ImageOffset? Offset { get; set; }
+    }
+}
+namespace SpreadCheetah.Metadata
+{
+    public sealed class DocumentProperties : System.IEquatable<SpreadCheetah.Metadata.DocumentProperties>
+    {
+        public DocumentProperties() { }
+        public string? Author { get; set; }
+        public string? Subject { get; set; }
+        public string? Title { get; set; }
+    }
+}
+namespace SpreadCheetah.SourceGeneration
+{
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
+    public sealed class CellFormatAttribute : System.Attribute
+    {
+        public CellFormatAttribute(SpreadCheetah.Styling.StandardNumberFormat format) { }
+        public CellFormatAttribute(string customFormat) { }
+        public string? CustomFormat { get; }
+        public SpreadCheetah.Styling.StandardNumberFormat? Format { get; }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
+    public sealed class CellStyleAttribute : System.Attribute
+    {
+        public CellStyleAttribute(string styleName) { }
+        public string? StyleName { get; }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
+    public sealed class CellValueConverterAttribute : System.Attribute
+    {
+        public CellValueConverterAttribute(System.Type converterType) { }
+        public System.Type? ConverterType { get; }
+    }
+    public abstract class CellValueConverter<T>
+    {
+        protected CellValueConverter() { }
+        public abstract SpreadCheetah.DataCell ConvertToDataCell(T value);
+    }
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
+    public sealed class CellValueTruncateAttribute : System.Attribute
+    {
+        public CellValueTruncateAttribute(int length) { }
+        public int? Length { get; }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
+    public sealed class ColumnHeaderAttribute : System.Attribute
+    {
+        public ColumnHeaderAttribute(string name) { }
+        public ColumnHeaderAttribute(System.Type type, string propertyName) { }
+        public string? Name { get; }
+        public string? PropertyName { get; }
+        public System.Type? Type { get; }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
+    public sealed class ColumnIgnoreAttribute : System.Attribute
+    {
+        public ColumnIgnoreAttribute() { }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
+    public sealed class ColumnOrderAttribute : System.Attribute
+    {
+        public ColumnOrderAttribute(int order) { }
+        public int? Order { get; }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=false)]
+    public sealed class ColumnWidthAttribute : System.Attribute
+    {
+        public ColumnWidthAttribute(double width) { }
+        public double? Width { get; }
+    }
+    public static class EmptyWorksheetRowContext
+    {
+        public static SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> CreateTypeInfo<T>() { }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple=false, Inherited=false)]
+    public sealed class InferColumnHeadersAttribute : System.Attribute
+    {
+        public InferColumnHeadersAttribute(System.Type type) { }
+        public string? Prefix { get; set; }
+        public string? Suffix { get; set; }
+        public System.Type? Type { get; }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple=false, Inherited=false)]
+    public sealed class InheritColumnsAttribute : System.Attribute
+    {
+        public InheritColumnsAttribute() { }
+        public SpreadCheetah.SourceGeneration.InheritedColumnsOrder DefaultColumnOrder { get; set; }
+    }
+    public enum InheritedColumnsOrder
+    {
+        InheritedColumnsFirst = 0,
+        InheritedColumnsLast = 1,
+    }
+    [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple=true)]
+    public sealed class WorksheetRowAttribute : System.Attribute
+    {
+        public WorksheetRowAttribute(System.Type type) { }
+    }
+    public abstract class WorksheetRowContext
+    {
+        protected WorksheetRowContext() { }
+    }
+    public sealed class WorksheetRowDependencyInfo : System.IEquatable<SpreadCheetah.SourceGeneration.WorksheetRowDependencyInfo>
+    {
+        public WorksheetRowDependencyInfo(System.Collections.Generic.IReadOnlyList<SpreadCheetah.Styling.StyleId> StyleIds) { }
+        public System.Collections.Generic.IReadOnlyList<SpreadCheetah.Styling.StyleId> StyleIds { get; init; }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple=false)]
+    public sealed class WorksheetRowGenerationOptionsAttribute : System.Attribute
+    {
+        public WorksheetRowGenerationOptionsAttribute() { }
+        [System.Obsolete("Configure rule severity in an .editorconfig file instead (e.g. \'dotnet_diagnostic" +
+            ".SPCH1001.severity = none\').")]
+        public bool SuppressWarnings { get; set; }
+    }
+    public static class WorksheetRowMetadataServices
+    {
+        public static SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> CreateObjectInfo<T>(System.Func<SpreadCheetah.Spreadsheet, SpreadCheetah.Styling.StyleId?, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> headerHandler, System.Func<SpreadCheetah.Spreadsheet, T, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> rowHandler, System.Func<SpreadCheetah.Spreadsheet, System.Collections.Generic.IEnumerable<T>, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> rowRangeHandler, System.Func<SpreadCheetah.Worksheets.WorksheetOptions>? worksheetOptionsFactory = null, System.Func<SpreadCheetah.Spreadsheet, SpreadCheetah.SourceGeneration.WorksheetRowDependencyInfo>? createWorksheetRowDependencyInfo = null) { }
+    }
+    public abstract class WorksheetRowTypeInfo<T>
+    {
+        public System.Func<SpreadCheetah.Spreadsheet, SpreadCheetah.SourceGeneration.WorksheetRowDependencyInfo>? CreateWorksheetRowDependencyInfo { get; }
+        public System.Func<SpreadCheetah.Spreadsheet, SpreadCheetah.Styling.StyleId?, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> HeaderHandler { get; }
+        public System.Func<SpreadCheetah.Spreadsheet, T, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> RowHandler { get; }
+        public System.Func<SpreadCheetah.Spreadsheet, System.Collections.Generic.IEnumerable<T>, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> RowRangeHandler { get; }
+        public SpreadCheetah.Worksheets.WorksheetOptions CreateWorksheetOptions() { }
+    }
+}
+namespace SpreadCheetah.Styling
+{
+    public sealed class Alignment : System.IEquatable<SpreadCheetah.Styling.Alignment>
+    {
+        public Alignment() { }
+        public SpreadCheetah.Styling.HorizontalAlignment Horizontal { get; set; }
+        public int Indent { get; set; }
+        public SpreadCheetah.Styling.VerticalAlignment Vertical { get; set; }
+        public bool WrapText { get; set; }
+    }
+    public sealed class Border : System.IEquatable<SpreadCheetah.Styling.Border>
+    {
+        public Border() { }
+        public SpreadCheetah.Styling.EdgeBorder Bottom { get; set; }
+        public SpreadCheetah.Styling.DiagonalBorder Diagonal { get; set; }
+        public SpreadCheetah.Styling.EdgeBorder Left { get; set; }
+        public SpreadCheetah.Styling.EdgeBorder Right { get; set; }
+        public SpreadCheetah.Styling.EdgeBorder Top { get; set; }
+    }
+    public enum BorderStyle
+    {
+        None = 0,
+        Thin = 1,
+        Medium = 2,
+        Dashed = 3,
+        Dotted = 4,
+        Thick = 5,
+        DoubleLine = 6,
+        Hair = 7,
+        MediumDashed = 8,
+        DashDot = 9,
+        MediumDashDot = 10,
+        DashDotDot = 11,
+        MediumDashDotDot = 12,
+        SlantDashDot = 13,
+    }
+    public sealed class DefaultFont : System.IEquatable<SpreadCheetah.Styling.DefaultFont>
+    {
+        public DefaultFont() { }
+        public string? Name { get; set; }
+        public double Size { get; set; }
+    }
+    public sealed class DiagonalBorder : System.IEquatable<SpreadCheetah.Styling.DiagonalBorder>
+    {
+        public DiagonalBorder() { }
+        public SpreadCheetah.Styling.BorderStyle BorderStyle { get; set; }
+        public System.Drawing.Color? Color { get; set; }
+        public SpreadCheetah.Styling.DiagonalBorderType Type { get; set; }
+    }
+    [System.Flags]
+    public enum DiagonalBorderType
+    {
+        None = 0,
+        DiagonalUp = 1,
+        DiagonalDown = 2,
+        CrissCross = 3,
+    }
+    public sealed class EdgeBorder : System.IEquatable<SpreadCheetah.Styling.EdgeBorder>
+    {
+        public EdgeBorder() { }
+        public SpreadCheetah.Styling.BorderStyle BorderStyle { get; set; }
+        public System.Drawing.Color? Color { get; set; }
+    }
+    public sealed class Fill : System.IEquatable<SpreadCheetah.Styling.Fill>
+    {
+        public Fill() { }
+        public System.Drawing.Color? Color { get; set; }
+    }
+    public sealed class Font : System.IEquatable<SpreadCheetah.Styling.Font>
+    {
+        public Font() { }
+        public bool Bold { get; set; }
+        public System.Drawing.Color? Color { get; set; }
+        public bool Italic { get; set; }
+        public string? Name { get; set; }
+        public double Size { get; set; }
+        public bool Strikethrough { get; set; }
+        public SpreadCheetah.Styling.Underline Underline { get; set; }
+    }
+    public enum HorizontalAlignment
+    {
+        None = 0,
+        Left = 1,
+        Center = 2,
+        Right = 3,
+    }
+    public readonly struct NumberFormat : System.IEquatable<SpreadCheetah.Styling.NumberFormat>
+    {
+        public override string ToString() { }
+        public static SpreadCheetah.Styling.NumberFormat Custom(string formatString) { }
+        public static SpreadCheetah.Styling.NumberFormat Standard(SpreadCheetah.Styling.StandardNumberFormat format) { }
+    }
+    public static class NumberFormats
+    {
+        public const string DateTimeSortable = "yyyy\\-mm\\-dd\\ hh:mm:ss";
+        [System.Obsolete("Use NumberFormat.Standard(StandardNumberFormat.Fraction)")]
+        public const string Fraction = "# ?/?";
+        [System.Obsolete("Use NumberFormat.Standard(StandardNumberFormat.FractionTwoDenominatorPlaces)")]
+        public const string FractionTwoDenominatorPlaces = "# ??/??";
+        [System.Obsolete("Use NumberFormat.Standard(StandardNumberFormat.General)")]
+        public const string General = "General";
+        [System.Obsolete("Use NumberFormat.Standard(StandardNumberFormat.NoDecimalPlaces)")]
+        public const string NoDecimalPlaces = "0";
+        [System.Obsolete("Use NumberFormat.Standard(StandardNumberFormat.Percent)")]
+        public const string Percent = "0%";
+        [System.Obsolete("Use NumberFormat.Standard(StandardNumberFormat.PercentTwoDecimalPlaces)")]
+        public const string PercentTwoDecimalPlaces = "0.00%";
+        [System.Obsolete("Use NumberFormat.Standard(StandardNumberFormat.Scientific)")]
+        public const string Scientific = "0.00E+00";
+        [System.Obsolete("Use NumberFormat.Standard(StandardNumberFormat.Text)")]
+        public const string Text = "@";
+        [System.Obsolete("Use NumberFormat.Standard(StandardNumberFormat.ThousandsSeparator)")]
+        public const string ThousandsSeparator = "#,##0";
+        [System.Obsolete("Use NumberFormat.Standard(StandardNumberFormat.ThousandsSeparatorTwoDecimalPlaces" +
+            ")")]
+        public const string ThousandsSeparatorTwoDecimalPlaces = "#,##0.00";
+        [System.Obsolete("Use NumberFormat.Standard(StandardNumberFormat.TwoDecimalPlaces)")]
+        public const string TwoDecimalPlaces = "0.00";
+    }
+    public enum StandardNumberFormat
+    {
+        General = 0,
+        NoDecimalPlaces = 1,
+        TwoDecimalPlaces = 2,
+        ThousandsSeparator = 3,
+        ThousandsSeparatorTwoDecimalPlaces = 4,
+        Percent = 9,
+        PercentTwoDecimalPlaces = 10,
+        Scientific = 11,
+        Fraction = 12,
+        FractionTwoDenominatorPlaces = 13,
+        ShortDate = 14,
+        LongDate = 15,
+        DayMonth = 16,
+        MonthYear = 17,
+        ShortTime12hour = 18,
+        LongTime12hour = 19,
+        ShortTime = 20,
+        LongTime = 21,
+        DateAndTime = 22,
+        NoDecimalPlacesNegativeParenthesis = 37,
+        NoDecimalPlacesNegativeParenthesisRed = 38,
+        TwoDecimalPlacesNegativeParenthesis = 39,
+        TwoDecimalPlacesNegativeParenthesisRed = 40,
+        MinutesAndSeconds = 45,
+        Duration = 46,
+        DecimalDuration = 47,
+        Exponential = 48,
+        Text = 49,
+    }
+    public sealed class Style : System.IEquatable<SpreadCheetah.Styling.Style>
+    {
+        public Style() { }
+        public SpreadCheetah.Styling.Alignment Alignment { get; set; }
+        public SpreadCheetah.Styling.Border Border { get; set; }
+        public SpreadCheetah.Styling.Fill Fill { get; set; }
+        public SpreadCheetah.Styling.Font Font { get; set; }
+        public SpreadCheetah.Styling.NumberFormat? Format { get; set; }
+        [System.Obsolete("Use Style.Format instead")]
+        public string? NumberFormat { get; set; }
+        public static SpreadCheetah.Styling.Style Hyperlink { get; }
+    }
+    public sealed class StyleId
+    {
+        public int Id { get; }
+    }
+    public enum StyleNameVisibility
+    {
+        Visible = 0,
+        Hidden = 1,
+    }
+    public enum Underline
+    {
+        None = 0,
+        Single = 1,
+        SingleAccounting = 2,
+        Double = 3,
+        DoubleAccounting = 4,
+    }
+    public enum VerticalAlignment
+    {
+        Bottom = 0,
+        Center = 1,
+        Top = 2,
+    }
+}
+namespace SpreadCheetah.Tables
+{
+    public sealed class Table
+    {
+        public Table(SpreadCheetah.Tables.TableStyle style, string? name = null) { }
+        public bool BandedColumns { get; set; }
+        public bool BandedRows { get; set; }
+        public int? NumberOfColumns { get; set; }
+        public SpreadCheetah.Tables.TableColumnOptions Column(int columnNumber) { }
+    }
+    public sealed class TableColumnOptions
+    {
+        public TableColumnOptions() { }
+        public SpreadCheetah.Tables.TableTotalRowFunction? TotalRowFunction { get; set; }
+        public string? TotalRowLabel { get; set; }
+    }
+    public enum TableStyle
+    {
+        None = 0,
+        Light1 = 1,
+        Light2 = 2,
+        Light3 = 3,
+        Light4 = 4,
+        Light5 = 5,
+        Light6 = 6,
+        Light7 = 7,
+        Light8 = 8,
+        Light9 = 9,
+        Light10 = 10,
+        Light11 = 11,
+        Light12 = 12,
+        Light13 = 13,
+        Light14 = 14,
+        Light15 = 15,
+        Light16 = 16,
+        Light17 = 17,
+        Light18 = 18,
+        Light19 = 19,
+        Light20 = 20,
+        Light21 = 21,
+        Medium1 = 22,
+        Medium2 = 23,
+        Medium3 = 24,
+        Medium4 = 25,
+        Medium5 = 26,
+        Medium6 = 27,
+        Medium7 = 28,
+        Medium8 = 29,
+        Medium9 = 30,
+        Medium10 = 31,
+        Medium11 = 32,
+        Medium12 = 33,
+        Medium13 = 34,
+        Medium14 = 35,
+        Medium15 = 36,
+        Medium16 = 37,
+        Medium17 = 38,
+        Medium18 = 39,
+        Medium19 = 40,
+        Medium20 = 41,
+        Medium21 = 42,
+        Medium22 = 43,
+        Medium23 = 44,
+        Medium24 = 45,
+        Medium25 = 46,
+        Medium26 = 47,
+        Medium27 = 48,
+        Medium28 = 49,
+        Dark1 = 50,
+        Dark2 = 51,
+        Dark3 = 52,
+        Dark4 = 53,
+        Dark5 = 54,
+        Dark6 = 55,
+        Dark7 = 56,
+        Dark8 = 57,
+        Dark9 = 58,
+        Dark10 = 59,
+        Dark11 = 60,
+    }
+    public enum TableTotalRowFunction
+    {
+        Average = 1,
+        Count = 2,
+        CountNumbers = 3,
+        Maximum = 4,
+        Minimum = 5,
+        Sum = 6,
+        StandardDeviation = 7,
+        Variance = 8,
+    }
+}
+namespace SpreadCheetah.Validations
+{
+    public sealed class DataValidation
+    {
+        public string? ErrorMessage { get; set; }
+        public string? ErrorTitle { get; set; }
+        public SpreadCheetah.Validations.ValidationErrorType ErrorType { get; set; }
+        public bool IgnoreBlank { get; set; }
+        public string? InputMessage { get; set; }
+        public string? InputTitle { get; set; }
+        public bool ShowErrorAlert { get; set; }
+        public bool ShowInputMessage { get; set; }
+        public static SpreadCheetah.Validations.DataValidation DateTimeBetween(System.DateTime min, System.DateTime max) { }
+        public static SpreadCheetah.Validations.DataValidation DateTimeEqualTo(System.DateTime value) { }
+        public static SpreadCheetah.Validations.DataValidation DateTimeGreaterThan(System.DateTime value) { }
+        public static SpreadCheetah.Validations.DataValidation DateTimeGreaterThanOrEqualTo(System.DateTime value) { }
+        public static SpreadCheetah.Validations.DataValidation DateTimeLessThan(System.DateTime value) { }
+        public static SpreadCheetah.Validations.DataValidation DateTimeLessThanOrEqualTo(System.DateTime value) { }
+        public static SpreadCheetah.Validations.DataValidation DateTimeNotBetween(System.DateTime min, System.DateTime max) { }
+        public static SpreadCheetah.Validations.DataValidation DateTimeNotEqualTo(System.DateTime value) { }
+        public static SpreadCheetah.Validations.DataValidation DecimalBetween(double min, double max) { }
+        public static SpreadCheetah.Validations.DataValidation DecimalEqualTo(double value) { }
+        public static SpreadCheetah.Validations.DataValidation DecimalGreaterThan(double value) { }
+        public static SpreadCheetah.Validations.DataValidation DecimalGreaterThanOrEqualTo(double value) { }
+        public static SpreadCheetah.Validations.DataValidation DecimalLessThan(double value) { }
+        public static SpreadCheetah.Validations.DataValidation DecimalLessThanOrEqualTo(double value) { }
+        public static SpreadCheetah.Validations.DataValidation DecimalNotBetween(double min, double max) { }
+        public static SpreadCheetah.Validations.DataValidation DecimalNotEqualTo(double value) { }
+        public static SpreadCheetah.Validations.DataValidation IntegerBetween(int min, int max) { }
+        public static SpreadCheetah.Validations.DataValidation IntegerEqualTo(int value) { }
+        public static SpreadCheetah.Validations.DataValidation IntegerGreaterThan(int value) { }
+        public static SpreadCheetah.Validations.DataValidation IntegerGreaterThanOrEqualTo(int value) { }
+        public static SpreadCheetah.Validations.DataValidation IntegerLessThan(int value) { }
+        public static SpreadCheetah.Validations.DataValidation IntegerLessThanOrEqualTo(int value) { }
+        public static SpreadCheetah.Validations.DataValidation IntegerNotBetween(int min, int max) { }
+        public static SpreadCheetah.Validations.DataValidation IntegerNotEqualTo(int value) { }
+        public static SpreadCheetah.Validations.DataValidation ListValues(System.Collections.Generic.IEnumerable<string> values, bool showDropdown = true) { }
+        public static SpreadCheetah.Validations.DataValidation ListValuesFromCells(string cellRange, bool showDropdown = true) { }
+        public static SpreadCheetah.Validations.DataValidation ListValuesFromCells(string worksheetName, string cellRange, bool showDropdown = true) { }
+        public static SpreadCheetah.Validations.DataValidation TextLengthBetween(int min, int max) { }
+        public static SpreadCheetah.Validations.DataValidation TextLengthEqualTo(int value) { }
+        public static SpreadCheetah.Validations.DataValidation TextLengthGreaterThan(int value) { }
+        public static SpreadCheetah.Validations.DataValidation TextLengthGreaterThanOrEqualTo(int value) { }
+        public static SpreadCheetah.Validations.DataValidation TextLengthLessThan(int value) { }
+        public static SpreadCheetah.Validations.DataValidation TextLengthLessThanOrEqualTo(int value) { }
+        public static SpreadCheetah.Validations.DataValidation TextLengthNotBetween(int min, int max) { }
+        public static SpreadCheetah.Validations.DataValidation TextLengthNotEqualTo(int value) { }
+        public static bool TryCreateListValues(System.Collections.Generic.IEnumerable<string> values, bool showDropdown, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out SpreadCheetah.Validations.DataValidation? dataValidation) { }
+    }
+    public enum ValidationErrorType
+    {
+        Blocking = 0,
+        Warning = 1,
+        Information = 2,
+    }
+}
+namespace SpreadCheetah.Worksheets
+{
+    public sealed class AutoFilterOptions
+    {
+        public AutoFilterOptions(string cellRange) { }
+    }
+    public sealed class ColumnOptions
+    {
+        public ColumnOptions() { }
+        public SpreadCheetah.Styling.Style? DefaultStyle { get; set; }
+        public bool Hidden { get; set; }
+        public double? Width { get; set; }
+    }
+    public sealed class RowOptions
+    {
+        public RowOptions() { }
+        public SpreadCheetah.Styling.Style? DefaultStyle { get; set; }
+        public double? Height { get; set; }
+    }
+    public sealed class WorksheetOptions
+    {
+        public WorksheetOptions() { }
+        public SpreadCheetah.Worksheets.AutoFilterOptions? AutoFilter { get; set; }
+        public double? DefaultColumnWidth { get; set; }
+        public int? FrozenColumns { get; set; }
+        public int? FrozenRows { get; set; }
+        public bool? ShowGridlines { get; set; }
+        public SpreadCheetah.Worksheets.WorksheetVisibility Visibility { get; set; }
+        public SpreadCheetah.Worksheets.ColumnOptions Column(int columnNumber) { }
+    }
+    public enum WorksheetVisibility
+    {
+        Visible = 0,
+        Hidden = 1,
+        VeryHidden = 2,
+    }
+}

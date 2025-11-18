@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net6.0;net8.0;net9.0</TargetFrameworks>
-    
+    <TargetFrameworks>netstandard2.0;net8.0;net9.0;net10.0</TargetFrameworks>
+
     <!-- https://learn.microsoft.com/en-us/dotnet/core/compatibility/sdk/8.0/trimming-unsupported-targetframework -->
     <IsTrimmable Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">true</IsTrimmable>
     <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
@@ -41,11 +41,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="../assets/icon-package.png" Pack="true" PackagePath="\"/>
+    <None Include="../assets/icon-package.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PolyStringInterpolation>true</PolyStringInterpolation>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">

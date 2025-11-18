@@ -23,7 +23,7 @@ internal sealed class FileCounter
 
     public void AddEmbeddedImage(ImageType type)
     {
-        Debug.Assert(type > ImageType.None && EnumPolyfill.IsDefined(type));
+        Debug.Assert(type > ImageType.None && Enum.IsDefined(type));
 
         if (type == ImageType.Png)
             EmbeddedImageTypes |= EmbeddedImageTypes.Png;

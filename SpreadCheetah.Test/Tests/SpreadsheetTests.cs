@@ -5,9 +5,9 @@ using OfficeOpenXml;
 using Polyfills;
 using SpreadCheetah.Images;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
-using System.IO;
 using System.IO.Compression;
 using Color = System.Drawing.Color;
 using DataValidation = SpreadCheetah.Validations.DataValidation;
@@ -72,6 +72,23 @@ public class SpreadsheetTests
         Assert.True(stream.Position > 0);
     }
 
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_CreateNew_WithCompressionLevel(SpreadCheetahCompressionLevel level)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { CompressionLevel = level };
+
+        // Act
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Name", token: Token);
+        await spreadsheet.AddRowAsync([new("Hello"), new(123)], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
@@ -109,7 +126,7 @@ public class SpreadsheetTests
         await spreadsheet.FinishAsync(Token);
 
         // Assert
-        using var zip = new ZipArchive(stream);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
         var filenames = zip.Entries.Select(x => x.FullName).ToList();
         Assert.Equal(hasNote, filenames.Contains("xl/comments1.xml", StringComparer.OrdinalIgnoreCase));
         Assert.Equal(hasNote, filenames.Contains("xl/drawings/vmlDrawing1.vml", StringComparer.OrdinalIgnoreCase));
@@ -136,7 +153,7 @@ public class SpreadsheetTests
         }
 
         // Assert
-        using var zip = new ZipArchive(stream);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
         Assert.Equal(hasStyle, zip.GetEntry("xl/styles.xml") is not null);
     }
 
@@ -163,7 +180,7 @@ public class SpreadsheetTests
 
         var validation = DataValidation.TextLengthLessThan(50);
         spreadsheet.AddDataValidation("A2:A100", validation);
-        spreadsheet.AddImage(ImageCanvas.OriginalSize("B1".AsSpan()), embeddedImage);
+        spreadsheet.AddImage(ImageCanvas.OriginalSize("B1"), embeddedImage);
         spreadsheet.AddNote("C1", "My note");
         spreadsheet.MergeCells("B2:F3");
 
@@ -198,7 +215,7 @@ public class SpreadsheetTests
 
         var validation = DataValidation.TextLengthLessThan(50);
         spreadsheet.AddDataValidation("A2:A100", validation);
-        spreadsheet.AddImage(ImageCanvas.OriginalSize("B1".AsSpan()), embeddedImage);
+        spreadsheet.AddImage(ImageCanvas.OriginalSize("B1"), embeddedImage);
         spreadsheet.AddNote("C1", "My note");
         spreadsheet.MergeCells("B2:F3");
         spreadsheet.StartTable(new Table(TableStyle.Light8));

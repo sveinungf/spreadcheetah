@@ -25,7 +25,7 @@ public static class XmlUtilityTests
         var buffer = new byte[value.Length * 6];
 
         // Act
-        var result = XmlUtility.TryXmlEncodeToUtf8(value.AsSpan(), buffer, out var bytesWritten);
+        var result = XmlUtility.TryXmlEncodeToUtf8(value, buffer, out var bytesWritten);
 
         // Assert
         Assert.True(result);

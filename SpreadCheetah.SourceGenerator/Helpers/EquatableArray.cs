@@ -43,7 +43,7 @@ internal readonly struct EquatableArray<T>(T[] underlyingArray)
         return hashCode.ToHashCode();
     }
 
-    public ReadOnlySpan<T> AsSpan() => _array.AsSpan();
+    public ReadOnlySpan<T> AsSpan() => _array;
     public T[]? GetArray() => _array;
 
     IEnumerator<T> IEnumerable<T>.GetEnumerator()

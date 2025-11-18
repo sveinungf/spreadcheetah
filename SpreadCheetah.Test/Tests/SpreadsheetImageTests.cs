@@ -2,7 +2,9 @@ using ClosedXML.Excel;
 using ClosedXML.Excel.Drawings;
 using OfficeOpenXml;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
+using Polyfills;
 using SpreadCheetah.Images;
+using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
 using System.IO.Compression;
@@ -132,11 +134,11 @@ public class SpreadsheetImageTests
         Assert.Equal(expectedWidth, result.Width);
         Assert.Equal(expectedHeight, result.Height);
 
-        using var archive = new ZipArchive(outputStream);
+        using var archive = await ZipArchive.CreateAsync(outputStream, Token);
         var entry = archive.GetEntry("xl/media/image1.png");
         Assert.NotNull(entry);
 
-        using var actualPngStream = entry.Open();
+        using var actualPngStream = await entry.OpenAsync(Token);
         var actualPngBytes = await actualPngStream.ToByteArrayAsync();
         var expectedPngBytes = await pngStream.ToByteArrayAsync();
         Assert.Equal(expectedPngBytes, actualPngBytes);
@@ -183,7 +185,7 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
-        var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
+        var canvas = ImageCanvas.OriginalSize(reference);
 
         // Act
         spreadsheet.AddImage(canvas, embeddedImage);
@@ -214,7 +216,7 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
-        var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
+        var canvas = ImageCanvas.OriginalSize(reference);
 
         // Act
         spreadsheet.AddImage(canvas, embeddedImage);
@@ -245,7 +247,7 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
-        var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
+        var canvas = ImageCanvas.OriginalSize(reference);
 
         // Act
         spreadsheet.AddImage(canvas, embeddedImage);
@@ -278,7 +280,7 @@ public class SpreadsheetImageTests
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         await spreadsheet.StartWorksheetAsync(worksheetName, token: Token);
-        var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
+        var canvas = ImageCanvas.OriginalSize(reference);
 
         // Act
         spreadsheet.AddImage(canvas, embeddedImage);
@@ -327,7 +329,7 @@ public class SpreadsheetImageTests
         foreach (var embeddedImage in embeddedImages)
         {
             var reference = "A" + row;
-            var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
+            var canvas = ImageCanvas.OriginalSize(reference);
             spreadsheet.AddImage(canvas, embeddedImage);
             row++;
         }
@@ -360,7 +362,7 @@ public class SpreadsheetImageTests
         // Act
         foreach (var reference in references)
         {
-            var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
+            var canvas = ImageCanvas.OriginalSize(reference);
             spreadsheet.AddImage(canvas, embeddedImage);
         }
 
@@ -393,14 +395,14 @@ public class SpreadsheetImageTests
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         foreach (var reference in worksheet1References)
         {
-            var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
+            var canvas = ImageCanvas.OriginalSize(reference);
             spreadsheet.AddImage(canvas, embeddedImage);
         }
 
         await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
         foreach (var reference in worksheet2References)
         {
-            var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
+            var canvas = ImageCanvas.OriginalSize(reference);
             spreadsheet.AddImage(canvas, embeddedImage);
         }
 
@@ -436,7 +438,7 @@ public class SpreadsheetImageTests
         for (var i = 0; i < worksheetCount; i++)
         {
             await spreadsheet.StartWorksheetAsync($"Sheet {i}", token: Token);
-            var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
+            var canvas = ImageCanvas.OriginalSize(reference);
             spreadsheet.AddImage(canvas, embeddedImage);
         }
 
@@ -473,14 +475,14 @@ public class SpreadsheetImageTests
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         foreach (var reference in worksheet1References)
         {
-            var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
+            var canvas = ImageCanvas.OriginalSize(reference);
             spreadsheet.AddImage(canvas, embeddedImages.Dequeue());
         }
 
         await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
         foreach (var reference in worksheet2References)
         {
-            var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
+            var canvas = ImageCanvas.OriginalSize(reference);
             spreadsheet.AddImage(canvas, embeddedImages.Dequeue());
         }
 
@@ -511,7 +513,7 @@ public class SpreadsheetImageTests
         await using var otherSpreadsheet = await Spreadsheet.CreateNewAsync(otherStream, cancellationToken: Token);
         var embeddedImage = await otherSpreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
-        var canvas = ImageCanvas.OriginalSize("A1".AsSpan());
+        var canvas = ImageCanvas.OriginalSize("A1");
 
         // Act
         var exception = Record.Exception(() => spreadsheet.AddImage(canvas, embeddedImage));
@@ -537,8 +539,8 @@ public class SpreadsheetImageTests
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         var canvas = twoAnchor
-            ? ImageCanvas.FillCell("A1".AsSpan(), moveWithCells, resizeWithCells)
-            : ImageCanvas.FillCells("A1".AsSpan(), "C3".AsSpan(), moveWithCells, resizeWithCells);
+            ? ImageCanvas.FillCell("A1", moveWithCells, resizeWithCells)
+            : ImageCanvas.FillCells("A1", "C3", moveWithCells, resizeWithCells);
 
         // Act
         spreadsheet.AddImage(canvas, embeddedImage);
@@ -566,7 +568,7 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
-        var canvas = ImageCanvas.Dimensions("D4".AsSpan(), width, height);
+        var canvas = ImageCanvas.Dimensions("D4", width, height);
 
         // Act
         spreadsheet.AddImage(canvas, embeddedImage);
@@ -574,8 +576,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         await VerifyXml(drawingXml);
     }
 
@@ -592,7 +594,7 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
-        var canvas = ImageCanvas.Scaled("D4".AsSpan(), scale);
+        var canvas = ImageCanvas.Scaled("D4", scale);
 
         // Act
         spreadsheet.AddImage(canvas, embeddedImage);
@@ -600,8 +602,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         await VerifyXml(drawingXml);
     }
 
@@ -616,7 +618,7 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
-        var canvas = ImageCanvas.Scaled("D4".AsSpan(), scale);
+        var canvas = ImageCanvas.Scaled("D4", scale);
 
         // Act & Assert
         Assert.ThrowsAny<ArgumentOutOfRangeException>(() => spreadsheet.AddImage(canvas, embeddedImage));
@@ -631,7 +633,7 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
-        var canvas = ImageCanvas.FillCell("B3".AsSpan());
+        var canvas = ImageCanvas.FillCell("B3");
 
         // Act
         spreadsheet.AddImage(canvas, embeddedImage);
@@ -659,7 +661,7 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
-        var canvas = ImageCanvas.FillCells("B3".AsSpan(), lowerRightReference.AsSpan());
+        var canvas = ImageCanvas.FillCells("B3", lowerRightReference);
 
         // Act
         spreadsheet.AddImage(canvas, embeddedImage);
@@ -688,7 +690,7 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
-        var canvas = ImageCanvas.OriginalSize(reference.AsSpan());
+        var canvas = ImageCanvas.OriginalSize(reference);
         var options = new ImageOptions { Offset = ImageOffset.Pixels(left, top, 0, 0) };
 
         // Act
@@ -697,8 +699,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         await VerifyXml(drawingXml);
     }
 
@@ -719,7 +721,7 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
-        var canvas = ImageCanvas.FillCell(reference.AsSpan());
+        var canvas = ImageCanvas.FillCell(reference);
         var options = new ImageOptions { Offset = ImageOffset.Pixels(left, top, right, bottom) };
 
         // Act
@@ -728,8 +730,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         await VerifyXml(drawingXml);
     }
 
@@ -751,8 +753,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         var verifySettings = new VerifySettings();
         verifySettings.IgnoreParametersForVerified();
         await VerifyXml(drawingXml, verifySettings);
@@ -776,7 +778,7 @@ public class SpreadsheetImageTests
         options.Column(11).Width = 15.0;
 
         await spreadsheet.StartWorksheetAsync("Sheet 1", options, Token);
-        var canvas = ImageCanvas.Dimensions("B2".AsSpan(), 1000, 1000);
+        var canvas = ImageCanvas.Dimensions("B2", 1000, 1000);
 
         // Act
         spreadsheet.AddImage(canvas, embeddedImage);
@@ -784,8 +786,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         await VerifyXml(drawingXml);
     }
 
@@ -800,7 +802,7 @@ public class SpreadsheetImageTests
         var options = new WorksheetOptions { DefaultColumnWidth = 20 };
 
         await spreadsheet.StartWorksheetAsync("Sheet 1", options, Token);
-        var canvas = ImageCanvas.Dimensions("B2".AsSpan(), 1000, 1000);
+        var canvas = ImageCanvas.Dimensions("B2", 1000, 1000);
 
         // Act
         spreadsheet.AddImage(canvas, embeddedImage);
@@ -808,8 +810,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         await VerifyXml(drawingXml);
     }
 
@@ -822,7 +824,7 @@ public class SpreadsheetImageTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
-        var canvas = ImageCanvas.Dimensions("B2".AsSpan(), 1000, 1000);
+        var canvas = ImageCanvas.Dimensions("B2", 1000, 1000);
 
         var rowHeights = new Dictionary<int, double>
         {
@@ -850,8 +852,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         await VerifyXml(drawingXml);
     }
 
@@ -870,7 +872,7 @@ public class SpreadsheetImageTests
         options.Column(8).Hidden = true;
 
         await spreadsheet.StartWorksheetAsync("Sheet 1", options, Token);
-        var canvas = ImageCanvas.Scaled("B2".AsSpan(), 2.0f);
+        var canvas = ImageCanvas.Scaled("B2", 2.0f);
 
         // Act
         spreadsheet.AddImage(canvas, embeddedImage);
@@ -878,8 +880,8 @@ public class SpreadsheetImageTests
         // Assert
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
-        using var zip = new ZipArchive(outputStream);
-        using var drawingXml = zip.GetDrawingXmlStream();
+        using var zip = await ZipArchive.CreateAsync(outputStream, Token);
+        using var drawingXml = await zip.GetDrawingXmlStreamAsync(Token);
         await VerifyXml(drawingXml);
     }
 }
