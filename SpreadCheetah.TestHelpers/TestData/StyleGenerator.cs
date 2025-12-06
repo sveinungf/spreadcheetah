@@ -9,25 +9,25 @@ public static class StyleGenerator
 {
     public static ICollection<Style> Generate(int count)
     {
-        var testAlignments = new Faker<Alignment>()
+        var testAlignments = CreateFaker<Alignment>()
             .StrictMode(true)
             .RuleFor(x => x.Horizontal, f => f.Random.Enum<HorizontalAlignment>())
             .RuleFor(x => x.Indent, f => f.Random.Number(255))
             .RuleFor(x => x.Vertical, f => f.Random.Enum<VerticalAlignment>())
             .RuleFor(x => x.WrapText, f => f.Random.Bool());
 
-        var testEdgeBorders = new Faker<EdgeBorder>()
+        var testEdgeBorders = CreateFaker<EdgeBorder>()
             .StrictMode(true)
             .RuleFor(x => x.BorderStyle, f => f.Random.Enum<BorderStyle>())
             .RuleFor(x => x.Color, f => f.Random.Color().OrNull(f, .1f));
 
-        var testDiagonalBorders = new Faker<DiagonalBorder>()
+        var testDiagonalBorders = CreateFaker<DiagonalBorder>()
             .StrictMode(true)
             .RuleFor(x => x.BorderStyle, f => f.Random.Enum<BorderStyle>())
             .RuleFor(x => x.Color, f => f.Random.Color().OrNull(f, .1f))
             .RuleFor(x => x.Type, f => f.Random.Enum<DiagonalBorderType>());
 
-        var testBorders = new Faker<Border>()
+        var testBorders = CreateFaker<Border>()
             .StrictMode(true)
             .RuleFor(x => x.Bottom, _ => testEdgeBorders.Generate())
             .RuleFor(x => x.Diagonal, _ => testDiagonalBorders.Generate())
@@ -35,11 +35,11 @@ public static class StyleGenerator
             .RuleFor(x => x.Right, _ => testEdgeBorders.Generate())
             .RuleFor(x => x.Top, _ => testEdgeBorders.Generate());
 
-        var testFills = new Faker<Fill>()
+        var testFills = CreateFaker<Fill>()
             .StrictMode(true)
             .RuleFor(x => x.Color, f => f.Random.Color().OrNull(f, .1f));
 
-        var testFonts = new Faker<Font>()
+        var testFonts = CreateFaker<Font>()
             .StrictMode(true)
             .Ignore("ActualSize")
             .RuleFor(x => x.Bold, f => f.Random.Bool())
@@ -50,7 +50,7 @@ public static class StyleGenerator
             .RuleFor(x => x.Strikethrough, f => f.Random.Bool())
             .RuleFor(x => x.Underline, f => f.Random.Enum<Underline>());
 
-        var styles = new Faker<Style>()
+        var styles = CreateFaker<Style>()
             .StrictMode(true)
             .RuleFor(x => x.Alignment, _ => testAlignments.Generate())
             .RuleFor(x => x.Border, _ => testBorders.Generate())
@@ -62,5 +62,11 @@ public static class StyleGenerator
 #pragma warning restore CS0618 // Type or member is obsolete
 
         return styles.Generate(count);
+    }
+
+    private static Faker<T> CreateFaker<T>() where T : class
+    {
+        return new Faker<T>()
+            .UseSeed(42);
     }
 }
