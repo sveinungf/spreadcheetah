@@ -68,17 +68,11 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         private readonly Span<byte> GetSpan() => buffer.GetSpan(_pos);
 
         [ExcludeFromCodeCoverage]
-        public bool AppendLiteral(string value)
+        public readonly bool AppendLiteral(string value)
         {
-            Debug.Fail("Use ReadOnlySpan<byte> instead of string literals");
-
-            if (value is not null && Utf8Helper.TryGetBytes(value, GetSpan(), out var bytesWritten))
-            {
-                _pos += bytesWritten;
-                return true;
-            }
-
-            return Fail();
+            _ = _pos;
+            _ = value;
+            throw new InvalidOperationException("Use ReadOnlySpan<byte> instead of string literals");
         }
 
         public readonly void Deconstruct(out int pos, out bool isSuccess)
