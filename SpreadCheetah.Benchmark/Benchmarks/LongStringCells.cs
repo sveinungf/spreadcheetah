@@ -21,7 +21,7 @@ public class LongStringCells
     [Params(20)]
     public int NumberOfColumns { get; set; }
 
-    [Params(500000)]
+    [Params(1000)]
     public int NumberOfRows { get; set; }
 
     [GlobalSetup]

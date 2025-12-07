@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Buffers.Text;
 using System.Drawing;
 using System.Runtime.CompilerServices;
+using System.Text.Unicode;
 
 namespace SpreadCheetah.Helpers;
 
@@ -47,16 +48,14 @@ internal static class SpanHelper
 
     public static bool TryWriteLongString(ReadOnlySpan<char> value, ref int valueIndex, Span<byte> bytes, ref int bytesWritten)
     {
-        if (value.IsEmpty) return true;
+        var source = value.Slice(valueIndex);
+        if (source.IsEmpty) return true;
 
-        var span = bytes.Slice(bytesWritten);
-        var maxCharCount = span.Length / Utf8Helper.MaxBytePerChar;
-        var remainingLength = value.Length - valueIndex;
-        var lastIteration = remainingLength <= maxCharCount;
-        var length = lastIteration ? remainingLength : maxCharCount;
-        bytesWritten += Utf8Helper.GetBytes(value.Slice(valueIndex, length), span);
-        valueIndex += length;
-        return lastIteration;
+        var destination = bytes.Slice(bytesWritten);
+        var status = Utf8.FromUtf16(source, destination, out var charsRead, out var newBytesWritten);
+        valueIndex += charsRead;
+        bytesWritten += newBytesWritten;
+        return status is OperationStatus.Done;
     }
 
     private static bool TryWriteColorChannel(int value, Span<byte> span, ref int written)
