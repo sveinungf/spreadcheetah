@@ -6,6 +6,8 @@ namespace SpreadCheetah.Helpers;
 
 internal static class XmlUtility
 {
+    private static readonly UTF8Encoding Utf8NoBom = new(false);
+
 #if NET8_0_OR_GREATER
     private static ReadOnlySpan<char> CharsToEscape =>
     [
@@ -98,7 +100,7 @@ internal static class XmlUtility
         var index = IndexOfCharToEscape(source);
         if (index == -1)
         {
-            bytesWritten = Utf8Helper.Utf8NoBom.GetBytes(source, destination);
+            bytesWritten = Utf8NoBom.GetBytes(source, destination);
             return true;
         }
 
@@ -114,7 +116,7 @@ internal static class XmlUtility
         {
             if (index > 0)
             {
-                var written = Utf8Helper.Utf8NoBom.GetBytes(source.Slice(0, index), destination);
+                var written = Utf8NoBom.GetBytes(source.Slice(0, index), destination);
                 source = source.Slice(index);
                 destination = destination.Slice(written);
             }
@@ -139,7 +141,7 @@ internal static class XmlUtility
             index = IndexOfCharToEscape(source);
         }
 
-        var finalWritten = Utf8Helper.Utf8NoBom.GetBytes(source, destination);
+        var finalWritten = Utf8NoBom.GetBytes(source, destination);
         return initialDestinationLength - destination.Length + finalWritten;
     }
 

@@ -136,15 +136,10 @@ internal struct DataValidationXml(
 
     private readonly bool TryWriteReference()
     {
-        var span = buffer.GetSpan();
-        var written = 0;
-
-        if (!"sqref=\""u8.TryCopyTo(span, ref written)) return false;
-        if (!SpanHelper.TryWrite(reference.Reference, span, ref written)) return false;
-        if (!"\" "u8.TryCopyTo(span, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        return buffer.TryWrite(
+            $"{"sqref=\""u8}" +
+            $"{reference.Reference}" +
+            $"{"\" "u8}");
     }
 
     private readonly bool TryWriteValue1Start() => buffer.TryWrite("><formula1>"u8);

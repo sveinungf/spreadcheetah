@@ -46,12 +46,13 @@
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PolyArgumentExceptions>true</PolyArgumentExceptions>
     <PolyStringInterpolation>true</PolyStringInterpolation>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
-    <PackageReference Include="System.Memory" />
+    <PackageReference Include="Microsoft.Bcl.Memory" />
   </ItemGroup>
 
   <ItemGroup>

@@ -82,9 +82,9 @@ internal struct NumberFormatsXmlPart(
                 return false;
             }
 
-            if (!"\"/>"u8.TryCopyTo(span, ref written)) return false;
-
             buffer.Advance(written);
+
+            if (!buffer.TryWrite("\"/>"u8)) return false;
 
             _currentXmlEncodedFormat = null;
             _currentXmlEncodedFormatIndex = 0;
