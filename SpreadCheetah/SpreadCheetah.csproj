@@ -46,6 +46,7 @@
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PolyArgumentExceptions>true</PolyArgumentExceptions>
     <PolyStringInterpolation>true</PolyStringInterpolation>
   </PropertyGroup>
 
