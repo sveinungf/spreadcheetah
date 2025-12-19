@@ -1,6 +1,9 @@
+using System.Buffers;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Unicode;
 
 namespace SpreadCheetah.Helpers;
 
@@ -104,21 +107,30 @@ internal static class XmlUtility
             return true;
         }
 
-        bytesWritten = XmlEncodeToUtf8(source, destination, index);
+        var result = TryXmlEncodeToUtf8WithEscapes(source, destination, index, out _, out bytesWritten);
+        Debug.Assert(result, "Destination span should be large enough.");
         return true;
     }
 
-    private static int XmlEncodeToUtf8(ReadOnlySpan<char> source, Span<byte> destination, int index)
+    private static bool TryXmlEncodeToUtf8WithEscapes(ReadOnlySpan<char> source, Span<byte> destination,
+        int index, out int charsRead, out int bytesWritten)
     {
-        var initialDestinationLength = destination.Length;
+        charsRead = 0;
+        bytesWritten = 0;
 
         while (index != -1)
         {
             if (index > 0)
             {
-                var written = Utf8NoBom.GetBytes(source.Slice(0, index), destination);
+                var regularChars = source.Slice(0, index);
+                var status = Utf8.FromUtf16(regularChars, destination, out var regularCharsRead, out var regularBytesWritten);
+                charsRead += regularCharsRead;
+                bytesWritten += regularBytesWritten;
+                if (status is OperationStatus.DestinationTooSmall)
+                    return false;
+
                 source = source.Slice(index);
-                destination = destination.Slice(written);
+                destination = destination.Slice(regularBytesWritten);
             }
 
             var replacement = source[0] switch
@@ -133,16 +145,23 @@ internal static class XmlUtility
 
             if (replacement.Length > 0)
             {
-                replacement.CopyTo(destination);
+                if (!replacement.TryCopyTo(destination))
+                    return false;
+
+                bytesWritten += replacement.Length;
                 destination = destination.Slice(replacement.Length);
             }
 
+            charsRead++;
             source = source.Slice(1);
+
             index = IndexOfCharToEscape(source);
         }
 
-        var finalWritten = Utf8NoBom.GetBytes(source, destination);
-        return initialDestinationLength - destination.Length + finalWritten;
+        var finalStatus = Utf8.FromUtf16(source, destination, out var finalCharsRead, out var finalBytesWritten);
+        charsRead += finalCharsRead;
+        bytesWritten += finalBytesWritten;
+        return finalStatus is OperationStatus.Done;
     }
 
     [return: NotNullIfNotNull(nameof(value))]
