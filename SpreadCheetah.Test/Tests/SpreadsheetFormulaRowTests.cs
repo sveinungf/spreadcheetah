@@ -177,25 +177,42 @@ public class SpreadsheetFormulaRowTests
         var formulaText = FormulaGenerator.Generate(length);
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
-            var formula = new Formula(formulaText);
-            var cell = new Cell(formula);
+        var formula = new Formula(formulaText);
+        var cell = new Cell(formula);
 
-            // Act
-            await spreadsheet.AddRowAsync([cell], Token);
-            await spreadsheet.FinishAsync(Token);
-        }
+        // Act
+        await spreadsheet.AddRowAsync([cell], Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
-        Assert.Equal(formulaText, actualCell.FormulaA1);
-        Assert.True(actualCell.CachedValue.IsBlank);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(formulaText, sheet["A1"].Formula);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddRow_CellWithVeryLongFormulaContainingCharacterToEscape()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var bufferSize = SpreadCheetahOptions.MinimumBufferSize;
+        var options = new SpreadCheetahOptions { BufferSize = bufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        var formulaText = $"{new string('a', bufferSize)} & bbb";
+        var formula = new Formula(formulaText);
+        var cell = new Cell(formula);
+
+        // Act
+        await spreadsheet.AddRowAsync([cell], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(formulaText, sheet["A1"].Formula);
     }
 
     [Theory]

@@ -86,7 +86,7 @@ file struct TableXmlWriter(
 
     private bool TryWriteName()
     {
-        if (buffer.WriteLongString(Table.Name, ref _currentNameIndex))
+        if (buffer.WriteLongStringXmlEncoded(Table.Name, ref _currentNameIndex))
         {
             _currentNameIndex = 0;
             return true;
