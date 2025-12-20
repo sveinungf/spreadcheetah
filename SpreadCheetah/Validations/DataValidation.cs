@@ -214,7 +214,7 @@ public sealed class DataValidation
         worksheetName = worksheetName.Replace("'", "''");
 #pragma warning restore CA1307, MA0074 // Specify StringComparison for clarity
 
-        var value = $"&apos;{XmlUtility.XmlEncode(worksheetName)}&apos;!{cellReference.Reference}";
+        var value = $"'{worksheetName}'!{cellReference.Reference}";
         return ListValuesInternal(value, showDropdown);
     }
 
@@ -281,11 +281,11 @@ public sealed class DataValidation
                 ++combinedLength;
             }
 
-            sb.Append(XmlUtility.XmlEncode(value));
+            sb.Append(value);
             first = false;
 
             // Character length (and not the encoded character length) is used to calculate the combined length.
-            combinedLength += value.Length;
+            combinedLength += value.Length; // TODO: Simplify?
             if (combinedLength > MaxValueLength)
                 return false;
         }
