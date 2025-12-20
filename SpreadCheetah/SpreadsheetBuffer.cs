@@ -230,14 +230,15 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(SimpleSingleCellReference reference)
         {
-            var written = 0;
-            if (SpanHelper.TryWriteCellReference(reference.Column, reference.Row, GetSpan(), ref written))
-            {
-                _pos += written;
-                return true;
-            }
+            if (!SpreadsheetUtility.TryGetColumnNameUtf8(reference.Column, GetSpan(), out var nameLength))
+                return Fail();
 
-            return Fail();
+            _pos += nameLength;
+
+            if (!AppendFormatted(reference.Row))
+                return Fail();
+
+            return true;
         }
 
         public bool AppendFormatted(IntAttribute attribute)
@@ -375,13 +376,13 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(CellWriterState state)
         {
-            var bytes = GetSpan();
-            var bytesWritten = 0;
+            if (!AppendFormatted("<c r=\""u8))
+                return Fail();
 
-            if (!"<c r=\""u8.TryCopyTo(bytes, ref bytesWritten)) return Fail();
-            if (!SpanHelper.TryWriteCellReference(state.Column + 1, state.NextRowIndex - 1, bytes, ref bytesWritten)) return Fail();
+            var reference = new SimpleSingleCellReference((ushort)(state.Column + 1), state.NextRowIndex - 1);
+            if (!AppendFormatted(reference))
+                return Fail();
 
-            _pos += bytesWritten;
             return true;
         }
 

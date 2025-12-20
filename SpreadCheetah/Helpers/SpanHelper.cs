@@ -52,16 +52,4 @@ internal static class SpanHelper
 
     private static bool TryWriteColorChannel(int value, Span<byte> span, ref int written)
         => TryWrite(value, span, ref written, new StandardFormat('X', 2));
-
-    public static bool TryWriteCellReference(int column, uint row, Span<byte> destination, ref int bytesWritten)
-    {
-        var span = destination.Slice(bytesWritten);
-        if (!SpreadsheetUtility.TryGetColumnNameUtf8(column, span, out var nameLength)) return false;
-
-        span = span.Slice(nameLength);
-        if (!Utf8Formatter.TryFormat(row, span, out var rowLength)) return false;
-
-        bytesWritten += nameLength + rowLength;
-        return true;
-    }
 }
