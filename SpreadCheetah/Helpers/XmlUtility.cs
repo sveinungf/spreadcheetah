@@ -91,12 +91,14 @@ internal static class XmlUtility
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryXmlEncodeToUtf8(ReadOnlySpan<char> source, Span<byte> destination, out int charsRead, out int bytesWritten)
     {
-        if (destination.IsEmpty)
-        {
             charsRead = 0;
             bytesWritten = 0;
+
+        if (source.IsEmpty)
+            return true;
+
+        if (destination.IsEmpty)
             return false;
-        }
 
         var index = IndexOfCharToEscape(source);
         if (index == -1)
