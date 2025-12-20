@@ -38,6 +38,29 @@ public class NamedStyleTests
     }
 
     [Fact]
+    public async Task Spreadsheet_AddStyle_NamedStyleWithCharacterToEscape()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, SpreadCheetahOptions, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new Style { Font = { Bold = true } };
+        const string name = "Nice & cool style";
+
+        // Act
+        spreadsheet.AddStyle(style, name, StyleNameVisibility.Visible);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var package = new ExcelPackage(stream);
+        var namedStyles = package.Workbook.Styles.NamedStyles;
+        var namedStyle = Assert.Single(namedStyles, x => !x.Name.Equals("Normal", StringComparison.Ordinal));
+        Assert.Equal(name, namedStyle.Name);
+        Assert.True(namedStyle.Style.Font.Bold);
+    }
+
+    [Fact]
     public async Task Spreadsheet_AddStyle_NamedStyleWithNoVisiblity()
     {
         // Arrange

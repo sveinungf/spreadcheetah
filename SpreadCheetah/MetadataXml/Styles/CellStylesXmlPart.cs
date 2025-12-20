@@ -1,4 +1,4 @@
-using SpreadCheetah.Helpers;
+using SpreadCheetah.MetadataXml.Attributes;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 
@@ -60,29 +60,31 @@ internal struct CellStylesXmlPart(
         for (; _nextIndex < namedStylesLocal.Count; ++_nextIndex)
         {
             var (name, _, visibility) = namedStylesLocal[_nextIndex];
-            var span = buffer.GetSpan();
-            var written = 0;
 
             if (_currentXmlEncodedName is null)
             {
-                if (!"<cellStyle xfId=\""u8.TryCopyTo(span, ref written)) return false;
-                if (!SpanHelper.TryWrite(_nextIndex + 1, span, ref written)) return false;
-                if (visibility == StyleNameVisibility.Hidden && !"\" hidden=\"1"u8.TryCopyTo(span, ref written)) return false;
-                if (!"\" name=\""u8.TryCopyTo(span, ref written)) return false;
+                bool? hidden = visibility == StyleNameVisibility.Hidden ? true : null;
+                var hiddenAttribute = new BooleanAttribute("hidden"u8, hidden);
 
-                _currentXmlEncodedName = XmlUtility.XmlEncode(name);
+                if (!buffer.TryWrite(
+                    $"{"<cellStyle xfId=\""u8}" +
+                    $"{_nextIndex + 1}" +
+                    $"{"\""u8}" +
+                    $"{hiddenAttribute}" +
+                    $"{" name=\""u8}"))
+                {
+                    return false;
+                }
+
+                _currentXmlEncodedName = name;
                 _currentXmlEncodedNameIndex = 0;
             }
 
-            if (!SpanHelper.TryWriteLongString(_currentXmlEncodedName, ref _currentXmlEncodedNameIndex, span, ref written))
-            {
-                buffer.Advance(written);
+            if (!buffer.WriteLongString(_currentXmlEncodedName, ref _currentXmlEncodedNameIndex))
                 return false;
-            }
 
-            buffer.Advance(written);
-
-            if (!buffer.TryWrite("\"/>"u8)) return false;
+            if (!buffer.TryWrite("\"/>"u8))
+                return false;
 
             _currentXmlEncodedName = null;
             _currentXmlEncodedNameIndex = 0;
