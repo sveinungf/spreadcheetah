@@ -89,10 +89,11 @@ internal static class XmlUtility
 #endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryXmlEncodeToUtf8(ReadOnlySpan<char> source, Span<byte> destination, out int bytesWritten)
+    public static bool TryXmlEncodeToUtf8(ReadOnlySpan<char> source, Span<byte> destination, out int charsRead, out int bytesWritten)
     {
-        if (destination.Length <= source.Length)
+        if (destination.IsEmpty)
         {
+            charsRead = 0;
             bytesWritten = 0;
             return false;
         }
@@ -100,11 +101,11 @@ internal static class XmlUtility
         var index = IndexOfCharToEscape(source);
         if (index == -1)
         {
-            var status = Utf8.FromUtf16(source, destination, out _, out bytesWritten);
+            var status = Utf8.FromUtf16(source, destination, out charsRead, out bytesWritten);
             return status is OperationStatus.Done;
         }
 
-        return TryXmlEncodeToUtf8WithEscapes(source, destination, index, out _, out bytesWritten);
+        return TryXmlEncodeToUtf8WithEscapes(source, destination, index, out charsRead, out bytesWritten);
     }
 
     private static bool TryXmlEncodeToUtf8WithEscapes(ReadOnlySpan<char> source, Span<byte> destination,

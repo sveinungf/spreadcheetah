@@ -24,8 +24,18 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
     public bool WriteLongString(ReadOnlySpan<char> value, ref int valueIndex)
     {
+        // TODO: Should always escape XML special characters here?
         var bytesWritten = 0;
         var result = SpanHelper.TryWriteLongString(value, ref valueIndex, GetSpan(), ref bytesWritten);
+        Index += bytesWritten;
+        return result;
+    }
+
+    public bool WriteLongStringXmlEncoded(ReadOnlySpan<char> value, ref int valueIndex)
+    {
+        var source = value.Slice(valueIndex);
+        var result = XmlUtility.TryXmlEncodeToUtf8(source, GetSpan(), out var charsRead, out var bytesWritten);
+        valueIndex += charsRead;
         Index += bytesWritten;
         return result;
     }
@@ -350,7 +360,9 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (value.IsEmpty)
                 return true;
 
-            if (XmlUtility.TryXmlEncodeToUtf8(value, GetSpan(), out var bytesWritten))
+            var destination = GetSpan();
+            if (destination.Length > value.Length &&
+                XmlUtility.TryXmlEncodeToUtf8(value, destination, out _, out var bytesWritten))
             {
                 _pos += bytesWritten;
                 return true;
