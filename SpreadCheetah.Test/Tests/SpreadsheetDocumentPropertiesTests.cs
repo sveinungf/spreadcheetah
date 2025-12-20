@@ -77,6 +77,39 @@ public class SpreadsheetDocumentPropertiesTests
     }
 
     [Fact]
+    public async Task Spreadsheet_DocumentProperties_PropertiesWithCharactersToEscape()
+    {
+        // Arrange
+        const string author = "Lars & Lenny";
+        const string subject = "Date & Time";
+        const string title = "Then & Now";
+
+        var options = new SpreadCheetahOptions
+        {
+            BufferSize = SpreadCheetahOptions.MinimumBufferSize,
+            DocumentProperties = new DocumentProperties
+            {
+                Author = author,
+                Subject = subject,
+                Title = title
+            }
+        };
+
+        using var stream = new MemoryStream();
+
+        // Act
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        var actual = SpreadsheetAssert.DocumentProperties(stream);
+        Assert.Equal(author, actual.Author);
+        Assert.Equal(subject, actual.Subject);
+        Assert.Equal(title, actual.Title);
+    }
+
+    [Fact]
     public async Task Spreadsheet_DocumentProperties_ExplicitlySetToNull()
     {
         // Arrange

@@ -68,26 +68,19 @@ internal struct CommentsXml : IXmlWriter<CommentsXml>
         for (; _nextIndex < notes.Length; ++_nextIndex)
         {
             var (cellRef, note) = notes[_nextIndex];
-            var span = _buffer.GetSpan();
-            var written = 0;
 
             if (_currentXmlEncodedNote is null)
             {
-                if (!CommentStart.TryCopyTo(span, ref written)) return false;
-                if (!SpanHelper.TryWriteCellReference(cellRef.Column, cellRef.Row, span, ref written)) return false;
-                if (!CommentAfterRef.TryCopyTo(span, ref written)) return false;
+                var reference = new SimpleSingleCellReference(cellRef.Column, cellRef.Row);
+                if (!_buffer.TryWrite($"{CommentStart}{reference}{CommentAfterRef}"))
+                    return false;
 
-                _currentXmlEncodedNote = XmlUtility.XmlEncode(note);
+                _currentXmlEncodedNote = note;
                 _currentXmlEncodedNoteIndex = 0;
             }
 
-            if (!SpanHelper.TryWriteLongString(_currentXmlEncodedNote, ref _currentXmlEncodedNoteIndex, span, ref written))
-            {
-                _buffer.Advance(written);
+            if (!_buffer.WriteLongString(_currentXmlEncodedNote, ref _currentXmlEncodedNoteIndex))
                 return false;
-            }
-
-            _buffer.Advance(written);
 
             if (!_buffer.TryWrite(CommentEnd))
                 return false;

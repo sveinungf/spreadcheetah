@@ -35,16 +35,16 @@ internal struct DataValidationXml(
         {
             Element.Header => TryWriteHeader(),
             Element.InputTitleStart => TryWriteInputTitleStart(),
-            Element.InputTitle => TryWriteAttributeValue(valid.InputTitle),
+            Element.InputTitle => TryWriteValue(valid.InputTitle),
             Element.InputTitleEnd => TryWriteAttributeEnd(valid.InputTitle),
             Element.InputMessageStart => TryWriteInputMessageStart(),
-            Element.InputMessage => TryWriteAttributeValue(valid.InputMessage),
+            Element.InputMessage => TryWriteValue(valid.InputMessage),
             Element.InputMessageEnd => TryWriteAttributeEnd(valid.InputMessage),
             Element.ErrorTitleStart => TryWriteErrorTitleStart(),
-            Element.ErrorTitle => TryWriteAttributeValue(valid.ErrorTitle),
+            Element.ErrorTitle => TryWriteValue(valid.ErrorTitle),
             Element.ErrorTitleEnd => TryWriteAttributeEnd(valid.ErrorTitle),
             Element.ErrorMessageStart => TryWriteErrorMessageStart(),
-            Element.ErrorMessage => TryWriteAttributeValue(valid.ErrorMessage),
+            Element.ErrorMessage => TryWriteValue(valid.ErrorMessage),
             Element.ErrorMessageEnd => TryWriteAttributeEnd(valid.ErrorMessage),
             Element.Reference => TryWriteReference(),
             Element.Value1Start => TryWriteValue1Start(),
@@ -122,15 +122,6 @@ internal struct DataValidationXml(
     private readonly bool TryWriteErrorMessageStart()
         => string.IsNullOrEmpty(validation.ErrorMessage) || buffer.TryWrite("error=\""u8);
 
-#pragma warning disable EPS12 // A struct member can be made readonly
-    private bool TryWriteAttributeValue(string? value)
-#pragma warning restore EPS12 // A struct member can be made readonly
-    {
-        if (string.IsNullOrEmpty(value)) return true;
-        var encodedValue = XmlUtility.XmlEncode(value);
-        return TryWriteValue(encodedValue);
-    }
-
     private readonly bool TryWriteAttributeEnd(string? value)
         => string.IsNullOrEmpty(value) || buffer.TryWrite("\" "u8);
 
@@ -154,16 +145,10 @@ internal struct DataValidationXml(
 
     private bool TryWriteValue(string? value)
     {
-        if (value is null) return true;
-        var bytes = buffer.GetSpan();
-        var bytesWritten = 0;
-        if (!SpanHelper.TryWriteLongString(value, ref _nextIndex, bytes, ref bytesWritten))
-        {
-            buffer.Advance(bytesWritten);
+        if (string.IsNullOrEmpty(value)) return true;
+        if (!buffer.WriteLongString(value, ref _nextIndex))
             return false;
-        }
 
-        buffer.Advance(bytesWritten);
         _nextIndex = 0;
         return true;
     }

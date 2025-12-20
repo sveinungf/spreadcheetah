@@ -214,6 +214,29 @@ public class SpreadsheetRowTests
     }
 
     [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithVeryLongStringValueContainingCharacterToEscape(
+        CellType type,
+        RowCollectionType rowType)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var bufferSize = SpreadCheetahOptions.MinimumBufferSize;
+        var options = new SpreadCheetahOptions { BufferSize = bufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var value = $"{new string('a', bufferSize)} & bbb";
+        var cell = CellFactory.Create(type, value);
+
+        // Act
+        await spreadsheet.AddRowAsync(cell, rowType);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(value, sheet["A1"].StringValue);
+    }
+
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_CellWithVeryLongStringValueAndRowStyle(
         [CombinatorialValues(4095, 4096, 4097, 10000, 30000, 32767)] int length,
         CellType type,

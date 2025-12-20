@@ -1,13 +1,11 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Buffers;
 using System.Runtime.CompilerServices;
-using System.Text;
+using System.Text.Unicode;
 
 namespace SpreadCheetah.Helpers;
 
 internal static class XmlUtility
 {
-    private static readonly UTF8Encoding Utf8NoBom = new(false);
-
 #if NET8_0_OR_GREATER
     private static ReadOnlySpan<char> CharsToEscape =>
     [
@@ -88,37 +86,46 @@ internal static class XmlUtility
 #endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryXmlEncodeToUtf8(ReadOnlySpan<char> source, Span<byte> destination, out int bytesWritten)
+    public static bool TryXmlEncodeToUtf8(ReadOnlySpan<char> source, Span<byte> destination, out int charsRead, out int bytesWritten)
     {
-        // Worst case: " becomes &quot; (1 character becomes 6 bytes)
-        if (destination.Length < source.Length * 6)
-        {
-            bytesWritten = 0;
+        charsRead = 0;
+        bytesWritten = 0;
+
+        if (source.IsEmpty)
+            return true;
+
+        if (destination.IsEmpty)
             return false;
-        }
 
         var index = IndexOfCharToEscape(source);
         if (index == -1)
         {
-            bytesWritten = Utf8NoBom.GetBytes(source, destination);
-            return true;
+            var status = Utf8.FromUtf16(source, destination, out charsRead, out bytesWritten);
+            return status is OperationStatus.Done;
         }
 
-        bytesWritten = XmlEncodeToUtf8(source, destination, index);
-        return true;
+        return TryXmlEncodeToUtf8WithEscapes(source, destination, index, out charsRead, out bytesWritten);
     }
 
-    private static int XmlEncodeToUtf8(ReadOnlySpan<char> source, Span<byte> destination, int index)
+    private static bool TryXmlEncodeToUtf8WithEscapes(ReadOnlySpan<char> source, Span<byte> destination,
+        int index, out int charsRead, out int bytesWritten)
     {
-        var initialDestinationLength = destination.Length;
+        charsRead = 0;
+        bytesWritten = 0;
 
         while (index != -1)
         {
             if (index > 0)
             {
-                var written = Utf8NoBom.GetBytes(source.Slice(0, index), destination);
+                var regularChars = source.Slice(0, index);
+                var status = Utf8.FromUtf16(regularChars, destination, out var regularCharsRead, out var regularBytesWritten);
+                charsRead += regularCharsRead;
+                bytesWritten += regularBytesWritten;
+                if (status is OperationStatus.DestinationTooSmall)
+                    return false;
+
                 source = source.Slice(index);
-                destination = destination.Slice(written);
+                destination = destination.Slice(regularBytesWritten);
             }
 
             var replacement = source[0] switch
@@ -133,60 +140,22 @@ internal static class XmlUtility
 
             if (replacement.Length > 0)
             {
-                replacement.CopyTo(destination);
+                if (!replacement.TryCopyTo(destination))
+                    return false;
+
+                bytesWritten += replacement.Length;
                 destination = destination.Slice(replacement.Length);
             }
 
+            charsRead++;
             source = source.Slice(1);
+
             index = IndexOfCharToEscape(source);
         }
 
-        var finalWritten = Utf8NoBom.GetBytes(source, destination);
-        return initialDestinationLength - destination.Length + finalWritten;
-    }
-
-    [return: NotNullIfNotNull(nameof(value))]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string? XmlEncode(string? value)
-    {
-        if (value is null)
-            return null;
-
-        var index = IndexOfCharToEscape(value);
-        if (index == -1)
-            return value;
-
-        return XmlEncode(value, index);
-    }
-
-    private static string XmlEncode(string value, int index)
-    {
-        var source = value.AsSpan();
-        var sb = new StringBuilder();
-
-        while (index != -1)
-        {
-            if (index > 0)
-            {
-                sb.Append(source.Slice(0, index));
-                source = source.Slice(index);
-            }
-
-            _ = source[0] switch
-            {
-                '"' => sb.Append("&quot;"),
-                '&' => sb.Append("&amp;"),
-                '\'' => sb.Append("&apos;"),
-                '<' => sb.Append("&lt;"),
-                '>' => sb.Append("&gt;"),
-                _ => sb
-            };
-
-            source = source.Slice(1);
-            index = IndexOfCharToEscape(source);
-        }
-
-        sb.Append(source);
-        return sb.ToString();
+        var finalStatus = Utf8.FromUtf16(source, destination, out var finalCharsRead, out var finalBytesWritten);
+        charsRead += finalCharsRead;
+        bytesWritten += finalBytesWritten;
+        return finalStatus is OperationStatus.Done;
     }
 }

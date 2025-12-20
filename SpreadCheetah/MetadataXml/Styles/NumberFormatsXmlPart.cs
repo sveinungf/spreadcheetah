@@ -1,5 +1,3 @@
-using SpreadCheetah.Helpers;
-
 namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct NumberFormatsXmlPart(
@@ -60,31 +58,24 @@ internal struct NumberFormatsXmlPart(
         for (; _nextIndex < formats.Count; ++_nextIndex)
         {
             var format = formats[_nextIndex];
-            var span = buffer.GetSpan();
-            var written = 0;
 
             if (_currentXmlEncodedFormat is null)
             {
                 const int customFormatStartId = 165;
                 var id = _nextIndex + customFormatStartId;
 
-                if (!"<numFmt numFmtId=\""u8.TryCopyTo(span, ref written)) return false;
-                if (!SpanHelper.TryWrite(id, span, ref written)) return false;
-                if (!"\" formatCode=\""u8.TryCopyTo(span, ref written)) return false;
+                if (!buffer.TryWrite($"{"<numFmt numFmtId=\""u8}{id}{"\" formatCode=\""u8}"))
+                    return false;
 
-                _currentXmlEncodedFormat = XmlUtility.XmlEncode(format);
+                _currentXmlEncodedFormat = format;
                 _currentXmlEncodedFormatIndex = 0;
             }
 
-            if (!SpanHelper.TryWriteLongString(_currentXmlEncodedFormat, ref _currentXmlEncodedFormatIndex, span, ref written))
-            {
-                buffer.Advance(written);
+            if (!buffer.WriteLongString(_currentXmlEncodedFormat, ref _currentXmlEncodedFormatIndex))
                 return false;
-            }
 
-            buffer.Advance(written);
-
-            if (!buffer.TryWrite("\"/>"u8)) return false;
+            if (!buffer.TryWrite("\"/>"u8))
+                return false;
 
             _currentXmlEncodedFormat = null;
             _currentXmlEncodedFormatIndex = 0;

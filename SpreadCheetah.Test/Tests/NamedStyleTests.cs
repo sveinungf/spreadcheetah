@@ -38,6 +38,29 @@ public class NamedStyleTests
     }
 
     [Fact]
+    public async Task Spreadsheet_AddStyle_NamedStyleWithCharacterToEscape()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, SpreadCheetahOptions, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new Style { Font = { Bold = true } };
+        const string name = "Nice & cool style";
+
+        // Act
+        spreadsheet.AddStyle(style, name, StyleNameVisibility.Visible);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var package = new ExcelPackage(stream);
+        var namedStyles = package.Workbook.Styles.NamedStyles;
+        var namedStyle = Assert.Single(namedStyles, x => !x.Name.Equals("Normal", StringComparison.Ordinal));
+        Assert.Equal(name, namedStyle.Name);
+        Assert.True(namedStyle.Style.Font.Bold);
+    }
+
+    [Fact]
     public async Task Spreadsheet_AddStyle_NamedStyleWithNoVisiblity()
     {
         // Arrange
@@ -156,6 +179,36 @@ public class NamedStyleTests
 
         var worksheet2 = package.Workbook.Worksheets["Sheet 2"];
         Assert.Equal(styles[3].Name, worksheet2.Cells["A1"].StyleName);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddStyle_MultipleNamedStylesWithLongNames()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, SpreadCheetahOptions, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new Style { Font = { Bold = true } };
+        var names = Enumerable.Range(1, 10)
+            .Select(i => new string((char)('a' + i), 255))
+            .ToHashSet(StringComparer.Ordinal);
+
+        // Act
+        foreach (var name in names)
+        {
+            spreadsheet.AddStyle(style, name, StyleNameVisibility.Visible);
+        }
+
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var package = new ExcelPackage(stream);
+        var actualNames = package.Workbook.Styles.NamedStyles
+            .Where(x => !x.Name.Equals("Normal", StringComparison.Ordinal))
+            .Select(x => x.Name);
+
+        Assert.Equivalent(names, actualNames);
     }
 
     [Fact]
