@@ -161,8 +161,8 @@ file struct TableXmlWriter(
                 xml = new TableColumnXmlPart(
                     buffer,
                     _nextIndex,
-                    XmlUtility.XmlEncode(headerName),
-                    XmlUtility.XmlEncode(options?.TotalRowLabel),
+                    headerName,
+                    options?.TotalRowLabel,
                     options?.TotalRowFunction);
             }
 
