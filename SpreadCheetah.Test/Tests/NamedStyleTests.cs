@@ -182,6 +182,36 @@ public class NamedStyleTests
     }
 
     [Fact]
+    public async Task Spreadsheet_AddStyle_MultipleNamedStylesWithLongNames()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, SpreadCheetahOptions, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new Style { Font = { Bold = true } };
+        var names = Enumerable.Range(1, 10)
+            .Select(i => new string((char)('a' + i), 255))
+            .ToHashSet(StringComparer.Ordinal);
+
+        // Act
+        foreach (var name in names)
+        {
+            spreadsheet.AddStyle(style, name, StyleNameVisibility.Visible);
+        }
+
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var package = new ExcelPackage(stream);
+        var actualNames = package.Workbook.Styles.NamedStyles
+            .Where(x => !x.Name.Equals("Normal", StringComparison.Ordinal))
+            .Select(x => x.Name);
+
+        Assert.Equivalent(names, actualNames);
+    }
+
+    [Fact]
     public async Task Spreadsheet_AddStyle_NamedStyleWithInvalidVisibility()
     {
         // Arrange
