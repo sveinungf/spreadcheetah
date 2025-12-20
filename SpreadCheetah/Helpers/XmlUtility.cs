@@ -1,8 +1,5 @@
 using System.Buffers;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Unicode;
 
 namespace SpreadCheetah.Helpers;
@@ -91,8 +88,8 @@ internal static class XmlUtility
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryXmlEncodeToUtf8(ReadOnlySpan<char> source, Span<byte> destination, out int charsRead, out int bytesWritten)
     {
-            charsRead = 0;
-            bytesWritten = 0;
+        charsRead = 0;
+        bytesWritten = 0;
 
         if (source.IsEmpty)
             return true;
@@ -160,50 +157,5 @@ internal static class XmlUtility
         charsRead += finalCharsRead;
         bytesWritten += finalBytesWritten;
         return finalStatus is OperationStatus.Done;
-    }
-
-    [return: NotNullIfNotNull(nameof(value))]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string? XmlEncode(string? value)
-    {
-        if (value is null)
-            return null;
-
-        var index = IndexOfCharToEscape(value);
-        if (index == -1)
-            return value;
-
-        return XmlEncode(value, index);
-    }
-
-    private static string XmlEncode(string value, int index)
-    {
-        var source = value.AsSpan();
-        var sb = new StringBuilder();
-
-        while (index != -1)
-        {
-            if (index > 0)
-            {
-                sb.Append(source.Slice(0, index));
-                source = source.Slice(index);
-            }
-
-            _ = source[0] switch
-            {
-                '"' => sb.Append("&quot;"),
-                '&' => sb.Append("&amp;"),
-                '\'' => sb.Append("&apos;"),
-                '<' => sb.Append("&lt;"),
-                '>' => sb.Append("&gt;"),
-                _ => sb
-            };
-
-            source = source.Slice(1);
-            index = IndexOfCharToEscape(source);
-        }
-
-        sb.Append(source);
-        return sb.ToString();
     }
 }
