@@ -9,8 +9,6 @@ namespace SpreadCheetah.Helpers;
 
 internal static class XmlUtility
 {
-    private static readonly UTF8Encoding Utf8NoBom = new(false);
-
 #if NET8_0_OR_GREATER
     private static ReadOnlySpan<char> CharsToEscape =>
     [
@@ -93,8 +91,7 @@ internal static class XmlUtility
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryXmlEncodeToUtf8(ReadOnlySpan<char> source, Span<byte> destination, out int bytesWritten)
     {
-        // Worst case: " becomes &quot; (1 character becomes 6 bytes)
-        if (destination.Length < source.Length * 6)
+        if (destination.Length <= source.Length)
         {
             bytesWritten = 0;
             return false;
@@ -103,13 +100,11 @@ internal static class XmlUtility
         var index = IndexOfCharToEscape(source);
         if (index == -1)
         {
-            bytesWritten = Utf8NoBom.GetBytes(source, destination);
-            return true;
+            var status = Utf8.FromUtf16(source, destination, out _, out bytesWritten);
+            return status is OperationStatus.Done;
         }
 
-        var result = TryXmlEncodeToUtf8WithEscapes(source, destination, index, out _, out bytesWritten);
-        Debug.Assert(result, "Destination span should be large enough.");
-        return true;
+        return TryXmlEncodeToUtf8WithEscapes(source, destination, index, out _, out bytesWritten);
     }
 
     private static bool TryXmlEncodeToUtf8WithEscapes(ReadOnlySpan<char> source, Span<byte> destination,

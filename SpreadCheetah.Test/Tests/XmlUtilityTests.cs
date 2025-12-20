@@ -22,7 +22,7 @@ public static class XmlUtilityTests
     public static void XmlUtility_TryXmlEncodeToUtf8_Success(string value, string expected)
     {
         // Arrange
-        var buffer = new byte[value.Length * 6];
+        var buffer = new byte[100];
 
         // Act
         var result = XmlUtility.TryXmlEncodeToUtf8(value, buffer, out var bytesWritten);
