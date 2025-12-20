@@ -62,7 +62,7 @@ internal struct TableColumnXmlPart(
 
     private bool TryWriteLongString(string value)
     {
-        if (buffer.WriteLongStringXmlEncoded(value, ref _currentStringIndex))
+        if (buffer.WriteLongString(value, ref _currentStringIndex))
         {
             _currentStringIndex = 0;
             return true;

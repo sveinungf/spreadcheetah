@@ -76,7 +76,7 @@ file struct CoreXmlWriter(
         if (value is null)
             return true;
 
-        if (buffer.WriteLongStringXmlEncoded(value, ref _currentStringIndex))
+        if (buffer.WriteLongString(value, ref _currentStringIndex))
         {
             _currentStringIndex = 0;
             return true;

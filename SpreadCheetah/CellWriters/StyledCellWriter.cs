@@ -32,7 +32,7 @@ internal sealed class StyledCellWriter : ICellWriter<StyledCell>
 
     public bool TryWriteValue(in StyledCell cell, ref int valueIndex, CellWriterState state)
     {
-        return state.Buffer.WriteLongStringXmlEncoded(cell.DataCell.Value.StringOrPrimitive.StringValue, ref valueIndex);
+        return state.Buffer.WriteLongString(cell.DataCell.Value.StringOrPrimitive.StringValue, ref valueIndex);
     }
 
     public bool TryWriteEndElement(in StyledCell cell, CellWriterState state)

@@ -16,7 +16,7 @@ internal static class FormulaCellHelper
         // Write the formula
         if (cellValueIndex < formulaText.Length)
         {
-            if (!buffer.WriteLongStringXmlEncoded(formulaText, ref cellValueIndex))
+            if (!buffer.WriteLongString(formulaText, ref cellValueIndex))
                 return false;
 
             if (cell.DataCell.Type is CellWriterType.Null or CellWriterType.NullDateTime)

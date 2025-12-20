@@ -28,7 +28,7 @@ internal sealed class DataCellWriter : ICellWriter<DataCell>
 
     public bool TryWriteValue(in DataCell cell, ref int valueIndex, CellWriterState state)
     {
-        return state.Buffer.WriteLongStringXmlEncoded(cell.Value.StringOrPrimitive.StringValue, ref valueIndex);
+        return state.Buffer.WriteLongString(cell.Value.StringOrPrimitive.StringValue, ref valueIndex);
     }
 
     public bool TryWriteEndElement(in DataCell cell, CellWriterState state)

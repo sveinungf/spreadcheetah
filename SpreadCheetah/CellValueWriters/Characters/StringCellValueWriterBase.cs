@@ -128,6 +128,6 @@ internal abstract class StringCellValueWriterBase : CellValueWriter
 
     public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)
     {
-        return buffer.WriteLongStringXmlEncoded(GetSpan(cell.Value), ref valueIndex);
+        return buffer.WriteLongString(GetSpan(cell.Value), ref valueIndex);
     }
 }
