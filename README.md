@@ -136,23 +136,22 @@ More features of the source generator can be seen in the [wiki](https://github.c
 The benchmark results here have been collected using [BenchmarkDotNet](https://github.com/dotnet/benchmarkdotnet) with the following system configuration:
 
 ``` ini
-BenchmarkDotNet v0.14.0, Windows 10 (10.0.19045.5131/22H2/2022Update)
-Intel Core i5-8600K CPU 3.60GHz (Coffee Lake), 1 CPU, 6 logical and 6 physical cores
-.NET SDK 9.0.100
-  [Host]             : .NET 9.0.0 (9.0.24.52809), X64 RyuJIT AVX2
-  .NET 8.0           : .NET 8.0.11 (8.0.1124.51707), X64 RyuJIT AVX2
-  .NET 9.0           : .NET 9.0.0 (9.0.24.52809), X64 RyuJIT AVX2
-  .NET Framework 4.8 : .NET Framework 4.8.1 (4.8.9282.0), X64 RyuJIT VectorSize=256
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26200.7462/25H2/2025Update/HudsonValley2)
+AMD Ryzen 7 9800X3D 4.70GHz, 1 CPU, 16 logical and 8 physical cores
+  [Host]     : .NET Framework 4.8.1 (4.8.9221.0), X64 RyuJIT VectorSize=256
+  Job-CZIXIP : .NET 10.0.1 (10.0.1, 10.0.125.57005), X64 RyuJIT x86-64-v4
+  Job-RRVADO : .NET 8.0.22 (8.0.22, 8.0.2225.52707), X64 RyuJIT x86-64-v4
+  Job-LYYWPY : .NET Framework 4.8.1 (4.8.9221.0), X64 RyuJIT VectorSize=256
 
-InvocationCount=1  UnrollFactor=1 
+BuildConfiguration=Benchmark  InvocationCount=1  UnrollFactor=1 
 ```
 
 These libraries have been used in the comparison benchmarks:
 | Library                                                | Version |
 |--------------------------------------------------------|--------:|
-| SpreadCheetah                                          |  1.19.0 |
-| [Open XML SDK](https://github.com/dotnet/Open-XML-SDK) |   3.1.1 |
-| [ClosedXML](https://github.com/ClosedXML/ClosedXML)    | 0.104.2 |
+| SpreadCheetah                                          |  1.25.0 |
+| [Open XML SDK](https://github.com/dotnet/Open-XML-SDK) |   3.3.0 |
+| [ClosedXML](https://github.com/ClosedXML/ClosedXML)    | 0.105.0 |
 | [EPPlusFree](https://github.com/rimland/EPPlus)        | 4.5.3.8 |
 
 > Disclaimer: The libraries have different feature sets compared to each other.
@@ -162,45 +161,45 @@ These libraries have been used in the comparison benchmarks:
 > libraries have longer history and need to take backwards compatibility into account.
 > Keep this in mind when evaluating the results.
 
-The code executed in the benchmark creates a worksheet of 20 000 rows and 10 columns filled
+The code executed in the benchmark creates a worksheet of 100 000 rows and 10 columns filled
 with string values. Some of these libraries have multiple ways of achieving the same result,
 but to make this a fair comparison the idea is to use the most efficient approach for each library.
 The code is available [in the Benchmark project](https://github.com/sveinungf/spreadcheetah/blob/main/SpreadCheetah.Benchmark/Benchmarks/StringCells.cs).
 
 <details open>
-<summary><h3>.NET 9</h3></summary>
+<summary><h3>.NET 10</h3></summary>
 
-|                    Library |         Mean |     Allocated |
-|----------------------------|-------------:|--------------:|
-|          **SpreadCheetah** | **14.72 ms** |   **6.25 KB** |
-|    Open XML (SAX approach) |    161.14 ms |  64 958.95 KB |
-|                 EPPlusFree |    346.14 ms | 195 608.41 KB |
-|    Open XML (DOM approach) |    486.15 ms | 135 579.86 KB |
-|                  ClosedXML |    562.77 ms | 265 742.71 KB |
+|                    Library |         Mean |      Allocated |
+|----------------------------|-------------:|----------------:|
+|          **SpreadCheetah** | **32.86 ms** |    **15.43 KB** |
+|    Open XML (SAX approach) |    342.90 ms |   363 887.36 KB |
+|                 EPPlusFree |    831.39 ms |   859 019.78 KB |
+|    Open XML (DOM approach) |    922.37 ms |   751 348.83 KB |
+|                  ClosedXML |  1 486.15 ms | 1 458 468.00 KB |
 </details>
 
 
 <details>
 <summary><h3>.NET 8</h3></summary>
 
-|                    Library |         Mean |     Allocated |
-|----------------------------|-------------:|--------------:|
-|          **SpreadCheetah** | **21.51 ms** |   **6.33 KB** |
-|    Open XML (SAX approach) |    179.69 ms |  64 958.03 KB |
-|                 EPPlusFree |    351.35 ms | 195 610.91 KB |
-|    Open XML (DOM approach) |    515.54 ms | 135 585.72 KB |
-|                  ClosedXML |    609.47 ms | 284 490.52 KB |
+|                    Library |         Mean |       Allocated |
+|----------------------------|-------------:|----------------:|
+|          **SpreadCheetah** | **49.75 ms** |    **11.09 KB** |
+|    Open XML (SAX approach) |    457.21 ms |   398 258.16 KB |
+|                 EPPlusFree |    863.03 ms |   859 065.22 KB |
+|    Open XML (DOM approach) |  1 064.36 ms |   751 343.52 KB |
+|                  ClosedXML |  1 705.63 ms | 1 505 382.48 KB |
 </details>
 
 
 <details>
-<summary><h3>.NET Framework 4.8</h3></summary>
+<summary><h3>.NET Framework 4.8.1</h3></summary>
 
-|                    Library |         Mean |     Allocated |
-|----------------------------|-------------:|--------------:|
-|          **SpreadCheetah** | **71.08 ms** | **144.23 KB** |
-|    Open XML (SAX approach) |    408.03 ms |  43 317.24 KB |
-|                 EPPlusFree |    604.59 ms | 286 141.34 KB |
-|    Open XML (DOM approach) |    777.62 ms | 113 059.66 KB |
-|                  ClosedXML |  1,125.82 ms | 263 766.13 KB |
+|                    Library |          Mean |       Allocated |
+|----------------------------|--------------:|----------------:|
+|          **SpreadCheetah** | **220.14 ms** |   **488.33 KB** |
+|    Open XML (SAX approach) |   1 080.36 ms |   212 291.21 KB |
+|                 EPPlusFree |   1 388.29 ms | 1 305 697.32 KB |
+|    Open XML (DOM approach) |   2 220.41 ms |   566 498.13 KB |
+|                  ClosedXML |   3 127.89 ms | 1 271 265.65 KB |
 </details>

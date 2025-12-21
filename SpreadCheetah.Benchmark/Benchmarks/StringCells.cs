@@ -4,6 +4,7 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using LargeXlsx;
+using Microsoft.IO;
 using OfficeOpenXml;
 using System.IO.Packaging;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
@@ -11,15 +12,17 @@ using OpenXmlCellValue = DocumentFormat.OpenXml.Spreadsheet.CellValues;
 
 namespace SpreadCheetah.Benchmark.Benchmarks;
 
-[MemoryDiagnoser]
+[MemoryDiagnoser(displayGenColumns: false)]
 public class StringCells : IDisposable
 {
+    private static readonly RecyclableMemoryStreamManager _manager = new();
+
     private const string SheetName = "Book1";
 
     public Stream Stream { get; set; } = null!;
     public IList<IList<string>> Values { get; private set; } = null!;
 
-    [Params(20000)]
+    [Params(100000)]
     public int NumberOfRows { get; set; }
 
     public int NumberOfColumns { get; set; } = 10;
@@ -42,7 +45,7 @@ public class StringCells : IDisposable
     [IterationSetup]
     public void IterationSetup()
     {
-        Stream = new MemoryStream(2_000_000);
+        Stream = _manager.GetStream();
     }
 
     [IterationCleanup]
@@ -67,12 +70,11 @@ public class StringCells : IDisposable
         await spreadsheet.StartWorksheetAsync(SheetName);
         var cells = new DataCell[NumberOfColumns];
 
-        for (var row = 0; row < Values.Count; ++row)
+        foreach (var row in Values)
         {
-            var rowValues = Values[row];
-            for (var col = 0; col < rowValues.Count; ++col)
+            for (var col = 0; col < row.Count; ++col)
             {
-                cells[col] = new DataCell(rowValues[col]);
+                cells[col] = new DataCell(row[col]);
             }
 
             await spreadsheet.AddRowAsync(cells);

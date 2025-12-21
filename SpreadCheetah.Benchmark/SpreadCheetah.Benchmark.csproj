@@ -13,6 +13,7 @@
     <PackageReference Include="DocumentFormat.OpenXml" />
     <PackageReference Include="EPPlusFree" />
     <PackageReference Include="LargeXlsx" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
     <PackageReference Include="System.Drawing.Common" />
     <PackageReference Include="System.Reflection.Metadata" />
   </ItemGroup>
