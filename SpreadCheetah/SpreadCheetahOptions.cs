@@ -7,7 +7,7 @@ namespace SpreadCheetah;
 /// <summary>
 /// Provides options to be used when creating a spreadsheet with <see cref="Spreadsheet"/>.
 /// </summary>
-public class SpreadCheetahOptions
+public sealed class SpreadCheetahOptions
 {
     /// <summary>The default buffer size.</summary>
     public static readonly int DefaultBufferSize = 65536;
