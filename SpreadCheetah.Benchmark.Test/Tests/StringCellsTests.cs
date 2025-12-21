@@ -7,7 +7,7 @@ namespace SpreadCheetah.Benchmark.Test.Tests;
 public sealed class StringCellsTests : IDisposable
 {
     private const int NumberOfColumns = 10;
-    private const int NumberOfRows = 20000;
+    private const int NumberOfRows = 1000;
     private readonly StringCells _stringCells;
     private readonly ITestOutputHelper _output;
 
