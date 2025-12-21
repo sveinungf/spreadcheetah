@@ -236,7 +236,7 @@ dotnet_diagnostic.MA0076.severity = warning
 dotnet_diagnostic.MA0154.severity = warning
 
 # Disable MA0053 (sealing class) for types that have been publicly exposed in a previous version
-[{SpreadCheetahOptions.cs,WorksheetRowGenerator.cs}]
+[WorksheetRowGenerator.cs]
 dotnet_diagnostic.MA0053.severity = none
 
 [{*Test,*TestHelpers,*.Benchmark}/**.cs]

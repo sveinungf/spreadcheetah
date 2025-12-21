@@ -80,7 +80,7 @@ namespace SpreadCheetah
         public SpreadCheetahException(string message) { }
         public SpreadCheetahException(string message, System.Exception exception) { }
     }
-    public class SpreadCheetahOptions
+    public sealed class SpreadCheetahOptions
     {
         public static readonly int DefaultBufferSize;
         public static readonly SpreadCheetah.SpreadCheetahCompressionLevel DefaultCompressionLevel;

@@ -2,135 +2,660 @@
 <!-- https://learn.microsoft.com/dotnet/fundamentals/package-validation/diagnostic-ids -->
 <Suppressions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.FeatureGuardAttribute</Target>
+    <Left>lib/net8.0/SpreadCheetah.dll</Left>
+    <Right>lib/net9.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.FeatureSwitchDefinitionAttribute</Target>
+    <Left>lib/net8.0/SpreadCheetah.dll</Left>
+    <Right>lib/net9.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.DebuggerDisableUserUnhandledExceptionsAttribute</Target>
+    <Left>lib/net8.0/SpreadCheetah.dll</Left>
+    <Right>lib/net9.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute</Target>
+    <Left>lib/net8.0/SpreadCheetah.dll</Left>
+    <Right>lib/net9.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.CompilerServices.ParamCollectionAttribute</Target>
+    <Left>lib/net8.0/SpreadCheetah.dll</Left>
+    <Right>lib/net9.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Threading.Lock</Target>
+    <Left>lib/net8.0/SpreadCheetah.dll</Left>
+    <Right>lib/net9.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Buffers.ReadOnlySpanAction`2</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Buffers.SpanAction`2</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Collections.Generic.KeyValuePair</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.AllowNullAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.ConstantExpectedAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.DisallowNullAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.ExperimentalAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.MaybeNullAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.MemberNotNullAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.NotNullAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.RequiresDynamicCodeAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.RequiresUnreferencedCodeAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.CodeAnalysis.UnscopedRefAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.StackTraceHiddenAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Diagnostics.UnreachableException</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Index</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.IO.UnixFileMode</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Range</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.CompilerServices.CallerArgumentExpressionAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.CompilerServices.CollectionBuilderAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.CompilerServices.DisableRuntimeMarshallingAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.CompilerServices.IsExternalInit</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.CompilerServices.ModuleInitializerAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.CompilerServices.RequiredMemberAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.CompilerServices.SkipLocalsInitAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.InteropServices.SuppressGCTransitionAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.Versioning.ObsoletedOSPlatformAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.Versioning.OSPlatformAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.Versioning.RequiresPreviewFeaturesAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.Versioning.SupportedOSPlatformAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.Versioning.SupportedOSPlatformGuardAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.Versioning.TargetPlatformAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.Versioning.UnsupportedOSPlatformAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.Versioning.UnsupportedOSPlatformGuardAttribute</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Text.RegularExpressions.ValueMatch</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Text.SpanLineEnumerator</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.AllConstructors</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.AllEvents</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.AllFields</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.AllMethods</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.AllNestedTypes</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.AllProperties</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicConstructorsWithInherited</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicEventsWithInherited</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFieldsWithInherited</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicMethodsWithInherited</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicNestedTypesWithInherited</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicPropertiesWithInherited</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructorsWithInherited</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicNestedTypesWithInherited</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:System.Diagnostics.CodeAnalysis.ExperimentalAttribute.get_Message</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:System.Diagnostics.CodeAnalysis.ExperimentalAttribute.set_Message(System.String)</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:System.Diagnostics.CodeAnalysis.RequiresDynamicCodeAttribute.get_ExcludeStatics</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:System.Diagnostics.CodeAnalysis.RequiresDynamicCodeAttribute.set_ExcludeStatics(System.Boolean)</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:System.Diagnostics.CodeAnalysis.RequiresUnreferencedCodeAttribute.get_ExcludeStatics</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:System.Diagnostics.CodeAnalysis.RequiresUnreferencedCodeAttribute.set_ExcludeStatics(System.Boolean)</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:SpreadCheetah.SourceGeneration.InheritedColumnsOrder</Target>
     <Left>lib/net6.0/SpreadCheetah.dll</Left>
-    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+    <Right>lib/netstandard2.0/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:SpreadCheetah.SpreadCheetahCompressionLevel</Target>
     <Left>lib/net6.0/SpreadCheetah.dll</Left>
-    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+    <Right>lib/netstandard2.0/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:SpreadCheetah.Styling.BorderStyle</Target>
     <Left>lib/net6.0/SpreadCheetah.dll</Left>
-    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+    <Right>lib/netstandard2.0/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:SpreadCheetah.Styling.DiagonalBorderType</Target>
     <Left>lib/net6.0/SpreadCheetah.dll</Left>
-    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+    <Right>lib/netstandard2.0/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:SpreadCheetah.Styling.HorizontalAlignment</Target>
     <Left>lib/net6.0/SpreadCheetah.dll</Left>
-    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+    <Right>lib/netstandard2.0/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:SpreadCheetah.Styling.StandardNumberFormat</Target>
     <Left>lib/net6.0/SpreadCheetah.dll</Left>
-    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+    <Right>lib/netstandard2.0/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:SpreadCheetah.Styling.StyleNameVisibility</Target>
     <Left>lib/net6.0/SpreadCheetah.dll</Left>
-    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+    <Right>lib/netstandard2.0/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:SpreadCheetah.Styling.Underline</Target>
     <Left>lib/net6.0/SpreadCheetah.dll</Left>
-    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+    <Right>lib/netstandard2.0/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:SpreadCheetah.Styling.VerticalAlignment</Target>
     <Left>lib/net6.0/SpreadCheetah.dll</Left>
-    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+    <Right>lib/netstandard2.0/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:SpreadCheetah.Tables.TableStyle</Target>
     <Left>lib/net6.0/SpreadCheetah.dll</Left>
-    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+    <Right>lib/netstandard2.0/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:SpreadCheetah.Tables.TableTotalRowFunction</Target>
     <Left>lib/net6.0/SpreadCheetah.dll</Left>
-    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+    <Right>lib/netstandard2.0/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:SpreadCheetah.Validations.ValidationErrorType</Target>
     <Left>lib/net6.0/SpreadCheetah.dll</Left>
-    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+    <Right>lib/netstandard2.0/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:SpreadCheetah.Worksheets.WorksheetVisibility</Target>
     <Left>lib/net6.0/SpreadCheetah.dll</Left>
-    <Right>lib/net8.0/SpreadCheetah.dll</Right>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0009</DiagnosticId>
-    <Target>T:SpreadCheetah.Worksheets.AutoFilterOptions</Target>
-    <Left>lib/net6.0/SpreadCheetah.dll</Left>
-    <Right>lib/net6.0/SpreadCheetah.dll</Right>
+    <Right>lib/netstandard2.0/SpreadCheetah.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
-    <DiagnosticId>CP0009</DiagnosticId>
-    <Target>T:SpreadCheetah.Worksheets.WorksheetOptions</Target>
-    <Left>lib/net6.0/SpreadCheetah.dll</Left>
-    <Right>lib/net6.0/SpreadCheetah.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0009</DiagnosticId>
-    <Target>T:SpreadCheetah.Worksheets.AutoFilterOptions</Target>
-    <Left>lib/net8.0/SpreadCheetah.dll</Left>
-    <Right>lib/net8.0/SpreadCheetah.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0009</DiagnosticId>
-    <Target>T:SpreadCheetah.Worksheets.WorksheetOptions</Target>
-    <Left>lib/net8.0/SpreadCheetah.dll</Left>
-    <Right>lib/net8.0/SpreadCheetah.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0009</DiagnosticId>
-    <Target>T:SpreadCheetah.Worksheets.AutoFilterOptions</Target>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:System.Text.SpanLineEnumerator</Target>
     <Left>lib/net9.0/SpreadCheetah.dll</Left>
-    <Right>lib/net9.0/SpreadCheetah.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
+    <Right>lib/net10.0/SpreadCheetah.dll</Right>
   </Suppression>
   <Suppression>
-    <DiagnosticId>CP0009</DiagnosticId>
-    <Target>T:SpreadCheetah.Worksheets.WorksheetOptions</Target>
-    <Left>lib/net9.0/SpreadCheetah.dll</Left>
-    <Right>lib/net9.0/SpreadCheetah.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0009</DiagnosticId>
-    <Target>T:SpreadCheetah.Worksheets.AutoFilterOptions</Target>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:SpreadCheetah.SourceGeneration.InheritedColumnsOrder</Target>
     <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:SpreadCheetah.SpreadCheetahCompressionLevel</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:SpreadCheetah.Styling.BorderStyle</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:SpreadCheetah.Styling.DiagonalBorderType</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:SpreadCheetah.Styling.HorizontalAlignment</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:SpreadCheetah.Styling.StandardNumberFormat</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:SpreadCheetah.Styling.StyleNameVisibility</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:SpreadCheetah.Styling.Underline</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:SpreadCheetah.Styling.VerticalAlignment</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:SpreadCheetah.Tables.TableStyle</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:SpreadCheetah.Tables.TableTotalRowFunction</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:SpreadCheetah.Validations.ValidationErrorType</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:SpreadCheetah.Worksheets.WorksheetVisibility</Target>
+    <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0009</DiagnosticId>
+    <Target>T:SpreadCheetah.SpreadCheetahOptions</Target>
+    <Left>lib/net6.0/SpreadCheetah.dll</Left>
     <Right>lib/netstandard2.0/SpreadCheetah.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0009</DiagnosticId>
-    <Target>T:SpreadCheetah.Worksheets.WorksheetOptions</Target>
+    <Target>T:SpreadCheetah.SpreadCheetahOptions</Target>
+    <Left>lib/net8.0/SpreadCheetah.dll</Left>
+    <Right>lib/net8.0/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0009</DiagnosticId>
+    <Target>T:SpreadCheetah.SpreadCheetahOptions</Target>
+    <Left>lib/net9.0/SpreadCheetah.dll</Left>
+    <Right>lib/net9.0/SpreadCheetah.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0009</DiagnosticId>
+    <Target>T:SpreadCheetah.SpreadCheetahOptions</Target>
     <Left>lib/netstandard2.0/SpreadCheetah.dll</Left>
     <Right>lib/netstandard2.0/SpreadCheetah.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
