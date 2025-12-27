@@ -35,7 +35,8 @@ public class MixedDataTypeCells
                     H = !even,
                     I = random.NextBoolean() ? 0.991f + row / 10000.0 : null,
                     J = even ? -23 : 23,
-                    K = random.NextBoolean() ? baseDateTime.AddSeconds(random.Next()) : null
+                    K = random.NextBoolean() ? baseDateTime.AddSeconds(random.Next()) : null,
+                    L = (long)random.Next() * random.Next(10, 1000000000)
                 };
             })
         ];

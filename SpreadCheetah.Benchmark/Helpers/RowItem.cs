@@ -13,4 +13,5 @@ public record RowItem
     public required double? I { get; init; }
     public required int J { get; init; }
     public required DateTime? K { get; init; }
+    public required long L { get; init; }
 }
