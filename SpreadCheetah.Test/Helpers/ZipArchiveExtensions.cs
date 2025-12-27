@@ -13,6 +13,14 @@ internal static class ZipArchiveExtensions
         return entry.OpenAsync(token);
     }
 
+    public static Task<Stream> GetSheet1XmlStreamAsync(this ZipArchive zip, CancellationToken token)
+    {
+        var entry = zip.GetEntry("xl/worksheets/sheet1.xml")
+            ?? throw new InvalidOperationException("Sheet1 XML not found in the provided XLSX stream.");
+
+        return entry.OpenAsync(token);
+    }
+
     public static Task<Stream> GetStylesXmlStreamAsync(this ZipArchive zip, CancellationToken token)
     {
         var entry = zip.GetEntry("xl/styles.xml")

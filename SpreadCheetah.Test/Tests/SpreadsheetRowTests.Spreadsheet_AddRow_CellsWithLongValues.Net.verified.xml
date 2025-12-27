@@ -1,0 +1,37 @@
+﻿<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <sheetData>
+    <row r="1">
+      <c>
+        <v>0</v>
+      </c>
+    </row>
+    <row r="2">
+      <c>
+        <v>1234</v>
+      </c>
+    </row>
+    <row r="3">
+      <c>
+        <v>-1234</v>
+      </c>
+    </row>
+    <row r="4">
+      <c>
+        <v>314748364700000</v>
+      </c>
+    </row>
+    <row r="5">
+      <c>
+        <v>-9.22337203685478E+18</v>
+      </c>
+    </row>
+    <row r="6">
+      <c>
+        <v>9.22337203685478E+18</v>
+      </c>
+    </row>
+    <row r="7">
+      <c />
+    </row>
+  </sheetData>
+</worksheet>
