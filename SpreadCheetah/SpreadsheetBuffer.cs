@@ -133,8 +133,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 #if !NET8_0_OR_GREATER
             return AppendFormatted((double)value);
 #else
-            // TODO: ulong trick?
-            ReadOnlySpan<char> format = value > -10000000000000000L && value < 10000000000000000L
+            ReadOnlySpan<char> format = (ulong)(value + 9999999999999999L) < 19999999999999999L
                 ? []
                 : "0.################E+00";
 
