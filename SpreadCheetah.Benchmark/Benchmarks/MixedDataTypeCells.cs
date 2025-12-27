@@ -36,7 +36,7 @@ public class MixedDataTypeCells
                     I = random.NextBoolean() ? 0.991f + row / 10000.0 : null,
                     J = even ? -23 : 23,
                     K = random.NextBoolean() ? baseDateTime.AddSeconds(random.Next()) : null,
-                    L = (long)random.Next() * random.Next(10, 1000000000)
+                    L = (long)int.MaxValue * random.Next(10, 100000)
                 };
             })
         ];
