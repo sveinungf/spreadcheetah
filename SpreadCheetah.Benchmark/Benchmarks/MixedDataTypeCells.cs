@@ -48,22 +48,20 @@ public class MixedDataTypeCells
         await spreadsheet.StartWorksheetAsync("Book1");
 
         var cells = new DataCell[11];
-        var rows = _rows;
 
-        for (var row = 0; row < rows.Length; ++row)
+        foreach (var row in _rows)
         {
-            var rowItem = rows[row];
-            cells[0] = new DataCell(rowItem.A);
-            cells[1] = new DataCell(rowItem.B);
-            cells[2] = new DataCell(rowItem.C);
-            cells[3] = new DataCell(rowItem.D);
-            cells[4] = new DataCell(rowItem.E);
-            cells[5] = new DataCell(rowItem.F);
-            cells[6] = new DataCell(rowItem.G);
-            cells[7] = new DataCell(rowItem.H);
-            cells[8] = new DataCell(rowItem.I);
-            cells[9] = new DataCell(rowItem.J);
-            cells[10] = new DataCell(rowItem.K);
+            cells[0] = new DataCell(row.A);
+            cells[1] = new DataCell(row.B);
+            cells[2] = new DataCell(row.C);
+            cells[3] = new DataCell(row.D);
+            cells[4] = new DataCell(row.E);
+            cells[5] = new DataCell(row.F);
+            cells[6] = new DataCell(row.G);
+            cells[7] = new DataCell(row.H);
+            cells[8] = new DataCell(row.I);
+            cells[9] = new DataCell(row.J);
+            cells[10] = new DataCell(row.K);
 
             await spreadsheet.AddRowAsync(cells);
         }
