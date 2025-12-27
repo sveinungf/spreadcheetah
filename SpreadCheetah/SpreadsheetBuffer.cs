@@ -137,8 +137,6 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
                 ? []
                 : "0.################E+00";
 
-            // TODO: Possible to use CompositeFormat here?
-            // TODO: Should NumberFormatInfo be used?
             if (value.TryFormat(GetSpan(), out var bytesWritten, format, NumberFormatInfo.InvariantInfo))
             {
                 _pos += bytesWritten;
