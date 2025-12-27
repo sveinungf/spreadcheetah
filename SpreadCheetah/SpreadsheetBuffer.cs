@@ -128,6 +128,28 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             return Fail();
         }
 
+        public bool AppendFormatted(long value)
+        {
+#if !NET8_0_OR_GREATER
+            return AppendFormatted((double)value);
+#else
+            // TODO: ulong trick?
+            ReadOnlySpan<char> format = value > -10000000000000000L && value < 10000000000000000L
+                ? []
+                : "0.################E+00";
+
+            // TODO: Possible to use CompositeFormat here?
+            // TODO: Should NumberFormatInfo be used?
+            if (value.TryFormat(GetSpan(), out var bytesWritten, format, NumberFormatInfo.InvariantInfo))
+            {
+                _pos += bytesWritten;
+                return true;
+            }
+
+            return Fail();
+#endif
+        }
+
         public bool AppendFormatted(ushort value)
         {
 #if NET8_0_OR_GREATER

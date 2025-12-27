@@ -11,5 +11,6 @@ internal enum CellWriterType : byte
     DateTime = 6,
     FalseBoolean = 7,
     TrueBoolean = 8,
-    ReadOnlyMemoryOfChar = 9
+    ReadOnlyMemoryOfChar = 9,
+    Long = 10
 }

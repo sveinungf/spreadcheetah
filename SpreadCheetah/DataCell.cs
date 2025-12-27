@@ -56,8 +56,10 @@ public readonly record struct DataCell
     /// Initializes a new instance of the <see cref="DataCell"/> struct with a long integer value.
     /// Note that Open XML limits the precision to 15 significant digits for numbers. This could potentially lead to a loss of precision.
     /// </summary>
-    public DataCell(long value) : this((double)value)
+    public DataCell(long value)
     {
+        Type = CellWriterType.Long;
+        Value = new CellValue(new StringOrPrimitiveCellValue(new PrimitiveCellValue(value)));
     }
 
     /// <summary>
@@ -65,8 +67,10 @@ public readonly record struct DataCell
     /// If <c>value</c> is <see langword="null"/>, the cell will be empty.
     /// Note that Open XML limits the precision to 15 significant digits for numbers. This could potentially lead to a loss of precision.
     /// </summary>
-    public DataCell(long? value) : this((double?)value)
+    public DataCell(long? value)
     {
+        Type = value is null ? CellWriterType.Null : CellWriterType.Long;
+        Value = new CellValue(new StringOrPrimitiveCellValue(new PrimitiveCellValue(value.GetValueOrDefault())));
     }
 
     /// <summary>
