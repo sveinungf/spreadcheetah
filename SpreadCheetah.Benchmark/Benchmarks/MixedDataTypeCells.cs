@@ -48,7 +48,7 @@ public class MixedDataTypeCells
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null);
         await spreadsheet.StartWorksheetAsync("Book1");
 
-        var cells = new DataCell[11];
+        var cells = new DataCell[12];
 
         foreach (var row in _rows)
         {
@@ -63,6 +63,7 @@ public class MixedDataTypeCells
             cells[8] = new DataCell(row.I);
             cells[9] = new DataCell(row.J);
             cells[10] = new DataCell(row.K);
+            cells[11] = new DataCell(row.L);
 
             await spreadsheet.AddRowAsync(cells);
         }
