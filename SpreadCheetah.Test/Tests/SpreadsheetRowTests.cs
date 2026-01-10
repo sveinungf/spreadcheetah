@@ -6,6 +6,7 @@ using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
+using System.Globalization;
 using System.IO.Compression;
 using CellType = SpreadCheetah.Test.Helpers.CellType;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
@@ -82,7 +83,7 @@ public class SpreadsheetRowTests
         SpreadsheetAssert.Valid(stream);
         using var actual = SpreadsheetDocument.Open(stream, true);
         var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
-        Assert.Empty(sheetPart.Worksheet.Descendants<OpenXmlCell>());
+        Assert.Empty(sheetPart.Worksheet!.Descendants<OpenXmlCell>());
     }
 
     [Theory, CombinatorialData]
@@ -104,7 +105,7 @@ public class SpreadsheetRowTests
         SpreadsheetAssert.Valid(stream);
         using var actual = SpreadsheetDocument.Open(stream, true);
         var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
-        var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
+        var actualCell = sheetPart.Worksheet!.Descendants<OpenXmlCell>().Single();
         Assert.Null(actualCell.DataType?.Value);
         Assert.Equal(string.Empty, actualCell.InnerText);
     }
@@ -184,12 +185,8 @@ public class SpreadsheetRowTests
         await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var actual = SpreadsheetDocument.Open(stream, true);
-        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
-        var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
-        Assert.Equal(OpenXmlCellValue.InlineString, actualCell.DataType?.Value);
-        Assert.Equal("WithControlCharacters", actualCell.InnerText);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal("WithControlCharacters", sheet["A1"].StringValue);
     }
 
     [Theory, CombinatorialData]
@@ -310,12 +307,8 @@ public class SpreadsheetRowTests
         }
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var actual = SpreadsheetDocument.Open(stream, true);
-        var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
-        var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
-        Assert.Equal(OpenXmlCellValue.Number, actualCell.GetDataType());
-        Assert.Equal(value?.ToString() ?? string.Empty, actualCell.InnerText);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(value, sheet["A1"].IntValue);
     }
 
     [Theory, CombinatorialData]
@@ -408,7 +401,7 @@ public class SpreadsheetRowTests
         SpreadsheetAssert.Valid(stream);
         using var actual = SpreadsheetDocument.Open(stream, true);
         var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
-        var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
+        var actualCell = sheetPart.Worksheet!.Descendants<OpenXmlCell>().Single();
         Assert.Equal(OpenXmlCellValue.Number, actualCell.GetDataType());
         Assert.Equal(expectedValue, actualCell.InnerText);
     }
@@ -456,7 +449,7 @@ public class SpreadsheetRowTests
         SpreadsheetAssert.Valid(stream);
         using var actual = SpreadsheetDocument.Open(stream, true);
         var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
-        var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
+        var actualCell = sheetPart.Worksheet!.Descendants<OpenXmlCell>().Single();
         Assert.Equal(OpenXmlCellValue.Number, actualCell.GetDataType());
         Assert.Equal(expectedValue, actualCell.InnerText);
     }
@@ -505,7 +498,7 @@ public class SpreadsheetRowTests
         SpreadsheetAssert.Valid(stream);
         using var actual = SpreadsheetDocument.Open(stream, true);
         var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
-        var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
+        var actualCell = sheetPart.Worksheet!.Descendants<OpenXmlCell>().Single();
         Assert.Equal(OpenXmlCellValue.Number, actualCell.GetDataType());
         Assert.Equal(expectedValue, actualCell.InnerText);
     }
@@ -612,7 +605,7 @@ public class SpreadsheetRowTests
         SpreadsheetAssert.Valid(stream);
         using var actual = SpreadsheetDocument.Open(stream, true);
         var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
-        var actualCell = sheetPart.Worksheet.Descendants<OpenXmlCell>().Single();
+        var actualCell = sheetPart.Worksheet!.Descendants<OpenXmlCell>().Single();
         var expectedDataType = initialValue is null ? OpenXmlCellValue.Number : OpenXmlCellValue.Boolean;
         Assert.Equal(expectedDataType, actualCell.GetDataType());
         Assert.Equal(expectedValue, actualCell.InnerText);
@@ -763,7 +756,7 @@ public class SpreadsheetRowTests
         var sheetParts = actual.WorkbookPart!.WorksheetParts.ToList();
         Assert.Equal(2, sheetParts.Count);
 
-        var sheet1Rows = sheetParts[0].Worksheet.Descendants<Row>().ToList();
+        var sheet1Rows = sheetParts[0].Worksheet!.Descendants<Row>().ToList();
         Assert.Equal(3, sheet1Rows.Count);
 
         var actualRow1Refs = sheet1Rows[0].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
@@ -774,7 +767,7 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedRow2Refs, actualRow2Refs);
         Assert.Equal(expectedRow3Refs, actualRow3Refs);
 
-        var sheet2Row = sheetParts[1].Worksheet.Descendants<Row>().Single();
+        var sheet2Row = sheetParts[1].Worksheet!.Descendants<Row>().Single();
         var actualSheet2Refs = sheet2Row.Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
@@ -813,7 +806,7 @@ public class SpreadsheetRowTests
         var sheetParts = actual.WorkbookPart!.WorksheetParts.ToList();
         Assert.Equal(2, sheetParts.Count);
 
-        var sheet1Rows = sheetParts[0].Worksheet.Descendants<Row>().ToList();
+        var sheet1Rows = sheetParts[0].Worksheet!.Descendants<Row>().ToList();
         Assert.Equal(3, sheet1Rows.Count);
 
         var actualRow1Refs = sheet1Rows[0].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
@@ -824,7 +817,7 @@ public class SpreadsheetRowTests
         Assert.Equal(expectedRow2Refs, actualRow2Refs);
         Assert.Equal(expectedRow3Refs, actualRow3Refs);
 
-        var sheet2Row = sheetParts[1].Worksheet.Descendants<Row>().Single();
+        var sheet2Row = sheetParts[1].Worksheet!.Descendants<Row>().Single();
         var actualSheet2Refs = sheet2Row.Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
@@ -860,7 +853,7 @@ public class SpreadsheetRowTests
         SpreadsheetAssert.Valid(stream);
         using var actual = SpreadsheetDocument.Open(stream, true);
         var sheetPart = Assert.Single(actual.WorkbookPart!.WorksheetParts);
-        var actualRow = Assert.Single(sheetPart.Worksheet.Descendants<Row>());
+        var actualRow = Assert.Single(sheetPart.Worksheet!.Descendants<Row>());
         var actualCell = Assert.Single(actualRow.Descendants<OpenXmlCell>());
         Assert.Equal("A1", actualCell.CellReference?.Value);
     }

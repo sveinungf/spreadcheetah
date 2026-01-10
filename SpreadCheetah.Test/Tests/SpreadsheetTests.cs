@@ -339,7 +339,7 @@ public class SpreadsheetTests
         // Assert
         SpreadsheetAssert.Valid(stream);
         using var actual = SpreadsheetDocument.Open(stream, true);
-        var sheets = actual.WorkbookPart?.Workbook.Sheets?.Cast<Sheet>();
+        var sheets = actual.WorkbookPart?.Workbook?.Sheets?.Cast<Sheet>();
         Assert.NotNull(sheets);
         var sheet = Assert.Single(sheets);
         Assert.Equal(name, sheet.Name?.Value);
@@ -488,7 +488,7 @@ public class SpreadsheetTests
         var openXmlVisibility = visibility.GetOpenXmlWorksheetVisibility();
         using var actual = SpreadsheetDocument.Open(stream, true);
         var workbook = actual.WorkbookPart!.Workbook;
-        var sheets = workbook.Sheets!.Cast<Sheet>().ToList();
+        var sheets = workbook!.Sheets!.Cast<Sheet>().ToList();
         Assert.Equal(firstHidden ? openXmlVisibility : null, sheets[0].State?.Value);
         Assert.Equal(!firstHidden ? openXmlVisibility : null, sheets[1].State?.Value);
 
@@ -640,7 +640,7 @@ public class SpreadsheetTests
         SpreadsheetAssert.Valid(stream);
         using var actual = SpreadsheetDocument.Open(stream, true);
         var worksheet = actual.WorkbookPart!.WorksheetParts.Select(x => x.Worksheet).Single();
-        var sheetView = worksheet.SheetViews!.Cast<SheetView>().Single();
+        var sheetView = worksheet!.SheetViews!.Cast<SheetView>().Single();
         Assert.Equal(PaneStateValues.Frozen, sheetView.Pane!.State!.Value);
         Assert.Equal(columns, (int?)sheetView.Pane.HorizontalSplit?.Value);
         Assert.Equal(rows, (int?)sheetView.Pane.VerticalSplit?.Value);
@@ -665,6 +665,7 @@ public class SpreadsheetTests
         SpreadsheetAssert.Valid(stream);
         using var actual = SpreadsheetDocument.Open(stream, true);
         var worksheet = actual.WorkbookPart!.WorksheetParts.Select(x => x.Worksheet).Single();
+        Assert.NotNull(worksheet);
         Assert.Null(worksheet.SheetViews);
     }
 

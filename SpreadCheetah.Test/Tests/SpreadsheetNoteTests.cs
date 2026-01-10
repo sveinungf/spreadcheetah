@@ -266,7 +266,7 @@ public class SpreadsheetNoteTests
         using var actual = SpreadsheetDocument.Open(stream, true);
         var sheetPart = actual.WorkbookPart!.WorksheetParts.Single();
         var worksheet = sheetPart.Worksheet;
-        var legacyDrawing = worksheet.ChildElements.OfType<LegacyDrawing>().Single();
+        var legacyDrawing = worksheet!.ChildElements.OfType<LegacyDrawing>().Single();
         Assert.Equal("rId1", legacyDrawing.Id);
     }
 
