@@ -21,7 +21,8 @@ internal abstract class CellValueWriter
         new DateTimeCellValueWriter(),
         new FalseBooleanCellValueWriter(),
         new TrueBooleanCellValueWriter(),
-        new ReadOnlyMemoryOfCharCellValueWriter()
+        new ReadOnlyMemoryOfCharCellValueWriter(),
+        new LongCellValueWriter()
     ];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

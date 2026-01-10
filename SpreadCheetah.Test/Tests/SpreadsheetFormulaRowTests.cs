@@ -494,7 +494,7 @@ public class SpreadsheetFormulaRowTests
         var sheetParts = actual.WorkbookPart!.WorksheetParts.ToList();
         Assert.Equal(2, sheetParts.Count);
 
-        var sheet1Rows = sheetParts[0].Worksheet.Descendants<Row>().ToList();
+        var sheet1Rows = sheetParts[0].Worksheet!.Descendants<Row>().ToList();
         Assert.Equal(3, sheet1Rows.Count);
 
         var actualRow1Refs = sheet1Rows[0].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
@@ -505,7 +505,7 @@ public class SpreadsheetFormulaRowTests
         Assert.Equal(expectedRow2Refs, actualRow2Refs);
         Assert.Equal(expectedRow3Refs, actualRow3Refs);
 
-        var sheet2Row = sheetParts[1].Worksheet.Descendants<Row>().Single();
+        var sheet2Row = sheetParts[1].Worksheet!.Descendants<Row>().Single();
         var actualSheet2Refs = sheet2Row.Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
@@ -559,7 +559,7 @@ public class SpreadsheetFormulaRowTests
         var sheetParts = actual.WorkbookPart!.WorksheetParts.ToList();
         Assert.Equal(2, sheetParts.Count);
 
-        var sheet1Rows = sheetParts[0].Worksheet.Descendants<Row>().ToList();
+        var sheet1Rows = sheetParts[0].Worksheet!.Descendants<Row>().ToList();
         Assert.Equal(3, sheet1Rows.Count);
 
         var actualRow1Refs = sheet1Rows[0].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
@@ -570,7 +570,7 @@ public class SpreadsheetFormulaRowTests
         Assert.Equal(expectedRow2Refs, actualRow2Refs);
         Assert.Equal(expectedRow3Refs, actualRow3Refs);
 
-        var sheet2Row = sheetParts[1].Worksheet.Descendants<Row>().Single();
+        var sheet2Row = sheetParts[1].Worksheet!.Descendants<Row>().Single();
         var actualSheet2Refs = sheet2Row.Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
@@ -609,7 +609,7 @@ public class SpreadsheetFormulaRowTests
         var sheetParts = actual.WorkbookPart!.WorksheetParts.ToList();
         Assert.Equal(2, sheetParts.Count);
 
-        var sheet1Rows = sheetParts[0].Worksheet.Descendants<Row>().ToList();
+        var sheet1Rows = sheetParts[0].Worksheet!.Descendants<Row>().ToList();
         Assert.Equal(3, sheet1Rows.Count);
 
         var actualRow1Refs = sheet1Rows[0].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
@@ -620,7 +620,7 @@ public class SpreadsheetFormulaRowTests
         Assert.Equal(expectedRow2Refs, actualRow2Refs);
         Assert.Equal(expectedRow3Refs, actualRow3Refs);
 
-        var sheet2Row = sheetParts[1].Worksheet.Descendants<Row>().Single();
+        var sheet2Row = sheetParts[1].Worksheet!.Descendants<Row>().Single();
         var actualSheet2Refs = sheet2Row.Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }
@@ -662,7 +662,7 @@ public class SpreadsheetFormulaRowTests
         var sheetParts = actual.WorkbookPart!.WorksheetParts.ToList();
         Assert.Equal(2, sheetParts.Count);
 
-        var sheet1Rows = sheetParts[0].Worksheet.Descendants<Row>().ToList();
+        var sheet1Rows = sheetParts[0].Worksheet!.Descendants<Row>().ToList();
         Assert.Equal(3, sheet1Rows.Count);
 
         var actualRow1Refs = sheet1Rows[0].Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
@@ -673,7 +673,7 @@ public class SpreadsheetFormulaRowTests
         Assert.Equal(expectedRow2Refs, actualRow2Refs);
         Assert.Equal(expectedRow3Refs, actualRow3Refs);
 
-        var sheet2Row = sheetParts[1].Worksheet.Descendants<Row>().Single();
+        var sheet2Row = sheetParts[1].Worksheet!.Descendants<Row>().Single();
         var actualSheet2Refs = sheet2Row.Descendants<OpenXmlCell>().Select(x => x.CellReference?.Value);
         Assert.Equal(expectedRow1Refs, actualSheet2Refs);
     }

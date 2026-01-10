@@ -128,6 +128,25 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             return Fail();
         }
 
+        public bool AppendFormatted(long value)
+        {
+#if !NET8_0_OR_GREATER
+            return AppendFormatted((double)value);
+#else
+            ReadOnlySpan<char> format = (ulong)(value + 9999999999999999L) < 19999999999999999L
+                ? []
+                : "0.################E+00";
+
+            if (value.TryFormat(GetSpan(), out var bytesWritten, format, NumberFormatInfo.InvariantInfo))
+            {
+                _pos += bytesWritten;
+                return true;
+            }
+
+            return Fail();
+#endif
+        }
+
         public bool AppendFormatted(ushort value)
         {
 #if NET8_0_OR_GREATER
