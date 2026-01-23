@@ -13,7 +13,7 @@ internal static class CellRowHelper
     public static bool TryWriteRowStart(uint rowIndex,
         RowOptions options, StyleId? rowStyleId, SpreadsheetBuffer buffer)
     {
-        if (options is null or { DefaultStyle: null, Height: null })
+        if (options is null or { DefaultStyle: null, Height: null, OutlineLevel: null })
             return TryWriteRowStart(rowIndex, buffer);
 
         var indexBefore = buffer.Index;
@@ -33,6 +33,12 @@ internal static class CellRowHelper
             return Fail();
         }
 
+        if (options.OutlineLevel is { } outlineLevel
+            && !buffer.TryWrite($"{RowOutlineLevelStart}{outlineLevel}"))
+        {
+            return Fail();
+        }
+
         return buffer.TryWrite(RowStartEndTag) || Fail();
 
         bool Fail()
@@ -47,5 +53,6 @@ internal static class CellRowHelper
     private static ReadOnlySpan<byte> RowStyleEnd => "\" customFormat=\"1"u8;
     private static ReadOnlySpan<byte> RowHeightStart => "\" ht=\""u8;
     private static ReadOnlySpan<byte> RowHeightEnd => "\" customHeight=\"1"u8;
+    private static ReadOnlySpan<byte> RowOutlineLevelStart => "\" outlineLevel=\""u8;
     private static ReadOnlySpan<byte> RowStartEndTag => "\">"u8;
 }
