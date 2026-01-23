@@ -671,6 +671,7 @@ namespace SpreadCheetah.Worksheets
         public RowOptions() { }
         public SpreadCheetah.Styling.Style? DefaultStyle { get; set; }
         public double? Height { get; set; }
+        public int? OutlineLevel { get; set; }
     }
     public sealed class WorksheetOptions
     {
@@ -679,6 +680,7 @@ namespace SpreadCheetah.Worksheets
         public double? DefaultColumnWidth { get; set; }
         public int? FrozenColumns { get; set; }
         public int? FrozenRows { get; set; }
+        public int? MaxRowOutlineLevel { get; set; }
         public bool? ShowGridlines { get; set; }
         public SpreadCheetah.Worksheets.WorksheetVisibility Visibility { get; set; }
         public SpreadCheetah.Worksheets.ColumnOptions Column(int columnNumber) { }
