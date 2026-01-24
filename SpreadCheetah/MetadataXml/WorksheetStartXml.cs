@@ -27,9 +27,9 @@ internal static class WorksheetStartXml
 }
 
 file struct WorksheetStartXmlWriter(
-WorksheetOptions? options,
-IReadOnlyDictionary<int, StyleId>? columnStyles,
-SpreadsheetBuffer buffer)
+    WorksheetOptions? options,
+    IReadOnlyDictionary<int, StyleId>? columnStyles,
+    SpreadsheetBuffer buffer)
 {
     private static ReadOnlySpan<byte> Header =>
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
