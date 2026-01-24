@@ -18,4 +18,19 @@ public class RowOptionsTests
         // Assert
         Assert.IsType<ArgumentOutOfRangeException>(exception);
     }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(8)]
+    public void RowOptions_OutlineLevel_Invalid(int value)
+    {
+        // Arrange
+        var options = new RowOptions();
+
+        // Act
+        var exception = Record.Exception(() => options.OutlineLevel = value);
+
+        // Assert
+        Assert.IsType<ArgumentOutOfRangeException>(exception);
+    }
 }

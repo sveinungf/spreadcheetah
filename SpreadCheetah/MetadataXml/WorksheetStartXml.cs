@@ -165,13 +165,18 @@ file struct WorksheetStartXmlWriter(
 
     private readonly bool TryWriteSheetFormatProperties()
     {
-        if (options?.DefaultColumnWidth is not { } defaultColumnWidth)
+        if (options is null or { DefaultColumnWidth: null, MaxRowOutlineLevel: null })
             return true;
 
+        var defaultColWidthAttribute = new DoubleAttribute("defaultColWidth"u8, options.DefaultColumnWidth);
+        var outlineLevelRowAttribute = new IntAttribute("outlineLevelRow"u8, options.MaxRowOutlineLevel);
+
         return buffer.TryWrite(
-            $"{"<sheetFormatPr defaultColWidth=\""u8}" +
-            $"{defaultColumnWidth}" +
-            $"{"\" defaultRowHeight=\"14.4\"/>"u8}");
+            $"{"<sheetFormatPr"u8}" +
+            $"{defaultColWidthAttribute}" +
+            $"{" defaultRowHeight=\"14.4\""u8}" +
+            $"{outlineLevelRowAttribute}" +
+            $"{"/>"u8}");
     }
 
     private readonly bool TryWriteColumnsStart()

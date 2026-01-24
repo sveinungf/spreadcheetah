@@ -24,6 +24,13 @@ public sealed class WorksheetOptions
     public int? FrozenRows { get; set => field = Guard.FrozenRowsInRange(value); }
 
     /// <summary>
+    /// The maximum row outline level that will be used in the worksheet. Must be between 0 and 7.
+    /// This should be set when using row grouping with <see cref="RowOptions.OutlineLevel"/>.
+    /// While not strictly required, setting this improves compatibility and user experience in Excel.
+    /// </summary>
+    public int? MaxRowOutlineLevel { get; set => field = Guard.OutlineLevelInRange(value); }
+
+    /// <summary>
     /// Option to hide a worksheet.
     /// </summary>
     public WorksheetVisibility Visibility { get; set => field = Guard.DefinedEnumValue(value); }

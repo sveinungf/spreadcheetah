@@ -24,6 +24,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly BaseRowWriter<StyledCell> _styledCellRowWriter;
     private readonly CellWriterState _state;
     private readonly string? _autoFilterRange;
+    private readonly int? _maxRowOutlineLevel;
     private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
     private HashSet<CellRangeRelativeReference>? _cellMerges;
 
@@ -42,6 +43,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         _buffer = buffer;
         _state = new CellWriterState(buffer, defaultStyling);
         _autoFilterRange = options?.AutoFilter?.CellRange.Reference;
+        _maxRowOutlineLevel = options?.MaxRowOutlineLevel;
         ColumnWidthRuns = options?.GetColumnWidthRuns();
         DefaultColumnWidth = options?.DefaultColumnWidth;
 
@@ -125,6 +127,8 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         where TCell : struct
         where TWriter : BaseRowWriter<TCell>
     {
+        EnsureValidRowOutlineLevel(options.OutlineLevel);
+
         var result = writer.TryAddRow(cells, rowIndex, options, rowStyleId);
         if (result && options.Height is { } height)
             UpdateRowHeightRuns(rowIndex, height);
@@ -137,11 +141,19 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         where TCell : struct
         where TWriter : BaseRowWriter<TCell>
     {
+        EnsureValidRowOutlineLevel(options.OutlineLevel);
+
         var result = writer.TryAddRow(cells, rowIndex, options, rowStyleId);
         if (result && options.Height is { } height)
             UpdateRowHeightRuns(rowIndex, height);
 
         return result;
+    }
+
+    private void EnsureValidRowOutlineLevel(int? outlineLevel)
+    {
+        if (outlineLevel is { } level && _maxRowOutlineLevel is { } maxLevel && level > maxLevel)
+            ThrowHelper.RowOutlineLevelGreaterThanMax(level, maxLevel);
     }
 
     private void UpdateRowHeightRuns(uint rowIndex, double height)

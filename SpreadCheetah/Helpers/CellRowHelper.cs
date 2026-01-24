@@ -1,3 +1,4 @@
+using SpreadCheetah.MetadataXml.Attributes;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Worksheets;
 
@@ -7,45 +8,30 @@ internal static class CellRowHelper
 {
     public static bool TryWriteRowStart(uint rowIndex, SpreadsheetBuffer buffer)
     {
-        return buffer.TryWrite($"{RowStart}{rowIndex}{RowStartEndTag}");
+        return buffer.TryWrite($"{"<row r=\""u8}{rowIndex}{"\">"u8}");
     }
 
     public static bool TryWriteRowStart(uint rowIndex,
         RowOptions options, StyleId? rowStyleId, SpreadsheetBuffer buffer)
     {
-        if (options is null or { DefaultStyle: null, Height: null })
+        if (options is null or { DefaultStyle: null, Height: null, OutlineLevel: null })
             return TryWriteRowStart(rowIndex, buffer);
 
-        var indexBefore = buffer.Index;
+        var sAttribute = new IntAttribute("s"u8, rowStyleId?.Id);
+        var customFormatAttribute = new BooleanAttribute("customFormat"u8, rowStyleId is not null ? true : null);
+        var htAttribute = new DoubleAttribute("ht"u8, options.Height);
+        var customHeightAttribute = new BooleanAttribute("customHeight"u8, options.Height is not null ? true : null);
+        var outlineLevelAttribute = new IntAttribute("outlineLevel"u8, options.OutlineLevel);
 
-        if (!buffer.TryWrite($"{RowStart}{rowIndex}"))
-            return Fail();
-
-        if (rowStyleId is { } styleId
-            && !buffer.TryWrite($"{RowStyleStart}{styleId.Id}{RowStyleEnd}"))
-        {
-            return Fail();
-        }
-
-        if (options.Height is { } height
-            && !buffer.TryWrite($"{RowHeightStart}{height}{RowHeightEnd}"))
-        {
-            return Fail();
-        }
-
-        return buffer.TryWrite(RowStartEndTag) || Fail();
-
-        bool Fail()
-        {
-            buffer.Advance(indexBefore - buffer.Index);
-            return false;
-        }
+        return buffer.TryWrite(
+            $"{"<row r=\""u8}" +
+            $"{rowIndex}" +
+            $"{"\""u8}" +
+            $"{sAttribute}" +
+            $"{customFormatAttribute}" +
+            $"{htAttribute}" +
+            $"{customHeightAttribute}" +
+            $"{outlineLevelAttribute}" +
+            $"{">"u8}");
     }
-
-    private static ReadOnlySpan<byte> RowStart => "<row r=\""u8;
-    private static ReadOnlySpan<byte> RowStyleStart => "\" s=\""u8;
-    private static ReadOnlySpan<byte> RowStyleEnd => "\" customFormat=\"1"u8;
-    private static ReadOnlySpan<byte> RowHeightStart => "\" ht=\""u8;
-    private static ReadOnlySpan<byte> RowHeightEnd => "\" customHeight=\"1"u8;
-    private static ReadOnlySpan<byte> RowStartEndTag => "\">"u8;
 }

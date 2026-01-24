@@ -104,6 +104,15 @@ internal static class Guard
         return value;
     }
 
+    public static int? OutlineLevelInRange(int? value,
+        [CallerArgumentExpression(nameof(value))] string? paramName = null)
+    {
+        if (value is < 0 or > 7)
+            throw new ArgumentOutOfRangeException(paramName, value, "Outline level must be between 0 and 7.");
+
+        return value;
+    }
+
     public static int SufficientBufferSize(int size,
     [CallerArgumentExpression(nameof(size))] string? paramName = null)
     {

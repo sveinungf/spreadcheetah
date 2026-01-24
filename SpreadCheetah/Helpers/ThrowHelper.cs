@@ -1,3 +1,4 @@
+using SpreadCheetah.Worksheets;
 using System.Diagnostics.CodeAnalysis;
 
 namespace SpreadCheetah.Helpers;
@@ -103,6 +104,10 @@ internal static class ThrowHelper
     [DoesNotReturn]
     public static void ResizeAndMoveCellsCombinationNotSupported(string resizeParamName, string moveParamName)
         => throw new ArgumentException($"Enabling {resizeParamName} is not supported when {moveParamName} is false.", resizeParamName);
+
+    [DoesNotReturn]
+    public static void RowOutlineLevelGreaterThanMax(int outlineLevel, int maxOutlineLevel)
+        => throw new SpreadCheetahException(StringHelper.Invariant($"The row outline level ({outlineLevel}) can not be greater than the worksheet's {nameof(WorksheetOptions.MaxRowOutlineLevel)} ({maxOutlineLevel})."));
 
     [DoesNotReturn]
     public static void SpreadsheetMustContainWorksheet()

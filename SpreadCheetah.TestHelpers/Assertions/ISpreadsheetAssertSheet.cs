@@ -8,6 +8,7 @@ public interface ISpreadsheetAssertSheet : IDisposable
     ISpreadsheetAssertCell this[string columnName, int rowNumber] { get; }
     int CellCount { get; }
     int RowCount { get; }
+    int? MaxRowOutlineLevel { get; }
 
     ISpreadsheetAssertColumn Column(string columnName);
     IReadOnlyList<ISpreadsheetAssertColumn> Columns { get; }
