@@ -929,6 +929,29 @@ public class SpreadsheetRowTests
         Assert.Equal(maxRowOutlineLevel, sheet.MaxRowOutlineLevel);
     }
 
+    [Theory]
+    [InlineData(2, 3)]
+    [InlineData(5, 7)]
+    public async Task Spreadsheet_AddRow_RowOutlineLevelGreaterThanMaxRowOutlineLevel(int maxRowOutlineLevel, int rowOutlineLevel)
+    {
+        // Arrange
+        var worksheetOptions = new WorksheetOptions { MaxRowOutlineLevel = maxRowOutlineLevel };
+        var rowOptions = new RowOptions { OutlineLevel = rowOutlineLevel };
+
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, token: Token);
+
+        // Act
+        var exception = await Record.ExceptionAsync(async () =>
+            await spreadsheet.AddRowAsync([new DataCell("value")], rowOptions, Token));
+
+        // Assert
+        var concreteException = Assert.IsType<SpreadCheetahException>(exception);
+        Assert.Contains("outline level", concreteException.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(rowOutlineLevel.ToString(), concreteException.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(maxRowOutlineLevel.ToString(), concreteException.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
     [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_RowStyle(
         CellType type,
