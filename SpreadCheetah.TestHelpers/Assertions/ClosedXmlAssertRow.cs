@@ -6,6 +6,8 @@ internal sealed class ClosedXmlAssertRow(IXLRow row) : ISpreadsheetAssertRow
 {
     public double Height => row.Height;
 
+    public int OutlineLevel => row.OutlineLevel;
+
     public ISpreadsheetAssertStyle Style => new ClosedXmlAssertStyle(row.Style);
 
     public IEnumerable<ISpreadsheetAssertCell> Cells => row.IsEmpty()
