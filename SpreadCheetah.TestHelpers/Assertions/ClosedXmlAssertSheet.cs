@@ -1,8 +1,10 @@
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace SpreadCheetah.TestHelpers.Assertions;
 
-internal sealed class ClosedXmlAssertSheet(XLWorkbook workbook, IXLWorksheet sheet)
+internal sealed class ClosedXmlAssertSheet(XLWorkbook workbook, IXLWorksheet sheet, Worksheet openXmlWorksheet)
     : ISpreadsheetAssertSheet
 {
     public string Name => sheet.Name;
@@ -32,6 +34,8 @@ internal sealed class ClosedXmlAssertSheet(XLWorkbook workbook, IXLWorksheet she
     public int CellCount => sheet.CellsUsed().Count();
 
     public int RowCount => sheet.RowsUsed().Count();
+
+    public int? MaxRowOutlineLevel => openXmlWorksheet.SheetFormatProperties?.OutlineLevelRow?.Value;
 
     public ISpreadsheetAssertColumn Column(string columnName)
     {

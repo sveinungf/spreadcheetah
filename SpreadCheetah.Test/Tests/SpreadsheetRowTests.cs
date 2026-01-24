@@ -6,7 +6,6 @@ using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
-using System.Globalization;
 using System.IO.Compression;
 using CellType = SpreadCheetah.Test.Helpers.CellType;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
@@ -880,6 +879,54 @@ public class SpreadsheetRowTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualHeight = sheet.Row(1).Height;
         Assert.Equal(expectedHeight, actualHeight, 5);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_RowOutlineLevelWithoutMaxRowOutlineLevel(
+        [CombinatorialValues(0, 1, 3, 7)] int outlineLevel,
+        CellType type,
+        RowCollectionType rowType)
+    {
+        // Arrange
+        var rowOptions = new RowOptions { OutlineLevel = outlineLevel };
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        // Act
+        await spreadsheet.AddRowAsync(CellFactory.Create(type, "My value"), rowType, rowOptions);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualOutlineLevel = sheet.Row(1).OutlineLevel;
+        Assert.Equal(outlineLevel, actualOutlineLevel);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_RowOutlineLevelWithMaxRowOutlineLevel(
+        [CombinatorialValues(0, 1, 3, 7)] int maxRowOutlineLevel,
+        CellType type,
+        RowCollectionType rowType)
+    {
+        // Arrange
+        var worksheetOptions = new WorksheetOptions { MaxRowOutlineLevel = maxRowOutlineLevel };
+        var rowOptions = new RowOptions { OutlineLevel = maxRowOutlineLevel };
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, token: Token);
+
+        // Act
+        await spreadsheet.AddRowAsync(CellFactory.Create(type, "My value"), rowType, rowOptions);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(maxRowOutlineLevel, sheet.Row(1).OutlineLevel);
+        Assert.Equal(maxRowOutlineLevel, sheet.MaxRowOutlineLevel);
     }
 
     [Theory, CombinatorialData]
