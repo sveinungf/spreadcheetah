@@ -1,4 +1,5 @@
 using SpreadCheetah.Helpers;
+using SpreadCheetah.Styling;
 
 namespace SpreadCheetah.Tables;
 
@@ -37,5 +38,15 @@ public sealed class TableColumnOptions
         }
     }
 
-    internal bool AffectsTotalRow => TotalRowLabel is not null || TotalRowFunction is not null;
+    /// <summary>
+    /// The style to apply to the cell in the total row for the column.
+    /// </summary>
+    public Style? TotalRowStyle { get; set; }
+
+    internal bool AffectsTotalRow => this is not
+    {
+        TotalRowFunction: null,
+        TotalRowLabel: null,
+        TotalRowStyle: null
+    };
 }

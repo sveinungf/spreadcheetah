@@ -24,6 +24,8 @@ internal sealed class StyleManager
 #endif
     }
 
+    public bool HasStyles => _styleDictionary.Count > 0;
+
     public DefaultFont? DefaultFont { get; }
     public DefaultStyling? DefaultStyling { get; }
 

@@ -1,3 +1,5 @@
+using SpreadCheetah.Styling.Internal;
+
 namespace SpreadCheetah.Tables.Internal;
 
 internal readonly record struct ImmutableTable(
@@ -11,7 +13,7 @@ internal readonly record struct ImmutableTable(
 {
     public bool HasTotalRow => TotalRowMaxColumnNumber is not null;
 
-    public static ImmutableTable From(Table table, string tableName)
+    public static ImmutableTable From(Table table, string tableName, StyleManager styleManager)
     {
         Dictionary<int, ImmutableTableColumnOptions>? columnOptions = null;
         int? totalRowMaxColumnNumber = null;
@@ -20,15 +22,15 @@ internal readonly record struct ImmutableTable(
         {
             columnOptions = new(table.ColumnOptions.Count);
 
-            foreach (var (key, value) in table.ColumnOptions)
+            foreach (var (columnNo, options) in table.ColumnOptions)
             {
-                columnOptions[key] = ImmutableTableColumnOptions.From(value);
+                columnOptions[columnNo] = ImmutableTableColumnOptions.From(options, styleManager);
 
-                if (value.AffectsTotalRow)
+                if (options.AffectsTotalRow)
                 {
                     var currentMax = totalRowMaxColumnNumber ?? 0;
-                    if (key > currentMax)
-                        totalRowMaxColumnNumber = key;
+                    if (columnNo > currentMax)
+                        totalRowMaxColumnNumber = columnNo;
                 }
             }
         }
