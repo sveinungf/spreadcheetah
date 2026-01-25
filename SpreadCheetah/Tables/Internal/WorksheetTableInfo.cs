@@ -88,12 +88,13 @@ internal sealed class WorksheetTableInfo
         {
             var headerName = GetHeaderName(i);
             var columnOptions = allColumnOptions.GetValueOrDefault(i + 1);
+            var styleId = columnOptions.TotalRowStyleId;
 
             var cell = columnOptions switch
             {
-                { TotalRowLabel: { } label } => new Cell(label),
-                { TotalRowFunction: { } func } => new Cell(TotalRowFormula(func, headerName)),
-                _ => new Cell()
+                { TotalRowLabel: { } label } => new Cell(label, styleId),
+                { TotalRowFunction: { } func } => new Cell(TotalRowFormula(func, headerName), styleId),
+                _ => new Cell(new DataCell(), styleId)
             };
 
             cells.Add(cell);

@@ -80,6 +80,11 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return new StyleManager(defaultDateTimeFormat, defaultFontCopy);
     }
 
+    private StyleManager GetOrCreateStyleManager()
+    {
+        return _styleManager ??= new(defaultDateTimeFormat: null, defaultFont: null);
+    }
+
     /// <summary>
     /// Initializes a new <see cref="Spreadsheet"/> that writes its output to a <see cref="Stream"/>.
     /// </summary>
@@ -208,7 +213,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         else if (!fileCounter.TryAssignTableNameForCurrentWorksheet(tableName))
             TableThrowHelper.NameAlreadyExists(nameof(table));
 
-        var immutableTable = ImmutableTable.From(table, tableName);
+        var immutableTable = ImmutableTable.From(table, tableName, GetOrCreateStyleManager());
         Worksheet.StartTable(immutableTable, firstColumnNumber);
     }
 
@@ -518,7 +523,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (nameVisibility is { } visibility)
             Guard.DefinedEnumValue(visibility);
 
-        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null, defaultFont: null);
+        var styleManager = GetOrCreateStyleManager();
         if (!styleManager.TryAddNamedStyle(name, style, nameVisibility, out var styleId))
             ThrowHelper.StyleNameAlreadyExists(nameof(name));
 
@@ -531,7 +536,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         if (style is null)
             return null;
 
-        var styleManager = _styleManager ??= new(defaultDateTimeFormat: null, defaultFont: null);
+        var styleManager = GetOrCreateStyleManager();
         return styleManager.AddStyleIfNotExists(style);
     }
 
@@ -753,7 +758,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             await zip.WriteCoreXmlAsync(_documentProperties, _buffer, token).ConfigureAwait(false);
         }
 
-        var hasStyles = _styleManager is not null;
+        var hasStyles = _styleManager is { HasStyles: true };
         var includeDocumentProperties = _documentProperties is not null;
 
         await zip.WriteRelationshipsXmlAsync(includeDocumentProperties, _buffer, token).ConfigureAwait(false);
@@ -761,8 +766,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         await WorkbookRelsXml.WriteAsync(zip, _buffer, _worksheets, hasStyles, token).ConfigureAwait(false);
         await WorkbookXml.WriteAsync(zip, _buffer, _worksheets, token).ConfigureAwait(false);
 
-        if (_styleManager is not null)
-            await StylesXml.WriteAsync(zip, _buffer, _styleManager, token).ConfigureAwait(false);
+        if (_styleManager is { HasStyles: true } styleManager)
+            await StylesXml.WriteAsync(zip, _buffer, styleManager, token).ConfigureAwait(false);
 
         _finished = true;
 

@@ -523,6 +523,7 @@ namespace SpreadCheetah.Tables
         public TableColumnOptions() { }
         public SpreadCheetah.Tables.TableTotalRowFunction? TotalRowFunction { get; set; }
         public string? TotalRowLabel { get; set; }
+        public SpreadCheetah.Styling.Style? TotalRowStyle { get; set; }
     }
     public enum TableStyle
     {
