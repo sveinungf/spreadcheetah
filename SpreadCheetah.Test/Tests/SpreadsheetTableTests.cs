@@ -111,6 +111,62 @@ public class SpreadsheetTableTests
         Assert.False(actualTable.BandedColumns);
     }
 
+    [Fact]
+    public async Task Spreadsheet_Table_TotalRowStyle()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var table = new Table(TableStyle.Light19);
+        string[] headerNames = ["Make", "Model", "Price"];
+        table.Column(2).TotalRowStyle = new Style { Font = { Italic = true } };
+
+        // Act
+        spreadsheet.StartTable(table);
+        await spreadsheet.AddHeaderRowAsync(headerNames, token: Token);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(190000)], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualTable = Assert.Single(sheet.Tables);
+        Assert.True(actualTable.ShowTotalRow);
+        Assert.False(sheet["A3"].Style.Font.Italic);
+        Assert.True(sheet["B3"].Style.Font.Italic);
+        Assert.False(sheet["C3"].Style.Font.Italic);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_Table_TotalRowWithStyleAndLabelAndFunction()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var table = new Table(TableStyle.Light19);
+        var redColor = Color.FromArgb(255, 0, 0);
+        string[] headerNames = ["Make", "Model", "Price"];
+
+        table.Column(1).TotalRowLabel = "Average price";
+        table.Column(1).TotalRowStyle = new Style { Font = { Bold = true } };
+        table.Column(3).TotalRowFunction = TableTotalRowFunction.Average;
+        table.Column(3).TotalRowStyle = new Style { Font = { Color = redColor } };
+
+        // Act
+        spreadsheet.StartTable(table);
+        await spreadsheet.AddHeaderRowAsync(headerNames, token: Token);
+        await spreadsheet.AddRowAsync([new("Ford"), new("Mondeo"), new(190000)], Token);
+        await spreadsheet.AddRowAsync([new("Volkswagen"), new("Polo"), new(150000)], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.True(sheet["A4"].Style.Font.Bold);
+        Assert.False(sheet["C4"].Style.Font.Bold);
+        Assert.Equal(redColor, sheet["C4"].Style.Font.Color);
+    }
+
     [Theory, CombinatorialData]
     public async Task Spreadsheet_Table_WithoutRows(bool rowBefore, bool totalRow)
     {
