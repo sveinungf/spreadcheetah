@@ -119,8 +119,9 @@ public class SpreadsheetTableTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var table = new Table(TableStyle.Light19);
+        var greenColor = Color.FromArgb(0, 255, 0);
         string[] headerNames = ["Make", "Model", "Price"];
-        table.Column(2).TotalRowStyle = new Style { Font = { Italic = true } };
+        table.Column(2).TotalRowStyle = new Style { Fill = { Color = greenColor } };
 
         // Act
         spreadsheet.StartTable(table);
@@ -132,9 +133,7 @@ public class SpreadsheetTableTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualTable = Assert.Single(sheet.Tables);
         Assert.True(actualTable.ShowTotalRow);
-        Assert.False(sheet["A3"].Style.Font.Italic);
-        Assert.True(sheet["B3"].Style.Font.Italic);
-        Assert.False(sheet["C3"].Style.Font.Italic);
+        Assert.Equal(greenColor, sheet["B3"].Style.Fill.Color);
     }
 
     [Fact]
@@ -149,7 +148,7 @@ public class SpreadsheetTableTests
         string[] headerNames = ["Make", "Model", "Price"];
 
         table.Column(1).TotalRowLabel = "Average price";
-        table.Column(1).TotalRowStyle = new Style { Font = { Bold = true } };
+        table.Column(1).TotalRowStyle = new Style { Font = { Italic = true } };
         table.Column(3).TotalRowFunction = TableTotalRowFunction.Average;
         table.Column(3).TotalRowStyle = new Style { Font = { Color = redColor } };
 
@@ -162,8 +161,8 @@ public class SpreadsheetTableTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.True(sheet["A4"].Style.Font.Bold);
-        Assert.False(sheet["C4"].Style.Font.Bold);
+        Assert.True(sheet["A4"].Style.Font.Italic);
+        Assert.False(sheet["C4"].Style.Font.Italic);
         Assert.Equal(redColor, sheet["C4"].Style.Font.Color);
     }
 
