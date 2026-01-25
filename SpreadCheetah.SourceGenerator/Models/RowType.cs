@@ -8,6 +8,7 @@ internal sealed record RowType(
     bool IsReferenceType,
     CellType CellType,
     bool HasStyle,
+    ColumnWidth? DefaultColumnWidth,
     EquatableArray<RowTypeProperty> Properties)
 {
     public string FullNameWithNullableAnnotation => IsReferenceType ? $"{FullName}?" : FullName;

@@ -10,6 +10,7 @@ internal static class Attributes
     public const string ColumnIgnore = "ColumnIgnoreAttribute";
     public const string ColumnOrder = "ColumnOrderAttribute";
     public const string ColumnWidth = "ColumnWidthAttribute";
+    public const string DefaultColumnWidth = "DefaultColumnWidthAttribute";
     public const string GenerationOptions = "WorksheetRowGenerationOptionsAttribute";
     public const string InferColumnHeaders = "InferColumnHeadersAttribute";
     public const string InheritColumns = "InheritColumnsAttribute";

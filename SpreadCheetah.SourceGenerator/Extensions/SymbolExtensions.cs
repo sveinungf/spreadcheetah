@@ -258,6 +258,28 @@ internal static class SymbolExtensions
         return property.GetAttribute(Attributes.ColumnOrder);
     }
 
+    public static ColumnWidth? GetDefaultColumnWidthAttribute(this ITypeSymbol type)
+    {
+        foreach (var attribute in type.GetAttributes())
+        {
+            if (attribute.AttributeClass is not { MetadataName: Attributes.DefaultColumnWidth })
+                continue;
+            if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace())
+                continue;
+
+            var args = attribute.ConstructorArguments;
+            if (args is not [{ Value: double attributeValue }])
+                continue;
+
+            if (attributeValue is <= 0 or > 255)
+                continue;
+
+            return new ColumnWidth(attributeValue);
+        }
+
+        return null;
+    }
+
     private static AttributeData? GetAttribute(this IPropertySymbol property, string attributeName)
     {
         foreach (var attribute in property.GetAttributes())

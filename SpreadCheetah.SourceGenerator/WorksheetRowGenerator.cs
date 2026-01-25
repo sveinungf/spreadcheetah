@@ -118,12 +118,15 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             _ => CellType.DataCell
         };
 
+        var defaultColumnWidth = rowType.GetDefaultColumnWidthAttribute();
+
         return new RowType(
             FullName: rowType.ToString(),
             HasStyle: hasStyle,
             IsReferenceType: rowType.IsReferenceType,
             CellType: cellType,
             Name: rowType.Name,
+            DefaultColumnWidth: defaultColumnWidth,
             Properties: explicitOrderProperties.OrderBy(x => x.Key).Select(x => x.Value).ToEquatableArray());
     }
 
@@ -237,7 +240,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         }
 
         var properties = rowType.Properties;
-        var doGenerateCreateWorksheetOptions = properties.Any(static x => x.ColumnWidth is not null);
+        var doGenerateCreateWorksheetOptions = rowType.DefaultColumnWidth is not null || properties.Any(static x => x.ColumnWidth is not null);
         var doGenerateCreateWorksheetRowDependencyInfo = properties.Any(static x => x.HasStyle);
 
         sb.Append(FormattableString.Invariant($$"""
@@ -256,7 +259,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(");");
 
         if (doGenerateCreateWorksheetOptions)
-            GenerateCreateWorksheetOptions(sb, typeIndex, properties);
+            GenerateCreateWorksheetOptions(sb, typeIndex, rowType);
 
         var styleLookup = doGenerateCreateWorksheetRowDependencyInfo
             ? GenerateCreateWorksheetRowDependencyInfo(sb, typeIndex, properties)
@@ -270,9 +273,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         GenerateAddCellsAsRow(sb, rowType, styleLookup, codeGenState);
     }
 
-    private static void GenerateCreateWorksheetOptions(StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)
+    private static void GenerateCreateWorksheetOptions(StringBuilder sb, int typeIndex, RowType rowType)
     {
-        Debug.Assert(properties.Any(static x => x.ColumnWidth is not null));
+        var properties = rowType.Properties;
+        var defaultColumnWidth = rowType.DefaultColumnWidth;
+
+        Debug.Assert(defaultColumnWidth is not null || properties.Any(static x => x.ColumnWidth is not null));
 
         sb.AppendLine(FormattableString.Invariant($$"""
 
@@ -283,10 +289,10 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         foreach (var (i, property) in properties.Index())
         {
-            if (property.ColumnWidth is not { } columnWidth)
+            var width = property.ColumnWidth?.Width ?? defaultColumnWidth?.Width;
+            if (width is null)
                 continue;
 
-            var width = columnWidth.Width;
             var columnNumber = i + 1;
 
             sb.AppendLine(FormattableString.Invariant($"""
