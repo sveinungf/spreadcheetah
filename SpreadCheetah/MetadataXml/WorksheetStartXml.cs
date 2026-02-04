@@ -70,6 +70,7 @@ file struct WorksheetStartXmlWriter(
         Current = _next switch
         {
             Element.Header => buffer.TryWrite(Header),
+            Element.SheetProperties => TryWriteSheetProperties(),
             Element.SheetViewsStart => TryWriteSheetViewsStart(),
             Element.SheetViewPane => TryWriteSheetViewPane(),
             Element.SheetViewSelection => TryWriteSheetViewSelection(),
@@ -85,6 +86,18 @@ file struct WorksheetStartXmlWriter(
             ++_next;
 
         return _next < Element.Done;
+    }
+
+    private readonly bool TryWriteSheetProperties()
+    {
+        if (options?.TabColor is not { } tabColor)
+            return true;
+
+        return buffer.TryWrite(
+            $"{"<sheetPr>"u8}" +
+            $"{"<tabColor rgb=\""u8}" +
+            $"{tabColor}" +
+            $"{"\"/></sheetPr>"u8}");
     }
 
     private readonly bool TryWriteSheetViewsStart()
@@ -222,6 +235,7 @@ file struct WorksheetStartXmlWriter(
     private enum Element
     {
         Header,
+        SheetProperties,
         SheetViewsStart,
         SheetViewPane,
         SheetViewSelection,

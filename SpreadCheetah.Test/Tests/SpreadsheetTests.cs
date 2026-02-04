@@ -8,6 +8,7 @@ using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
+using System.Drawing;
 using System.IO.Compression;
 using Color = System.Drawing.Color;
 using DataValidation = SpreadCheetah.Validations.DataValidation;
@@ -767,5 +768,50 @@ public class SpreadsheetTests
 
         // Assert
         Assert.Equal(defaultStyle, styleId.Id == 0);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_StartWorksheet_SetTabColorNullHasNoColor()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+
+        // Act
+        var sheetOptions = new WorksheetOptions { TabColor = null };
+        await spreadsheet.StartWorksheetAsync("Sheet 1", sheetOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        Assert.False(worksheet.TabColor.HasValue);
+    }
+
+    [Theory]
+    [InlineData(KnownColor.Aqua)]
+    [InlineData(KnownColor.White)]
+    [InlineData(KnownColor.Black)]
+    [InlineData(KnownColor.Fuchsia)]
+    [InlineData(KnownColor.Green)]
+    public async Task Spreadsheet_StartWorksheet_SetTabColorValueHasExpectedColor(KnownColor expectedColorType)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+
+        var expectedColor = Color.FromKnownColor(expectedColorType);
+
+        // Act
+        var sheetOptions = new WorksheetOptions { TabColor = expectedColor };
+        await spreadsheet.StartWorksheetAsync("Sheet 1", sheetOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        Assert.Equal(worksheet.TabColor, XLColor.FromColor(expectedColor));
     }
 }

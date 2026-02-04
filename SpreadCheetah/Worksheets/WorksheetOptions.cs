@@ -1,4 +1,5 @@
 using SpreadCheetah.Helpers;
+using System.Drawing;
 
 namespace SpreadCheetah.Worksheets;
 
@@ -44,6 +45,11 @@ public sealed class WorksheetOptions
     /// Option to show or hide the sheet grid.
     /// </summary>
     public bool? ShowGridlines { get; set; }
+
+    /// <summary>
+    /// Option to set worksheet tab color.
+    /// </summary>
+    public Color? TabColor { get; set; }
 
     internal SortedDictionary<int, ColumnOptions>? ColumnOptions { get; private set; }
 
