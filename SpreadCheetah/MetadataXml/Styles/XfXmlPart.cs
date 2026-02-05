@@ -4,6 +4,7 @@ using SpreadCheetah.Styling.Internal;
 
 namespace SpreadCheetah.MetadataXml.Styles;
 
+// TODO: Remove
 internal readonly struct XfXmlPart(
     SpreadsheetBuffer buffer,
     IList<ImmutableAlignment>? alignments,
