@@ -139,13 +139,22 @@ internal struct StylesXml : IXmlWriter<StylesXml>
             return true;
 
         var alignments = _styleManager.UniqueAlignments?.GetList();
-        var xfXml = new XfXmlPart(_buffer, alignments, false);
 
         for (; _nextIndex < _namedStyles.Count; ++_nextIndex)
         {
-            var (_, addedStyle, _) = namedStyles[_nextIndex];
-            if (!xfXml.TryWrite(addedStyle, null))
+            if (_currentXfXmlWriter is not { } writer)
+            {
+                var (_, addedStyle, _) = namedStyles[_nextIndex];
+                writer = new StyleXfXml(addedStyle, null, alignments, false, _buffer);
+            }
+
+            if (!writer.TryWrite())
+            {
+                _currentXfXmlWriter = writer;
                 return false;
+            }
+
+            _currentXfXmlWriter = null;
         }
 
         _nextIndex = 0;
