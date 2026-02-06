@@ -35,6 +35,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
     private FillsXmlPart _fillsXml;
     private FontXmlPart? _fontXml;
     private CellStylesXmlPart _cellStylesXml;
+    private StyleXfXml? _currentXfXmlWriter;
     private Element _next;
     private int _nextIndex;
 
@@ -138,13 +139,22 @@ internal struct StylesXml : IXmlWriter<StylesXml>
             return true;
 
         var alignments = _styleManager.UniqueAlignments?.GetList();
-        var xfXml = new XfXmlPart(_buffer, alignments, false);
 
         for (; _nextIndex < _namedStyles.Count; ++_nextIndex)
         {
-            var (_, addedStyle, _) = namedStyles[_nextIndex];
-            if (!xfXml.TryWrite(addedStyle, null))
+            if (_currentXfXmlWriter is not { } writer)
+            {
+                var (_, addedStyle, _) = namedStyles[_nextIndex];
+                writer = new StyleXfXml(addedStyle, null, alignments, false, _buffer);
+            }
+
+            if (!writer.TryWrite())
+            {
+                _currentXfXmlWriter = writer;
                 return false;
+            }
+
+            _currentXfXmlWriter = null;
         }
 
         _nextIndex = 0;
@@ -162,20 +172,29 @@ internal struct StylesXml : IXmlWriter<StylesXml>
     private bool TryWriteCellXfsEntries()
     {
         var alignments = _styleManager.UniqueAlignments?.GetList();
-        var xfXml = new XfXmlPart(_buffer, alignments, true);
         var addedStyles = _styleManager.AddedStyles;
         var namedStylesDictionary = _styleManager.NamedStyles;
 
         for (; _nextIndex < addedStyles.Count; ++_nextIndex)
         {
-            var addedStyle = addedStyles[_nextIndex];
-            int? embeddedNamedStyleIndex = addedStyle is { Name: { } name, Visibility: not null }
-                && namedStylesDictionary is { } namedStyles && namedStyles.TryGetValue(name, out var value)
-                ? value.NamedStyleIndex
-                : null;
+            if (_currentXfXmlWriter is not { } writer)
+            {
+                var addedStyle = addedStyles[_nextIndex];
+                int? embeddedNamedStyleIndex = addedStyle is { Name: { } name, Visibility: not null }
+                    && namedStylesDictionary is { } namedStyles && namedStyles.TryGetValue(name, out var value)
+                    ? value.NamedStyleIndex
+                    : null;
 
-            if (!xfXml.TryWrite(addedStyle, embeddedNamedStyleIndex))
+                writer = new StyleXfXml(addedStyle, embeddedNamedStyleIndex, alignments, true, _buffer);
+            }
+
+            if (!writer.TryWrite())
+            {
+                _currentXfXmlWriter = writer;
                 return false;
+            }
+
+            _currentXfXmlWriter = null;
         }
 
         _nextIndex = 0;

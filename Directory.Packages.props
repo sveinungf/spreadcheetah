@@ -5,12 +5,12 @@
   </PropertyGroup>
   <ItemGroup>
     <GlobalPackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.8.2-beta.1" />
-    <GlobalPackageReference Include="Meziantou.Analyzer" Version="2.0.285" />
+    <GlobalPackageReference Include="Meziantou.Analyzer" Version="2.0.298" />
     <GlobalPackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" />
     <GlobalPackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15" />
     <GlobalPackageReference Include="PrimaryConstructorAnalyzer" Version="1.0.6" />
     <GlobalPackageReference Include="Roslynator.Analyzers" Version="4.15.0" />
-    <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.18.0.131500" />
+    <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.19.0.132793" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
@@ -35,9 +35,9 @@
     <PackageVersion Include="System.Drawing.Common" Version="10.0.2" />
     <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
     <PackageVersion Include="System.Reflection.Metadata" Version="10.0.2" />
-    <PackageVersion Include="TngTech.ArchUnitNET.xUnitV3" Version="0.13.1" />
+    <PackageVersion Include="TngTech.ArchUnitNET.xUnitV3" Version="0.13.2" />
     <PackageVersion Include="Verify.SourceGenerators" Version="2.5.0" />
-    <PackageVersion Include="Verify.XunitV3" Version="31.9.4" />
+    <PackageVersion Include="Verify.XunitV3" Version="31.11.0" />
     <PackageVersion Include="Xunit.Combinatorial" Version="2.0.24" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
