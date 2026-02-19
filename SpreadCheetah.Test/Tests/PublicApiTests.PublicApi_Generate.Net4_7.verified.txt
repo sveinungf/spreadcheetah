@@ -666,6 +666,12 @@ namespace SpreadCheetah.Worksheets
         public bool Hidden { get; set; }
         public double? Width { get; set; }
     }
+    public sealed class OutlineOptions
+    {
+        public OutlineOptions() { }
+        public bool? SummaryBelow { get; set; }
+        public bool? SummaryRight { get; set; }
+    }
     public sealed class RowOptions
     {
         public RowOptions() { }
@@ -681,6 +687,7 @@ namespace SpreadCheetah.Worksheets
         public int? FrozenColumns { get; set; }
         public int? FrozenRows { get; set; }
         public int? MaxRowOutlineLevel { get; set; }
+        public SpreadCheetah.Worksheets.OutlineOptions? OutlineOptions { get; set; }
         public bool? ShowGridlines { get; set; }
         public System.Drawing.Color? TabColor { get; set; }
         public SpreadCheetah.Worksheets.WorksheetVisibility Visibility { get; set; }

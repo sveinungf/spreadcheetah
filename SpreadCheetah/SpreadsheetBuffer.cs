@@ -375,6 +375,29 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             return true;
         }
 
+        public bool AppendFormatted(ColorAttribute attribute)
+        {
+            if (attribute.Value is not { } value)
+                return true;
+
+            if (!AppendFormatted(" "u8))
+                return Fail();
+
+            if (!AppendFormatted(attribute.AttributeName))
+                return Fail();
+
+            if (!AppendFormatted("=\""u8))
+                return Fail();
+
+            if (!AppendFormatted(value))
+                return Fail();
+
+            if (!AppendFormatted("\""u8))
+                return Fail();
+
+            return true;
+        }
+
         [ExcludeFromCodeCoverage]
         public bool AppendFormatted<T>(T value)
         {
