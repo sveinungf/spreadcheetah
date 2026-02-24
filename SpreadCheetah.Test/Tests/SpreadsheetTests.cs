@@ -814,4 +814,45 @@ public class SpreadsheetTests
         var worksheet = workbook.Worksheets.Single();
         Assert.Equal(worksheet.TabColor, XLColor.FromColor(expectedColor));
     }
+
+    [Fact]
+    public async Task Spreadsheet_StartWorksheet_SetOutlineOptionsNullHasDefault()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+
+        // Act
+        var sheetOptions = new WorksheetOptions { OutlineOptions = null };
+        await spreadsheet.StartWorksheetAsync("Sheet 1", sheetOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        Assert.Equal(XLOutlineSummaryHLocation.Right, worksheet.Outline.SummaryHLocation);
+        Assert.Equal(XLOutlineSummaryVLocation.Bottom, worksheet.Outline.SummaryVLocation);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_StartWorksheet_SetOutlineOptionsHasExpectedValues()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+
+        // Act
+        var outlineOptions = new OutlineOptions { SummaryBelow = false, SummaryRight = false };
+        var sheetOptions = new WorksheetOptions { OutlineOptions = outlineOptions };
+        await spreadsheet.StartWorksheetAsync("Sheet 1", sheetOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        Assert.Equal(XLOutlineSummaryHLocation.Left, worksheet.Outline.SummaryHLocation);
+        Assert.Equal(XLOutlineSummaryVLocation.Top, worksheet.Outline.SummaryVLocation);
+    }
 }

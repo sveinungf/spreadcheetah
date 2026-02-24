@@ -42,6 +42,11 @@ public sealed class WorksheetOptions
     public AutoFilterOptions? AutoFilter { get; set; }
 
     /// <summary>
+    /// Outline options of the worksheet.
+    /// </summary>
+    public OutlineOptions? OutlineOptions { get; set; }
+
+    /// <summary>
     /// Option to show or hide the sheet grid.
     /// </summary>
     public bool? ShowGridlines { get; set; }

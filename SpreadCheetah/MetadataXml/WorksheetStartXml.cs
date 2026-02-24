@@ -70,7 +70,10 @@ file struct WorksheetStartXmlWriter(
         Current = _next switch
         {
             Element.Header => buffer.TryWrite(Header),
-            Element.SheetProperties => TryWriteSheetProperties(),
+            Element.SheetPropertiesStart => TryWriteSheetPropertiesStart(),
+            Element.SheetPropertiesTabColor => TryWriteSheetPropertiesTabColor(),
+            Element.SheetPropertiesOutline => TryWriteSheetPropertiesOutline(),
+            Element.SheetPropertiesEnd => TryWriteSheetPropertiesEnd(),
             Element.SheetViewsStart => TryWriteSheetViewsStart(),
             Element.SheetViewPane => TryWriteSheetViewPane(),
             Element.SheetViewSelection => TryWriteSheetViewSelection(),
@@ -88,16 +91,48 @@ file struct WorksheetStartXmlWriter(
         return _next < Element.Done;
     }
 
-    private readonly bool TryWriteSheetProperties()
+    private readonly bool TryWriteSheetPropertiesStart()
+    {
+        if (options is null or { TabColor: null, OutlineOptions: null })
+            return true;
+
+        return buffer.TryWrite("<sheetPr>"u8);
+    }
+
+    private readonly bool TryWriteSheetPropertiesTabColor()
     {
         if (options?.TabColor is not { } tabColor)
             return true;
 
+        var colorAttribute = new ColorAttribute("rgb"u8, tabColor);
+
         return buffer.TryWrite(
-            $"{"<sheetPr>"u8}" +
-            $"{"<tabColor rgb=\""u8}" +
-            $"{tabColor}" +
-            $"{"\"/></sheetPr>"u8}");
+            $"{"<tabColor"u8}" +
+            $"{colorAttribute}" +
+            $"{" />"u8}");
+    }
+
+    private readonly bool TryWriteSheetPropertiesOutline()
+    {
+        if (options?.OutlineOptions is not { } outlineOptions)
+            return true;
+
+        var summaryBelowAttribute = new BooleanAttribute("summaryBelow"u8, outlineOptions.SummaryBelow);
+        var summaryRightAttribute = new BooleanAttribute("summaryRight"u8, outlineOptions.SummaryRight);
+
+        return buffer.TryWrite(
+            $"{"<outlinePr"u8}" +
+            $"{summaryBelowAttribute}" +
+            $"{summaryRightAttribute}" +
+            $"{" />"u8}");
+    }
+
+    private readonly bool TryWriteSheetPropertiesEnd()
+    {
+        if (options is null or { TabColor: null, OutlineOptions: null })
+            return true;
+
+        return buffer.TryWrite("</sheetPr>"u8);
     }
 
     private readonly bool TryWriteSheetViewsStart()
@@ -235,7 +270,10 @@ file struct WorksheetStartXmlWriter(
     private enum Element
     {
         Header,
-        SheetProperties,
+        SheetPropertiesStart,
+        SheetPropertiesTabColor,
+        SheetPropertiesOutline,
+        SheetPropertiesEnd,
         SheetViewsStart,
         SheetViewPane,
         SheetViewSelection,
