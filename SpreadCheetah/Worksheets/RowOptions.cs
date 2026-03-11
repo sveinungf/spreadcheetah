@@ -24,4 +24,14 @@ public sealed class RowOptions
     /// Higher values indicate deeper nesting levels in the row hierarchy.
     /// </summary>
     public int? OutlineLevel { get; set => field = Guard.OutlineLevelInRange(value); }
+
+    /// <summary>
+    /// Indicates if the row is currently hidden due to a collapsed group. Can be used without outline level to hide a row
+    /// </summary>
+    public bool? Hidden { get; set; }
+
+    /// <summary>
+    /// Used on the summary row to indicate that the next outline level (detail rows) is currently in a collapsed state.
+    /// </summary>
+    public bool? Collapsed { get; set; }
 }
