@@ -1,7 +1,6 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using OfficeOpenXml;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
@@ -564,11 +563,16 @@ public class SpreadsheetRowTests
 
         // Assert
         SpreadsheetAssert.Valid(stream);
-        using var package = new ExcelPackage(stream);
-        var worksheet = package.Workbook.Worksheets.Single();
-        var actualCell = worksheet.Cells.Single();
-        Assert.Equal(expectedValue, actualCell.GetValue<DateTime>());
-        Assert.Equal(defaultNumberFormat ?? NumberFormats.General, actualCell.Style.Numberformat.Format);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.Equal(expectedValue.ToOADate(), actualCell.GetValue<double?>() ?? 0, 0.0001);
+        var expectedNumberFormat = defaultNumberFormat ?? NumberFormats.General;
+        var expectedStandardNumberFormatId = NumberFormatHelper.GetStandardNumberFormatId(expectedNumberFormat);
+        if (expectedStandardNumberFormatId is { } formatId)
+            Assert.Equal(formatId, actualCell.Style.NumberFormat.NumberFormatId);
+        else
+            Assert.Equal(expectedNumberFormat, actualCell.Style.NumberFormat.Format);
     }
 #pragma warning restore CS0618 // Type or member is obsolete
 
