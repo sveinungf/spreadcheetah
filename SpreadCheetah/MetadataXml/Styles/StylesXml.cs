@@ -140,7 +140,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
         var alignments = _styleManager.UniqueAlignments?.GetList();
 
-        for (; _nextIndex < _namedStyles.Count; ++_nextIndex)
+        for (; _nextIndex < namedStyles.Count; ++_nextIndex)
         {
             if (_currentXfXmlWriter is not { } writer)
             {

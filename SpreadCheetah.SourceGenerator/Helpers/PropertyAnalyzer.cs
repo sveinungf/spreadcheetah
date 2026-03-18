@@ -126,10 +126,10 @@ internal sealed class PropertyAnalyzer(
             return false;
 
         var typeName = converterTypeSymbol.ToDisplayString();
-        var propertyTypeName = propertyType.OriginalDefinition.ToDisplayString();
+        var propertyTypeName = propertyType.ToDisplayString();
 
-        if (converterTypeSymbol.BaseType is not { Name: "CellValueConverter", TypeArguments: [INamedTypeSymbol typeArgument] }
-            || !string.Equals(typeArgument.OriginalDefinition.ToDisplayString(), propertyTypeName, StringComparison.Ordinal))
+        if (converterTypeSymbol.BaseType is not { Name: "CellValueConverter", TypeArguments: [ITypeSymbol typeArgument] }
+            || !SymbolEqualityComparer.Default.Equals(typeArgument, propertyType))
         {
             diagnostics.ReportTypeMustInherit(attribute, typeName, $"CellValueConverter<{propertyTypeName}>", token);
             return false;

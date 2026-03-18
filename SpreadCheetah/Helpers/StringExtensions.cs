@@ -19,7 +19,7 @@ internal static class StringExtensions
         if (name.Length > 31)
             ThrowHelper.NameTooLong(31, paramName);
 
-        if (name.StartsWith('\'') || name.EndsWith('\''))
+        if (name.StartsWith('\'', StringComparison.Ordinal) || name.EndsWith('\'', StringComparison.Ordinal))
             ThrowHelper.WorksheetNameStartsOrEndsWithSingleQuote(paramName);
 
 #if NET8_0_OR_GREATER

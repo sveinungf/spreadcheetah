@@ -5,27 +5,29 @@ namespace SpreadCheetah.Test.Helpers;
 
 internal static class ZipArchiveExtensions
 {
-    public static Task<Stream> GetDrawingXmlStreamAsync(this ZipArchive zip, CancellationToken token)
+    extension(ZipArchive zip)
     {
-        var entry = zip.GetEntry("xl/drawings/drawing1.xml")
-            ?? throw new InvalidOperationException("Drawing XML not found in the provided XLSX stream.");
+        public Task<Stream> GetDrawingXmlStreamAsync(CancellationToken token)
+        {
+            return zip.GetXmlStreamAsync("xl/drawings/drawing1.xml", token);
+        }
 
-        return entry.OpenAsync(token);
-    }
+        public Task<Stream> GetSheet1XmlStreamAsync(CancellationToken token)
+        {
+            return zip.GetXmlStreamAsync("xl/worksheets/sheet1.xml", token);
+        }
 
-    public static Task<Stream> GetSheet1XmlStreamAsync(this ZipArchive zip, CancellationToken token)
-    {
-        var entry = zip.GetEntry("xl/worksheets/sheet1.xml")
-            ?? throw new InvalidOperationException("Sheet1 XML not found in the provided XLSX stream.");
+        public Task<Stream> GetStylesXmlStreamAsync(CancellationToken token)
+        {
+            return zip.GetXmlStreamAsync("xl/styles.xml", token);
+        }
 
-        return entry.OpenAsync(token);
-    }
+        private Task<Stream> GetXmlStreamAsync(string entryName, CancellationToken token)
+        {
+            var entry = zip.GetEntry(entryName)
+                ?? throw new InvalidOperationException($"{entryName} not found in the provided XLSX stream.");
 
-    public static Task<Stream> GetStylesXmlStreamAsync(this ZipArchive zip, CancellationToken token)
-    {
-        var entry = zip.GetEntry("xl/styles.xml")
-            ?? throw new InvalidOperationException("Styles XML not found in the provided XLSX stream.");
-
-        return entry.OpenAsync(token);
+            return entry.OpenAsync(token);
+        }
     }
 }

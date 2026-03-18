@@ -18,9 +18,11 @@ internal sealed class StyleManager
 
     private void AddStyle(in AddedStyle style, StyleId styleId)
     {
-        _styleDictionary[style] = styleId;
-#if !NET9_0_OR_GREATER
-        _addedStyles.Add(style);
+#if NET9_0_OR_GREATER
+        _styleDictionary.TryAdd(style, styleId);
+#else
+        if (_styleDictionary.TryAdd(style, styleId))
+            _addedStyles.Add(style);
 #endif
     }
 

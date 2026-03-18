@@ -1,12 +1,8 @@
 using ClosedXML.Excel;
-using OfficeOpenXml;
-using OfficeOpenXml.DataValidation;
-using OfficeOpenXml.DataValidation.Contracts;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
+using Polyfills;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Validations;
 using System.Globalization;
-using Polyfills;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -369,13 +365,14 @@ public class SpreadsheetDataValidationTests
 
         // Assert
         SpreadsheetAssert.Valid(stream);
-        using var package = new ExcelPackage(stream);
-        var worksheet = package.Workbook.Worksheets.Single();
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
         var actualValidation = Assert.Single(worksheet.DataValidations);
-        Assert.Equal(reference, actualValidation.Address.Address);
-        Assert.Equal(eDataValidationType.List, actualValidation.ValidationType.Type);
-        var actualListValidation = (IExcelDataValidationList)actualValidation;
-        Assert.Equal(values, actualListValidation.Formula.Values);
+        var actualRange = Assert.Single(actualValidation.Ranges);
+        var cell = Assert.Single(actualRange.Cells());
+        Assert.Equal(reference, cell.Address.ToString());
+        Assert.Equal(XLAllowedValues.List, actualValidation.AllowedValues);
+        Assert.Equal('"' + string.Join(',', values) + '"', actualValidation.MinValue);
     }
 
     [Theory]
@@ -434,13 +431,14 @@ public class SpreadsheetDataValidationTests
 
         // Assert
         SpreadsheetAssert.Valid(stream);
-        using var package = new ExcelPackage(stream);
-        var worksheet = package.Workbook.Worksheets.Single();
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
         var actualValidation = Assert.Single(worksheet.DataValidations);
-        Assert.Equal(reference, actualValidation.Address.Address);
-        Assert.Equal(eDataValidationType.List, actualValidation.ValidationType.Type);
-        var actualListValidation = (IExcelDataValidationList)actualValidation;
-        Assert.Equal(cellRange, actualListValidation.Formula.ExcelFormula);
+        var actualRange = Assert.Single(actualValidation.Ranges);
+        var cell = Assert.Single(actualRange.Cells());
+        Assert.Equal(reference, cell.Address.ToString());
+        Assert.Equal(XLAllowedValues.List, actualValidation.AllowedValues);
+        Assert.Equal(cellRange, actualValidation.MinValue);
     }
 
     [Theory]
@@ -469,16 +467,18 @@ public class SpreadsheetDataValidationTests
 
         // Assert
         SpreadsheetAssert.Valid(stream);
-        using var package = new ExcelPackage(stream);
-        var worksheet = package.Workbook.Worksheets.Single(x => !string.Equals(x.Name, valueSheetName, StringComparison.Ordinal));
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single(x => !string.Equals(x.Name, valueSheetName, StringComparison.Ordinal));
         var actualValidation = Assert.Single(worksheet.DataValidations);
-        Assert.Equal(reference, actualValidation.Address.Address);
-        Assert.Equal(eDataValidationType.List, actualValidation.ValidationType.Type);
-        var actualListValidation = (IExcelDataValidationList)actualValidation;
+        var actualRange = Assert.Single(actualValidation.Ranges);
+        var cell = Assert.Single(actualRange.Cells());
+        Assert.Equal(reference, cell.Address.ToString());
+        Assert.Equal(XLAllowedValues.List, actualValidation.AllowedValues);
 #pragma warning disable CA1307, MA0074 // Specify StringComparison for clarity
-        var expectedValueSheetName = valueSheetName?.Replace("'", "''");
+        var expectedValueSheetName = valueSheetName.Replace("'", "''");
 #pragma warning restore CA1307, MA0074 // Specify StringComparison for clarity
-        Assert.Equal($"'{expectedValueSheetName}'!{cellRange}", actualListValidation.Formula.ExcelFormula);
+        var expectedFormula = $"'{expectedValueSheetName}'!{cellRange}";
+        Assert.Equal(expectedFormula, actualValidation.MinValue);
     }
 
     [Fact]

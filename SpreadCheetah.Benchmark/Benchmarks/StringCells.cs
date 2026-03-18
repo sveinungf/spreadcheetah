@@ -5,7 +5,6 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using LargeXlsx;
 using Microsoft.IO;
-using OfficeOpenXml;
 using System.IO.Packaging;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 using OpenXmlCellValue = DocumentFormat.OpenXml.Spreadsheet.CellValues;
@@ -81,24 +80,6 @@ public class StringCells : IDisposable
         }
 
         await spreadsheet.FinishAsync();
-    }
-
-    [Benchmark]
-    public void EpPlus4()
-    {
-        using var package = new ExcelPackage(Stream) { Compression = CompressionLevel.BestSpeed };
-        var worksheet = package.Workbook.Worksheets.Add(SheetName);
-
-        for (var row = 0; row < Values.Count; ++row)
-        {
-            var rowValues = Values[row];
-            for (var col = 0; col < rowValues.Count; ++col)
-            {
-                worksheet.Cells[row + 1, col + 1].Value = rowValues[col];
-            }
-        }
-
-        package.Save();
     }
 
     [Benchmark]
