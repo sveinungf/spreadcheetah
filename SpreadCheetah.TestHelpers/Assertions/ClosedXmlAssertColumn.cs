@@ -4,6 +4,8 @@ namespace SpreadCheetah.TestHelpers.Assertions;
 
 internal sealed class ClosedXmlAssertColumn(IXLColumn column) : ISpreadsheetAssertColumn
 {
+    public bool Hidden => column.IsHidden;
+
     public double Width => column.Width + 0.71062;
 
     public ISpreadsheetAssertStyle Style => new ClosedXmlAssertStyle(column.Style);

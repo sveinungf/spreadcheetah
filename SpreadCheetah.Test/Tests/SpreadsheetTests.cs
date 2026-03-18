@@ -1,7 +1,6 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using OfficeOpenXml;
 using Polyfills;
 using SpreadCheetah.Images;
 using SpreadCheetah.Styling;
@@ -589,19 +588,17 @@ public class SpreadsheetTests
         var expectedHidden = hidden;
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
-        {
-            // Act
-            await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
-            await spreadsheet.FinishAsync(Token);
-        }
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
+        await spreadsheet.AddRowAsync([new(1)], Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var package = new ExcelPackage(stream);
-        var worksheet = package.Workbook.Worksheets.Single();
-        var actualHidden = worksheet.Column(1).Hidden;
-        Assert.Equal(expectedHidden, actualHidden);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var column = Assert.Single(sheet.Columns);
+        Assert.Equal(expectedHidden, column.Hidden);
     }
 
     [Theory]
