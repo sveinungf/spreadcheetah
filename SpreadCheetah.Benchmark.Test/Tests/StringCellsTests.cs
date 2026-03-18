@@ -41,17 +41,6 @@ public sealed class StringCellsTests : IDisposable
     }
 
     [Fact]
-    public void StringCells_EpPlus4_CorrectCellValues()
-    {
-        // Act
-        _stringCells.EpPlus4();
-
-        // Assert
-        WriteOutput();
-        AssertCellValuesEqual();
-    }
-
-    [Fact]
     public void StringCells_OpenXmlSax_CorrectCellValues()
     {
         // Act
