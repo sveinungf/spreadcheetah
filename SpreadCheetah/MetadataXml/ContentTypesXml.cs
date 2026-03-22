@@ -26,7 +26,6 @@ internal struct ContentTypesXml : IXmlWriter<ContentTypesXml>
         """<Default Extension="xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" />"""u8 +
         """<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />"""u8;
 
-    private static ReadOnlySpan<byte> Jpeg => """<Default Extension="jpeg" ContentType="image/jpeg"/>"""u8;
     private static ReadOnlySpan<byte> Png => """<Default Extension="png" ContentType="image/png"/>"""u8;
     private static ReadOnlySpan<byte> Vml => "<Default Extension=\"vml\" ContentType=\"application/vnd.openxmlformats-officedocument.vmlDrawing\"/>"u8;
     private static ReadOnlySpan<byte> Styles => """<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml" />"""u8;
@@ -73,7 +72,7 @@ internal struct ContentTypesXml : IXmlWriter<ContentTypesXml>
         Current = _next switch
         {
             Element.Header => _buffer.TryWrite(Header),
-            Element.ImageTypes => TryWriteImageTypes(),
+            Element.ImageTypePng => TryWriteImageTypePng(),
             Element.Vml => TryWriteVml(),
             Element.Styles => TryWriteStyles(),
             Element.Drawings => TryWriteDrawings(),
@@ -90,22 +89,11 @@ internal struct ContentTypesXml : IXmlWriter<ContentTypesXml>
         return _next < Element.Done;
     }
 
-    private readonly bool TryWriteImageTypes()
+    private readonly bool TryWriteImageTypePng()
     {
-        if (_fileCounter is not { } counter)
-            return true;
-
-        var bytes = _buffer.GetSpan();
-        var bytesWritten = 0;
-
-        if (counter.EmbeddedImageTypes.HasFlag(EmbeddedImageTypes.Png) && !Png.TryCopyTo(bytes, ref bytesWritten))
-            return false;
-
-        if (counter.EmbeddedImageTypes.HasFlag(EmbeddedImageTypes.Jpeg) && !Jpeg.TryCopyTo(bytes, ref bytesWritten))
-            return false;
-
-        _buffer.Advance(bytesWritten);
-        return true;
+        return _fileCounter is not { } counter
+            || !counter.EmbeddedImageTypes.HasFlag(EmbeddedImageTypes.Png)
+            || _buffer.TryWrite(Png);
     }
 
     private readonly bool TryWriteStyles()
@@ -186,7 +174,7 @@ internal struct ContentTypesXml : IXmlWriter<ContentTypesXml>
     private enum Element
     {
         Header,
-        ImageTypes,
+        ImageTypePng,
         Vml,
         Styles,
         Drawings,
