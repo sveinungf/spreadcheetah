@@ -18,9 +18,9 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 10.0.x
     - name: Restore dependencies
@@ -30,7 +30,7 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage" --settings coverlet.runsettings
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       timeout-minutes: 5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}

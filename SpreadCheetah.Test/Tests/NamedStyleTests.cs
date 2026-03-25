@@ -1,7 +1,9 @@
-using OfficeOpenXml;
 using SpreadCheetah.Styling;
+using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
 using System.Drawing;
+using System.IO.Compression;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -30,11 +32,9 @@ public class NamedStyleTests
         // Assert
         Assert.Equal(addedStyleId, returnedStyleId);
         SpreadsheetAssert.Valid(stream);
-        using var package = new ExcelPackage(stream);
-        var namedStyles = package.Workbook.Styles.NamedStyles;
-        var namedStyle = Assert.Single(namedStyles, x => !x.Name.Equals("Normal", StringComparison.Ordinal));
-        Assert.Equal(name, namedStyle.Name);
-        Assert.True(namedStyle.Style.Font.Bold);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var stylesXml = await zip.GetStylesXmlStreamAsync(Token);
+        await VerifyXml(stylesXml);
     }
 
     [Fact]
@@ -53,11 +53,9 @@ public class NamedStyleTests
 
         // Assert
         SpreadsheetAssert.Valid(stream);
-        using var package = new ExcelPackage(stream);
-        var namedStyles = package.Workbook.Styles.NamedStyles;
-        var namedStyle = Assert.Single(namedStyles, x => !x.Name.Equals("Normal", StringComparison.Ordinal));
-        Assert.Equal(name, namedStyle.Name);
-        Assert.True(namedStyle.Style.Font.Bold);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var stylesXml = await zip.GetStylesXmlStreamAsync(Token);
+        await VerifyXml(stylesXml);
     }
 
     [Fact]
@@ -78,10 +76,9 @@ public class NamedStyleTests
         // Assert
         Assert.Equal(addedStyleId, returnedStyleId);
         SpreadsheetAssert.Valid(stream);
-        using var package = new ExcelPackage(stream);
-        var namedStyle = Assert.Single(package.Workbook.Styles.NamedStyles);
-        Assert.Equal("Normal", namedStyle.Name);
-        Assert.False(namedStyle.Style.Font.Bold);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var stylesXml = await zip.GetStylesXmlStreamAsync(Token);
+        await VerifyXml(stylesXml);
     }
 
     [Theory]
@@ -106,12 +103,8 @@ public class NamedStyleTests
         await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var package = new ExcelPackage(stream);
-        var worksheet = Assert.Single(package.Workbook.Worksheets);
-        var actualCell = Assert.Single(worksheet.Cells);
-        Assert.Equal(name, actualCell.StyleName);
-        Assert.True(actualCell.Style.Font.Bold);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.True(sheet["A1"].Style.Font.Bold);
     }
 
     [Fact]
@@ -133,16 +126,12 @@ public class NamedStyleTests
         await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var package = new ExcelPackage(stream);
-        var worksheet1 = package.Workbook.Worksheets["Sheet 1"];
-        Assert.Equal(name, worksheet1.Cells["A1"].StyleName);
-        Assert.NotEqual(name, worksheet1.Cells["B2"].StyleName);
-        Assert.Equal(name, worksheet1.Cells["C1"].StyleName);
-        Assert.Equal(name, worksheet1.Cells["A2"].StyleName);
-
-        var worksheet2 = package.Workbook.Worksheets["Sheet 2"];
-        Assert.Equal(name, worksheet2.Cells["A1"].StyleName);
+        using var sheets = SpreadsheetAssert.Sheets(stream);
+        Assert.True(sheets[0]["A1"].Style.Font.Bold);
+        Assert.True(sheets[1]["A1"].Style.Font.Bold);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var stylesXml = await zip.GetStylesXmlStreamAsync(Token);
+        await VerifyXml(stylesXml);
     }
 
     [Fact]
@@ -154,9 +143,9 @@ public class NamedStyleTests
         (string Name, Style Style)[] styles =
         [
             ("Bold", new Style { Font = { Bold = true } }),
-            ("Italic", new Style { Font = { Italic = true } }),
             ("Red", new Style { Fill = { Color = Color.Red } }),
-            ("Blue", new Style { Fill = { Color = Color.Blue } })
+            ("Blue", new Style { Fill = { Color = Color.Blue } }),
+            ("Italic", new Style { Font = { Italic = true } })
         ];
 
         // Act
@@ -170,15 +159,12 @@ public class NamedStyleTests
         await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var package = new ExcelPackage(stream);
-        var worksheet1 = package.Workbook.Worksheets["Sheet 1"];
-        Assert.Equal(styles[0].Name, worksheet1.Cells["A1"].StyleName);
-        Assert.Equal(styles[1].Name, worksheet1.Cells["C1"].StyleName);
-        Assert.Equal(styles[2].Name, worksheet1.Cells["A2"].StyleName);
-
-        var worksheet2 = package.Workbook.Worksheets["Sheet 2"];
-        Assert.Equal(styles[3].Name, worksheet2.Cells["A1"].StyleName);
+        using var sheets = SpreadsheetAssert.Sheets(stream);
+        Assert.True(sheets[0]["A1"].Style.Font.Bold);
+        Assert.True(sheets[1]["A1"].Style.Font.Italic);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var stylesXml = await zip.GetStylesXmlStreamAsync(Token);
+        await VerifyXml(stylesXml);
     }
 
     [Fact]
@@ -203,12 +189,9 @@ public class NamedStyleTests
 
         // Assert
         SpreadsheetAssert.Valid(stream);
-        using var package = new ExcelPackage(stream);
-        var actualNames = package.Workbook.Styles.NamedStyles
-            .Where(x => !x.Name.Equals("Normal", StringComparison.Ordinal))
-            .Select(x => x.Name);
-
-        Assert.Equivalent(names, actualNames);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var stylesXml = await zip.GetStylesXmlStreamAsync(Token);
+        await VerifyXml(stylesXml);
     }
 
     [Fact]

@@ -17,7 +17,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
     private readonly byte[] _buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
 
     public void Dispose() => ArrayPool<byte>.Shared.Return(_buffer, true);
-    public Span<byte> GetSpan() => _buffer.AsSpan(Index);
+    private Span<byte> GetSpan() => _buffer.AsSpan(Index);
     private Span<byte> GetSpan(int start) => _buffer.AsSpan(Index + start);
     public int Index { get; private set; }
     public void Advance(int bytes) => Index += bytes;
@@ -353,6 +353,29 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         }
 
         public bool AppendFormatted(SimpleSingleCellReferenceAttribute attribute)
+        {
+            if (attribute.Value is not { } value)
+                return true;
+
+            if (!AppendFormatted(" "u8))
+                return Fail();
+
+            if (!AppendFormatted(attribute.AttributeName))
+                return Fail();
+
+            if (!AppendFormatted("=\""u8))
+                return Fail();
+
+            if (!AppendFormatted(value))
+                return Fail();
+
+            if (!AppendFormatted("\""u8))
+                return Fail();
+
+            return true;
+        }
+
+        public bool AppendFormatted(ColorAttribute attribute)
         {
             if (attribute.Value is not { } value)
                 return true;

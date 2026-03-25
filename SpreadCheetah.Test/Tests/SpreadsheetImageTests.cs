@@ -1,7 +1,5 @@
 using ClosedXML.Excel;
 using ClosedXML.Excel.Drawings;
-using OfficeOpenXml;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using Polyfills;
 using SpreadCheetah.Images;
 using SpreadCheetah.Test.Extensions;
@@ -642,10 +640,10 @@ public class SpreadsheetImageTests
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
 
-        using var package = new ExcelPackage(outputStream);
-        var worksheet = Assert.Single(package.Workbook.Worksheets);
-        var drawing = Assert.Single(worksheet.Drawings);
-        Assert.Equal("C4", drawing.To.ToCellReferenceString());
+        using var workbook = new XLWorkbook(outputStream);
+        var worksheet = Assert.Single(workbook.Worksheets);
+        var picture = Assert.Single(worksheet.Pictures);
+        Assert.Equal("C4", picture.BottomRightCell.Address.ToString());
     }
 
     [Theory]
@@ -670,10 +668,10 @@ public class SpreadsheetImageTests
         await spreadsheet.FinishAsync(Token);
         SpreadsheetAssert.Valid(outputStream);
 
-        using var package = new ExcelPackage(outputStream);
-        var worksheet = Assert.Single(package.Workbook.Worksheets);
-        var drawing = Assert.Single(worksheet.Drawings);
-        Assert.Equal(lowerRightReference, drawing.To.ToCellReferenceString());
+        using var workbook = new XLWorkbook(outputStream);
+        var worksheet = Assert.Single(workbook.Worksheets);
+        var picture = Assert.Single(worksheet.Pictures);
+        Assert.Equal(lowerRightReference, picture.BottomRightCell.Address.ToString());
     }
 
     [Theory]

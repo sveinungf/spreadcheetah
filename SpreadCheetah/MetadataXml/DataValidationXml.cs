@@ -1,5 +1,5 @@
 using SpreadCheetah.CellReferences;
-using SpreadCheetah.Helpers;
+using SpreadCheetah.MetadataXml.Attributes;
 using SpreadCheetah.Validations;
 
 namespace SpreadCheetah.MetadataXml;
@@ -64,73 +64,76 @@ internal struct DataValidationXml(
 
     private readonly bool TryWriteHeader()
     {
-        var span = buffer.GetSpan();
-        var written = 0;
         var valid = validation;
 
-        if (!"<dataValidation "u8.TryCopyTo(span, ref written)) return false;
-        if (!TryWriteType(valid.Type, span, ref written)) return false;
-        if (!TryWriteErrorType(valid.ErrorType, span, ref written)) return false;
-        if (!TryWriteOperator(valid.Operator, span, ref written)) return false;
+        var type = new SpanByteAttribute("type"u8, GetTypeValue(valid.Type));
+        var errorType = new SpanByteAttribute("errorStyle"u8, GetErrorTypeValue(valid.ErrorType));
+        var theOperator = new SpanByteAttribute("operator"u8, GetOperatorValue(valid.Operator));
+        var allowBlank = new BooleanAttribute("allowBlank"u8, valid.IgnoreBlank ? true : null);
+        var showDropdown = new BooleanAttribute("showDropDown"u8, valid.ShowDropdown ? null : true);
+        var showInputMessage = new BooleanAttribute("showInputMessage"u8, valid.ShowInputMessage ? true : null);
+        var showErrorMessage = new BooleanAttribute("showErrorMessage"u8, valid.ShowErrorAlert ? true : null);
 
-        if (valid.IgnoreBlank && !"allowBlank=\"1\" "u8.TryCopyTo(span, ref written)) return false;
-        if (!valid.ShowDropdown && !"showDropDown=\"1\" "u8.TryCopyTo(span, ref written)) return false;
-        if (valid.ShowInputMessage && !"showInputMessage=\"1\" "u8.TryCopyTo(span, ref written)) return false;
-        if (valid.ShowErrorAlert && !"showErrorMessage=\"1\" "u8.TryCopyTo(span, ref written)) return false;
-
-        buffer.Advance(written);
-        return true;
+        return buffer.TryWrite(
+            $"{"<dataValidation"u8}" +
+            $"{type}" +
+            $"{errorType}" +
+            $"{theOperator}" +
+            $"{allowBlank}" +
+            $"{showDropdown}" +
+            $"{showInputMessage}" +
+            $"{showErrorMessage}");
     }
 
-    private static bool TryWriteType(ValidationType type, Span<byte> bytes, ref int bytesWritten) => type switch
+    private static ReadOnlySpan<byte> GetTypeValue(ValidationType type) => type switch
     {
-        ValidationType.DateTime => "type=\"date\" "u8.TryCopyTo(bytes, ref bytesWritten),
-        ValidationType.Decimal => "type=\"decimal\" "u8.TryCopyTo(bytes, ref bytesWritten),
-        ValidationType.Integer => "type=\"whole\" "u8.TryCopyTo(bytes, ref bytesWritten),
-        ValidationType.List => "type=\"list\" "u8.TryCopyTo(bytes, ref bytesWritten),
-        _ => "type=\"textLength\" "u8.TryCopyTo(bytes, ref bytesWritten)
+        ValidationType.DateTime => "date"u8,
+        ValidationType.Decimal => "decimal"u8,
+        ValidationType.Integer => "whole"u8,
+        ValidationType.List => "list"u8,
+        _ => "textLength"u8
     };
 
-    private static bool TryWriteErrorType(ValidationErrorType type, Span<byte> bytes, ref int bytesWritten) => type switch
+    private static ReadOnlySpan<byte> GetErrorTypeValue(ValidationErrorType type) => type switch
     {
-        ValidationErrorType.Warning => "errorStyle=\"warning\" "u8.TryCopyTo(bytes, ref bytesWritten),
-        ValidationErrorType.Information => "errorStyle=\"information\" "u8.TryCopyTo(bytes, ref bytesWritten),
-        _ => true
+        ValidationErrorType.Warning => "warning"u8,
+        ValidationErrorType.Information => "information"u8,
+        _ => []
     };
 
-    private static bool TryWriteOperator(ValidationOperator op, Span<byte> bytes, ref int bytesWritten) => op switch
+    private static ReadOnlySpan<byte> GetOperatorValue(ValidationOperator op) => op switch
     {
-        ValidationOperator.NotBetween => "operator=\"notBetween\" "u8.TryCopyTo(bytes, ref bytesWritten),
-        ValidationOperator.EqualTo => "operator=\"equal\" "u8.TryCopyTo(bytes, ref bytesWritten),
-        ValidationOperator.NotEqualTo => "operator=\"notEqual\" "u8.TryCopyTo(bytes, ref bytesWritten),
-        ValidationOperator.GreaterThan => "operator=\"greaterThan\" "u8.TryCopyTo(bytes, ref bytesWritten),
-        ValidationOperator.LessThan => "operator=\"lessThan\" "u8.TryCopyTo(bytes, ref bytesWritten),
-        ValidationOperator.GreaterThanOrEqualTo => "operator=\"greaterThanOrEqual\" "u8.TryCopyTo(bytes, ref bytesWritten),
-        ValidationOperator.LessThanOrEqualTo => "operator=\"lessThanOrEqual\" "u8.TryCopyTo(bytes, ref bytesWritten),
-        _ => true
+        ValidationOperator.NotBetween => "notBetween"u8,
+        ValidationOperator.EqualTo => "equal"u8,
+        ValidationOperator.NotEqualTo => "notEqual"u8,
+        ValidationOperator.GreaterThan => "greaterThan"u8,
+        ValidationOperator.LessThan => "lessThan"u8,
+        ValidationOperator.GreaterThanOrEqualTo => "greaterThanOrEqual"u8,
+        ValidationOperator.LessThanOrEqualTo => "lessThanOrEqual"u8,
+        _ => []
     };
 
     private readonly bool TryWriteInputTitleStart()
-        => string.IsNullOrEmpty(validation.InputTitle) || buffer.TryWrite("promptTitle=\""u8);
+        => string.IsNullOrEmpty(validation.InputTitle) || buffer.TryWrite(" promptTitle=\""u8);
 
     private readonly bool TryWriteInputMessageStart()
-        => string.IsNullOrEmpty(validation.InputMessage) || buffer.TryWrite("prompt=\""u8);
+        => string.IsNullOrEmpty(validation.InputMessage) || buffer.TryWrite(" prompt=\""u8);
 
     private readonly bool TryWriteErrorTitleStart()
-        => string.IsNullOrEmpty(validation.ErrorTitle) || buffer.TryWrite("errorTitle=\""u8);
+        => string.IsNullOrEmpty(validation.ErrorTitle) || buffer.TryWrite(" errorTitle=\""u8);
 
     private readonly bool TryWriteErrorMessageStart()
-        => string.IsNullOrEmpty(validation.ErrorMessage) || buffer.TryWrite("error=\""u8);
+        => string.IsNullOrEmpty(validation.ErrorMessage) || buffer.TryWrite(" error=\""u8);
 
     private readonly bool TryWriteAttributeEnd(string? value)
-        => string.IsNullOrEmpty(value) || buffer.TryWrite("\" "u8);
+        => string.IsNullOrEmpty(value) || buffer.TryWrite("\""u8);
 
     private readonly bool TryWriteReference()
     {
         return buffer.TryWrite(
-            $"{"sqref=\""u8}" +
+            $"{" sqref=\""u8}" +
             $"{reference.Reference}" +
-            $"{"\" "u8}");
+            $"{"\""u8}");
     }
 
     private readonly bool TryWriteValue1Start() => buffer.TryWrite("><formula1>"u8);

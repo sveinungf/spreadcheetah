@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Polyfills;
 using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
 using System.IO.Compression;
@@ -238,7 +239,7 @@ public class SpreadsheetNoteTests
         const string styleAttribute = " style=\"";
         var styleStartIndex = vml.IndexOf(styleAttribute, StringComparison.OrdinalIgnoreCase);
         var styleStartIndexActual = styleStartIndex + styleAttribute.Length;
-        var styleEndIndex = vml.IndexOf('"', styleStartIndexActual);
+        var styleEndIndex = vml.IndexOf('"', styleStartIndexActual, StringComparison.Ordinal);
         var style = vml.Substring(styleStartIndexActual, styleEndIndex - styleStartIndexActual);
         var strings = style.Split(';');
         var styles = strings.Select(x => x.Split(':')).ToDictionary(x => x[0], x => x[1], StringComparer.OrdinalIgnoreCase);

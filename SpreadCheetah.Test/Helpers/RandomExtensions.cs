@@ -1,3 +1,5 @@
+using Polyfills;
+
 namespace SpreadCheetah.Test.Helpers;
 
 internal static class RandomExtensions
@@ -6,7 +8,7 @@ internal static class RandomExtensions
     {
         var minTicks = minValue.Ticks;
         var maxTicks = maxValue.Ticks;
-        var ticks = r.NextDouble() * (maxTicks - minTicks) + minTicks;
-        return new DateTime((long)ticks, DateTimeKind.Unspecified);
+        var ticks = r.NextInt64(minTicks, maxTicks);
+        return new DateTime(ticks, DateTimeKind.Unspecified);
     }
 }

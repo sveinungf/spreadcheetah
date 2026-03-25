@@ -118,6 +118,40 @@ public class CellValueConverterTests
     }
 
     [Fact]
+    public Task CellValueConverter_ClassWithInvalidGenericConverter()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext();
+        context.TestCode = """
+            using SpreadCheetah;
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+            public class ClassWithInvalidConverter
+            {
+                [CellValueConverter({|SPCH1007:typeof(MyTypeIntConverter)|})]
+                public required MyType<string> Property { get; init; }
+            }
+            
+            public class MyType<T>
+            {
+                public T Value { get; set; }
+            }
+
+            internal class MyTypeIntConverter : CellValueConverter<MyType<int>>
+            {
+                public override DataCell ConvertToDataCell(MyType<int> myType) => new(myType.Value);
+            }
+            
+            [WorksheetRow(typeof(ClassWithInvalidConverter))]
+            public partial class MyGenRowContext : WorksheetRowContext;
+            """;
+
+        // Act & Assert
+        return context.RunAsync(Token);
+    }
+
+    [Fact]
     public Task CellValueConverter_TwoClassesUsingTheSameConverter()
     {
         // Arrange
