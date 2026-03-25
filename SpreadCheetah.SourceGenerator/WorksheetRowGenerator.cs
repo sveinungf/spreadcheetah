@@ -276,7 +276,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
     private static void GenerateCreateWorksheetOptions(StringBuilder sb, int typeIndex, RowType rowType)
     {
         var properties = rowType.Properties;
-        var defaultColumnWidth = rowType.DefaultColumnWidth;
+        var defaultColumnWidth = rowType.DefaultColumnWidth?.Width;
 
         Debug.Assert(defaultColumnWidth is not null || properties.Any(static x => x.ColumnWidth is not null));
 
@@ -287,9 +287,16 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                         var options = new SpreadCheetah.Worksheets.WorksheetOptions();
             """));
 
+        if (defaultColumnWidth is { } defaultWidth)
+        {
+            sb.AppendLine(FormattableString.Invariant($"""
+                        options.DefaultColumnWidth = {defaultWidth};
+            """));
+        }
+
         foreach (var (i, property) in properties.Index())
         {
-            var width = property.ColumnWidth?.Width ?? defaultColumnWidth?.Width;
+            var width = property.ColumnWidth?.Width;
             if (width is null)
                 continue;
 
