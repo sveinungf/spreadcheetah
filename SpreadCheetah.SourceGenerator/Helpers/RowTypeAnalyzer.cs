@@ -46,6 +46,12 @@ internal sealed class RowTypeAnalyzer(
         AttributeData attribute,
         CancellationToken token)
     {
+        if (Result.DefaultColumnWidth is not null)
+        {
+            diagnostics.ReportAttributeConflictingWithBaseClass(attribute, token);
+            return false;
+        }
+
         var args = attribute.ConstructorArguments;
         if (args is not [{ Value: double attributeValue }])
             return false;

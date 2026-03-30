@@ -142,4 +142,15 @@ internal static class Diagnostics
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static Diagnostic AttributeConflictingWithBaseClass(Location? location, string? attribute)
+        => Diagnostic.Create(AttributeConflictingWithBaseClassDescriptor, location, attribute ?? "attribute");
+
+    private static readonly DiagnosticDescriptor AttributeConflictingWithBaseClassDescriptor = new(
+        id: "SPCH1012",
+        title: "Duplicate attribute",
+        messageFormat: "Attribute '{0}' duplicates an attribute already defined on the base class, causing a conflict",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

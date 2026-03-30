@@ -7,6 +7,8 @@ internal interface IDiagnosticsReporter
 {
     void ReportAttributeCombinationNotSupported(AttributeData attribute, string otherAttribute, CancellationToken token);
 
+    void ReportAttributeConflictingWithBaseClass(AttributeData attribute, CancellationToken token);
+
     void ReportDuplicateColumnOrdering(AttributeData attribute, CancellationToken token);
 
     void ReportInvalidArgument(AttributeData attribute, CancellationToken token);
