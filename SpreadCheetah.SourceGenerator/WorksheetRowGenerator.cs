@@ -68,7 +68,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             RowTypes: rowTypes.ToEquatableArray());
     }
 
-    private static RowType AnalyzeTypeProperties(ITypeSymbol rowType, CancellationToken token)
+    private static RowType AnalyzeTypeProperties(INamedTypeSymbol rowType, CancellationToken token)
     {
         var implicitOrderProperties = new List<RowTypeProperty>();
         var explicitOrderProperties = new Dictionary<int, RowTypeProperty>();

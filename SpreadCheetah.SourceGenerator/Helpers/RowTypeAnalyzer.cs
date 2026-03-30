@@ -6,7 +6,7 @@ namespace SpreadCheetah.SourceGenerator.Helpers;
 
 internal sealed class RowTypeAnalyzer(
     IDiagnosticsReporter diagnostics,
-    ITypeSymbol rowType)
+    INamedTypeSymbol rowType)
 {
     public RowTypeAttributeData Result { get; } = new();
 
