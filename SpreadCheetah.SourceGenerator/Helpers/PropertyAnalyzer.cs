@@ -18,7 +18,7 @@ internal sealed class PropertyAnalyzer(
     {
         var attributes = propertySymbol
             .GetAttributes()
-            .Where(x => x.AttributeClass is { } c && c.HasSpreadCheetahSrcGenNamespace())
+            .Where(x => x.AttributeClass is { HasSpreadCheetahSrcGenNamespace: true })
             .OrderBy(x => x, AttributeDataComparer.Instance);
 
         foreach (var attribute in attributes)

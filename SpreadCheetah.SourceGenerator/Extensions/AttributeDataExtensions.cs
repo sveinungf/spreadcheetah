@@ -31,7 +31,7 @@ internal static class AttributeDataExtensions
 
         if (attribute is not { AttributeClass.MetadataName: Attributes.GenerationOptions })
             return false;
-        if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace())
+        if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace)
             return false;
 
         foreach (var (key, value) in attribute.NamedArguments)

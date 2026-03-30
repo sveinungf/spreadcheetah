@@ -14,7 +14,7 @@ internal sealed class RowTypeAnalyzer(
     {
         var attributes = rowType
             .GetAttributes()
-            .Where(x => x.AttributeClass is { } c && c.HasSpreadCheetahSrcGenNamespace());
+            .Where(x => x.AttributeClass is { HasSpreadCheetahSrcGenNamespace: true });
 
         foreach (var attribute in attributes)
         {
