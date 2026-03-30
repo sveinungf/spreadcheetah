@@ -194,7 +194,7 @@ internal static class SymbolExtensions
             : null;
     }
 
-    private static bool TryGetInheritColumnsAttribute(this AttributeData attribute, out InheritedColumnsOrder result)
+    public static bool TryGetInheritColumnsAttribute(this AttributeData attribute, out InheritedColumnsOrder result)
     {
         result = default;
 

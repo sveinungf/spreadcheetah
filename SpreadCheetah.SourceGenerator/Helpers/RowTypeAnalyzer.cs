@@ -12,11 +12,7 @@ internal sealed class RowTypeAnalyzer(
 
     public void Analyze(CancellationToken token)
     {
-        var attributes = rowType
-            .GetAttributes()
-            .Where(x => x.AttributeClass is { HasSpreadCheetahSrcGenNamespace: true });
-
-        foreach (var attribute in attributes)
+        foreach (var attribute in GetAllAttributes(rowType))
         {
             _ = attribute.AttributeClass?.MetadataName switch
             {
@@ -24,6 +20,26 @@ internal sealed class RowTypeAnalyzer(
                 _ => false
             };
         }
+    }
+
+    private static List<AttributeData> GetAllAttributes(INamedTypeSymbol type)
+    {
+        var attributes = type.GetAttributes();
+        if (attributes.Length == 0)
+            return [];
+
+        var spreadCheetahAttributes = attributes
+            .Where(x => x.AttributeClass is { HasSpreadCheetahSrcGenNamespace: true })
+            .ToList();
+
+        if (spreadCheetahAttributes.Count == 0)
+            return [];
+
+        var inheritColumnsAttributeCount = spreadCheetahAttributes.RemoveAll(x => x.TryGetInheritColumnsAttribute(out _));
+
+        return inheritColumnsAttributeCount > 0 && type.BaseType is { } baseType
+            ? [.. GetAllAttributes(baseType), .. spreadCheetahAttributes]
+            : spreadCheetahAttributes;
     }
 
     private bool TryGetDefaultColumnWidthAttribute(
