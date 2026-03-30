@@ -111,24 +111,28 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         explicitOrderProperties.AddWithImplicitKeys(implicitOrderProperties);
 
-        var cellType = (hasFormula, hasStyle) switch
-        {
-            (true, _) => CellType.Cell,
-            (_, true) => CellType.StyledCell,
-            _ => CellType.DataCell
-        };
-
-        var defaultColumnWidth = rowType.GetDefaultColumnWidthAttribute();
+        var rowTypeAnalyzer = new RowTypeAnalyzer(NullDiagnosticsReporter.Instance, rowType);
+        rowTypeAnalyzer.Analyze(CancellationToken.None);
 
         return new RowType
         {
-            CellType = cellType,
-            DefaultColumnWidth = defaultColumnWidth,
+            CellType = GetCellType(hasFormula, hasStyle),
+            DefaultColumnWidth = rowTypeAnalyzer.Result.DefaultColumnWidth,
             FullName = rowType.ToString(),
             HasStyle = hasStyle,
             IsReferenceType = rowType.IsReferenceType,
             Name = rowType.Name,
             Properties = explicitOrderProperties.OrderBy(x => x.Key).Select(x => x.Value).ToEquatableArray()
+        };
+    }
+
+    private static CellType GetCellType(bool hasFormula, bool hasStyle)
+    {
+        return (hasFormula, hasStyle) switch
+        {
+            (true, _) => CellType.Cell,
+            (_, true) => CellType.StyledCell,
+            _ => CellType.DataCell
         };
     }
 
