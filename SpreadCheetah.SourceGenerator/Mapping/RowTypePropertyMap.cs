@@ -10,15 +10,17 @@ internal static class RowTypePropertyMap
         this PropertyAttributeData data,
         IPropertySymbol propertySymbol)
     {
-        return new RowTypeProperty(
-            Name: propertySymbol.Name,
-            CellFormat: data.CellFormat,
-            CellStyle: data.CellStyle,
-            CellValueConverter: data.CellValueConverter,
-            CellValueTruncate: data.CellValueTruncate,
-            ColumnHeader: data.ColumnHeader?.ToColumnHeaderInfo(),
-            ColumnWidth: data.ColumnWidth,
-            Formula: data.CellValueConverter is null ? propertySymbol.Type.ToPropertyFormula() : null);
+        return new RowTypeProperty
+        {
+            CellFormat = data.CellFormat,
+            CellStyle = data.CellStyle,
+            CellValueConverter = data.CellValueConverter,
+            CellValueTruncate = data.CellValueTruncate,
+            ColumnHeader = data.ColumnHeader?.ToColumnHeaderInfo(),
+            ColumnWidth = data.ColumnWidth,
+            Formula = data.CellValueConverter is null ? propertySymbol.Type.ToPropertyFormula() : null,
+            Name = propertySymbol.Name
+        };
     }
 
     private static ColumnHeaderInfo ToColumnHeaderInfo(this ColumnHeader columnHeader)

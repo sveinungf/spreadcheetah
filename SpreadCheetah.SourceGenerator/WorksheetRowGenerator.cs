@@ -120,14 +120,16 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         var defaultColumnWidth = rowType.GetDefaultColumnWidthAttribute();
 
-        return new RowType(
-            FullName: rowType.ToString(),
-            HasStyle: hasStyle,
-            IsReferenceType: rowType.IsReferenceType,
-            CellType: cellType,
-            Name: rowType.Name,
-            DefaultColumnWidth: defaultColumnWidth,
-            Properties: explicitOrderProperties.OrderBy(x => x.Key).Select(x => x.Value).ToEquatableArray());
+        return new RowType
+        {
+            CellType = cellType,
+            DefaultColumnWidth = defaultColumnWidth,
+            FullName = rowType.ToString(),
+            HasStyle = hasStyle,
+            IsReferenceType = rowType.IsReferenceType,
+            Name = rowType.Name,
+            Properties = explicitOrderProperties.OrderBy(x => x.Key).Select(x => x.Value).ToEquatableArray()
+        };
     }
 
     private static void Execute(ContextClass? contextClass, SourceProductionContext context)
