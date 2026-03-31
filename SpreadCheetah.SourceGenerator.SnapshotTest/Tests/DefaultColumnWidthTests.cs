@@ -19,6 +19,9 @@ public class DefaultColumnWidthTests
             [DefaultColumnWidth(10)]
             public class ClassWithDefaultColumnWidth
             {
+                public int Id { get; set; }
+
+                [ColumnWidth(20)]
                 public string? Name { get; set; }
             }
             

@@ -38,16 +38,18 @@ namespace MyNamespace
         {
             var options = new SpreadCheetah.Worksheets.WorksheetOptions();
             options.DefaultColumnWidth = 10;
+            options.Column(2).Width = 20;
             return options;
         }
 
         private static async ValueTask AddHeaderRow0Async(SpreadCheetah.Spreadsheet spreadsheet, SpreadCheetah.Styling.StyleId? styleId, CancellationToken token)
         {
-            var headerNames = ArrayPool<string?>.Shared.Rent(1);
+            var headerNames = ArrayPool<string?>.Shared.Rent(2);
             try
             {
-                headerNames[0] = "Name";
-                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 1)!, styleId, token).ConfigureAwait(false);
+                headerNames[0] = "Id";
+                headerNames[1] = "Name";
+                await spreadsheet.AddHeaderRowAsync(headerNames.AsMemory(0, 2)!, styleId, token).ConfigureAwait(false);
             }
             finally
             {
@@ -79,7 +81,7 @@ namespace MyNamespace
             MyNamespace.ClassWithDefaultColumnWidth obj,
             CancellationToken token)
         {
-            var cells = ArrayPool<DataCell>.Shared.Rent(1);
+            var cells = ArrayPool<DataCell>.Shared.Rent(2);
             try
             {
                 var styleIds = Array.Empty<StyleId>();
@@ -95,7 +97,7 @@ namespace MyNamespace
             IEnumerable<MyNamespace.ClassWithDefaultColumnWidth?> objs,
             CancellationToken token)
         {
-            var cells = ArrayPool<DataCell>.Shared.Rent(1);
+            var cells = ArrayPool<DataCell>.Shared.Rent(2);
             try
             {
                 var styleIds = Array.Empty<StyleId>();
@@ -117,8 +119,9 @@ namespace MyNamespace
             if (obj is null)
                 return spreadsheet.AddRowAsync(ReadOnlyMemory<DataCell>.Empty, token);
 
-            cells[0] = new DataCell(obj.Name);
-            return spreadsheet.AddRowAsync(cells.AsMemory(0, 1), token);
+            cells[0] = new DataCell(obj.Id);
+            cells[1] = new DataCell(obj.Name);
+            return spreadsheet.AddRowAsync(cells.AsMemory(0, 2), token);
         }
     }
 }
