@@ -68,7 +68,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
             RowTypes: rowTypes.ToEquatableArray());
     }
 
-    private static RowType AnalyzeTypeProperties(ITypeSymbol rowType, CancellationToken token)
+    private static RowType AnalyzeTypeProperties(INamedTypeSymbol rowType, CancellationToken token)
     {
         var implicitOrderProperties = new List<RowTypeProperty>();
         var explicitOrderProperties = new Dictionary<int, RowTypeProperty>();
@@ -111,20 +111,29 @@ public class WorksheetRowGenerator : IIncrementalGenerator
 
         explicitOrderProperties.AddWithImplicitKeys(implicitOrderProperties);
 
-        var cellType = (hasFormula, hasStyle) switch
+        var rowTypeAnalyzer = new RowTypeAnalyzer(NullDiagnosticsReporter.Instance, rowType);
+        rowTypeAnalyzer.Analyze(CancellationToken.None);
+
+        return new RowType
+        {
+            CellType = GetCellType(hasFormula, hasStyle),
+            DefaultColumnWidth = rowTypeAnalyzer.Result.DefaultColumnWidth,
+            FullName = rowType.ToString(),
+            HasStyle = hasStyle,
+            IsReferenceType = rowType.IsReferenceType,
+            Name = rowType.Name,
+            Properties = explicitOrderProperties.OrderBy(x => x.Key).Select(x => x.Value).ToEquatableArray()
+        };
+    }
+
+    private static CellType GetCellType(bool hasFormula, bool hasStyle)
+    {
+        return (hasFormula, hasStyle) switch
         {
             (true, _) => CellType.Cell,
             (_, true) => CellType.StyledCell,
             _ => CellType.DataCell
         };
-
-        return new RowType(
-            FullName: rowType.ToString(),
-            HasStyle: hasStyle,
-            IsReferenceType: rowType.IsReferenceType,
-            CellType: cellType,
-            Name: rowType.Name,
-            Properties: explicitOrderProperties.OrderBy(x => x.Key).Select(x => x.Value).ToEquatableArray());
     }
 
     private static void Execute(ContextClass? contextClass, SourceProductionContext context)
@@ -237,7 +246,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         }
 
         var properties = rowType.Properties;
-        var doGenerateCreateWorksheetOptions = properties.Any(static x => x.ColumnWidth is not null);
+        var doGenerateCreateWorksheetOptions = rowType.DefaultColumnWidth is not null || properties.Any(static x => x.ColumnWidth is not null);
         var doGenerateCreateWorksheetRowDependencyInfo = properties.Any(static x => x.HasStyle);
 
         sb.Append(FormattableString.Invariant($$"""
@@ -256,7 +265,7 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         sb.AppendLine(");");
 
         if (doGenerateCreateWorksheetOptions)
-            GenerateCreateWorksheetOptions(sb, typeIndex, properties);
+            GenerateCreateWorksheetOptions(sb, typeIndex, rowType);
 
         var styleLookup = doGenerateCreateWorksheetRowDependencyInfo
             ? GenerateCreateWorksheetRowDependencyInfo(sb, typeIndex, properties)
@@ -270,9 +279,12 @@ public class WorksheetRowGenerator : IIncrementalGenerator
         GenerateAddCellsAsRow(sb, rowType, styleLookup, codeGenState);
     }
 
-    private static void GenerateCreateWorksheetOptions(StringBuilder sb, int typeIndex, EquatableArray<RowTypeProperty> properties)
+    private static void GenerateCreateWorksheetOptions(StringBuilder sb, int typeIndex, RowType rowType)
     {
-        Debug.Assert(properties.Any(static x => x.ColumnWidth is not null));
+        var properties = rowType.Properties;
+        var defaultColumnWidth = rowType.DefaultColumnWidth?.Width;
+
+        Debug.Assert(defaultColumnWidth is not null || properties.Any(static x => x.ColumnWidth is not null));
 
         sb.AppendLine(FormattableString.Invariant($$"""
 
@@ -281,12 +293,19 @@ public class WorksheetRowGenerator : IIncrementalGenerator
                         var options = new SpreadCheetah.Worksheets.WorksheetOptions();
             """));
 
+        if (defaultColumnWidth is { } defaultWidth)
+        {
+            sb.AppendLine(FormattableString.Invariant($"""
+                        options.DefaultColumnWidth = {defaultWidth};
+            """));
+        }
+
         foreach (var (i, property) in properties.Index())
         {
-            if (property.ColumnWidth is not { } columnWidth)
+            var width = property.ColumnWidth?.Width;
+            if (width is null)
                 continue;
 
-            var width = columnWidth.Width;
             var columnNumber = i + 1;
 
             sb.AppendLine(FormattableString.Invariant($"""

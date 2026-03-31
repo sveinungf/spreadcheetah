@@ -263,6 +263,12 @@ namespace SpreadCheetah.SourceGeneration
         public ColumnWidthAttribute(double width) { }
         public double? Width { get; }
     }
+    [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple=false)]
+    public sealed class DefaultColumnWidthAttribute : System.Attribute
+    {
+        public DefaultColumnWidthAttribute(double width) { }
+        public double? Width { get; }
+    }
     public static class EmptyWorksheetRowContext
     {
         public static SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> CreateTypeInfo<T>() { }

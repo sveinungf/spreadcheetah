@@ -91,6 +91,10 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
         if (context.Symbol is not INamedTypeSymbol type)
             return;
 
+        var diagnostics = new DiagnosticsReporter(context);
+        var analyzer = new RowTypeAnalyzer(diagnostics, type);
+        analyzer.Analyze(context.CancellationToken);
+
         var typeHasColumnOrderAttribute = type
             .GetMembers()
             .OfType<IPropertySymbol>()
@@ -101,7 +105,6 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
         if (!typeHasColumnOrderAttribute)
             return;
 
-        var diagnostics = new DiagnosticsReporter(context);
         var columnOrderValues = new HashSet<int>();
 
         foreach (var property in type.GetClassAndBaseClassProperties())

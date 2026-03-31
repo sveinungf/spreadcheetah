@@ -19,7 +19,8 @@ internal static class Diagnostics
         AttributeCombinationNotSupportedDescriptor,
         AttributeTypeArgumentMustHaveDefaultConstructorDescriptor,
         MissingPropertyForColumnHeaderDescriptor,
-        PropertyForColumnHeaderMustBePublicDescriptor
+        PropertyForColumnHeaderMustBePublicDescriptor,
+        AttributeConflictingWithBaseClassDescriptor
     ];
 
     public static Diagnostic NoPropertiesFound(Location? location, string rowTypeName)
@@ -139,6 +140,17 @@ internal static class Diagnostics
         id: "SPCH1011",
         title: "Property for ColumnHeader must be public",
         messageFormat: "Can't use property '{0}' on '{1}' for ColumnHeader, because the property does not have a public getter. If the type is a resource file, make sure it has its access modifier set to public.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static Diagnostic AttributeConflictingWithBaseClass(Location? location, string? attribute)
+        => Diagnostic.Create(AttributeConflictingWithBaseClassDescriptor, location, attribute ?? "attribute");
+
+    private static readonly DiagnosticDescriptor AttributeConflictingWithBaseClassDescriptor = new(
+        id: "SPCH1012",
+        title: "Duplicate attribute",
+        messageFormat: "Attribute '{0}' duplicates an attribute already defined on the base class, causing a conflict",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
