@@ -1,4 +1,5 @@
 using SpreadCheetah.CellReferences;
+using SpreadCheetah.ConditionalFormatting;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images;
 using SpreadCheetah.Images.Internal;
@@ -557,6 +558,13 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return null; // Unreachable
     }
 
+    public void AddConditionalFormatting(string reference, ConditionalFormatRule rule)
+    {
+        ArgumentNullException.ThrowIfNull(reference);
+        ArgumentNullException.ThrowIfNull(rule);
+        Worksheet.AddConditionalFormatting(reference, rule);
+    }
+
     /// <summary>
     /// Adds data validation for a cell or a range of cells. The reference must be in the A1 reference style. Some examples:
     /// <list type="bullet">
@@ -587,8 +595,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public bool TryAddDataValidation(string reference, DataValidation validation)
     {
-        ArgumentNullException.ThrowIfNull(validation);
         ArgumentNullException.ThrowIfNull(reference);
+        ArgumentNullException.ThrowIfNull(validation);
         return Worksheet.TryAddDataValidation(reference, validation);
     }
 

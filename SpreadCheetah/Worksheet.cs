@@ -1,5 +1,6 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.CellWriters;
+using SpreadCheetah.ConditionalFormatting;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml;
@@ -189,6 +190,14 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         where TWriter : BaseRowWriter<TCell>
     {
         return writer.AddRowAsync(cells, _state.NextRowIndex - 1, options, rowStyleId, _stream, ct);
+    }
+
+    public void AddConditionalFormatting(string reference, ConditionalFormatRule rule)
+    {
+        // TODO: Any limit to the number of conditional formats per worksheet?
+        // TODO: Any limit to the number of conditional formats for the whole spreadsheet?
+        // TODO: The same type of reference as data validations?
+        // TODO: Make a copy of the rule so that if the user modifies it after adding it to the worksheet, it doesn't affect the formatting of the cells.
     }
 
     public bool TryAddDataValidation(string reference, DataValidation validation)
