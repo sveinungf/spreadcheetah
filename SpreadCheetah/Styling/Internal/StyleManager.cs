@@ -37,6 +37,7 @@ internal sealed class StyleManager
     public OrderedSet<ImmutableFont>? UniqueFonts { get; private set; }
     public OrderedSet<string>? UniqueCustomFormats { get; private set; }
 
+    public List<AddedDifferentialStyle>? DifferentialStyles { get; private set; }
     public Dictionary<string, (StyleId StyleId, int NamedStyleIndex)>? NamedStyles { get; private set; }
 
     public StyleManager(NumberFormat? defaultDateTimeFormat, DefaultFont? defaultFont)
@@ -89,6 +90,19 @@ internal sealed class StyleManager
         AddStyle(addedStyle, newStyleId);
         AddStyle(dateTimeStyle, new StyleId(dateTimeId, dateTimeId));
         return newStyleId;
+    }
+
+    public int AddDifferentialStyle(Style style)
+    {
+        // TODO: Handle more parts of a style.
+        var differentialStyle = new AddedDifferentialStyle
+        {
+            Fill = ImmutableFill.From(style.Fill)
+        };
+
+        var differentialStyles = DifferentialStyles ??= [];
+        differentialStyles.Add(differentialStyle);
+        return differentialStyles.Count - 1;
     }
 
     private AddedStyle MapToAddedStyle(Style style, string? name, StyleNameVisibility? visibility)
