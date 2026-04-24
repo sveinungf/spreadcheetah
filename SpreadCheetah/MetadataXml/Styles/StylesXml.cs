@@ -5,76 +5,66 @@ using System.Diagnostics;
 
 namespace SpreadCheetah.MetadataXml.Styles;
 
-internal struct StylesXml : IXmlWriter<StylesXml>
+internal static class StylesXml
 {
-    public static ValueTask WriteAsync(
-        ZipArchiveManager zipArchiveManager,
+    public static ValueTask WriteStylesAsync(
+        this ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
         StyleManager styleManager,
         CancellationToken token)
     {
         const string entryName = "xl/styles.xml";
-        var writer = new StylesXml(styleManager, buffer);
-
+        var writer = new StylesXmlWriter(styleManager, styleManager.GetEmbeddedNamedStyles(), buffer);
         return zipArchiveManager.WriteAsync(writer, entryName, buffer, token);
     }
+}
 
+file struct StylesXmlWriter(
+    StyleManager styleManager,
+    List<(string, AddedStyle, StyleNameVisibility)>? namedStyles,
+    SpreadsheetBuffer buffer)
+    : IXmlWriter<StylesXmlWriter>
+{
     private static ReadOnlySpan<byte> Header =>
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">"""u8;
 
     private static ReadOnlySpan<byte> Footer => """</styleSheet>"""u8;
 
-    private readonly List<(string, AddedStyle, StyleNameVisibility)>? _namedStyles;
-    private readonly StyleManager _styleManager;
-    private readonly SpreadsheetBuffer _buffer;
-    private NumberFormatsXmlPart _numberFormatsXml;
-    private BordersXmlPart _bordersXml;
-    private FillsXmlPart _fillsXml;
+    private NumberFormatsXmlPart _numberFormatsXml = new(styleManager.UniqueCustomFormats?.GetList(), buffer);
+    private BordersXmlPart _bordersXml = new(styleManager.UniqueBorders?.GetList(), buffer);
+    private FillsXmlPart _fillsXml = new(styleManager.UniqueFills?.GetList(), buffer);
     private FontXmlPart? _fontXml;
-    private CellStylesXmlPart _cellStylesXml;
+    private CellStylesXmlPart _cellStylesXml = new(namedStyles, buffer);
     private StyleXfXml? _currentXfXmlWriter;
     private StyleDxfXml? _currentDxfXmlWriter;
     private Element _next;
     private int _nextIndex;
 
-    private StylesXml(
-        StyleManager styleManager,
-        SpreadsheetBuffer buffer)
-    {
-        _styleManager = styleManager;
-        _buffer = buffer;
-        _numberFormatsXml = new NumberFormatsXmlPart(styleManager.UniqueCustomFormats?.GetList(), buffer);
-        _bordersXml = new BordersXmlPart(styleManager.UniqueBorders?.GetList(), buffer);
-        _fillsXml = new FillsXmlPart(styleManager.UniqueFills?.GetList(), buffer);
-        _namedStyles = styleManager.GetEmbeddedNamedStyles();
-        _cellStylesXml = new CellStylesXmlPart(_namedStyles, buffer);
-    }
-
-    public readonly StylesXml GetEnumerator() => this;
+    public readonly StylesXmlWriter GetEnumerator() => this;
     public bool Current { get; private set; }
 
     public bool MoveNext()
     {
         Current = _next switch
         {
-            Element.Header => _buffer.TryWrite(Header),
+            Element.Header => buffer.TryWrite(Header),
             Element.NumberFormats => _numberFormatsXml.TryWrite(),
             Element.FontsStart => TryWriteFontsStart(),
             Element.Fonts => TryWriteFonts(),
-            Element.FontsEnd => _buffer.TryWrite("</fonts>"u8),
+            Element.FontsEnd => buffer.TryWrite("</fonts>"u8),
             Element.Fills => _fillsXml.TryWrite(),
             Element.Borders => _bordersXml.TryWrite(),
             Element.CellStyleXfsStart => TryWriteCellStyleXfsStart(),
             Element.CellStyleXfsEntries => TryWriteCellStyleXfsEntries(),
             Element.CellXfsStart => TryWriteCellXfsStart(),
             Element.CellXfsEntries => TryWriteCellXfsEntries(),
-            Element.CellXfsEnd => _buffer.TryWrite("</cellXfs>"u8),
+            Element.CellXfsEnd => buffer.TryWrite("</cellXfs>"u8),
             Element.CellStyles => _cellStylesXml.TryWrite(),
             Element.DxfsStart => TryWriteDxfsStart(),
             Element.DxfsEntries => TryWriteDxfsEntries(),
             Element.DxfsEnd => TryWriteDxfsEnd(),
-            _ => _buffer.TryWrite(Footer),
+            _ => buffer.TryWrite(Footer),
         };
 
         if (Current)
@@ -85,13 +75,13 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
     private readonly bool TryWriteFontsStart()
     {
-        var fontCount = _styleManager.UniqueFonts?.GetList().Count ?? 0;
-        var defaultFont = _styleManager.DefaultFont;
+        var fontCount = styleManager.UniqueFonts?.GetList().Count ?? 0;
+        var defaultFont = styleManager.DefaultFont;
         var defaultFontSize = defaultFont?.Size ?? DefaultFont.DefaultSize;
         var defaultFontName = defaultFont?.Name ?? DefaultFont.DefaultName;
         Debug.Assert(defaultFontName.Length <= 31);
 
-        return _buffer.TryWrite(
+        return buffer.TryWrite(
             $"{"<fonts count=\""u8}" +
             $"{fontCount + 1}" +
             $"{"\"><font><sz val=\""u8}" +
@@ -103,16 +93,16 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
     private bool TryWriteFonts()
     {
-        var fontsList = _styleManager.UniqueFonts?.GetList();
+        var fontsList = styleManager.UniqueFonts?.GetList();
         if (fontsList is null)
             return true;
 
         for (; _nextIndex < fontsList.Count; ++_nextIndex)
         {
             var font = fontsList[_nextIndex];
-            Debug.Assert(font != ImmutableFont.From(_styleManager.DefaultFont));
+            Debug.Assert(font != ImmutableFont.From(styleManager.DefaultFont));
 
-            var xml = _fontXml ?? new FontXmlPart(_buffer, font);
+            var xml = _fontXml ?? new FontXmlPart(buffer, font);
             if (!xml.TryWrite())
             {
                 _fontXml = xml;
@@ -128,8 +118,8 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
     private readonly bool TryWriteCellStyleXfsStart()
     {
-        var count = (_namedStyles?.Count ?? 0) + 1;
-        return _buffer.TryWrite(
+        var count = (namedStyles?.Count ?? 0) + 1;
+        return buffer.TryWrite(
             $"{"<cellStyleXfs count=\""u8}" +
             $"{count}" +
             $"{"\"><xf numFmtId=\"0\" fontId=\"0\"/>"u8}");
@@ -137,17 +127,17 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
     private bool TryWriteCellStyleXfsEntries()
     {
-        if (_namedStyles is not { } namedStyles)
+        if (namedStyles is not { } namedStylesLocal)
             return true;
 
-        var alignments = _styleManager.UniqueAlignments?.GetList();
+        var alignments = styleManager.UniqueAlignments?.GetList();
 
-        for (; _nextIndex < namedStyles.Count; ++_nextIndex)
+        for (; _nextIndex < namedStylesLocal.Count; ++_nextIndex)
         {
             if (_currentXfXmlWriter is not { } writer)
             {
-                var (_, addedStyle, _) = namedStyles[_nextIndex];
-                writer = new StyleXfXml(addedStyle, null, alignments, false, _buffer);
+                var (_, addedStyle, _) = namedStylesLocal[_nextIndex];
+                writer = new StyleXfXml(addedStyle, null, alignments, false, buffer);
             }
 
             if (!writer.TryWrite())
@@ -165,29 +155,24 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
     private readonly bool TryWriteCellXfsStart()
     {
-        return _buffer.TryWrite(
+        return buffer.TryWrite(
             $"{"</cellStyleXfs><cellXfs count=\""u8}" +
-            $"{_styleManager.AddedStyles.Count}" +
+            $"{styleManager.AddedStyles.Count}" +
             $"{"\">"u8}");
     }
 
     private bool TryWriteCellXfsEntries()
     {
-        var alignments = _styleManager.UniqueAlignments?.GetList();
-        var addedStyles = _styleManager.AddedStyles;
-        var namedStylesDictionary = _styleManager.NamedStyles;
+        var alignments = styleManager.UniqueAlignments?.GetList();
+        var addedStyles = styleManager.AddedStyles;
 
         for (; _nextIndex < addedStyles.Count; ++_nextIndex)
         {
             if (_currentXfXmlWriter is not { } writer)
             {
                 var addedStyle = addedStyles[_nextIndex];
-                int? embeddedNamedStyleIndex = addedStyle is { Name: { } name, Visibility: not null }
-                    && namedStylesDictionary is { } namedStyles && namedStyles.TryGetValue(name, out var value)
-                    ? value.NamedStyleIndex
-                    : null;
-
-                writer = new StyleXfXml(addedStyle, embeddedNamedStyleIndex, alignments, true, _buffer);
+                var embeddedNamedStyleIndex = GetEmbeddedNameStyleIndex(addedStyle);
+                writer = new StyleXfXml(addedStyle, embeddedNamedStyleIndex, alignments, true, buffer);
             }
 
             if (!writer.TryWrite())
@@ -203,17 +188,29 @@ internal struct StylesXml : IXmlWriter<StylesXml>
         return true;
     }
 
+    private readonly int? GetEmbeddedNameStyleIndex(AddedStyle addedStyle)
+    {
+        if (addedStyle is not { Name: { } name, Visibility: not null })
+            return null;
+        if (styleManager.NamedStyles is not { } namedStylesLocal)
+            return null;
+        if (!namedStylesLocal.TryGetValue(name, out var value))
+            return null;
+
+        return value.NamedStyleIndex;
+    }
+
     private readonly bool TryWriteDxfsStart()
     {
-        var count = _styleManager.DifferentialStyles?.Count ?? 0;
+        var count = styleManager.DifferentialStyles?.Count ?? 0;
         return count == 0
-            ? _buffer.TryWrite("""<dxfs count="0"/>"""u8)
-            : _buffer.TryWrite($"""<dxfs count="{count}">""");
+            ? buffer.TryWrite("""<dxfs count="0"/>"""u8)
+            : buffer.TryWrite($"""<dxfs count="{count}">""");
     }
 
     private bool TryWriteDxfsEntries()
     {
-        if (_styleManager.DifferentialStyles is not { } dxfsList)
+        if (styleManager.DifferentialStyles is not { } dxfsList)
             return true;
 
         for (; _nextIndex < dxfsList.Count; ++_nextIndex)
@@ -221,7 +218,7 @@ internal struct StylesXml : IXmlWriter<StylesXml>
             if (_currentDxfXmlWriter is not { } writer)
             {
                 var dxfsEntry = dxfsList[_nextIndex];
-                writer = new StyleDxfXml(dxfsEntry, _buffer);
+                writer = new StyleDxfXml(dxfsEntry, buffer);
             }
 
             if (!writer.TryWrite())
@@ -239,9 +236,9 @@ internal struct StylesXml : IXmlWriter<StylesXml>
 
     private readonly bool TryWriteDxfsEnd()
     {
-        return _styleManager.DifferentialStyles is not { } dxfsList
+        return styleManager.DifferentialStyles is not { } dxfsList
             || dxfsList.Count == 0
-            || _buffer.TryWrite("</dxfs>"u8);
+            || buffer.TryWrite("</dxfs>"u8);
     }
 
     private enum Element

@@ -767,7 +767,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         await WorkbookXml.WriteAsync(zip, _buffer, _worksheets, token).ConfigureAwait(false);
 
         if (_styleManager is { HasStyles: true } styleManager)
-            await StylesXml.WriteAsync(zip, _buffer, styleManager, token).ConfigureAwait(false);
+            await zip.WriteStylesAsync(_buffer, styleManager, token).ConfigureAwait(false);
 
         _finished = true;
 
