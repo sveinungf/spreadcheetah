@@ -3,37 +3,8 @@ using SpreadCheetah.Validations;
 
 namespace SpreadCheetah.MetadataXml;
 
-internal struct WorksheetEndXml
+internal static class WorksheetEndXml
 {
-    private readonly ReadOnlyMemory<CellRangeRelativeReference> _cellMerges;
-    private readonly ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>> _validations;
-    private readonly string? _autoFilterRange;
-    private readonly bool _hasImages;
-    private readonly bool _hasNotes;
-    private readonly int _tableCount;
-    private readonly SpreadsheetBuffer _buffer;
-    private DataValidationXml? _validationXmlWriter;
-    private Element _next;
-    private int _nextIndex;
-
-    private WorksheetEndXml(
-        ReadOnlyMemory<CellRangeRelativeReference> cellMerges,
-        ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>> validations,
-        string? autoFilterRange,
-        bool hasNotes,
-        bool hasImages,
-        int tableCount,
-        SpreadsheetBuffer buffer)
-    {
-        _cellMerges = cellMerges;
-        _validations = validations;
-        _autoFilterRange = autoFilterRange;
-        _hasNotes = hasNotes;
-        _hasImages = hasImages;
-        _tableCount = tableCount;
-        _buffer = buffer;
-    }
-
     public static async ValueTask WriteAsync(
         ReadOnlyMemory<CellRangeRelativeReference>? cellMerges,
         ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>>? validations,
@@ -45,7 +16,7 @@ internal struct WorksheetEndXml
         Stream stream,
         CancellationToken token)
     {
-        var writer = new WorksheetEndXml(
+        var writer = new WorksheetEndXmlWriter(
             cellMerges: cellMerges ?? ReadOnlyMemory<CellRangeRelativeReference>.Empty,
             validations: validations ?? ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>>.Empty,
             autoFilterRange: autoFilterRange,
@@ -62,15 +33,30 @@ internal struct WorksheetEndXml
 
         await buffer.FlushToStreamAsync(stream, token).ConfigureAwait(false);
     }
+}
 
-    public readonly WorksheetEndXml GetEnumerator() => this;
+file struct WorksheetEndXmlWriter(
+    ReadOnlyMemory<CellRangeRelativeReference> cellMerges,
+    ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>> validations,
+    string? autoFilterRange,
+    bool hasNotes,
+    bool hasImages,
+    int tableCount,
+    SpreadsheetBuffer buffer)
+    : IXmlWriter<WorksheetEndXmlWriter>
+{
+    private DataValidationXml? _validationXmlWriter;
+    private Element _next;
+    private int _nextIndex;
+
+    public readonly WorksheetEndXmlWriter GetEnumerator() => this;
     public bool Current { get; private set; }
 
     public bool MoveNext()
     {
         Current = _next switch
         {
-            Element.SheetDataEnd => _buffer.TryWrite("</sheetData>"u8),
+            Element.SheetDataEnd => buffer.TryWrite("</sheetData>"u8),
             Element.AutoFilter => TryWriteAutoFilter(),
             Element.CellMergesStart => TryWriteCellMergesStart(),
             Element.CellMerges => TryWriteCellMerges(),
@@ -83,7 +69,7 @@ internal struct WorksheetEndXml
             Element.TablePartsStart => TryWriteTablePartsStart(),
             Element.TableParts => TryWriteTableParts(),
             Element.TablePartsEnd => TryWriteTablePartsEnd(),
-            _ => _buffer.TryWrite("</worksheet>"u8)
+            _ => buffer.TryWrite("</worksheet>"u8)
         };
 
         if (Current)
@@ -94,26 +80,26 @@ internal struct WorksheetEndXml
 
     private readonly bool TryWriteAutoFilter()
     {
-        return _autoFilterRange is not { } range
-            || _buffer.TryWrite($"{"<autoFilter ref=\""u8}{range}{"\"></autoFilter>"u8}");
+        return autoFilterRange is not { } range
+            || buffer.TryWrite($"{"<autoFilter ref=\""u8}{range}{"\"></autoFilter>"u8}");
     }
 
     private readonly bool TryWriteCellMergesStart()
     {
-        return _cellMerges.IsEmpty
-            || _buffer.TryWrite($"{"<mergeCells count=\""u8}{_cellMerges.Length}{"\">"u8}");
+        return cellMerges.IsEmpty
+            || buffer.TryWrite($"{"<mergeCells count=\""u8}{cellMerges.Length}{"\">"u8}");
     }
 
     private bool TryWriteCellMerges()
     {
-        if (_cellMerges.IsEmpty) return true;
-        var cellMerges = _cellMerges.Span;
+        if (cellMerges.IsEmpty) return true;
+        var span = cellMerges.Span;
 
-        for (; _nextIndex < cellMerges.Length; ++_nextIndex)
+        for (; _nextIndex < span.Length; ++_nextIndex)
         {
-            var cellMerge = cellMerges[_nextIndex];
+            var cellMerge = span[_nextIndex];
 
-            var success = _buffer.TryWrite($"{"<mergeCell ref=\""u8}{cellMerge.Reference}{"\"/>"u8}");
+            var success = buffer.TryWrite($"{"<mergeCell ref=\""u8}{cellMerge.Reference}{"\"/>"u8}");
             if (!success)
                 return false;
         }
@@ -123,24 +109,24 @@ internal struct WorksheetEndXml
     }
 
     private readonly bool TryWriteCellMergesEnd()
-        => _cellMerges.IsEmpty || _buffer.TryWrite("</mergeCells>"u8);
+        => cellMerges.IsEmpty || buffer.TryWrite("</mergeCells>"u8);
 
     private readonly bool TryWriteValidationsStart()
     {
-        return _validations.IsEmpty
-            || _buffer.TryWrite($"{"<dataValidations count=\""u8}{_validations.Length}{"\">"u8}");
+        return validations.IsEmpty
+            || buffer.TryWrite($"{"<dataValidations count=\""u8}{validations.Length}{"\">"u8}");
     }
 
     private bool TryWriteValidations()
     {
-        if (_validations.IsEmpty) return true;
-        var validations = _validations.Span;
+        if (validations.IsEmpty) return true;
+        var span = validations.Span;
 
-        for (; _nextIndex < validations.Length; ++_nextIndex)
+        for (; _nextIndex < span.Length; ++_nextIndex)
         {
-            var pair = validations[_nextIndex];
+            var pair = span[_nextIndex];
 
-            var writer = _validationXmlWriter ?? new DataValidationXml(pair.Key, pair.Value, _buffer);
+            var writer = _validationXmlWriter ?? new DataValidationXml(pair.Key, pair.Value, buffer);
             if (!writer.TryWrite())
             {
                 _validationXmlWriter = writer;
@@ -155,31 +141,29 @@ internal struct WorksheetEndXml
     }
 
     private readonly bool TryWriteValidationsEnd()
-        => _validations.IsEmpty || _buffer.TryWrite("</dataValidations>"u8);
+        => validations.IsEmpty || buffer.TryWrite("</dataValidations>"u8);
 
-    private readonly bool TryWriteDrawing() => !_hasImages ||
-        _buffer.TryWrite(
+    private readonly bool TryWriteDrawing() => !hasImages ||
+        buffer.TryWrite(
             $"{"<drawing r:id=\""u8}" +
             $"{WorksheetRelationshipIds.Drawing}" +
             $"{"\"/>"u8}");
 
-    private readonly bool TryWriteLegacyDrawing() => !_hasNotes ||
-        _buffer.TryWrite(
+    private readonly bool TryWriteLegacyDrawing() => !hasNotes ||
+        buffer.TryWrite(
             $"{"<legacyDrawing r:id=\""u8}" +
             $"{WorksheetRelationshipIds.VmlDrawing}" +
             $"{"\"/>"u8}");
 
     private readonly bool TryWriteTablePartsStart()
-    {
-        return _tableCount == 0 || _buffer.TryWrite($"{"<tableParts count=\""u8}{_tableCount}{"\">"u8}");
-    }
+        => tableCount == 0 || buffer.TryWrite($"{"<tableParts count=\""u8}{tableCount}{"\">"u8}");
 
     private bool TryWriteTableParts()
     {
-        for (; _nextIndex < _tableCount; ++_nextIndex)
+        for (; _nextIndex < tableCount; ++_nextIndex)
         {
             var relationshipId = WorksheetRelationshipIds.TableStartId + _nextIndex;
-            var success = _buffer.TryWrite($"{"<tablePart r:id=\"rId"u8}{relationshipId}{"\"/>"u8}");
+            var success = buffer.TryWrite($"{"<tablePart r:id=\"rId"u8}{relationshipId}{"\"/>"u8}");
             if (!success)
                 return false;
         }
@@ -188,7 +172,7 @@ internal struct WorksheetEndXml
     }
 
     private readonly bool TryWriteTablePartsEnd()
-        => _tableCount == 0 || _buffer.TryWrite("</tableParts>"u8);
+        => tableCount == 0 || buffer.TryWrite("</tableParts>"u8);
 
     private enum Element
     {
@@ -197,6 +181,7 @@ internal struct WorksheetEndXml
         CellMergesStart,
         CellMerges,
         CellMergesEnd,
+        // TODO: Conditional formatting here.
         ValidationsStart,
         Validations,
         ValidationsEnd,
