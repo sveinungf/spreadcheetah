@@ -294,12 +294,10 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         using var validationsPooledArray = _validations?.ToPooledArray();
 
         await WorksheetEndXml.WriteAsync(
+            worksheet: this,
             cellMerges: cellMergesPooledArray?.Memory,
             validations: validationsPooledArray?.Memory,
             autoFilterRange: _autoFilterRange,
-            hasNotes: Notes is not null,
-            hasImages: Images is not null,
-            tableCount: Tables?.Count ?? 0,
             buffer: _buffer,
             stream: _stream,
             token: token).ConfigureAwait(false);

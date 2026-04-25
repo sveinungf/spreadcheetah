@@ -6,23 +6,19 @@ namespace SpreadCheetah.MetadataXml;
 internal static class WorksheetEndXml
 {
     public static async ValueTask WriteAsync(
+        Worksheet worksheet,
         ReadOnlyMemory<CellRangeRelativeReference>? cellMerges,
         ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>>? validations,
         string? autoFilterRange,
-        bool hasNotes,
-        bool hasImages,
-        int tableCount,
         SpreadsheetBuffer buffer,
         Stream stream,
         CancellationToken token)
     {
         var writer = new WorksheetEndXmlWriter(
+            worksheet: worksheet,
             cellMerges: cellMerges ?? ReadOnlyMemory<CellRangeRelativeReference>.Empty,
             validations: validations ?? ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>>.Empty,
             autoFilterRange: autoFilterRange,
-            hasNotes: hasNotes,
-            hasImages: hasImages,
-            tableCount: tableCount,
             buffer: buffer);
 
         foreach (var success in writer)
@@ -36,15 +32,14 @@ internal static class WorksheetEndXml
 }
 
 file struct WorksheetEndXmlWriter(
+    Worksheet worksheet,
     ReadOnlyMemory<CellRangeRelativeReference> cellMerges,
     ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>> validations,
     string? autoFilterRange,
-    bool hasNotes,
-    bool hasImages,
-    int tableCount,
     SpreadsheetBuffer buffer)
     : IXmlWriter<WorksheetEndXmlWriter>
 {
+    private readonly int _tableCount = worksheet.Tables?.Count ?? 0;
     private DataValidationXml? _validationXmlWriter;
     private Element _next;
     private int _nextIndex;
@@ -143,24 +138,24 @@ file struct WorksheetEndXmlWriter(
     private readonly bool TryWriteValidationsEnd()
         => validations.IsEmpty || buffer.TryWrite("</dataValidations>"u8);
 
-    private readonly bool TryWriteDrawing() => !hasImages ||
+    private readonly bool TryWriteDrawing() => worksheet.Images is null ||
         buffer.TryWrite(
             $"{"<drawing r:id=\""u8}" +
             $"{WorksheetRelationshipIds.Drawing}" +
             $"{"\"/>"u8}");
 
-    private readonly bool TryWriteLegacyDrawing() => !hasNotes ||
+    private readonly bool TryWriteLegacyDrawing() => worksheet.Notes is null ||
         buffer.TryWrite(
             $"{"<legacyDrawing r:id=\""u8}" +
             $"{WorksheetRelationshipIds.VmlDrawing}" +
             $"{"\"/>"u8}");
 
     private readonly bool TryWriteTablePartsStart()
-        => tableCount == 0 || buffer.TryWrite($"{"<tableParts count=\""u8}{tableCount}{"\">"u8}");
+        => _tableCount == 0 || buffer.TryWrite($"{"<tableParts count=\""u8}{_tableCount}{"\">"u8}");
 
     private bool TryWriteTableParts()
     {
-        for (; _nextIndex < tableCount; ++_nextIndex)
+        for (; _nextIndex < _tableCount; ++_nextIndex)
         {
             var relationshipId = WorksheetRelationshipIds.TableStartId + _nextIndex;
             var success = buffer.TryWrite($"{"<tablePart r:id=\"rId"u8}{relationshipId}{"\"/>"u8}");
@@ -172,7 +167,7 @@ file struct WorksheetEndXmlWriter(
     }
 
     private readonly bool TryWriteTablePartsEnd()
-        => tableCount == 0 || buffer.TryWrite("</tableParts>"u8);
+        => _tableCount == 0 || buffer.TryWrite("</tableParts>"u8);
 
     private enum Element
     {
