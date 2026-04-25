@@ -1,4 +1,5 @@
 using SpreadCheetah.CellReferences;
+using SpreadCheetah.Helpers;
 using SpreadCheetah.Validations;
 
 namespace SpreadCheetah.MetadataXml;
@@ -7,18 +8,17 @@ internal static class WorksheetEndXml
 {
     public static async ValueTask WriteAsync(
         Worksheet worksheet,
-        ReadOnlyMemory<CellRangeRelativeReference>? cellMerges,
-        ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>>? validations,
-        string? autoFilterRange,
         SpreadsheetBuffer buffer,
         Stream stream,
         CancellationToken token)
     {
+        using var cellMergesPooledArray = worksheet.CellMerges?.ToPooledArray();
+        using var validationsPooledArray = worksheet.Validations?.ToPooledArray();
+
         var writer = new WorksheetEndXmlWriter(
             worksheet: worksheet,
-            cellMerges: cellMerges ?? ReadOnlyMemory<CellRangeRelativeReference>.Empty,
-            validations: validations ?? ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>>.Empty,
-            autoFilterRange: autoFilterRange,
+            cellMerges: cellMergesPooledArray?.Memory ?? default,
+            validations: validationsPooledArray?.Memory ?? default,
             buffer: buffer);
 
         foreach (var success in writer)
@@ -35,7 +35,6 @@ file struct WorksheetEndXmlWriter(
     Worksheet worksheet,
     ReadOnlyMemory<CellRangeRelativeReference> cellMerges,
     ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>> validations,
-    string? autoFilterRange,
     SpreadsheetBuffer buffer)
     : IXmlWriter<WorksheetEndXmlWriter>
 {
@@ -75,7 +74,7 @@ file struct WorksheetEndXmlWriter(
 
     private readonly bool TryWriteAutoFilter()
     {
-        return autoFilterRange is not { } range
+        return worksheet.AutoFilterRange is not { } range
             || buffer.TryWrite($"{"<autoFilter ref=\""u8}{range}{"\"></autoFilter>"u8}");
     }
 
