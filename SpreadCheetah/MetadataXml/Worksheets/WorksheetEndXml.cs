@@ -1,4 +1,5 @@
 using SpreadCheetah.CellReferences;
+using SpreadCheetah.ConditionalFormatting.Internal;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Validations;
 
@@ -12,13 +13,15 @@ internal static class WorksheetEndXml
         Stream stream,
         CancellationToken token)
     {
-        using var cellMergesPooledArray = worksheet.CellMerges?.ToPooledArray();
-        using var validationsPooledArray = worksheet.Validations?.ToPooledArray();
+        using var cellMerges = worksheet.CellMerges?.ToPooledArray();
+        using var conditionalFormatRules = worksheet.ConditionalFormatRulesManager?.Rules.ToPooledArray();
+        using var validations = worksheet.Validations?.ToPooledArray();
 
         var writer = new WorksheetEndXmlWriter(
             worksheet: worksheet,
-            cellMerges: cellMergesPooledArray?.Memory ?? default,
-            validations: validationsPooledArray?.Memory ?? default,
+            cellMerges: cellMerges?.Memory ?? default,
+            conditionalFormatRules: conditionalFormatRules?.Memory ?? default,
+            validations: validations?.Memory ?? default,
             buffer: buffer);
 
         foreach (var success in writer)
@@ -34,11 +37,13 @@ internal static class WorksheetEndXml
 file struct WorksheetEndXmlWriter(
     Worksheet worksheet,
     ReadOnlyMemory<CellRangeRelativeReference> cellMerges,
+    ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, List<ImmutableConditionalFormatRule>>> conditionalFormatRules,
     ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>> validations,
     SpreadsheetBuffer buffer)
     : IXmlWriter<WorksheetEndXmlWriter>
 {
     private readonly int _tableCount = worksheet.Tables?.Count ?? 0;
+    private ConditionalFormattingXml? _conditionalFormattingXmlWriter;
     private DataValidationXml? _validationXmlWriter;
     private Element _next;
     private int _nextIndex;
@@ -55,6 +60,7 @@ file struct WorksheetEndXmlWriter(
             Element.CellMergesStart => TryWriteCellMergesStart(),
             Element.CellMerges => TryWriteCellMerges(),
             Element.CellMergesEnd => TryWriteCellMergesEnd(),
+            Element.ConditionalFormatting => TryWriteConditionalFormatting(),
             Element.ValidationsStart => TryWriteValidationsStart(),
             Element.Validations => TryWriteValidations(),
             Element.ValidationsEnd => TryWriteValidationsEnd(),
@@ -104,6 +110,29 @@ file struct WorksheetEndXmlWriter(
 
     private readonly bool TryWriteCellMergesEnd()
         => cellMerges.IsEmpty || buffer.TryWrite("</mergeCells>"u8);
+
+    private bool TryWriteConditionalFormatting()
+    {
+        if (conditionalFormatRules.IsEmpty) return true;
+        var span = conditionalFormatRules.Span;
+
+        for (; _nextIndex < span.Length; ++_nextIndex)
+        {
+            var (reference, rules) = span[_nextIndex];
+
+            var writer = _conditionalFormattingXmlWriter ?? new ConditionalFormattingXml(reference, rules, buffer);
+            if (!writer.TryWrite())
+            {
+                _conditionalFormattingXmlWriter = writer;
+                return false;
+            }
+
+            _conditionalFormattingXmlWriter = null;
+        }
+
+        _nextIndex = 0;
+        return true;
+    }
 
     private readonly bool TryWriteValidationsStart()
     {
@@ -175,7 +204,7 @@ file struct WorksheetEndXmlWriter(
         CellMergesStart,
         CellMerges,
         CellMergesEnd,
-        // TODO: Conditional formatting here.
+        ConditionalFormatting,
         ValidationsStart,
         Validations,
         ValidationsEnd,

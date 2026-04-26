@@ -542,6 +542,16 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return styleManager.AddStyleIfNotExists(style);
     }
 
+    [return: NotNullIfNotNull(nameof(style))]
+    private int? AddDifferentialStyleInternal(Style? style)
+    {
+        if (style is null)
+            return null;
+
+        var styleManager = GetOrCreateStyleManager();
+        return styleManager.AddDifferentialStyle(style);
+    }
+
     /// <summary>
     /// Get the <see cref="StyleId"/> from a named style.
     /// The named style must have previously been added to the spreadsheet with <see cref="AddStyle(Style, string, StyleNameVisibility?)"/>.
@@ -563,7 +573,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(reference);
         ArgumentNullException.ThrowIfNull(rule);
-        Worksheet.AddConditionalFormatting(reference, rule);
+        var cellReference = SingleCellOrCellRangeReference.Create(reference);
+        var styleDxfId = AddDifferentialStyleInternal(rule.Style);
+        var immutableRule = rule.ToImmutable(styleDxfId);
+        Worksheet.AddConditionalFormatting(cellReference, immutableRule);
     }
 
     /// <summary>
