@@ -1,7 +1,7 @@
 using SpreadCheetah.Styling;
 using SpreadCheetah.Worksheets;
 
-namespace SpreadCheetah.MetadataXml;
+namespace SpreadCheetah.MetadataXml.Worksheets;
 
 internal struct WorksheetColumnXmlPart(
     SpreadsheetBuffer buffer,

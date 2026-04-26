@@ -2,7 +2,7 @@ using SpreadCheetah.CellReferences;
 using SpreadCheetah.MetadataXml.Attributes;
 using SpreadCheetah.Validations;
 
-namespace SpreadCheetah.MetadataXml;
+namespace SpreadCheetah.MetadataXml.Worksheets;
 
 internal struct DataValidationXml(
     SingleCellOrCellRangeReference reference,

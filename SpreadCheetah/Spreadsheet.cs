@@ -7,6 +7,7 @@ using SpreadCheetah.Metadata;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.MetadataXml.Styles;
 using SpreadCheetah.MetadataXml.Tables;
+using SpreadCheetah.MetadataXml.Worksheets;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;

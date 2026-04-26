@@ -2,7 +2,7 @@ using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Validations;
 
-namespace SpreadCheetah.MetadataXml;
+namespace SpreadCheetah.MetadataXml.Worksheets;
 
 internal static class WorksheetEndXml
 {

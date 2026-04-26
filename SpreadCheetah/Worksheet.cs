@@ -4,7 +4,7 @@ using SpreadCheetah.ConditionalFormatting;
 using SpreadCheetah.ConditionalFormatting.Internal;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
-using SpreadCheetah.MetadataXml;
+using SpreadCheetah.MetadataXml.Worksheets;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Tables.Internal;
