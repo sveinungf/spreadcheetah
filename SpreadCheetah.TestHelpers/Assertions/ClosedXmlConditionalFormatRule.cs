@@ -5,7 +5,7 @@ namespace SpreadCheetah.TestHelpers.Assertions;
 internal sealed class ClosedXmlConditionalFormatRule(IXLConditionalFormat conditionalFormat)
     : IConditionalFormatRule
 {
-    public string CellRangeReference => conditionalFormat.Range.ToString();
+    public string CellRangeReference => conditionalFormat.Range.RangeAddress.ToString();
 
     public bool IsUniqueValuesRule => conditionalFormat.ConditionalFormatType is XLConditionalFormatType.IsUnique;
 

@@ -205,7 +205,7 @@ file struct StylesXmlWriter(
         var count = styleManager.DifferentialStyles?.Count ?? 0;
         return count == 0
             ? buffer.TryWrite("""<dxfs count="0"/>"""u8)
-            : buffer.TryWrite($"""<dxfs count="{count}">""");
+            : buffer.TryWrite($"{"<dxfs count=\""u8}{count}{"\">"u8}");
     }
 
     private bool TryWriteDxfsEntries()
