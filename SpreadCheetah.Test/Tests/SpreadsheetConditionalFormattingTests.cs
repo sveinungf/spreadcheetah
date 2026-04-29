@@ -22,7 +22,7 @@ public class SpreadsheetConditionalFormattingTests
 
         // Act
         var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
-        spreadsheet.AddConditionalFormatting(cellReference, rule);
+        spreadsheet.AddConditionalFormatRule(cellReference, rule);
         await spreadsheet.FinishAsync(Token);
 
         // Assert

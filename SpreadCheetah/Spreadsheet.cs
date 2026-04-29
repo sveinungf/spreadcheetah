@@ -569,7 +569,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return null; // Unreachable
     }
 
-    public void AddConditionalFormatting(string reference, ConditionalFormatRule rule)
+    public void AddConditionalFormatRule(string reference, ConditionalFormatRule rule)
     {
         ArgumentNullException.ThrowIfNull(reference);
         ArgumentNullException.ThrowIfNull(rule);
