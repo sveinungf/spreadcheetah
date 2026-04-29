@@ -13,7 +13,6 @@ internal sealed class ClosedXmlAssertTable(IXLTable table) : ISpreadsheetAssertT
     public bool ShowHeaderRow => table.ShowHeaderRow;
     public bool ShowTotalRow => table.ShowTotalsRow;
 
-    private IReadOnlyList<ISpreadsheetAssertTableColumn>? _columns;
-    public IReadOnlyList<ISpreadsheetAssertTableColumn> Columns => _columns ??=
+    public IReadOnlyList<ISpreadsheetAssertTableColumn> Columns => field ??=
         [.. table.Fields.Select(x => new ClosedXmlAssertTableColumn(x))];
 }

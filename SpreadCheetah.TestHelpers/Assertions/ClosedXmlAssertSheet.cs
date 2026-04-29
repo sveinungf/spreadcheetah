@@ -42,8 +42,7 @@ internal sealed class ClosedXmlAssertSheet(XLWorkbook workbook, IXLWorksheet she
         return new ClosedXmlAssertColumn(sheet.Column(columnName));
     }
 
-    private IReadOnlyList<ISpreadsheetAssertColumn>? _columns;
-    public IReadOnlyList<ISpreadsheetAssertColumn> Columns => _columns ??=
+    public IReadOnlyList<ISpreadsheetAssertColumn> Columns => field ??=
         [.. sheet.Columns().Select(x => new ClosedXmlAssertColumn(x))];
 
     public ISpreadsheetAssertRow Row(int rowNumber)
@@ -52,8 +51,7 @@ internal sealed class ClosedXmlAssertSheet(XLWorkbook workbook, IXLWorksheet she
         return new ClosedXmlAssertRow(row);
     }
 
-    private IReadOnlyList<ISpreadsheetAssertTable>? _tables;
-    public IReadOnlyList<ISpreadsheetAssertTable> Tables => _tables ??=
+    public IReadOnlyList<ISpreadsheetAssertTable> Tables => field ??=
         [.. sheet.Tables.Select(x => new ClosedXmlAssertTable(x))];
 
     public void Dispose() => workbook.Dispose();
