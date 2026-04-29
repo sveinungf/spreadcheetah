@@ -14,5 +14,6 @@ public interface ISpreadsheetAssertSheet : IDisposable
     IReadOnlyList<ISpreadsheetAssertColumn> Columns { get; }
     ISpreadsheetAssertRow Row(int rowNumber);
 
+    IReadOnlyList<IConditionalFormatRule> ConditionalFormatRules { get; }
     IReadOnlyList<ISpreadsheetAssertTable> Tables { get; }
 }

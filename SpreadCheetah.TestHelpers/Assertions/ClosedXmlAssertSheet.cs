@@ -1,5 +1,4 @@
 using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace SpreadCheetah.TestHelpers.Assertions;
@@ -50,6 +49,9 @@ internal sealed class ClosedXmlAssertSheet(XLWorkbook workbook, IXLWorksheet she
         var row = sheet.Row(rowNumber);
         return new ClosedXmlAssertRow(row);
     }
+
+    public IReadOnlyList<IConditionalFormatRule> ConditionalFormatRules => field ??=
+        [.. sheet.ConditionalFormats.Select(x => new ClosedXmlConditionalFormatRule(x))];
 
     public IReadOnlyList<ISpreadsheetAssertTable> Tables => field ??=
         [.. sheet.Tables.Select(x => new ClosedXmlAssertTable(x))];
