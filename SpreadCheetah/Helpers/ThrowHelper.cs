@@ -42,6 +42,10 @@ internal static class ThrowHelper
         => throw new ArgumentOutOfRangeException(paramName, value, "Font size must be between 1 and 409.");
 
     [DoesNotReturn]
+    public static void MaxNumberOfConditionalFormatRules()
+        => throw new SpreadCheetahException($"Can't add more than {SpreadsheetConstants.MaxNumberOfConditionalFormatRules} conditional format rules to a worksheet.");
+
+    [DoesNotReturn]
     public static void MaxNumberOfDataValidations()
         => throw new SpreadCheetahException($"Can't add more than {SpreadsheetConstants.MaxNumberOfDataValidations} data validations to a worksheet.");
 

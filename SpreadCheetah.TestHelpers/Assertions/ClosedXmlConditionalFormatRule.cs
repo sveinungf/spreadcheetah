@@ -5,7 +5,16 @@ namespace SpreadCheetah.TestHelpers.Assertions;
 internal sealed class ClosedXmlConditionalFormatRule(IXLConditionalFormat conditionalFormat)
     : IConditionalFormatRule
 {
-    public string CellRangeReference => conditionalFormat.Range.RangeAddress.ToString();
+    public string CellRangeReference
+    {
+        get
+        {
+            var rangeAddress = conditionalFormat.Range.RangeAddress;
+            return rangeAddress.NumberOfCells == 1
+                ? rangeAddress.FirstAddress.ToStringRelative()
+                : rangeAddress.ToStringRelative();
+        }
+    }
 
     public bool IsUniqueValuesRule => conditionalFormat.ConditionalFormatType is XLConditionalFormatType.IsUnique;
 
