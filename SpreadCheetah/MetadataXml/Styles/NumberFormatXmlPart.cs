@@ -2,12 +2,11 @@ namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct NumberFormatXmlPart(
     int id,
-    string format,
-    SpreadsheetBuffer buffer)
+    string format)
 {
     private int? _currentIndex;
 
-    public bool TryWrite()
+    public bool TryWrite(SpreadsheetBuffer buffer)
     {
         if (_currentIndex is not { } index)
         {

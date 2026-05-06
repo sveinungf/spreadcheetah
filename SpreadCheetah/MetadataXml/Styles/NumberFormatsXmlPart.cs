@@ -61,10 +61,10 @@ internal struct NumberFormatsXmlPart(
                 const int customFormatStartId = 165;
                 var id = _nextIndex + customFormatStartId;
                 var format = formats[_nextIndex];
-                current = new NumberFormatXmlPart(id, format, buffer);
+                current = new NumberFormatXmlPart(id, format);
             }
 
-            if (!current.TryWrite())
+            if (!current.TryWrite(buffer))
             {
                 _currentFormatPart = current;
                 return false;
