@@ -6,8 +6,7 @@ internal struct NumberFormatsXmlPart(
 {
     private Element _next;
     private int _nextIndex;
-    private string? _currentXmlEncodedFormat;
-    private int _currentXmlEncodedFormatIndex;
+    private NumberFormatXmlPart? _currentFormatPart;
 
 #pragma warning disable EPS12 // Member can be made readonly (false positive)
     public bool TryWrite()
@@ -57,28 +56,21 @@ internal struct NumberFormatsXmlPart(
 
         for (; _nextIndex < formats.Count; ++_nextIndex)
         {
-            var format = formats[_nextIndex];
-
-            if (_currentXmlEncodedFormat is null)
+            if (_currentFormatPart is not { } current)
             {
                 const int customFormatStartId = 165;
                 var id = _nextIndex + customFormatStartId;
-
-                if (!buffer.TryWrite($"{"<numFmt numFmtId=\""u8}{id}{"\" formatCode=\""u8}"))
-                    return false;
-
-                _currentXmlEncodedFormat = format;
-                _currentXmlEncodedFormatIndex = 0;
+                var format = formats[_nextIndex];
+                current = new NumberFormatXmlPart(id, format, buffer);
             }
 
-            if (!buffer.WriteLongString(_currentXmlEncodedFormat, ref _currentXmlEncodedFormatIndex))
+            if (!current.TryWrite())
+            {
+                _currentFormatPart = current;
                 return false;
+            }
 
-            if (!buffer.TryWrite("\"/>"u8))
-                return false;
-
-            _currentXmlEncodedFormat = null;
-            _currentXmlEncodedFormatIndex = 0;
+            _currentFormatPart = null;
         }
 
         return true;
