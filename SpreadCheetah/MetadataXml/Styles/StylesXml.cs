@@ -14,7 +14,9 @@ internal static class StylesXml
         CancellationToken token)
     {
         const string entryName = "xl/styles.xml";
-        var writer = new StylesXmlWriter(styleManager, styleManager.GetEmbeddedNamedStyles(), buffer);
+        var namedStyles = styleManager.GetEmbeddedNamedStyles();
+        var numberFormatCounter = new NumberFormatCounter();
+        var writer = new StylesXmlWriter(styleManager, namedStyles, numberFormatCounter, buffer);
         return zipArchiveManager.WriteAsync(writer, entryName, buffer, token);
     }
 }
@@ -22,6 +24,7 @@ internal static class StylesXml
 file struct StylesXmlWriter(
     StyleManager styleManager,
     List<(string, AddedStyle, StyleNameVisibility)>? namedStyles,
+    NumberFormatCounter numberFormatCounter,
     SpreadsheetBuffer buffer)
     : IXmlWriter<StylesXmlWriter>
 {
@@ -31,7 +34,7 @@ file struct StylesXmlWriter(
 
     private static ReadOnlySpan<byte> Footer => """</styleSheet>"""u8;
 
-    private NumberFormatsXmlPart _numberFormatsXml = new(styleManager.UniqueCustomFormats?.GetList(), buffer);
+    private NumberFormatsXmlPart _numberFormatsXml = new(styleManager.UniqueCustomFormats?.GetList(), numberFormatCounter, buffer);
     private BordersXmlPart _bordersXml = new(styleManager.UniqueBorders?.GetList(), buffer);
     private FillsXmlPart _fillsXml = new(styleManager.UniqueFills?.GetList(), buffer);
     private FontXmlPart? _fontXml;
@@ -218,7 +221,7 @@ file struct StylesXmlWriter(
             if (_currentDxfXmlWriter is not { } writer)
             {
                 var dxfsEntry = dxfsList[_nextIndex];
-                writer = new StyleDxfXml(dxfsEntry, buffer);
+                writer = new StyleDxfXml(dxfsEntry, numberFormatCounter, buffer);
             }
 
             if (!writer.TryWrite())

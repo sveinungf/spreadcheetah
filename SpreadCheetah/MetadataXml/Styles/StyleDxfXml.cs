@@ -4,11 +4,15 @@ namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct StyleDxfXml(
     AddedDifferentialStyle style,
+    NumberFormatCounter numberFormatCounter,
     SpreadsheetBuffer buffer)
 {
+    private NumberFormatXmlPart? _numberFormatPart;
     private Element _next;
 
+#pragma warning disable EPS12 // A struct member can be made readonly
     public bool TryWrite()
+#pragma warning restore EPS12 // A struct member can be made readonly
     {
         while (MoveNext())
         {
@@ -28,6 +32,7 @@ internal struct StyleDxfXml(
         Current = _next switch
         {
             Element.Header => buffer.TryWrite("<dxf>"u8),
+            Element.NumberFormat => TryWriteNumberFormat(),
             Element.Fill => TryWriteFill(),
             _ => buffer.TryWrite("</dxf>"u8)
         };
@@ -36,6 +41,26 @@ internal struct StyleDxfXml(
             ++_next;
 
         return _next < Element.Done;
+    }
+
+    private bool TryWriteNumberFormat()
+    {
+        if (style.Format is not { } format)
+            return true;
+
+        if (_numberFormatPart is not { } xmlPart)
+        {
+            var id = numberFormatCounter.GetNextId();
+            xmlPart = new NumberFormatXmlPart(id, format);
+        }
+
+        if (!xmlPart.TryWrite(buffer))
+        {
+            _numberFormatPart = xmlPart;
+            return false;
+        }
+
+        return true;
     }
 
     private readonly bool TryWriteFill()
@@ -52,6 +77,7 @@ internal struct StyleDxfXml(
     private enum Element
     {
         Header,
+        NumberFormat,
         Fill,
         Footer,
         Done

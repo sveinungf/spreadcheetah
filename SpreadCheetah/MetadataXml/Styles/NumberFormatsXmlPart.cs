@@ -2,6 +2,7 @@ namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct NumberFormatsXmlPart(
     IList<string>? customNumberFormats,
+    NumberFormatCounter numberFormatCounter,
     SpreadsheetBuffer buffer)
 {
     private Element _next;
@@ -58,8 +59,7 @@ internal struct NumberFormatsXmlPart(
         {
             if (_currentFormatPart is not { } current)
             {
-                const int customFormatStartId = 165;
-                var id = _nextIndex + customFormatStartId;
+                var id = numberFormatCounter.GetNextId();
                 var format = formats[_nextIndex];
                 current = new NumberFormatXmlPart(id, format);
             }

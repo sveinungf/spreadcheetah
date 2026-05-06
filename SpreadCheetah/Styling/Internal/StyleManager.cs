@@ -97,7 +97,8 @@ internal sealed class StyleManager
         // TODO: Handle more parts of a style.
         var differentialStyle = new AddedDifferentialStyle
         {
-            Fill = ImmutableFill.From(style.Fill)
+            Fill = ImmutableFill.From(style.Fill),
+            Format = style.Format?.CustomFormat
         };
 
         var differentialStyles = DifferentialStyles ??= [];
