@@ -115,11 +115,20 @@ public class SpreadsheetConditionalFormattingTests
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var fillColor = Color.FromArgb(255, 255, 200, 0);
+        var fontColor = Color.FromArgb(255, 10, 0, 0);
         // TODO: Add more style elements.
         var style = new DifferentialStyle
         {
             Fill = { Color = fillColor },
-            Format = "0.00"
+            Format = "0.00",
+            Font =
+            {
+                Bold = true,
+                Color = fontColor,
+                Italic = true,
+                Strikethrough = true,
+                Underline = DifferentialFontUnderline.Single
+            }
         };
 
         // Act
@@ -132,10 +141,15 @@ public class SpreadsheetConditionalFormattingTests
         var actualRule = Assert.Single(sheet.ConditionalFormatRules);
         Assert.Equal(fillColor, actualRule.Style.Fill.Color);
         Assert.Equal(style.Format, actualRule.Style.NumberFormat.CustomFormat);
+        Assert.Equal(fontColor, actualRule.Style.Font.Color);
+        Assert.Equal(Underline.Single, actualRule.Style.Font.Underline);
+        Assert.True(actualRule.Style.Font.Bold);
+        Assert.True(actualRule.Style.Font.Italic);
+        Assert.True(actualRule.Style.Font.Strikethrough);
     }
 
     [Fact]
-    public async Task Spreadsheet_ConditionalFormatting_RuleWithLongNumberFormat()
+    public async Task Spreadsheet_ConditionalFormatting_RuleWithLongNumberFormatStyle()
     {
         // Arrange
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
@@ -154,5 +168,27 @@ public class SpreadsheetConditionalFormattingTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualRule = Assert.Single(sheet.ConditionalFormatRules);
         Assert.Equal(style.Format, actualRule.Style.NumberFormat.CustomFormat);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_ConditionalFormatting_RuleWithFontUnderlineStyle(DifferentialFontUnderline underline)
+    {
+        // Arrange
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        var style = new DifferentialStyle { Font = { Underline = underline } };
+
+        // Act
+        var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
+        spreadsheet.AddConditionalFormatRule("A1:A5", rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRule = Assert.Single(sheet.ConditionalFormatRules);
+        Assert.Equal((Underline)underline, actualRule.Style.Font.Underline);
     }
 }

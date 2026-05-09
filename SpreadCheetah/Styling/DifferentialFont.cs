@@ -17,9 +17,8 @@ public sealed record DifferentialFont
     /// <summary>Adds a horizontal line through the center of the characters. Defaults to <see langword="false"/>.</summary>
     public bool Strikethrough { get; set; }
 
-    // TODO: Verify if all the underline options are supported.
     /// <summary>Font underline. Defaults to no underline.</summary>
-    public Underline Underline { get; set => field = Guard.DefinedEnumValue(value); }
+    public DifferentialFontUnderline Underline { get; set => field = Guard.DefinedEnumValue(value); }
 
     /// <summary>ARGB (alpha, red, green, blue) color of the font.</summary>
     public Color? Color { get; set; }

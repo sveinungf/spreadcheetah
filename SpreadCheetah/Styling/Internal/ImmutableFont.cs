@@ -31,7 +31,7 @@ internal readonly record struct ImmutableFont
         Name = null,
         Size = null,
         Strikethrough = font.Strikethrough,
-        Underline = font.Underline
+        Underline = (Underline)font.Underline
     };
 
     public static ImmutableFont From(DefaultFont? defaultFont) => new()
