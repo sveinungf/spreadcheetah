@@ -543,7 +543,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     }
 
     [return: NotNullIfNotNull(nameof(style))]
-    private int? AddDifferentialStyleInternal(Style? style)
+    private int? AddStyleInternal(DifferentialStyle? style)
     {
         if (style is null)
             return null;
@@ -574,7 +574,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(reference);
         ArgumentNullException.ThrowIfNull(rule);
         var cellReference = SingleCellOrCellRangeReference.Create(reference);
-        var styleDxfId = AddDifferentialStyleInternal(rule.Style);
+        var styleDxfId = AddStyleInternal(rule.Style);
         var immutableRule = rule.ToImmutable(styleDxfId);
 
         if (!Worksheet.TryAddConditionalFormatting(cellReference, immutableRule))

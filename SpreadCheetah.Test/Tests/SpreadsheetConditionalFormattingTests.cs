@@ -19,7 +19,7 @@ public class SpreadsheetConditionalFormattingTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var fillColor = Color.FromArgb(255, 255, 0, 0);
-        var style = new Style { Fill = { Color = fillColor } };
+        var style = new DifferentialStyle { Fill = { Color = fillColor } };
 
         // Act
         var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
@@ -43,7 +43,7 @@ public class SpreadsheetConditionalFormattingTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var fillColor = Color.FromArgb(255, 255, 0, 0);
-        var style = new Style { Fill = { Color = fillColor } };
+        var style = new DifferentialStyle { Fill = { Color = fillColor } };
 
         // Act
         var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
@@ -66,7 +66,7 @@ public class SpreadsheetConditionalFormattingTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-        var style = new Style { Fill = { Color = Color.Red } };
+        var style = new DifferentialStyle { Fill = { Color = Color.Red } };
 
         // Act
         var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
@@ -92,7 +92,7 @@ public class SpreadsheetConditionalFormattingTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-        var style = new Style { Fill = { Color = Color.Green } };
+        var style = new DifferentialStyle { Fill = { Color = Color.Green } };
         var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
 
         for (var i = 0; i < SpreadsheetConstants.MaxNumberOfConditionalFormatRules; i++)
@@ -115,12 +115,11 @@ public class SpreadsheetConditionalFormattingTests
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         var fillColor = Color.FromArgb(255, 255, 200, 0);
-        const string numberFormat = "0.00";
         // TODO: Add more style elements.
-        var style = new Style
+        var style = new DifferentialStyle
         {
             Fill = { Color = fillColor },
-            Format = NumberFormat.Custom(numberFormat)
+            Format = "0.00"
         };
 
         // Act
@@ -132,7 +131,7 @@ public class SpreadsheetConditionalFormattingTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualRule = Assert.Single(sheet.ConditionalFormatRules);
         Assert.Equal(fillColor, actualRule.Style.Fill.Color);
-        Assert.Equal(numberFormat, actualRule.Style.NumberFormat.CustomFormat);
+        Assert.Equal(style.Format, actualRule.Style.NumberFormat.CustomFormat);
     }
 
     [Fact]
@@ -144,8 +143,7 @@ public class SpreadsheetConditionalFormattingTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
-        var numberFormat = new string('"', 255);
-        var style = new Style { Format = NumberFormat.Custom(numberFormat) };
+        var style = new DifferentialStyle { Format = new string('"', 255) };
 
         // Act
         var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
@@ -155,6 +153,6 @@ public class SpreadsheetConditionalFormattingTests
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualRule = Assert.Single(sheet.ConditionalFormatRules);
-        Assert.Equal(numberFormat, actualRule.Style.NumberFormat.CustomFormat);
+        Assert.Equal(style.Format, actualRule.Style.NumberFormat.CustomFormat);
     }
 }

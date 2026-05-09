@@ -92,13 +92,13 @@ internal sealed class StyleManager
         return newStyleId;
     }
 
-    public int AddDifferentialStyle(Style style)
+    public int AddDifferentialStyle(DifferentialStyle style)
     {
         // TODO: Handle more parts of a style.
         var differentialStyle = new AddedDifferentialStyle
         {
             Fill = ImmutableFill.From(style.Fill),
-            Format = style.Format?.CustomFormat
+            Format = style.Format
         };
 
         var differentialStyles = DifferentialStyles ??= [];

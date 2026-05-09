@@ -8,5 +8,5 @@ public sealed class UniqueValuesFormatRuleBuilder
     {
     }
 
-    public UniqueValuesFormatRule WithStyle(Style style) => new() { Style = style };
+    public UniqueValuesFormatRule WithStyle(DifferentialStyle style) => new() { Style = style };
 }

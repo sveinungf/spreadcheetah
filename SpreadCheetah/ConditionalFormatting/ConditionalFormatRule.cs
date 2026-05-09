@@ -7,7 +7,7 @@ public abstract class ConditionalFormatRule
 {
     public static UniqueValuesFormatRuleBuilder UniqueValues() => new();
 
-    internal Style? Style { get; init; }
+    internal DifferentialStyle? Style { get; init; }
 
     internal abstract ImmutableConditionalFormatRule ToImmutable(int? styleDxfId);
 
