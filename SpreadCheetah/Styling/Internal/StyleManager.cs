@@ -92,7 +92,7 @@ internal sealed class StyleManager
         return newStyleId;
     }
 
-    public int AddDifferentialStyle(DifferentialStyle style)
+    public int AddStyle(ConditionalFormatStyle style)
     {
         // TODO: Handle more parts of a style.
         var differentialStyle = new AddedDifferentialStyle

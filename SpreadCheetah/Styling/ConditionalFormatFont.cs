@@ -4,9 +4,9 @@ using System.Drawing;
 namespace SpreadCheetah.Styling;
 
 /// <summary>
-/// Represents the font part of a <see cref="DifferentialStyle"/>.
+/// Represents the font part of a <see cref="ConditionalFormatStyle"/>.
 /// </summary>
-public sealed record DifferentialFont
+public sealed record ConditionalFormatFont
 {
     /// <summary>Bold font weight. Defaults to <see langword="false"/>.</summary>
     public bool Bold { get; set; }
@@ -18,7 +18,7 @@ public sealed record DifferentialFont
     public bool Strikethrough { get; set; }
 
     /// <summary>Font underline. Defaults to no underline.</summary>
-    public DifferentialFontUnderline Underline { get; set => field = Guard.DefinedEnumValue(value); }
+    public ConditionalFormatUnderline Underline { get; set => field = Guard.DefinedEnumValue(value); }
 
     /// <summary>ARGB (alpha, red, green, blue) color of the font.</summary>
     public Color? Color { get; set; }

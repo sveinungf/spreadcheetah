@@ -543,13 +543,13 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     }
 
     [return: NotNullIfNotNull(nameof(style))]
-    private int? AddStyleInternal(DifferentialStyle? style)
+    private int? AddStyleInternal(ConditionalFormatStyle? style)
     {
         if (style is null)
             return null;
 
         var styleManager = GetOrCreateStyleManager();
-        return styleManager.AddDifferentialStyle(style);
+        return styleManager.AddStyle(style);
     }
 
     /// <summary>

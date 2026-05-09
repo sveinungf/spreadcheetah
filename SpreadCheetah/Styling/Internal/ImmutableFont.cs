@@ -23,7 +23,7 @@ internal readonly record struct ImmutableFont
         Underline = font.Underline
     };
 
-    public static ImmutableFont From(DifferentialFont font) => new()
+    public static ImmutableFont From(ConditionalFormatFont font) => new()
     {
         Bold = font.Bold,
         Color = font.Color,

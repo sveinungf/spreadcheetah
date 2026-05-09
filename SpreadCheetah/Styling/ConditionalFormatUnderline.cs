@@ -1,9 +1,9 @@
 namespace SpreadCheetah.Styling;
 
 /// <summary>
-/// Values that specifies the type of underline used for differential style fonts.
+/// Values that specifies the type of underline used for conditional format fonts.
 /// </summary>
-public enum DifferentialFontUnderline
+public enum ConditionalFormatUnderline
 {
     /// <summary>No underline.</summary>
     None = 0,

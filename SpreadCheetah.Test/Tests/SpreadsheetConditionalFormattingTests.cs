@@ -19,7 +19,7 @@ public class SpreadsheetConditionalFormattingTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var fillColor = Color.FromArgb(255, 255, 0, 0);
-        var style = new DifferentialStyle { Fill = { Color = fillColor } };
+        var style = new ConditionalFormatStyle { Fill = { Color = fillColor } };
 
         // Act
         var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
@@ -43,7 +43,7 @@ public class SpreadsheetConditionalFormattingTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var fillColor = Color.FromArgb(255, 255, 0, 0);
-        var style = new DifferentialStyle { Fill = { Color = fillColor } };
+        var style = new ConditionalFormatStyle { Fill = { Color = fillColor } };
 
         // Act
         var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
@@ -66,7 +66,7 @@ public class SpreadsheetConditionalFormattingTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-        var style = new DifferentialStyle { Fill = { Color = Color.Red } };
+        var style = new ConditionalFormatStyle { Fill = { Color = Color.Red } };
 
         // Act
         var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
@@ -92,7 +92,7 @@ public class SpreadsheetConditionalFormattingTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-        var style = new DifferentialStyle { Fill = { Color = Color.Green } };
+        var style = new ConditionalFormatStyle { Fill = { Color = Color.Green } };
         var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
 
         for (var i = 0; i < SpreadsheetConstants.MaxNumberOfConditionalFormatRules; i++)
@@ -117,7 +117,7 @@ public class SpreadsheetConditionalFormattingTests
         var fillColor = Color.FromArgb(255, 255, 200, 0);
         var fontColor = Color.FromArgb(255, 10, 0, 0);
         // TODO: Add more style elements.
-        var style = new DifferentialStyle
+        var style = new ConditionalFormatStyle
         {
             Fill = { Color = fillColor },
             Format = "0.00",
@@ -127,7 +127,7 @@ public class SpreadsheetConditionalFormattingTests
                 Color = fontColor,
                 Italic = true,
                 Strikethrough = true,
-                Underline = DifferentialFontUnderline.Single
+                Underline = ConditionalFormatUnderline.Single
             }
         };
 
@@ -157,7 +157,7 @@ public class SpreadsheetConditionalFormattingTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
-        var style = new DifferentialStyle { Format = new string('"', 255) };
+        var style = new ConditionalFormatStyle { Format = new string('"', 255) };
 
         // Act
         var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
@@ -171,7 +171,7 @@ public class SpreadsheetConditionalFormattingTests
     }
 
     [Theory, CombinatorialData]
-    public async Task Spreadsheet_ConditionalFormatting_RuleWithFontUnderlineStyle(DifferentialFontUnderline underline)
+    public async Task Spreadsheet_ConditionalFormatting_RuleWithFontUnderlineStyle(ConditionalFormatUnderline underline)
     {
         // Arrange
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
@@ -179,7 +179,7 @@ public class SpreadsheetConditionalFormattingTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
-        var style = new DifferentialStyle { Font = { Underline = underline } };
+        var style = new ConditionalFormatStyle { Font = { Underline = underline } };
 
         // Act
         var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
