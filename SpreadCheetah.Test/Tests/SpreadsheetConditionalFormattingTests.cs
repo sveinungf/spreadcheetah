@@ -105,4 +105,56 @@ public class SpreadsheetConditionalFormattingTests
         var exception = Assert.Throws<SpreadCheetahException>(() => spreadsheet.AddConditionalFormatRule("C1:D2", rule));
         Assert.Equal("Can't add more than 16384 conditional format rules to a worksheet.", exception.Message);
     }
+
+    [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_RuleWithAllStyleElements()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        var fillColor = Color.FromArgb(255, 255, 200, 0);
+        const string numberFormat = "0.00";
+        // TODO: Add more style elements.
+        var style = new Style
+        {
+            Fill = { Color = fillColor },
+            Format = NumberFormat.Custom(numberFormat)
+        };
+
+        // Act
+        var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
+        spreadsheet.AddConditionalFormatRule("A1", rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRule = Assert.Single(sheet.ConditionalFormatRules);
+        Assert.Equal(fillColor, actualRule.Style.Fill.Color);
+        Assert.Equal(numberFormat, actualRule.Style.NumberFormat.CustomFormat);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_RuleWithLongNumberFormat()
+    {
+        // Arrange
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        var numberFormat = new string('"', 255);
+        var style = new Style { Format = NumberFormat.Custom(numberFormat) };
+
+        // Act
+        var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
+        spreadsheet.AddConditionalFormatRule("A1", rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRule = Assert.Single(sheet.ConditionalFormatRules);
+        Assert.Equal(numberFormat, actualRule.Style.NumberFormat.CustomFormat);
+    }
 }
