@@ -1,4 +1,5 @@
 using SpreadCheetah.Styling.Internal;
+using System.Diagnostics;
 
 namespace SpreadCheetah.MetadataXml.Styles;
 
@@ -32,6 +33,7 @@ internal struct StyleDxfXml(
         Current = _next switch
         {
             Element.Header => buffer.TryWrite("<dxf>"u8),
+            Element.Font => TryWriteFont(),
             Element.NumberFormat => TryWriteNumberFormat(),
             Element.Fill => TryWriteFill(),
             _ => buffer.TryWrite("</dxf>"u8)
@@ -41,6 +43,16 @@ internal struct StyleDxfXml(
             ++_next;
 
         return _next < Element.Done;
+    }
+
+    private readonly bool TryWriteFont()
+    {
+        if (style.Font == default)
+            return true;
+
+        Debug.Assert(style.Font is { Name: null, Size: null });
+        var xmlPart = new FontXmlPart(buffer, style.Font);
+        return xmlPart.TryWrite();
     }
 
     private bool TryWriteNumberFormat()
@@ -77,6 +89,7 @@ internal struct StyleDxfXml(
     private enum Element
     {
         Header,
+        Font,
         NumberFormat,
         Fill,
         Footer,

@@ -23,6 +23,17 @@ internal readonly record struct ImmutableFont
         Underline = font.Underline
     };
 
+    public static ImmutableFont From(DifferentialFont font) => new()
+    {
+        Bold = font.Bold,
+        Color = font.Color,
+        Italic = font.Italic,
+        Name = null,
+        Size = null,
+        Strikethrough = font.Strikethrough,
+        Underline = font.Underline
+    };
+
     public static ImmutableFont From(DefaultFont? defaultFont) => new()
     {
         Bold = false,
