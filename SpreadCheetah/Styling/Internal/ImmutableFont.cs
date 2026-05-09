@@ -4,12 +4,12 @@ namespace SpreadCheetah.Styling.Internal;
 
 internal readonly record struct ImmutableFont
 {
-    public required string Name { get; init; }
+    public required string? Name { get; init; }
     public required bool Bold { get; init; }
     public required bool Italic { get; init; }
     public required bool Strikethrough { get; init; }
     public required Underline Underline { get; init; }
-    public required double Size { get; init; }
+    public required double? Size { get; init; }
     public required Color? Color { get; init; }
 
     public static ImmutableFont From(Font font, DefaultFont? defaultFont) => new()
