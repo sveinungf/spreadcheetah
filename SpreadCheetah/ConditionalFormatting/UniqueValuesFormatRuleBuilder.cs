@@ -1,5 +1,3 @@
-using SpreadCheetah.Styling;
-
 namespace SpreadCheetah.ConditionalFormatting;
 
 public sealed class UniqueValuesFormatRuleBuilder

@@ -1,4 +1,4 @@
-namespace SpreadCheetah.Styling;
+namespace SpreadCheetah.ConditionalFormatting;
 
 public sealed record ConditionalFormatStyle
 {

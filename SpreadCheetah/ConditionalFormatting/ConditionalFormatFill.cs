@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace SpreadCheetah.Styling;
+namespace SpreadCheetah.ConditionalFormatting;
 
 /// <summary>
 /// Represents the fill part of a <see cref="ConditionalFormatStyle"/>.

@@ -1,4 +1,4 @@
-namespace SpreadCheetah.Styling;
+namespace SpreadCheetah.ConditionalFormatting;
 
 /// <summary>
 /// Values that specifies the type of underline used for conditional format fonts.

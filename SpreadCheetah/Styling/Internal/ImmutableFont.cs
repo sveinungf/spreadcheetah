@@ -1,3 +1,4 @@
+using SpreadCheetah.ConditionalFormatting;
 using System.Drawing;
 
 namespace SpreadCheetah.Styling.Internal;

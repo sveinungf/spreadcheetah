@@ -1,3 +1,4 @@
+using SpreadCheetah.ConditionalFormatting;
 using SpreadCheetah.Helpers;
 using System.Diagnostics.CodeAnalysis;
 

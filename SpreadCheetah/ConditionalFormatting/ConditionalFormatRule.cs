@@ -1,5 +1,4 @@
 using SpreadCheetah.ConditionalFormatting.Internal;
-using SpreadCheetah.Styling;
 
 namespace SpreadCheetah.ConditionalFormatting;
 

@@ -1,7 +1,7 @@
 using SpreadCheetah.Helpers;
 using System.Drawing;
 
-namespace SpreadCheetah.Styling;
+namespace SpreadCheetah.ConditionalFormatting;
 
 /// <summary>
 /// Represents the font part of a <see cref="ConditionalFormatStyle"/>.
