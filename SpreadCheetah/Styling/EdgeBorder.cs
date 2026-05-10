@@ -7,6 +7,7 @@ namespace SpreadCheetah.Styling;
 /// </summary>
 public sealed record EdgeBorder
 {
+    // TODO: Validate setter
     /// <summary>Border style. Defaults to None.</summary>
     public BorderStyle BorderStyle { get; set; } = BorderStyle.None;
 

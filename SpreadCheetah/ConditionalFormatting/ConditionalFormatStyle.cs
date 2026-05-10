@@ -2,7 +2,7 @@ namespace SpreadCheetah.ConditionalFormatting;
 
 public sealed record ConditionalFormatStyle
 {
-    // TODO: Add border.
+    public ConditionalFormatBorder Border { get; set; } = new();
 
     public ConditionalFormatFill Fill { get; set; } = new();
 
