@@ -36,7 +36,7 @@ internal struct BorderXml(
             Element.Top => TryWriteBorderPart("top"u8, border.Top),
             Element.Bottom => TryWriteBorderPart("bottom"u8, border.Bottom),
             Element.Diagonal => TryWriteBorderPart("diagonal"u8, border.Diagonal),
-            _ => buffer.TryWrite("</border>"u8),
+            _ => TryWriteFooter(),
         };
 
         if (Current)
@@ -48,6 +48,8 @@ internal struct BorderXml(
     private readonly bool TryWriteBorderStart()
     {
         var type = border.Diagonal?.Type ?? DiagonalBorderType.None;
+        if (type is DiagonalBorderType.None)
+            return buffer.TryWrite("<border>"u8);
 
         var hasDiagonalUp = type.HasFlag(DiagonalBorderType.DiagonalUp);
         var diagonalUp = new SpanByteAttribute("diagonalUp"u8, hasDiagonalUp ? "true"u8 : []);
@@ -104,6 +106,15 @@ internal struct BorderXml(
             $"{"\"/></"u8}" +
             $"{borderPart}" +
             $"{">"u8}");
+    }
+
+    private readonly bool TryWriteFooter()
+    {
+        var footer = border.IsConditionalFormatBorder
+            ? "<vertical/><horizontal/></border>"u8
+            : "</border>"u8;
+
+        return buffer.TryWrite(footer);
     }
 
     private static ReadOnlySpan<byte> GetStyleValue(BorderStyle style) => style switch

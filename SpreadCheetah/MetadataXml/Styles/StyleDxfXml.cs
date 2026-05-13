@@ -1,3 +1,4 @@
+using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using System.Diagnostics;
 
@@ -28,7 +29,6 @@ internal struct StyleDxfXml(
 
     public bool MoveNext()
     {
-        // TODO: Handle more parts of the style.
         // TODO: Somewhere, we need to check if the style is not just a default style.
         Current = _next switch
         {
@@ -36,6 +36,7 @@ internal struct StyleDxfXml(
             Element.Font => TryWriteFont(),
             Element.NumberFormat => TryWriteNumberFormat(),
             Element.Fill => TryWriteFill(),
+            Element.Border => TryWriteBorder(),
             _ => buffer.TryWrite("</dxf>"u8)
         };
 
@@ -47,7 +48,16 @@ internal struct StyleDxfXml(
 
     private readonly bool TryWriteFont()
     {
-        if (style.Font == default)
+        var isDefaultFont = style.Font is
+        {
+            Bold: false,
+            Color: null,
+            Italic: false,
+            Strikethrough: false,
+            Underline: Underline.None
+        };
+
+        if (isDefaultFont)
             return true;
 
         Debug.Assert(style.Font is { Name: null, Size: null });
@@ -86,12 +96,31 @@ internal struct StyleDxfXml(
             $"{"\"/></patternFill></fill>"u8}");
     }
 
+    private readonly bool TryWriteBorder()
+    {
+        var isDefaultBorder = style.Border is
+        {
+            Bottom: null,
+            Diagonal: null,
+            Left: null,
+            Right: null,
+            Top: null
+        };
+
+        if (isDefaultBorder)
+            return true;
+
+        var xmlPart = new BorderXml(style.Border, buffer);
+        return xmlPart.TryWrite();
+    }
+
     private enum Element
     {
         Header,
         Font,
         NumberFormat,
         Fill,
+        Border,
         Footer,
         Done
     }

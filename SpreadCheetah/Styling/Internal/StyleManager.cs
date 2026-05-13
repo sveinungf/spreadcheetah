@@ -95,9 +95,9 @@ internal sealed class StyleManager
 
     public int AddStyle(ConditionalFormatStyle style)
     {
-        // TODO: Handle more parts of a style.
         var differentialStyle = new AddedDifferentialStyle
         {
+            Border = ImmutableBorder.From(style.Border),
             Fill = ImmutableFill.From(style.Fill),
             Font = ImmutableFont.From(style.Font),
             Format = style.Format

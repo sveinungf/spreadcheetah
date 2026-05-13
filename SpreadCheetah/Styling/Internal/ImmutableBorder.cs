@@ -1,3 +1,4 @@
+using SpreadCheetah.ConditionalFormatting;
 using System.Runtime.InteropServices;
 
 namespace SpreadCheetah.Styling.Internal;
@@ -10,6 +11,7 @@ internal readonly record struct ImmutableBorder
     public required ImmutableEdgeBorder? Top { get; init; }
     public required ImmutableEdgeBorder? Bottom { get; init; }
     public required ImmutableDiagonalBorder? Diagonal { get; init; }
+    public required bool IsConditionalFormatBorder { get; init; }
 
     public static ImmutableBorder From(Border border) => new()
     {
@@ -17,15 +19,27 @@ internal readonly record struct ImmutableBorder
         Right = ImmutableEdgeBorder.From(border.Right),
         Top = ImmutableEdgeBorder.From(border.Top),
         Bottom = ImmutableEdgeBorder.From(border.Bottom),
-        Diagonal = ImmutableDiagonalBorder.From(border.Diagonal)
+        Diagonal = ImmutableDiagonalBorder.From(border.Diagonal),
+        IsConditionalFormatBorder = false
+    };
+
+    public static ImmutableBorder From(ConditionalFormatBorder border) => new()
+    {
+        Left = ImmutableEdgeBorder.From(border.Left),
+        Right = ImmutableEdgeBorder.From(border.Right),
+        Top = ImmutableEdgeBorder.From(border.Top),
+        Bottom = ImmutableEdgeBorder.From(border.Bottom),
+        Diagonal = null,
+        IsConditionalFormatBorder = true
     };
 
     public static ImmutableBorder Default => new()
     {
-        Left = new ImmutableEdgeBorder(),
-        Right = new ImmutableEdgeBorder(),
-        Top = new ImmutableEdgeBorder(),
-        Bottom = new ImmutableEdgeBorder(),
-        Diagonal = new ImmutableDiagonalBorder()
+        Left = new ImmutableEdgeBorder { BorderStyle = BorderStyle.None, Color = null },
+        Right = new ImmutableEdgeBorder { BorderStyle = BorderStyle.None, Color = null },
+        Top = new ImmutableEdgeBorder { BorderStyle = BorderStyle.None, Color = null },
+        Bottom = new ImmutableEdgeBorder { BorderStyle = BorderStyle.None, Color = null },
+        Diagonal = new ImmutableDiagonalBorder(),
+        IsConditionalFormatBorder = false
     };
 }
