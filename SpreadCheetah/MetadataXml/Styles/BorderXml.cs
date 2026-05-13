@@ -31,11 +31,11 @@ internal struct BorderXml(
         Current = _next switch
         {
             Element.BorderStart => TryWriteBorderStart(),
-            Element.Left => TryWriteBorderPart("left"u8, border.Left.BorderStyle, border.Left.Color),
-            Element.Right => TryWriteBorderPart("right"u8, border.Right.BorderStyle, border.Right.Color),
-            Element.Top => TryWriteBorderPart("top"u8, border.Top.BorderStyle, border.Top.Color),
-            Element.Bottom => TryWriteBorderPart("bottom"u8, border.Bottom.BorderStyle, border.Bottom.Color),
-            Element.Diagonal => TryWriteBorderPart("diagonal"u8, border.Diagonal.BorderStyle, border.Diagonal.Color),
+            Element.Left => TryWriteBorderPart("left"u8, border.Left),
+            Element.Right => TryWriteBorderPart("right"u8, border.Right),
+            Element.Top => TryWriteBorderPart("top"u8, border.Top),
+            Element.Bottom => TryWriteBorderPart("bottom"u8, border.Bottom),
+            Element.Diagonal => TryWriteBorderPart("diagonal"u8, border.Diagonal),
             _ => buffer.TryWrite("</border>"u8),
         };
 
@@ -47,13 +47,31 @@ internal struct BorderXml(
 
     private readonly bool TryWriteBorderStart()
     {
-        var hasDiagonalUp = border.Diagonal.Type.HasFlag(DiagonalBorderType.DiagonalUp);
+        var type = border.Diagonal?.Type ?? DiagonalBorderType.None;
+
+        var hasDiagonalUp = type.HasFlag(DiagonalBorderType.DiagonalUp);
         var diagonalUp = new SpanByteAttribute("diagonalUp"u8, hasDiagonalUp ? "true"u8 : []);
 
-        var hasDiagonalDown = border.Diagonal.Type.HasFlag(DiagonalBorderType.DiagonalDown);
+        var hasDiagonalDown = type.HasFlag(DiagonalBorderType.DiagonalDown);
         var diagonalDown = new SpanByteAttribute("diagonalDown"u8, hasDiagonalDown ? "true"u8 : []);
 
         return buffer.TryWrite($"{"<border"u8}{diagonalUp}{diagonalDown}{">"u8}");
+    }
+
+    private readonly bool TryWriteBorderPart(
+        ReadOnlySpan<byte> borderPart,
+        ImmutableEdgeBorder? edgeBorder)
+    {
+        return edgeBorder is not { } edge
+            || TryWriteBorderPart(borderPart, edge.BorderStyle, edge.Color);
+    }
+
+    private readonly bool TryWriteBorderPart(
+        ReadOnlySpan<byte> borderPart,
+        ImmutableDiagonalBorder? diagonalBorder)
+    {
+        return diagonalBorder is not { } diagonal
+            || TryWriteBorderPart(borderPart, diagonal.BorderStyle, diagonal.Color);
     }
 
     private readonly bool TryWriteBorderPart(

@@ -58,7 +58,7 @@ internal struct FillsXmlPart(IList<ImmutableFill>? fills, SpreadsheetBuffer buff
         for (; _nextIndex < fillsLocal.Count; ++_nextIndex)
         {
             var fill = fillsLocal[_nextIndex];
-            Debug.Assert(fill != default);
+            Debug.Assert(fill != default);  // TODO: Still correct?
             if (fill.Color is not { } color) continue;
 
             var success = buffer.TryWrite(
