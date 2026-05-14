@@ -23,11 +23,6 @@
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="System.IO.Compression" />
-  </ItemGroup>
-
   <ItemGroup>
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
