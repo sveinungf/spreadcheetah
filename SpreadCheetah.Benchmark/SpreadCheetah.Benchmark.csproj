@@ -14,6 +14,7 @@
     <PackageReference Include="DocumentFormat.OpenXml" />
     <PackageReference Include="LargeXlsx" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
+    <PackageReference Include="SharpCompress" />
   </ItemGroup>
 
   <ItemGroup>

@@ -29,8 +29,9 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.11.0" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
-    <PackageVersion Include="Polyfill" Version="9.22.0" />
+    <PackageVersion Include="Polyfill" Version="10.5.1" />
     <PackageVersion Include="PublicApiGenerator" Version="11.5.4" />
+    <PackageVersion Include="SharpCompress" Version="0.48.0" />
     <PackageVersion Include="System.Collections.Immutable" Version="10.0.8" />
     <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
     <PackageVersion Include="TngTech.ArchUnitNET.xUnitV3" Version="0.13.3" />
