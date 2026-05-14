@@ -957,6 +957,54 @@ public class SpreadsheetRowTests
     }
 
     [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_RowHiiden(
+        [CombinatorialValues(true, false, null)] bool? hidden,
+        CellType type,
+        RowCollectionType rowType
+    )
+    {
+        // Arrange
+        var worksheetOptions = new WorksheetOptions();
+        var rowOptions = new RowOptions { Hidden = hidden };
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, token: Token);
+
+        // Act
+        await spreadsheet.AddRowAsync(CellFactory.Create(type, "My value"), rowType, rowOptions);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(hidden ?? false, sheet.Row(1).Hidden);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_RowCollapsed(
+        [CombinatorialValues(true, false, null)] bool? collapsed,
+        CellType type,
+        RowCollectionType rowType
+    )
+    {
+        // Arrange
+        var worksheetOptions = new WorksheetOptions();
+        var rowOptions = new RowOptions { Collapsed = collapsed };
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, token: Token);
+
+        // Act
+        await spreadsheet.AddRowAsync(CellFactory.Create(type, "My value"), rowType, rowOptions);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+    }
+
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_RowStyle(
         CellType type,
         RowCollectionType rowType)
