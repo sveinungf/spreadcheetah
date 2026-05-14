@@ -22,11 +22,17 @@ dotnet_diagnostic.Proj0043.severity = none
 # Proj0213: Define the project icon URL explicitly
 dotnet_diagnostic.Proj0213.severity = none
 
+# Proj0215: Provide a compliant NuGet package icon
+dotnet_diagnostic.Proj0215.severity = none
+
 # Proj0216: Define the product name explicitly
 dotnet_diagnostic.Proj0216.severity = none
 
 # Proj0217: Define requiring license acceptance explicitly
 dotnet_diagnostic.Proj0217.severity = none
+
+# Proj0218: Symbol package format snupkg requires debug type portable
+dotnet_diagnostic.Proj0218.severity = none
 
 # Proj0243: Generate software bill of materials
 dotnet_diagnostic.Proj0243.severity = none
@@ -39,6 +45,9 @@ dotnet_diagnostic.Proj0451.severity = none
 
 # Proj1001: Use analyzers for packages (gives false positives)
 dotnet_diagnostic.Proj1001.severity = none
+
+# Proj1300: Avoid project references to executables
+dotnet_diagnostic.Proj1300.severity = none
 
 # Proj3000: Only use UTF-8 without BOM
 dotnet_diagnostic.Proj3000.severity = none
