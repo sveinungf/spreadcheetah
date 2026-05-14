@@ -2,3 +2,16 @@ is_global = true
 
 # CA1014: Mark assemblies with CLSCompliant
 dotnet_diagnostic.CA1014.severity = none
+
+
+###############################
+# .NET project file analyzers #
+###############################
+# Proj0003: Define usings explicit
+dotnet_diagnostic.Proj0003.severity = none
+
+# Proj1001: Use analyzers for packages (gives false positives)
+dotnet_diagnostic.Proj1001.severity = none
+
+# Proj3000: Only use UTF-8 without BOM
+dotnet_diagnostic.Proj3000.severity = none
