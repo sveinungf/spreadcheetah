@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SpreadCheetah.Benchmark\SpreadCheetah.Benchmark.csproj" />
-    <ProjectReference Include="..\SpreadCheetah.TestHelpers\SpreadCheetah.TestHelpers.csproj" />
+    <ProjectReference Include="../SpreadCheetah.Benchmark/SpreadCheetah.Benchmark.csproj" />
+    <ProjectReference Include="../SpreadCheetah.TestHelpers/SpreadCheetah.TestHelpers.csproj" />
   </ItemGroup>
 
 </Project>

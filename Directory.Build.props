@@ -5,7 +5,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <AnalysisLevel>9-all</AnalysisLevel>
+    <AnalysisLevel>10-all</AnalysisLevel>
+    <NuGetAuditMode>all</NuGetAuditMode>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
     <Configurations>Debug;Release;Benchmark</Configurations>

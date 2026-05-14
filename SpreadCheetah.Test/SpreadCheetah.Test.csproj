@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Images\*" />
+    <EmbeddedResource Include="Images/*" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SpreadCheetah.TestHelpers\SpreadCheetah.TestHelpers.csproj" />
+    <ProjectReference Include="../SpreadCheetah.TestHelpers/SpreadCheetah.TestHelpers.csproj" />
   </ItemGroup>
 
 </Project>

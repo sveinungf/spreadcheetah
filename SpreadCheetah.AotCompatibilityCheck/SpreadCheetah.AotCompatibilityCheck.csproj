@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -9,8 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SpreadCheetah.SourceGenerator\SpreadCheetah.SourceGenerator.csproj" />
-    <ProjectReference Include="..\SpreadCheetah\SpreadCheetah.csproj" />
+    <ProjectReference Include="../SpreadCheetah/SpreadCheetah.csproj" />
+    <ProjectReference Include="../SpreadCheetah.SourceGenerator/SpreadCheetah.SourceGenerator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <TrimmerRootAssembly Include="SpreadCheetah" />
     <TrimmerRootAssembly Include="SpreadCheetah.SourceGenerator" />
   </ItemGroup>
