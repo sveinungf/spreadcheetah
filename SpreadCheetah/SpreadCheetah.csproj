@@ -8,9 +8,11 @@
     <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
 
     <!-- NuGet package -->
+    <IsPackable>true</IsPackable>
     <PackageId>SpreadCheetah</PackageId>
     <Version>1.27.0</Version>
     <Authors>sveinungf</Authors>
+    <Copyright>Copyright (c) 2020-present Sveinung</Copyright>
     <Description>SpreadCheetah is a high-performance .NET library for generating spreadsheet (Microsoft Excel XLSX) files.</Description>
     <PackageIcon>icon-package.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -35,9 +37,13 @@
 
     <!-- Package validation -->
     <EnablePackageValidation>true</EnablePackageValidation>
-    <PackageValidationBaselineVersion>1.26.0</PackageValidationBaselineVersion>
+    <EnableStrictModeForBaselineValidation>true</EnableStrictModeForBaselineValidation>
     <EnableStrictModeForCompatibleTfms>true</EnableStrictModeForCompatibleTfms>
     <EnableStrictModeForCompatibleFrameworksInPackage>true</EnableStrictModeForCompatibleFrameworksInPackage>
+    <ApiCompatEnableRuleAttributesMustMatch>true</ApiCompatEnableRuleAttributesMustMatch>
+    <ApiCompatEnableRuleCannotChangeParameterName>true</ApiCompatEnableRuleCannotChangeParameterName>
+    <ApiCompatGenerateSuppressionFile>true</ApiCompatGenerateSuppressionFile>
+    <PackageValidationBaselineVersion>1.26.0</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -56,18 +62,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ErrorProne.NET.Structs">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Polyfill">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="ErrorProne.NET.Structs" PrivateAssets="all" />
+    <PackageReference Include="Polyfill" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SpreadCheetah.SourceGenerator\SpreadCheetah.SourceGenerator.csproj" Pack="false">
+    <ProjectReference Include="../SpreadCheetah.SourceGenerator/SpreadCheetah.SourceGenerator.csproj" Pack="false">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <OutputItemType>Content</OutputItemType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -77,7 +77,7 @@
   <ItemGroup>
     <!-- Package the source generator in the analyzer directory of the nuget package -->
     <None Include="$(OutputPath)/netstandard2.0/SpreadCheetah.SourceGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-    <None Include="..\README.md">
+    <None Include="../README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

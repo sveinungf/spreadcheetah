@@ -2,3 +2,55 @@ is_global = true
 
 # CA1014: Mark assemblies with CLSCompliant
 dotnet_diagnostic.CA1014.severity = none
+
+
+###############################
+# .NET project file analyzers #
+###############################
+# Proj0003: Define usings explicit
+dotnet_diagnostic.Proj0003.severity = none
+
+# Proj0010: Define the project output type explicitly
+dotnet_diagnostic.Proj0010.severity = none
+
+# Proj0042: Enable <ContinuousIntegrationBuild> when running in CI pipeline
+dotnet_diagnostic.Proj0042.severity = none
+
+# Proj0043: Use lock files
+dotnet_diagnostic.Proj0043.severity = none
+
+# Proj0213: Define the project icon URL explicitly
+dotnet_diagnostic.Proj0213.severity = none
+
+# Proj0215: Provide a compliant NuGet package icon
+dotnet_diagnostic.Proj0215.severity = none
+
+# Proj0216: Define the product name explicitly
+dotnet_diagnostic.Proj0216.severity = none
+
+# Proj0217: Define requiring license acceptance explicitly
+dotnet_diagnostic.Proj0217.severity = none
+
+# Proj0218: Symbol package format snupkg requires debug type portable
+dotnet_diagnostic.Proj0218.severity = none
+
+# Proj0243: Generate software bill of materials
+dotnet_diagnostic.Proj0243.severity = none
+
+# Proj0400: Define the project publishability explicitly
+dotnet_diagnostic.Proj0400.severity = none
+
+# Proj0451: Test projects should not be publishable
+dotnet_diagnostic.Proj0451.severity = none
+
+# Proj1001: Use analyzers for packages (gives false positives)
+dotnet_diagnostic.Proj1001.severity = none
+
+# Proj1300: Avoid project references to executables
+dotnet_diagnostic.Proj1300.severity = none
+
+# Proj3000: Only use UTF-8 without BOM
+dotnet_diagnostic.Proj3000.severity = none
+
+# Proj3002: Remove commented-out code
+dotnet_diagnostic.Proj3002.severity = none

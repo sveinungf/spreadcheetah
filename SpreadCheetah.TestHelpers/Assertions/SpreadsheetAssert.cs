@@ -10,8 +10,7 @@ public static class SpreadsheetAssert
 {
     public static ISpreadsheetAssertSheet SingleSheet(Stream stream)
     {
-        if (stream is null)
-            throw new ArgumentNullException(nameof(stream));
+        ArgumentNullException.ThrowIfNull(stream);
 
         using var openXmlDoc = GetValidatedOpenXmlDocument(stream);
         var openXmlWorksheet = openXmlDoc.WorkbookPart?.WorksheetParts.Single().Worksheet
@@ -26,8 +25,7 @@ public static class SpreadsheetAssert
 
     public static IWorksheetList Sheets(Stream stream)
     {
-        if (stream is null)
-            throw new ArgumentNullException(nameof(stream));
+        ArgumentNullException.ThrowIfNull(stream);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
         var openXmlDoc = GetValidatedOpenXmlDocument(stream);
@@ -39,16 +37,14 @@ public static class SpreadsheetAssert
 
     public static void Valid(Stream stream)
     {
-        if (stream is null)
-            throw new ArgumentNullException(nameof(stream));
+        ArgumentNullException.ThrowIfNull(stream);
 
         using var _ = GetValidatedOpenXmlDocument(stream);
     }
 
     public static ISpreadsheetAssertDocumentProperties DocumentProperties(Stream stream)
     {
-        if (stream is null)
-            throw new ArgumentNullException(nameof(stream));
+        ArgumentNullException.ThrowIfNull(stream);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
         var closedXmlWorkbook = new XLWorkbook(stream);

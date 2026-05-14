@@ -117,13 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Id" xml:space="preserve">
-    <value>The ID</value>
-  </data>
   <data name="Header_Make" xml:space="preserve">
     <value>The make</value>
   </data>
   <data name="Header_Model" xml:space="preserve">
     <value>The model</value>
+  </data>
+  <data name="Id" xml:space="preserve">
+    <value>The ID</value>
   </data>
 </root>

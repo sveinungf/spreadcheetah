@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
@@ -19,12 +20,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SpreadCheetah.SourceGenerator\SpreadCheetah.SourceGenerator.csproj" />
-    <ProjectReference Include="..\SpreadCheetah\SpreadCheetah.csproj" />
+    <ProjectReference Include="../SpreadCheetah/SpreadCheetah.csproj" />
+    <ProjectReference Include="../SpreadCheetah.SourceGenerator/SpreadCheetah.SourceGenerator.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Models\ColumnHeader\ColumnHeaderResources.Designer.cs">
+    <Compile Update="Models/ColumnHeader/ColumnHeaderResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>ColumnHeaderResources.resx</DependentUpon>
@@ -32,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Models\ColumnHeader\ColumnHeaderResources.resx">
+    <EmbeddedResource Update="Models/ColumnHeader/ColumnHeaderResources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>ColumnHeaderResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
