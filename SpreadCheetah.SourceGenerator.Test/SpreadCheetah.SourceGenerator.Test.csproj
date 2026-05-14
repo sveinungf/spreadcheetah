@@ -3,25 +3,16 @@
   <PropertyGroup>
     <TargetFrameworks>net472;net8.0;net9.0;net10.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.collector">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="Polyfill">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="Polyfill" PrivateAssets="all" />
     <PackageReference Include="Xunit.Combinatorial" />
-    <PackageReference Include="xunit.runner.visualstudio">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
 
@@ -30,17 +21,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SpreadCheetah.SourceGenerator\SpreadCheetah.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
-    <ProjectReference Include="..\SpreadCheetah.TestHelpers\SpreadCheetah.TestHelpers.csproj" />
+    <ProjectReference Include="../SpreadCheetah.SourceGenerator/SpreadCheetah.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="../SpreadCheetah.TestHelpers/SpreadCheetah.TestHelpers.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Models\InferColumnHeaders\InferColumnHeadersResources.Designer.cs">
+    <Compile Update="Models/InferColumnHeaders/InferColumnHeadersResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>InferColumnHeadersResources.resx</DependentUpon>
     </Compile>
-    <Compile Update="Models\ColumnHeader\ColumnHeaderResources.Designer.cs">
+    <Compile Update="Models/ColumnHeader/ColumnHeaderResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>ColumnHeaderResources.resx</DependentUpon>
@@ -48,11 +39,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Models\InferColumnHeaders\InferColumnHeadersResources.resx">
+    <EmbeddedResource Update="Models/InferColumnHeaders/InferColumnHeadersResources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>InferColumnHeadersResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Update="Models\ColumnHeader\ColumnHeaderResources.resx">
+    <EmbeddedResource Update="Models/ColumnHeader/ColumnHeaderResources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>ColumnHeaderResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
