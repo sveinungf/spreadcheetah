@@ -4,7 +4,7 @@ namespace SpreadCheetah.TestHelpers.Assertions;
 
 internal sealed class ClosedXmlAssertTable(IXLTable table) : ISpreadsheetAssertTable
 {
-    public string CellRangeReference => table.RangeAddress.ToString();
+    public string CellRangeReference => table.RangeAddress.ToString() ?? "";
     public string Name => table.Name;
     public string TableStyle => table.Theme.Name;
     public bool BandedColumns => table.ShowColumnStripes;
