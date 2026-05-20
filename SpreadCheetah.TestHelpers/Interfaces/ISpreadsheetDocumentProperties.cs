@@ -1,6 +1,6 @@
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers.Interfaces;
 
-public interface ISpreadsheetAssertDocumentProperties
+public interface ISpreadsheetDocumentProperties
 {
     string? Application { get; }
     string? Author { get; }

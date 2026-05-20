@@ -2,7 +2,7 @@ using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models.CellValueTruncation;
 using SpreadCheetah.SourceGenerator.Test.Models.Contexts;
-using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers;
 using System.Reflection;
 using Xunit;
 

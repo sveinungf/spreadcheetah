@@ -10,7 +10,7 @@ using SpreadCheetah.SourceGenerator.Test.Models.Contexts;
 using SpreadCheetah.SourceGenerator.Test.Models.MultipleProperties;
 using SpreadCheetah.SourceGenerator.Test.Models.NoProperties;
 using SpreadCheetah.Styling;
-using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers;
 using SpreadCheetah.TestHelpers.Extensions;
 using Xunit;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;

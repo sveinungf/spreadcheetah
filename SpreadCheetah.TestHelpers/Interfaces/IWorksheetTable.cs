@@ -1,6 +1,6 @@
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers.Interfaces;
 
-public interface ISpreadsheetAssertTable
+public interface IWorksheetTable
 {
     string CellRangeReference { get; }
     string Name { get; }
@@ -10,5 +10,5 @@ public interface ISpreadsheetAssertTable
     bool ShowAutoFilter { get; }
     bool ShowHeaderRow { get; }
     bool ShowTotalRow { get; }
-    IReadOnlyList<ISpreadsheetAssertTableColumn> Columns { get; }
+    IReadOnlyList<IWorksheetTableColumn> Columns { get; }
 }

@@ -5,6 +5,7 @@ using Polyfills;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
+using SpreadCheetah.TestHelpers.Extensions;
 using SpreadCheetah.TestHelpers.TestData;
 using SpreadCheetah.Worksheets;
 using System.Globalization;
@@ -17,7 +18,7 @@ using DiagonalBorder = SpreadCheetah.Styling.DiagonalBorder;
 using Fill = SpreadCheetah.Styling.Fill;
 using Font = SpreadCheetah.Styling.Font;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
-using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.SpreadsheetAssert;
 using Underline = SpreadCheetah.Styling.Underline;
 
 namespace SpreadCheetah.Test.Tests;
@@ -840,34 +841,28 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Border style test";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
-            var style = new Style { Border = new Border { Left = new EdgeBorder { BorderStyle = borderStyle } } };
-            var styleId = spreadsheet.AddStyle(style);
-            var styledCell = CellFactory.Create(type, cellValue, styleId);
+        var style = new Style { Border = new Border { Left = new EdgeBorder { BorderStyle = borderStyle } } };
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = CellFactory.Create(type, cellValue, styleId);
 
-            // Act
-            await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync(Token);
-        }
-
-        var expectedBorderStyle = borderStyle.GetClosedXmlBorderStyle();
+        // Act
+        await spreadsheet.AddRowAsync(styledCell, rowType);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(cellValue, actualCell.StringValue);
         var actualBorder = actualCell.Style.Border;
-        Assert.Equal(cellValue, actualCell.Value);
-        Assert.Equal(expectedBorderStyle, actualBorder.LeftBorder);
-        Assert.Equal(XLColor.Black, actualBorder.LeftBorderColor);
-        Assert.Equal(XLBorderStyleValues.None, actualBorder.RightBorder);
-        Assert.Equal(XLBorderStyleValues.None, actualBorder.TopBorder);
-        Assert.Equal(XLBorderStyleValues.None, actualBorder.BottomBorder);
-        Assert.Equal(XLBorderStyleValues.None, actualBorder.DiagonalBorder);
+        Assert.Equal(borderStyle, actualBorder.LeftStyle);
+        Assert.Equal(Color.Black, actualBorder.LeftColor);
+        Assert.Equal(BorderStyle.None, actualBorder.RightStyle);
+        Assert.Equal(BorderStyle.None, actualBorder.TopStyle);
+        Assert.Equal(BorderStyle.None, actualBorder.BottomStyle);
+        Assert.Equal(BorderStyle.None, actualBorder.DiagonalStyle);
     }
 
     [Theory, CombinatorialData]
@@ -923,52 +918,43 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Border style test";
 
-        var styles = new[] { BorderStyle.Thin, BorderStyle.DoubleLine, BorderStyle.DashDotDot, BorderStyle.Medium };
-        var colors = new[] { Color.Firebrick, Color.ForestGreen, Color.Black, Color.Blue };
+        BorderStyle[] styles = [BorderStyle.Thin, BorderStyle.DoubleLine, BorderStyle.DashDotDot, BorderStyle.Medium];
+        Color[] colors = [Color.FromArgb(1, 2, 3), Color.FromArgb(50, 60, 70), Color.FromArgb(1, 0, 0), Color.FromArgb(0, 0, 255)];
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        var style = new Style
         {
-            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-
-            var style = new Style
+            Border = new Border
             {
-                Border = new Border
-                {
-                    Left = new EdgeBorder { BorderStyle = styles[0], Color = colors[0] },
-                    Right = new EdgeBorder { BorderStyle = styles[1], Color = colors[1] },
-                    Top = new EdgeBorder { BorderStyle = styles[2], Color = colors[2] },
-                    Bottom = new EdgeBorder { BorderStyle = styles[3], Color = colors[3] }
-                }
-            };
-            var styleId = spreadsheet.AddStyle(style);
-            var styledCell = CellFactory.Create(type, cellValue, styleId);
+                Left = new EdgeBorder { BorderStyle = styles[0], Color = colors[0] },
+                Right = new EdgeBorder { BorderStyle = styles[1], Color = colors[1] },
+                Top = new EdgeBorder { BorderStyle = styles[2], Color = colors[2] },
+                Bottom = new EdgeBorder { BorderStyle = styles[3], Color = colors[3] }
+            }
+        };
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = CellFactory.Create(type, cellValue, styleId);
 
-            // Act
-            await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync(Token);
-        }
+        // Act
+        await spreadsheet.AddRowAsync(styledCell, rowType);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
-        var actualBorder = actualCell.Style.Border;
-        Assert.Equal(cellValue, actualCell.Value);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(cellValue, actualCell.StringValue);
+        var border = actualCell.Style.Border;
 
-        Assert.Equal(styles[0].GetClosedXmlBorderStyle(), actualBorder.LeftBorder);
-        Assert.Equal(styles[1].GetClosedXmlBorderStyle(), actualBorder.RightBorder);
-        Assert.Equal(styles[2].GetClosedXmlBorderStyle(), actualBorder.TopBorder);
-        Assert.Equal(styles[3].GetClosedXmlBorderStyle(), actualBorder.BottomBorder);
+        Assert.Equal(styles, [border.LeftStyle, border.RightStyle, border.TopStyle, border.BottomStyle]);
 
-        Assert.Equal(XLColor.FromColor(colors[0]), actualBorder.LeftBorderColor);
-        Assert.Equal(XLColor.FromColor(colors[1]), actualBorder.RightBorderColor);
-        Assert.Equal(XLColor.FromColor(colors[2]), actualBorder.TopBorderColor);
-        Assert.Equal(XLColor.FromColor(colors[3]), actualBorder.BottomBorderColor);
+        Color[] expectedColors = [border.LeftColor, border.RightColor, border.TopColor, border.BottomColor];
+        Assert.Equal(colors, expectedColors);
 
-        Assert.Equal(XLBorderStyleValues.None, actualBorder.DiagonalBorder);
-        Assert.Equal(XLColor.Black, actualBorder.DiagonalBorderColor);
+        Assert.Equal(BorderStyle.None, border.DiagonalStyle);
+        Assert.Equal(Color.Black, border.DiagonalColor);
     }
 
     [Theory, CombinatorialData]
@@ -983,21 +969,18 @@ public class SpreadsheetStyledRowTests
         style.Alignment.Horizontal = alignment;
         var styleId = spreadsheet.AddStyle(style);
         var styledCell = CellFactory.Create(type, cellValue, styleId);
-        var expectedAlignment = alignment.GetClosedXmlHorizontalAlignment();
 
         // Act
         await spreadsheet.AddRowAsync(styledCell, rowType);
         await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(cellValue, actualCell.StringValue);
         var actualAlignment = actualCell.Style.Alignment;
-        Assert.Equal(cellValue, actualCell.Value);
-        Assert.Equal(expectedAlignment, actualAlignment.Horizontal);
-        Assert.Equal(XLAlignmentVerticalValues.Bottom, actualAlignment.Vertical);
+        Assert.Equal(alignment, actualAlignment.HorizontalAlignment);
+        Assert.Equal(VerticalAlignment.Bottom, actualAlignment.VerticalAlignment);
         Assert.Equal(0, actualAlignment.Indent);
         Assert.False(actualAlignment.WrapText);
     }
@@ -1014,21 +997,18 @@ public class SpreadsheetStyledRowTests
         style.Alignment.Vertical = alignment;
         var styleId = spreadsheet.AddStyle(style);
         var styledCell = CellFactory.Create(type, cellValue, styleId);
-        var expectedAlignment = alignment.GetClosedXmlVerticalAlignment();
 
         // Act
         await spreadsheet.AddRowAsync(styledCell, rowType);
         await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(cellValue, actualCell.StringValue);
         var actualAlignment = actualCell.Style.Alignment;
-        Assert.Equal(cellValue, actualCell.Value);
-        Assert.Equal(XLAlignmentHorizontalValues.General, actualAlignment.Horizontal);
-        Assert.Equal(expectedAlignment, actualAlignment.Vertical);
+        Assert.Equal(HorizontalAlignment.None, actualAlignment.HorizontalAlignment);
+        Assert.Equal(alignment, actualAlignment.VerticalAlignment);
         Assert.Equal(0, actualAlignment.Indent);
         Assert.False(actualAlignment.WrapText);
     }
@@ -1273,11 +1253,10 @@ public class SpreadsheetStyledRowTests
 
         // Assert
         Assert.True(uniqueStyleIds.Count > count * .8f);
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualStyles = worksheet.Cells().Select(x => x.Style).ToList();
-        Assert.All(styles.Zip(actualStyles), x => SpreadCheetah.Test.Helpers.SpreadsheetAssert.EquivalentStyle(x.First, x.Second));
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var expectedStyles = styles.Select(x => x.ToIStyle());
+        var actualStyles = sheet.AllCells().Select(x => x.Style);
+        Assert.Equal(expectedStyles, actualStyles);
     }
 
     [Theory, CombinatorialData]

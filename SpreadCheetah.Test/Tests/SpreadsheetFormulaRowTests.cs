@@ -7,7 +7,7 @@ using SpreadCheetah.Worksheets;
 using System.Globalization;
 using Color = System.Drawing.Color;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
-using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.SpreadsheetAssert;
 
 namespace SpreadCheetah.Test.Tests;
 

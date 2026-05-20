@@ -1,8 +1,9 @@
 using ClosedXML.Excel;
+using SpreadCheetah.TestHelpers.Interfaces;
 
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers.Implementations;
 
-internal sealed class ClosedXmlAssertTable(IXLTable table) : ISpreadsheetAssertTable
+internal sealed class ClosedXmlWorksheetTable(IXLTable table) : IWorksheetTable
 {
     public string CellRangeReference => table.RangeAddress.ToString() ?? "";
     public string Name => table.Name;
@@ -13,7 +14,6 @@ internal sealed class ClosedXmlAssertTable(IXLTable table) : ISpreadsheetAssertT
     public bool ShowHeaderRow => table.ShowHeaderRow;
     public bool ShowTotalRow => table.ShowTotalsRow;
 
-    private IReadOnlyList<ISpreadsheetAssertTableColumn>? _columns;
-    public IReadOnlyList<ISpreadsheetAssertTableColumn> Columns => _columns ??=
-        [.. table.Fields.Select(x => new ClosedXmlAssertTableColumn(x))];
+    public IReadOnlyList<IWorksheetTableColumn> Columns => field ??=
+        [.. table.Fields.Select(x => new ClosedXmlWorksheetTableColumn(x))];
 }

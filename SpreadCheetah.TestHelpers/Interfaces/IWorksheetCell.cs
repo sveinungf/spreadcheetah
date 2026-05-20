@@ -1,11 +1,11 @@
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers.Interfaces;
 
-public interface ISpreadsheetAssertCell
+public interface IWorksheetCell
 {
     int? IntValue { get; }
     decimal? DecimalValue { get; }
     string? StringValue { get; }
     DateTime? DateTimeValue { get; }
-    ISpreadsheetAssertStyle Style { get; }
+    IStyle Style { get; }
     string? Formula { get; }
 }

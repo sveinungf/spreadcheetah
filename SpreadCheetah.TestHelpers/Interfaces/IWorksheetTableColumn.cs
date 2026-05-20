@@ -1,8 +1,8 @@
 using SpreadCheetah.Tables;
 
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers.Interfaces;
 
-public interface ISpreadsheetAssertTableColumn
+public interface IWorksheetTableColumn
 {
     string Name { get; }
     string? TotalRowLabel { get; }
