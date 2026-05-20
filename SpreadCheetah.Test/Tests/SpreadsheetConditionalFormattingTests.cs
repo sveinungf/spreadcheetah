@@ -191,4 +191,32 @@ public class SpreadsheetConditionalFormattingTests
         var actualRule = Assert.Single(sheet.ConditionalFormatRules);
         Assert.Equal((Underline)underline, actualRule.Style.Font.Underline);
     }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_ConditionalFormatting_RuleWithBottomBorderStyle(ConditionalFormatBorderStyle borderStyle)
+    {
+        // Arrange
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        var color = Color.FromArgb(255, 255, 200, 0);
+        var style = new ConditionalFormatStyle { Border = { Bottom = { BorderStyle = borderStyle, Color = color } } };
+
+        // Act
+        var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
+        spreadsheet.AddConditionalFormatRule("A1:A5", rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRule = Assert.Single(sheet.ConditionalFormatRules);
+        Assert.Equal((BorderStyle)borderStyle, actualRule.Style.Border.BottomStyle);
+
+        if (borderStyle != ConditionalFormatBorderStyle.None)
+            Assert.Equal(color, actualRule.Style.Border.BottomColor);
+    }
+
+    // TODO: More tests for borders.
 }
