@@ -1,10 +1,11 @@
 using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Spreadsheet;
+using Polyfills;
 using SpreadCheetah.TestHelpers.Interfaces;
+using OpenXmlWorksheet = DocumentFormat.OpenXml.Spreadsheet.Worksheet;
 
 namespace SpreadCheetah.TestHelpers.Implementations;
 
-internal sealed class ClosedXmlWorksheet(XLWorkbook workbook, IXLWorksheet sheet, Worksheet openXmlWorksheet)
+internal sealed class ClosedXmlWorksheet(XLWorkbook workbook, IXLWorksheet sheet, OpenXmlWorksheet openXmlWorksheet)
     : IWorksheet
 {
     public string Name => sheet.Name;
@@ -36,6 +37,11 @@ internal sealed class ClosedXmlWorksheet(XLWorkbook workbook, IXLWorksheet sheet
     public int RowCount => sheet.RowsUsed().Count();
 
     public int? MaxRowOutlineLevel => openXmlWorksheet.SheetFormatProperties?.OutlineLevelRow?.Value;
+
+    public IEnumerable<IWorksheetCell> AllCells()
+    {
+        return sheet.Cells().Select(x => new ClosedXmlWorksheetCell(x));
+    }
 
     public IWorksheetColumn Column(string columnName)
     {

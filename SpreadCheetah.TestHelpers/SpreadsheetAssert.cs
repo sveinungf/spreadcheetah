@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
+using Polyfills;
 using SpreadCheetah.TestHelpers.Collections;
 using SpreadCheetah.TestHelpers.Implementations;
 using SpreadCheetah.TestHelpers.Interfaces;

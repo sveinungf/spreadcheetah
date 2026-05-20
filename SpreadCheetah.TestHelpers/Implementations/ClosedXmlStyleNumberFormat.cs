@@ -1,4 +1,5 @@
 using ClosedXML.Excel;
+using Polyfills;
 using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Interfaces;
 
@@ -15,6 +16,15 @@ internal sealed record ClosedXmlStyleNumberFormat : IStyleNumberFormat
         {
             CustomFormat = numberFormat.Format is { Length: > 0 } format ? format : null,
             StandardFormat = Map(numberFormat.NumberFormatId)
+        };
+    }
+
+    public static ClosedXmlStyleNumberFormat Create(NumberFormat? numberFormat)
+    {
+        return new()
+        {
+            CustomFormat = numberFormat?.CustomFormat,
+            StandardFormat = numberFormat?.CustomFormat is null ? numberFormat?.StandardFormat ?? StandardNumberFormat.General : null
         };
     }
 

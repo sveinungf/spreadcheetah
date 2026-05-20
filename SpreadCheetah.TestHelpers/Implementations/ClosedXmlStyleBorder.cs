@@ -35,6 +35,36 @@ internal sealed record ClosedXmlStyleBorder : IStyleBorder
         };
     }
 
+    public static ClosedXmlStyleBorder Create(Border border)
+    {
+        return new()
+        {
+            BottomColor = MapColor(border.Bottom),
+            BottomStyle = border.Bottom.BorderStyle,
+            DiagonalColor = MapColor(border.Diagonal),
+            DiagonalStyle = border.Diagonal.BorderStyle,
+            LeftColor = MapColor(border.Left),
+            LeftStyle = border.Left.BorderStyle,
+            RightColor = MapColor(border.Right),
+            RightStyle = border.Right.BorderStyle,
+            TopColor = MapColor(border.Top),
+            TopStyle = border.Top.BorderStyle
+        };
+    }
+
+    private static Color MapColor(EdgeBorder border) => MapColor(border.BorderStyle, border.Color);
+    private static Color MapColor(DiagonalBorder border) => MapColor(border.BorderStyle, border.Color);
+
+    private static Color MapColor(BorderStyle borderStyle, Color? color)
+    {
+        return (borderStyle, color) switch
+        {
+            (BorderStyle.None, _) => Color.Black,
+            (_, { } actualColor) => actualColor,
+            _ => Color.Black
+        };
+    }
+
     private static BorderStyle Map(XLBorderStyleValues value)
     {
         return value switch

@@ -1,5 +1,6 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
+using Polyfills;
 using SpreadCheetah.TestHelpers.Implementations;
 using SpreadCheetah.TestHelpers.Interfaces;
 using System.Collections;

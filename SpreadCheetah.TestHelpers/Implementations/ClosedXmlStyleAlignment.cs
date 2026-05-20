@@ -22,6 +22,17 @@ internal sealed record ClosedXmlStyleAlignment : IStyleAlignment
         };
     }
 
+    public static ClosedXmlStyleAlignment Create(Alignment alignment)
+    {
+        return new()
+        {
+            Indent = alignment.Indent,
+            WrapText = alignment.WrapText,
+            HorizontalAlignment = alignment.Horizontal,
+            VerticalAlignment = alignment.Vertical
+        };
+    }
+
     private static HorizontalAlignment Map(XLAlignmentHorizontalValues value)
     {
         return value switch

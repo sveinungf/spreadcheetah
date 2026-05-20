@@ -10,6 +10,7 @@ public interface IWorksheet : IDisposable
     int RowCount { get; }
     int? MaxRowOutlineLevel { get; }
 
+    IEnumerable<IWorksheetCell> AllCells();
     IWorksheetColumn Column(string columnName);
     IReadOnlyList<IWorksheetColumn> Columns { get; }
     IWorksheetRow Row(int rowNumber);

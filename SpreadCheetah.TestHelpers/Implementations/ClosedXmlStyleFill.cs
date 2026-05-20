@@ -1,4 +1,5 @@
 using ClosedXML.Excel;
+using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers.Interfaces;
 using System.Drawing;
 
@@ -13,6 +14,14 @@ internal sealed record ClosedXmlStyleFill : IStyleFill
         return new()
         {
             Color = fill.BackgroundColor.Color
+        };
+    }
+
+    public static ClosedXmlStyleFill Create(Fill fill)
+    {
+        return new()
+        {
+            Color = fill.Color ?? Color.Transparent
         };
     }
 }

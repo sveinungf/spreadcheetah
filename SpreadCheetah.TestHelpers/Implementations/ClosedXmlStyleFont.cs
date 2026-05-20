@@ -29,6 +29,20 @@ internal sealed record ClosedXmlStyleFont : IStyleFont
         };
     }
 
+    public static ClosedXmlStyleFont Create(Font font)
+    {
+        return new()
+        {
+            Bold = font.Bold,
+            Italic = font.Italic,
+            Strikethrough = font.Strikethrough,
+            Size = font.Size,
+            Name = font.Name ?? "Calibri",
+            Color = font.Color ?? Color.Black,
+            Underline = font.Underline
+        };
+    }
+
     private static Underline Map(XLFontUnderlineValues value)
     {
         return value switch
