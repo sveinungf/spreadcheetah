@@ -3,6 +3,7 @@
 [assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/sveinungf/spreadcheetah")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("SpreadCheetah.Benchmark")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("SpreadCheetah.Test")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("SpreadCheetah.TestHelpers")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v10.0", FrameworkDisplayName=".NET 10.0")]
 namespace SpreadCheetah
 {
