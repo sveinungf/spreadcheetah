@@ -9,7 +9,7 @@ using System.IO.Compression;
 using CellType = SpreadCheetah.Test.Helpers.CellType;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 using OpenXmlCellValue = DocumentFormat.OpenXml.Spreadsheet.CellValues;
-using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.SpreadsheetAssert;
 using Style = SpreadCheetah.Styling.Style;
 
 namespace SpreadCheetah.Test.Tests;

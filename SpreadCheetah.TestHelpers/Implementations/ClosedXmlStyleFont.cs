@@ -1,10 +1,11 @@
 using ClosedXML.Excel;
 using SpreadCheetah.Styling;
+using SpreadCheetah.TestHelpers.Interfaces;
 using System.Drawing;
 
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers.Implementations;
 
-internal sealed class ClosedXmlAssertStyleFont(IXLFont font) : ISpreadsheetAssertStyleFont
+internal sealed class ClosedXmlStyleFont(IXLFont font) : IStyleFont
 {
     public bool Bold => font.Bold;
     public bool Italic => font.Italic;

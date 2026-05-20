@@ -1,8 +1,8 @@
 using SpreadCheetah.Styling;
 
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers.Interfaces;
 
-public interface ISpreadsheetAssertStyleNumberFormat
+public interface IStyleNumberFormat
 {
     string? CustomFormat { get; }
 

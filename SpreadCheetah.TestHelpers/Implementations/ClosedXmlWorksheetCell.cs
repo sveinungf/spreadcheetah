@@ -1,8 +1,9 @@
 using ClosedXML.Excel;
+using SpreadCheetah.TestHelpers.Interfaces;
 
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers.Implementations;
 
-internal sealed class ClosedXmlAssertCell(IXLCell cell) : ISpreadsheetAssertCell
+internal sealed class ClosedXmlWorksheetCell(IXLCell cell) : IWorksheetCell
 {
     public int? IntValue => cell.GetValue<int?>();
 
@@ -12,7 +13,7 @@ internal sealed class ClosedXmlAssertCell(IXLCell cell) : ISpreadsheetAssertCell
 
     public DateTime? DateTimeValue => cell.TryGetValue<double>(out var value) ? DateTime.FromOADate(value) : null;
 
-    public ISpreadsheetAssertStyle Style => new ClosedXmlAssertStyle(cell.Style);
+    public IStyle Style => new ClosedXmlStyle(cell.Style);
 
     public string? Formula => cell.FormulaA1;
 }

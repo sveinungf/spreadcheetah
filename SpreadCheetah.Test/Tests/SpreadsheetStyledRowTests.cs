@@ -17,7 +17,7 @@ using DiagonalBorder = SpreadCheetah.Styling.DiagonalBorder;
 using Fill = SpreadCheetah.Styling.Fill;
 using Font = SpreadCheetah.Styling.Font;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
-using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.SpreadsheetAssert;
 using Underline = SpreadCheetah.Styling.Underline;
 
 namespace SpreadCheetah.Test.Tests;

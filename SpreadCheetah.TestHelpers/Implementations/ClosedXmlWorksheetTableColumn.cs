@@ -1,10 +1,11 @@
 using ClosedXML.Excel;
 using SpreadCheetah.Tables;
+using SpreadCheetah.TestHelpers.Interfaces;
 
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers.Implementations;
 
-internal sealed class ClosedXmlAssertTableColumn(IXLTableField tableField)
-    : ISpreadsheetAssertTableColumn
+internal sealed class ClosedXmlWorksheetTableColumn(IXLTableField tableField)
+    : IWorksheetTableColumn
 {
     public string Name => tableField.Name;
     public string? TotalRowLabel => tableField.TotalsRowLabel;

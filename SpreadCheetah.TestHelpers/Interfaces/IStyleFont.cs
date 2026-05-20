@@ -1,9 +1,9 @@
 using SpreadCheetah.Styling;
 using System.Drawing;
 
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers.Interfaces;
 
-public interface ISpreadsheetAssertStyleFont
+public interface IStyleFont
 {
     bool Bold { get; }
     bool Italic { get; }

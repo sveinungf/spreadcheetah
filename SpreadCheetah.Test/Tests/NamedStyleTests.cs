@@ -3,7 +3,7 @@ using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
 using System.Drawing;
 using System.IO.Compression;
-using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.SpreadsheetAssert;
 
 namespace SpreadCheetah.Test.Tests;
 
