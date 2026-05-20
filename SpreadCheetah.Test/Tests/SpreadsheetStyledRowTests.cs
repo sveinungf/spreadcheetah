@@ -968,21 +968,18 @@ public class SpreadsheetStyledRowTests
         style.Alignment.Horizontal = alignment;
         var styleId = spreadsheet.AddStyle(style);
         var styledCell = CellFactory.Create(type, cellValue, styleId);
-        var expectedAlignment = alignment.GetClosedXmlHorizontalAlignment();
 
         // Act
         await spreadsheet.AddRowAsync(styledCell, rowType);
         await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(cellValue, actualCell.StringValue);
         var actualAlignment = actualCell.Style.Alignment;
-        Assert.Equal(cellValue, actualCell.Value);
-        Assert.Equal(expectedAlignment, actualAlignment.Horizontal);
-        Assert.Equal(XLAlignmentVerticalValues.Bottom, actualAlignment.Vertical);
+        Assert.Equal(alignment, actualAlignment.HorizontalAlignment);
+        Assert.Equal(VerticalAlignment.Bottom, actualAlignment.VerticalAlignment);
         Assert.Equal(0, actualAlignment.Indent);
         Assert.False(actualAlignment.WrapText);
     }
@@ -999,21 +996,18 @@ public class SpreadsheetStyledRowTests
         style.Alignment.Vertical = alignment;
         var styleId = spreadsheet.AddStyle(style);
         var styledCell = CellFactory.Create(type, cellValue, styleId);
-        var expectedAlignment = alignment.GetClosedXmlVerticalAlignment();
 
         // Act
         await spreadsheet.AddRowAsync(styledCell, rowType);
         await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(cellValue, actualCell.StringValue);
         var actualAlignment = actualCell.Style.Alignment;
-        Assert.Equal(cellValue, actualCell.Value);
-        Assert.Equal(XLAlignmentHorizontalValues.General, actualAlignment.Horizontal);
-        Assert.Equal(expectedAlignment, actualAlignment.Vertical);
+        Assert.Equal(HorizontalAlignment.None, actualAlignment.HorizontalAlignment);
+        Assert.Equal(alignment, actualAlignment.VerticalAlignment);
         Assert.Equal(0, actualAlignment.Indent);
         Assert.False(actualAlignment.WrapText);
     }

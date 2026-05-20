@@ -4,6 +4,8 @@ namespace SpreadCheetah.TestHelpers.Assertions;
 
 internal sealed class ClosedXmlAssertStyle(IXLStyle style) : ISpreadsheetAssertStyle
 {
+    public ISpreadsheetAssertStyleAlignment Alignment => new ClosedXmlAssertStyleAlignment(style.Alignment);
+
     public ISpreadsheetAssertStyleBorder Border => new ClosedXmlAssertStyleBorder(style.Border);
 
     public ISpreadsheetAssertStyleFill Fill => new ClosedXmlAssertStyleFill(style.Fill);
