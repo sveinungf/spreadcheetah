@@ -917,52 +917,43 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Border style test";
 
-        var styles = new[] { BorderStyle.Thin, BorderStyle.DoubleLine, BorderStyle.DashDotDot, BorderStyle.Medium };
-        var colors = new[] { Color.Firebrick, Color.ForestGreen, Color.Black, Color.Blue };
+        BorderStyle[] styles = [BorderStyle.Thin, BorderStyle.DoubleLine, BorderStyle.DashDotDot, BorderStyle.Medium];
+        Color[] colors = [Color.FromArgb(1, 2, 3), Color.FromArgb(50, 60, 70), Color.FromArgb(1, 0, 0), Color.FromArgb(0, 0, 255)];
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        var style = new Style
         {
-            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-
-            var style = new Style
+            Border = new Border
             {
-                Border = new Border
-                {
-                    Left = new EdgeBorder { BorderStyle = styles[0], Color = colors[0] },
-                    Right = new EdgeBorder { BorderStyle = styles[1], Color = colors[1] },
-                    Top = new EdgeBorder { BorderStyle = styles[2], Color = colors[2] },
-                    Bottom = new EdgeBorder { BorderStyle = styles[3], Color = colors[3] }
-                }
-            };
-            var styleId = spreadsheet.AddStyle(style);
-            var styledCell = CellFactory.Create(type, cellValue, styleId);
+                Left = new EdgeBorder { BorderStyle = styles[0], Color = colors[0] },
+                Right = new EdgeBorder { BorderStyle = styles[1], Color = colors[1] },
+                Top = new EdgeBorder { BorderStyle = styles[2], Color = colors[2] },
+                Bottom = new EdgeBorder { BorderStyle = styles[3], Color = colors[3] }
+            }
+        };
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = CellFactory.Create(type, cellValue, styleId);
 
-            // Act
-            await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync(Token);
-        }
+        // Act
+        await spreadsheet.AddRowAsync(styledCell, rowType);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
-        var actualBorder = actualCell.Style.Border;
-        Assert.Equal(cellValue, actualCell.Value);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(cellValue, actualCell.StringValue);
+        var border = actualCell.Style.Border;
 
-        Assert.Equal(styles[0].GetClosedXmlBorderStyle(), actualBorder.LeftBorder);
-        Assert.Equal(styles[1].GetClosedXmlBorderStyle(), actualBorder.RightBorder);
-        Assert.Equal(styles[2].GetClosedXmlBorderStyle(), actualBorder.TopBorder);
-        Assert.Equal(styles[3].GetClosedXmlBorderStyle(), actualBorder.BottomBorder);
+        Assert.Equal(styles, [border.LeftStyle, border.RightStyle, border.TopStyle, border.BottomStyle]);
 
-        Assert.Equal(XLColor.FromColor(colors[0]), actualBorder.LeftBorderColor);
-        Assert.Equal(XLColor.FromColor(colors[1]), actualBorder.RightBorderColor);
-        Assert.Equal(XLColor.FromColor(colors[2]), actualBorder.TopBorderColor);
-        Assert.Equal(XLColor.FromColor(colors[3]), actualBorder.BottomBorderColor);
+        Color[] expectedColors = [border.LeftColor, border.RightColor, border.TopColor, border.BottomColor];
+        Assert.Equal(colors, expectedColors);
 
-        Assert.Equal(XLBorderStyleValues.None, actualBorder.DiagonalBorder);
-        Assert.Equal(XLColor.Black, actualBorder.DiagonalBorderColor);
+        Assert.Equal(BorderStyle.None, border.DiagonalStyle);
+        Assert.Equal(Color.Black, border.DiagonalColor);
     }
 
     [Theory, CombinatorialData]
