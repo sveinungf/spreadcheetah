@@ -8,8 +8,15 @@ internal sealed class ClosedXmlAssertStyleBorder(IXLBorder border)
     : ISpreadsheetAssertStyleBorder
 {
     public Color BottomColor => border.BottomBorderColor.Color;
-
     public BorderStyle BottomStyle => Map(border.BottomBorder);
+    public Color DiagonalColor => border.DiagonalBorderColor.Color;
+    public BorderStyle DiagonalStyle => Map(border.DiagonalBorder);
+    public Color LeftColor => border.LeftBorderColor.Color;
+    public BorderStyle LeftStyle => Map(border.LeftBorder);
+    public Color RightColor => border.RightBorderColor.Color;
+    public BorderStyle RightStyle => Map(border.RightBorder);
+    public Color TopColor => border.TopBorderColor.Color;
+    public BorderStyle TopStyle => Map(border.TopBorder);
 
     private static BorderStyle Map(XLBorderStyleValues value) => value switch
     {

@@ -840,34 +840,28 @@ public class SpreadsheetStyledRowTests
         // Arrange
         const string cellValue = "Border style test";
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
-        {
-            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
-            var style = new Style { Border = new Border { Left = new EdgeBorder { BorderStyle = borderStyle } } };
-            var styleId = spreadsheet.AddStyle(style);
-            var styledCell = CellFactory.Create(type, cellValue, styleId);
+        var style = new Style { Border = new Border { Left = new EdgeBorder { BorderStyle = borderStyle } } };
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = CellFactory.Create(type, cellValue, styleId);
 
-            // Act
-            await spreadsheet.AddRowAsync(styledCell, rowType);
-            await spreadsheet.FinishAsync(Token);
-        }
-
-        var expectedBorderStyle = borderStyle.GetClosedXmlBorderStyle();
+        // Act
+        await spreadsheet.AddRowAsync(styledCell, rowType);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualCell = worksheet.Cell(1, 1);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualCell = sheet["A1"];
+        Assert.Equal(cellValue, actualCell.StringValue);
         var actualBorder = actualCell.Style.Border;
-        Assert.Equal(cellValue, actualCell.Value);
-        Assert.Equal(expectedBorderStyle, actualBorder.LeftBorder);
-        Assert.Equal(XLColor.Black, actualBorder.LeftBorderColor);
-        Assert.Equal(XLBorderStyleValues.None, actualBorder.RightBorder);
-        Assert.Equal(XLBorderStyleValues.None, actualBorder.TopBorder);
-        Assert.Equal(XLBorderStyleValues.None, actualBorder.BottomBorder);
-        Assert.Equal(XLBorderStyleValues.None, actualBorder.DiagonalBorder);
+        Assert.Equal(borderStyle, actualBorder.LeftStyle);
+        Assert.Equal(Color.Black, actualBorder.LeftColor);
+        Assert.Equal(BorderStyle.None, actualBorder.RightStyle);
+        Assert.Equal(BorderStyle.None, actualBorder.TopStyle);
+        Assert.Equal(BorderStyle.None, actualBorder.BottomStyle);
+        Assert.Equal(BorderStyle.None, actualBorder.DiagonalStyle);
     }
 
     [Theory, CombinatorialData]
