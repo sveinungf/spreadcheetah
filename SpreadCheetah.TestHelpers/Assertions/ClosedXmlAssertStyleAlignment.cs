@@ -3,27 +3,45 @@ using SpreadCheetah.Styling;
 
 namespace SpreadCheetah.TestHelpers.Assertions;
 
-internal sealed class ClosedXmlAssertStyleAlignment(IXLAlignment alignment)
+internal sealed record ClosedXmlAssertStyleAlignment
     : ISpreadsheetAssertStyleAlignment
 {
-    public int Indent => alignment.Indent;
+    public required int Indent { get; init; }
+    public required bool WrapText { get; init; }
+    public required HorizontalAlignment HorizontalAlignment { get; init; }
+    public required VerticalAlignment VerticalAlignment { get; init; }
 
-    public HorizontalAlignment HorizontalAlignment => alignment.Horizontal switch
+    public static ClosedXmlAssertStyleAlignment Create(IXLAlignment alignment)
     {
-        XLAlignmentHorizontalValues.General => HorizontalAlignment.None,
-        XLAlignmentHorizontalValues.Left => HorizontalAlignment.Left,
-        XLAlignmentHorizontalValues.Center => HorizontalAlignment.Center,
-        XLAlignmentHorizontalValues.Right => HorizontalAlignment.Right,
-        _ => throw new ArgumentOutOfRangeException(nameof(alignment), alignment.Horizontal, null)
-    };
+        return new ClosedXmlAssertStyleAlignment
+        {
+            Indent = alignment.Indent,
+            WrapText = alignment.WrapText,
+            HorizontalAlignment = Map(alignment.Horizontal),
+            VerticalAlignment = Map(alignment.Vertical)
+        };
+    }
 
-    public VerticalAlignment VerticalAlignment => alignment.Vertical switch
+    private static HorizontalAlignment Map(XLAlignmentHorizontalValues value)
     {
-        XLAlignmentVerticalValues.Bottom => VerticalAlignment.Bottom,
-        XLAlignmentVerticalValues.Center => VerticalAlignment.Center,
-        XLAlignmentVerticalValues.Top => VerticalAlignment.Top,
-        _ => throw new ArgumentOutOfRangeException(nameof(alignment), alignment.Vertical, null)
-    };
+        return value switch
+        {
+            XLAlignmentHorizontalValues.General => HorizontalAlignment.None,
+            XLAlignmentHorizontalValues.Left => HorizontalAlignment.Left,
+            XLAlignmentHorizontalValues.Center => HorizontalAlignment.Center,
+            XLAlignmentHorizontalValues.Right => HorizontalAlignment.Right,
+            _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+        };
+    }
 
-    public bool WrapText => alignment.WrapText;
+    private static VerticalAlignment Map(XLAlignmentVerticalValues value)
+    {
+        return value switch
+        {
+            XLAlignmentVerticalValues.Bottom => VerticalAlignment.Bottom,
+            XLAlignmentVerticalValues.Center => VerticalAlignment.Center,
+            XLAlignmentVerticalValues.Top => VerticalAlignment.Top,
+            _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+        };
+    }
 }
