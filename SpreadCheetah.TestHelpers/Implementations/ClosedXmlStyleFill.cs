@@ -4,7 +4,15 @@ using System.Drawing;
 
 namespace SpreadCheetah.TestHelpers.Implementations;
 
-internal sealed class ClosedXmlStyleFill(IXLFill fill) : IStyleFill
+internal sealed record ClosedXmlStyleFill : IStyleFill
 {
-    public Color Color => fill.BackgroundColor.Color;
+    public required Color Color { get; init; }
+
+    public static ClosedXmlStyleFill Create(IXLFill fill)
+    {
+        return new()
+        {
+            Color = fill.BackgroundColor.Color
+        };
+    }
 }

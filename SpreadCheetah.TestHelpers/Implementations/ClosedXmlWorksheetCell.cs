@@ -13,7 +13,7 @@ internal sealed class ClosedXmlWorksheetCell(IXLCell cell) : IWorksheetCell
 
     public DateTime? DateTimeValue => cell.TryGetValue<double>(out var value) ? DateTime.FromOADate(value) : null;
 
-    public IStyle Style => new ClosedXmlStyle(cell.Style);
+    public IStyle Style => ClosedXmlStyle.Create(cell.Style);
 
     public string? Formula => cell.FormulaA1;
 }

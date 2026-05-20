@@ -9,7 +9,7 @@ internal sealed class ClosedXmlWorksheetRow(IXLRow row) : IWorksheetRow
 
     public int OutlineLevel => row.OutlineLevel;
 
-    public IStyle Style => new ClosedXmlStyle(row.Style);
+    public IStyle Style => ClosedXmlStyle.Create(row.Style);
 
     public IEnumerable<IWorksheetCell> Cells => row.IsEmpty()
         ? []

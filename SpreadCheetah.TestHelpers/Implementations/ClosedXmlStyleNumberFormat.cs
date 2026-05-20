@@ -4,13 +4,23 @@ using SpreadCheetah.TestHelpers.Interfaces;
 
 namespace SpreadCheetah.TestHelpers.Implementations;
 
-internal sealed class ClosedXmlStyleNumberFormat(IXLNumberFormat numberFormat)
-    : IStyleNumberFormat
+internal sealed record ClosedXmlStyleNumberFormat : IStyleNumberFormat
 {
-    public string? CustomFormat => numberFormat.Format is { Length: > 0 } format ? format : null;
+    public required string? CustomFormat { get; init; }
+    public required StandardNumberFormat? StandardFormat { get; init; }
 
-    public StandardNumberFormat? StandardFormat =>
-        (StandardNumberFormat)numberFormat.NumberFormatId is var format && Enum.IsDefined(format)
-            ? format
-            : null;
+    public static ClosedXmlStyleNumberFormat Create(IXLNumberFormat numberFormat)
+    {
+        return new()
+        {
+            CustomFormat = numberFormat.Format is { Length: > 0 } format ? format : null,
+            StandardFormat = Map(numberFormat.NumberFormatId)
+        };
+    }
+
+    private static StandardNumberFormat? Map(int formatId)
+    {
+        var standardFormat = (StandardNumberFormat)formatId;
+        return Enum.IsDefined(standardFormat) ? standardFormat : null;
+    }
 }

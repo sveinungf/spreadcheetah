@@ -3,11 +3,23 @@ using SpreadCheetah.TestHelpers.Interfaces;
 
 namespace SpreadCheetah.TestHelpers.Implementations;
 
-internal sealed class ClosedXmlStyle(IXLStyle style) : IStyle
+internal sealed record ClosedXmlStyle : IStyle
 {
-    public IStyleAlignment Alignment => ClosedXmlStyleAlignment.Create(style.Alignment);
-    public IStyleBorder Border => ClosedXmlStyleBorder.Create(style.Border);
-    public IStyleFill Fill => new ClosedXmlStyleFill(style.Fill);
-    public IStyleFont Font => new ClosedXmlStyleFont(style.Font);
-    public IStyleNumberFormat NumberFormat => new ClosedXmlStyleNumberFormat(style.NumberFormat);
+    public required IStyleAlignment Alignment { get; init; }
+    public required IStyleBorder Border { get; init; }
+    public required IStyleFill Fill { get; init; }
+    public required IStyleFont Font { get; init; }
+    public required IStyleNumberFormat NumberFormat { get; init; }
+
+    public static ClosedXmlStyle Create(IXLStyle style)
+    {
+        return new()
+        {
+            Alignment = ClosedXmlStyleAlignment.Create(style.Alignment),
+            Border = ClosedXmlStyleBorder.Create(style.Border),
+            Fill = ClosedXmlStyleFill.Create(style.Fill),
+            Font = ClosedXmlStyleFont.Create(style.Font),
+            NumberFormat = ClosedXmlStyleNumberFormat.Create(style.NumberFormat)
+        };
+    }
 }

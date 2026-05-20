@@ -9,7 +9,7 @@ internal sealed class ClosedXmlWorksheetColumn(IXLColumn column) : IWorksheetCol
 
     public double Width => column.Width + 0.71062;
 
-    public IStyle Style => new ClosedXmlStyle(column.Style);
+    public IStyle Style => ClosedXmlStyle.Create(column.Style);
 
     public IEnumerable<IWorksheetCell> Cells => column.CellsUsed().Select(x => new ClosedXmlWorksheetCell(x));
 }

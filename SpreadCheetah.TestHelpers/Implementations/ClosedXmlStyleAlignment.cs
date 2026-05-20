@@ -4,8 +4,7 @@ using SpreadCheetah.TestHelpers.Interfaces;
 
 namespace SpreadCheetah.TestHelpers.Implementations;
 
-internal sealed record ClosedXmlStyleAlignment
-    : IStyleAlignment
+internal sealed record ClosedXmlStyleAlignment : IStyleAlignment
 {
     public required int Indent { get; init; }
     public required bool WrapText { get; init; }
