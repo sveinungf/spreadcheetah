@@ -32,7 +32,9 @@ file struct StylesXmlWriter(
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">"""u8;
 
-    private static ReadOnlySpan<byte> Footer => """</styleSheet>"""u8;
+    private static ReadOnlySpan<byte> Footer =>
+        """<dxfs count="0"/>"""u8 +
+        """</styleSheet>"""u8;
 
     private NumberFormatsXmlPart _numberFormatsXml = new(styleManager.UniqueCustomFormats?.GetList(), numberFormatCounter, buffer);
     private BordersXmlPart _bordersXml = new(styleManager.UniqueBorders?.GetList(), buffer);
