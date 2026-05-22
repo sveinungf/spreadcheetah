@@ -6,6 +6,7 @@ using SpreadCheetah.Metadata;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.MetadataXml.Styles;
 using SpreadCheetah.MetadataXml.Tables;
+using SpreadCheetah.MetadataXml.Worksheets;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
@@ -587,8 +588,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public bool TryAddDataValidation(string reference, DataValidation validation)
     {
-        ArgumentNullException.ThrowIfNull(validation);
         ArgumentNullException.ThrowIfNull(reference);
+        ArgumentNullException.ThrowIfNull(validation);
         return Worksheet.TryAddDataValidation(reference, validation);
     }
 
@@ -767,7 +768,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         await WorkbookXml.WriteAsync(zip, _buffer, _worksheets, token).ConfigureAwait(false);
 
         if (_styleManager is { HasStyles: true } styleManager)
-            await StylesXml.WriteAsync(zip, _buffer, styleManager, token).ConfigureAwait(false);
+            await zip.WriteStylesAsync(_buffer, styleManager, token).ConfigureAwait(false);
 
         _finished = true;
 

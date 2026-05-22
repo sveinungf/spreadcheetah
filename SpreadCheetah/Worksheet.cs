@@ -2,7 +2,7 @@ using SpreadCheetah.CellReferences;
 using SpreadCheetah.CellWriters;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
-using SpreadCheetah.MetadataXml;
+using SpreadCheetah.MetadataXml.Worksheets;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
 using SpreadCheetah.Tables.Internal;
@@ -23,17 +23,17 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     private readonly BaseRowWriter<DataCell> _dataCellRowWriter;
     private readonly BaseRowWriter<StyledCell> _styledCellRowWriter;
     private readonly CellWriterState _state;
-    private readonly string? _autoFilterRange;
     private readonly int? _maxRowOutlineLevel;
-    private Dictionary<SingleCellOrCellRangeReference, DataValidation>? _validations;
-    private HashSet<CellRangeRelativeReference>? _cellMerges;
 
+    public Dictionary<SingleCellOrCellRangeReference, DataValidation>? Validations { get; private set; }
     public Dictionary<SingleCellRelativeReference, string>? Notes { get; private set; }
+    public HashSet<CellRangeRelativeReference>? CellMerges { get; private set; }
     public List<WorksheetDimensionRun>? ColumnWidthRuns { get; }
     public List<WorksheetDimensionRun>? RowHeightRuns { get; private set; }
     public List<WorksheetTableInfo>? Tables { get; private set; }
     public List<WorksheetImage>? Images { get; private set; }
     public double? DefaultColumnWidth { get; }
+    public string? AutoFilterRange { get; }
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer,
         bool writeCellReferenceAttributes, WorksheetOptions? options,
@@ -42,8 +42,8 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         _stream = stream;
         _buffer = buffer;
         _state = new CellWriterState(buffer, defaultStyling);
-        _autoFilterRange = options?.AutoFilter?.CellRange.Reference;
         _maxRowOutlineLevel = options?.MaxRowOutlineLevel;
+        AutoFilterRange = options?.AutoFilter?.CellRange.Reference;
         ColumnWidthRuns = options?.GetColumnWidthRuns();
         DefaultColumnWidth = options?.DefaultColumnWidth;
 
@@ -76,7 +76,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public void StartTable(ImmutableTable table, int firstColumnNumber)
     {
-        if (_autoFilterRange is not null)
+        if (AutoFilterRange is not null)
             TableThrowHelper.TablesNotAllowedOnWorksheetWithAutoFilter();
 
         var tables = Tables ??= [];
@@ -193,13 +193,13 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public bool TryAddDataValidation(string reference, DataValidation validation)
     {
-        _validations ??= [];
+        Validations ??= [];
 
-        if (_validations.Count >= SpreadsheetConstants.MaxNumberOfDataValidations)
+        if (Validations.Count >= SpreadsheetConstants.MaxNumberOfDataValidations)
             return false;
 
         var cellReference = SingleCellOrCellRangeReference.Create(reference);
-        _validations[cellReference] = validation;
+        Validations[cellReference] = validation;
         return true;
     }
 
@@ -232,8 +232,8 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
 
     public void MergeCells(CellRangeRelativeReference cellRange)
     {
-        _cellMerges ??= [];
-        _cellMerges.Add(cellRange);
+        CellMerges ??= [];
+        CellMerges.Add(cellRange);
     }
 
     public async ValueTask FinishTableAsync(bool throwWhenNoTable, CancellationToken token)
@@ -270,21 +270,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public async ValueTask FinishAsync(CancellationToken token)
     {
         await FinishTableAsync(throwWhenNoTable: false, token).ConfigureAwait(false);
-
-        using var cellMergesPooledArray = _cellMerges?.ToPooledArray();
-        using var validationsPooledArray = _validations?.ToPooledArray();
-
-        await WorksheetEndXml.WriteAsync(
-            cellMerges: cellMergesPooledArray?.Memory,
-            validations: validationsPooledArray?.Memory,
-            autoFilterRange: _autoFilterRange,
-            hasNotes: Notes is not null,
-            hasImages: Images is not null,
-            tableCount: Tables?.Count ?? 0,
-            buffer: _buffer,
-            stream: _stream,
-            token: token).ConfigureAwait(false);
-
+        await WorksheetEndXml.WriteAsync(this, _buffer, _stream, token).ConfigureAwait(false);
         await _stream.FlushAsync(token).ConfigureAwait(false);
     }
 

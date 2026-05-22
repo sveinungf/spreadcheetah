@@ -103,7 +103,7 @@ internal sealed class StyleManager
 
         var border = ImmutableBorder.From(style.Border);
         int? borderIndex = null;
-        if (border != default)
+        if (border != ImmutableBorder.Default)
         {
             var uniqueBorders = UniqueBorders ??= new();
             borderIndex = uniqueBorders.Add(border);
@@ -111,7 +111,7 @@ internal sealed class StyleManager
 
         var fill = ImmutableFill.From(style.Fill);
         int? fillIndex = null;
-        if (fill != default)
+        if (fill != default) // TODO: Is this still correct?
         {
             var uniqueFills = UniqueFills ??= new();
             fillIndex = uniqueFills.Add(fill);
@@ -119,7 +119,7 @@ internal sealed class StyleManager
 
         var font = ImmutableFont.From(style.Font, DefaultFont);
         int? fontIndex = null;
-        if (font != ImmutableFont.From(DefaultFont))
+        if (font != ImmutableFont.From(DefaultFont))  // TODO: Is this still correct?
         {
             var uniqueFonts = UniqueFonts ??= new();
             fontIndex = uniqueFonts.Add(font);
