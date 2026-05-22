@@ -1,12 +1,13 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.ExtendedProperties;
+using SpreadCheetah.TestHelpers.Interfaces;
 
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers.Implementations;
 
-internal sealed class AssertDocumentProperties(
+internal sealed class SpreadsheetDocumentProperties(
     XLWorkbookProperties closedXmlProperties,
     Properties? openXmlExtendedProperties)
-    : ISpreadsheetAssertDocumentProperties
+    : ISpreadsheetDocumentProperties
 {
     public string? Application => openXmlExtendedProperties?.Application?.InnerText;
     public string? Author => closedXmlProperties.Author;

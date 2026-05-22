@@ -1,8 +1,8 @@
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers.Interfaces;
 
 public interface IConditionalFormatRule
 {
     string CellRangeReference { get; }
     bool IsUniqueValuesRule { get; }
-    ISpreadsheetAssertStyle Style { get; }
+    IStyle Style { get; }
 }

@@ -5,6 +5,7 @@ using Polyfills;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
+using SpreadCheetah.TestHelpers.Extensions;
 using SpreadCheetah.TestHelpers.TestData;
 using SpreadCheetah.Worksheets;
 using System.Globalization;
@@ -17,7 +18,7 @@ using DiagonalBorder = SpreadCheetah.Styling.DiagonalBorder;
 using Fill = SpreadCheetah.Styling.Fill;
 using Font = SpreadCheetah.Styling.Font;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
-using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.SpreadsheetAssert;
 using Underline = SpreadCheetah.Styling.Underline;
 
 namespace SpreadCheetah.Test.Tests;
@@ -1252,11 +1253,10 @@ public class SpreadsheetStyledRowTests
 
         // Assert
         Assert.True(uniqueStyleIds.Count > count * .8f);
-        SpreadsheetAssert.Valid(stream);
-        using var workbook = new XLWorkbook(stream);
-        var worksheet = workbook.Worksheets.Single();
-        var actualStyles = worksheet.Cells().Select(x => x.Style).ToList();
-        Assert.All(styles.Zip(actualStyles), x => SpreadCheetah.Test.Helpers.SpreadsheetAssert.EquivalentStyle(x.First, x.Second));
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var expectedStyles = styles.Select(x => x.ToIStyle());
+        var actualStyles = sheet.AllCells().Select(x => x.Style);
+        Assert.Equal(expectedStyles, actualStyles);
     }
 
     [Theory, CombinatorialData]

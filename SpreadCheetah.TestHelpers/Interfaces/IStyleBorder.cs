@@ -1,9 +1,9 @@
 using SpreadCheetah.Styling;
 using System.Drawing;
 
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers.Interfaces;
 
-public interface ISpreadsheetAssertStyleBorder
+public interface IStyleBorder
 {
     Color BottomColor { get; }
     BorderStyle BottomStyle { get; }

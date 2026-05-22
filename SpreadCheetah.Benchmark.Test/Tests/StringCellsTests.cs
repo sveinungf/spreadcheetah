@@ -1,5 +1,5 @@
 using SpreadCheetah.Benchmark.Benchmarks;
-using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers;
 using Xunit;
 
 namespace SpreadCheetah.Benchmark.Test.Tests;

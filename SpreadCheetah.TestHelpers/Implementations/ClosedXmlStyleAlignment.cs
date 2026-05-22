@@ -1,24 +1,35 @@
 using ClosedXML.Excel;
 using SpreadCheetah.Styling;
+using SpreadCheetah.TestHelpers.Interfaces;
 
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers.Implementations;
 
-internal sealed record ClosedXmlAssertStyleAlignment
-    : ISpreadsheetAssertStyleAlignment
+internal sealed record ClosedXmlStyleAlignment : IStyleAlignment
 {
     public required int Indent { get; init; }
     public required bool WrapText { get; init; }
     public required HorizontalAlignment HorizontalAlignment { get; init; }
     public required VerticalAlignment VerticalAlignment { get; init; }
 
-    public static ClosedXmlAssertStyleAlignment Create(IXLAlignment alignment)
+    public static ClosedXmlStyleAlignment Create(IXLAlignment alignment)
     {
-        return new ClosedXmlAssertStyleAlignment
+        return new()
         {
             Indent = alignment.Indent,
             WrapText = alignment.WrapText,
             HorizontalAlignment = Map(alignment.Horizontal),
             VerticalAlignment = Map(alignment.Vertical)
+        };
+    }
+
+    public static ClosedXmlStyleAlignment Create(Alignment alignment)
+    {
+        return new()
+        {
+            Indent = alignment.Indent,
+            WrapText = alignment.WrapText,
+            HorizontalAlignment = alignment.Horizontal,
+            VerticalAlignment = alignment.Vertical
         };
     }
 

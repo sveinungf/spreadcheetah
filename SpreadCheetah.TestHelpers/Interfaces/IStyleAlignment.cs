@@ -1,8 +1,8 @@
 using SpreadCheetah.Styling;
 
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers.Interfaces;
 
-public interface ISpreadsheetAssertStyleAlignment
+public interface IStyleAlignment
 {
     int Indent { get; }
     HorizontalAlignment HorizontalAlignment { get; }

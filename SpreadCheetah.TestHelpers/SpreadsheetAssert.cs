@@ -1,14 +1,17 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
+using Polyfills;
 using SpreadCheetah.TestHelpers.Collections;
+using SpreadCheetah.TestHelpers.Implementations;
+using SpreadCheetah.TestHelpers.Interfaces;
 using Xunit;
 
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers;
 
 public static class SpreadsheetAssert
 {
-    public static ISpreadsheetAssertSheet SingleSheet(Stream stream)
+    public static IWorksheet SingleSheet(Stream stream)
     {
         ArgumentNullException.ThrowIfNull(stream);
 
@@ -20,7 +23,7 @@ public static class SpreadsheetAssert
         var workbook = new XLWorkbook(stream);
 #pragma warning restore CA2000 // Dispose objects before losing scope
         var sheet = workbook.Worksheets.Single();
-        return new ClosedXmlAssertSheet(workbook, sheet, openXmlWorksheet);
+        return new ClosedXmlWorksheet(workbook, sheet, openXmlWorksheet);
     }
 
     public static IWorksheetList Sheets(Stream stream)
@@ -42,7 +45,7 @@ public static class SpreadsheetAssert
         using var _ = GetValidatedOpenXmlDocument(stream);
     }
 
-    public static ISpreadsheetAssertDocumentProperties DocumentProperties(Stream stream)
+    public static ISpreadsheetDocumentProperties DocumentProperties(Stream stream)
     {
         ArgumentNullException.ThrowIfNull(stream);
 
@@ -51,7 +54,7 @@ public static class SpreadsheetAssert
         var openXmlDoc = GetValidatedOpenXmlDocument(stream);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-        return new AssertDocumentProperties(
+        return new SpreadsheetDocumentProperties(
             closedXmlWorkbook.Properties,
             openXmlDoc.ExtendedFilePropertiesPart?.Properties);
     }

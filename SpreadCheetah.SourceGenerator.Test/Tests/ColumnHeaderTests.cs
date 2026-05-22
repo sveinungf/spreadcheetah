@@ -1,7 +1,7 @@
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnHeader;
-using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers;
 using SpreadCheetah.TestHelpers.Extensions;
 using System.Globalization;
 using System.Reflection;

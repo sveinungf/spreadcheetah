@@ -1,7 +1,7 @@
 using SpreadCheetah.ConditionalFormatting;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
-using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers;
 using System.Drawing;
 
 namespace SpreadCheetah.Test.Tests;

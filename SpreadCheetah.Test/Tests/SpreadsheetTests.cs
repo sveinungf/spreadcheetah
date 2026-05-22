@@ -12,7 +12,7 @@ using System.IO.Compression;
 using Color = System.Drawing.Color;
 using DataValidation = SpreadCheetah.Validations.DataValidation;
 using Fill = SpreadCheetah.Styling.Fill;
-using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.SpreadsheetAssert;
 using Table = SpreadCheetah.Tables.Table;
 using TableStyle = SpreadCheetah.Tables.TableStyle;
 

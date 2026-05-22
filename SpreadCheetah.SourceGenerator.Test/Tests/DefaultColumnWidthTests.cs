@@ -1,5 +1,5 @@
 using SpreadCheetah.SourceGenerator.Test.Models.DefaultColumnWidth;
-using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;

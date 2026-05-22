@@ -1,15 +1,17 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
-using SpreadCheetah.TestHelpers.Assertions;
+using Polyfills;
+using SpreadCheetah.TestHelpers.Implementations;
+using SpreadCheetah.TestHelpers.Interfaces;
 using System.Collections;
 
 namespace SpreadCheetah.TestHelpers.Collections;
 
 internal sealed class ClosedXmlWorksheetList(XLWorkbook workbook, SpreadsheetDocument document) : IWorksheetList
 {
-    private readonly List<ISpreadsheetAssertSheet> _sheets = CreateSheets(workbook, document);
+    private readonly List<IWorksheet> _sheets = CreateSheets(workbook, document);
 
-    private static List<ISpreadsheetAssertSheet> CreateSheets(XLWorkbook workbook, SpreadsheetDocument document)
+    private static List<IWorksheet> CreateSheets(XLWorkbook workbook, SpreadsheetDocument document)
     {
         if (document.WorkbookPart is null)
             throw new InvalidOperationException("The document does not contain a WorkbookPart.");
@@ -22,13 +24,13 @@ internal sealed class ClosedXmlWorksheetList(XLWorkbook workbook, SpreadsheetDoc
         [
             ..workbook.Worksheets
                 .Index()
-                .Select(x => new ClosedXmlAssertSheet(workbook, x.Item, openXmlWorksheets[x.Index]))
+                .Select(x => new ClosedXmlWorksheet(workbook, x.Item, openXmlWorksheets[x.Index]))
         ];
     }
 
-    public ISpreadsheetAssertSheet this[int index] => _sheets[index];
+    public IWorksheet this[int index] => _sheets[index];
     public int Count => _sheets.Count;
-    public IEnumerator<ISpreadsheetAssertSheet> GetEnumerator() => _sheets.GetEnumerator();
+    public IEnumerator<IWorksheet> GetEnumerator() => _sheets.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => _sheets.GetEnumerator();
 
     public void Dispose()

@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
+using SpreadCheetah.TestHelpers.Interfaces;
 
-namespace SpreadCheetah.TestHelpers.Assertions;
+namespace SpreadCheetah.TestHelpers.Implementations;
 
 internal sealed class ClosedXmlConditionalFormatRule(IXLConditionalFormat conditionalFormat)
     : IConditionalFormatRule
@@ -18,5 +19,5 @@ internal sealed class ClosedXmlConditionalFormatRule(IXLConditionalFormat condit
 
     public bool IsUniqueValuesRule => conditionalFormat.ConditionalFormatType is XLConditionalFormatType.IsUnique;
 
-    public ISpreadsheetAssertStyle Style => new ClosedXmlAssertStyle(conditionalFormat.Style);
+    public IStyle Style => ClosedXmlStyle.Create(conditionalFormat.Style);
 }
