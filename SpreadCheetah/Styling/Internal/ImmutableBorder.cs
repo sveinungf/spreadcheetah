@@ -12,6 +12,16 @@ internal readonly record struct ImmutableBorder
     public required ImmutableDiagonalBorder? Diagonal { get; init; }
     public required bool IsConditionalFormatBorder { get; init; }
 
+    public bool IsDefault => this is
+    {
+        Left.IsDefault: true,
+        Right.IsDefault: true,
+        Top.IsDefault: true,
+        Bottom.IsDefault: true,
+        Diagonal.IsDefault: true,
+        IsConditionalFormatBorder: false
+    };
+
     public static ImmutableBorder From(Border border) => new()
     {
         Left = ImmutableEdgeBorder.From(border.Left),
@@ -19,16 +29,6 @@ internal readonly record struct ImmutableBorder
         Top = ImmutableEdgeBorder.From(border.Top),
         Bottom = ImmutableEdgeBorder.From(border.Bottom),
         Diagonal = ImmutableDiagonalBorder.From(border.Diagonal),
-        IsConditionalFormatBorder = false
-    };
-
-    public static ImmutableBorder Default => new()
-    {
-        Left = new ImmutableEdgeBorder { BorderStyle = BorderStyle.None, Color = null },
-        Right = new ImmutableEdgeBorder { BorderStyle = BorderStyle.None, Color = null },
-        Top = new ImmutableEdgeBorder { BorderStyle = BorderStyle.None, Color = null },
-        Bottom = new ImmutableEdgeBorder { BorderStyle = BorderStyle.None, Color = null },
-        Diagonal = new ImmutableDiagonalBorder(),
         IsConditionalFormatBorder = false
     };
 }
