@@ -1007,6 +1007,32 @@ public class SpreadsheetRowTests
         Assert.Equal(fontColor, actualCellStyle.Font.Color);
     }
 
+    [Fact]
+    public async Task Spreadsheet_AddRow_ColumnStyleAndDefaultWidth()
+    {
+        // Arrange
+        const double width = 23;
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, cancellationToken: Token);
+        var style = new Style { Alignment = { WrapText = true } };
+        var worksheetOptions = new WorksheetOptions { DefaultColumnWidth = width };
+        worksheetOptions.Column(1).DefaultStyle = style;
+        await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, Token);
+
+        // Act
+        await spreadsheet.AddRowAsync([new("My value")], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualColumnStyle = sheet.Column("A").Style;
+        var actualCellStyle = sheet["A1"].Style;
+        Assert.True(actualColumnStyle.Alignment.WrapText);
+        Assert.True(actualCellStyle.Alignment.WrapText);
+        Assert.Equal(width, sheet.Column("A").Width, 2);
+    }
+
     [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_RowStyleForMultipleCells(IListType listType)
     {

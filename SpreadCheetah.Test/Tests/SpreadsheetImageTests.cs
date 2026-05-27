@@ -95,11 +95,11 @@ public class SpreadsheetImageTests
     }
 
     [Fact]
-    public async Task Spreadsheet_EmbedImage_InvalidFile()
+    public async Task Spreadsheet_EmbedImage_TooSmallFile()
     {
         // Arrange
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
-        var bytes = "Invalid file"u8.ToArray();
+        var bytes = "Small file"u8.ToArray();
         var imageStream = new MemoryStream(bytes);
 
         // Act
@@ -108,6 +108,24 @@ public class SpreadsheetImageTests
         // Assert
         var concreteException = Assert.IsType<ArgumentException>(exception);
         Assert.Equal("stream", concreteException.ParamName);
+        Assert.Equal("The stream did not contain enough data to determine the actual content. (Parameter 'stream')", concreteException.Message);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_EmbedImage_InvalidFile()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        var bytes = new byte[100];
+        var imageStream = new MemoryStream(bytes);
+
+        // Act
+        var exception = await Record.ExceptionAsync(() => spreadsheet.EmbedImageAsync(imageStream, Token).AsTask());
+
+        // Assert
+        var concreteException = Assert.IsType<ArgumentException>(exception);
+        Assert.Equal("stream", concreteException.ParamName);
+        Assert.Equal("The stream content is not a supported image type. Currently only PNG images are supported. (Parameter 'stream')", concreteException.Message);
     }
 
     [Theory]

@@ -551,11 +551,10 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(name);
 
         var styleId = _styleManager?.GetStyleIdOrDefault(name);
-        if (styleId is not null)
-            return styleId;
+        if (styleId is null)
+            ThrowHelper.StyleNameNotFound(name);
 
-        ThrowHelper.StyleNameNotFound(name);
-        return null; // Unreachable
+        return styleId;
     }
 
     /// <summary>
