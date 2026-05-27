@@ -59,7 +59,7 @@ internal struct BordersXmlPart(
         for (; _nextIndex < bordersLocal.Count; ++_nextIndex)
         {
             var border = bordersLocal[_nextIndex];
-            Debug.Assert(border != default); // TODO: Still correct?
+            Debug.Assert(!border.IsDefault);
 
             var xml = _currentXmlWriter ?? new BorderXml(border, buffer);
             if (!xml.TryWrite())

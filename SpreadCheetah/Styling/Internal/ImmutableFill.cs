@@ -3,9 +3,12 @@ using System.Drawing;
 
 namespace SpreadCheetah.Styling.Internal;
 
-internal readonly record struct ImmutableFill(Color? Color)
+internal readonly record struct ImmutableFill
 {
-    public static ImmutableFill From(Fill fill) => new(fill.Color);
+    public required Color? Color { get; init; }
 
-    public static ImmutableFill From(ConditionalFormatFill fill) => new(fill.Color);
+    public bool IsDefault => Color is null;
+
+    public static ImmutableFill From(Fill fill) => new() { Color = fill.Color };
+    public static ImmutableFill From(ConditionalFormatFill fill) => new() { Color = fill.Color };
 }

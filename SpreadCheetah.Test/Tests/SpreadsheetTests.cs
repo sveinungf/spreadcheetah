@@ -231,11 +231,16 @@ public class SpreadsheetTests
         SpreadsheetAssert.Valid(stream);
     }
 
-    [Fact]
-    public async Task Spreadsheet_Dispose_DisposeTwice()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Spreadsheet_Dispose_DisposeTwice(bool withWorksheet)
     {
         // Arrange
         var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        if (withWorksheet)
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
 #pragma warning disable
         spreadsheet.Dispose();
 #pragma warning restore
@@ -247,11 +252,16 @@ public class SpreadsheetTests
         Assert.Null(exception);
     }
 
-    [Fact]
-    public async Task Spreadsheet_DisposeAsync_DisposeTwice()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Spreadsheet_DisposeAsync_DisposeTwice(bool withWorksheet)
     {
         // Arrange
         var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        if (withWorksheet)
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
         await spreadsheet.DisposeAsync();
 
         // Act

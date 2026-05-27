@@ -45,6 +45,27 @@ public class SpreadsheetStyledRowTests
         await VerifyXml(stylesXml);
     }
 
+    [Fact]
+    public async Task Spreadsheet_AddRow_CellWithDefaultStyle()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { DefaultDateTimeFormat = null };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Name", token: Token);
+
+        // Act
+        var styleId = spreadsheet.AddStyle(new Style());
+        await spreadsheet.AddRowAsync([new StyledCell("Value", styleId)], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var stylesXml = await zip.GetStylesXmlStreamAsync(Token);
+        await VerifyXml(stylesXml);
+    }
+
     [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_StyledCellWithValue(CellValueType valueType, bool isNull, StyledCellType cellType, RowCollectionType rowType)
     {
