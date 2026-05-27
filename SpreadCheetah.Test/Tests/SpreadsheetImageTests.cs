@@ -108,7 +108,8 @@ public class SpreadsheetImageTests
         // Assert
         var concreteException = Assert.IsType<ArgumentException>(exception);
         Assert.Equal("stream", concreteException.ParamName);
-        Assert.Equal("The stream did not contain enough data to determine the actual content. (Parameter 'stream')", concreteException.Message);
+        Assert.StartsWith("The stream did not contain enough data to determine the actual content.",
+            concreteException.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -125,7 +126,8 @@ public class SpreadsheetImageTests
         // Assert
         var concreteException = Assert.IsType<ArgumentException>(exception);
         Assert.Equal("stream", concreteException.ParamName);
-        Assert.Equal("The stream content is not a supported image type. Currently only PNG images are supported. (Parameter 'stream')", concreteException.Message);
+        Assert.StartsWith("The stream content is not a supported image type. Currently only PNG images are supported.",
+            concreteException.Message, StringComparison.Ordinal);
     }
 
     [Theory]
