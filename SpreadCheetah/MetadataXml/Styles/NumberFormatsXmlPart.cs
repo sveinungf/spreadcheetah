@@ -2,12 +2,12 @@ namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct NumberFormatsXmlPart(
     IList<string>? customNumberFormats,
+    NumberFormatCounter numberFormatCounter,
     SpreadsheetBuffer buffer)
 {
     private Element _next;
     private int _nextIndex;
-    private string? _currentXmlEncodedFormat;
-    private int _currentXmlEncodedFormatIndex;
+    private NumberFormatXmlPart? _currentFormatPart;
 
 #pragma warning disable EPS12 // Member can be made readonly (false positive)
     public bool TryWrite()
@@ -57,28 +57,20 @@ internal struct NumberFormatsXmlPart(
 
         for (; _nextIndex < formats.Count; ++_nextIndex)
         {
-            var format = formats[_nextIndex];
-
-            if (_currentXmlEncodedFormat is null)
+            if (_currentFormatPart is not { } current)
             {
-                const int customFormatStartId = 165;
-                var id = _nextIndex + customFormatStartId;
-
-                if (!buffer.TryWrite($"{"<numFmt numFmtId=\""u8}{id}{"\" formatCode=\""u8}"))
-                    return false;
-
-                _currentXmlEncodedFormat = format;
-                _currentXmlEncodedFormatIndex = 0;
+                var id = numberFormatCounter.GetNextId();
+                var format = formats[_nextIndex];
+                current = new NumberFormatXmlPart(id, format);
             }
 
-            if (!buffer.WriteLongString(_currentXmlEncodedFormat, ref _currentXmlEncodedFormatIndex))
+            if (!current.TryWrite(buffer))
+            {
+                _currentFormatPart = current;
                 return false;
+            }
 
-            if (!buffer.TryWrite("\"/>"u8))
-                return false;
-
-            _currentXmlEncodedFormat = null;
-            _currentXmlEncodedFormatIndex = 0;
+            _currentFormatPart = null;
         }
 
         return true;

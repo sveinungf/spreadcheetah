@@ -3,7 +3,7 @@ using SpreadCheetah.MetadataXml.Attributes;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Worksheets;
 
-namespace SpreadCheetah.MetadataXml;
+namespace SpreadCheetah.MetadataXml.Worksheets;
 
 internal static class WorksheetStartXml
 {

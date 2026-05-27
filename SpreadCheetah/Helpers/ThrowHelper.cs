@@ -131,7 +131,7 @@ internal static class ThrowHelper
 
     [DoesNotReturn]
     public static void StreamContentNotSupportedImageType(string? paramName)
-        => throw new ArgumentException("The stream content is not a supported image type. Currently only PNG images are supported.", nameof(paramName));
+        => throw new ArgumentException("The stream content is not a supported image type. Currently only PNG images are supported.", paramName);
 
     [DoesNotReturn]
     public static void StyleNameAlreadyExists(string? paramName)

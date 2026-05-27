@@ -108,6 +108,27 @@ public class NamedStyleTests
     }
 
     [Fact]
+    public async Task Spreadsheet_AddStyle_NamedStyleWithAlignment()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new Style { Alignment = { Horizontal = HorizontalAlignment.Center } };
+        const string name = "My alignment style";
+
+        // Act
+        var styleId = spreadsheet.AddStyle(style, name, StyleNameVisibility.Visible);
+        await spreadsheet.AddRowAsync([new StyledCell("My cell", styleId)], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(HorizontalAlignment.Center, sheet["A1"].Style.Alignment.HorizontalAlignment);
+    }
+
+    [Fact]
     public async Task Spreadsheet_AddStyle_NamedStyleUsedByMultipleCells()
     {
         // Arrange

@@ -93,32 +93,32 @@ internal sealed class StyleManager
 
     private AddedStyle MapToAddedStyle(Style style, string? name, StyleNameVisibility? visibility)
     {
-        var alignment = ImmutableAlignment.From(style.Alignment);
         int? alignmentIndex = null;
-        if (alignment != default)
+        var alignment = ImmutableAlignment.From(style.Alignment);
+        if (!alignment.IsDefault)
         {
             var uniqueAlignments = UniqueAlignments ??= new();
             alignmentIndex = uniqueAlignments.Add(alignment);
         }
 
-        var border = ImmutableBorder.From(style.Border);
         int? borderIndex = null;
-        if (border != default)
+        var border = ImmutableBorder.From(style.Border);
+        if (!border.IsDefault)
         {
             var uniqueBorders = UniqueBorders ??= new();
             borderIndex = uniqueBorders.Add(border);
         }
 
-        var fill = ImmutableFill.From(style.Fill);
         int? fillIndex = null;
-        if (fill != default)
+        var fill = ImmutableFill.From(style.Fill);
+        if (!fill.IsDefault)
         {
             var uniqueFills = UniqueFills ??= new();
             fillIndex = uniqueFills.Add(fill);
         }
 
-        var font = ImmutableFont.From(style.Font, DefaultFont);
         int? fontIndex = null;
+        var font = ImmutableFont.From(style.Font, DefaultFont);
         if (font != ImmutableFont.From(DefaultFont))
         {
             var uniqueFonts = UniqueFonts ??= new();
