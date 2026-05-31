@@ -110,24 +110,29 @@ public class SpreadsheetConditionalFormattingTests
     public async Task Spreadsheet_ConditionalFormatting_RuleWithAllStyleElements()
     {
         // Arrange
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
         using var stream = new MemoryStream();
-        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
-        var fillColor = Color.FromArgb(255, 255, 200, 0);
-        var fontColor = Color.FromArgb(255, 10, 0, 0);
-        // TODO: Add more style elements.
         var style = new ConditionalFormatStyle
         {
-            Fill = { Color = fillColor },
+            Fill = { Color = Color.FromArgb(10) },
             Format = "0.00",
             Font =
             {
                 Bold = true,
-                Color = fontColor,
+                Color = Color.FromArgb(20),
                 Italic = true,
                 Strikethrough = true,
                 Underline = ConditionalFormatUnderline.Single
+            },
+            Border =
+            {
+                Bottom = { BorderStyle = ConditionalFormatBorderStyle.Thin, Color = Color.FromArgb(30) },
+                Left = { BorderStyle = ConditionalFormatBorderStyle.Dashed, Color = Color.FromArgb(40) },
+                Right = { BorderStyle = ConditionalFormatBorderStyle.Dotted, Color = Color.FromArgb(50) },
+                Top = { BorderStyle = ConditionalFormatBorderStyle.Hair, Color = Color.FromArgb(60) }
             }
         };
 
@@ -139,13 +144,21 @@ public class SpreadsheetConditionalFormattingTests
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualRule = Assert.Single(sheet.ConditionalFormatRules);
-        Assert.Equal(fillColor, actualRule.Style.Fill.Color);
+        Assert.Equal(style.Fill.Color, actualRule.Style.Fill.Color);
         Assert.Equal(style.Format, actualRule.Style.NumberFormat.CustomFormat);
-        Assert.Equal(fontColor, actualRule.Style.Font.Color);
+        Assert.Equal(style.Font.Color, actualRule.Style.Font.Color);
         Assert.Equal(Underline.Single, actualRule.Style.Font.Underline);
         Assert.True(actualRule.Style.Font.Bold);
         Assert.True(actualRule.Style.Font.Italic);
         Assert.True(actualRule.Style.Font.Strikethrough);
+        Assert.Equal(BorderStyle.Thin, actualRule.Style.Border.BottomStyle);
+        Assert.Equal(BorderStyle.Dashed, actualRule.Style.Border.LeftStyle);
+        Assert.Equal(BorderStyle.Dotted, actualRule.Style.Border.RightStyle);
+        Assert.Equal(BorderStyle.Hair, actualRule.Style.Border.TopStyle);
+        Assert.Equal(style.Border.Bottom.Color, actualRule.Style.Border.BottomColor);
+        Assert.Equal(style.Border.Left.Color, actualRule.Style.Border.LeftColor);
+        Assert.Equal(style.Border.Right.Color, actualRule.Style.Border.RightColor);
+        Assert.Equal(style.Border.Top.Color, actualRule.Style.Border.TopColor);
     }
 
     [Fact]
@@ -193,7 +206,7 @@ public class SpreadsheetConditionalFormattingTests
     }
 
     [Theory, CombinatorialData]
-    public async Task Spreadsheet_ConditionalFormatting_RuleWithBottomBorderStyle(ConditionalFormatBorderStyle borderStyle)
+    public async Task Spreadsheet_ConditionalFormatting_RuleWithBorderStyle(ConditionalFormatBorderStyle borderStyle)
     {
         // Arrange
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
@@ -201,8 +214,11 @@ public class SpreadsheetConditionalFormattingTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
-        var color = Color.FromArgb(255, 255, 200, 0);
-        var style = new ConditionalFormatStyle { Border = { Bottom = { BorderStyle = borderStyle, Color = color } } };
+        var color = Color.FromArgb(255, 200, 0);
+        var style = new ConditionalFormatStyle
+        {
+            Border = { Bottom = { BorderStyle = borderStyle, Color = color } }
+        };
 
         // Act
         var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
@@ -217,6 +233,4 @@ public class SpreadsheetConditionalFormattingTests
         if (borderStyle != ConditionalFormatBorderStyle.None)
             Assert.Equal(color, actualRule.Style.Border.BottomColor);
     }
-
-    // TODO: More tests for borders.
 }

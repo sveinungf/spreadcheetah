@@ -9,7 +9,9 @@ internal struct StyleDxfXml(
     NumberFormatCounter numberFormatCounter,
     SpreadsheetBuffer buffer)
 {
-    private NumberFormatXmlPart? _numberFormatPart;
+    private BorderXml? _borderXmlWriter;
+    private FontXmlPart? _fontXmlWriter;
+    private NumberFormatXmlPart? _numberFormatXmlWriter;
     private Element _next;
 
 #pragma warning disable EPS12 // A struct member can be made readonly
@@ -46,7 +48,7 @@ internal struct StyleDxfXml(
         return _next < Element.Done;
     }
 
-    private readonly bool TryWriteFont()
+    private bool TryWriteFont()
     {
         var isDefaultFont = style.Font is
         {
@@ -61,8 +63,15 @@ internal struct StyleDxfXml(
             return true;
 
         Debug.Assert(style.Font is { Name: null, Size: null });
-        var xmlPart = new FontXmlPart(buffer, style.Font);
-        return xmlPart.TryWrite();
+
+        var xml = _fontXmlWriter ?? new FontXmlPart(buffer, style.Font);
+        if (!xml.TryWrite())
+        {
+            _fontXmlWriter = xml;
+            return false;
+        }
+
+        return true;
     }
 
     private bool TryWriteNumberFormat()
@@ -70,15 +79,12 @@ internal struct StyleDxfXml(
         if (style.Format is not { } format)
             return true;
 
-        if (_numberFormatPart is not { } xmlPart)
-        {
-            var id = numberFormatCounter.GetNextId();
-            xmlPart = new NumberFormatXmlPart(id, format);
-        }
+        var xml = _numberFormatXmlWriter
+            ?? new NumberFormatXmlPart(numberFormatCounter.GetNextId(), format);
 
-        if (!xmlPart.TryWrite(buffer))
+        if (!xml.TryWrite(buffer))
         {
-            _numberFormatPart = xmlPart;
+            _numberFormatXmlWriter = xml;
             return false;
         }
 
@@ -96,7 +102,7 @@ internal struct StyleDxfXml(
             $"{"\"/></patternFill></fill>"u8}");
     }
 
-    private readonly bool TryWriteBorder()
+    private bool TryWriteBorder()
     {
         var isDefaultBorder = style.Border is
         {
@@ -110,8 +116,14 @@ internal struct StyleDxfXml(
         if (isDefaultBorder)
             return true;
 
-        var xmlPart = new BorderXml(style.Border, buffer);
-        return xmlPart.TryWrite();
+        var xml = _borderXmlWriter ?? new BorderXml(style.Border, buffer);
+        if (!xml.TryWrite())
+        {
+            _borderXmlWriter = xml;
+            return false;
+        }
+
+        return true;
     }
 
     private enum Element
