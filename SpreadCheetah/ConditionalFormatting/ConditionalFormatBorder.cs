@@ -5,7 +5,7 @@ namespace SpreadCheetah.ConditionalFormatting;
 /// </summary>
 public sealed record ConditionalFormatBorder
 {
-    // TODO: Validate that these are not set to null in setters?
+    // TODO: Validate that these are not set to null in setters.
     /// <summary>Left border for the cell.</summary>
     public ConditionalFormatEdgeBorder Left { get; set; } = new();
 
@@ -17,4 +17,12 @@ public sealed record ConditionalFormatBorder
 
     /// <summary>Bottom border for the cell.</summary>
     public ConditionalFormatEdgeBorder Bottom { get; set; } = new();
+
+    internal bool IsDefault => this is
+    {
+        Left.IsDefault: true,
+        Right.IsDefault: true,
+        Top.IsDefault: true,
+        Bottom.IsDefault: true
+    };
 }

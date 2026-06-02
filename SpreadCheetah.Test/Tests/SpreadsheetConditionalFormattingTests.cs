@@ -1,8 +1,11 @@
 using SpreadCheetah.ConditionalFormatting;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
-using SpreadCheetah.TestHelpers;
+using SpreadCheetah.Test.Extensions;
+using SpreadCheetah.Test.Helpers;
 using System.Drawing;
+using System.IO.Compression;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.SpreadsheetAssert;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -159,6 +162,50 @@ public class SpreadsheetConditionalFormattingTests
         Assert.Equal(style.Border.Left.Color, actualRule.Style.Border.LeftColor);
         Assert.Equal(style.Border.Right.Color, actualRule.Style.Border.RightColor);
         Assert.Equal(style.Border.Top.Color, actualRule.Style.Border.TopColor);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_RuleWithDefaultStyleHasExpectedSheetXml()
+    {
+        // Arrange
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new ConditionalFormatStyle();
+
+        // Act
+        var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
+        spreadsheet.AddConditionalFormatRule("A1", rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var sheet1Xml = await zip.GetSheet1XmlStreamAsync(Token);
+        await VerifyXml(sheet1Xml);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_RuleWithDefaultStyleHasExpectedStylesXml()
+    {
+        // Arrange
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new ConditionalFormatStyle();
+
+        // Act
+        var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
+        spreadsheet.AddConditionalFormatRule("A1", rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var stylesXml = await zip.GetStylesXmlStreamAsync(Token);
+        await VerifyXml(stylesXml);
     }
 
     [Fact]

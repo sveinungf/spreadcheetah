@@ -31,7 +31,6 @@ internal struct StyleDxfXml(
 
     public bool MoveNext()
     {
-        // TODO: Somewhere, we need to check if the style is not just a default style.
         Current = _next switch
         {
             Element.Header => buffer.TryWrite("<dxf>"u8),

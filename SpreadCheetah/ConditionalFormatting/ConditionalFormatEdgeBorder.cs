@@ -13,4 +13,10 @@ public sealed record ConditionalFormatEdgeBorder
 
     /// <summary>ARGB (alpha, red, green, blue) color of the border.</summary>
     public Color? Color { get; set; }
+
+    internal bool IsDefault => this is
+    {
+        BorderStyle: ConditionalFormatBorderStyle.None,
+        Color: null
+    };
 }

@@ -22,4 +22,13 @@ public sealed record ConditionalFormatFont
 
     /// <summary>ARGB (alpha, red, green, blue) color of the font.</summary>
     public Color? Color { get; set; }
+
+    internal bool IsDefault => this is
+    {
+        Bold: false,
+        Italic: false,
+        Strikethrough: false,
+        Underline: ConditionalFormatUnderline.None,
+        Color: null
+    };
 }

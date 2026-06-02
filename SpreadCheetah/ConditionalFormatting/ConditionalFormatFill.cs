@@ -9,4 +9,6 @@ public sealed record ConditionalFormatFill
 {
     /// <summary>ARGB (alpha, red, green, blue) color of the fill.</summary>
     public Color? Color { get; set; }
+
+    internal bool IsDefault => Color is null;
 }

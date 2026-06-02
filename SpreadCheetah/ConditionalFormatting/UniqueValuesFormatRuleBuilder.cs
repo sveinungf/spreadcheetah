@@ -6,5 +6,9 @@ public sealed class UniqueValuesFormatRuleBuilder
     {
     }
 
-    public UniqueValuesFormatRule WithStyle(ConditionalFormatStyle style) => new() { Style = style };
+    public UniqueValuesFormatRule WithStyle(ConditionalFormatStyle style)
+    {
+        ArgumentNullException.ThrowIfNull(style);
+        return new UniqueValuesFormatRule { Style = style };
+    }
 }

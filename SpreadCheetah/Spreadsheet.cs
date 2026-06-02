@@ -545,7 +545,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     [return: NotNullIfNotNull(nameof(style))]
     private int? AddStyleInternal(ConditionalFormatStyle? style)
     {
-        if (style is null)
+        if (style is null || style.IsDefault)
             return null;
 
         var styleManager = GetOrCreateStyleManager();
