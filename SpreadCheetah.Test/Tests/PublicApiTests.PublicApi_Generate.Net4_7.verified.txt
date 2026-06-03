@@ -98,6 +98,7 @@ namespace SpreadCheetah
     {
         public int NextRowNumber { get; }
         public System.Threading.Tasks.ValueTask AddAsRowAsync<T>(T obj, SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> typeInfo, System.Threading.CancellationToken token = default) { }
+        public void AddConditionalFormatRule(string reference, SpreadCheetah.ConditionalFormatting.ConditionalFormatRule rule) { }
         public void AddDataValidation(string reference, SpreadCheetah.Validations.DataValidation validation) { }
         public System.Threading.Tasks.ValueTask AddHeaderRowAsync(System.Collections.Generic.IList<string> headerNames, SpreadCheetah.Styling.StyleId? styleId = null, System.Threading.CancellationToken token = default) { }
         public System.Threading.Tasks.ValueTask AddHeaderRowAsync(System.ReadOnlyMemory<string> headerNames, SpreadCheetah.Styling.StyleId? styleId = null, System.Threading.CancellationToken token = default) { }
@@ -165,6 +166,73 @@ namespace SpreadCheetah
         public StyledCell(long value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(long? value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(string? value, SpreadCheetah.Styling.StyleId? styleId) { }
+    }
+}
+namespace SpreadCheetah.ConditionalFormatting
+{
+    public sealed class ConditionalFormatBorder : System.IEquatable<SpreadCheetah.ConditionalFormatting.ConditionalFormatBorder>
+    {
+        public ConditionalFormatBorder() { }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatEdgeBorder Bottom { get; set; }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatEdgeBorder Left { get; set; }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatEdgeBorder Right { get; set; }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatEdgeBorder Top { get; set; }
+    }
+    public enum ConditionalFormatBorderStyle
+    {
+        None = 0,
+        Thin = 1,
+        Dashed = 3,
+        Dotted = 4,
+        Hair = 7,
+        DashDot = 9,
+        DashDotDot = 11,
+    }
+    public sealed class ConditionalFormatEdgeBorder : System.IEquatable<SpreadCheetah.ConditionalFormatting.ConditionalFormatEdgeBorder>
+    {
+        public ConditionalFormatEdgeBorder() { }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatBorderStyle BorderStyle { get; set; }
+        public System.Drawing.Color? Color { get; set; }
+    }
+    public sealed class ConditionalFormatFill : System.IEquatable<SpreadCheetah.ConditionalFormatting.ConditionalFormatFill>
+    {
+        public ConditionalFormatFill() { }
+        public System.Drawing.Color? Color { get; set; }
+    }
+    public sealed class ConditionalFormatFont : System.IEquatable<SpreadCheetah.ConditionalFormatting.ConditionalFormatFont>
+    {
+        public ConditionalFormatFont() { }
+        public bool Bold { get; set; }
+        public System.Drawing.Color? Color { get; set; }
+        public bool Italic { get; set; }
+        public bool Strikethrough { get; set; }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatUnderline Underline { get; set; }
+    }
+    public abstract class ConditionalFormatRule
+    {
+        public static SpreadCheetah.ConditionalFormatting.UniqueValuesFormatRuleBuilder UniqueValues() { }
+    }
+    public sealed class ConditionalFormatStyle : System.IEquatable<SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle>
+    {
+        public ConditionalFormatStyle() { }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatBorder Border { get; set; }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatFill Fill { get; set; }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatFont Font { get; set; }
+        public string? Format { get; set; }
+    }
+    public enum ConditionalFormatUnderline
+    {
+        None = 0,
+        Single = 1,
+        Double = 3,
+    }
+    public sealed class UniqueValuesFormatRule : SpreadCheetah.ConditionalFormatting.ConditionalFormatRule
+    {
+        public UniqueValuesFormatRule() { }
+    }
+    public sealed class UniqueValuesFormatRuleBuilder
+    {
+        public SpreadCheetah.ConditionalFormatting.UniqueValuesFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
     }
 }
 namespace SpreadCheetah.Images
