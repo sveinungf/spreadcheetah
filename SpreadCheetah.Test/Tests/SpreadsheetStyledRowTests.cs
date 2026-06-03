@@ -45,17 +45,35 @@ public class SpreadsheetStyledRowTests
         await VerifyXml(stylesXml);
     }
 
-    [Fact]
-    public async Task Spreadsheet_AddRow_CellWithDefaultStyle()
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithDefaultStyle(bool explicitlyInitialized)
     {
         // Arrange
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { DefaultDateTimeFormat = null };
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         await spreadsheet.StartWorksheetAsync("Name", token: Token);
+        var style = new Style();
+        if (explicitlyInitialized)
+        {
+            style = new Style
+            {
+                Alignment = new Alignment(),
+                Fill = new Fill(),
+                Font = new Font(),
+                Border = new Border
+                {
+                    Left = new EdgeBorder(),
+                    Right = new EdgeBorder(),
+                    Top = new EdgeBorder(),
+                    Bottom = new EdgeBorder(),
+                    Diagonal = new DiagonalBorder()
+                }
+            };
+        }
 
         // Act
-        var styleId = spreadsheet.AddStyle(new Style());
+        var styleId = spreadsheet.AddStyle(style);
         await spreadsheet.AddRowAsync([new StyledCell("Value", styleId)], Token);
         await spreadsheet.FinishAsync(Token);
 
@@ -63,7 +81,9 @@ public class SpreadsheetStyledRowTests
         SpreadsheetAssert.Valid(stream);
         using var zip = await ZipArchive.CreateAsync(stream, Token);
         using var stylesXml = await zip.GetStylesXmlStreamAsync(Token);
-        await VerifyXml(stylesXml);
+        var verifySettings = new VerifySettings();
+        verifySettings.IgnoreParametersForVerified();
+        await VerifyXml(stylesXml, verifySettings);
     }
 
     [Theory, CombinatorialData]
