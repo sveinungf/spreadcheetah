@@ -2,7 +2,7 @@ namespace SpreadCheetah.ConditionalFormatting;
 
 public sealed record ConditionalFormatStyle
 {
-    // TODO: Validate that these are not set to null in setters.
+    // TODO: Lazily initialize.
     public ConditionalFormatBorder Border { get; set; } = new();
 
     public ConditionalFormatFill Fill { get; set; } = new();

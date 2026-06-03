@@ -5,24 +5,51 @@ namespace SpreadCheetah.ConditionalFormatting;
 /// </summary>
 public sealed record ConditionalFormatBorder
 {
-    // TODO: Validate that these are not set to null in setters.
     /// <summary>Left border for the cell.</summary>
-    public ConditionalFormatEdgeBorder Left { get; set; } = new();
+    public ConditionalFormatEdgeBorder Left
+    {
+        get => _left ??= new();
+        set => _left = value;
+    }
+
+    private ConditionalFormatEdgeBorder? _left;
+    internal ConditionalFormatEdgeBorder? GetLeftOrDefault() => _left;
 
     /// <summary>Right border for the cell.</summary>
-    public ConditionalFormatEdgeBorder Right { get; set; } = new();
+    public ConditionalFormatEdgeBorder Right
+    {
+        get => _right ??= new();
+        set => _right = value;
+    }
+
+    private ConditionalFormatEdgeBorder? _right;
+    internal ConditionalFormatEdgeBorder? GetRightOrDefault() => _right;
 
     /// <summary>Top border for the cell.</summary>
-    public ConditionalFormatEdgeBorder Top { get; set; } = new();
+    public ConditionalFormatEdgeBorder Top
+    {
+        get => _top ??= new();
+        set => _top = value;
+    }
+
+    private ConditionalFormatEdgeBorder? _top;
+    internal ConditionalFormatEdgeBorder? GetTopOrDefault() => _top;
 
     /// <summary>Bottom border for the cell.</summary>
-    public ConditionalFormatEdgeBorder Bottom { get; set; } = new();
+    public ConditionalFormatEdgeBorder Bottom
+    {
+        get => _bottom ??= new();
+        set => _bottom = value;
+    }
+
+    private ConditionalFormatEdgeBorder? _bottom;
+    internal ConditionalFormatEdgeBorder? GetBottomOrDefault() => _bottom;
 
     internal bool IsDefault => this is
     {
-        Left.IsDefault: true,
-        Right.IsDefault: true,
-        Top.IsDefault: true,
-        Bottom.IsDefault: true
+        _left: null or { IsDefault: true },
+        _right: null or { IsDefault: true },
+        _top: null or { IsDefault: true },
+        _bottom: null or { IsDefault: true }
     };
 }

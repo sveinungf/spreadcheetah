@@ -22,9 +22,9 @@ internal readonly record struct ImmutableEdgeBorder
         Color = border.Color
     };
 
-    public static ImmutableEdgeBorder? From(ConditionalFormatEdgeBorder border)
+    public static ImmutableEdgeBorder? From(ConditionalFormatEdgeBorder? border)
     {
-        if (border is { BorderStyle: ConditionalFormatBorderStyle.None, Color: null })
+        if (border is null or { IsDefault: true })
             return null;
 
         return new()

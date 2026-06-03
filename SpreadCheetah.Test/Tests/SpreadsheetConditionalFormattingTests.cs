@@ -164,8 +164,8 @@ public class SpreadsheetConditionalFormattingTests
         Assert.Equal(style.Border.Top.Color, actualRule.Style.Border.TopColor);
     }
 
-    [Fact]
-    public async Task Spreadsheet_ConditionalFormatting_RuleWithDefaultStyleHasExpectedSheetXml()
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_ConditionalFormatting_RuleWithDefaultStyleHasExpectedSheetXml(bool explicitlyInitialized)
     {
         // Arrange
         var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
@@ -173,6 +173,22 @@ public class SpreadsheetConditionalFormattingTests
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var style = new ConditionalFormatStyle();
+
+        if (explicitlyInitialized)
+        {
+            style = new ConditionalFormatStyle
+            {
+                Border = new()
+                {
+                    Bottom = new(),
+                    Left = new(),
+                    Right = new(),
+                    Top = new()
+                },
+                Fill = new(),
+                Font = new()
+            };
+        }
 
         // Act
         var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
@@ -183,7 +199,9 @@ public class SpreadsheetConditionalFormattingTests
         SpreadsheetAssert.Valid(stream);
         using var zip = await ZipArchive.CreateAsync(stream, Token);
         using var sheet1Xml = await zip.GetSheet1XmlStreamAsync(Token);
-        await VerifyXml(sheet1Xml);
+        var verifySettings = new VerifySettings();
+        verifySettings.IgnoreParametersForVerified();
+        await VerifyXml(sheet1Xml, verifySettings);
     }
 
     [Fact]
