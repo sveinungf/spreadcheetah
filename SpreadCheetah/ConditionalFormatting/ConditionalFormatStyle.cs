@@ -1,3 +1,5 @@
+using SpreadCheetah.Helpers;
+
 namespace SpreadCheetah.ConditionalFormatting;
 
 public sealed record ConditionalFormatStyle
@@ -33,7 +35,7 @@ public sealed record ConditionalFormatStyle
     internal ConditionalFormatFont? GetFontOrDefault() => _font;
 
     /// <summary>Format that defines how a number or <see cref="DateTime"/> cell should be displayed.</summary>
-    public string? Format { get; set; } // TODO: Verify in setter.
+    public string? Format { get; set => field = Guard.MaxLength(value, 255); }
 
     internal bool IsDefault => this is
     {

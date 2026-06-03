@@ -1,3 +1,4 @@
+using SpreadCheetah.Helpers;
 using System.Drawing;
 
 namespace SpreadCheetah.ConditionalFormatting;
@@ -7,9 +8,8 @@ namespace SpreadCheetah.ConditionalFormatting;
 /// </summary>
 public sealed record ConditionalFormatEdgeBorder
 {
-    // TODO: Validate setter
     /// <summary>Border style. Defaults to None.</summary>
-    public ConditionalFormatBorderStyle BorderStyle { get; set; } = ConditionalFormatBorderStyle.None;
+    public ConditionalFormatBorderStyle BorderStyle { get; set => field = Guard.DefinedEnumValue(value); }
 
     /// <summary>ARGB (alpha, red, green, blue) color of the border.</summary>
     public Color? Color { get; set; }
