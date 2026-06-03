@@ -17,10 +17,10 @@ internal readonly record struct ImmutableDiagonalBorder
         Type: DiagonalBorderType.None
     };
 
-    public static ImmutableDiagonalBorder From(DiagonalBorder border) => new()
+    public static ImmutableDiagonalBorder From(DiagonalBorder? border) => new()
     {
-        BorderStyle = border.BorderStyle,
-        Color = border.Color,
-        Type = border.Type
+        BorderStyle = border?.BorderStyle ?? BorderStyle.None,
+        Color = border?.Color,
+        Type = border?.Type ?? DiagonalBorderType.None
     };
 }

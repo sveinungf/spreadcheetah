@@ -24,11 +24,11 @@ internal readonly record struct ImmutableBorder
 
     public static ImmutableBorder From(Border border) => new()
     {
-        Left = ImmutableEdgeBorder.From(border.Left),
-        Right = ImmutableEdgeBorder.From(border.Right),
-        Top = ImmutableEdgeBorder.From(border.Top),
-        Bottom = ImmutableEdgeBorder.From(border.Bottom),
-        Diagonal = ImmutableDiagonalBorder.From(border.Diagonal),
+        Left = ImmutableEdgeBorder.From(border.GetLeftOrDefault()),
+        Right = ImmutableEdgeBorder.From(border.GetRightOrDefault()),
+        Top = ImmutableEdgeBorder.From(border.GetTopOrDefault()),
+        Bottom = ImmutableEdgeBorder.From(border.GetBottomOrDefault()),
+        Diagonal = ImmutableDiagonalBorder.From(border.GetDiagonalOrDefault()),
         IsConditionalFormatBorder = false
     };
 }
