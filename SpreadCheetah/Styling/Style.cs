@@ -8,16 +8,44 @@ namespace SpreadCheetah.Styling;
 public sealed record Style
 {
     /// <summary>Alignment for the cell.</summary>
-    public Alignment Alignment { get; set; } = new();
+    public Alignment Alignment
+    {
+        get => _alignment ??= new();
+        set => _alignment = value;
+    }
+
+    private Alignment? _alignment;
+    internal Alignment? GetAlignmentOrDefault() => _alignment;
 
     /// <summary>Border for the cell.</summary>
-    public Border Border { get; set; } = new();
+    public Border Border
+    {
+        get => _border ??= new();
+        set => _border = value;
+    }
+
+    private Border? _border;
+    internal Border? GetBorderOrDefault() => _border;
 
     /// <summary>Fill for the cell.</summary>
-    public Fill Fill { get; set; } = new();
+    public Fill Fill
+    {
+        get => _fill ??= new();
+        set => _fill = value;
+    }
+
+    private Fill? _fill;
+    internal Fill? GetFillOrDefault() => _fill;
 
     /// <summary>Font for the cell's value.</summary>
-    public Font Font { get; set; } = new();
+    public Font Font
+    {
+        get => _font ??= new();
+        set => _font = value;
+    }
+
+    private Font? _font;
+    internal Font? GetFontOrDefault() => _font;
 
     /// <summary>Format that defines how a number or <see cref="DateTime"/> cell should be displayed.</summary>
     [Obsolete($"Use {nameof(Style)}.{nameof(Format)} instead")]
