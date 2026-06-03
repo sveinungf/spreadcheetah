@@ -97,9 +97,9 @@ internal sealed class StyleManager
     {
         var differentialStyle = new AddedDifferentialStyle
         {
-            Border = ImmutableBorder.From(style.Border),
-            Fill = ImmutableFill.From(style.Fill),
-            Font = ImmutableFont.From(style.Font),
+            Border = ImmutableBorder.From(style.GetBorderOrDefault()),
+            Fill = ImmutableFill.From(style.GetFillOrDefault()),
+            Font = ImmutableFont.From(style.GetFontOrDefault()),
             Format = style.Format
         };
 

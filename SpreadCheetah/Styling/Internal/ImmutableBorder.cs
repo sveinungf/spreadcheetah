@@ -33,12 +33,12 @@ internal readonly record struct ImmutableBorder
         IsConditionalFormatBorder = false
     };
 
-    public static ImmutableBorder From(ConditionalFormatBorder border) => new()
+    public static ImmutableBorder From(ConditionalFormatBorder? border) => new()
     {
-        Left = ImmutableEdgeBorder.From(border.GetLeftOrDefault()),
-        Right = ImmutableEdgeBorder.From(border.GetRightOrDefault()),
-        Top = ImmutableEdgeBorder.From(border.GetTopOrDefault()),
-        Bottom = ImmutableEdgeBorder.From(border.GetBottomOrDefault()),
+        Left = ImmutableEdgeBorder.From(border?.GetLeftOrDefault()),
+        Right = ImmutableEdgeBorder.From(border?.GetRightOrDefault()),
+        Top = ImmutableEdgeBorder.From(border?.GetTopOrDefault()),
+        Bottom = ImmutableEdgeBorder.From(border?.GetBottomOrDefault()),
         Diagonal = null,
         IsConditionalFormatBorder = true
     };
