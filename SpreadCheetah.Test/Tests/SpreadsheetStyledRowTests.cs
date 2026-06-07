@@ -998,6 +998,39 @@ public class SpreadsheetStyledRowTests
         Assert.Equal(Color.Black, border.DiagonalColor);
     }
 
+    [Fact]
+    public async Task Spreadsheet_AddRow_AlternativeBorderInitialization()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        var style = new Style();
+        style.Border.Diagonal.BorderStyle = BorderStyle.Hair;
+        style.Border.Left.BorderStyle = BorderStyle.Hair;
+        style.Border.Right.BorderStyle = BorderStyle.Hair;
+        style.Border.Top.BorderStyle = BorderStyle.Hair;
+        style.Border.Bottom.BorderStyle = BorderStyle.Hair;
+
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = new StyledCell("Value", styleId);
+
+        // Act
+        await spreadsheet.AddRowAsync([styledCell], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualBorder = sheet["A1"].Style.Border;
+        Assert.Equal(BorderStyle.Hair, actualBorder.DiagonalStyle);
+        Assert.Equal(BorderStyle.Hair, actualBorder.LeftStyle);
+        Assert.Equal(BorderStyle.Hair, actualBorder.RightStyle);
+        Assert.Equal(BorderStyle.Hair, actualBorder.TopStyle);
+        Assert.Equal(BorderStyle.Hair, actualBorder.BottomStyle);
+    }
+
     [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_HorizontalAlignment(HorizontalAlignment alignment, StyledCellType type, RowCollectionType rowType)
     {
