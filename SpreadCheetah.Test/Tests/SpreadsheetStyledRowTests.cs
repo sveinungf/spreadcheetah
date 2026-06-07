@@ -45,17 +45,35 @@ public class SpreadsheetStyledRowTests
         await VerifyXml(stylesXml);
     }
 
-    [Fact]
-    public async Task Spreadsheet_AddRow_CellWithDefaultStyle()
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_CellWithDefaultStyle(bool explicitlyInitialized)
     {
         // Arrange
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions { DefaultDateTimeFormat = null };
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
         await spreadsheet.StartWorksheetAsync("Name", token: Token);
+        var style = new Style();
+        if (explicitlyInitialized)
+        {
+            style = new Style
+            {
+                Alignment = new Alignment(),
+                Fill = new Fill(),
+                Font = new Font(),
+                Border = new Border
+                {
+                    Left = new EdgeBorder(),
+                    Right = new EdgeBorder(),
+                    Top = new EdgeBorder(),
+                    Bottom = new EdgeBorder(),
+                    Diagonal = new DiagonalBorder()
+                }
+            };
+        }
 
         // Act
-        var styleId = spreadsheet.AddStyle(new Style());
+        var styleId = spreadsheet.AddStyle(style);
         await spreadsheet.AddRowAsync([new StyledCell("Value", styleId)], Token);
         await spreadsheet.FinishAsync(Token);
 
@@ -63,7 +81,9 @@ public class SpreadsheetStyledRowTests
         SpreadsheetAssert.Valid(stream);
         using var zip = await ZipArchive.CreateAsync(stream, Token);
         using var stylesXml = await zip.GetStylesXmlStreamAsync(Token);
-        await VerifyXml(stylesXml);
+        var verifySettings = new VerifySettings();
+        verifySettings.IgnoreParametersForVerified();
+        await VerifyXml(stylesXml, verifySettings);
     }
 
     [Theory, CombinatorialData]
@@ -976,6 +996,40 @@ public class SpreadsheetStyledRowTests
 
         Assert.Equal(BorderStyle.None, border.DiagonalStyle);
         Assert.Equal(Color.Black, border.DiagonalColor);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddRow_AlternativeBorderInitialization()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        var style = new Style();
+        style.Border.Diagonal.BorderStyle = BorderStyle.Hair;
+        style.Border.Diagonal.Type = DiagonalBorderType.DiagonalUp;
+        style.Border.Left.BorderStyle = BorderStyle.Hair;
+        style.Border.Right.BorderStyle = BorderStyle.Hair;
+        style.Border.Top.BorderStyle = BorderStyle.Hair;
+        style.Border.Bottom.BorderStyle = BorderStyle.Hair;
+
+        var styleId = spreadsheet.AddStyle(style);
+        var styledCell = new StyledCell("Value", styleId);
+
+        // Act
+        await spreadsheet.AddRowAsync([styledCell], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualBorder = sheet["A1"].Style.Border;
+        Assert.Equal(BorderStyle.Hair, actualBorder.DiagonalStyle);
+        Assert.Equal(BorderStyle.Hair, actualBorder.LeftStyle);
+        Assert.Equal(BorderStyle.Hair, actualBorder.RightStyle);
+        Assert.Equal(BorderStyle.Hair, actualBorder.TopStyle);
+        Assert.Equal(BorderStyle.Hair, actualBorder.BottomStyle);
     }
 
     [Theory, CombinatorialData]
