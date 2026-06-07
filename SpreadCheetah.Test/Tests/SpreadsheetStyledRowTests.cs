@@ -1009,6 +1009,7 @@ public class SpreadsheetStyledRowTests
 
         var style = new Style();
         style.Border.Diagonal.BorderStyle = BorderStyle.Hair;
+        style.Border.Diagonal.Type = DiagonalBorderType.DiagonalUp;
         style.Border.Left.BorderStyle = BorderStyle.Hair;
         style.Border.Right.BorderStyle = BorderStyle.Hair;
         style.Border.Top.BorderStyle = BorderStyle.Hair;
