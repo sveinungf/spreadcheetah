@@ -608,7 +608,7 @@ public class SpreadsheetImageTests
     {
         // Arrange
         using var pngStream = EmbeddedResources.GetStream("green-266x183.png");
-        using var outputStream = File.Create("test.xlsx");
+        using var outputStream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(outputStream, cancellationToken: Token);
         var embeddedImage = await spreadsheet.EmbedImageAsync(pngStream, Token);
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
