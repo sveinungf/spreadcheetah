@@ -1,17 +1,18 @@
+using SpreadCheetah.Styling;
+
 namespace SpreadCheetah.ConditionalFormatting;
 
-// Implementation note: The values of the enum members should match the values for the Underline enum.
 /// <summary>
 /// Values that specifies the type of underline used for conditional format fonts.
 /// </summary>
 public enum ConditionalFormatUnderline
 {
     /// <summary>No underline.</summary>
-    None = 0,
+    None = Underline.None,
 
     /// <summary>Single-line underlining.</summary>
-    Single = 1,
+    Single = Underline.Single,
 
     /// <summary>Double-line underlining.</summary>
-    Double = 3
+    Double = Underline.Double
 }

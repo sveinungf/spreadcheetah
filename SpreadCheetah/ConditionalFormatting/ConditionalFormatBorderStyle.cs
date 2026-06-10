@@ -1,29 +1,30 @@
+using SpreadCheetah.Styling;
+
 namespace SpreadCheetah.ConditionalFormatting;
 
-// Implementation note: The values of the enum members should match the values for the BorderStyle enum.
 /// <summary>
 /// Values that specifies the style of borders used in conditional formatting rules.
 /// </summary>
 public enum ConditionalFormatBorderStyle
 {
     /// <summary>No border.</summary>
-    None,
+    None = BorderStyle.None,
 
     /// <summary>Thin solid line.</summary>
-    Thin = 1,
+    Thin = BorderStyle.Thin,
 
     /// <summary>Dashed line.</summary>
-    Dashed = 3,
+    Dashed = BorderStyle.Dashed,
 
     /// <summary>Dotted line.</summary>
-    Dotted = 4,
+    Dotted = BorderStyle.Dotted,
 
     /// <summary>Hairline.</summary>
-    Hair = 7,
+    Hair = BorderStyle.Hair,
 
     /// <summary>Dash-dot line.</summary>
-    DashDot = 9,
+    DashDot = BorderStyle.DashDot,
 
     /// <summary>Dash-dot-dot line.</summary>
-    DashDotDot = 11
+    DashDotDot = BorderStyle.DashDotDot
 }
