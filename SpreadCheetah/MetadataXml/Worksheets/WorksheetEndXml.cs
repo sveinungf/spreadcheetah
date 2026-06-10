@@ -44,6 +44,7 @@ file struct WorksheetEndXmlWriter(
 {
     private readonly int _tableCount = worksheet.Tables?.Count ?? 0;
     private ConditionalFormattingXml? _conditionalFormattingXmlWriter;
+    private ConditionalFormatPriorityCounter? _conditionalFormatPriorityCounter;
     private DataValidationXml? _validationXmlWriter;
     private Element _next;
     private int _nextIndex;
@@ -120,7 +121,8 @@ file struct WorksheetEndXmlWriter(
         {
             var (reference, rules) = span[_nextIndex];
 
-            var writer = _conditionalFormattingXmlWriter ?? new ConditionalFormattingXml(reference, rules, buffer);
+            var priorityCounter = _conditionalFormatPriorityCounter ??= new();
+            var writer = _conditionalFormattingXmlWriter ?? new ConditionalFormattingXml(reference, rules, priorityCounter, buffer);
             if (!writer.TryWrite())
             {
                 _conditionalFormattingXmlWriter = writer;
