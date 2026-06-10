@@ -121,6 +121,38 @@ public class SpreadsheetConditionalFormattingTests
     }
 
     [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_MultipleUniqueValuesRulesForSingleCellHasExpectedSheetXml()
+    {
+        // Arrange
+        const string cellReference = "B2";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var uniqueValues = ConditionalFormatRule.UniqueValues();
+
+        List<UniqueValuesFormatRule> rules =
+        [
+            uniqueValues.WithStyle(new ConditionalFormatStyle { Fill = { Color = Color.Red } }),
+            uniqueValues.WithStyle(new ConditionalFormatStyle { Font = { Bold = true } }),
+            uniqueValues.WithStyle(new ConditionalFormatStyle { Format = "0.00" })
+        ];
+
+        // Act
+        foreach (var rule in rules)
+        {
+            spreadsheet.AddConditionalFormatRule(cellReference, rule);
+        }
+
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var sheet1Xml = await zip.GetSheet1XmlStreamAsync(Token);
+        await VerifyXml(sheet1Xml);
+    }
+
+    [Fact]
     public async Task Spreadsheet_ConditionalFormatting_TooManyUniqueValuesRules()
     {
         // Arrange

@@ -1,0 +1,8 @@
+﻿<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <sheetData></sheetData>
+  <conditionalFormatting sqref="B2">
+    <cfRule type="uniqueValues" dxfId="0" priority="1" />
+    <cfRule type="uniqueValues" dxfId="1" priority="2" />
+    <cfRule type="uniqueValues" dxfId="2" priority="3" />
+  </conditionalFormatting>
+</worksheet>
