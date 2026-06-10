@@ -13,6 +13,7 @@ public sealed class UniqueValuesFormatRuleBuilder
     /// <summary>
     /// Sets the style that should be applied to cells with unique values.
     /// </summary>
+    /// <returns>The conditional format rule.</returns>
     public UniqueValuesFormatRule WithStyle(ConditionalFormatStyle style)
     {
         ArgumentNullException.ThrowIfNull(style);
