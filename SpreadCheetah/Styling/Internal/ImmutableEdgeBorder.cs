@@ -16,10 +16,10 @@ internal readonly record struct ImmutableEdgeBorder
         Color: null
     };
 
-    public static ImmutableEdgeBorder From(EdgeBorder border) => new()
+    public static ImmutableEdgeBorder From(EdgeBorder? border) => new()
     {
-        BorderStyle = border.BorderStyle,
-        Color = border.Color
+        BorderStyle = border?.BorderStyle ?? BorderStyle.None,
+        Color = border?.Color
     };
 
     public static ImmutableEdgeBorder? From(ConditionalFormatEdgeBorder? border)
