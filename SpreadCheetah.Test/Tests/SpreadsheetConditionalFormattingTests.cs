@@ -1,3 +1,4 @@
+using Polyfills;
 using SpreadCheetah.ConditionalFormatting;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
@@ -6,7 +7,6 @@ using SpreadCheetah.Test.Helpers;
 using System.Drawing;
 using System.IO.Compression;
 using SpreadsheetAssert = SpreadCheetah.TestHelpers.SpreadsheetAssert;
-using Polyfills;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -365,6 +365,33 @@ public class SpreadsheetConditionalFormattingTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         var actualRule = Assert.Single(sheet.ConditionalFormatRules);
         Assert.Equal((Underline)underline, actualRule.Style.Font.Underline);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_ConditionalFormatting_MultipleRulesWithFontUnderlineStyle(ConditionalFormatUnderline underline)
+    {
+        // Arrange
+        const int count = 100;
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        var style = new ConditionalFormatStyle { Font = { Underline = underline } };
+
+        // Act
+        var rule = ConditionalFormatRule.UniqueValues().WithStyle(style);
+        for (var i = 0; i < count; i++)
+        {
+            spreadsheet.AddConditionalFormatRule($"A{i + 1}:B{i + 1}", rule);
+        }
+
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var expected = (Underline)underline;
+        Assert.All(sheet.ConditionalFormatRules, x => Assert.Equal(expected, x.Style.Font.Underline));
     }
 
     [Theory, CombinatorialData]
