@@ -2,6 +2,9 @@ using SpreadCheetah.Helpers;
 
 namespace SpreadCheetah.ConditionalFormatting;
 
+/// <summary>
+/// Represents a conditional format style for one or more worksheet cells.
+/// </summary>
 public sealed record ConditionalFormatStyle
 {
     /// <summary>Border for the cell.</summary>

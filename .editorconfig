@@ -156,7 +156,11 @@ dotnet_diagnostic.IDE0301.severity = warning
 # IDE0305: Use collection expression for fluent
 dotnet_diagnostic.IDE0305.severity = warning
 
-[Underline.cs]
+[UniqueValuesFormatRuleBuilder.cs]
+# CA1822: Mark members as static
+dotnet_diagnostic.CA1822.severity = none
+
+[{ConditionalFormatUnderline.cs,Underline.cs}]
 # CA1720: Identifiers should not contain type names
 dotnet_diagnostic.CA1720.severity = none
 

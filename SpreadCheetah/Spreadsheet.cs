@@ -568,6 +568,17 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return styleId;
     }
 
+    /// <summary>
+    /// Adds a conditional format rule to a cell or a range of cells. The reference must be in the A1 reference style. Some examples:
+    /// <list type="bullet">
+    ///   <item><term><c>A1</c></term><description>References the top left cell.</description></item>
+    ///   <item><term><c>C4</c></term><description>References the cell in column C row 4.</description></item>
+    ///   <item><term><c>A1:E5</c></term><description>References the range from cell A1 to E5.</description></item>
+    ///   <item><term><c>A1:A1048576</c></term><description>References all cells in column A.</description></item>
+    ///   <item><term><c>A5:XFD5</c></term><description>References all cells in row 5.</description></item>
+    /// </list>
+    /// Note that there can be max 16384 conditional format rules in a worksheet. This method throws a <see cref="SpreadCheetahException"/> if attempting to add more than that.
+    /// </summary>
     public void AddConditionalFormatRule(string reference, ConditionalFormatRule rule)
     {
         ArgumentNullException.ThrowIfNull(reference);
