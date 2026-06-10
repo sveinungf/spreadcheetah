@@ -15,11 +15,11 @@ internal readonly record struct ImmutableBorder
 
     public bool IsDefault => this is
     {
-        Left.IsDefault: true,
-        Right.IsDefault: true,
-        Top.IsDefault: true,
-        Bottom.IsDefault: true,
-        Diagonal.IsDefault: true,
+        Left: null or { IsDefault: true },
+        Right: null or { IsDefault: true },
+        Top: null or { IsDefault: true },
+        Bottom: null or { IsDefault: true },
+        Diagonal: null or { IsDefault: true },
         IsConditionalFormatBorder: false
     };
 

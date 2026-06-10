@@ -542,10 +542,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return styleManager.AddStyleIfNotExists(style);
     }
 
-    [return: NotNullIfNotNull(nameof(style))]
     private int? AddStyleInternal(ConditionalFormatStyle? style)
     {
-        if (style is null || style.IsDefault)
+        if (style is null or { IsDefault: true })
             return null;
 
         var styleManager = GetOrCreateStyleManager();
