@@ -1,5 +1,6 @@
 namespace SpreadCheetah.ConditionalFormatting;
 
+// Implementation note: The values of the enum members should match the values for the BorderStyle enum.
 /// <summary>
 /// Values that specifies the style of borders used in conditional formatting rules.
 /// </summary>

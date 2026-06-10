@@ -1,5 +1,6 @@
 namespace SpreadCheetah.ConditionalFormatting;
 
+// Implementation note: The values of the enum members should match the values for the Underline enum.
 /// <summary>
 /// Values that specifies the type of underline used for conditional format fonts.
 /// </summary>
