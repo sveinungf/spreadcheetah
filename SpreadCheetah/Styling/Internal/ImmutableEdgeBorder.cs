@@ -1,3 +1,4 @@
+using SpreadCheetah.ConditionalFormatting;
 using System.Drawing;
 using System.Runtime.InteropServices;
 
@@ -20,4 +21,16 @@ internal readonly record struct ImmutableEdgeBorder
         BorderStyle = border?.BorderStyle ?? BorderStyle.None,
         Color = border?.Color
     };
+
+    public static ImmutableEdgeBorder? From(ConditionalFormatEdgeBorder? border)
+    {
+        if (border is null or { IsDefault: true })
+            return null;
+
+        return new()
+        {
+            BorderStyle = (BorderStyle)border.BorderStyle,
+            Color = border.Color
+        };
+    }
 }

@@ -15,5 +15,6 @@ public interface IWorksheet : IDisposable
     IReadOnlyList<IWorksheetColumn> Columns { get; }
     IWorksheetRow Row(int rowNumber);
 
+    IReadOnlyList<IConditionalFormatRule> ConditionalFormatRules { get; }
     IReadOnlyList<IWorksheetTable> Tables { get; }
 }

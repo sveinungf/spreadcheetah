@@ -1,5 +1,6 @@
 using SpreadCheetah.CellReferences;
 using SpreadCheetah.CellWriters;
+using SpreadCheetah.ConditionalFormatting.Internal;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images.Internal;
 using SpreadCheetah.MetadataXml.Worksheets;
@@ -32,6 +33,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public List<WorksheetDimensionRun>? RowHeightRuns { get; private set; }
     public List<WorksheetTableInfo>? Tables { get; private set; }
     public List<WorksheetImage>? Images { get; private set; }
+    public ConditionalFormatRulesManager? ConditionalFormatRulesManager { get; private set; }
     public double? DefaultColumnWidth { get; }
     public string? AutoFilterRange { get; }
 
@@ -191,15 +193,21 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         return writer.AddRowAsync(cells, _state.NextRowIndex - 1, options, rowStyleId, _stream, ct);
     }
 
+    public bool TryAddConditionalFormatting(SingleCellOrCellRangeReference reference, ImmutableConditionalFormatRule rule)
+    {
+        var manager = ConditionalFormatRulesManager ??= new();
+        return manager.TryAddRule(reference, rule);
+    }
+
     public bool TryAddDataValidation(string reference, DataValidation validation)
     {
-        Validations ??= [];
+        var validations = Validations ??= [];
 
-        if (Validations.Count >= SpreadsheetConstants.MaxNumberOfDataValidations)
+        if (validations.Count >= SpreadsheetConstants.MaxNumberOfDataValidations)
             return false;
 
         var cellReference = SingleCellOrCellRangeReference.Create(reference);
-        Validations[cellReference] = validation;
+        validations[cellReference] = validation;
         return true;
     }
 

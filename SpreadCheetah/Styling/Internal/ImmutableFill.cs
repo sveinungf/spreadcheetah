@@ -1,3 +1,4 @@
+using SpreadCheetah.ConditionalFormatting;
 using System.Drawing;
 
 namespace SpreadCheetah.Styling.Internal;
@@ -9,4 +10,5 @@ internal readonly record struct ImmutableFill
     public bool IsDefault => Color is null;
 
     public static ImmutableFill From(Fill fill) => new() { Color = fill.Color };
+    public static ImmutableFill From(ConditionalFormatFill? fill) => new() { Color = fill?.Color };
 }

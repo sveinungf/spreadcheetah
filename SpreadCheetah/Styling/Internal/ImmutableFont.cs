@@ -1,3 +1,4 @@
+using SpreadCheetah.ConditionalFormatting;
 using System.Drawing;
 
 namespace SpreadCheetah.Styling.Internal;
@@ -21,6 +22,17 @@ internal readonly record struct ImmutableFont
         Size = font.ActualSize ?? defaultFont?.Size ?? DefaultFont.DefaultSize,
         Strikethrough = font.Strikethrough,
         Underline = font.Underline
+    };
+
+    public static ImmutableFont From(ConditionalFormatFont? font) => new()
+    {
+        Bold = font?.Bold ?? false,
+        Color = font?.Color,
+        Italic = font?.Italic ?? false,
+        Name = null,
+        Size = null,
+        Strikethrough = font?.Strikethrough ?? false,
+        Underline = (Underline)(font?.Underline ?? ConditionalFormatUnderline.None)
     };
 
     public static ImmutableFont From(DefaultFont? defaultFont) => new()

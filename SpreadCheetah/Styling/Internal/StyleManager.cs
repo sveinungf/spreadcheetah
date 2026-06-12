@@ -1,3 +1,4 @@
+using SpreadCheetah.ConditionalFormatting;
 using SpreadCheetah.Helpers;
 using System.Diagnostics.CodeAnalysis;
 
@@ -37,6 +38,7 @@ internal sealed class StyleManager
     public OrderedSet<ImmutableFont>? UniqueFonts { get; private set; }
     public OrderedSet<string>? UniqueCustomFormats { get; private set; }
 
+    public List<AddedDifferentialStyle>? DifferentialStyles { get; private set; }
     public Dictionary<string, (StyleId StyleId, int NamedStyleIndex)>? NamedStyles { get; private set; }
 
     public StyleManager(NumberFormat? defaultDateTimeFormat, DefaultFont? defaultFont)
@@ -89,6 +91,21 @@ internal sealed class StyleManager
         AddStyle(addedStyle, newStyleId);
         AddStyle(dateTimeStyle, new StyleId(dateTimeId, dateTimeId));
         return newStyleId;
+    }
+
+    public int AddStyle(ConditionalFormatStyle style)
+    {
+        var differentialStyle = new AddedDifferentialStyle
+        {
+            Border = ImmutableBorder.From(style.GetBorderOrDefault()),
+            Fill = ImmutableFill.From(style.GetFillOrDefault()),
+            Font = ImmutableFont.From(style.GetFontOrDefault()),
+            Format = style.Format
+        };
+
+        var differentialStyles = DifferentialStyles ??= [];
+        differentialStyles.Add(differentialStyle);
+        return differentialStyles.Count - 1;
     }
 
     private AddedStyle MapToAddedStyle(Style style, string? name, StyleNameVisibility? visibility)

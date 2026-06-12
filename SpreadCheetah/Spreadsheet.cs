@@ -1,4 +1,5 @@
 using SpreadCheetah.CellReferences;
+using SpreadCheetah.ConditionalFormatting;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images;
 using SpreadCheetah.Images.Internal;
@@ -541,6 +542,15 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return styleManager.AddStyleIfNotExists(style);
     }
 
+    private int? AddStyleInternal(ConditionalFormatStyle? style)
+    {
+        if (style is null or { IsDefault: true })
+            return null;
+
+        var styleManager = GetOrCreateStyleManager();
+        return styleManager.AddStyle(style);
+    }
+
     /// <summary>
     /// Get the <see cref="StyleId"/> from a named style.
     /// The named style must have previously been added to the spreadsheet with <see cref="AddStyle(Style, string, StyleNameVisibility?)"/>.
@@ -555,6 +565,29 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             ThrowHelper.StyleNameNotFound(name);
 
         return styleId;
+    }
+
+    /// <summary>
+    /// Adds a conditional format rule to a cell or a range of cells. The reference must be in the A1 reference style. Some examples:
+    /// <list type="bullet">
+    ///   <item><term><c>A1</c></term><description>References the top left cell.</description></item>
+    ///   <item><term><c>C4</c></term><description>References the cell in column C row 4.</description></item>
+    ///   <item><term><c>A1:E5</c></term><description>References the range from cell A1 to E5.</description></item>
+    ///   <item><term><c>A1:A1048576</c></term><description>References all cells in column A.</description></item>
+    ///   <item><term><c>A5:XFD5</c></term><description>References all cells in row 5.</description></item>
+    /// </list>
+    /// Note that there can be max 16384 conditional format rules in a worksheet. This method throws a <see cref="SpreadCheetahException"/> if attempting to add more than that.
+    /// </summary>
+    public void AddConditionalFormatRule(string reference, ConditionalFormatRule rule)
+    {
+        ArgumentNullException.ThrowIfNull(reference);
+        ArgumentNullException.ThrowIfNull(rule);
+        var cellReference = SingleCellOrCellRangeReference.Create(reference);
+        var styleDxfId = AddStyleInternal(rule.Style);
+        var immutableRule = rule.ToImmutable(styleDxfId);
+
+        if (!Worksheet.TryAddConditionalFormatting(cellReference, immutableRule))
+            ThrowHelper.MaxNumberOfConditionalFormatRules();
     }
 
     /// <summary>

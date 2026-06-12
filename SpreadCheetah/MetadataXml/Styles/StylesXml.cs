@@ -32,9 +32,7 @@ file struct StylesXmlWriter(
         """<?xml version="1.0" encoding="utf-8"?>"""u8 +
         """<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">"""u8;
 
-    private static ReadOnlySpan<byte> Footer =>
-        """<dxfs count="0"/>"""u8 +
-        """</styleSheet>"""u8;
+    private static ReadOnlySpan<byte> Footer => """</styleSheet>"""u8;
 
     private NumberFormatsXmlPart _numberFormatsXml = new(styleManager.UniqueCustomFormats?.GetList(), numberFormatCounter, buffer);
     private BordersXmlPart _bordersXml = new(styleManager.UniqueBorders?.GetList(), buffer);
@@ -42,6 +40,7 @@ file struct StylesXmlWriter(
     private FontXmlPart? _fontXml;
     private CellStylesXmlPart _cellStylesXml = new(namedStyles, buffer);
     private StyleXfXml? _currentXfXmlWriter;
+    private StyleDxfXml? _currentDxfXmlWriter;
     private Element _next;
     private int _nextIndex;
 
@@ -65,6 +64,9 @@ file struct StylesXmlWriter(
             Element.CellXfsEntries => TryWriteCellXfsEntries(),
             Element.CellXfsEnd => buffer.TryWrite("</cellXfs>"u8),
             Element.CellStyles => _cellStylesXml.TryWrite(),
+            Element.DxfsStart => TryWriteDxfsStart(),
+            Element.DxfsEntries => TryWriteDxfsEntries(),
+            Element.DxfsEnd => TryWriteDxfsEnd(),
             _ => buffer.TryWrite(Footer),
         };
 
@@ -201,6 +203,47 @@ file struct StylesXmlWriter(
         return value.NamedStyleIndex;
     }
 
+    private readonly bool TryWriteDxfsStart()
+    {
+        var count = styleManager.DifferentialStyles?.Count ?? 0;
+        return count == 0
+            ? buffer.TryWrite("""<dxfs count="0"/>"""u8)
+            : buffer.TryWrite($"{"<dxfs count=\""u8}{count}{"\">"u8}");
+    }
+
+    private bool TryWriteDxfsEntries()
+    {
+        if (styleManager.DifferentialStyles is not { } dxfsList)
+            return true;
+
+        for (; _nextIndex < dxfsList.Count; ++_nextIndex)
+        {
+            if (_currentDxfXmlWriter is not { } writer)
+            {
+                var dxfsEntry = dxfsList[_nextIndex];
+                writer = new StyleDxfXml(dxfsEntry, numberFormatCounter, buffer);
+            }
+
+            if (!writer.TryWrite())
+            {
+                _currentDxfXmlWriter = writer;
+                return false;
+            }
+
+            _currentDxfXmlWriter = null;
+        }
+
+        _nextIndex = 0;
+        return true;
+    }
+
+    private readonly bool TryWriteDxfsEnd()
+    {
+        return styleManager.DifferentialStyles is not { } dxfsList
+            || dxfsList.Count == 0
+            || buffer.TryWrite("</dxfs>"u8);
+    }
+
     private enum Element
     {
         Header,
@@ -216,6 +259,9 @@ file struct StylesXmlWriter(
         CellXfsEntries,
         CellXfsEnd,
         CellStyles,
+        DxfsStart,
+        DxfsEntries,
+        DxfsEnd,
         Footer,
         Done
     }

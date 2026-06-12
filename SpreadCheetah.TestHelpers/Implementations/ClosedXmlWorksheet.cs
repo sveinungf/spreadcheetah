@@ -5,7 +5,10 @@ using OpenXmlWorksheet = DocumentFormat.OpenXml.Spreadsheet.Worksheet;
 
 namespace SpreadCheetah.TestHelpers.Implementations;
 
-internal sealed class ClosedXmlWorksheet(XLWorkbook workbook, IXLWorksheet sheet, OpenXmlWorksheet openXmlWorksheet)
+internal sealed class ClosedXmlWorksheet(
+    XLWorkbook workbook,
+    IXLWorksheet sheet,
+    OpenXmlWorksheet openXmlWorksheet)
     : IWorksheet
 {
     public string Name => sheet.Name;
@@ -56,6 +59,9 @@ internal sealed class ClosedXmlWorksheet(XLWorkbook workbook, IXLWorksheet sheet
         var row = sheet.Row(rowNumber);
         return new ClosedXmlWorksheetRow(row);
     }
+
+    public IReadOnlyList<IConditionalFormatRule> ConditionalFormatRules => field ??=
+        [.. sheet.ConditionalFormats.Select(x => new ClosedXmlConditionalFormatRule(x))];
 
     public IReadOnlyList<IWorksheetTable> Tables => field ??=
         [.. sheet.Tables.Select(x => new ClosedXmlWorksheetTable(x))];
