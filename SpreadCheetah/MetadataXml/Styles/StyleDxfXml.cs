@@ -61,7 +61,8 @@ internal struct StyleDxfXml(
         if (isDefaultFont)
             return true;
 
-        Debug.Assert(style.Font is { Name: null, Size: null });
+        Debug.Assert(style.Font.Name is null);
+        Debug.Assert(style.Font.Size is null);
 
         var xml = _fontXmlWriter ?? new FontXmlPart(buffer, style.Font);
         if (!xml.TryWrite())

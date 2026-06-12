@@ -19,8 +19,7 @@ internal readonly record struct ImmutableBorder
         Right: null or { IsDefault: true },
         Top: null or { IsDefault: true },
         Bottom: null or { IsDefault: true },
-        Diagonal: null or { IsDefault: true },
-        IsConditionalFormatBorder: false
+        Diagonal: null or { IsDefault: true }
     };
 
     public static ImmutableBorder From(Border border) => new()
