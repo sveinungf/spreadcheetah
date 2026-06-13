@@ -58,6 +58,136 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         return isSuccess;
     }
 
+    public bool TryWrite2(
+        int startingStep,
+        int startingIndex,
+        [InterpolatedStringHandlerArgument("", nameof(startingStep), nameof(startingIndex))] ref ResumableTryWriteInterpolatedStringHandler handler,
+        out int step,
+        out int index)
+    {
+        _ = startingStep;
+        _ = startingIndex;
+        step = handler._step - 1;
+        index = handler._index;
+        var (pos, isSuccess) = handler;
+
+        Advance(pos);
+        return isSuccess;
+    }
+
+    [InterpolatedStringHandler]
+#pragma warning disable CS9113 // Parameter is unread.
+    public ref struct ResumableTryWriteInterpolatedStringHandler(
+        int literalLength,
+        int formattedCount,
+        SpreadsheetBuffer buffer,
+        int startingStep,
+        int startingIndex)
+#pragma warning restore CS9113 // Parameter is unread.
+    {
+        internal int _step;
+        internal int _index = startingIndex;
+        internal int _pos;
+        internal bool _isSuccess = true;
+
+        private readonly Span<byte> GetSpan() => buffer.GetSpan(_pos);
+
+        [ExcludeFromCodeCoverage]
+        public readonly bool AppendLiteral(string value)
+        {
+            _ = _pos;
+            _ = value;
+            throw new InvalidOperationException("Use ReadOnlySpan<byte> instead of string literals");
+        }
+
+        public readonly void Deconstruct(out int pos, out bool isSuccess)
+        {
+            pos = _pos;
+            isSuccess = _isSuccess;
+        }
+
+        public bool AppendFormatted(int value)
+        {
+            if (_step++ < startingStep)
+                return true;
+
+#if NET8_0_OR_GREATER
+            if (value.TryFormat(GetSpan(), out var bytesWritten, provider: NumberFormatInfo.InvariantInfo))
+#else
+            if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
+#endif
+            {
+                _pos += bytesWritten;
+                return true;
+            }
+
+            return Fail();
+        }
+
+        [ExcludeFromCodeCoverage]
+        public bool AppendFormatted<T>(T value)
+        {
+            Debug.Fail("Create non-generic overloads to avoid allocations when running on .NET Framework");
+
+            var s = value is IFormattable f
+                ? f.ToString(null, CultureInfo.InvariantCulture)
+                : value?.ToString();
+
+            return AppendFormatted(s);
+        }
+
+        public bool AppendFormatted(string? value) => AppendFormatted(value.AsSpan());
+
+        public bool AppendFormatted(scoped ReadOnlySpan<char> value)
+        {
+            if (_step++ < startingStep)
+                return true;
+
+            value = value.Slice(_index);
+
+            if (value.IsEmpty)
+                return true;
+
+            var destination = GetSpan();
+            if (destination.Length <= value.Length)
+                return Fail();
+
+            if (XmlUtility.TryXmlEncodeToUtf8(value, destination, out var charsRead, out var bytesWritten))
+            {
+                _pos += bytesWritten;
+                return true;
+            }
+
+            if (charsRead > 0)
+            {
+                _pos += bytesWritten;
+                _index += charsRead;
+            }
+
+            return Fail();
+        }
+
+        public bool AppendFormatted(scoped ReadOnlySpan<byte> utf8Value)
+        {
+            if (_step++ < startingStep)
+                return true;
+
+            if (utf8Value.TryCopyTo(GetSpan()))
+            {
+                _pos += utf8Value.Length;
+                return true;
+            }
+
+            return Fail();
+        }
+
+        private bool Fail()
+        {
+            _isSuccess = false;
+            return false;
+        }
+    }
+
     [InterpolatedStringHandler]
 #pragma warning disable CS9113 // Parameter is unread.
     public ref struct TryWriteInterpolatedStringHandler(int literalLength, int formattedCount, SpreadsheetBuffer buffer)
