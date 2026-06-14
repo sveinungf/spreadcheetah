@@ -59,16 +59,13 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
     }
 
     public bool TryWrite2(
-        int startingStep,
-        int startingIndex,
-        [InterpolatedStringHandlerArgument("", nameof(startingStep), nameof(startingIndex))] ref ResumableTryWriteInterpolatedStringHandler handler,
-        out int step,
-        out int index)
+#pragma warning disable RCS1163, IDE0060 // Unused parameter
+        BufferWriteProgress start,
+#pragma warning restore RCS1163, IDE0060 // Unused parameter
+        out BufferWriteProgress written,
+        [InterpolatedStringHandlerArgument("", nameof(start))] ref ResumableTryWriteInterpolatedStringHandler handler)
     {
-        _ = startingStep;
-        _ = startingIndex;
-        step = handler._step - 1;
-        index = handler._index;
+        written = handler.GetProgress();
         var (pos, isSuccess) = handler;
 
         Advance(pos);
@@ -81,14 +78,20 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         int literalLength,
         int formattedCount,
         SpreadsheetBuffer buffer,
-        int startingStep,
-        int startingIndex)
+        BufferWriteProgress start)
 #pragma warning restore CS9113 // Parameter is unread.
     {
-        internal int _step;
-        internal int _index = startingIndex;
-        internal int _pos;
-        internal bool _isSuccess = true;
+        private readonly int _startingStep = start.Step;
+        private int _step;
+        private int _index = start.Index;
+        private int _pos;
+        private bool _isSuccess = true;
+
+        public readonly BufferWriteProgress GetProgress() => new()
+        {
+            Step = _step - 1,
+            Index = _index
+        };
 
         private readonly Span<byte> GetSpan() => buffer.GetSpan(_pos);
 
@@ -108,7 +111,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(int value)
         {
-            if (_step++ < startingStep)
+            if (_step++ < _startingStep)
                 return true;
 
 #if NET8_0_OR_GREATER
@@ -140,19 +143,19 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(scoped ReadOnlySpan<char> value)
         {
-            if (_step++ < startingStep)
+            if (_step++ < _startingStep)
                 return true;
 
-            value = value.Slice(_index);
+            var remaining = value.Slice(_index);
 
-            if (value.IsEmpty)
+            if (remaining.IsEmpty)
                 return true;
 
             var destination = GetSpan();
-            if (destination.Length <= value.Length)
+            if (destination.Length <= remaining.Length)
                 return Fail();
 
-            if (XmlUtility.TryXmlEncodeToUtf8(value, destination, out var charsRead, out var bytesWritten))
+            if (XmlUtility.TryXmlEncodeToUtf8(remaining, destination, out var charsRead, out var bytesWritten))
             {
                 _pos += bytesWritten;
                 return true;
@@ -169,7 +172,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(scoped ReadOnlySpan<byte> utf8Value)
         {
-            if (_step++ < startingStep)
+            if (_step++ < _startingStep)
                 return true;
 
             if (utf8Value.TryCopyTo(GetSpan()))
