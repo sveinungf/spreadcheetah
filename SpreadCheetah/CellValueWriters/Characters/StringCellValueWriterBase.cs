@@ -7,28 +7,25 @@ namespace SpreadCheetah.CellValueWriters.Characters;
 
 internal abstract class StringCellValueWriterBase : CellValueWriter
 {
-    private static ReadOnlySpan<byte> BeginStringCell => "<c t=\"inlineStr\"><is><t>"u8;
     private static ReadOnlySpan<byte> BeginStyledStringCell => "<c t=\"inlineStr\" s=\""u8;
     private static ReadOnlySpan<byte> BeginStringFormulaCell => "<c t=\"str\"><f>"u8;
     private static ReadOnlySpan<byte> BeginStyledStringFormulaCell => "<c t=\"str\" s=\""u8;
-    private static ReadOnlySpan<byte> EndReferenceBeginString => "\" t=\"inlineStr\"><is><t>"u8;
     private static ReadOnlySpan<byte> EndReferenceBeginStyle => "\" t=\"inlineStr\" s=\""u8;
     private static ReadOnlySpan<byte> EndReferenceBeginFormula => "\" t=\"str\"><f>"u8;
     private static ReadOnlySpan<byte> EndReferenceBeginFormulaCellStyle => "\" t=\"str\" s=\""u8;
-    private static ReadOnlySpan<byte> EndStyleBeginInlineString => "\"><is><t>"u8;
     private static ReadOnlySpan<byte> EndStringCell => "</t></is></c>"u8;
 
     protected abstract ReadOnlySpan<char> GetSpan(in CellValue cell);
 
     public override bool TryWriteCell(in DataCell cell, CellWriterState state)
     {
-        return state.Buffer.TryWrite($"{BeginStringCell}{GetSpan(cell.Value)}{EndStringCell}");
+        return state.Buffer.TryWrite($"{state.Buffer.InlineXmlTags.BeginStringCell}{GetSpan(cell.Value)}{EndStringCell}");
     }
 
     public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
     {
         return buffer.TryWrite(
-            $"{BeginStyledStringCell}{styleId.Id}{EndStyleBeginInlineString}" +
+            $"{BeginStyledStringCell}{styleId.Id}{buffer.InlineXmlTags.EndStyleBeginInlineString}" +
             $"{GetSpan(cell.Value)}" +
             $"{EndStringCell}");
     }
@@ -55,13 +52,13 @@ internal abstract class StringCellValueWriterBase : CellValueWriter
 
     public override bool TryWriteCellWithReference(in DataCell cell, CellWriterState state)
     {
-        return state.Buffer.TryWrite($"{state}{EndReferenceBeginString}{GetSpan(cell.Value)}{EndStringCell}");
+        return state.Buffer.TryWrite($"{state}{state.Buffer.InlineXmlTags.EndReferenceBeginString}{GetSpan(cell.Value)}{EndStringCell}");
     }
 
     public override bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state)
     {
         return state.Buffer.TryWrite(
-            $"{state}{EndReferenceBeginStyle}{styleId.Id}{EndStyleBeginInlineString}" +
+            $"{state}{EndReferenceBeginStyle}{styleId.Id}{state.Buffer.InlineXmlTags.EndStyleBeginInlineString}" +
             $"{GetSpan(cell.Value)}" +
             $"{EndStringCell}");
     }
@@ -115,15 +112,15 @@ internal abstract class StringCellValueWriterBase : CellValueWriter
     public static bool WriteStartElement(StyleId? styleId, SpreadsheetBuffer buffer)
     {
         return styleId is null
-            ? buffer.TryWrite(BeginStringCell)
-            : buffer.TryWrite($"{BeginStyledStringCell}{styleId.Id}{EndStyleBeginInlineString}");
+            ? buffer.TryWrite(buffer.InlineXmlTags.BeginStringCell)
+            : buffer.TryWrite($"{BeginStyledStringCell}{styleId.Id}{buffer.InlineXmlTags.EndStyleBeginInlineString}");
     }
 
     public static bool WriteStartElementWithReference(StyleId? styleId, CellWriterState state)
     {
         return styleId is null
-            ? state.Buffer.TryWrite($"{state}{EndReferenceBeginString}")
-            : state.Buffer.TryWrite($"{state}{EndReferenceBeginStyle}{styleId.Id}{EndStyleBeginInlineString}");
+            ? state.Buffer.TryWrite($"{state}{state.Buffer.InlineXmlTags.EndReferenceBeginString}")
+            : state.Buffer.TryWrite($"{state}{EndReferenceBeginStyle}{styleId.Id}{state.Buffer.InlineXmlTags.EndStyleBeginInlineString}");
     }
 
     public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)

@@ -55,7 +55,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _zipArchiveManager = zipArchiveManager;
 
         var bufferSize = options?.BufferSize ?? SpreadCheetahOptions.DefaultBufferSize;
-        _buffer = new SpreadsheetBuffer(bufferSize);
+        _buffer = new SpreadsheetBuffer(bufferSize, InlineXmlTags.For(options?.PreserveStringWhitespace ?? false));
         _styleManager = CreateStyleManager(options);
         _writeCellReferenceAttributes = options?.WriteCellReferenceAttributes ?? false;
 

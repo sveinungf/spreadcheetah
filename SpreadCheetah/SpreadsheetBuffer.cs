@@ -12,9 +12,11 @@ using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah;
 
-internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
+internal sealed class SpreadsheetBuffer(int bufferSize, InlineXmlTags? inlineXmlTags = null) : IDisposable
 {
     private readonly byte[] _buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+
+    public InlineXmlTags InlineXmlTags { get; } = inlineXmlTags ?? InlineXmlTags.Default;
 
     public void Dispose() => ArrayPool<byte>.Shared.Return(_buffer, true);
     private Span<byte> GetSpan() => _buffer.AsSpan(Index);

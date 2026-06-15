@@ -388,4 +388,33 @@ public class SpreadsheetNoteTests
 
         Assert.Equal(notes.Select(x => x.NoteText), actualNoteText);
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Spreadsheet_AddNote_PreserveStringWhitespace(bool preserveStringWhitespace)
+    {
+        // Arrange
+        const string noteText = "  Note with surrounding whitespace  ";
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { PreserveStringWhitespace = preserveStringWhitespace };
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+            // Act
+            spreadsheet.AddNote("A1", noteText);
+            await spreadsheet.FinishAsync(Token);
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        var commentsEntry = zip.GetEntry("xl/comments1.xml");
+        Assert.NotNull(commentsEntry);
+        using var commentsStream = await commentsEntry.OpenAsync(Token);
+        using var reader = new StreamReader(commentsStream);
+        var xml = await reader.ReadToEndAsync(Token);
+        Assert.Equal(preserveStringWhitespace, xml.Contains("xml:space=\"preserve\"", StringComparison.Ordinal));
+    }
 }

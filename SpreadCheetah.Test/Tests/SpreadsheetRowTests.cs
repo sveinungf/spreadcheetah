@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Polyfills;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
@@ -143,6 +144,46 @@ public class SpreadsheetRowTests
         await spreadsheet.FinishAsync(Token);
 
         // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(value, sheet["A1"].StringValue);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_PreserveStringWhitespace(
+        CellType type,
+        RowCollectionType rowType,
+        bool preserveStringWhitespace,
+        bool withStyle,
+        bool withCellReference)
+    {
+        // Arrange
+        const string value = "  Surrounded by whitespace  ";
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions
+        {
+            PreserveStringWhitespace = preserveStringWhitespace,
+            WriteCellReferenceAttributes = withCellReference
+        };
+
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+            var styleId = withStyle ? spreadsheet.AddStyle(new Style { Font = { Bold = true } }) : null;
+            var cell = CellFactory.Create(type, value, styleId);
+
+            // Act
+            await spreadsheet.AddRowAsync(cell, rowType);
+            await spreadsheet.FinishAsync(Token);
+        }
+
+        // Assert
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var sheet1Xml = await zip.GetSheet1XmlStreamAsync(Token);
+        using var reader = new StreamReader(sheet1Xml);
+        var xml = await reader.ReadToEndAsync(Token);
+
+        Assert.Equal(preserveStringWhitespace, xml.Contains("xml:space=\"preserve\"", StringComparison.Ordinal));
+
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.Equal(value, sheet["A1"].StringValue);
     }

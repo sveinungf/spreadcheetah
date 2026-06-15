@@ -24,7 +24,6 @@ internal struct CommentsXml : IXmlWriter<CommentsXml>
         """<commentList>"""u8;
 
     private static ReadOnlySpan<byte> CommentStart => "<comment ref=\""u8;
-    private static ReadOnlySpan<byte> CommentAfterRef => "\" "u8 + """authorId="0"><text><r><t>"""u8;
     private static ReadOnlySpan<byte> CommentEnd => "</t></r></text></comment>"u8;
     private static ReadOnlySpan<byte> Footer => "</commentList></comments>"u8;
 
@@ -72,7 +71,7 @@ internal struct CommentsXml : IXmlWriter<CommentsXml>
             if (_currentXmlEncodedNote is null)
             {
                 var reference = new SimpleSingleCellReference(cellRef.Column, cellRef.Row);
-                if (!_buffer.TryWrite($"{CommentStart}{reference}{CommentAfterRef}"))
+                if (!_buffer.TryWrite($"{CommentStart}{reference}{_buffer.InlineXmlTags.CommentAfterRef}"))
                     return false;
 
                 _currentXmlEncodedNote = note;
