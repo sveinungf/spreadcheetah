@@ -16,7 +16,7 @@ internal sealed class CellWriter : ICellWriter<Cell>
         return cell switch
         {
             { Formula: { } formula } => writer.TryWriteCell(formula.FormulaText, cell.DataCell, cell.StyleId, state),
-            { StyleId: not null } => writer.TryWriteCell(cell.DataCell, cell.StyleId, state.Buffer),
+            { StyleId: not null } => writer.TryWriteCell(cell.DataCell, cell.StyleId, state),
             _ => writer.TryWriteCell(cell.DataCell, state)
         };
     }
@@ -27,7 +27,7 @@ internal sealed class CellWriter : ICellWriter<Cell>
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
         return cell.Formula is { } formula
             ? writer.TryWriteCell(formula.FormulaText, cell.DataCell, actualStyleId, state)
-            : writer.TryWriteCell(cell.DataCell, actualStyleId, state.Buffer);
+            : writer.TryWriteCell(cell.DataCell, actualStyleId, state);
     }
 
     public void WriteStartElement(in Cell cell, StyleId? styleId, CellWriterState state)
@@ -43,7 +43,7 @@ internal sealed class CellWriter : ICellWriter<Cell>
         }
 
         Debug.Assert(CellValueWriter.GetWriter(cell.DataCell.Type) is StringCellValueWriterBase);
-        var result = StringCellValueWriterBase.WriteStartElement(actualStyleId, state.Buffer);
+        var result = StringCellValueWriterBase.WriteStartElement(actualStyleId, state);
         Debug.Assert(result);
     }
 

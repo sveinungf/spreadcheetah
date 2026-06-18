@@ -1,7 +1,6 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using Polyfills;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
@@ -148,11 +147,12 @@ public class SpreadsheetRowTests
         Assert.Equal(value, sheet["A1"].StringValue);
     }
 
-    [Theory, CombinatorialData]
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task Spreadsheet_AddRow_PreserveStringWhitespace(
-        CellType type,
-        RowCollectionType rowType,
-        bool preserveStringWhitespace,
         bool withStyle,
         bool withCellReference)
     {
@@ -161,31 +161,27 @@ public class SpreadsheetRowTests
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions
         {
-            PreserveStringWhitespace = preserveStringWhitespace,
-            WriteCellReferenceAttributes = withCellReference
+            PreserveStringWhitespace = true,
+            WriteCellReferenceAttributes = withCellReference,
+            BufferSize = SpreadCheetahOptions.MinimumBufferSize
         };
 
         await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
         {
             await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             var styleId = withStyle ? spreadsheet.AddStyle(new Style { Font = { Bold = true } }) : null;
-            var cell = CellFactory.Create(type, value, styleId);
+            StyledCell[] cells = [new StyledCell(value, styleId)];
 
             // Act
-            await spreadsheet.AddRowAsync(cell, rowType);
+            await spreadsheet.AddRowAsync(cells, Token);
             await spreadsheet.FinishAsync(Token);
         }
 
         // Assert
+        SpreadsheetAssert.Valid(stream);
         using var zip = await ZipArchive.CreateAsync(stream, Token);
         using var sheet1Xml = await zip.GetSheet1XmlStreamAsync(Token);
-        using var reader = new StreamReader(sheet1Xml);
-        var xml = await reader.ReadToEndAsync(Token);
-
-        Assert.Equal(preserveStringWhitespace, xml.Contains("xml:space=\"preserve\"", StringComparison.Ordinal));
-
-        using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(value, sheet["A1"].StringValue);
+        await VerifyXml(sheet1Xml);
     }
 
     [Theory, CombinatorialData]

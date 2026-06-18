@@ -19,13 +19,13 @@ internal abstract class StringCellValueWriterBase : CellValueWriter
 
     public override bool TryWriteCell(in DataCell cell, CellWriterState state)
     {
-        return state.Buffer.TryWrite($"{state.Buffer.InlineXmlTags.BeginStringCell}{GetSpan(cell.Value)}{EndStringCell}");
+        return state.Buffer.TryWrite($"{state.InlineXmlTags.BeginStringCell}{GetSpan(cell.Value)}{EndStringCell}");
     }
 
-    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state)
     {
-        return buffer.TryWrite(
-            $"{BeginStyledStringCell}{styleId.Id}{buffer.InlineXmlTags.EndStyleBeginInlineString}" +
+        return state.Buffer.TryWrite(
+            $"{BeginStyledStringCell}{styleId.Id}{state.InlineXmlTags.EndStyleBeginInlineString}" +
             $"{GetSpan(cell.Value)}" +
             $"{EndStringCell}");
     }
@@ -52,13 +52,13 @@ internal abstract class StringCellValueWriterBase : CellValueWriter
 
     public override bool TryWriteCellWithReference(in DataCell cell, CellWriterState state)
     {
-        return state.Buffer.TryWrite($"{state}{state.Buffer.InlineXmlTags.EndReferenceBeginString}{GetSpan(cell.Value)}{EndStringCell}");
+        return state.Buffer.TryWrite($"{state}{state.InlineXmlTags.EndReferenceBeginString}{GetSpan(cell.Value)}{EndStringCell}");
     }
 
     public override bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state)
     {
         return state.Buffer.TryWrite(
-            $"{state}{EndReferenceBeginStyle}{styleId.Id}{state.Buffer.InlineXmlTags.EndStyleBeginInlineString}" +
+            $"{state}{EndReferenceBeginStyle}{styleId.Id}{state.InlineXmlTags.EndStyleBeginInlineString}" +
             $"{GetSpan(cell.Value)}" +
             $"{EndStringCell}");
     }
@@ -109,18 +109,18 @@ internal abstract class StringCellValueWriterBase : CellValueWriter
             : state.Buffer.TryWrite($"{state}{EndReferenceBeginFormula}");
     }
 
-    public static bool WriteStartElement(StyleId? styleId, SpreadsheetBuffer buffer)
+    public static bool WriteStartElement(StyleId? styleId, CellWriterState state)
     {
         return styleId is null
-            ? buffer.TryWrite(buffer.InlineXmlTags.BeginStringCell)
-            : buffer.TryWrite($"{BeginStyledStringCell}{styleId.Id}{buffer.InlineXmlTags.EndStyleBeginInlineString}");
+            ? state.Buffer.TryWrite(state.InlineXmlTags.BeginStringCell)
+            : state.Buffer.TryWrite($"{BeginStyledStringCell}{styleId.Id}{state.InlineXmlTags.EndStyleBeginInlineString}");
     }
 
     public static bool WriteStartElementWithReference(StyleId? styleId, CellWriterState state)
     {
         return styleId is null
-            ? state.Buffer.TryWrite($"{state}{state.Buffer.InlineXmlTags.EndReferenceBeginString}")
-            : state.Buffer.TryWrite($"{state}{EndReferenceBeginStyle}{styleId.Id}{state.Buffer.InlineXmlTags.EndStyleBeginInlineString}");
+            ? state.Buffer.TryWrite($"{state}{state.InlineXmlTags.EndReferenceBeginString}")
+            : state.Buffer.TryWrite($"{state}{EndReferenceBeginStyle}{styleId.Id}{state.InlineXmlTags.EndStyleBeginInlineString}");
     }
 
     public override bool WriteValuePieceByPiece(in DataCell cell, SpreadsheetBuffer buffer, ref int valueIndex)

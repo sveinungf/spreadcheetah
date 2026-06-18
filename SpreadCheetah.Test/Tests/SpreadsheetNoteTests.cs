@@ -413,8 +413,6 @@ public class SpreadsheetNoteTests
         var commentsEntry = zip.GetEntry("xl/comments1.xml");
         Assert.NotNull(commentsEntry);
         using var commentsStream = await commentsEntry.OpenAsync(Token);
-        using var reader = new StreamReader(commentsStream);
-        var xml = await reader.ReadToEndAsync(Token);
-        Assert.Equal(preserveStringWhitespace, xml.Contains("xml:space=\"preserve\"", StringComparison.Ordinal));
+        await VerifyXml(commentsStream);
     }
 }
