@@ -154,15 +154,14 @@ public class SpreadsheetRowTests
     [InlineData(true, true)]
     public async Task Spreadsheet_AddRow_PreserveStringWhitespace(
         bool withStyle,
-        bool withCellReference)
+        bool preserveStringWhitespace)
     {
         // Arrange
         const string value = "  Surrounded by whitespace  ";
         using var stream = new MemoryStream();
         var options = new SpreadCheetahOptions
         {
-            PreserveStringWhitespace = true,
-            WriteCellReferenceAttributes = withCellReference,
+            PreserveStringWhitespace = preserveStringWhitespace,
             BufferSize = SpreadCheetahOptions.MinimumBufferSize
         };
 
