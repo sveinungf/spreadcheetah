@@ -22,9 +22,7 @@ public class OADates
     public void GlobalSetup()
     {
         var random = new Random(42);
-        _dateTimes = Enumerable.Range(0, Count)
-            .Select(_ => random.NextDateTime(WithFractions))
-            .ToList();
+        _dateTimes = [.. Enumerable.Range(0, Count).Select(_ => random.NextDateTime(WithFractions))];
     }
 
     [Benchmark]

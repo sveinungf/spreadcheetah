@@ -17,9 +17,9 @@ public class GetColumnName
     public void GlobalSetup()
     {
         var random = new Random(42);
-        _numbers1 = Enumerable.Range(0, 1000000).Select(_ => random.Next(1, 27)).ToArray();
-        _numbers2 = Enumerable.Range(0, 1000000).Select(_ => random.Next(27, 703)).ToArray();
-        _numbers3 = Enumerable.Range(0, 1000000).Select(_ => random.Next(703, 16384)).ToArray();
+        _numbers1 = [.. Enumerable.Range(0, 1000000).Select(_ => random.Next(1, 27))];
+        _numbers2 = [.. Enumerable.Range(0, 1000000).Select(_ => random.Next(27, 703))];
+        _numbers3 = [.. Enumerable.Range(0, 1000000).Select(_ => random.Next(703, 16384))];
     }
 
     [IterationSetup]

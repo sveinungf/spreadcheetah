@@ -11,9 +11,7 @@ public class ParseColumnName
     public void GlobalSetup()
     {
         var random = new Random(42);
-        _names = Enumerable.Range(0, 10000)
-            .Select(_ => SpreadsheetUtility.GetColumnName(random.Next(1, 16384)))
-            .ToArray();
+        _names = [.. Enumerable.Range(0, 10000).Select(_ => SpreadsheetUtility.GetColumnName(random.Next(1, 16384)))];
     }
 
     [Benchmark]

@@ -52,7 +52,7 @@ internal static class SpreadsheetExtensions
     {
         null => rowType switch
         {
-            RowCollectionType.Array => spreadsheet.AddRowAsync(cells.ToArray()),
+            RowCollectionType.Array => spreadsheet.AddRowAsync([.. cells]),
             RowCollectionType.ReadOnlyMemory => spreadsheet.AddRowAsync(cells.ToArray().AsMemory()),
             RowCollectionType.List => spreadsheet.AddRowAsync(cells.ToList()),
             RowCollectionType.ImmutableList => spreadsheet.AddRowAsync(cells.ToImmutableList()),
@@ -60,7 +60,7 @@ internal static class SpreadsheetExtensions
         },
         _ => rowType switch
         {
-            RowCollectionType.Array => spreadsheet.AddRowAsync(cells.ToArray(), options),
+            RowCollectionType.Array => spreadsheet.AddRowAsync([.. cells], options),
             RowCollectionType.ReadOnlyMemory => spreadsheet.AddRowAsync(cells.ToArray().AsMemory(), options),
             RowCollectionType.List => spreadsheet.AddRowAsync(cells.ToList(), options),
             RowCollectionType.ImmutableList => spreadsheet.AddRowAsync(cells.ToImmutableList(), options),
@@ -90,7 +90,7 @@ internal static class SpreadsheetExtensions
 
     public static ValueTask AddHeaderRowAsync(this Spreadsheet spreadsheet, IEnumerable<string> headerNames, RowCollectionType rowType) => rowType switch
     {
-        RowCollectionType.Array => spreadsheet.AddHeaderRowAsync(headerNames.ToArray()),
+        RowCollectionType.Array => spreadsheet.AddHeaderRowAsync([.. headerNames]),
         RowCollectionType.ReadOnlyMemory => spreadsheet.AddHeaderRowAsync(headerNames.ToArray().AsMemory()),
         RowCollectionType.List => spreadsheet.AddHeaderRowAsync(headerNames.ToList()),
         RowCollectionType.ImmutableList => spreadsheet.AddHeaderRowAsync(headerNames.ToImmutableList()),
