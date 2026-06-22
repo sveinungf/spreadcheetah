@@ -67,6 +67,7 @@ namespace SpreadCheetah
         public Formula(string? formulaText) { }
         public static SpreadCheetah.Formula Hyperlink(System.Uri uri) { }
         public static SpreadCheetah.Formula Hyperlink(System.Uri uri, string friendlyName) { }
+        public static SpreadCheetah.Formula R1C1(string formula) { }
     }
     public enum SpreadCheetahCompressionLevel
     {

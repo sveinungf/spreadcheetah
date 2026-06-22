@@ -106,6 +106,10 @@ internal static class ThrowHelper
         => throw new ArgumentException($"Note text can not exceed {SpreadsheetConstants.MaxNoteTextLength} characters.", paramName);
 
     [DoesNotReturn]
+    public static void R1C1ReferenceOutOfBounds(string formula)
+        => throw new ArgumentException($"The R1C1 formula '{formula}' contains a reference that is outside the bounds of the worksheet.", nameof(formula));
+
+    [DoesNotReturn]
     public static void ResizeAndMoveCellsCombinationNotSupported(string resizeParamName, string moveParamName)
         => throw new ArgumentException($"Enabling {resizeParamName} is not supported when {moveParamName} is false.", resizeParamName);
 

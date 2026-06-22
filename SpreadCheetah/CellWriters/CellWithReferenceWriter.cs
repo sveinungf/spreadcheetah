@@ -15,7 +15,7 @@ internal sealed class CellWithReferenceWriter : ICellWriter<Cell>
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
         return cell switch
         {
-            { Formula: { } f } => writer.TryWriteCellWithReference(f.FormulaText, cell.DataCell, cell.StyleId, state),
+            { Formula: { } f } => writer.TryWriteCellWithReference(f.GetFormulaText(state), cell.DataCell, cell.StyleId, state),
             { StyleId: not null } => writer.TryWriteCellWithReference(cell.DataCell, cell.StyleId, state),
             _ => writer.TryWriteCellWithReference(cell.DataCell, state)
         };
@@ -26,7 +26,7 @@ internal sealed class CellWithReferenceWriter : ICellWriter<Cell>
         var actualStyleId = cell.StyleId ?? styleId;
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
         return cell.Formula is { } formula
-            ? writer.TryWriteCellWithReference(formula.FormulaText, cell.DataCell, actualStyleId, state)
+            ? writer.TryWriteCellWithReference(formula.GetFormulaText(state), cell.DataCell, actualStyleId, state)
             : writer.TryWriteCellWithReference(cell.DataCell, actualStyleId, state);
     }
 
@@ -50,7 +50,7 @@ internal sealed class CellWithReferenceWriter : ICellWriter<Cell>
     public bool TryWriteValue(in Cell cell, ref int valueIndex, CellWriterState state)
     {
         return cell.Formula is { } formula
-            ? FormulaCellHelper.FinishWritingFormulaCellValue(cell, formula.FormulaText, ref valueIndex, state.Buffer)
+            ? FormulaCellHelper.FinishWritingFormulaCellValue(cell, formula.GetFormulaText(state), ref valueIndex, state.Buffer)
             : CellValueWriter.GetWriter(cell.DataCell.Type).WriteValuePieceByPiece(cell.DataCell, state.Buffer, ref valueIndex);
     }
 

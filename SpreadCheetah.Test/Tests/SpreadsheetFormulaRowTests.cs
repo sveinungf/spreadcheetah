@@ -750,4 +750,59 @@ public class SpreadsheetFormulaRowTests
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.Equal(""""""HYPERLINK("https://github.com/","""Link to ""GitHub""""")"""""", sheet["A1"].Formula);
     }
+
+    [Theory]
+    [InlineData("R1C1", "$A$1")]
+    [InlineData("RC[-1]", "B1")]
+    [InlineData("SUM(R1C1:R3C1)", "SUM($A$1:$A$3)")]
+    [InlineData("RC[-1]*RC[-2]", "B1*A1")]
+    public async Task Spreadsheet_AddRow_CellWithR1C1Formula(string r1c1, string expectedA1)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+            // The formula cell is placed in column C (3), so it acts as the anchor for relative references.
+            var cells = new[] { new Cell(1), new Cell(2), new Cell(Formula.R1C1(r1c1)) };
+
+            // Act
+            await spreadsheet.AddRowAsync(cells, Token);
+            await spreadsheet.FinishAsync(Token);
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 3);
+        Assert.Equal(expectedA1, actualCell.FormulaA1);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddRow_SameR1C1FormulaConvertedPerRow()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var formula = Formula.R1C1("RC[-1]*RC[-2]");
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+            // Act
+            for (var i = 0; i < 3; i++)
+                await spreadsheet.AddRowAsync([new Cell(1), new Cell(2), new Cell(formula)], Token);
+
+            await spreadsheet.FinishAsync(Token);
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        Assert.Equal("B1*A1", worksheet.Cell(1, 3).FormulaA1);
+        Assert.Equal("B2*A2", worksheet.Cell(2, 3).FormulaA1);
+        Assert.Equal("B3*A3", worksheet.Cell(3, 3).FormulaA1);
+    }
 }
