@@ -11,8 +11,8 @@ internal static class EmbeddedResources
 
         var stream = resourceNames switch
         {
-            [var resourceName] => assembly.GetManifestResourceStream(resourceName),
-            [] => throw new ArgumentException("Could not find embedded resource.", nameof(filename)),
+        [var resourceName] => assembly.GetManifestResourceStream(resourceName),
+        [] => throw new ArgumentException("Could not find embedded resource.", nameof(filename)),
             _ => throw new ArgumentException("Found multiple embedded resources with the same name.", nameof(filename))
         };
 

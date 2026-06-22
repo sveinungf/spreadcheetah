@@ -9,7 +9,7 @@ internal static class EnumerableExtensions
         return type switch
         {
             IListType.Array => cells.ToArray(),
-            IListType.List => [.. cells],
+            IListType.List => cells.ToList(),
             IListType.ImmutableList => cells.ToImmutableList(),
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };

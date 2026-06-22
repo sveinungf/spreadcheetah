@@ -22,10 +22,11 @@ public class DateTimeCells
     {
         var random = new Random(42);
 
-        _rows = [.. Enumerable.Range(0, NumberOfRows)
+        _rows = Enumerable.Range(0, NumberOfRows)
             .Select(_ => Enumerable.Range(0, NumberOfColumns)
                 .Select(_ => random.NextDateTime(WithFractions))
-                .ToList())];
+                .ToList())
+            .ToList();
     }
 
     [Benchmark]

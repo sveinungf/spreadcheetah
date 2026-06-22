@@ -29,12 +29,13 @@ public class LongStringCells
     {
         var randomizer = new Randomizer(localSeed: 42);
 
-        _rows = [.. Enumerable
+        _rows = Enumerable
             .Range(0, NumberOfRows)
             .Select(_ => Enumerable
                 .Range(0, NumberOfColumns)
                 .Select(_ => randomizer.Words(1000))
-                .ToList())];
+                .ToList())
+            .ToList();
     }
 
     [Benchmark]

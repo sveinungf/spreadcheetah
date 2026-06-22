@@ -2,7 +2,6 @@ using SpreadCheetah.Helpers;
 using SpreadCheetah.Metadata;
 
 namespace SpreadCheetah.MetadataXml;
-
 internal static class CoreXml
 {
     public static ValueTask WriteCoreXmlAsync(
