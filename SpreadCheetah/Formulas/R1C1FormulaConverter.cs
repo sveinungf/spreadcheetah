@@ -1,5 +1,4 @@
 using SpreadCheetah.Helpers;
-using System.Globalization;
 using System.Text;
 
 namespace SpreadCheetah.Formulas;
@@ -11,6 +10,16 @@ internal static class R1C1FormulaConverter
         Cell,
         WholeRow,
         WholeColumn
+    }
+
+    private readonly struct ParsedReference(int length, ReferenceKind kind, bool rowRelative, int row, bool columnRelative, int column)
+    {
+        public int Length { get; } = length;
+        public ReferenceKind Kind { get; } = kind;
+        public bool RowRelative { get; } = rowRelative;
+        public int Row { get; } = row;
+        public bool ColumnRelative { get; } = columnRelative;
+        public int Column { get; } = column;
     }
 
     /// <summary>
@@ -36,20 +45,22 @@ internal static class R1C1FormulaConverter
 
             var leftBoundary = i == 0 || !IsWordChar(formula[i - 1]);
             if (leftBoundary && c is 'R' or 'r' or 'C' or 'c'
-                && TryParseReference(formula, i, row, column, out var length, out var piece, out var kind))
+                && TryParseReference(formula, i, row, column, out var first))
             {
-                var afterFirst = i + length;
+                var afterFirst = i + first.Length;
                 var rightChar = afterFirst < n ? formula[afterFirst] : '\0';
 
                 // Combine into a range when followed by ':' and another reference.
                 if (rightChar == ':'
-                    && TryParseReference(formula, afterFirst + 1, row, column, out var length2, out var piece2, out _))
+                    && TryParseReference(formula, afterFirst + 1, row, column, out var second))
                 {
-                    var afterSecond = afterFirst + 1 + length2;
+                    var afterSecond = afterFirst + 1 + second.Length;
                     var rightChar2 = afterSecond < n ? formula[afterSecond] : '\0';
                     if (!IsWordChar(rightChar2) && rightChar2 is not ('[' or '!'))
                     {
-                        sb.Append(piece).Append(':').Append(piece2);
+                        WriteReference(sb, first, selfDuplicate: false);
+                        sb.Append(':');
+                        WriteReference(sb, second, selfDuplicate: false);
                         i = afterSecond;
                         continue;
                     }
@@ -57,7 +68,7 @@ internal static class R1C1FormulaConverter
 
                 if (!IsWordChar(rightChar) && rightChar is not ('[' or '!'))
                 {
-                    AppendStandalone(sb, piece, kind);
+                    WriteReference(sb, first, selfDuplicate: true);
                     i = afterFirst;
                     continue;
                 }
@@ -70,13 +81,51 @@ internal static class R1C1FormulaConverter
         return sb.ToString();
     }
 
-    private static void AppendStandalone(StringBuilder sb, string piece, ReferenceKind kind)
+    private static void WriteReference(StringBuilder sb, in ParsedReference reference, bool selfDuplicate)
     {
-        // A whole row or column reference in the A1 notation always has the form "X:X".
-        if (kind is ReferenceKind.Cell)
-            sb.Append(piece);
-        else
-            sb.Append(piece).Append(':').Append(piece);
+        switch (reference.Kind)
+        {
+            case ReferenceKind.Cell:
+                WriteColumnPart(sb, reference);
+                WriteRowPart(sb, reference);
+                break;
+            case ReferenceKind.WholeRow:
+                // A whole row reference in the A1 notation has the form "5:5".
+                WriteRowPart(sb, reference);
+                if (selfDuplicate)
+                {
+                    sb.Append(':');
+                    WriteRowPart(sb, reference);
+                }
+
+                break;
+            default:
+                // A whole column reference in the A1 notation has the form "C:C".
+                WriteColumnPart(sb, reference);
+                if (selfDuplicate)
+                {
+                    sb.Append(':');
+                    WriteColumnPart(sb, reference);
+                }
+
+                break;
+        }
+    }
+
+    private static void WriteRowPart(StringBuilder sb, in ParsedReference reference)
+    {
+        if (!reference.RowRelative)
+            sb.Append('$');
+
+        sb.Append(reference.Row);
+    }
+
+    private static void WriteColumnPart(StringBuilder sb, in ParsedReference reference)
+    {
+        if (!reference.ColumnRelative)
+            sb.Append('$');
+
+        sb.Append(SpreadsheetUtility.GetColumnName(reference.Column));
     }
 
     // Appends a string literal ("...") or a quoted sheet name ('...'), including the surrounding delimiters.
@@ -109,11 +158,9 @@ internal static class R1C1FormulaConverter
         return i;
     }
 
-    private static bool TryParseReference(string s, int start, int anchorRow, int anchorColumn, out int length, out string piece, out ReferenceKind kind)
+    private static bool TryParseReference(string s, int start, int anchorRow, int anchorColumn, out ParsedReference reference)
     {
-        length = 0;
-        piece = "";
-        kind = ReferenceKind.Cell;
+        reference = default;
 
         var n = s.Length;
         if (start >= n)
@@ -154,24 +201,18 @@ internal static class R1C1FormulaConverter
             return false;
         }
 
-        length = j - start;
+        var length = j - start;
+        var kind = (hasRow, hasColumn) switch
+        {
+            (true, true) => ReferenceKind.Cell,
+            (true, false) => ReferenceKind.WholeRow,
+            _ => ReferenceKind.WholeColumn
+        };
 
-        if (hasRow && hasColumn)
-        {
-            kind = ReferenceKind.Cell;
-            piece = FormatColumn(columnRelative, columnValue, anchorColumn, s) + FormatRow(rowRelative, rowValue, anchorRow, s);
-        }
-        else if (hasRow)
-        {
-            kind = ReferenceKind.WholeRow;
-            piece = FormatRow(rowRelative, rowValue, anchorRow, s);
-        }
-        else
-        {
-            kind = ReferenceKind.WholeColumn;
-            piece = FormatColumn(columnRelative, columnValue, anchorColumn, s);
-        }
+        var row = hasRow ? Resolve(rowRelative, rowValue, anchorRow, SpreadsheetConstants.MaxNumberOfRows, s) : 0;
+        var column = hasColumn ? Resolve(columnRelative, columnValue, anchorColumn, SpreadsheetConstants.MaxNumberOfColumns, s) : 0;
 
+        reference = new ParsedReference(length, kind, rowRelative, row, columnRelative, column);
         return true;
     }
 
@@ -228,24 +269,13 @@ internal static class R1C1FormulaConverter
         return j > start;
     }
 
-    private static string FormatRow(bool relative, int value, int anchor, string formula)
+    private static int Resolve(bool relative, int value, int anchor, int max, string formula)
     {
-        var row = relative ? anchor + value : value;
-        if (row is < 1 or > SpreadsheetConstants.MaxNumberOfRows)
+        var result = relative ? anchor + value : value;
+        if (result < 1 || result > max)
             ThrowHelper.R1C1ReferenceOutOfBounds(formula);
 
-        var rowNumber = row.ToString(NumberFormatInfo.InvariantInfo);
-        return relative ? rowNumber : "$" + rowNumber;
-    }
-
-    private static string FormatColumn(bool relative, int value, int anchor, string formula)
-    {
-        var column = relative ? anchor + value : value;
-        if (column is < 1 or > SpreadsheetConstants.MaxNumberOfColumns)
-            ThrowHelper.R1C1ReferenceOutOfBounds(formula);
-
-        var columnName = SpreadsheetUtility.GetColumnName(column);
-        return relative ? columnName : "$" + columnName;
+        return result;
     }
 
     private static bool IsWordChar(char c) => char.IsLetterOrDigit(c) || c is '_' or '.';
