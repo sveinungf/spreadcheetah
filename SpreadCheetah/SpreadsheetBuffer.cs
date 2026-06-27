@@ -52,10 +52,8 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
     public bool TryWrite([InterpolatedStringHandlerArgument("")] ref TryWriteInterpolatedStringHandler handler)
     {
-        var (pos, isSuccess) = handler;
-
-        Advance(pos);
-        return isSuccess;
+        Advance(handler._pos);
+        return handler._isSuccess;
     }
 
     public bool TryWrite2(
@@ -66,10 +64,8 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         [InterpolatedStringHandlerArgument("", nameof(start))] ref ResumableTryWriteInterpolatedStringHandler handler)
     {
         written = handler.GetProgress();
-        var (pos, isSuccess) = handler;
-
-        Advance(pos);
-        return isSuccess;
+        Advance(handler._pos);
+        return handler._isSuccess;
     }
 
     [InterpolatedStringHandler]
@@ -84,8 +80,8 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         private readonly int _startingStep = start.Step;
         private int _step;
         private int _index = start.Index;
-        private int _pos;
-        private bool _isSuccess = true;
+        internal int _pos;
+        internal bool _isSuccess = true;
 
         public readonly BufferWriteProgress GetProgress() => new()
         {
@@ -101,12 +97,6 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             _ = _pos;
             _ = value;
             throw new InvalidOperationException("Use ReadOnlySpan<byte> instead of string literals");
-        }
-
-        public readonly void Deconstruct(out int pos, out bool isSuccess)
-        {
-            pos = _pos;
-            isSuccess = _isSuccess;
         }
 
         public bool AppendFormatted(int value)
@@ -197,12 +187,6 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             _ = _pos;
             _ = value;
             throw new InvalidOperationException("Use ReadOnlySpan<byte> instead of string literals");
-        }
-
-        public readonly void Deconstruct(out int pos, out bool isSuccess)
-        {
-            pos = _pos;
-            isSuccess = _isSuccess;
         }
 
         /// <summary>
