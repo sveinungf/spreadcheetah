@@ -8,12 +8,13 @@ internal struct CommentsXml : IXmlWriter<CommentsXml>
     public static ValueTask WriteAsync(
         ZipArchiveManager zipArchiveManager,
         SpreadsheetBuffer buffer,
+        InlineXmlTags inlineXmlTags,
         int notesFilesIndex,
         ReadOnlyMemory<KeyValuePair<SingleCellRelativeReference, string>> notes,
         CancellationToken token)
     {
         var entryName = StringHelper.Invariant($"xl/comments{notesFilesIndex}.xml");
-        var writer = new CommentsXml(notes, buffer);
+        var writer = new CommentsXml(notes, buffer, inlineXmlTags);
         return zipArchiveManager.WriteAsync(writer, entryName, buffer, token);
     }
 
@@ -24,12 +25,12 @@ internal struct CommentsXml : IXmlWriter<CommentsXml>
         """<commentList>"""u8;
 
     private static ReadOnlySpan<byte> CommentStart => "<comment ref=\""u8;
-    private static ReadOnlySpan<byte> CommentAfterRef => "\" "u8 + """authorId="0"><text><r><t>"""u8;
     private static ReadOnlySpan<byte> CommentEnd => "</t></r></text></comment>"u8;
     private static ReadOnlySpan<byte> Footer => "</commentList></comments>"u8;
 
     private readonly ReadOnlyMemory<KeyValuePair<SingleCellRelativeReference, string>> _notes;
     private readonly SpreadsheetBuffer _buffer;
+    private readonly InlineXmlTags _inlineXmlTags;
     private string? _currentXmlEncodedNote;
     private int _currentXmlEncodedNoteIndex;
     private Element _next;
@@ -37,10 +38,12 @@ internal struct CommentsXml : IXmlWriter<CommentsXml>
 
     private CommentsXml(
         ReadOnlyMemory<KeyValuePair<SingleCellRelativeReference, string>> notes,
-        SpreadsheetBuffer buffer)
+        SpreadsheetBuffer buffer,
+        InlineXmlTags inlineXmlTags)
     {
         _notes = notes;
         _buffer = buffer;
+        _inlineXmlTags = inlineXmlTags;
     }
 
     public readonly CommentsXml GetEnumerator() => this;
@@ -72,7 +75,7 @@ internal struct CommentsXml : IXmlWriter<CommentsXml>
             if (_currentXmlEncodedNote is null)
             {
                 var reference = new SimpleSingleCellReference(cellRef.Column, cellRef.Row);
-                if (!_buffer.TryWrite($"{CommentStart}{reference}{CommentAfterRef}"))
+                if (!_buffer.TryWrite($"{CommentStart}{reference}{_inlineXmlTags.CommentAfterRef}"))
                     return false;
 
                 _currentXmlEncodedNote = note;

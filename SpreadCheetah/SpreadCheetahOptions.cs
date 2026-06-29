@@ -69,4 +69,11 @@ public sealed class SpreadCheetahOptions
     /// The files can be excluded by setting this property to <see langword="null"/>.
     /// </summary>
     public DocumentProperties? DocumentProperties { get; set; } = new();
+
+    /// <summary>
+    /// Emit <c>xml:space="preserve"</c> on inline string and comment text elements so that leading and trailing whitespace
+    /// in cell values is retained when the file is opened. Without this, XML whitespace normalization causes readers
+    /// to strip leading/trailing whitespace from string cells. Defaults to <see langword="false"/>.
+    /// </summary>
+    public bool PreserveStringWhitespace { get; set; }
 }
