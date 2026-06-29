@@ -147,11 +147,7 @@ public class SpreadsheetRowTests
         Assert.Equal(value, sheet["A1"].StringValue);
     }
 
-    [Theory]
-    [InlineData(false, false)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(true, true)]
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_PreserveStringWhitespace(
         bool withStyle,
         bool preserveStringWhitespace)
@@ -169,7 +165,7 @@ public class SpreadsheetRowTests
         {
             await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
             var styleId = withStyle ? spreadsheet.AddStyle(new Style { Font = { Bold = true } }) : null;
-            StyledCell[] cells = [new StyledCell(value, styleId)];
+            StyledCell[] cells = [new(value, styleId)];
 
             // Act
             await spreadsheet.AddRowAsync(cells, Token);
