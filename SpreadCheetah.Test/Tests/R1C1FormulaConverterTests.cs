@@ -105,6 +105,6 @@ public static class R1C1FormulaConverterTests
     public static void R1C1FormulaConverter_ToA1_OutOfBoundsThrows(string formula, int row, int column)
     {
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => R1C1FormulaConverter.ToA1(formula, row, column));
+        Assert.Throws<SpreadCheetahException>(() => R1C1FormulaConverter.ToA1(formula, row, column));
     }
 }

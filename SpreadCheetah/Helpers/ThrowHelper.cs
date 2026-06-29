@@ -107,7 +107,7 @@ internal static class ThrowHelper
 
     [DoesNotReturn]
     public static void R1C1ReferenceOutOfBounds(string formula)
-        => throw new ArgumentException($"The R1C1 formula '{formula}' contains a reference that is outside the bounds of the worksheet.", nameof(formula));
+        => throw new SpreadCheetahException($"The R1C1 formula '{formula}' contains a reference that is outside the bounds of the worksheet when anchored to this cell.");
 
     [DoesNotReturn]
     public static void ResizeAndMoveCellsCombinationNotSupported(string resizeParamName, string moveParamName)
