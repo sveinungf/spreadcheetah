@@ -34,6 +34,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly SpreadsheetBuffer _buffer;
     private readonly DocumentProperties? _documentProperties;
     private readonly bool _writeCellReferenceAttributes;
+    private readonly InlineXmlTags _inlineXmlTags;
     private Dictionary<Type, WorksheetRowDependencyInfo>? _worksheetRowDependencyInfo;
     private FileCounter? _fileCounter;
     private StyleManager? _styleManager;
@@ -58,6 +59,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _buffer = new SpreadsheetBuffer(bufferSize);
         _styleManager = CreateStyleManager(options);
         _writeCellReferenceAttributes = options?.WriteCellReferenceAttributes ?? false;
+        _inlineXmlTags = InlineXmlTags.For(options?.PreserveStringWhitespace ?? false);
 
         _documentProperties = options switch
         {
@@ -166,7 +168,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var path = StringHelper.Invariant($"xl/worksheets/sheet{_worksheets.Count + 1}.xml");
         var entryStream = await _zipArchiveManager.OpenEntryAsync(path, token).ConfigureAwait(false);
         var columnStyles = GetColumnStyles(options);
-        _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes, options, columnStyles);
+        _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes, _inlineXmlTags, options, columnStyles);
         _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
 
         await WorksheetStartXml.WriteAsync(options, columnStyles, _buffer, entryStream, token).ConfigureAwait(false);
@@ -742,7 +744,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             Debug.Assert(notesFileIndex > 0);
             using var notesPooledArray = notes.ToPooledArray();
 
-            await CommentsXml.WriteAsync(_zipArchiveManager, _buffer, notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
+            await CommentsXml.WriteAsync(_zipArchiveManager, _buffer, _inlineXmlTags, notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
             await VmlDrawingXml.WriteAsync(_zipArchiveManager, _buffer, notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
         }
 

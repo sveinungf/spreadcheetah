@@ -7,6 +7,11 @@ internal static class ZipArchiveExtensions
 {
     extension(ZipArchive zip)
     {
+        public Task<Stream> GetComments1XmlStreamAsync(CancellationToken token)
+        {
+            return zip.GetXmlStreamAsync("xl/comments1.xml", token);
+        }
+
         public Task<Stream> GetDrawingXmlStreamAsync(CancellationToken token)
         {
             return zip.GetXmlStreamAsync("xl/drawings/drawing1.xml", token);

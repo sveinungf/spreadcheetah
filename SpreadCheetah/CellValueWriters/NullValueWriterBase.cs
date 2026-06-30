@@ -38,9 +38,9 @@ internal abstract class NullValueWriterBase : CellValueWriter
             $"{EndFormulaEndCell}");
     }
 
-    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state)
     {
-        return TryWriteCell(GetStyleId(styleId), buffer);
+        return TryWriteCell(GetStyleId(styleId), state.Buffer);
     }
 
     protected static bool TryWriteCellWithReference(CellWriterState state)
