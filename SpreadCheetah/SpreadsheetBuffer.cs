@@ -52,7 +52,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
     public bool TryWrite([InterpolatedStringHandlerArgument("")] ref TryWriteInterpolatedStringHandler handler)
     {
-        Advance(handler._pos);
+        Advance(handler.Written);
         return handler._isSuccess;
     }
 
@@ -173,18 +173,28 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
     [InterpolatedStringHandler]
 #pragma warning disable CS9113 // Parameter is unread.
-    public ref struct TryWriteInterpolatedStringHandler(int literalLength, int formattedCount, SpreadsheetBuffer buffer)
+    public ref struct TryWriteInterpolatedStringHandler
 #pragma warning restore CS9113 // Parameter is unread.
     {
-        internal int _pos;
+        private readonly int _initialLength;
+        private Span<byte> _destination;
         internal bool _isSuccess = true;
 
-        private readonly Span<byte> GetSpan() => buffer.GetSpan(_pos);
+        public readonly int Written => _isSuccess ? _initialLength - _destination.Length : 0;
+
+        public TryWriteInterpolatedStringHandler(int literalLength, int formattedCount, SpreadsheetBuffer buffer)
+        {
+            _ = literalLength;
+            _ = formattedCount;
+
+            _destination = buffer.GetSpan();
+            _initialLength = _destination.Length;
+        }
 
         [ExcludeFromCodeCoverage]
         public readonly bool AppendLiteral(string value)
         {
-            _ = _pos;
+            _ = _isSuccess;
             _ = value;
             throw new InvalidOperationException("Use ReadOnlySpan<byte> instead of string literals");
         }
@@ -194,28 +204,27 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         /// </summary>
         public bool AppendFormatted(bool value)
         {
-            var destination = GetSpan();
-            if (destination.Length > 0)
+            if (_destination.Length > 0)
             {
-                destination[0] = (byte)('0' + (value ? 1 : 0)); // Branchless on .NET 8+
-                _pos++;
+                _destination[0] = (byte)('0' + (value ? 1 : 0)); // Branchless on .NET 8+
+                _destination = _destination[1..];
                 return true;
             }
 
             return Fail();
         }
 
-        public bool AppendFormatted(int value) => Formatter.TryFormat(value, GetSpan(), ref _pos) || Fail();
+        public bool AppendFormatted(int value) => Formatter.TryFormat(value, ref _destination) || Fail();
 
         public bool AppendFormatted(uint value)
         {
 #if NET8_0_OR_GREATER
-            if (value.TryFormat(GetSpan(), out var bytesWritten, provider: NumberFormatInfo.InvariantInfo))
+            if (value.TryFormat(_destination, out var bytesWritten, provider: NumberFormatInfo.InvariantInfo))
 #else
-            if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
+            if (Utf8Formatter.TryFormat(value, _destination, out var bytesWritten))
 #endif
             {
-                _pos += bytesWritten;
+                _destination = _destination[bytesWritten..];
                 return true;
             }
 
@@ -231,9 +240,9 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
                 ? []
                 : "0.################E+00";
 
-            if (value.TryFormat(GetSpan(), out var bytesWritten, format, NumberFormatInfo.InvariantInfo))
+            if (value.TryFormat(_destination, out var bytesWritten, format, NumberFormatInfo.InvariantInfo))
             {
-                _pos += bytesWritten;
+                _destination = _destination[bytesWritten..];
                 return true;
             }
 
@@ -244,12 +253,12 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         public bool AppendFormatted(ushort value)
         {
 #if NET8_0_OR_GREATER
-            if (value.TryFormat(GetSpan(), out var bytesWritten, provider: NumberFormatInfo.InvariantInfo))
+            if (value.TryFormat(_destination, out var bytesWritten, provider: NumberFormatInfo.InvariantInfo))
 #else
-            if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
+            if (Utf8Formatter.TryFormat(value, _destination, out var bytesWritten))
 #endif
             {
-                _pos += bytesWritten;
+                _destination = _destination[bytesWritten..];
                 return true;
             }
 
@@ -259,12 +268,12 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         public bool AppendFormatted(float value)
         {
 #if NET8_0_OR_GREATER
-            if (value.TryFormat(GetSpan(), out var bytesWritten, provider: NumberFormatInfo.InvariantInfo))
+            if (value.TryFormat(_destination, out var bytesWritten, provider: NumberFormatInfo.InvariantInfo))
 #else
-            if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
+            if (Utf8Formatter.TryFormat(value, _destination, out var bytesWritten))
 #endif
             {
-                _pos += bytesWritten;
+                _destination = _destination[bytesWritten..];
                 return true;
             }
 
@@ -274,12 +283,12 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         public bool AppendFormatted(double value)
         {
 #if NET8_0_OR_GREATER
-            if (value.TryFormat(GetSpan(), out var bytesWritten, provider: NumberFormatInfo.InvariantInfo))
+            if (value.TryFormat(_destination, out var bytesWritten, provider: NumberFormatInfo.InvariantInfo))
 #else
-            if (Utf8Formatter.TryFormat(value, GetSpan(), out var bytesWritten))
+            if (Utf8Formatter.TryFormat(value, _destination, out var bytesWritten))
 #endif
             {
-                _pos += bytesWritten;
+                _destination = _destination[bytesWritten..];
                 return true;
             }
 
@@ -288,9 +297,9 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted((double, StandardFormat) value)
         {
-            if (Utf8Formatter.TryFormat(value.Item1, GetSpan(), out var bytesWritten, value.Item2))
+            if (Utf8Formatter.TryFormat(value.Item1, _destination, out var bytesWritten, value.Item2))
             {
-                _pos += bytesWritten;
+                _destination = _destination[bytesWritten..];
                 return true;
             }
 
@@ -299,7 +308,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(Color color)
         {
-            var span = GetSpan();
+            var span = _destination;
             if (span.Length >= 8)
             {
                 var format = new StandardFormat('X', 2);
@@ -310,7 +319,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
                 Utf8Formatter.TryFormat(color.G, span, out _, format);
                 span = span.Slice(2);
                 Utf8Formatter.TryFormat(color.B, span, out _, format);
-                _pos += 8;
+                _destination = span.Slice(2);
                 return true;
             }
 
@@ -319,11 +328,10 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(DateTime dateTime)
         {
-            var span = GetSpan();
-            if (Utf8Formatter.TryFormat(dateTime, span, out _, new StandardFormat('O')))
+            if (Utf8Formatter.TryFormat(dateTime, _destination, out _, new StandardFormat('O')))
             {
-                span[19] = (byte)'Z';
-                _pos += 20;
+                _destination[19] = (byte)'Z';
+                _destination = _destination[20..];
                 return true;
             }
 
@@ -332,9 +340,9 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(OADate oaDate)
         {
-            if (oaDate.TryFormat(GetSpan(), out var bytesWritten))
+            if (oaDate.TryFormat(_destination, out var bytesWritten))
             {
-                _pos += bytesWritten;
+                _destination = _destination[bytesWritten..];
                 return true;
             }
 
@@ -343,10 +351,10 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(SimpleSingleCellReference reference)
         {
-            if (!SpreadsheetUtility.TryGetColumnNameUtf8(reference.Column, GetSpan(), out var nameLength))
+            if (!SpreadsheetUtility.TryGetColumnNameUtf8(reference.Column, _destination, out var nameLength))
                 return Fail();
 
-            _pos += nameLength;
+            _destination = _destination[nameLength..];
 
             if (!AppendFormatted(reference.Row))
                 return Fail();
@@ -511,11 +519,10 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (value.IsEmpty)
                 return true;
 
-            var destination = GetSpan();
-            if (destination.Length > value.Length &&
-                XmlUtility.TryXmlEncodeToUtf8(value, destination, out _, out var bytesWritten))
+            if (_destination.Length > value.Length &&
+                XmlUtility.TryXmlEncodeToUtf8(value, _destination, out _, out var bytesWritten))
             {
-                _pos += bytesWritten;
+                _destination = _destination[bytesWritten..];
                 return true;
             }
 
@@ -524,9 +531,9 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(scoped ReadOnlySpan<byte> utf8Value)
         {
-            if (utf8Value.TryCopyTo(GetSpan()))
+            if (utf8Value.TryCopyTo(_destination))
             {
-                _pos += utf8Value.Length;
+                _destination = _destination[utf8Value.Length..];
                 return true;
             }
 
@@ -547,7 +554,6 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         private bool Fail()
         {
-            _pos = 0;
             _isSuccess = false;
             return false;
         }
@@ -565,6 +571,18 @@ file static class Formatter
         var success = Utf8Formatter.TryFormat(value, destination, out var bytesWritten);
 #endif
         pos += bytesWritten;
+        return success;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryFormat(int value, ref Span<byte> destination)
+    {
+#if NET8_0_OR_GREATER
+        var success = value.TryFormat(destination, out var bytesWritten, provider: NumberFormatInfo.InvariantInfo);
+#else
+        var success = Utf8Formatter.TryFormat(value, destination, out var bytesWritten);
+#endif
+        destination = destination[bytesWritten..];
         return success;
     }
 }
