@@ -15,8 +15,8 @@ internal sealed class CellWriter : ICellWriter<Cell>
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
         return cell switch
         {
-            { Formula: { } formula } => writer.TryWriteCell(formula.FormulaText, cell.DataCell, cell.StyleId, state),
-            { StyleId: not null } => writer.TryWriteCell(cell.DataCell, cell.StyleId, state.Buffer),
+            { Formula: { } formula } => writer.TryWriteCell(formula.GetFormulaText(state), cell.DataCell, cell.StyleId, state),
+            { StyleId: not null } => writer.TryWriteCell(cell.DataCell, cell.StyleId, state),
             _ => writer.TryWriteCell(cell.DataCell, state)
         };
     }
@@ -26,8 +26,8 @@ internal sealed class CellWriter : ICellWriter<Cell>
         var actualStyleId = cell.StyleId ?? styleId;
         var writer = CellValueWriter.GetWriter(cell.DataCell.Type);
         return cell.Formula is { } formula
-            ? writer.TryWriteCell(formula.FormulaText, cell.DataCell, actualStyleId, state)
-            : writer.TryWriteCell(cell.DataCell, actualStyleId, state.Buffer);
+            ? writer.TryWriteCell(formula.GetFormulaText(state), cell.DataCell, actualStyleId, state)
+            : writer.TryWriteCell(cell.DataCell, actualStyleId, state);
     }
 
     public void WriteStartElement(in Cell cell, StyleId? styleId, CellWriterState state)
@@ -43,14 +43,14 @@ internal sealed class CellWriter : ICellWriter<Cell>
         }
 
         Debug.Assert(CellValueWriter.GetWriter(cell.DataCell.Type) is StringCellValueWriterBase);
-        var result = StringCellValueWriterBase.WriteStartElement(actualStyleId, state.Buffer);
+        var result = StringCellValueWriterBase.WriteStartElement(actualStyleId, state);
         Debug.Assert(result);
     }
 
     public bool TryWriteValue(in Cell cell, ref int valueIndex, CellWriterState state)
     {
         return cell.Formula is { } formula
-            ? FormulaCellHelper.FinishWritingFormulaCellValue(cell, formula.FormulaText, ref valueIndex, state.Buffer)
+            ? FormulaCellHelper.FinishWritingFormulaCellValue(cell, formula.GetFormulaText(state), ref valueIndex, state.Buffer)
             : CellValueWriter.GetWriter(cell.DataCell.Type).WriteValuePieceByPiece(cell.DataCell, state.Buffer, ref valueIndex);
     }
 

@@ -148,6 +148,38 @@ public class SpreadsheetRowTests
     }
 
     [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_PreserveStringWhitespace(
+        bool withStyle,
+        bool preserveStringWhitespace)
+    {
+        // Arrange
+        const string value = "  Surrounded by whitespace  ";
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions
+        {
+            PreserveStringWhitespace = preserveStringWhitespace,
+            BufferSize = SpreadCheetahOptions.MinimumBufferSize
+        };
+
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+            var styleId = withStyle ? spreadsheet.AddStyle(new Style { Font = { Bold = true } }) : null;
+            StyledCell[] cells = [new(value, styleId)];
+
+            // Act
+            await spreadsheet.AddRowAsync(cells, Token);
+            await spreadsheet.FinishAsync(Token);
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var sheet1Xml = await zip.GetSheet1XmlStreamAsync(Token);
+        await VerifyXml(sheet1Xml);
+    }
+
+    [Theory, CombinatorialData]
     public async Task Spreadsheet_AddRow_CellWithReadOnlyMemoryOfCharValue(
         [CombinatorialMemberData(nameof(Strings))] string? value,
         CellType type,

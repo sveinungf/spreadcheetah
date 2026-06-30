@@ -38,12 +38,12 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
     public string? AutoFilterRange { get; }
 
     public Worksheet(Stream stream, DefaultStyling? defaultStyling, SpreadsheetBuffer buffer,
-        bool writeCellReferenceAttributes, WorksheetOptions? options,
+        bool writeCellReferenceAttributes, InlineXmlTags inlineXmlTags, WorksheetOptions? options,
         IReadOnlyDictionary<int, StyleId>? columnStyles)
     {
         _stream = stream;
         _buffer = buffer;
-        _state = new CellWriterState(buffer, defaultStyling);
+        _state = new CellWriterState(buffer, defaultStyling, inlineXmlTags);
         _maxRowOutlineLevel = options?.MaxRowOutlineLevel;
         AutoFilterRange = options?.AutoFilter?.CellRange.Reference;
         ColumnWidthRuns = options?.GetColumnWidthRuns();
