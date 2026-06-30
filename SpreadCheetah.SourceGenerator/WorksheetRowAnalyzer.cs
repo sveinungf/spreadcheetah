@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SpreadCheetah.SourceGenerator;
 using SpreadCheetah.SourceGenerator.Extensions;
@@ -19,6 +20,23 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
 
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
+
+        context.RegisterCompilationStartAction(context =>
+        {
+            var csharpParseOptions = context.Compilation.SyntaxTrees
+                .Select(x => x.Options)
+                .OfType<CSharpParseOptions>()
+                .FirstOrDefault();
+
+            var csharpVersion = csharpParseOptions?.LanguageVersion;
+            if (csharpVersion >= LanguageVersion.CSharp12)
+                return;
+
+            // TODO: Only report this diagnostic if the user is using the [WorksheetRow] attribute or [WorksheetRowContext] base class.
+
+            var diagnostic = Diagnostics.UseNewerCsharpVersion(Location.None);
+            context.ReportDiagnostic(diagnostic);
+        });
 
         context.RegisterSymbolAction(AnalyzeContextType, SymbolKind.NamedType);
         context.RegisterSymbolAction(AnalyzeRowType, SymbolKind.NamedType);
