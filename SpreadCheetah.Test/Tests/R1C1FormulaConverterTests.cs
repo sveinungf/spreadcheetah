@@ -60,39 +60,39 @@ public static class R1C1FormulaConverterTests
     // A reference followed by ':' but not by another reference is not turned into a range
     [InlineData("R1C1:", 1, 1, "$A$1:")]
     [InlineData("R1C1:foo", 1, 1, "$A$1:foo")]
-    public static void R1C1FormulaConverter_ToA1_WithinExpression(string formula, int row, int column, string expected)
-    {
-        // Act
-        var actual = R1C1FormulaConverter.ToA1(formula, row, column);
-
-        // Assert
-        Assert.Equal(expected, actual);
-    }
-
-    [Theory]
-    [InlineData("", 1, 1, "")]
-    // Quoted text that looks like references must not be converted
-    [InlineData("\"RC[-1]\"", 1, 1, "\"RC[-1]\"")]
-    [InlineData("\"R1C1\"", 1, 1, "\"R1C1\"")]
-    // Escaped double quotes inside a string literal
-    [InlineData("\"Total \"\"RC\"\" here\"", 1, 1, "\"Total \"\"RC\"\" here\"")]
-    // Unterminated string literal is left as-is
-    [InlineData("\"unterminated", 1, 1, "\"unterminated")]
     // Function names and identifiers containing R/C must not be converted
     [InlineData("ROUND(RC[-1],2)", 1, 3, "ROUND(B1,2)")]
     [InlineData("COUNT(RC)", 2, 2, "COUNT(B2)")]
-    // An R/C that is part of a longer identifier must not be converted
-    [InlineData("FooR1C1", 1, 1, "FooR1C1")]
-    // Malformed references are passed through unchanged
-    [InlineData("R[1", 3, 2, "R[1")]
-    [InlineData("RC[", 3, 2, "RC[")]
-    public static void R1C1FormulaConverter_ToA1_DoesNotConvertNonReferences(string formula, int row, int column, string expected)
+    public static void R1C1FormulaConverter_ToA1_WithinExpression(string formula, int row, int column, string expected)
     {
         // Act
-        var actual = R1C1FormulaConverter.ToA1(formula, row, column);
+        var result = R1C1FormulaConverter.ToA1(formula, row, column);
 
         // Assert
-        Assert.Equal(expected, actual);
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData("")]
+    // Quoted text that looks like references must not be converted
+    [InlineData("\"RC[-1]\"")]
+    [InlineData("\"R1C1\"")]
+    // Escaped double quotes inside a string literal
+    [InlineData("\"Total \"\"RC\"\" here\"")]
+    // Unterminated string literal is left as-is
+    [InlineData("\"unterminated")]
+    // An R/C that is part of a longer identifier must not be converted
+    [InlineData("FooR1C1")]
+    // Malformed references are passed through unchanged
+    [InlineData("R[1")]
+    [InlineData("RC[")]
+    public static void R1C1FormulaConverter_ToA1_DoesNotConvertNonReferences(string formula)
+    {
+        // Act
+        var actual = R1C1FormulaConverter.ToA1(formula, 3, 3);
+
+        // Assert
+        Assert.Equal(formula, actual);
     }
 
     [Theory]

@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <GlobalPackageReference Include="DotNetProjectFile.Analyzers" Version="1.15.1" />
-    <GlobalPackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.8.2-beta.1" />
+    <GlobalPackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.9.0-beta.4" />
     <GlobalPackageReference Include="Meziantou.Analyzer" Version="3.0.117" />
     <GlobalPackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" />
     <GlobalPackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="18.7.23" />
