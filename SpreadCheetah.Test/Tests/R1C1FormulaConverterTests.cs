@@ -60,7 +60,7 @@ public static class R1C1FormulaConverterTests
     // A reference followed by ':' but not by another reference is not turned into a range
     [InlineData("R1C1:", 1, 1, "$A$1:")]
     [InlineData("R1C1:foo", 1, 1, "$A$1:foo")]
-    // Function names and identifiers containing R/C must not be converted
+    // Function names must not be converted, but arguments should be converted
     [InlineData("ROUND(RC[-1],2)", 1, 3, "ROUND(B1,2)")]
     [InlineData("COUNT(RC)", 2, 2, "COUNT(B2)")]
     public static void R1C1FormulaConverter_ToA1_WithinExpression(string formula, int row, int column, string expected)
