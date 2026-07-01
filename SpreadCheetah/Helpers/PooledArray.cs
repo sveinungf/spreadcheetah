@@ -45,7 +45,7 @@ internal readonly struct PooledArray<T> : IDisposable
         }
     }
 
-    public static async ValueTask<PooledArray<byte>> CreateAsync(Stream stream, int maxBytesToRead, CancellationToken token)
+    public static async ValueTask<PooledArray<byte>> CreateFromStreamAsync(Stream stream, int maxBytesToRead, CancellationToken token)
     {
         var array = ArrayPool<byte>.Shared.Rent(maxBytesToRead);
 

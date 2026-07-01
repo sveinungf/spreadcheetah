@@ -8,7 +8,7 @@
     <GlobalPackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.8.2-beta.1" />
     <GlobalPackageReference Include="Meziantou.Analyzer" Version="3.0.117" />
     <GlobalPackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" />
-    <GlobalPackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15" />
+    <GlobalPackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="18.7.23" />
     <GlobalPackageReference Include="PrimaryConstructorAnalyzer" Version="1.0.6" />
     <GlobalPackageReference Include="Roslynator.Analyzers" Version="4.15.0" />
     <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.27.0.140913" />
