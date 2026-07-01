@@ -32,10 +32,7 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
             if (csharpVersion >= LanguageVersion.CSharp12)
                 return;
 
-            // TODO: Only report this diagnostic if the user is using the [WorksheetRow] attribute or [WorksheetRowContext] base class.
-
-            var diagnostic = Diagnostics.UseNewerCsharpVersion(Location.None);
-            context.ReportDiagnostic(diagnostic);
+            context.RegisterSymbolAction(EmitUseNewerCsharpVersionWarning, SymbolKind.NamedType);
         });
 
         context.RegisterSymbolAction(AnalyzeContextType, SymbolKind.NamedType);
@@ -43,15 +40,21 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
         context.RegisterSymbolAction(AnalyzeRowTypeProperty, SymbolKind.Property);
     }
 
+    private static void EmitUseNewerCsharpVersionWarning(SymbolAnalysisContext context)
+    {
+        if (!context.Symbol.IsRowContextClass)
+            return;
+
+        var location = context.Symbol.Locations.FirstOrDefault() ?? Location.None;
+        var diagnostic = Diagnostics.UseNewerCsharpVersion(location);
+        context.ReportDiagnostic(diagnostic);
+    }
+
     private static void AnalyzeContextType(SymbolAnalysisContext context)
     {
-        if (context.Symbol is not INamedTypeSymbol type)
+        if (!context.Symbol.IsRowContextClass)
             return;
-        if (type is not { IsStatic: false, BaseType: { } baseType })
-            return;
-        if (!"SpreadCheetah.SourceGeneration.WorksheetRowContext".Equals(baseType.ToDisplayString(), StringComparison.Ordinal))
-            return;
-        if (type.GetAttributes() is { Length: 0 } attributes)
+        if (context.Symbol.GetAttributes() is { Length: 0 } attributes)
             return;
 
         var suppressWarnings = false;

@@ -162,7 +162,7 @@ internal static class Diagnostics
     private static readonly DiagnosticDescriptor UseNewerCsharpVersionDescriptor = new(
         id: "SPCH1013",
         title: "Use a newer C# version",
-        messageFormat: "The SpreadCheetah source generator will soon require C# 12 or later. Update the C# version now to prevent issues in the future.",
+        messageFormat: "The SpreadCheetah source generator will soon require C# 12 or later. Update the C# version in your project file now to prevent issues in the future.",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
