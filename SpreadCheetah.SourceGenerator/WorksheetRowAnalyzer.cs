@@ -28,8 +28,7 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
                 .OfType<CSharpParseOptions>()
                 .FirstOrDefault();
 
-            var csharpVersion = csharpParseOptions?.LanguageVersion;
-            if (csharpVersion >= LanguageVersion.CSharp12)
+            if (csharpParseOptions is { LanguageVersion: >= LanguageVersion.CSharp12 })
                 return;
 
             context.RegisterSymbolAction(EmitUseNewerCsharpVersionWarning, SymbolKind.NamedType);
@@ -45,7 +44,7 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
         if (!context.Symbol.IsRowContextClass)
             return;
 
-        var location = context.Symbol.Locations.FirstOrDefault() ?? Location.None;
+        var location = context.Symbol.Locations.FirstOrDefault();
         var diagnostic = Diagnostics.UseNewerCsharpVersion(location);
         context.ReportDiagnostic(diagnostic);
     }
