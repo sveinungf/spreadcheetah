@@ -4,7 +4,7 @@
     <CentralPackageVersionOverrideEnabled>false</CentralPackageVersionOverrideEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <GlobalPackageReference Include="DotNetProjectFile.Analyzers" Version="1.14.1" />
+    <GlobalPackageReference Include="DotNetProjectFile.Analyzers" Version="1.15.1" />
     <GlobalPackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.8.2-beta.1" />
     <GlobalPackageReference Include="Meziantou.Analyzer" Version="3.0.117" />
     <GlobalPackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" />
