@@ -10,7 +10,7 @@
     <!-- NuGet package -->
     <IsPackable>true</IsPackable>
     <PackageId>SpreadCheetah</PackageId>
-    <Version>1.27.0</Version>
+    <Version>1.28.0</Version>
     <Authors>sveinungf</Authors>
     <Copyright>Copyright (c) 2020-present Sveinung</Copyright>
     <Description>SpreadCheetah is a high-performance .NET library for generating spreadsheet (Microsoft Excel XLSX) files.</Description>
@@ -43,7 +43,7 @@
     <ApiCompatEnableRuleAttributesMustMatch>true</ApiCompatEnableRuleAttributesMustMatch>
     <ApiCompatEnableRuleCannotChangeParameterName>true</ApiCompatEnableRuleCannotChangeParameterName>
     <ApiCompatGenerateSuppressionFile>true</ApiCompatGenerateSuppressionFile>
-    <PackageValidationBaselineVersion>1.26.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.27.0</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>

@@ -18,5 +18,12 @@ internal static class NamedTypeSymbolExtensions
                 }
             }
         };
+
+        public bool IsWorksheetRowContextBaseClass => symbol is
+        {
+            IsStatic: false,
+            Name: "WorksheetRowContext",
+            HasSpreadCheetahSrcGenNamespace: true
+        };
     }
 }

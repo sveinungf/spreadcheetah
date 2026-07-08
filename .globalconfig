@@ -7,7 +7,7 @@ dotnet_diagnostic.CA1014.severity = none
 ###############################
 # .NET project file analyzers #
 ###############################
-# Proj0003: Define usings explicit
+# Proj0003: Define usings explicitly
 dotnet_diagnostic.Proj0003.severity = none
 
 # Proj0010: Define the project output type explicitly
@@ -18,6 +18,9 @@ dotnet_diagnostic.Proj0042.severity = none
 
 # Proj0043: Use lock files
 dotnet_diagnostic.Proj0043.severity = none
+
+# Proj0052: Prefer attributes over elements
+dotnet_diagnostic.Proj0052.severity = none
 
 # Proj0213: Define the project icon URL explicitly
 dotnet_diagnostic.Proj0213.severity = none

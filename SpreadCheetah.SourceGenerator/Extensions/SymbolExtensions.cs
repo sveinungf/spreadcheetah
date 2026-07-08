@@ -8,6 +8,15 @@ namespace SpreadCheetah.SourceGenerator.Extensions;
 
 internal static class SymbolExtensions
 {
+    extension(ISymbol symbol)
+    {
+        public bool IsRowContextClass => symbol is INamedTypeSymbol
+        {
+            IsStatic: false,
+            BaseType.IsWorksheetRowContextBaseClass: true
+        };
+    }
+
     public static bool IsSupportedType(this ITypeSymbol type)
     {
         return type.IsSupportedValueType()

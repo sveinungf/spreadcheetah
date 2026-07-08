@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using SpreadCheetah.SourceGeneration;
@@ -8,9 +9,10 @@ namespace SpreadCheetah.SourceGenerator.SnapshotTest.Helpers;
 
 internal static class AnalyzerTest
 {
-    public static CSharpAnalyzerTest<WorksheetRowAnalyzer, DefaultVerifier> CreateContext()
+    public static CSharpAnalyzerTest<WorksheetRowAnalyzer, DefaultVerifier> CreateContext(
+        LanguageVersion? languageVersion = null)
     {
-        return new CSharpAnalyzerTest<WorksheetRowAnalyzer, DefaultVerifier>
+        var result = new CSharpAnalyzerTest<WorksheetRowAnalyzer, DefaultVerifier>
         {
             TestState =
             {
@@ -21,5 +23,16 @@ internal static class AnalyzerTest
                 }
             }
         };
+
+        if (languageVersion is { } version)
+        {
+            result.SolutionTransforms.Add((solution, projectId) =>
+            {
+                var newOptions = new CSharpParseOptions(version);
+                return solution.WithProjectParseOptions(projectId, newOptions);
+            });
+        }
+
+        return result;
     }
 }

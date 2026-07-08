@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp;
 using SpreadCheetah.SourceGenerator.SnapshotTest.Helpers;
 using SpreadCheetah.SourceGenerators;
 
@@ -170,5 +170,30 @@ public class ContextTests
         var sourceText = sourceTree.GetText(Token);
         var span = sourceText.ToString(expectedWarning.Location.SourceSpan);
         Assert.Equal("MyContext", span);
+    }
+
+    [Fact]
+    public Task Context_CsharpVersion11()
+    {
+        // Arrange
+        var context = AnalyzerTest.CreateContext(LanguageVersion.CSharp11);
+        context.TestCode = """
+            using SpreadCheetah.SourceGeneration;
+
+            namespace MyNamespace;
+
+            public class MyClass
+            {
+                public string? Name { get; set; }
+            }
+            
+            [WorksheetRow(typeof(MyClass))]
+            public partial class {|SPCH1013:MyGenRowContext|} : WorksheetRowContext
+            {
+            }
+            """;
+
+        // Act & Assert
+        return context.RunAsync(Token);
     }
 }
