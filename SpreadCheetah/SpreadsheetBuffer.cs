@@ -64,7 +64,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         [InterpolatedStringHandlerArgument("", nameof(start))] ref ResumableTryWriteInterpolatedStringHandler handler)
     {
         written = handler.GetProgress();
-        Advance(handler._pos);
+        Advance(handler.Written);
         return handler._isSuccess;
     }
 
@@ -82,7 +82,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         private SpreadsheetBuffer _buffer;
         private Span<byte> _destination;
 
-        public readonly int Written => _isSuccess ? _initialLength - GetSpan().Length : 0;
+        public readonly int Written => _initialLength - GetSpan().Length;
 
         public ResumableTryWriteInterpolatedStringHandler(
             int literalLength,
