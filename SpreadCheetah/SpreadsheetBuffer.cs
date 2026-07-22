@@ -18,7 +18,6 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
     public void Dispose() => ArrayPool<byte>.Shared.Return(_buffer, true);
     private Span<byte> GetSpan() => _buffer.AsSpan(Index);
-    private Span<byte> GetSpan(int start) => _buffer.AsSpan(Index + start);
     public int Index { get; private set; }
     public void Advance(int bytes) => Index += bytes;
 
@@ -143,11 +142,10 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (remaining.IsEmpty)
                 return true;
 
-            var destination = _destination;
-            if (destination.Length <= remaining.Length)
+            if (_destination.Length <= remaining.Length)
                 return Fail();
 
-            if (XmlUtility.TryXmlEncodeToUtf8(remaining, destination, out var charsRead, out var bytesWritten))
+            if (XmlUtility.TryXmlEncodeToUtf8(remaining, _destination, out var charsRead, out var bytesWritten))
             {
                 _destination = _destination[bytesWritten..];
                 return true;
@@ -320,18 +318,17 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(Color color)
         {
-            var span = _destination;
-            if (span.Length >= 8)
+            if (_destination.Length >= 8)
             {
                 var format = new StandardFormat('X', 2);
-                Utf8Formatter.TryFormat(color.A, span, out _, format);
-                span = span.Slice(2);
-                Utf8Formatter.TryFormat(color.R, span, out _, format);
-                span = span.Slice(2);
-                Utf8Formatter.TryFormat(color.G, span, out _, format);
-                span = span.Slice(2);
-                Utf8Formatter.TryFormat(color.B, span, out _, format);
-                _destination = span.Slice(2);
+                Utf8Formatter.TryFormat(color.A, _destination, out _, format);
+                _destination = _destination[2..];
+                Utf8Formatter.TryFormat(color.R, _destination, out _, format);
+                _destination = _destination[2..];
+                Utf8Formatter.TryFormat(color.G, _destination, out _, format);
+                _destination = _destination[2..];
+                Utf8Formatter.TryFormat(color.B, _destination, out _, format);
+                _destination = _destination[2..];
                 return true;
             }
 
