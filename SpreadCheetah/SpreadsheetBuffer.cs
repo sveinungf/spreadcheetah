@@ -70,18 +70,35 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
     [InterpolatedStringHandler]
 #pragma warning disable CS9113 // Parameter is unread.
-    public ref struct ResumableTryWriteInterpolatedStringHandler(
-        int literalLength,
-        int formattedCount,
-        SpreadsheetBuffer buffer,
-        BufferWriteProgress start)
+    public ref struct ResumableTryWriteInterpolatedStringHandler
 #pragma warning restore CS9113 // Parameter is unread.
     {
-        private readonly int _startingStep = start.Step;
+        private readonly int _initialLength;
+        private readonly int _startingStep;
         private int _step;
-        private int _index = start.Index;
+        private int _index;
         internal int _pos;
         internal bool _isSuccess = true;
+        private SpreadsheetBuffer _buffer;
+        private Span<byte> _destination;
+
+        public readonly int Written => _isSuccess ? _initialLength - GetSpan().Length : 0;
+
+        public ResumableTryWriteInterpolatedStringHandler(
+            int literalLength,
+            int formattedCount,
+            SpreadsheetBuffer buffer,
+            BufferWriteProgress start)
+        {
+            _ = literalLength;
+            _ = formattedCount;
+
+            _destination = buffer.GetSpan();
+            _initialLength = _destination.Length;
+            _startingStep = start.Step;
+            _index = start.Index;
+            _buffer = buffer;
+        }
 
         public readonly BufferWriteProgress GetProgress() => new()
         {
@@ -89,7 +106,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             Index = _index
         };
 
-        private readonly Span<byte> GetSpan() => buffer.GetSpan(_pos);
+        private readonly Span<byte> GetSpan() => _buffer.GetSpan(_pos);
 
         [ExcludeFromCodeCoverage]
         public readonly bool AppendLiteral(string value)
