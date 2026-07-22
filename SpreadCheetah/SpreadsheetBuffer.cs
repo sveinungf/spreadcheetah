@@ -68,123 +68,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
     }
 
     [InterpolatedStringHandler]
-#pragma warning disable CS9113 // Parameter is unread.
-    public ref struct ResumableTryWriteInterpolatedStringHandler
-#pragma warning restore CS9113 // Parameter is unread.
-    {
-        private readonly int _initialLength;
-        private readonly int _startingStep;
-        private int _step;
-        private int _index;
-        internal bool _isSuccess = true;
-        private Span<byte> _destination;
-
-        public readonly int Written => _initialLength - _destination.Length;
-
-        public ResumableTryWriteInterpolatedStringHandler(
-            int literalLength,
-            int formattedCount,
-            SpreadsheetBuffer buffer,
-            BufferWriteProgress start)
-        {
-            _ = literalLength;
-            _ = formattedCount;
-
-            _destination = buffer.GetSpan();
-            _initialLength = _destination.Length;
-            _startingStep = start.Step;
-            _index = start.Index;
-        }
-
-        public readonly BufferWriteProgress GetProgress() => new()
-        {
-            Step = _step - 1,
-            Index = _index
-        };
-
-        [ExcludeFromCodeCoverage]
-        public readonly bool AppendLiteral(string value)
-        {
-            _ = _isSuccess;
-            _ = value;
-            throw new InvalidOperationException("Use ReadOnlySpan<byte> instead of string literals");
-        }
-
-        public bool AppendFormatted(int value)
-        {
-            if (_step++ < _startingStep)
-                return true;
-
-            return _isSuccess = Formatter.TryFormat(value, ref _destination);
-        }
-
-        [ExcludeFromCodeCoverage]
-        public bool AppendFormatted<T>(T value)
-        {
-            Debug.Fail("Create non-generic overloads to avoid allocations when running on .NET Framework");
-
-            var s = value is IFormattable f
-                ? f.ToString(null, CultureInfo.InvariantCulture)
-                : value?.ToString();
-
-            return AppendFormatted(s);
-        }
-
-        public bool AppendFormatted(string? value) => AppendFormatted(value.AsSpan());
-
-        public bool AppendFormatted(scoped ReadOnlySpan<char> value)
-        {
-            if (_step++ < _startingStep)
-                return true;
-
-            var remaining = value.Slice(_index);
-
-            if (remaining.IsEmpty)
-                return true;
-
-            if (_destination.Length <= remaining.Length)
-                return Fail();
-
-            if (XmlUtility.TryXmlEncodeToUtf8(remaining, _destination, out var charsRead, out var bytesWritten))
-            {
-                _destination = _destination[bytesWritten..];
-                return true;
-            }
-
-            if (charsRead > 0)
-            {
-                _destination = _destination[bytesWritten..];
-                _index += charsRead;
-            }
-
-            return Fail();
-        }
-
-        public bool AppendFormatted(scoped ReadOnlySpan<byte> utf8Value)
-        {
-            if (_step++ < _startingStep)
-                return true;
-
-            if (utf8Value.TryCopyTo(_destination))
-            {
-                _destination = _destination[utf8Value.Length..];
-                return true;
-            }
-
-            return Fail();
-        }
-
-        private bool Fail()
-        {
-            _isSuccess = false;
-            return false;
-        }
-    }
-
-    [InterpolatedStringHandler]
-#pragma warning disable CS9113 // Parameter is unread.
     public ref struct TryWriteInterpolatedStringHandler
-#pragma warning restore CS9113 // Parameter is unread.
     {
         private readonly int _initialLength;
         private Span<byte> _destination;
@@ -192,11 +76,8 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public readonly int Written => _isSuccess ? _initialLength - _destination.Length : 0;
 
-        public TryWriteInterpolatedStringHandler(int literalLength, int formattedCount, SpreadsheetBuffer buffer)
+        public TryWriteInterpolatedStringHandler(int _, int _2, SpreadsheetBuffer buffer)
         {
-            _ = literalLength;
-            _ = formattedCount;
-
             _destination = buffer.GetSpan();
             _initialLength = _destination.Length;
         }
@@ -225,6 +106,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         }
 
         public bool AppendFormatted(int value) => Formatter.TryFormat(value, ref _destination) || Fail();
+        public bool AppendFormatted(scoped ReadOnlySpan<byte> value) => Formatter.TryFormat(value, ref _destination) || Fail();
 
         public bool AppendFormatted(uint value)
         {
@@ -509,18 +391,6 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             return true;
         }
 
-        [ExcludeFromCodeCoverage]
-        public bool AppendFormatted<T>(T value)
-        {
-            Debug.Fail("Create non-generic overloads to avoid allocations when running on .NET Framework");
-
-            var s = value is IFormattable f
-                ? f.ToString(null, CultureInfo.InvariantCulture)
-                : value?.ToString();
-
-            return AppendFormatted(s);
-        }
-
         public bool AppendFormatted(string? value) => AppendFormatted(value.AsSpan());
 
         public bool AppendFormatted(scoped ReadOnlySpan<char> value)
@@ -532,17 +402,6 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
                 XmlUtility.TryXmlEncodeToUtf8(value, _destination, out _, out var bytesWritten))
             {
                 _destination = _destination[bytesWritten..];
-                return true;
-            }
-
-            return Fail();
-        }
-
-        public bool AppendFormatted(scoped ReadOnlySpan<byte> utf8Value)
-        {
-            if (utf8Value.TryCopyTo(_destination))
-            {
-                _destination = _destination[utf8Value.Length..];
                 return true;
             }
 
@@ -567,6 +426,89 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             return false;
         }
     }
+
+    [InterpolatedStringHandler]
+#pragma warning disable CS9113 // Parameter is unread.
+    public ref struct ResumableTryWriteInterpolatedStringHandler
+#pragma warning restore CS9113 // Parameter is unread.
+    {
+        private readonly int _initialLength;
+        private readonly int _startingStep;
+        private int _step;
+        private int _index;
+        internal bool _isSuccess = true;
+        private Span<byte> _destination;
+
+        public readonly int Written => _initialLength - _destination.Length;
+
+        public ResumableTryWriteInterpolatedStringHandler(int _, int _2, SpreadsheetBuffer buffer, BufferWriteProgress start)
+        {
+            _destination = buffer.GetSpan();
+            _initialLength = _destination.Length;
+            _startingStep = start.Step;
+            _index = start.Index;
+        }
+
+        public readonly BufferWriteProgress GetProgress() => new()
+        {
+            Step = _step - 1,
+            Index = _index
+        };
+
+        [ExcludeFromCodeCoverage]
+        public readonly bool AppendLiteral(string value)
+        {
+            _ = _isSuccess;
+            _ = value;
+            throw new InvalidOperationException("Use ReadOnlySpan<byte> instead of string literals");
+        }
+
+        public bool AppendFormatted(int value)
+        {
+            if (_step++ < _startingStep)
+                return true;
+
+            return _isSuccess = Formatter.TryFormat(value, ref _destination);
+        }
+
+        public bool AppendFormatted(scoped ReadOnlySpan<byte> value)
+        {
+            if (_step++ < _startingStep)
+                return true;
+
+            return _isSuccess = Formatter.TryFormat(value, ref _destination);
+        }
+
+        public bool AppendFormatted(string? value) => AppendFormatted(value.AsSpan());
+
+        public bool AppendFormatted(scoped ReadOnlySpan<char> value)
+        {
+            if (_step++ < _startingStep)
+                return true;
+
+            var remaining = value.Slice(_index);
+
+            if (remaining.IsEmpty)
+                return true;
+
+            if (_destination.Length <= remaining.Length)
+                return _isSuccess = false;
+
+            if (XmlUtility.TryXmlEncodeToUtf8(remaining, _destination, out var charsRead, out var bytesWritten))
+            {
+                _destination = _destination[bytesWritten..];
+                return true;
+            }
+
+            if (charsRead > 0)
+            {
+                _destination = _destination[bytesWritten..];
+                _index += charsRead;
+            }
+
+            return _isSuccess = false;
+        }
+    }
 }
 
 file static class Formatter
@@ -581,5 +523,16 @@ file static class Formatter
 #endif
         destination = destination[bytesWritten..];
         return success;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryFormat(scoped ReadOnlySpan<byte> utf8Value, ref Span<byte> destination)
+    {
+        if (utf8Value.TryCopyTo(destination))
+        {
+            destination = destination[utf8Value.Length..];
+            return true;
+        }
+        return false;
     }
 }
