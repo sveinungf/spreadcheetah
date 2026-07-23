@@ -10,7 +10,7 @@ internal struct NumberFormatXmlPart(
 
     public bool TryWrite(SpreadsheetBuffer buffer)
     {
-        return buffer.TryWrite2(
+        return buffer.TryWrite(
             _progress, out _progress,
             $"{"<numFmt numFmtId=\""u8}{id}{"\" formatCode=\""u8}{format}{"\"/>"u8}");
     }

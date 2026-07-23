@@ -55,7 +55,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
         return handler._isSuccess;
     }
 
-    public bool TryWrite2(
+    public bool TryWrite(
 #pragma warning disable RCS1163, IDE0060 // Unused parameter
         BufferWriteProgress start,
 #pragma warning restore RCS1163, IDE0060 // Unused parameter
