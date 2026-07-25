@@ -156,7 +156,7 @@ dotnet_diagnostic.IDE0301.severity = warning
 # IDE0305: Use collection expression for fluent
 dotnet_diagnostic.IDE0305.severity = warning
 
-[UniqueValuesFormatRuleBuilder.cs]
+[{DuplicateValuesFormatRuleBuilder.cs,UniqueValuesFormatRuleBuilder.cs}]
 # CA1822: Mark members as static
 dotnet_diagnostic.CA1822.severity = none
 
