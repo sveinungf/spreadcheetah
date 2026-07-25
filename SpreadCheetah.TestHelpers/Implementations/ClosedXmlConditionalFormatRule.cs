@@ -3,7 +3,8 @@ using SpreadCheetah.TestHelpers.Interfaces;
 
 namespace SpreadCheetah.TestHelpers.Implementations;
 
-internal sealed class ClosedXmlConditionalFormatRule(IXLConditionalFormat conditionalFormat)
+internal sealed class ClosedXmlConditionalFormatRule(
+    IXLConditionalFormat conditionalFormat)
     : IConditionalFormatRule
 {
     public string CellRangeReference
@@ -17,6 +18,7 @@ internal sealed class ClosedXmlConditionalFormatRule(IXLConditionalFormat condit
         }
     }
 
+    public bool IsDuplicateValuesRule => conditionalFormat.ConditionalFormatType is XLConditionalFormatType.IsDuplicate;
     public bool IsUniqueValuesRule => conditionalFormat.ConditionalFormatType is XLConditionalFormatType.IsUnique;
 
     public IStyle Style => ClosedXmlStyle.Create(conditionalFormat.Style);

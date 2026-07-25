@@ -8,6 +8,11 @@ namespace SpreadCheetah.ConditionalFormatting;
 public abstract class ConditionalFormatRule
 {
     /// <summary>
+    /// Creates a conditional format rule that applies to cells with duplicate values.
+    /// </summary>
+    public static DuplicateValuesFormatRuleBuilder DuplicateValues() => new();
+
+    /// <summary>
     /// Creates a conditional format rule that applies to cells with unique values.
     /// </summary>
     public static UniqueValuesFormatRuleBuilder UniqueValues() => new();

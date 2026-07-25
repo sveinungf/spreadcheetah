@@ -15,6 +15,30 @@ public class SpreadsheetConditionalFormattingTests
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
     [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_DuplicateValuesRule()
+    {
+        // Arrange
+        const string cellReference = "A1:A10";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var fillColor = Color.FromArgb(255, 255, 0, 0);
+        var style = new ConditionalFormatStyle { Fill = { Color = fillColor } };
+
+        // Act
+        var rule = ConditionalFormatRule.DuplicateValues().WithStyle(style);
+        spreadsheet.AddConditionalFormatRule(cellReference, rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRule = Assert.Single(sheet.ConditionalFormatRules);
+        Assert.True(actualRule.IsDuplicateValuesRule);
+        Assert.Equal(cellReference, actualRule.CellRangeReference);
+        Assert.Equal(fillColor, actualRule.Style.Fill.Color);
+    }
+
+    [Fact]
     public async Task Spreadsheet_ConditionalFormatting_UniqueValuesRule()
     {
         // Arrange
@@ -39,6 +63,33 @@ public class SpreadsheetConditionalFormattingTests
     }
 
     [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_DuplicateAndUniqueValuesRulesForSameCellRange()
+    {
+        // Arrange
+        const string cellReference = "A1:A10";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style1 = new ConditionalFormatStyle { Font = { Bold = true } };
+        var style2 = new ConditionalFormatStyle { Font = { Italic = true } };
+
+        // Act
+        var rule1 = ConditionalFormatRule.DuplicateValues().WithStyle(style1);
+        var rule2 = ConditionalFormatRule.UniqueValues().WithStyle(style2);
+        spreadsheet.AddConditionalFormatRule(cellReference, rule1);
+        spreadsheet.AddConditionalFormatRule(cellReference, rule2);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRules = sheet.ConditionalFormatRules;
+        var actualDuplicateValuesRule = Assert.Single(actualRules, x => x.IsDuplicateValuesRule);
+        Assert.Equal(style1.Font.Bold, actualDuplicateValuesRule.Style.Font.Bold);
+        var actualUniqueValuesRule = Assert.Single(actualRules, x => x.IsUniqueValuesRule);
+        Assert.Equal(style2.Font.Italic, actualUniqueValuesRule.Style.Font.Italic);
+    }
+
+    [Fact]
     public async Task Spreadsheet_ConditionalFormatting_UniqueValuesRuleForSingleCell()
     {
         // Arrange
@@ -60,6 +111,33 @@ public class SpreadsheetConditionalFormattingTests
         Assert.True(actualRule.IsUniqueValuesRule);
         Assert.Equal(cellReference, actualRule.CellRangeReference);
         Assert.Equal(fillColor, actualRule.Style.Fill.Color);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_ManyDuplicateValuesRules()
+    {
+        // Arrange
+        const int count = SpreadsheetConstants.MaxNumberOfConditionalFormatRules;
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new ConditionalFormatStyle { Fill = { Color = Color.Red } };
+
+        // Act
+        var rule = ConditionalFormatRule.DuplicateValues().WithStyle(style);
+
+        for (var i = 0; i < count; i++)
+        {
+            var cellReference = $"A{i + 1}:B{i + 1}";
+            spreadsheet.AddConditionalFormatRule(cellReference, rule);
+        }
+
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(count, sheet.ConditionalFormatRules.Count);
+        Assert.All(sheet.ConditionalFormatRules, x => Assert.True(x.IsDuplicateValuesRule));
     }
 
     [Fact]
@@ -186,7 +264,7 @@ public class SpreadsheetConditionalFormattingTests
     }
 
     [Fact]
-    public async Task Spreadsheet_ConditionalFormatting_TooManyUniqueValuesRules()
+    public async Task Spreadsheet_ConditionalFormatting_TooManyRules()
     {
         // Arrange
         using var stream = new MemoryStream();

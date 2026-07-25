@@ -48,7 +48,8 @@ string: "", \)",
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(expectedValues.Select(StringHelpers.ReplaceLineEndings), sheet.Row(1).Cells.StringValues().Select(StringHelpers.ReplaceLineEndings!));
+        var actualValues = sheet.Row(1).Cells.StringValues().Select(x => StringHelpers.ReplaceLineEndings(x ?? ""));
+        Assert.Equal(expectedValues.Select(StringHelpers.ReplaceLineEndings), actualValues);
     }
 
     [Fact]
