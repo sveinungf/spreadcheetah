@@ -46,6 +46,9 @@ dotnet_diagnostic.Proj0400.severity = none
 # Proj0451: Test projects should not be publishable
 dotnet_diagnostic.Proj0451.severity = none
 
+# Proj0452: Test projects require Microsoft.NET.Test.Sdk (false positive when using MTP)
+dotnet_diagnostic.Proj0452.severity = none
+
 # Proj1001: Use analyzers for packages (gives false positives)
 dotnet_diagnostic.Proj1001.severity = none
 
