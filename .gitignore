@@ -353,3 +353,5 @@ MigrationBackup/
 
 # Snapshot tests with Verify
 *.received.*
+
+opencode.jsonc
