@@ -2,9 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    
-    <!-- https://learn.microsoft.com/en-us/dotnet/core/compatibility/sdk/8.0/trimming-unsupported-targetframework -->
-    <IsTrimmable Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">true</IsTrimmable>
     <IsPackable>false</IsPackable>
 
     <!-- Source Generator -->
@@ -17,10 +14,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
     <PackageReference Include="Polyfill" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="$(OutputPath)/$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
 </Project>
