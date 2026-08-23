@@ -47,7 +47,7 @@ public class ParseColumnName
             return false;
 
         var pow = 1;
-        for (int i = columnName.Length - 1; i >= 0; i--)
+        for (var i = columnName.Length - 1; i >= 0; i--)
         {
             var letter = columnName[i];
             if (letter is < 'A' or > 'Z')

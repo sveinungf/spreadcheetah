@@ -34,9 +34,9 @@ internal struct HashCode
     /// <returns>A random seed.</returns>
     private static uint GenerateGlobalSeed()
     {
-        byte[] bytes = new byte[4];
+        var bytes = new byte[4];
 
-        using (RandomNumberGenerator generator = RandomNumberGenerator.Create())
+        using (var generator = RandomNumberGenerator.Create())
         {
             generator.GetBytes(bytes);
         }
@@ -101,9 +101,9 @@ internal struct HashCode
 
     private void Add(int value)
     {
-        uint val = (uint)value;
-        uint previousLength = length++;
-        uint position = previousLength % 4;
+        var val = (uint)value;
+        var previousLength = length++;
+        var position = previousLength % 4;
 
         if (position == 0)
         {
@@ -137,9 +137,9 @@ internal struct HashCode
     /// <returns>The resulting hashcode from the current instance.</returns>
     public readonly int ToHashCode()
     {
-        uint len = this.length;
-        uint position = len % 4;
-        uint hash = len < 4 ? MixEmptyState() : MixState(v1, v2, v3, v4);
+        var len = length;
+        var position = len % 4;
+        var hash = len < 4 ? MixEmptyState() : MixState(v1, v2, v3, v4);
 
         hash += len * 4;
 

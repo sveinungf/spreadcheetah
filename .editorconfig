@@ -126,9 +126,9 @@ csharp_style_prefer_range_operator = true:suggestion
 csharp_style_prefer_top_level_statements = true:silent
 csharp_style_throw_expression = true:suggestion
 csharp_style_unused_value_expression_statement_preference = discard_variable:none
-csharp_style_var_elsewhere = true:suggestion
-csharp_style_var_for_built_in_types = true:suggestion
-csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = true:warning
+csharp_style_var_for_built_in_types = true:warning
+csharp_style_var_when_type_is_apparent = true:warning
 csharp_using_directive_placement = outside_namespace:warning
 
 ###############################
@@ -272,10 +272,16 @@ dotnet_diagnostic.MA0076.severity = none
 [*.cs]
 # RCS1036: Remove unnecessary blank line
 dotnet_diagnostic.RCS1036.severity = warning
+# RCS1089: Use --/++ operator instead of assignment
+dotnet_diagnostic.RCS1089.severity = warning
+# RCS1134: Remove redundant statement
+dotnet_diagnostic.RCS1134.severity = warning
 # RCS1163: Unused parameter
 dotnet_diagnostic.RCS1163.severity = warning
 # RCS1205: Order named arguments according to the order of parameters
 dotnet_diagnostic.RCS1205.severity = none
+# RCS1251: Remove unnecessary braces
+dotnet_diagnostic.RCS1251.severity = warning
 
 [WorksheetRowAttribute.cs]
 # RCS1163: Unused parameter

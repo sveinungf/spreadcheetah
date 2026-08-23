@@ -246,7 +246,6 @@ internal static class R1C1FormulaConverter
         {
             TryReadNumber(s, ref j, out value);
             relative = false;
-            return true;
         }
 
         return true;
