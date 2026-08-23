@@ -49,6 +49,9 @@ dotnet_diagnostic.Proj0451.severity = none
 # Proj1001: Use analyzers for packages (gives false positives)
 dotnet_diagnostic.Proj1001.severity = none
 
+# Proj1101: Use stable versions of packages (the ErrorProne packages don't yet have stable versions)
+dotnet_diagnostic.Proj1101.severity = none
+
 # Proj1300: Avoid project references to executables
 dotnet_diagnostic.Proj1300.severity = none
 

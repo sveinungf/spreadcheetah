@@ -249,6 +249,8 @@ dotnet_diagnostic.MA0154.severity = warning
 dotnet_diagnostic.MA0053.severity = none
 
 [{*Test,*TestHelpers,*.Benchmark}/**.cs]
+# MA0002: IEqualityComparer<string> or IComparer<string> is missing
+dotnet_diagnostic.MA0002.severity = none
 # MA0004: Use .ConfigureAwait(false)
 dotnet_diagnostic.MA0004.severity = none
 # MA0011: IFormatProvider is missing
