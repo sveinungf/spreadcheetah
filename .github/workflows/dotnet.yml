@@ -28,7 +28,7 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Test
-      run: dotnet test --no-build --report-trx --report-trx-filename test-results.trx
+      run: dotnet test --no-build --report-trx --coverage --coverage-output-format xml
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
       timeout-minutes: 5
