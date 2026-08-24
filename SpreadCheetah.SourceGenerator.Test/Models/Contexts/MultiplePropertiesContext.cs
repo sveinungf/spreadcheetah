@@ -9,6 +9,4 @@ namespace SpreadCheetah.SourceGenerator.Test.Models.Contexts;
 [WorksheetRow(typeof(RecordStructWithMultipleProperties))]
 [WorksheetRow(typeof(ReadOnlyStructWithMultipleProperties))]
 [WorksheetRow(typeof(ReadOnlyRecordStructWithMultipleProperties))]
-public partial class MultiplePropertiesContext : WorksheetRowContext
-{
-}
+public partial class MultiplePropertiesContext : WorksheetRowContext;

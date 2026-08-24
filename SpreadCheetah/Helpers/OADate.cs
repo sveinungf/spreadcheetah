@@ -42,9 +42,8 @@ internal readonly record struct OADate(long Ticks)
 
         var days = Math.DivRem(value, TimeSpan.TicksPerDay, out var ticksAfterMidnight);
         if (days < DaysTo1899 + 31 + 29 + 1) // Subtract 1 day if day is less than 03/01/1900
-        {
-            days -= 1;
-        }
+            days--;
+
         TryFormatLong(days - DaysTo1899, destination, out bytesWritten);
 
         if (ticksAfterMidnight != 0)

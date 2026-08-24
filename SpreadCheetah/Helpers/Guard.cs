@@ -38,7 +38,7 @@ internal static class Guard
     public static double FontSizeInRange(double size,
         [CallerArgumentExpression(nameof(size))] string? paramName = null)
     {
-        if (size < 1 || size > 409)
+        if (size is < 1 or > 409)
             ThrowHelper.FontSizeOutOfRange(paramName, size);
 
         return size;
