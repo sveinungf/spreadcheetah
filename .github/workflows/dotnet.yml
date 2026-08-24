@@ -34,6 +34,7 @@ jobs:
       timeout-minutes: 5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./TestResults/*.cobertura.xml
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action/windows@v2
       if: always()
