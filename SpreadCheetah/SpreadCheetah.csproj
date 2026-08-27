@@ -47,7 +47,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="../assets/icon-package.png" Pack="true" PackagePath="\" />
+    <None Include="../assets/icon-package.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
@@ -77,10 +77,7 @@
   <ItemGroup>
     <!-- Package the source generator in the analyzer directory of the nuget package -->
     <None Include="$(OutputPath)/netstandard2.0/SpreadCheetah.SourceGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-    <None Include="../README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
+    <None Include="../README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>
