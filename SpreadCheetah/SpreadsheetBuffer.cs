@@ -486,13 +486,13 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (_step++ < _startingStep)
                 return true;
 
+            if (_destination.IsEmpty)
+                return _isSuccess = false;
+
             var remaining = value.Slice(_index);
 
             if (remaining.IsEmpty)
                 return true;
-
-            if (_destination.Length <= remaining.Length)
-                return _isSuccess = false;
 
             if (XmlUtility.TryXmlEncodeToUtf8(remaining, _destination, out var charsRead, out var bytesWritten))
             {
