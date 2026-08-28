@@ -31,10 +31,9 @@ internal struct CommentsXml : IXmlWriter<CommentsXml>
     private readonly ReadOnlyMemory<KeyValuePair<SingleCellRelativeReference, string>> _notes;
     private readonly SpreadsheetBuffer _buffer;
     private readonly InlineXmlTags _inlineXmlTags;
-    private string? _currentXmlEncodedNote;
-    private int _currentXmlEncodedNoteIndex;
     private Element _next;
     private int _nextIndex;
+    private BufferWriteProgress _progress;
 
     private CommentsXml(
         ReadOnlyMemory<KeyValuePair<SingleCellRelativeReference, string>> notes,
@@ -71,25 +70,16 @@ internal struct CommentsXml : IXmlWriter<CommentsXml>
         for (; _nextIndex < notes.Length; ++_nextIndex)
         {
             var (cellRef, note) = notes[_nextIndex];
+            var reference = new SimpleSingleCellReference(cellRef.Column, cellRef.Row);
 
-            if (_currentXmlEncodedNote is null)
+            if (!_buffer.TryWrite(
+                    _progress, out _progress,
+                    $"{CommentStart}{reference}{_inlineXmlTags.CommentAfterRef}{note}{CommentEnd}"))
             {
-                var reference = new SimpleSingleCellReference(cellRef.Column, cellRef.Row);
-                if (!_buffer.TryWrite($"{CommentStart}{reference}{_inlineXmlTags.CommentAfterRef}"))
-                    return false;
-
-                _currentXmlEncodedNote = note;
-                _currentXmlEncodedNoteIndex = 0;
+                return false;
             }
 
-            if (!_buffer.WriteLongString(_currentXmlEncodedNote, ref _currentXmlEncodedNoteIndex))
-                return false;
-
-            if (!_buffer.TryWrite(CommentEnd))
-                return false;
-
-            _currentXmlEncodedNote = null;
-            _currentXmlEncodedNoteIndex = 0;
+            _progress = default;
         }
 
         return true;

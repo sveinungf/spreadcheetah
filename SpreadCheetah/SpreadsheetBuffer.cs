@@ -479,6 +479,22 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             return _isSuccess = Formatter.TryFormat(value, ref _destination);
         }
 
+        public bool AppendFormatted(SimpleSingleCellReference reference)
+        {
+            if (_step++ < _startingStep)
+                return true;
+
+            if (!SpreadsheetUtility.TryGetColumnNameUtf8(reference.Column, _destination, out var nameLength))
+                return _isSuccess = false;
+
+            var span = _destination[nameLength..];
+            if (!Utf8Formatter.TryFormat(reference.Row, span, out var rowLength))
+                return _isSuccess = false;
+
+            _destination = span[rowLength..];
+            return true;
+        }
+
         public bool AppendFormatted(string? value) => AppendFormatted(value.AsSpan());
 
         public bool AppendFormatted(scoped ReadOnlySpan<char> value)
