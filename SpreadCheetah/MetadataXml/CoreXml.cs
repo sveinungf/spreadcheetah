@@ -23,7 +23,7 @@ file struct CoreXmlWriter(
     : IXmlWriter<CoreXmlWriter>
 {
     private Element _next;
-    private int _currentStringIndex;
+    private BufferWriteProgress _progress;
 
     public readonly CoreXmlWriter GetEnumerator() => this;
     public bool Current { get; private set; }
@@ -33,20 +33,17 @@ file struct CoreXmlWriter(
         Current = _next switch
         {
             Element.Header => TryWriteHeader(),
-            Element.TitleStart => TryWriteTitleStart(),
-            Element.Title => TryWriteString(documentProperties.Title),
-            Element.TitleEnd => TryWriteTitleEnd(),
-            Element.SubjectStart => TryWriteSubjectStart(),
-            Element.Subject => TryWriteString(documentProperties.Subject),
-            Element.SubjectEnd => TryWriteSubjectEnd(),
-            Element.AuthorStart => TryWriteAuthorStart(),
-            Element.Author => TryWriteString(documentProperties.Author),
-            Element.AuthorEnd => TryWriteAuthorEnd(),
+            Element.Title => TryWriteTitle(),
+            Element.Subject => TryWriteSubject(),
+            Element.Author => TryWriteAuthor(),
             _ => TryWriteFooter()
         };
 
         if (Current)
+        {
+            _progress = default;
             ++_next;
+        }
 
         return _next < Element.Done;
     }
@@ -65,25 +62,34 @@ file struct CoreXmlWriter(
         return buffer.TryWrite(header);
     }
 
-    private readonly bool TryWriteTitleStart() => documentProperties.Title is null || buffer.TryWrite("<dc:title>"u8);
-    private readonly bool TryWriteTitleEnd() => documentProperties.Title is null || buffer.TryWrite("</dc:title>"u8);
-    private readonly bool TryWriteSubjectStart() => documentProperties.Subject is null || buffer.TryWrite("<dc:subject>"u8);
-    private readonly bool TryWriteSubjectEnd() => documentProperties.Subject is null || buffer.TryWrite("</dc:subject>"u8);
-    private readonly bool TryWriteAuthorStart() => documentProperties.Author is null || buffer.TryWrite("<dc:creator>"u8);
-    private readonly bool TryWriteAuthorEnd() => documentProperties.Author is null || buffer.TryWrite("</dc:creator>"u8);
-
-    private bool TryWriteString(string? value)
+    private bool TryWriteTitle()
     {
-        if (value is null)
+        if (documentProperties.Title is not { } title)
             return true;
 
-        if (buffer.WriteLongString(value, ref _currentStringIndex))
-        {
-            _currentStringIndex = 0;
-            return true;
-        }
+        return buffer.TryWrite(
+            _progress, out _progress,
+            $"{"<dc:title>"u8}{title}{"</dc:title>"u8}");
+    }
 
-        return false;
+    private bool TryWriteSubject()
+    {
+        if (documentProperties.Subject is not { } subject)
+            return true;
+
+        return buffer.TryWrite(
+            _progress, out _progress,
+            $"{"<dc:subject>"u8}{subject}{"</dc:subject>"u8}");
+    }
+
+    private bool TryWriteAuthor()
+    {
+        if (documentProperties.Author is not { } author)
+            return true;
+
+        return buffer.TryWrite(
+            _progress, out _progress,
+            $"{"<dc:creator>"u8}{author}{"</dc:creator>"u8}");
     }
 
     private readonly bool TryWriteFooter()
@@ -98,15 +104,9 @@ file struct CoreXmlWriter(
 file enum Element
 {
     Header,
-    TitleStart,
     Title,
-    TitleEnd,
-    SubjectStart,
     Subject,
-    SubjectEnd,
-    AuthorStart,
     Author,
-    AuthorEnd,
     Footer,
     Done
 }
