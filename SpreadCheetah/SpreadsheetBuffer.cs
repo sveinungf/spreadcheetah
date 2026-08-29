@@ -255,25 +255,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(BooleanAttribute attribute)
         {
-            if (attribute.Value is not { } value)
-                return true;
-
-            if (!AppendFormatted(" "u8))
-                return Fail();
-
-            if (!AppendFormatted(attribute.AttributeName))
-                return Fail();
-
-            if (!AppendFormatted("=\""u8))
-                return Fail();
-
-            if (!AppendFormatted(value))
-                return Fail();
-
-            if (!AppendFormatted("\""u8))
-                return Fail();
-
-            return true;
+            return Formatter.TryFormat(attribute, ref _destination) || Fail();
         }
 
         public bool AppendFormatted(IntAttribute attribute)
@@ -479,6 +461,14 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             return _isSuccess = Formatter.TryFormat(value, ref _destination);
         }
 
+        public bool AppendFormatted(BooleanAttribute attribute)
+        {
+            if (_step++ < _startingStep)
+                return true;
+
+            return _isSuccess = Formatter.TryFormat(attribute, ref _destination);
+        }
+
         public bool AppendFormatted(SimpleSingleCellReference reference)
         {
             if (_step++ < _startingStep)
@@ -550,5 +540,25 @@ file static class Formatter
             return true;
         }
         return false;
+    }
+
+    public static bool TryFormat(BooleanAttribute attribute, ref Span<byte> destination)
+    {
+        if (attribute.Value is not { } value)
+            return true;
+
+        var name = attribute.AttributeName;
+        if (destination.Length < name.Length + 5)
+            return false;
+
+        destination[0] = (byte)' ';
+        name.TryCopyTo(destination[1..]);
+        destination[name.Length + 1] = (byte)'=';
+        destination[name.Length + 2] = (byte)'"';
+        destination[name.Length + 3] = (byte)(value ? '1' : '0');
+        destination[name.Length + 4] = (byte)'"';
+
+        destination = destination[(name.Length + 5)..];
+        return true;
     }
 }
