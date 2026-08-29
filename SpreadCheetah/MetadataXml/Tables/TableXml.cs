@@ -59,6 +59,7 @@ file struct TableXmlWriter(
         {
             Element.Header => TryWriteHeader(),
             Element.Name => TryWriteName(),
+            Element.DisplayName => TryWriteDisplayName(),
             Element.Reference => TryWriteTableReference(),
             Element.ReferenceEnd => TryWriteReferenceEnd(),
             Element.AutoFilter => TryWriteAutoFilter(),
@@ -71,7 +72,10 @@ file struct TableXmlWriter(
         };
 
         if (Current)
+        {
+            _progress = default;
             ++_next;
+        }
 
         return _next < Element.Done;
     }
@@ -83,15 +87,16 @@ file struct TableXmlWriter(
 
     private bool TryWriteName()
     {
-        if (!buffer.TryWrite(
-                _progress, out _progress,
-                $"{"\" name=\""u8}{Table.Name}{"\" displayName=\""u8}{Table.Name}"))
-        {
-            return false;
-        }
+        return buffer.TryWrite(
+            _progress, out _progress,
+            $"{"\" name=\""u8}{Table.Name}");
+    }
 
-        _progress = default;
-        return true;
+    private bool TryWriteDisplayName()
+    {
+        return buffer.TryWrite(
+            _progress, out _progress,
+            $"{"\" displayName=\""u8}{Table.Name}");
     }
 
     private readonly bool TryWriteTableReference()
@@ -218,6 +223,7 @@ file enum Element
 {
     Header,
     Name,
+    DisplayName,
     Reference,
     ReferenceEnd,
     AutoFilter,
