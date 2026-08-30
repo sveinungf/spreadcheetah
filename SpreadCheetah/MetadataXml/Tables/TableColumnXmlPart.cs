@@ -86,8 +86,7 @@ internal struct TableColumnXmlPart(
         TableTotalRowFunction.Minimum => "min"u8,
         TableTotalRowFunction.StandardDeviation => "stdDev"u8,
         TableTotalRowFunction.Sum => "sum"u8,
-        TableTotalRowFunction.Variance => "var"u8,
-        _ => []
+        _ => "var"u8
     };
 
     private enum Element
