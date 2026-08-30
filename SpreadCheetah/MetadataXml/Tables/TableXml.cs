@@ -45,7 +45,7 @@ file struct TableXmlWriter(
     private TableColumnXmlPart? _columnXml;
     private Element _next;
     private int _nextIndex;
-    private int _currentNameIndex;
+    private BufferWriteProgress _progress;
 
     private readonly ImmutableTable Table => worksheetTableInfo.Table;
     public readonly TableXmlWriter GetEnumerator() => this;
@@ -59,9 +59,7 @@ file struct TableXmlWriter(
         {
             Element.Header => TryWriteHeader(),
             Element.Name => TryWriteName(),
-            Element.NameEnd => buffer.TryWrite("\" displayName=\""u8),
-            Element.DisplayName => TryWriteName(),
-            Element.DisplayNameEnd => buffer.TryWrite("\" ref=\""u8),
+            Element.DisplayName => TryWriteDisplayName(),
             Element.Reference => TryWriteTableReference(),
             Element.ReferenceEnd => TryWriteReferenceEnd(),
             Element.AutoFilter => TryWriteAutoFilter(),
@@ -74,25 +72,31 @@ file struct TableXmlWriter(
         };
 
         if (Current)
+        {
+            _progress = default;
             ++_next;
+        }
 
         return _next < Element.Done;
     }
 
     private readonly bool TryWriteHeader()
     {
-        return buffer.TryWrite($"{Header}{tableId}{"\" name=\""u8}");
+        return buffer.TryWrite($"{Header}{tableId}");
     }
 
     private bool TryWriteName()
     {
-        if (buffer.WriteLongString(Table.Name, ref _currentNameIndex))
-        {
-            _currentNameIndex = 0;
-            return true;
-        }
+        return buffer.TryWrite(
+            _progress, out _progress,
+            $"{"\" name=\""u8}{Table.Name}");
+    }
 
-        return false;
+    private bool TryWriteDisplayName()
+    {
+        return buffer.TryWrite(
+            _progress, out _progress,
+            $"{"\" displayName=\""u8}{Table.Name}");
     }
 
     private readonly bool TryWriteTableReference()
@@ -100,7 +104,7 @@ file struct TableXmlWriter(
         var lastDataRow = worksheetTableInfo.LastDataRow ?? 0;
         Debug.Assert(lastDataRow > 0);
         var toRow = lastDataRow + (Table.HasTotalRow ? 1u : 0u);
-        return buffer.TryWrite($"{FromCell()}{":"u8}{ToCell(toRow)}");
+        return buffer.TryWrite($"{"\" ref=\""u8}{FromCell()}{":"u8}{ToCell(toRow)}");
     }
 
     private readonly SimpleSingleCellReference FromCell()
@@ -219,9 +223,7 @@ file enum Element
 {
     Header,
     Name,
-    NameEnd,
     DisplayName,
-    DisplayNameEnd,
     Reference,
     ReferenceEnd,
     AutoFilter,

@@ -1,4 +1,5 @@
 using SpreadCheetah.CellReferences;
+using SpreadCheetah.Helpers;
 using SpreadCheetah.MetadataXml.Attributes;
 using SpreadCheetah.Validations;
 
@@ -10,7 +11,7 @@ internal struct DataValidationXml(
     SpreadsheetBuffer buffer)
 {
     private Element _next;
-    private int _nextIndex;
+    private BufferWriteProgress _progress;
 
 #pragma warning disable EPS12 // A struct member can be made readonly
     public bool TryWrite()
@@ -34,30 +35,21 @@ internal struct DataValidationXml(
         Current = _next switch
         {
             Element.Header => TryWriteHeader(),
-            Element.InputTitleStart => TryWriteInputTitleStart(),
-            Element.InputTitle => TryWriteValue(valid.InputTitle),
-            Element.InputTitleEnd => TryWriteAttributeEnd(valid.InputTitle),
-            Element.InputMessageStart => TryWriteInputMessageStart(),
-            Element.InputMessage => TryWriteValue(valid.InputMessage),
-            Element.InputMessageEnd => TryWriteAttributeEnd(valid.InputMessage),
-            Element.ErrorTitleStart => TryWriteErrorTitleStart(),
-            Element.ErrorTitle => TryWriteValue(valid.ErrorTitle),
-            Element.ErrorTitleEnd => TryWriteAttributeEnd(valid.ErrorTitle),
-            Element.ErrorMessageStart => TryWriteErrorMessageStart(),
-            Element.ErrorMessage => TryWriteValue(valid.ErrorMessage),
-            Element.ErrorMessageEnd => TryWriteAttributeEnd(valid.ErrorMessage),
+            Element.InputTitle => TryWriteAttribute(valid.InputTitle, " promptTitle=\""u8),
+            Element.InputMessage => TryWriteAttribute(valid.InputMessage, " prompt=\""u8),
+            Element.ErrorTitle => TryWriteAttribute(valid.ErrorTitle, " errorTitle=\""u8),
+            Element.ErrorMessage => TryWriteAttribute(valid.ErrorMessage, " error=\""u8),
             Element.Reference => TryWriteReference(),
-            Element.Value1Start => TryWriteValue1Start(),
-            Element.Value1 => TryWriteValue(valid.Value1),
-            Element.Value1End => TryWriteValue1End(),
-            Element.Value2Start => TryWriteValue2Start(),
-            Element.Value2 => TryWriteValue(valid.Value2),
-            Element.Value2End => TryWriteValue2End(),
+            Element.Value1 => TryWriteValue1(),
+            Element.Value2 => TryWriteValue2(),
             _ => buffer.TryWrite("</dataValidation>"u8)
         };
 
         if (Current)
+        {
+            _progress = default;
             ++_next;
+        }
 
         return _next < Element.Done;
     }
@@ -113,71 +105,51 @@ internal struct DataValidationXml(
         _ => []
     };
 
-    private readonly bool TryWriteInputTitleStart()
-        => string.IsNullOrEmpty(validation.InputTitle) || buffer.TryWrite(" promptTitle=\""u8);
+    private bool TryWriteAttribute(string? value, scoped ReadOnlySpan<byte> attributeName)
+    {
+        if (string.IsNullOrEmpty(value))
+            return true;
 
-    private readonly bool TryWriteInputMessageStart()
-        => string.IsNullOrEmpty(validation.InputMessage) || buffer.TryWrite(" prompt=\""u8);
-
-    private readonly bool TryWriteErrorTitleStart()
-        => string.IsNullOrEmpty(validation.ErrorTitle) || buffer.TryWrite(" errorTitle=\""u8);
-
-    private readonly bool TryWriteErrorMessageStart()
-        => string.IsNullOrEmpty(validation.ErrorMessage) || buffer.TryWrite(" error=\""u8);
-
-    private readonly bool TryWriteAttributeEnd(string? value)
-        => string.IsNullOrEmpty(value) || buffer.TryWrite("\""u8);
+        return buffer.TryWrite(
+            _progress, out _progress,
+            $"{attributeName}{value}{"\""u8}");
+    }
 
     private readonly bool TryWriteReference()
     {
         return buffer.TryWrite(
             $"{" sqref=\""u8}" +
             $"{reference.Reference}" +
-            $"{"\""u8}");
+            $"{"\">"u8}");
     }
 
-    private readonly bool TryWriteValue1Start() => buffer.TryWrite("><formula1>"u8);
-
-    private readonly bool TryWriteValue1End() => buffer.TryWrite("</formula1>"u8);
-
-    private readonly bool TryWriteValue2Start()
-        => validation.Value2 is null || buffer.TryWrite("<formula2>"u8);
-
-    private readonly bool TryWriteValue2End()
-        => validation.Value2 is null || buffer.TryWrite("</formula2>"u8);
-
-    private bool TryWriteValue(string? value)
+    private bool TryWriteValue1()
     {
-        if (string.IsNullOrEmpty(value)) return true;
-        if (!buffer.WriteLongString(value, ref _nextIndex))
-            return false;
+        return buffer.TryWrite(
+            _progress, out _progress,
+            $"{"<formula1>"u8}{validation.Value1}{"</formula1>"u8}");
+    }
 
-        _nextIndex = 0;
-        return true;
+    private bool TryWriteValue2()
+    {
+        if (validation.Value2 is null)
+            return true;
+
+        return buffer.TryWrite(
+            _progress, out _progress,
+            $"{"<formula2>"u8}{validation.Value2}{"</formula2>"u8}");
     }
 
     private enum Element
     {
         Header,
-        InputTitleStart,
         InputTitle,
-        InputTitleEnd,
-        InputMessageStart,
         InputMessage,
-        InputMessageEnd,
-        ErrorTitleStart,
         ErrorTitle,
-        ErrorTitleEnd,
-        ErrorMessageStart,
         ErrorMessage,
-        ErrorMessageEnd,
         Reference,
-        Value1Start,
         Value1,
-        Value1End,
-        Value2Start,
         Value2,
-        Value2End,
         Footer,
         Done
     }

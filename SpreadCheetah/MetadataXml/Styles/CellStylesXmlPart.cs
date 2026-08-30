@@ -1,3 +1,4 @@
+using SpreadCheetah.Helpers;
 using SpreadCheetah.MetadataXml.Attributes;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
@@ -8,10 +9,9 @@ internal struct CellStylesXmlPart(
     List<(string, AddedStyle, StyleNameVisibility)>? namedStyles,
     SpreadsheetBuffer buffer)
 {
-    private string? _currentXmlEncodedName;
-    private int _currentXmlEncodedNameIndex;
     private Element _next;
     private int _nextIndex;
+    private BufferWriteProgress _progress;
 
 #pragma warning disable EPS12 // A struct member can be made readonly
     public bool TryWrite()
@@ -60,34 +60,23 @@ internal struct CellStylesXmlPart(
         for (; _nextIndex < namedStylesLocal.Count; ++_nextIndex)
         {
             var (name, _, visibility) = namedStylesLocal[_nextIndex];
+            bool? hidden = visibility == StyleNameVisibility.Hidden ? true : null;
+            var hiddenAttribute = new BooleanAttribute("hidden"u8, hidden);
 
-            if (_currentXmlEncodedName is null)
-            {
-                bool? hidden = visibility == StyleNameVisibility.Hidden ? true : null;
-                var hiddenAttribute = new BooleanAttribute("hidden"u8, hidden);
-
-                if (!buffer.TryWrite(
+            if (!buffer.TryWrite(
+                    _progress, out _progress,
                     $"{"<cellStyle xfId=\""u8}" +
                     $"{_nextIndex + 1}" +
                     $"{"\""u8}" +
                     $"{hiddenAttribute}" +
-                    $"{" name=\""u8}"))
-                {
-                    return false;
-                }
-
-                _currentXmlEncodedName = name;
-                _currentXmlEncodedNameIndex = 0;
+                    $"{" name=\""u8}" +
+                    $"{name}" +
+                    $"{"\"/>"u8}"))
+            {
+                return false;
             }
 
-            if (!buffer.WriteLongString(_currentXmlEncodedName, ref _currentXmlEncodedNameIndex))
-                return false;
-
-            if (!buffer.TryWrite("\"/>"u8))
-                return false;
-
-            _currentXmlEncodedName = null;
-            _currentXmlEncodedNameIndex = 0;
+            _progress = default;
         }
 
         return true;

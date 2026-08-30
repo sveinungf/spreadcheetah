@@ -1,25 +1,17 @@
+using SpreadCheetah.Helpers;
+
 namespace SpreadCheetah.MetadataXml.Styles;
 
 internal struct NumberFormatXmlPart(
     int id,
     string format)
 {
-    private int? _currentIndex;
+    private BufferWriteProgress _progress;
 
     public bool TryWrite(SpreadsheetBuffer buffer)
     {
-        if (_currentIndex is not { } index)
-        {
-            if (!buffer.TryWrite($"{"<numFmt numFmtId=\""u8}{id}{"\" formatCode=\""u8}"))
-                return false;
-
-            index = 0;
-        }
-
-        if (buffer.WriteLongString(format, ref index) && buffer.TryWrite("\"/>"u8))
-            return true;
-
-        _currentIndex = index;
-        return false;
+        return buffer.TryWrite(
+            _progress, out _progress,
+            $"{"<numFmt numFmtId=\""u8}{id}{"\" formatCode=\""u8}{format}{"\"/>"u8}");
     }
 }
