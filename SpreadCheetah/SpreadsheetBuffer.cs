@@ -492,27 +492,11 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             if (_step++ < _startingStep)
                 return true;
 
-            if (_destination.IsEmpty)
-                return _isSuccess = false;
-
-            var remaining = value.Slice(_index);
-
-            if (remaining.IsEmpty)
-                return true;
-
-            if (XmlUtility.TryXmlEncodeToUtf8(remaining, _destination, out var charsRead, out var bytesWritten))
-            {
-                _destination = _destination[bytesWritten..];
-                return true;
-            }
-
-            if (charsRead > 0)
-            {
-                _destination = _destination[bytesWritten..];
-                _index += charsRead;
-            }
-
-            return _isSuccess = false;
+            var remaining = value[_index..];
+            _isSuccess = XmlUtility.TryXmlEncodeToUtf8(remaining, _destination, out var charsRead, out var bytesWritten);
+            _destination = _destination[bytesWritten..];
+            _index += charsRead;
+            return _isSuccess;
         }
     }
 }
