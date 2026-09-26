@@ -17,6 +17,11 @@ public abstract class ConditionalFormatRule
     /// </summary>
     public static UniqueValuesFormatRuleBuilder UniqueValues() => new();
 
+    /// <summary>
+    /// Creates a conditional format rule that applies to cells where the specified formula evaluates to true.
+    /// </summary>
+    public static MatchesFormulaFormatRuleBuilder MatchesFormula(Formula formula) => new(formula);
+
     internal ConditionalFormatStyle? Style { get; init; }
 
     internal abstract ImmutableConditionalFormatRule ToImmutable(int? styleDxfId);
