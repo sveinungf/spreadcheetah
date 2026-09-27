@@ -1,0 +1,32 @@
+name: publish
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    permissions:
+      contents: read
+      id-token: write
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v6
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: 10.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+    - name: Pack
+      run: dotnet pack SpreadCheetah --no-build -o ./artifacts
+    - name: NuGet login (OIDC → temp API key)
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: ${{ secrets.NUGET_USER }}
+    - name: NuGet push
+      run: dotnet nuget push **/SpreadCheetah.*.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
