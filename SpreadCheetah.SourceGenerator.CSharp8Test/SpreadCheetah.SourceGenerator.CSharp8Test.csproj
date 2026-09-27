@@ -4,6 +4,7 @@
     <TargetFramework>net472</TargetFramework>
     <LangVersion>8</LangVersion>
     <Nullable>disable</Nullable>
+    <NoWarn>Proj0055</NoWarn>
     <ImplicitUsings>disable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>

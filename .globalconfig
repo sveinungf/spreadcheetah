@@ -49,6 +49,9 @@ dotnet_diagnostic.Proj0451.severity = none
 # Proj0452: Test projects require Microsoft.NET.Test.Sdk (false positive when using MTP)
 dotnet_diagnostic.Proj0452.severity = none
 
+# Proj0501: Package only contains a deprecated license URL
+dotnet_diagnostic.Proj0501.severity = none
+
 # Proj1001: Use analyzers for packages (gives false positives)
 dotnet_diagnostic.Proj1001.severity = none
 
