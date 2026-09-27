@@ -1,5 +1,5 @@
 <Project>
-  
+
   <PropertyGroup>
     <LangVersion>14</LangVersion>
     <Nullable>enable</Nullable>
@@ -24,5 +24,11 @@
     <Verify_SponsorshipExemption>OpenSource</Verify_SponsorshipExemption>
     <Verify_SponsorshipExemptionUntil>2027-09</Verify_SponsorshipExemptionUntil>
   </PropertyGroup>
-  
+
+  <ItemGroup Label="Approved licenses">
+    <ThirdPartyLicense Include="Bogus" Hash="hWngVSie5tgw1Ptec+6Ftw" />
+    <ThirdPartyLicense Include="SonarAnalyzer.CSharp" Hash="IBM9yngU7omFyJOMSFSy0w" />
+    <ThirdPartyLicense Include="Verify" Hash="qsL7y14FuONO9KYUOZlCeg" />
+  </ItemGroup>
+
 </Project>
