@@ -12,6 +12,7 @@
     <GlobalPackageReference Include="PrimaryConstructorAnalyzer" Version="1.0.6" />
     <GlobalPackageReference Include="Roslynator.Analyzers" Version="5.0.0" />
     <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.34.0.3385" />
+    <GlobalPackageReference Include="SuccinctLinq.Analyzers" Version="0.1.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
