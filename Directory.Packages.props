@@ -34,7 +34,7 @@
     <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
     <PackageVersion Include="TngTech.ArchUnitNET.xUnitV3" Version="0.13.4" />
     <PackageVersion Include="Verify.SourceGenerators" Version="2.5.0" />
-    <PackageVersion Include="Verify.XunitV3" Version="31.28.0" />
+    <PackageVersion Include="Verify.XunitV3" Version="33.1.5" />
     <PackageVersion Include="Xunit.Combinatorial" Version="2.0.24" />
     <PackageVersion Include="xunit.v3" Version="4.0.0" />
     <PackageVersion Include="xunit.v3.assert" Version="4.0.0" />
