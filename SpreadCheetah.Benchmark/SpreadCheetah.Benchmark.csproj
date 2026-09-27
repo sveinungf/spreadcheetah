@@ -12,7 +12,6 @@
     <PackageReference Include="Bogus" />
     <PackageReference Include="ClosedXML" />
     <PackageReference Include="DocumentFormat.OpenXml" />
-    <PackageReference Include="LargeXlsx" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
   </ItemGroup>
 
