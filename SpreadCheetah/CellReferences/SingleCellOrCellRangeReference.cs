@@ -1,45 +1,69 @@
 using SpreadCheetah.Helpers;
-using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace SpreadCheetah.CellReferences;
 
-internal readonly partial record struct SingleCellOrCellRangeReference
+internal readonly record struct SingleCellOrCellRangeReference
 {
-    private const int MatchTimeoutMilliseconds = 1000;
-    private const RegexOptions Options = RegexOptions.None;
-
-    /// <summary>
-    /// Examples:
-    /// <list type="bullet">
-    ///   <item><term><c>A1</c></term> <description>Cell A1, relative reference.</description></item>
-    ///   <item><term><c>$C$4</c></term> <description>Cell C4, absolute reference.</description></item>
-    ///   <item><term><c>$D6</c></term> <description>Cell D6, mixed reference.</description></item>
-    ///   <item><term><c>A1:E5</c></term><description>Cell range A1 to E5, relative references.</description></item>
-    ///   <item><term><c>$C$4:$H$10</c></term><description>Cell range C4 to H10, absolute references.</description></item>
-    /// </list>
-    /// </summary>
-    [StringSyntax(StringSyntaxAttribute.Regex)]
-    private const string Pattern = @"^\$?[A-Z]{1,3}\$?[1-9][0-9]{0,6}(?::\$?[A-Z]{1,3}\$?[1-9][0-9]{0,6})?$";
-
-#if NET7_0_OR_GREATER
-    [GeneratedRegex(Pattern, Options, MatchTimeoutMilliseconds)]
-    private static partial Regex Regex();
-#else
-    private static Regex RegexInstance { get; } = new(Pattern, Options, TimeSpan.FromMilliseconds(MatchTimeoutMilliseconds));
-    private static Regex Regex() => RegexInstance;
-#endif
-
     public string Reference { get; }
 
-    private SingleCellOrCellRangeReference(string reference) => Reference = reference;
+    /// <summary>Column of the top-left cell; column 'A' becomes column number 1.</summary>
+    public ushort Column { get; }
+
+    /// <summary>Row of the top-left cell; row number starts at 1.</summary>
+    public uint Row { get; }
+
+    private SingleCellOrCellRangeReference(string reference, ushort column, uint row)
+    {
+        Reference = reference;
+        Column = column;
+        Row = row;
+    }
 
     public static SingleCellOrCellRangeReference Create(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
     {
-        if (!Regex().IsMatch(value))
+        var valueSpan = value.AsSpan();
+
+        var columnLength = GetMatchLength(Regexes.ColumnReference, valueSpan, paramName);
+        var columnSpan = valueSpan[..columnLength];
+        if (columnSpan[0] == '$')
+            columnSpan = columnSpan[1..];
+        if (!SpreadsheetUtility.TryParseColumnName(columnSpan, out var columnNumber))
+            ThrowHelper.SingleCellReferenceInvalid(paramName);
+
+        var rowLength = GetMatchLength(Regexes.RowReference, valueSpan[columnLength..], paramName);
+        var rowSpan = valueSpan.Slice(columnLength, rowLength);
+        if (rowSpan[0] == '$')
+            rowSpan = rowSpan[1..];
+
+        if (!uint.TryParse(rowSpan, NumberStyles.None, CultureInfo.InvariantCulture, out var row))
             ThrowHelper.SingleCellOrCellRangeReferenceInvalid(paramName);
 
-        return new SingleCellOrCellRangeReference(value);
+        if (!Regexes.OptionalRangeReference.IsMatch(valueSpan[(columnLength + rowLength)..]))
+            ThrowHelper.SingleCellOrCellRangeReferenceInvalid(paramName);
+
+        return new SingleCellOrCellRangeReference(value, (ushort)columnNumber, row);
     }
+
+#if NET7_0_OR_GREATER
+    private static int GetMatchLength(Regex regex, ReadOnlySpan<char> span, string? paramName)
+    {
+        var enumerator = regex.EnumerateMatches(span);
+        if (!enumerator.MoveNext())
+            ThrowHelper.SingleCellReferenceInvalid(paramName);
+
+        return enumerator.Current.Length;
+    }
+#else
+    private static int GetMatchLength(Regex regex, ReadOnlySpan<char> span, string? paramName)
+    {
+        var match = regex.Match(span.ToString());
+        if (!match.Success)
+            ThrowHelper.SingleCellReferenceInvalid(paramName);
+
+        return match.Length;
+    }
+#endif
 }
