@@ -1,5 +1,4 @@
 using SpreadCheetah.Helpers;
-using System.Data.Common;
 using System.Text;
 
 namespace SpreadCheetah.Formulas;
