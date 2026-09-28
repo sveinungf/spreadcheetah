@@ -15,18 +15,16 @@ internal static partial class Regexes
     private const string TableNameCellReferencePattern = "^[A-Z]{1,3}[0-9]{1,7}";
     private const RegexOptions TableNameCellReferenceOptions = RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture;
 
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
     [GeneratedRegex(TableNameValidCharactersPattern, TableNameValidCharactersOptions, TimeoutMillis)]
-    public static partial Regex TableNameValidCharacters();
+    public static partial Regex TableNameValidCharacters { get; }
 
     [GeneratedRegex(TableNameCellReferencePattern, TableNameCellReferenceOptions, TimeoutMillis)]
-    public static partial Regex TableNameCellReference();
+    public static partial Regex TableNameCellReference { get; }
 #else
     private static TimeSpan Timeout => TimeSpan.FromMilliseconds(TimeoutMillis);
 
-    private static Regex TableNameValidCharactersInstance { get; } = new(TableNameValidCharactersPattern, TableNameValidCharactersOptions, Timeout);
-    private static Regex TableNameCellReferenceInstance { get; } = new(TableNameCellReferencePattern, TableNameCellReferenceOptions, Timeout);
-    public static Regex TableNameValidCharacters() => TableNameValidCharactersInstance;
-    public static Regex TableNameCellReference() => TableNameCellReferenceInstance;
+    public static Regex TableNameValidCharacters { get; } = new(TableNameValidCharactersPattern, TableNameValidCharactersOptions, Timeout);
+    public static Regex TableNameCellReference { get; } = new(TableNameCellReferencePattern, TableNameCellReferenceOptions, Timeout);
 #endif
 }
