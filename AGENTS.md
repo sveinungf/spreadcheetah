@@ -37,7 +37,7 @@ dotnet restore SpreadCheetah.Test/SpreadCheetah.Test.csproj
 
 ## Known baseline test failures (25)
 
-On an untouched checkout, exactly 25 tests fail and 7062 pass. All 25 are the `With\tValid\r\nControlCharacters` cases and are environment-related, not caused by your change:
+On an untouched checkout, exactly 25 tests fail. All 25 are the `With\tValid\r\nControlCharacters` cases and are environment-related, not caused by your change:
 
 - `SpreadsheetRowTests.Spreadsheet_AddRow_CellWithStringValue` (12)
 - `SpreadsheetRowTests.Spreadsheet_AddRow_CellWithReadOnlyMemoryOfCharValue` (12)
