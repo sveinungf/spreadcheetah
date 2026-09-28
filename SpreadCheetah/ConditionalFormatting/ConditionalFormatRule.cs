@@ -24,7 +24,7 @@ public abstract class ConditionalFormatRule
 
     internal ConditionalFormatStyle? Style { get; init; }
 
-    internal abstract ImmutableConditionalFormatRule ToImmutable(int? styleDxfId);
+    internal abstract InternalConditionalFormatRule ToInternal(int? styleDxfId);
 
     private protected ConditionalFormatRule()
     {

@@ -7,9 +7,9 @@ internal sealed class ConditionalFormatRulesManager
 {
     private int _ruleCount;
 
-    public Dictionary<SingleCellOrCellRangeReference, List<ImmutableConditionalFormatRule>> Rules { get; } = [];
+    public Dictionary<SingleCellOrCellRangeReference, List<InternalConditionalFormatRule>> Rules { get; } = [];
 
-    public bool TryAddRule(SingleCellOrCellRangeReference reference, ImmutableConditionalFormatRule rule)
+    public bool TryAddRule(SingleCellOrCellRangeReference reference, InternalConditionalFormatRule rule)
     {
         if (_ruleCount >= SpreadsheetConstants.MaxNumberOfConditionalFormatRules)
             return false;

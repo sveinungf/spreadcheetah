@@ -586,9 +586,9 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(rule);
         var cellReference = SingleCellOrCellRangeReference.Create(reference);
         var styleDxfId = AddStyleInternal(rule.Style);
-        var immutableRule = rule.ToImmutable(styleDxfId);
+        var internalRule = rule.ToInternal(styleDxfId);
 
-        if (!Worksheet.TryAddConditionalFormatting(cellReference, immutableRule))
+        if (!Worksheet.TryAddConditionalFormatting(cellReference, internalRule))
             ThrowHelper.MaxNumberOfConditionalFormatRules();
     }
 

@@ -2,7 +2,7 @@ using SpreadCheetah.CellReferences;
 
 namespace SpreadCheetah.ConditionalFormatting.Internal;
 
-internal abstract record ImmutableConditionalFormatRule
+internal abstract record InternalConditionalFormatRule
 {
     public int? StyleDxfId { get; init; }
 

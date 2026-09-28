@@ -3,7 +3,7 @@ using SpreadCheetah.MetadataXml.Attributes;
 
 namespace SpreadCheetah.ConditionalFormatting.Internal;
 
-internal sealed record ImmutableDuplicateValuesFormatRule : ImmutableConditionalFormatRule
+internal sealed record InternalUniqueValuesFormatRule : InternalConditionalFormatRule
 {
     public override bool TryWrite(SpreadsheetBuffer buffer, int priority, SimpleSingleCellReference topLeftCell)
     {
@@ -11,7 +11,7 @@ internal sealed record ImmutableDuplicateValuesFormatRule : ImmutableConditional
         var priorityAttribute = new IntAttribute("priority"u8, priority);
 
         return buffer.TryWrite(
-            $"{"<cfRule type=\"duplicateValues\""u8}" +
+            $"{"<cfRule type=\"uniqueValues\""u8}" +
             $"{dxfIdAttribute}" +
             $"{priorityAttribute}" +
             $"{"/>"u8}");

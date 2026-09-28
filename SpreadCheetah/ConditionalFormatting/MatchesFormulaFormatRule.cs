@@ -15,9 +15,9 @@ public sealed class MatchesFormulaFormatRule : ConditionalFormatRule
         Formula = formula;
     }
 
-    internal override ImmutableConditionalFormatRule ToImmutable(int? styleDxfId)
+    internal override InternalConditionalFormatRule ToInternal(int? styleDxfId)
     {
-        return new ImmutableMatchesFormulaFormatRule
+        return new InternalMatchesFormulaFormatRule
         {
             StyleDxfId = styleDxfId,
             Formula = Formula

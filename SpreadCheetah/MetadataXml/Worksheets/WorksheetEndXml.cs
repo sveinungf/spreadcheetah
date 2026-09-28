@@ -37,7 +37,7 @@ internal static class WorksheetEndXml
 file struct WorksheetEndXmlWriter(
     Worksheet worksheet,
     ReadOnlyMemory<CellRangeRelativeReference> cellMerges,
-    ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, List<ImmutableConditionalFormatRule>>> conditionalFormatRules,
+    ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, List<InternalConditionalFormatRule>>> conditionalFormatRules,
     ReadOnlyMemory<KeyValuePair<SingleCellOrCellRangeReference, DataValidation>> validations,
     SpreadsheetBuffer buffer)
     : IXmlWriter<WorksheetEndXmlWriter>

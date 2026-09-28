@@ -5,7 +5,7 @@ namespace SpreadCheetah.MetadataXml.Worksheets;
 
 internal struct ConditionalFormattingXml(
     SingleCellOrCellRangeReference reference,
-    List<ImmutableConditionalFormatRule> rules,
+    List<InternalConditionalFormatRule> rules,
     ConditionalFormatPriorityCounter priorityCounter,
     SpreadsheetBuffer buffer)
 {
