@@ -500,4 +500,55 @@ public class SpreadsheetConditionalFormattingTests
         if (borderStyle != ConditionalFormatBorderStyle.None)
             Assert.Equal(color, actualRule.Style.Border.BottomColor);
     }
+
+    [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_MatchesFormulaA1Rule()
+    {
+        // Arrange
+        const string cellReference = "B2:C3";
+        const string formula = "A1>5";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new ConditionalFormatStyle { Fill = { Color = Color.Red } };
+
+        // Act
+        var rule = ConditionalFormatRule.MatchesFormula(new Formula(formula)).WithStyle(style);
+        spreadsheet.AddConditionalFormatRule(cellReference, rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRule = Assert.Single(sheet.ConditionalFormatRules);
+        Assert.True(actualRule.IsMatchesFormulaRule);
+        Assert.Equal(formula, actualRule.Formula);
+    }
+
+    [Theory]
+    [InlineData("B2", "RC[-1]", "A2")]
+    [InlineData("C3", "RC[1]", "D3")]
+    [InlineData("B2", "RC[0]", "B2")]
+    [InlineData("A1:A10", "RC[1]", "B1")]
+    [InlineData("B2:C3", "R1C1", "$A$1")]
+    [InlineData("B2:C3", "R[1]C[1]", "C3")]
+    public async Task Spreadsheet_ConditionalFormatting_MatchesFormulaR1C1Rule(
+        string cellReference, string r1c1Formula, string expectedA1Formula)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new ConditionalFormatStyle { Fill = { Color = Color.Red } };
+
+        // Act
+        var rule = ConditionalFormatRule.MatchesFormula(Formula.R1C1(r1c1Formula)).WithStyle(style);
+        spreadsheet.AddConditionalFormatRule(cellReference, rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRule = Assert.Single(sheet.ConditionalFormatRules);
+        Assert.True(actualRule.IsMatchesFormulaRule);
+        Assert.Equal(expectedA1Formula, actualRule.Formula);
+    }
 }
