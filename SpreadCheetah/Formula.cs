@@ -39,8 +39,10 @@ public readonly record struct Formula
         return new Formula(formula, isR1C1: true);
     }
 
-    internal string GetFormulaText(CellWriterState state) => IsR1C1
-        ? R1C1FormulaConverter.ToA1(FormulaText, (int)(state.NextRowIndex - 1), state.Column + 1)
+    internal string GetFormulaText(CellWriterState state) => GetFormulaText((int)(state.NextRowIndex - 1), state.Column + 1);
+
+    internal string GetFormulaText(int row, int column) => IsR1C1
+        ? R1C1FormulaConverter.ToA1(FormulaText, row, column)
         : FormulaText;
 
     /// <summary>

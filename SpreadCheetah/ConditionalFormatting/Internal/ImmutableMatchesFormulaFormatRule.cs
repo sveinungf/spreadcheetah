@@ -1,3 +1,4 @@
+using SpreadCheetah.CellReferences;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.MetadataXml.Attributes;
 
@@ -9,10 +10,11 @@ internal sealed record ImmutableMatchesFormulaFormatRule : ImmutableConditionalF
 
     private BufferWriteProgress _progress;
 
-    public override bool TryWrite(SpreadsheetBuffer buffer, int priority)
+    public override bool TryWrite(SpreadsheetBuffer buffer, int priority, SimpleSingleCellReference topLeftCell)
     {
         var dxfIdAttribute = new IntAttribute("dxfId"u8, StyleDxfId);
         var priorityAttribute = new IntAttribute("priority"u8, priority);
+        var formulaText = Formula.GetFormulaText((int)topLeftCell.Row, topLeftCell.Column);
 
         var success = buffer.TryWrite(
             _progress, out _progress,
@@ -20,7 +22,7 @@ internal sealed record ImmutableMatchesFormulaFormatRule : ImmutableConditionalF
             $"{dxfIdAttribute}" +
             $"{priorityAttribute}" +
             $"{"><formula>"u8}" +
-            $"{Formula.FormulaText}" +
+            $"{formulaText}" +
             $"{"</formula></cfRule>"u8}");
 
         if (success)
