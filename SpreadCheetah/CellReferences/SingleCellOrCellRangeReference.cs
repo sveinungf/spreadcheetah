@@ -38,8 +38,8 @@ internal readonly record struct SingleCellOrCellRangeReference
         if (rowSpan[0] == '$')
             rowSpan = rowSpan[1..];
 
-        if (!uint.TryParse(rowSpan, NumberStyles.None, CultureInfo.InvariantCulture, out var row))
-            ThrowHelper.SingleCellOrCellRangeReferenceInvalid(paramName);
+        // The match is guaranteed to be a valid number after the regex check, so this TryParse will always succeed.
+        _ = uint.TryParse(rowSpan, NumberStyles.None, CultureInfo.InvariantCulture, out var row);
 
         if (!Regexes.OptionalRangeReference.IsMatch(valueSpan[(columnLength + rowLength)..]))
             ThrowHelper.SingleCellOrCellRangeReferenceInvalid(paramName);
