@@ -531,6 +531,10 @@ public class SpreadsheetConditionalFormattingTests
     [InlineData("A1:A10", "RC[1]", "B1")]
     [InlineData("B2:C3", "R1C1", "$A$1")]
     [InlineData("B2:C3", "R[1]C[1]", "C3")]
+    [InlineData("B2", "SUM(RC[-1]:RC[1])>10", "SUM(A2:C2)>10")]
+    [InlineData("D4", "R[10]C[5]", "I14")]
+    [InlineData("B2", "SUM(R2:R4)", "SUM($2:$4)")]
+    [InlineData("B2", "C[-1]&RC[0]", "A:A&B2")]
     public async Task Spreadsheet_ConditionalFormatting_MatchesFormulaR1C1Rule(
         string cellReference, string r1c1Formula, string expectedA1Formula)
     {
@@ -550,5 +554,231 @@ public class SpreadsheetConditionalFormattingTests
         var actualRule = Assert.Single(sheet.ConditionalFormatRules);
         Assert.True(actualRule.IsMatchesFormulaRule);
         Assert.Equal(expectedA1Formula, actualRule.Formula);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_MatchesFormulaRuleForSingleCell()
+    {
+        // Arrange
+        const string cellReference = "B2";
+        const string formula = "A1>5";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var fillColor = Color.FromArgb(255, 255, 0, 0);
+        var style = new ConditionalFormatStyle { Fill = { Color = fillColor } };
+
+        // Act
+        var rule = ConditionalFormatRule.MatchesFormula(new Formula(formula)).WithStyle(style);
+        spreadsheet.AddConditionalFormatRule(cellReference, rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRule = Assert.Single(sheet.ConditionalFormatRules);
+        Assert.True(actualRule.IsMatchesFormulaRule);
+        Assert.Equal(cellReference, actualRule.CellRangeReference);
+        Assert.Equal(formula, actualRule.Formula);
+        Assert.Equal(fillColor, actualRule.Style.Fill.Color);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_MultipleMatchesFormulaRulesForSingleCell()
+    {
+        // Arrange
+        const string cellReference = "B2";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+        List<MatchesFormulaFormatRule> rules =
+        [
+            ConditionalFormatRule.MatchesFormula(new Formula("A1>5")).WithStyle(new() { Fill = { Color = Color.Red } }),
+            ConditionalFormatRule.MatchesFormula(new Formula("A1<10")).WithStyle(new() { Font = { Bold = true } }),
+            ConditionalFormatRule.MatchesFormula(Formula.R1C1("RC[-1]")).WithStyle(new() { Format = "0.00" })
+        ];
+
+        // Act
+        foreach (var rule in rules)
+        {
+            spreadsheet.AddConditionalFormatRule(cellReference, rule);
+        }
+
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRules = sheet.ConditionalFormatRules;
+        Assert.Equal(rules.Count, actualRules.Count);
+        Assert.All(actualRules, x => Assert.True(x.IsMatchesFormulaRule));
+        Assert.All(actualRules, x => Assert.Equal(cellReference, x.CellRangeReference));
+        Assert.Equal("A1>5", actualRules[0].Formula);
+        Assert.Equal("A1<10", actualRules[1].Formula);
+        Assert.Equal("A2", actualRules[2].Formula);
+        Assert.Equal(Color.FromArgb(255, 255, 0, 0), actualRules[0].Style.Fill.Color);
+        Assert.True(actualRules[1].Style.Font.Bold);
+        Assert.Equal("0.00", actualRules[2].Style.NumberFormat.CustomFormat);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_MatchesFormulaAndUniqueValuesRulesForSameCellRange()
+    {
+        // Arrange
+        const string cellReference = "A1:A10";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style1 = new ConditionalFormatStyle { Fill = { Color = Color.FromArgb(255, 255, 0, 0) } };
+        var style2 = new ConditionalFormatStyle { Font = { Bold = true } };
+
+        // Act
+        var formula = new Formula("A1>5");
+        var formulaRule = ConditionalFormatRule.MatchesFormula(formula).WithStyle(style1);
+        var uniqueValuesRule = ConditionalFormatRule.UniqueValues().WithStyle(style2);
+        spreadsheet.AddConditionalFormatRule(cellReference, formulaRule);
+        spreadsheet.AddConditionalFormatRule(cellReference, uniqueValuesRule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRules = sheet.ConditionalFormatRules;
+        Assert.All(actualRules, x => Assert.Equal(cellReference, x.CellRangeReference));
+        var actualFormulaRule = Assert.Single(actualRules, x => x.IsMatchesFormulaRule);
+        Assert.Equal("A1>5", actualFormulaRule.Formula);
+        Assert.Equal(style1.Fill.Color, actualFormulaRule.Style.Fill.Color);
+        var actualUniqueValuesRule = Assert.Single(actualRules, x => x.IsUniqueValuesRule);
+        Assert.Equal(style2.Font.Bold, actualUniqueValuesRule.Style.Font.Bold);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_ManyMatchesFormulaRules()
+    {
+        // Arrange
+        const int count = SpreadsheetConstants.MaxNumberOfConditionalFormatRules;
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new ConditionalFormatStyle { Fill = { Color = Color.Red } };
+
+        // Act
+        var formula = new Formula("A1>5");
+        var rule = ConditionalFormatRule.MatchesFormula(formula).WithStyle(style);
+
+        for (var i = 0; i < count; i++)
+        {
+            var cellReference = $"A{i + 1}:B{i + 1}";
+            spreadsheet.AddConditionalFormatRule(cellReference, rule);
+        }
+
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(count, sheet.ConditionalFormatRules.Count);
+        Assert.All(sheet.ConditionalFormatRules, x => Assert.True(x.IsMatchesFormulaRule));
+    }
+
+    [Theory]
+    [InlineData("A1<5")]
+    [InlineData("AND(A1>2,A2<10)")]
+    [InlineData("A1&B1")]
+    [InlineData("A1=\"text\"")]
+    [InlineData("A1<>\"don't\"")]
+    public async Task Spreadsheet_ConditionalFormatting_MatchesFormulaRuleWithXmlSpecialCharacters(string formula)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new ConditionalFormatStyle { Fill = { Color = Color.Red } };
+
+        // Act
+        var rule = ConditionalFormatRule.MatchesFormula(new Formula(formula)).WithStyle(style);
+        spreadsheet.AddConditionalFormatRule("A1", rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRule = Assert.Single(sheet.ConditionalFormatRules);
+        Assert.True(actualRule.IsMatchesFormulaRule);
+        Assert.Equal(formula, actualRule.Formula);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_MatchesFormulaRuleWithLongFormula()
+    {
+        // Arrange
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new ConditionalFormatStyle { Fill = { Color = Color.Red } };
+        var formula = "A1>" + new string('1', 10000);
+
+        // Act
+        var rule = ConditionalFormatRule.MatchesFormula(new Formula(formula)).WithStyle(style);
+        spreadsheet.AddConditionalFormatRule("A1", rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRule = Assert.Single(sheet.ConditionalFormatRules);
+        Assert.True(actualRule.IsMatchesFormulaRule);
+        Assert.Equal(formula, actualRule.Formula);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_MatchesFormulaR1C1RuleWithOutOfRangeReference()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new ConditionalFormatStyle { Fill = { Color = Color.Red } };
+
+        // Act
+        var formula = Formula.R1C1("RC[-1]");
+        var rule = ConditionalFormatRule.MatchesFormula(formula).WithStyle(style);
+        spreadsheet.AddConditionalFormatRule("A1", rule);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<SpreadCheetahException>(() => spreadsheet.FinishAsync(Token).AsTask());
+        Assert.Equal(
+            "The R1C1 formula 'RC[-1]' contains a reference that is outside the bounds of the worksheet when anchored to this cell.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void Spreadsheet_ConditionalFormatting_MatchesFormulaRuleWithNullStyle()
+    {
+        // Arrange
+        var rule = ConditionalFormatRule.MatchesFormula(new Formula("A1>5"));
+        ConditionalFormatStyle style = null!;
+
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => rule.WithStyle(style));
+    }
+
+    [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_MatchesFormulaRulesHaveExpectedSheetXml()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var formula1 = new Formula("A1>5");
+        var formula2 = Formula.R1C1("RC[-1]");
+        var rule1 = ConditionalFormatRule.MatchesFormula(formula1).WithStyle(new() { Fill = { Color = Color.Red } });
+        var rule2 = ConditionalFormatRule.MatchesFormula(formula2).WithStyle(new() { Font = { Bold = true } });
+
+        // Act
+        spreadsheet.AddConditionalFormatRule("D6", rule1);
+        spreadsheet.AddConditionalFormatRule("B2:C3", rule2);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var sheet1Xml = await zip.GetSheet1XmlStreamAsync(Token);
+        await VerifyXml(sheet1Xml);
     }
 }
