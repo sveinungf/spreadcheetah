@@ -12,7 +12,7 @@ public sealed class MatchesFormulaFormatRuleBuilder
 
     internal MatchesFormulaFormatRuleBuilder(Formula formula)
     {
-        if (formula.FormulaText is not { Length: > 0 })
+        if (formula.FormulaText.Length == 0)
             ThrowHelper.FormulaEmpty(nameof(formula));
 
         Formula = formula;

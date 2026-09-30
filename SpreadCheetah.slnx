@@ -14,6 +14,10 @@
     <File Path="nuget.config" />
     <File Path="README.md" />
   </Folder>
+  <Folder Name="/Solution items/Workflows/">
+    <File Path=".github/workflows/dotnet.yml" />
+    <File Path=".github/workflows/publish.yml" />
+  </Folder>
   <Project Path="SpreadCheetah.AotCompatibilityCheck/SpreadCheetah.AotCompatibilityCheck.csproj" />
   <Project Path="SpreadCheetah.Benchmark.Test/SpreadCheetah.Benchmark.Test.csproj" />
   <Project Path="SpreadCheetah.Benchmark/SpreadCheetah.Benchmark.csproj" />

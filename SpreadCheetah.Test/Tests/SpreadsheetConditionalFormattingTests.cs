@@ -15,6 +15,22 @@ public class SpreadsheetConditionalFormattingTests
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
     [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_InvalidColumnReference()
+    {
+        // Arrange
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new ConditionalFormatStyle { Font = { Bold = true } };
+        var rule = ConditionalFormatRule.DuplicateValues().WithStyle(style);
+
+        // Act
+        var settings = new VerifySettings();
+        settings.IgnoreStackTrace();
+        var result = await Throws(() => spreadsheet.AddConditionalFormatRule("XFE1", rule), settings);
+        Assert.NotNull(result.Exception);
+    }
+
+    [Fact]
     public async Task Spreadsheet_ConditionalFormatting_DuplicateValuesRule()
     {
         // Arrange
