@@ -758,6 +758,15 @@ public class SpreadsheetConditionalFormattingTests
         Assert.Throws<ArgumentNullException>(() => rule.WithStyle(style));
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public void Spreadsheet_ConditionalFormatting_MatchesFormulaRuleWithEmptyFormula(string? formulaText)
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => ConditionalFormatRule.MatchesFormula(new Formula(formulaText)));
+    }
+
     [Fact]
     public async Task Spreadsheet_ConditionalFormatting_MatchesFormulaRulesHaveExpectedSheetXml()
     {
