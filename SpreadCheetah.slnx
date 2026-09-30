@@ -8,11 +8,15 @@
     <File Path=".editorconfig" />
     <File Path=".globalconfig" />
     <File Path="BannedSymbols.txt" />
-    <File Path="coverlet.runsettings" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
     <File Path="nuget.config" />
     <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Solution items/Workflows/">
+    <File Path=".github/workflows/dotnet.yml" />
+    <File Path=".github/workflows/publish.yml" />
   </Folder>
   <Project Path="SpreadCheetah.AotCompatibilityCheck/SpreadCheetah.AotCompatibilityCheck.csproj" />
   <Project Path="SpreadCheetah.Benchmark.Test/SpreadCheetah.Benchmark.Test.csproj" />

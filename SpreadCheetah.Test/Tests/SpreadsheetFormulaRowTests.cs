@@ -49,6 +49,46 @@ public class SpreadsheetFormulaRowTests
     }
 
     [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public async Task Spreadsheet_AddRow_CellWithEmptyFormula(string? formulaText)
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var formula = new Formula(formulaText);
+        var cell = new Cell(formula);
+
+        // Act
+        await spreadsheet.AddRowAsync([cell], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Empty(sheet["A1"].Formula ?? "");
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddRow_CellWithDefaultFormula()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var formula = default(Formula);
+        var cell = new Cell(formula);
+
+        // Act
+        await spreadsheet.AddRowAsync([cell], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Empty(sheet["A1"].Formula ?? "");
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task Spreadsheet_AddRow_CellWithFormulaAndStyle(bool bold)

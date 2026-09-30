@@ -42,6 +42,10 @@ internal static class ThrowHelper
         => throw new ArgumentOutOfRangeException(paramName, value, "Font size must be between 1 and 409.");
 
     [DoesNotReturn]
+    public static void FormulaEmpty(string? paramName)
+        => throw new ArgumentException("The formula can not be empty.", paramName);
+
+    [DoesNotReturn]
     public static void MaxNumberOfConditionalFormatRules()
         => throw new SpreadCheetahException($"Can't add more than {SpreadsheetConstants.MaxNumberOfConditionalFormatRules} conditional format rules to a worksheet.");
 

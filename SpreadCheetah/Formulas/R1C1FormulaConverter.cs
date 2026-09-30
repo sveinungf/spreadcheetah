@@ -12,14 +12,14 @@ internal static class R1C1FormulaConverter
         WholeColumn
     }
 
-    private readonly struct ParsedReference(int length, ReferenceKind kind, bool rowRelative, int row, bool columnRelative, int column)
+    private readonly struct ParsedReference
     {
-        public int Length { get; } = length;
-        public ReferenceKind Kind { get; } = kind;
-        public bool RowRelative { get; } = rowRelative;
-        public int Row { get; } = row;
-        public bool ColumnRelative { get; } = columnRelative;
-        public int Column { get; } = column;
+        public required int Length { get; init; }
+        public required ReferenceKind Kind { get; init; }
+        public required bool RowRelative { get; init; }
+        public required uint Row { get; init; }
+        public required bool ColumnRelative { get; init; }
+        public required int Column { get; init; }
     }
 
     /// <summary>
@@ -27,8 +27,11 @@ internal static class R1C1FormulaConverter
     /// <paramref name="row"/> and <paramref name="column"/> are the 1-based position of the cell that the formula belongs to,
     /// which is used as the anchor for relative references.
     /// </summary>
-    public static string ToA1(string formula, int row, int column)
+    public static string ToA1(string? formula, int row, int column)
     {
+        if (formula is not { Length: > 0 })
+            return "";
+
         var sb = new StringBuilder(formula.Length);
         var i = 0;
         var n = formula.Length;
@@ -212,8 +215,22 @@ internal static class R1C1FormulaConverter
         var row = hasRow ? Resolve(rowRelative, rowValue, anchorRow, SpreadsheetConstants.MaxNumberOfRows, s) : 0;
         var column = hasColumn ? Resolve(columnRelative, columnValue, anchorColumn, SpreadsheetConstants.MaxNumberOfColumns, s) : 0;
 
-        reference = new ParsedReference(length, kind, rowRelative, row, columnRelative, column);
+        reference = CreateReference(column, row, columnRelative, rowRelative, kind, length);
+
         return true;
+    }
+
+    private static ParsedReference CreateReference(int column, int row, bool columnRelative, bool rowRelative, ReferenceKind kind, int length)
+    {
+        return new ParsedReference
+        {
+            Column = column,
+            ColumnRelative = columnRelative,
+            Kind = kind,
+            Length = length,
+            Row = (uint)row,
+            RowRelative = rowRelative
+        };
     }
 
     private static bool TryParseAxis(string s, ref int j, out bool relative, out int value)

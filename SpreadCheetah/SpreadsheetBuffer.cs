@@ -260,25 +260,7 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
 
         public bool AppendFormatted(IntAttribute attribute)
         {
-            if (attribute.Value is not { } value)
-                return true;
-
-            if (!AppendFormatted(" "u8))
-                return Fail();
-
-            if (!AppendFormatted(attribute.AttributeName))
-                return Fail();
-
-            if (!AppendFormatted("=\""u8))
-                return Fail();
-
-            if (!AppendFormatted(value))
-                return Fail();
-
-            if (!AppendFormatted("\""u8))
-                return Fail();
-
-            return true;
+            return Formatter.TryFormat(attribute, ref _destination) || Fail();
         }
 
         public bool AppendFormatted(DoubleAttribute attribute)
@@ -469,6 +451,14 @@ internal sealed class SpreadsheetBuffer(int bufferSize) : IDisposable
             return _isSuccess = Formatter.TryFormat(attribute, ref _destination);
         }
 
+        public bool AppendFormatted(IntAttribute attribute)
+        {
+            if (_step++ < _startingStep)
+                return true;
+
+            return _isSuccess = Formatter.TryFormat(attribute, ref _destination);
+        }
+
         public bool AppendFormatted(SimpleSingleCellReference reference)
         {
             if (_step++ < _startingStep)
@@ -536,13 +526,44 @@ file static class Formatter
             return false;
 
         destination[0] = (byte)' ';
-        name.TryCopyTo(destination[1..]);
-        destination[name.Length + 1] = (byte)'=';
-        destination[name.Length + 2] = (byte)'"';
-        destination[name.Length + 3] = (byte)(value ? '1' : '0');
-        destination[name.Length + 4] = (byte)'"';
+        destination = destination[1..];
 
-        destination = destination[(name.Length + 5)..];
+        TryFormat(name, ref destination);
+
+        destination[0] = (byte)'=';
+        destination[1] = (byte)'"';
+        destination[2] = (byte)(value ? '1' : '0');
+        destination[3] = (byte)'"';
+        destination = destination[4..];
+
+        return true;
+    }
+
+    public static bool TryFormat(IntAttribute attribute, ref Span<byte> destination)
+    {
+        if (attribute.Value is not { } value)
+            return true;
+
+        const int intMaxLength = 11; // int.MinValue.ToString().Length
+
+        var name = attribute.AttributeName;
+        if (destination.Length < name.Length + intMaxLength + 4)
+            return false;
+
+        destination[0] = (byte)' ';
+        destination = destination[1..];
+
+        TryFormat(name, ref destination);
+
+        destination[0] = (byte)'=';
+        destination[1] = (byte)'"';
+        destination = destination[2..];
+
+        TryFormat(value, ref destination);
+
+        destination[0] = (byte)'"';
+        destination = destination[1..];
+
         return true;
     }
 }

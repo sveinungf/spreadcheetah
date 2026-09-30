@@ -5,7 +5,7 @@ namespace SpreadCheetah.MetadataXml.Worksheets;
 
 internal struct ConditionalFormattingXml(
     SingleCellOrCellRangeReference reference,
-    List<ImmutableConditionalFormatRule> rules,
+    List<InternalConditionalFormatRule> rules,
     ConditionalFormatPriorityCounter priorityCounter,
     SpreadsheetBuffer buffer)
 {
@@ -52,11 +52,12 @@ internal struct ConditionalFormattingXml(
 
     private bool TryWriteRules()
     {
+        var topLeftCell = new SimpleSingleCellReference(reference.Column, reference.Row);
         for (; _nextIndex < rules.Count; ++_nextIndex)
         {
             var rule = rules[_nextIndex];
             var priority = priorityCounter.IncrementPriority();
-            if (!rule.TryWrite(buffer, priority))
+            if (!rule.TryWrite(buffer, priority, topLeftCell))
             {
                 priorityCounter.DecrementPriority();
                 return false;

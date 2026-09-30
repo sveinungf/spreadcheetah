@@ -214,6 +214,7 @@ namespace SpreadCheetah.ConditionalFormatting
     public abstract class ConditionalFormatRule
     {
         public static SpreadCheetah.ConditionalFormatting.DuplicateValuesFormatRuleBuilder DuplicateValues() { }
+        public static SpreadCheetah.ConditionalFormatting.MatchesFormulaFormatRuleBuilder MatchesFormula(SpreadCheetah.Formula formula) { }
         public static SpreadCheetah.ConditionalFormatting.UniqueValuesFormatRuleBuilder UniqueValues() { }
     }
     public sealed class ConditionalFormatStyle : System.IEquatable<SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle>
@@ -237,6 +238,11 @@ namespace SpreadCheetah.ConditionalFormatting
     public sealed class DuplicateValuesFormatRuleBuilder
     {
         public SpreadCheetah.ConditionalFormatting.DuplicateValuesFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
+    }
+    public sealed class MatchesFormulaFormatRule : SpreadCheetah.ConditionalFormatting.ConditionalFormatRule { }
+    public sealed class MatchesFormulaFormatRuleBuilder
+    {
+        public SpreadCheetah.ConditionalFormatting.MatchesFormulaFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
     }
     public sealed class UniqueValuesFormatRule : SpreadCheetah.ConditionalFormatting.ConditionalFormatRule
     {

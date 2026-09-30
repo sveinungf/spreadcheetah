@@ -193,7 +193,7 @@ internal sealed class Worksheet : IDisposable, IAsyncDisposable
         return writer.AddRowAsync(cells, _state.NextRowIndex - 1, options, rowStyleId, _stream, ct);
     }
 
-    public bool TryAddConditionalFormatting(SingleCellOrCellRangeReference reference, ImmutableConditionalFormatRule rule)
+    public bool TryAddConditionalFormatting(SingleCellOrCellRangeReference reference, InternalConditionalFormatRule rule)
     {
         var manager = ConditionalFormatRulesManager ??= new();
         return manager.TryAddRule(reference, rule);

@@ -8,9 +8,9 @@ namespace SpreadCheetah.ConditionalFormatting;
 /// </summary>
 public sealed class UniqueValuesFormatRule : ConditionalFormatRule
 {
-    internal override ImmutableConditionalFormatRule ToImmutable(int? styleDxfId)
+    internal override InternalConditionalFormatRule ToInternal(int? styleDxfId)
     {
-        return new ImmutableUniqueValuesFormatRule
+        return new InternalUniqueValuesFormatRule
         {
             StyleDxfId = styleDxfId
         };
