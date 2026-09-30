@@ -8,7 +8,6 @@
     <File Path=".editorconfig" />
     <File Path=".globalconfig" />
     <File Path="BannedSymbols.txt" />
-    <File Path="coverlet.runsettings" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
     <File Path="global.json" />
