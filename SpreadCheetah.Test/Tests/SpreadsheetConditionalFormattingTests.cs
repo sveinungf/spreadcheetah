@@ -784,6 +784,13 @@ public class SpreadsheetConditionalFormattingTests
     }
 
     [Fact]
+    public void Spreadsheet_ConditionalFormatting_MatchesFormulaRuleWithDefaultFormula()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => ConditionalFormatRule.MatchesFormula(default));
+    }
+
+    [Fact]
     public async Task Spreadsheet_ConditionalFormatting_MatchesFormulaRulesHaveExpectedSheetXml()
     {
         // Arrange

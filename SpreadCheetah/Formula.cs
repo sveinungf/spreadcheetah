@@ -8,7 +8,7 @@ namespace SpreadCheetah;
 /// </summary>
 public readonly record struct Formula
 {
-    internal string FormulaText { get; }
+    internal string? FormulaText { get; }
 
     internal bool IsR1C1 { get; }
 
@@ -18,7 +18,7 @@ public readonly record struct Formula
     /// </summary>
     public Formula(string? formulaText)
     {
-        FormulaText = formulaText ?? "";
+        FormulaText = formulaText;
     }
 
     private Formula(string formulaText, bool isR1C1)
@@ -43,7 +43,7 @@ public readonly record struct Formula
 
     internal string GetFormulaText(int row, int column) => IsR1C1
         ? R1C1FormulaConverter.ToA1(FormulaText, row, column)
-        : FormulaText;
+        : FormulaText ?? "";
 
     /// <summary>
     /// Creates a hyperlink formula that represents a link to the specified URI.

@@ -27,8 +27,11 @@ internal static class R1C1FormulaConverter
     /// <paramref name="row"/> and <paramref name="column"/> are the 1-based position of the cell that the formula belongs to,
     /// which is used as the anchor for relative references.
     /// </summary>
-    public static string ToA1(string formula, int row, int column)
+    public static string ToA1(string? formula, int row, int column)
     {
+        if (formula is not { Length: > 0 })
+            return "";
+
         var sb = new StringBuilder(formula.Length);
         var i = 0;
         var n = formula.Length;
