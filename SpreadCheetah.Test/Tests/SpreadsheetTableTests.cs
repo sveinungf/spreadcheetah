@@ -704,7 +704,7 @@ public class SpreadsheetTableTests
     [InlineData("With\ud83d\udc4dEmoji")]
     [InlineData("With🌉Emoji")]
     [InlineData("🌉StartingWithEmoji")]
-    [InlineData("With\tValid\x7fControlCharacters")]
+    [InlineData("With\tValid\u007fControlCharacters")]
     [InlineData("WithCharacters\u00a0\u00c9\u00ffBetween160And255")]
     public async Task Spreadsheet_Table_ValidHeaderName(string headerName)
     {
