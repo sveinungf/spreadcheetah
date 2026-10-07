@@ -35,16 +35,6 @@ rm -rf SpreadCheetah*/obj
 dotnet restore SpreadCheetah.Test/SpreadCheetah.Test.csproj
 ```
 
-## Known baseline test failures (25)
-
-On an untouched checkout, exactly 25 tests fail. All 25 are the `With\tValid\r\nControlCharacters` cases and are environment-related, not caused by your change:
-
-- `SpreadsheetRowTests.Spreadsheet_AddRow_CellWithStringValue` (12)
-- `SpreadsheetRowTests.Spreadsheet_AddRow_CellWithReadOnlyMemoryOfCharValue` (12)
-- `SpreadsheetTableTests.Spreadsheet_Table_ValidHeaderName` (1)
-
-If you see these 25 plus a small number of new failures, only the new ones are yours. To confirm a failure is pre-existing, `git stash -u`, rebuild, rerun, `git stash pop`.
-
 ## `PublicApiTests.PublicApi_Generate` fails whenever public API changes
 
 The test snapshots the full public API per TFM into
@@ -58,16 +48,6 @@ The pack step (`GeneratePackageOnBuild`) rewrites this file on Release builds wi
 ```bash
 git checkout -- SpreadCheetah/CompatibilitySuppressions.xml
 ```
-
-## Line endings: worktree is CRLF, repo is LF
-
-This worktree was checked out with CRLF line endings even though the index/HEAD store LF (check with `git ls-files --eol`). Some editors/tools inherit CRLF when editing, which turns a small change into a whole-file diff (thousands of lines of `+`/`-` that differ only by `\r`). If `git diff --stat` shows a file you touched as hundreds of lines changed:
-
-```bash
-sed -i 's/\r$//' <file>
-```
-
-Then verify the diff is back to just your actual change. Untracked new files should be created with LF (matching the repo).
 
 ## NuGet cache corruption
 
