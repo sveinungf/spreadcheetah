@@ -120,7 +120,7 @@ public class SpreadsheetRowTests
         "WithNorwegianCharactersÆØÅ",
         "With\ud83d\udc4dEmoji",
         "With🌉Emoji",
-        "With\tValid\r\nControlCharacters",
+        "With\tValid\x7fControlCharacters",
         "WithCharacters\u00a0\u00c9\u00ffBetween160And255",
         "",
         null

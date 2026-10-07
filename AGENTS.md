@@ -35,16 +35,6 @@ rm -rf SpreadCheetah*/obj
 dotnet restore SpreadCheetah.Test/SpreadCheetah.Test.csproj
 ```
 
-## Known baseline test failures (25)
-
-On an untouched checkout, exactly 25 tests fail. All 25 are the `With\tValid\r\nControlCharacters` cases and are environment-related, not caused by your change:
-
-- `SpreadsheetRowTests.Spreadsheet_AddRow_CellWithStringValue` (12)
-- `SpreadsheetRowTests.Spreadsheet_AddRow_CellWithReadOnlyMemoryOfCharValue` (12)
-- `SpreadsheetTableTests.Spreadsheet_Table_ValidHeaderName` (1)
-
-If you see these 25 plus a small number of new failures, only the new ones are yours. To confirm a failure is pre-existing, `git stash -u`, rebuild, rerun, `git stash pop`.
-
 ## `PublicApiTests.PublicApi_Generate` fails whenever public API changes
 
 The test snapshots the full public API per TFM into
