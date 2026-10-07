@@ -59,16 +59,6 @@ The pack step (`GeneratePackageOnBuild`) rewrites this file on Release builds wi
 git checkout -- SpreadCheetah/CompatibilitySuppressions.xml
 ```
 
-## Line endings: worktree is CRLF, repo is LF
-
-This worktree was checked out with CRLF line endings even though the index/HEAD store LF (check with `git ls-files --eol`). Some editors/tools inherit CRLF when editing, which turns a small change into a whole-file diff (thousands of lines of `+`/`-` that differ only by `\r`). If `git diff --stat` shows a file you touched as hundreds of lines changed:
-
-```bash
-sed -i 's/\r$//' <file>
-```
-
-Then verify the diff is back to just your actual change. Untracked new files should be created with LF (matching the repo).
-
 ## NuGet cache corruption
 
 If a build fails with `NETSDK1064: Package X, version Y was not found` even though the package exists under `~/.nuget/packages/x/`, the cache entry is corrupt. Delete it and re-restore:

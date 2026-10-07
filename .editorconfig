@@ -8,7 +8,8 @@ indent_style = space
 tab_width = 4
 indent_size = 4
 charset = utf-8
-end_of_line = crlf
+end_of_line = lf
+insert_final_newline = true
 
 [*.{csproj,json,props}]
 indent_size = 2
