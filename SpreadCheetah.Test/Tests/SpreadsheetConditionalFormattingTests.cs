@@ -824,6 +824,17 @@ public class SpreadsheetConditionalFormattingTests
         Assert.Equal(fillColor, actualRule.Style.Fill.Color);
     }
 
+    [Theory]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    [InlineData(double.NegativeInfinity)]
+    public void Spreadsheet_ConditionalFormatting_ValuesGreaterThanRule_NonFiniteValue(double value)
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() => ConditionalFormatRule.Values().GreaterThan(value));
+        Assert.Equal(nameof(value), exception.ParamName);
+    }
+
     [Fact]
     public async Task Spreadsheet_ConditionalFormatting_MatchesFormulaRulesHaveExpectedSheetXml()
     {

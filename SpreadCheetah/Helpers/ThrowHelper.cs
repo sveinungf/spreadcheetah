@@ -182,6 +182,10 @@ internal static class ThrowHelper
         => throw new ArgumentOutOfRangeException(paramName, value, "The value can not be negative.");
 
     [DoesNotReturn]
+    public static void ValueNotFinite(string? paramName)
+        => throw new ArgumentOutOfRangeException(paramName, "The value must be a finite number.");
+
+    [DoesNotReturn]
     public static void ValueTooLong(int maxLength, string? paramName)
         => throw new ArgumentException(StringHelper.Invariant($"The value can not exceed {maxLength} characters."), paramName);
 

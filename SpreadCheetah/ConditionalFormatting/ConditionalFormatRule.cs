@@ -22,6 +22,9 @@ public abstract class ConditionalFormatRule
     /// </summary>
     public static UniqueValuesFormatRuleBuilder UniqueValues() => new();
 
+    /// <summary>
+    /// Creates a conditional format rule that applies to cells based on a comparison of their value.
+    /// </summary>
     public static ValuesFormatRuleBuilder Values() => new();
 
     internal ConditionalFormatStyle? Style { get; init; }
