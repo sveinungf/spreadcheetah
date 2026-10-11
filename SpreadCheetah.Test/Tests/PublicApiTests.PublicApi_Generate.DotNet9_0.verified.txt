@@ -218,6 +218,7 @@ namespace SpreadCheetah.ConditionalFormatting
         public static SpreadCheetah.ConditionalFormatting.DuplicateValuesFormatRuleBuilder DuplicateValues() { }
         public static SpreadCheetah.ConditionalFormatting.MatchesFormulaFormatRuleBuilder MatchesFormula(SpreadCheetah.Formula formula) { }
         public static SpreadCheetah.ConditionalFormatting.UniqueValuesFormatRuleBuilder UniqueValues() { }
+        public static SpreadCheetah.ConditionalFormatting.ValuesFormatRuleBuilder Values() { }
     }
     public sealed class ConditionalFormatStyle : System.IEquatable<SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle>
     {
@@ -246,6 +247,11 @@ namespace SpreadCheetah.ConditionalFormatting
     {
         public SpreadCheetah.ConditionalFormatting.MatchesFormulaFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
     }
+    public sealed class NumericValuesFormatRule : SpreadCheetah.ConditionalFormatting.ConditionalFormatRule { }
+    public sealed class NumericValuesFormatRuleBuilder
+    {
+        public SpreadCheetah.ConditionalFormatting.NumericValuesFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
+    }
     public sealed class UniqueValuesFormatRule : SpreadCheetah.ConditionalFormatting.ConditionalFormatRule
     {
         public UniqueValuesFormatRule() { }
@@ -253,6 +259,10 @@ namespace SpreadCheetah.ConditionalFormatting
     public sealed class UniqueValuesFormatRuleBuilder
     {
         public SpreadCheetah.ConditionalFormatting.UniqueValuesFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
+    }
+    public sealed class ValuesFormatRuleBuilder
+    {
+        public SpreadCheetah.ConditionalFormatting.NumericValuesFormatRuleBuilder GreaterThan(double value) { }
     }
 }
 namespace SpreadCheetah.Images

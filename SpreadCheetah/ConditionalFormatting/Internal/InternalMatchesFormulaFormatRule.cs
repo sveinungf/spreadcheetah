@@ -6,7 +6,7 @@ namespace SpreadCheetah.ConditionalFormatting.Internal;
 
 internal sealed record InternalMatchesFormulaFormatRule : InternalConditionalFormatRule
 {
-    public Formula Formula { get; init; }
+    public required Formula Formula { get; init; }
 
     private BufferWriteProgress _progress;
 
