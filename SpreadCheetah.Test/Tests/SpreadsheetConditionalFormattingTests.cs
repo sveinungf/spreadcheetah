@@ -4,6 +4,7 @@ using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
+using SpreadCheetah.TestHelpers.Models;
 using System.Drawing;
 using System.IO.Compression;
 using SpreadsheetAssert = SpreadCheetah.TestHelpers.SpreadsheetAssert;
@@ -788,6 +789,39 @@ public class SpreadsheetConditionalFormattingTests
     {
         // Act & Assert
         Assert.Throws<ArgumentException>(() => ConditionalFormatRule.MatchesFormula(default));
+    }
+
+    [Theory]
+    [InlineData(5.0)]
+    [InlineData(1.2345)]
+    [InlineData(0.0)]
+    [InlineData(-1.2345)]
+    [InlineData(-5.0)]
+    [InlineData(double.MaxValue)]
+    [InlineData(double.MinValue)]
+    public async Task Spreadsheet_ConditionalFormatting_ValuesGreaterThanRule(double value)
+    {
+        // Arrange
+        const string cellReference = "A1:A10";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var fillColor = Color.FromArgb(255, 255, 0, 0);
+        var style = new ConditionalFormatStyle { Fill = { Color = fillColor } };
+
+        // Act
+        var rule = ConditionalFormatRule.Values().GreaterThan(value).WithStyle(style);
+        spreadsheet.AddConditionalFormatRule(cellReference, rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRule = Assert.Single(sheet.ConditionalFormatRules);
+        Assert.True(actualRule.IsCellIsRule);
+        Assert.Equal(cellReference, actualRule.CellRangeReference);
+        Assert.Equal(value, actualRule.NumericValue);
+        Assert.Equal(ConditionalFormatOperator.GreaterThan, actualRule.RuleOperator);
+        Assert.Equal(fillColor, actualRule.Style.Fill.Color);
     }
 
     [Fact]
