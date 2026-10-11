@@ -262,7 +262,12 @@ namespace SpreadCheetah.ConditionalFormatting
     }
     public sealed class ValuesFormatRuleBuilder
     {
+        public SpreadCheetah.ConditionalFormatting.NumericValuesFormatRuleBuilder EqualTo(double value) { }
         public SpreadCheetah.ConditionalFormatting.NumericValuesFormatRuleBuilder GreaterThan(double value) { }
+        public SpreadCheetah.ConditionalFormatting.NumericValuesFormatRuleBuilder GreaterThanOrEqualTo(double value) { }
+        public SpreadCheetah.ConditionalFormatting.NumericValuesFormatRuleBuilder LessThan(double value) { }
+        public SpreadCheetah.ConditionalFormatting.NumericValuesFormatRuleBuilder LessThanOrEqualTo(double value) { }
+        public SpreadCheetah.ConditionalFormatting.NumericValuesFormatRuleBuilder NotEqualTo(double value) { }
     }
 }
 namespace SpreadCheetah.Images

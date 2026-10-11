@@ -799,7 +799,7 @@ public class SpreadsheetConditionalFormattingTests
     [InlineData(-5.0)]
     [InlineData(double.MaxValue)]
     [InlineData(double.MinValue)]
-    public async Task Spreadsheet_ConditionalFormatting_ValuesGreaterThanRule(double value)
+    public async Task Spreadsheet_ConditionalFormatting_ValuesRule(double value)
     {
         // Arrange
         const string cellReference = "A1:A10";
@@ -810,7 +810,7 @@ public class SpreadsheetConditionalFormattingTests
         var style = new ConditionalFormatStyle { Fill = { Color = fillColor } };
 
         // Act
-        var rule = ConditionalFormatRule.Values().GreaterThan(value).WithStyle(style);
+        var rule = ConditionalFormatRule.Values().LessThan(value).WithStyle(style);
         spreadsheet.AddConditionalFormatRule(cellReference, rule);
         await spreadsheet.FinishAsync(Token);
 
@@ -820,7 +820,40 @@ public class SpreadsheetConditionalFormattingTests
         Assert.True(actualRule.IsCellIsRule);
         Assert.Equal(cellReference, actualRule.CellRangeReference);
         Assert.Equal(value, actualRule.NumericValue);
-        Assert.Equal(ConditionalFormatOperator.GreaterThan, actualRule.RuleOperator);
+        Assert.Equal(ConditionalFormatOperator.LessThan, actualRule.RuleOperator);
+        Assert.Equal(fillColor, actualRule.Style.Fill.Color);
+    }
+
+    [Theory]
+    [InlineData(ConditionalFormatOperator.EqualTo)]
+    [InlineData(ConditionalFormatOperator.GreaterThan)]
+    [InlineData(ConditionalFormatOperator.GreaterThanOrEqualTo)]
+    [InlineData(ConditionalFormatOperator.LessThan)]
+    [InlineData(ConditionalFormatOperator.LessThanOrEqualTo)]
+    [InlineData(ConditionalFormatOperator.NotEqualTo)]
+    public async Task Spreadsheet_ConditionalFormatting_ValuesRuleWithOperator(ConditionalFormatOperator op)
+    {
+        // Arrange
+        const string cellReference = "A1:A10";
+        const double value = 5.5;
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var fillColor = Color.FromArgb(255, 255, 0, 0);
+        var style = new ConditionalFormatStyle { Fill = { Color = fillColor } };
+
+        // Act
+        var rule = ConditionalFormatRule.Values().For(op, value).WithStyle(style);
+        spreadsheet.AddConditionalFormatRule(cellReference, rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRule = Assert.Single(sheet.ConditionalFormatRules);
+        Assert.True(actualRule.IsCellIsRule);
+        Assert.Equal(cellReference, actualRule.CellRangeReference);
+        Assert.Equal(value, actualRule.NumericValue);
+        Assert.Equal(op, actualRule.RuleOperator);
         Assert.Equal(fillColor, actualRule.Style.Fill.Color);
     }
 
@@ -828,7 +861,7 @@ public class SpreadsheetConditionalFormattingTests
     [InlineData(double.NaN)]
     [InlineData(double.PositiveInfinity)]
     [InlineData(double.NegativeInfinity)]
-    public void Spreadsheet_ConditionalFormatting_ValuesGreaterThanRule_NonFiniteValue(double value)
+    public void Spreadsheet_ConditionalFormatting_ValuesRule_NonFiniteValue(double value)
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentOutOfRangeException>(() => ConditionalFormatRule.Values().GreaterThan(value));
