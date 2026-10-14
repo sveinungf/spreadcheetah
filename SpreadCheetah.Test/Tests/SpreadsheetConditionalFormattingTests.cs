@@ -868,6 +868,98 @@ public class SpreadsheetConditionalFormattingTests
         Assert.Equal(nameof(value), exception.ParamName);
     }
 
+    [Theory]
+    [InlineData(1.5, 10.25)]
+    [InlineData(0.0, 5.0)]
+    [InlineData(-5.0, -1.2345)]
+    [InlineData(-10.0, 10.0)]
+    public async Task Spreadsheet_ConditionalFormatting_ValuesBetweenRule(double firstValue, double secondValue)
+    {
+        // Arrange
+        const string cellReference = "A1:A10";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var fillColor = Color.FromArgb(255, 255, 0, 0);
+        var style = new ConditionalFormatStyle { Fill = { Color = fillColor } };
+
+        // Act
+        var rule = ConditionalFormatRule.Values().Between(firstValue, secondValue).WithStyle(style);
+        spreadsheet.AddConditionalFormatRule(cellReference, rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRule = Assert.Single(sheet.ConditionalFormatRules);
+        Assert.True(actualRule.IsCellIsRule);
+        Assert.Equal(cellReference, actualRule.CellRangeReference);
+        Assert.Equal(ConditionalFormatOperator.Between, actualRule.RuleOperator);
+        Assert.Equal([firstValue, secondValue], actualRule.NumericValues);
+        Assert.Equal(fillColor, actualRule.Style.Fill.Color);
+    }
+
+    [Theory]
+    [InlineData(1.5, 10.25)]
+    [InlineData(0.0, 5.0)]
+    [InlineData(-5.0, -1.2345)]
+    [InlineData(-10.0, 10.0)]
+    public async Task Spreadsheet_ConditionalFormatting_ValuesNotBetweenRule(double firstValue, double secondValue)
+    {
+        // Arrange
+        const string cellReference = "A1:A10";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var fillColor = Color.FromArgb(255, 255, 0, 0);
+        var style = new ConditionalFormatStyle { Fill = { Color = fillColor } };
+
+        // Act
+        var rule = ConditionalFormatRule.Values().NotBetween(firstValue, secondValue).WithStyle(style);
+        spreadsheet.AddConditionalFormatRule(cellReference, rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRule = Assert.Single(sheet.ConditionalFormatRules);
+        Assert.True(actualRule.IsCellIsRule);
+        Assert.Equal(cellReference, actualRule.CellRangeReference);
+        Assert.Equal(ConditionalFormatOperator.NotBetween, actualRule.RuleOperator);
+        Assert.Equal([firstValue, secondValue], actualRule.NumericValues);
+        Assert.Equal(fillColor, actualRule.Style.Fill.Color);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_BetweenAndNotBetweenRulesForSameCellRange()
+    {
+        // Arrange
+        const string cellReference = "A1:A10";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style1 = new ConditionalFormatStyle { Fill = { Color = Color.FromArgb(255, 255, 0, 0) } };
+        var style2 = new ConditionalFormatStyle { Font = { Bold = true } };
+
+        // Act
+        var betweenRule = ConditionalFormatRule.Values().Between(1.5, 10.25).WithStyle(style1);
+        var notBetweenRule = ConditionalFormatRule.Values().NotBetween(2.0, 9.0).WithStyle(style2);
+        spreadsheet.AddConditionalFormatRule(cellReference, betweenRule);
+        spreadsheet.AddConditionalFormatRule(cellReference, notBetweenRule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRules = sheet.ConditionalFormatRules;
+        Assert.All(actualRules, x => Assert.Equal(cellReference, x.CellRangeReference));
+        var actualBetweenRule = Assert.Single(actualRules, x => x.RuleOperator == ConditionalFormatOperator.Between);
+        Assert.True(actualBetweenRule.IsCellIsRule);
+        Assert.Equal([1.5, 10.25], actualBetweenRule.NumericValues);
+        Assert.Equal(style1.Fill.Color, actualBetweenRule.Style.Fill.Color);
+        var actualNotBetweenRule = Assert.Single(actualRules, x => x.RuleOperator == ConditionalFormatOperator.NotBetween);
+        Assert.True(actualNotBetweenRule.IsCellIsRule);
+        Assert.Equal([2.0, 9.0], actualNotBetweenRule.NumericValues);
+        Assert.Equal(style2.Font.Bold, actualNotBetweenRule.Style.Font.Bold);
+    }
+
     [Fact]
     public async Task Spreadsheet_ConditionalFormatting_MatchesFormulaRulesHaveExpectedSheetXml()
     {

@@ -41,19 +41,19 @@ internal sealed class ClosedXmlConditionalFormatRule(
         }
     }
 
-    public double NumericValue
+    public double NumericValue => NumericValues.Single();
+    public IReadOnlyList<double> NumericValues => field ??= CreateNumericValues();
+
+    private List<double> CreateNumericValues()
     {
-        get
-        {
-            if (!IsCellIsRule)
-                throw new InvalidOperationException("The conditional format rule is not a cellIs rule.");
+        if (!IsCellIsRule)
+            throw new InvalidOperationException("The conditional format rule is not a cellIs rule.");
 
-            var value = conditionalFormat.Values.Values.SingleOrDefault();
-            if (value is not { Value.Length: > 0 })
-                throw new InvalidOperationException("The conditional format rule does not have a numeric value.");
+        var values = conditionalFormat.Values.Values;
+        if (values.Any(x => x.Value.Length == 0))
+            throw new InvalidOperationException("The conditional format rule does not have a numeric value.");
 
-            return double.Parse(value.Value, CultureInfo.InvariantCulture);
-        }
+        return [.. values.Select(x => double.Parse(x.Value, CultureInfo.InvariantCulture))];
     }
 
     public ConditionalFormatOperator RuleOperator
