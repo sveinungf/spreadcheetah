@@ -2,7 +2,7 @@ using SpreadCheetah.CellReferences;
 
 namespace SpreadCheetah.ConditionalFormatting.Internal;
 
-internal sealed record InternalNumericRangeFormatRule : InternalConditionalFormatRule
+internal sealed class InternalNumericRangeFormatRule : InternalConditionalFormatRule
 {
     public required double FirstValue { get; init; }
     public required double SecondValue { get; init; }

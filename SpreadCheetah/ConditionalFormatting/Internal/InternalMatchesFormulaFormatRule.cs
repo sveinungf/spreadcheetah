@@ -4,7 +4,7 @@ using SpreadCheetah.MetadataXml.Attributes;
 
 namespace SpreadCheetah.ConditionalFormatting.Internal;
 
-internal sealed record InternalMatchesFormulaFormatRule : InternalConditionalFormatRule
+internal sealed class InternalMatchesFormulaFormatRule : InternalConditionalFormatRule
 {
     public required Formula Formula { get; init; }
 

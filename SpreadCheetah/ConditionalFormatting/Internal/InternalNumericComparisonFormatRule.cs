@@ -3,7 +3,7 @@ using SpreadCheetah.MetadataXml.Attributes;
 
 namespace SpreadCheetah.ConditionalFormatting.Internal;
 
-internal sealed record InternalNumericComparisonFormatRule : InternalConditionalFormatRule
+internal sealed class InternalNumericComparisonFormatRule : InternalConditionalFormatRule
 {
     public required double Value { get; init; }
     public required NumericComparisonOperator Operator { get; init; }
