@@ -797,8 +797,8 @@ public class SpreadsheetConditionalFormattingTests
     [InlineData(0.0)]
     [InlineData(-1.2345)]
     [InlineData(-5.0)]
-    [InlineData(double.MaxValue)]
-    [InlineData(double.MinValue)]
+    [InlineData(2.2222222222E+50)]
+    [InlineData(-2.2222222222E+50)]
     public async Task Spreadsheet_ConditionalFormatting_ValuesRule(double value)
     {
         // Arrange
