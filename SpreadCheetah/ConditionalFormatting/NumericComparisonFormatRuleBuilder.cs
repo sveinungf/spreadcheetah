@@ -3,7 +3,7 @@ using SpreadCheetah.ConditionalFormatting.Internal;
 namespace SpreadCheetah.ConditionalFormatting;
 
 /// <summary>
-/// Builder for a numeric values conditional format rule.
+/// Builder for a numeric comparison conditional format rule.
 /// Use <see cref="ConditionalFormatRule.Values"/> to create an instance of this builder.
 /// </summary>
 public sealed class NumericComparisonFormatRuleBuilder

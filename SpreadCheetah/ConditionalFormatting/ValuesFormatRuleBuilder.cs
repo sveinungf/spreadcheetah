@@ -14,6 +14,16 @@ public sealed class ValuesFormatRuleBuilder
     }
 
     /// <summary>
+    /// Creates a rule that applies to cells with a value between the specified values.
+    /// </summary>
+    public NumericRangeFormatRuleBuilder Between(double firstValue, double secondValue) => new(firstValue, secondValue, isBetween: true);
+
+    /// <summary>
+    /// Creates a rule that applies to cells with a value not between the specified values.
+    /// </summary>
+    public NumericRangeFormatRuleBuilder NotBetween(double firstValue, double secondValue) => new(firstValue, secondValue, isBetween: false);
+
+    /// <summary>
     /// Creates a rule that applies to cells with a value greater than the specified value.
     /// </summary>
     public NumericComparisonFormatRuleBuilder GreaterThan(double value) => Create(value, NumericComparisonOperator.GreaterThan);
