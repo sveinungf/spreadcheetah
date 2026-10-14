@@ -3,7 +3,7 @@ using SpreadCheetah.MetadataXml.Attributes;
 
 namespace SpreadCheetah.ConditionalFormatting.Internal;
 
-internal sealed record InternalUniqueValuesFormatRule : InternalConditionalFormatRule
+internal sealed class InternalUniqueValuesFormatRule : InternalConditionalFormatRule
 {
     public override bool TryWrite(SpreadsheetBuffer buffer, int priority, SimpleSingleCellReference topLeftCell)
     {

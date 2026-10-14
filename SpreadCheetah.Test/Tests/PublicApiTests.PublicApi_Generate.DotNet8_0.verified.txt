@@ -216,6 +216,7 @@ namespace SpreadCheetah.ConditionalFormatting
         public static SpreadCheetah.ConditionalFormatting.DuplicateValuesFormatRuleBuilder DuplicateValues() { }
         public static SpreadCheetah.ConditionalFormatting.MatchesFormulaFormatRuleBuilder MatchesFormula(SpreadCheetah.Formula formula) { }
         public static SpreadCheetah.ConditionalFormatting.UniqueValuesFormatRuleBuilder UniqueValues() { }
+        public static SpreadCheetah.ConditionalFormatting.ValuesFormatRuleBuilder Values() { }
     }
     public sealed class ConditionalFormatStyle : System.IEquatable<SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle>
     {
@@ -244,6 +245,16 @@ namespace SpreadCheetah.ConditionalFormatting
     {
         public SpreadCheetah.ConditionalFormatting.MatchesFormulaFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
     }
+    public sealed class NumericComparisonFormatRule : SpreadCheetah.ConditionalFormatting.ConditionalFormatRule { }
+    public sealed class NumericComparisonFormatRuleBuilder
+    {
+        public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
+    }
+    public sealed class NumericRangeFormatRule : SpreadCheetah.ConditionalFormatting.ConditionalFormatRule { }
+    public sealed class NumericRangeFormatRuleBuilder
+    {
+        public SpreadCheetah.ConditionalFormatting.NumericRangeFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
+    }
     public sealed class UniqueValuesFormatRule : SpreadCheetah.ConditionalFormatting.ConditionalFormatRule
     {
         public UniqueValuesFormatRule() { }
@@ -251,6 +262,17 @@ namespace SpreadCheetah.ConditionalFormatting
     public sealed class UniqueValuesFormatRuleBuilder
     {
         public SpreadCheetah.ConditionalFormatting.UniqueValuesFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
+    }
+    public sealed class ValuesFormatRuleBuilder
+    {
+        public SpreadCheetah.ConditionalFormatting.NumericRangeFormatRuleBuilder Between(double firstValue, double secondValue) { }
+        public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder EqualTo(double value) { }
+        public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder GreaterThan(double value) { }
+        public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder GreaterThanOrEqualTo(double value) { }
+        public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder LessThan(double value) { }
+        public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder LessThanOrEqualTo(double value) { }
+        public SpreadCheetah.ConditionalFormatting.NumericRangeFormatRuleBuilder NotBetween(double firstValue, double secondValue) { }
+        public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder NotEqualTo(double value) { }
     }
 }
 namespace SpreadCheetah.Images
