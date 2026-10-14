@@ -16,12 +16,12 @@ public sealed class ValuesFormatRuleBuilder
     /// <summary>
     /// Creates a rule that applies to cells with a value between the specified values.
     /// </summary>
-    public NumericRangeFormatRuleBuilder Between(double firstValue, double secondValue) => new(firstValue, secondValue, isBetween: true);
+    public NumericRangeFormatRuleBuilder Between(double firstValue, double secondValue) => CreateRange(firstValue, secondValue, isBetween: true);
 
     /// <summary>
     /// Creates a rule that applies to cells with a value not between the specified values.
     /// </summary>
-    public NumericRangeFormatRuleBuilder NotBetween(double firstValue, double secondValue) => new(firstValue, secondValue, isBetween: false);
+    public NumericRangeFormatRuleBuilder NotBetween(double firstValue, double secondValue) => CreateRange(firstValue, secondValue, isBetween: false);
 
     /// <summary>
     /// Creates a rule that applies to cells with a value greater than the specified value.
@@ -59,5 +59,16 @@ public sealed class ValuesFormatRuleBuilder
             ThrowHelper.ValueNotFinite(nameof(value));
 
         return new(value, op);
+    }
+
+    private static NumericRangeFormatRuleBuilder CreateRange(double firstValue, double secondValue, bool isBetween)
+    {
+        if (double.IsNaN(firstValue) || double.IsInfinity(firstValue))
+            ThrowHelper.ValueNotFinite(nameof(firstValue));
+
+        if (double.IsNaN(secondValue) || double.IsInfinity(secondValue))
+            ThrowHelper.ValueNotFinite(nameof(secondValue));
+
+        return new(firstValue, secondValue, isBetween);
     }
 }

@@ -861,11 +861,25 @@ public class SpreadsheetConditionalFormattingTests
     [InlineData(double.NaN)]
     [InlineData(double.PositiveInfinity)]
     [InlineData(double.NegativeInfinity)]
-    public void Spreadsheet_ConditionalFormatting_ValuesRule_NonFiniteValue(double value)
+    public void Spreadsheet_ConditionalFormatting_NumericComparisonRule_NonFiniteValue(double value)
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentOutOfRangeException>(() => ConditionalFormatRule.Values().GreaterThan(value));
         Assert.Equal(nameof(value), exception.ParamName);
+    }
+
+    [Theory]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    [InlineData(double.NegativeInfinity)]
+    public void Spreadsheet_ConditionalFormatting_NumericRangeRule_NonFiniteValue(double value)
+    {
+        // Act & Assert
+        var betweenException = Assert.Throws<ArgumentOutOfRangeException>(() => ConditionalFormatRule.Values().Between(value, 5));
+        Assert.Equal("firstValue", betweenException.ParamName);
+
+        var notBetweenException = Assert.Throws<ArgumentOutOfRangeException>(() => ConditionalFormatRule.Values().NotBetween(5, value));
+        Assert.Equal("secondValue", notBetweenException.ParamName);
     }
 
     [Theory]
