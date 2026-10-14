@@ -16,24 +16,26 @@ The main `SpreadCheetah` library itself builds fine in both configurations.
 
 ## Running the test suite
 
-`dotnet test` works via Microsoft.Testing.Platform (the runner is declared in `global.json`). This SDK also requires the `--project` flag (a positional project path is rejected):
+The runner is Microsoft.Testing.Platform (declared in `global.json`). **`dotnet test` is broken in this environment** — it fails with "is using VSTest test runner" because SDK 10.0.111 writes `*.csproj.nuget.g.targets` with backslash paths that fail `Exists()` on Linux. Cleaning `obj/` does NOT fix it (pre-existing, unrelated to your change). `dotnet build` is unaffected.
+
+So build, then run the test exe directly (`SpreadCheetah.Test/bin/Debug/net10.0/SpreadCheetah.Test.dll`):
 
 ```bash
-dotnet test --project SpreadCheetah.Test/SpreadCheetah.Test.csproj -c Debug -f net10.0
+dotnet build SpreadCheetah.Test/SpreadCheetah.Test.csproj -c Debug -f net10.0
+dotnet SpreadCheetah.Test/bin/Debug/net10.0/SpreadCheetah.Test.dll
 ```
 
-A full run takes ~15s. Look for the `total:` / `failed:` summary lines.
+A full run takes ~15s; look for the `total:` / `failed:` lines.
 
-### `dotnet test` reports the project "is using VSTest test runner"
+### Filtering (run a subset)
 
-That means the NuGet package build files are not being imported — usually because the `obj/` folders are stale copies from a Windows machine.
-
-Delete the `obj/` of every project in the restore graph (including `SpreadCheetah.SourceGenerator`) and restore fresh:
+There is no `--filter-method` flag — it silently runs zero tests. Use `--filter` with the `FullyQualifiedName` property (`~` = contains, `=` = exact):
 
 ```bash
-rm -rf SpreadCheetah*/obj
-dotnet restore SpreadCheetah.Test/SpreadCheetah.Test.csproj
+dotnet SpreadCheetah.Test/bin/Debug/net10.0/SpreadCheetah.Test.dll --filter "FullyQualifiedName~NonFiniteValue"
 ```
+
+If a filter matches nothing, the test was likely renamed — list real names with `dotnet <exe> --list-tests`. (`--trep` publishes results; it does not filter.)
 
 ## `PublicApiTests.PublicApi_Generate` fails whenever public API changes
 
@@ -51,12 +53,16 @@ git checkout -- SpreadCheetah/CompatibilitySuppressions.xml
 
 ## NuGet cache corruption
 
-If a build fails with `NETSDK1064: Package X, version Y was not found` even though the package exists under `~/.nuget/packages/x/`, the cache entry is corrupt. Delete it and re-restore:
+A `NETSDK1064: Package X, version Y was not found` error (even though the package is under `~/.nuget/packages/`) means a corrupt cache entry. Delete it and re-restore.
+
+**The cache directory is lowercase** — the error prints friendly casing (`DotNetProjectFile.Analyzers`) but the path is `~/.nuget/packages/dotnetprojectfile.analyzers`. `rm`-ing the casing from the error silently no-ops; lowercase the id first:
 
 ```bash
-rm -rf ~/.nuget/packages/<package-id>
-dotnet restore <project>.csproj
+rm -rf ~/.nuget/packages/dotnetprojectfile.analyzers
+dotnet restore SpreadCheetah.Test/SpreadCheetah.Test.csproj
 ```
+
+Restore must target a project that references the package. Repeat for each distinct `NETSDK1064` (several packages can be corrupt at once). If it persists, the project's `obj/` is stale too — delete and restore again.
 
 ## Referencing SpreadCheetah from standalone projects
 
