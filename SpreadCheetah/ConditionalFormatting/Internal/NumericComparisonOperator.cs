@@ -1,6 +1,6 @@
 namespace SpreadCheetah.ConditionalFormatting.Internal;
 
-internal enum NumericValueOperator
+internal enum NumericComparisonOperator
 {
     GreaterThan,
     LessThan,

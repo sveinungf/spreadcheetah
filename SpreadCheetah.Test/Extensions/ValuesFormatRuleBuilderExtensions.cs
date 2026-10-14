@@ -7,7 +7,7 @@ internal static class ValuesFormatRuleBuilderExtensions
 {
     extension(ValuesFormatRuleBuilder builder)
     {
-        public NumericValuesFormatRuleBuilder For(ConditionalFormatOperator op, double value)
+        public NumericComparisonFormatRuleBuilder For(ConditionalFormatOperator op, double value)
         {
             return op switch
             {

@@ -6,12 +6,12 @@ namespace SpreadCheetah.ConditionalFormatting;
 /// Builder for a numeric values conditional format rule.
 /// Use <see cref="ConditionalFormatRule.Values"/> to create an instance of this builder.
 /// </summary>
-public sealed class NumericValuesFormatRuleBuilder
+public sealed class NumericComparisonFormatRuleBuilder
 {
     internal double Value { get; }
-    internal NumericValueOperator Operator { get; }
+    internal NumericComparisonOperator Operator { get; }
 
-    internal NumericValuesFormatRuleBuilder(double value, NumericValueOperator op)
+    internal NumericComparisonFormatRuleBuilder(double value, NumericComparisonOperator op)
     {
         Value = value;
         Operator = op;
@@ -21,9 +21,9 @@ public sealed class NumericValuesFormatRuleBuilder
     /// Sets the style that should be applied to cells matching the rule.
     /// </summary>
     /// <returns>The conditional format rule.</returns>
-    public NumericValuesFormatRule WithStyle(ConditionalFormatStyle style)
+    public NumericComparisonFormatRule WithStyle(ConditionalFormatStyle style)
     {
         ArgumentNullException.ThrowIfNull(style);
-        return new NumericValuesFormatRule(Value, Operator) { Style = style };
+        return new NumericComparisonFormatRule(Value, Operator) { Style = style };
     }
 }

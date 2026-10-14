@@ -3,10 +3,10 @@ using SpreadCheetah.MetadataXml.Attributes;
 
 namespace SpreadCheetah.ConditionalFormatting.Internal;
 
-internal sealed record InternalNumericValuesFormatRule : InternalConditionalFormatRule
+internal sealed record InternalNumericComparisonFormatRule : InternalConditionalFormatRule
 {
     public required double Value { get; init; }
-    public required NumericValueOperator Operator { get; init; }
+    public required NumericComparisonOperator Operator { get; init; }
 
     public override bool TryWrite(SpreadsheetBuffer buffer, int priority, SimpleSingleCellReference topLeftCell)
     {
@@ -24,13 +24,13 @@ internal sealed record InternalNumericValuesFormatRule : InternalConditionalForm
             $"{"</formula></cfRule>"u8}");
     }
 
-    private static ReadOnlySpan<byte> GetOperatorValue(NumericValueOperator op) => op switch
+    private static ReadOnlySpan<byte> GetOperatorValue(NumericComparisonOperator op) => op switch
     {
-        NumericValueOperator.GreaterThan => "greaterThan"u8,
-        NumericValueOperator.LessThan => "lessThan"u8,
-        NumericValueOperator.EqualTo => "equal"u8,
-        NumericValueOperator.NotEqualTo => "notEqual"u8,
-        NumericValueOperator.GreaterThanOrEqualTo => "greaterThanOrEqual"u8,
+        NumericComparisonOperator.GreaterThan => "greaterThan"u8,
+        NumericComparisonOperator.LessThan => "lessThan"u8,
+        NumericComparisonOperator.EqualTo => "equal"u8,
+        NumericComparisonOperator.NotEqualTo => "notEqual"u8,
+        NumericComparisonOperator.GreaterThanOrEqualTo => "greaterThanOrEqual"u8,
         _ => "lessThanOrEqual"u8
     };
 }
