@@ -56,28 +56,27 @@ internal sealed class ClosedXmlConditionalFormatRule(
         return [.. values.Select(x => double.Parse(x.Value, CultureInfo.InvariantCulture))];
     }
 
-    public ConditionalFormatOperator RuleOperator
-    {
-        get
-        {
-            if (!IsCellIsRule)
-                throw new InvalidOperationException("The conditional format rule is not a cellIs rule.");
+    public ConditionalFormatOperator RuleOperator => !IsCellIsRule
+        ? throw new InvalidOperationException("The conditional format rule is not a cellIs rule.")
+        : Map(conditionalFormat.Operator);
 
-            return conditionalFormat.Operator switch
-            {
-                XLCFOperator.Equal => ConditionalFormatOperator.EqualTo,
-                XLCFOperator.NotEqual => ConditionalFormatOperator.NotEqualTo,
-                XLCFOperator.GreaterThan => ConditionalFormatOperator.GreaterThan,
-                XLCFOperator.LessThan => ConditionalFormatOperator.LessThan,
-                XLCFOperator.EqualOrGreaterThan => ConditionalFormatOperator.GreaterThanOrEqualTo,
-                XLCFOperator.EqualOrLessThan => ConditionalFormatOperator.LessThanOrEqualTo,
-                XLCFOperator.Between => ConditionalFormatOperator.Between,
-                XLCFOperator.NotBetween => ConditionalFormatOperator.NotBetween,
-                XLCFOperator.Contains => ConditionalFormatOperator.Contains,
-                XLCFOperator.NotContains => ConditionalFormatOperator.NotContains,
-                XLCFOperator.StartsWith => ConditionalFormatOperator.StartsWith,
-                _ => ConditionalFormatOperator.EndsWith
-            };
-        }
+    private static ConditionalFormatOperator Map(XLCFOperator op)
+    {
+        return op switch
+        {
+            XLCFOperator.Equal => ConditionalFormatOperator.EqualTo,
+            XLCFOperator.NotEqual => ConditionalFormatOperator.NotEqualTo,
+            XLCFOperator.GreaterThan => ConditionalFormatOperator.GreaterThan,
+            XLCFOperator.LessThan => ConditionalFormatOperator.LessThan,
+            XLCFOperator.EqualOrGreaterThan => ConditionalFormatOperator.GreaterThanOrEqualTo,
+            XLCFOperator.EqualOrLessThan => ConditionalFormatOperator.LessThanOrEqualTo,
+            XLCFOperator.Between => ConditionalFormatOperator.Between,
+            XLCFOperator.NotBetween => ConditionalFormatOperator.NotBetween,
+            XLCFOperator.Contains => ConditionalFormatOperator.Contains,
+            XLCFOperator.NotContains => ConditionalFormatOperator.NotContains,
+            XLCFOperator.StartsWith => ConditionalFormatOperator.StartsWith,
+            XLCFOperator.EndsWith => ConditionalFormatOperator.EndsWith,
+            _ => throw new ArgumentOutOfRangeException(nameof(op), op, null)
+        };
     }
 }
