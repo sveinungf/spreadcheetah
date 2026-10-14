@@ -10,7 +10,8 @@ public abstract class ConditionalFormatRule
     /// <summary>
     /// Creates a conditional format rule that applies to cells with duplicate values.
     /// </summary>
-    public static DuplicateValuesFormatRuleBuilder DuplicateValues() => new();
+    public static DuplicateValuesFormatRuleBuilder DuplicateValues() => _duplicateValues ??= new();
+    private static DuplicateValuesFormatRuleBuilder? _duplicateValues;
 
     /// <summary>
     /// Creates a conditional format rule that applies to cells where the specified formula evaluates to true.
@@ -20,12 +21,14 @@ public abstract class ConditionalFormatRule
     /// <summary>
     /// Creates a conditional format rule that applies to cells with unique values.
     /// </summary>
-    public static UniqueValuesFormatRuleBuilder UniqueValues() => new();
+    public static UniqueValuesFormatRuleBuilder UniqueValues() => _uniqueValues ??= new();
+    private static UniqueValuesFormatRuleBuilder? _uniqueValues;
 
     /// <summary>
     /// Creates a conditional format rule that applies to cells based on a comparison of their value.
     /// </summary>
-    public static ValuesFormatRuleBuilder Values() => new();
+    public static ValuesFormatRuleBuilder Values() => _values ??= new();
+    private static ValuesFormatRuleBuilder? _values;
 
     internal ConditionalFormatStyle? Style { get; init; }
 
