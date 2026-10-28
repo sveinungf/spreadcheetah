@@ -176,6 +176,11 @@ namespace SpreadCheetah
 }
 namespace SpreadCheetah.ConditionalFormatting
 {
+    public sealed class AverageComparisonFormatRule : SpreadCheetah.ConditionalFormatting.ConditionalFormatRule { }
+    public sealed class AverageComparisonFormatRuleBuilder
+    {
+        public SpreadCheetah.ConditionalFormatting.AverageComparisonFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
+    }
     public sealed class ConditionalFormatBorder : System.IEquatable<SpreadCheetah.ConditionalFormatting.ConditionalFormatBorder>
     {
         public ConditionalFormatBorder() { }
@@ -268,14 +273,20 @@ namespace SpreadCheetah.ConditionalFormatting
     }
     public sealed class ValuesFormatRuleBuilder
     {
+        public SpreadCheetah.ConditionalFormatting.AverageComparisonFormatRuleBuilder AboveAverage() { }
+        public SpreadCheetah.ConditionalFormatting.AverageComparisonFormatRuleBuilder BelowAverage() { }
         public SpreadCheetah.ConditionalFormatting.NumericRangeFormatRuleBuilder Between(double firstValue, double secondValue) { }
         public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder EqualTo(double value) { }
+        public SpreadCheetah.ConditionalFormatting.AverageComparisonFormatRuleBuilder EqualToOrAboveAverage() { }
+        public SpreadCheetah.ConditionalFormatting.AverageComparisonFormatRuleBuilder EqualToOrBelowAverage() { }
         public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder GreaterThan(double value) { }
         public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder GreaterThanOrEqualTo(double value) { }
         public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder LessThan(double value) { }
         public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder LessThanOrEqualTo(double value) { }
         public SpreadCheetah.ConditionalFormatting.NumericRangeFormatRuleBuilder NotBetween(double firstValue, double secondValue) { }
         public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder NotEqualTo(double value) { }
+        public SpreadCheetah.ConditionalFormatting.AverageComparisonFormatRuleBuilder StandardDeviationsAboveAverage(int standardDeviations) { }
+        public SpreadCheetah.ConditionalFormatting.AverageComparisonFormatRuleBuilder StandardDeviationsBelowAverage(int standardDeviations) { }
     }
 }
 namespace SpreadCheetah.Images
