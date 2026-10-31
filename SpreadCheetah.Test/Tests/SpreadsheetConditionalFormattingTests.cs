@@ -1004,10 +1004,11 @@ public class SpreadsheetConditionalFormattingTests
     {
         // Arrange
         const string cellReference = "A1:A10";
+        var color = Color.FromArgb(255, 255, 0, 0);
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-        var style = new ConditionalFormatStyle { Fill = { Color = Color.Red } };
+        var style = new ConditionalFormatStyle { Fill = { Color = color } };
 
         // Act
         var rule = ConditionalFormatRule.Values().For(op).WithStyle(style);
@@ -1019,6 +1020,7 @@ public class SpreadsheetConditionalFormattingTests
         var actualRule = Assert.Single(sheet.ConditionalFormatRules.OfType<IAverageComparisonFormatRule>());
         Assert.Equal(cellReference, actualRule.CellRangeReference);
         Assert.Equal(op, actualRule.AverageComparisonOperator);
+        Assert.Equal(color, actualRule.Style.Fill.Color);
     }
 
     [Fact]
@@ -1045,5 +1047,29 @@ public class SpreadsheetConditionalFormattingTests
         using var zip = await ZipArchive.CreateAsync(stream, Token);
         using var sheet1Xml = await zip.GetSheet1XmlStreamAsync(Token);
         await VerifyXml(sheet1Xml);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    [InlineData(4)]
+    public void Spreadsheet_ConditionalFormatting_StandardDeviationsAboveAverage_InvalidValue(int standardDeviations)
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(()
+            => ConditionalFormatRule.Values().StandardDeviationsAboveAverage(standardDeviations));
+        Assert.Equal(nameof(standardDeviations), exception.ParamName);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    [InlineData(4)]
+    public void Spreadsheet_ConditionalFormatting_StandardDeviationsBelowAverage_InvalidValue(int standardDeviations)
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(()
+            => ConditionalFormatRule.Values().StandardDeviationsBelowAverage(standardDeviations));
+        Assert.Equal(nameof(standardDeviations), exception.ParamName);
     }
 }
