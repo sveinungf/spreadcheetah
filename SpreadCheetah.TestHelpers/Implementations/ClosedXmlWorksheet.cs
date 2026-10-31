@@ -66,9 +66,16 @@ internal sealed class ClosedXmlWorksheet(
 
     private IEnumerable<IConditionalFormatRule> InitConditionalFormatRules()
     {
-        var openXmlRules = openXmlWorksheet.Descendants<OpenXmlConditionalFormattingRule>();
+        var openXmlRules = openXmlWorksheet.Descendants<OpenXmlConditionalFormattingRule>().ToList();
+        var closedXmlRules = sheet.ConditionalFormats.ToList();
 
-        foreach (var (closedXmlRule, openXmlRule) in sheet.ConditionalFormats.Zip(openXmlRules))
+        if (openXmlRules.Count != closedXmlRules.Count)
+        {
+            throw new InvalidOperationException(
+                "The number of conditional formatting rules in the OpenXML worksheet does not match the number from the ClosedXML worksheet.");
+        }
+
+        foreach (var (closedXmlRule, openXmlRule) in closedXmlRules.Zip(openXmlRules))
         {
             yield return openXmlRule.TryGetAverageComparisonOperator(out var op)
                 ? new AverageComparisonFormatRule(closedXmlRule, op)
