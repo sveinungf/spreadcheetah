@@ -4,6 +4,7 @@ using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
+using SpreadCheetah.TestHelpers.Interfaces;
 using SpreadCheetah.TestHelpers.Models;
 using System.Drawing;
 using System.IO.Compression;
@@ -989,6 +990,54 @@ public class SpreadsheetConditionalFormattingTests
         // Act
         spreadsheet.AddConditionalFormatRule("D6", rule1);
         spreadsheet.AddConditionalFormatRule("B2:C3", rule2);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var sheet1Xml = await zip.GetSheet1XmlStreamAsync(Token);
+        await VerifyXml(sheet1Xml);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_ConditionalFormatting_AverageComparisonRule(AverageComparisonOperator op)
+    {
+        // Arrange
+        const string cellReference = "A1:A10";
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new ConditionalFormatStyle { Fill = { Color = Color.Red } };
+
+        // Act
+        var rule = ConditionalFormatRule.Values().For(op).WithStyle(style);
+        spreadsheet.AddConditionalFormatRule(cellReference, rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRule = Assert.Single(sheet.ConditionalFormatRules.OfType<IAverageComparisonFormatRule>());
+        Assert.Equal(cellReference, actualRule.CellRangeReference);
+        Assert.Equal(op, actualRule.AverageComparisonOperator);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_AverageComparisonRulesHaveExpectedSheetXml()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new ConditionalFormatStyle { Fill = { Color = Color.Red } };
+
+        // Act
+        foreach (var (index, op) in Enum.GetValues<AverageComparisonOperator>().Index())
+        {
+            var rule = ConditionalFormatRule.Values().For(op).WithStyle(style);
+            var columnName = SpreadsheetUtility.GetColumnName(index + 1);
+            spreadsheet.AddConditionalFormatRule($"{columnName}1:{columnName}10", rule);
+        }
+
         await spreadsheet.FinishAsync(Token);
 
         // Assert

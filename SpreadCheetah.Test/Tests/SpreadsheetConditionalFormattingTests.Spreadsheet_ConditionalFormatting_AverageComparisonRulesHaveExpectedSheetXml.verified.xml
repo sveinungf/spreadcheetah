@@ -1,0 +1,33 @@
+﻿<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <sheetData></sheetData>
+  <conditionalFormatting sqref="A1:A10">
+    <cfRule type="aboveAverage" dxfId="0" priority="1" />
+  </conditionalFormatting>
+  <conditionalFormatting sqref="B1:B10">
+    <cfRule type="aboveAverage" dxfId="1" priority="2" aboveAverage="0" />
+  </conditionalFormatting>
+  <conditionalFormatting sqref="C1:C10">
+    <cfRule type="aboveAverage" dxfId="2" priority="3" equalAverage="1" />
+  </conditionalFormatting>
+  <conditionalFormatting sqref="D1:D10">
+    <cfRule type="aboveAverage" dxfId="3" priority="4" aboveAverage="0" equalAverage="1" />
+  </conditionalFormatting>
+  <conditionalFormatting sqref="E1:E10">
+    <cfRule type="aboveAverage" dxfId="4" priority="5" stdDev="1" />
+  </conditionalFormatting>
+  <conditionalFormatting sqref="F1:F10">
+    <cfRule type="aboveAverage" dxfId="5" priority="6" aboveAverage="0" stdDev="1" />
+  </conditionalFormatting>
+  <conditionalFormatting sqref="G1:G10">
+    <cfRule type="aboveAverage" dxfId="6" priority="7" stdDev="2" />
+  </conditionalFormatting>
+  <conditionalFormatting sqref="H1:H10">
+    <cfRule type="aboveAverage" dxfId="7" priority="8" aboveAverage="0" stdDev="2" />
+  </conditionalFormatting>
+  <conditionalFormatting sqref="I1:I10">
+    <cfRule type="aboveAverage" dxfId="8" priority="9" stdDev="3" />
+  </conditionalFormatting>
+  <conditionalFormatting sqref="J1:J10">
+    <cfRule type="aboveAverage" dxfId="9" priority="10" aboveAverage="0" stdDev="3" />
+  </conditionalFormatting>
+</worksheet>
