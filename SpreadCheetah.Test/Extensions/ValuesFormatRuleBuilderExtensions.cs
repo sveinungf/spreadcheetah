@@ -7,6 +7,24 @@ internal static class ValuesFormatRuleBuilderExtensions
 {
     extension(ValuesFormatRuleBuilder builder)
     {
+        public AverageComparisonFormatRuleBuilder For(AverageComparisonOperator op)
+        {
+            return op switch
+            {
+                AverageComparisonOperator.Above => builder.AboveAverage(),
+                AverageComparisonOperator.Below => builder.BelowAverage(),
+                AverageComparisonOperator.EqualToOrAbove => builder.EqualToOrAboveAverage(),
+                AverageComparisonOperator.EqualToOrBelow => builder.EqualToOrBelowAverage(),
+                AverageComparisonOperator.OneStdDevAbove => builder.StandardDeviationsAboveAverage(1),
+                AverageComparisonOperator.OneStdDevBelow => builder.StandardDeviationsBelowAverage(1),
+                AverageComparisonOperator.TwoStdDevAbove => builder.StandardDeviationsAboveAverage(2),
+                AverageComparisonOperator.TwoStdDevBelow => builder.StandardDeviationsBelowAverage(2),
+                AverageComparisonOperator.ThreeStdDevAbove => builder.StandardDeviationsAboveAverage(3),
+                AverageComparisonOperator.ThreeStdDevBelow => builder.StandardDeviationsBelowAverage(3),
+                _ => throw new ArgumentOutOfRangeException(nameof(op), op, null)
+            };
+        }
+
         public NumericComparisonFormatRuleBuilder For(ConditionalFormatOperator op, double value)
         {
             return op switch

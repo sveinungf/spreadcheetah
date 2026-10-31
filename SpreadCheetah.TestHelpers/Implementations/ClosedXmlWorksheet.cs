@@ -1,6 +1,8 @@
 using ClosedXML.Excel;
 using Polyfills;
+using SpreadCheetah.TestHelpers.Extensions;
 using SpreadCheetah.TestHelpers.Interfaces;
+using OpenXmlConditionalFormattingRule = DocumentFormat.OpenXml.Spreadsheet.ConditionalFormattingRule;
 using OpenXmlWorksheet = DocumentFormat.OpenXml.Spreadsheet.Worksheet;
 
 namespace SpreadCheetah.TestHelpers.Implementations;
@@ -60,8 +62,26 @@ internal sealed class ClosedXmlWorksheet(
         return new ClosedXmlWorksheetRow(row);
     }
 
-    public IReadOnlyList<IConditionalFormatRule> ConditionalFormatRules => field ??=
-        [.. sheet.ConditionalFormats.Select(x => new ClosedXmlConditionalFormatRule(x))];
+    public IReadOnlyList<IConditionalFormatRule> ConditionalFormatRules => field ??= [.. InitConditionalFormatRules()];
+
+    private IEnumerable<IConditionalFormatRule> InitConditionalFormatRules()
+    {
+        var openXmlRules = openXmlWorksheet.Descendants<OpenXmlConditionalFormattingRule>().ToList();
+        var closedXmlRules = sheet.ConditionalFormats.ToList();
+
+        if (openXmlRules.Count != closedXmlRules.Count)
+        {
+            throw new InvalidOperationException(
+                "The number of conditional formatting rules in the OpenXML worksheet does not match the number from the ClosedXML worksheet.");
+        }
+
+        foreach (var (closedXmlRule, openXmlRule) in closedXmlRules.Zip(openXmlRules))
+        {
+            yield return openXmlRule.TryGetAverageComparisonOperator(out var op)
+                ? new AverageComparisonFormatRule(closedXmlRule, op)
+                : new ClosedXmlConditionalFormatRule(closedXmlRule);
+        }
+    }
 
     public IReadOnlyList<IWorksheetTable> Tables => field ??=
         [.. sheet.Tables.Select(x => new ClosedXmlWorksheetTable(x))];

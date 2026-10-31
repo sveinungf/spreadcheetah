@@ -4,6 +4,7 @@ using SpreadCheetah.Helpers;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
+using SpreadCheetah.TestHelpers.Interfaces;
 using SpreadCheetah.TestHelpers.Models;
 using System.Drawing;
 using System.IO.Compression;
@@ -996,5 +997,79 @@ public class SpreadsheetConditionalFormattingTests
         using var zip = await ZipArchive.CreateAsync(stream, Token);
         using var sheet1Xml = await zip.GetSheet1XmlStreamAsync(Token);
         await VerifyXml(sheet1Xml);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_ConditionalFormatting_AverageComparisonRule(AverageComparisonOperator op)
+    {
+        // Arrange
+        const string cellReference = "A1:A10";
+        var color = Color.FromArgb(255, 255, 0, 0);
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new ConditionalFormatStyle { Fill = { Color = color } };
+
+        // Act
+        var rule = ConditionalFormatRule.Values().For(op).WithStyle(style);
+        spreadsheet.AddConditionalFormatRule(cellReference, rule);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualRule = Assert.Single(sheet.ConditionalFormatRules.OfType<IAverageComparisonFormatRule>());
+        Assert.Equal(cellReference, actualRule.CellRangeReference);
+        Assert.Equal(op, actualRule.AverageComparisonOperator);
+        Assert.Equal(color, actualRule.Style.Fill.Color);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_ConditionalFormatting_AverageComparisonRulesHaveExpectedSheetXml()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+        var style = new ConditionalFormatStyle { Fill = { Color = Color.Red } };
+
+        // Act
+        foreach (var (index, op) in Enum.GetValues<AverageComparisonOperator>().Index())
+        {
+            var rule = ConditionalFormatRule.Values().For(op).WithStyle(style);
+            var columnName = SpreadsheetUtility.GetColumnName(index + 1);
+            spreadsheet.AddConditionalFormatRule($"{columnName}1:{columnName}10", rule);
+        }
+
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var sheet1Xml = await zip.GetSheet1XmlStreamAsync(Token);
+        await VerifyXml(sheet1Xml);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    [InlineData(4)]
+    public void Spreadsheet_ConditionalFormatting_StandardDeviationsAboveAverage_InvalidValue(int standardDeviations)
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(()
+            => ConditionalFormatRule.Values().StandardDeviationsAboveAverage(standardDeviations));
+        Assert.Equal(nameof(standardDeviations), exception.ParamName);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    [InlineData(4)]
+    public void Spreadsheet_ConditionalFormatting_StandardDeviationsBelowAverage_InvalidValue(int standardDeviations)
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(()
+            => ConditionalFormatRule.Values().StandardDeviationsBelowAverage(standardDeviations));
+        Assert.Equal(nameof(standardDeviations), exception.ParamName);
     }
 }
