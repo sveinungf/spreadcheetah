@@ -287,7 +287,7 @@ internal static class CellFactory
 
     private static object CreateForString(CellType cellType, bool isNull, StyleId? styleId, out object? value)
     {
-        string? actualValue = !isNull ? "abc" : null;
+        var actualValue = !isNull ? "abc" : null;
         value = actualValue;
 
         return cellType switch
@@ -301,7 +301,7 @@ internal static class CellFactory
 
     private static Cell CreateForString(Formula formula, bool isNull, StyleId? styleId, out object? value)
     {
-        string? actualValue = !isNull ? "abc" : null;
+        var actualValue = !isNull ? "abc" : null;
         value = actualValue;
         return new Cell(formula, actualValue, styleId);
     }

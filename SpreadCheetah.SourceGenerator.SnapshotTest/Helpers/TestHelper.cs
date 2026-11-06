@@ -122,7 +122,7 @@ internal static class TestHelper
         // Do the initial run
         // Note that we store the returned driver value, as it contains cached previous outputs
         driver = driver.RunGenerators(compilation, Token);
-        GeneratorDriverRunResult runResult = driver.GetRunResult();
+        var runResult = driver.GetRunResult();
 
         if (assertOutput)
         {

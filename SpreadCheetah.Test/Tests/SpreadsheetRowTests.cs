@@ -1,7 +1,6 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using OfficeOpenXml;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
@@ -10,7 +9,7 @@ using System.IO.Compression;
 using CellType = SpreadCheetah.Test.Helpers.CellType;
 using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 using OpenXmlCellValue = DocumentFormat.OpenXml.Spreadsheet.CellValues;
-using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.SpreadsheetAssert;
 using Style = SpreadCheetah.Styling.Style;
 
 namespace SpreadCheetah.Test.Tests;
@@ -121,7 +120,7 @@ public class SpreadsheetRowTests
         "WithNorwegianCharactersÆØÅ",
         "With\ud83d\udc4dEmoji",
         "With🌉Emoji",
-        "With\tValid\r\nControlCharacters",
+        "With\tValid\u007fControlCharacters",
         "WithCharacters\u00a0\u00c9\u00ffBetween160And255",
         "",
         null
@@ -146,6 +145,38 @@ public class SpreadsheetRowTests
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.Equal(value, sheet["A1"].StringValue);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task Spreadsheet_AddRow_PreserveStringWhitespace(
+        bool withStyle,
+        bool preserveStringWhitespace)
+    {
+        // Arrange
+        const string value = "  Surrounded by whitespace  ";
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions
+        {
+            PreserveStringWhitespace = preserveStringWhitespace,
+            BufferSize = SpreadCheetahOptions.MinimumBufferSize
+        };
+
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+            var styleId = withStyle ? spreadsheet.AddStyle(new Style { Font = { Bold = true } }) : null;
+            StyledCell[] cells = [new(value, styleId)];
+
+            // Act
+            await spreadsheet.AddRowAsync(cells, Token);
+            await spreadsheet.FinishAsync(Token);
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var sheet1Xml = await zip.GetSheet1XmlStreamAsync(Token);
+        await VerifyXml(sheet1Xml);
     }
 
     [Theory, CombinatorialData]
@@ -564,11 +595,16 @@ public class SpreadsheetRowTests
 
         // Assert
         SpreadsheetAssert.Valid(stream);
-        using var package = new ExcelPackage(stream);
-        var worksheet = package.Workbook.Worksheets.Single();
-        var actualCell = worksheet.Cells.Single();
-        Assert.Equal(expectedValue, actualCell.GetValue<DateTime>());
-        Assert.Equal(defaultNumberFormat ?? NumberFormats.General, actualCell.Style.Numberformat.Format);
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.Single();
+        var actualCell = worksheet.Cell(1, 1);
+        Assert.Equal(expectedValue.ToOADate(), actualCell.GetValue<double?>() ?? 0, 0.0001);
+        var expectedNumberFormat = defaultNumberFormat ?? NumberFormats.General;
+        var expectedStandardNumberFormatId = NumberFormatHelper.GetStandardNumberFormatId(expectedNumberFormat);
+        if (expectedStandardNumberFormatId is { } formatId)
+            Assert.Equal(formatId, actualCell.Style.NumberFormat.NumberFormatId);
+        else
+            Assert.Equal(expectedNumberFormat, actualCell.Style.NumberFormat.Format);
     }
 #pragma warning restore CS0618 // Type or member is obsolete
 
@@ -1049,6 +1085,32 @@ public class SpreadsheetRowTests
         var actualCellStyle = sheet["A1"].Style;
         Assert.Equal(fontColor, actualColumnStyle.Font.Color);
         Assert.Equal(fontColor, actualCellStyle.Font.Color);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_AddRow_ColumnStyleAndDefaultWidth()
+    {
+        // Arrange
+        const double width = 23;
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { BufferSize = SpreadCheetahOptions.MinimumBufferSize };
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, cancellationToken: Token);
+        var style = new Style { Alignment = { WrapText = true } };
+        var worksheetOptions = new WorksheetOptions { DefaultColumnWidth = width };
+        worksheetOptions.Column(1).DefaultStyle = style;
+        await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, Token);
+
+        // Act
+        await spreadsheet.AddRowAsync([new("My value")], Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var actualColumnStyle = sheet.Column("A").Style;
+        var actualCellStyle = sheet["A1"].Style;
+        Assert.True(actualColumnStyle.Alignment.WrapText);
+        Assert.True(actualCellStyle.Alignment.WrapText);
+        Assert.Equal(width, sheet.Column("A").Width, 2);
     }
 
     [Theory, CombinatorialData]

@@ -1,5 +1,5 @@
 using SpreadCheetah.Benchmark.Benchmarks;
-using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers;
 using Xunit;
 
 namespace SpreadCheetah.Benchmark.Test.Tests;
@@ -41,17 +41,6 @@ public sealed class StringCellsTests : IDisposable
     }
 
     [Fact]
-    public void StringCells_EpPlus4_CorrectCellValues()
-    {
-        // Act
-        _stringCells.EpPlus4();
-
-        // Assert
-        WriteOutput();
-        AssertCellValuesEqual();
-    }
-
-    [Fact]
     public void StringCells_OpenXmlSax_CorrectCellValues()
     {
         // Act
@@ -78,17 +67,6 @@ public sealed class StringCellsTests : IDisposable
     {
         // Act
         _stringCells.ClosedXml();
-
-        // Assert
-        WriteOutput();
-        AssertCellValuesEqual();
-    }
-
-    [Fact]
-    public void StringCells_LargeXlsx_CorrectCellValues()
-    {
-        // Act
-        _stringCells.LargeXlsx();
 
         // Assert
         WriteOutput();

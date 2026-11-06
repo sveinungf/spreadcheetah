@@ -11,9 +11,9 @@ internal sealed class FloatCellValueWriter : NumberCellValueWriter
         return state.Buffer.TryWrite($"{BeginDataCell}{cell.Value.StringOrPrimitive.PrimitiveValue.FloatValue}{EndDefaultCell}");
     }
 
-    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state)
     {
-        return buffer.TryWrite(
+        return state.Buffer.TryWrite(
             $"{StyledCellHelper.BeginStyledNumberCell}{styleId.Id}{EndQuoteBeginValue}" +
             $"{cell.Value.StringOrPrimitive.PrimitiveValue.FloatValue}" +
             $"{EndDefaultCell}");

@@ -65,7 +65,8 @@ public class OADateTests
         Assert.True(bytesWritten > 0);
 
         var bytes = destination.Slice(0, bytesWritten);
-        double.TryParse(bytes, CultureInfo.InvariantCulture, out var actualValue);
+        var success = double.TryParse(bytes, CultureInfo.InvariantCulture, out var actualValue);
+        Assert.True(success);
         Assert.Equal(expectedValue, actualValue, 0.00000002);
     }
 
@@ -94,7 +95,8 @@ public class OADateTests
             Assert.True(bytesWritten > 0);
 
             var bytes = destination.Slice(0, bytesWritten);
-            double.TryParse(bytes, CultureInfo.InvariantCulture, out var actualValue);
+            var success = double.TryParse(bytes, CultureInfo.InvariantCulture, out var actualValue);
+            Assert.True(success);
             Assert.Equal(dateTime.ToOADate(), actualValue, 0.00000002);
         }
     }

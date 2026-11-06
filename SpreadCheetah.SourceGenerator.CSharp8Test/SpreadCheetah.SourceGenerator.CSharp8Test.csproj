@@ -4,21 +4,17 @@
     <TargetFramework>net472</TargetFramework>
     <LangVersion>8</LangVersion>
     <Nullable>disable</Nullable>
+    <NoWarn>Proj0055</NoWarn>
     <ImplicitUsings>disable</ImplicitUsings>
     <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
     <OutputType>Exe</OutputType>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.collector">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="xunit.runner.visualstudio">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
 
@@ -27,9 +23,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SpreadCheetah.TestHelpers\SpreadCheetah.TestHelpers.csproj" />
-    <ProjectReference Include="..\SpreadCheetah\SpreadCheetah.csproj" />
-    <ProjectReference Include="..\SpreadCheetah.SourceGenerator\SpreadCheetah.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="../SpreadCheetah/SpreadCheetah.csproj" />
+    <ProjectReference Include="../SpreadCheetah.SourceGenerator/SpreadCheetah.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="../SpreadCheetah.TestHelpers/SpreadCheetah.TestHelpers.csproj" />
   </ItemGroup>
 
 </Project>

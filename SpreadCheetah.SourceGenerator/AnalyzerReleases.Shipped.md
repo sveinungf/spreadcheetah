@@ -56,3 +56,12 @@ Rule ID | Category | Severity | Notes
 --------|----------|----------|--------------------
 SPCH1010 | SpreadCheetah.SourceGenerator | Warning | MissingPropertyForColumnHeader
 SPCH1011 | SpreadCheetah.SourceGenerator | Error   | PropertyForColumnHeaderMustBePublic
+
+
+## Release 1.28.0
+
+### New Rules
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+SPCH1012 | SpreadCheetah.SourceGenerator | Error | AttributeConflictingWithBaseClass
+SPCH1013 | SpreadCheetah.SourceGenerator | Warning | UseNewerCsharpVersion

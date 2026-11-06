@@ -27,8 +27,10 @@ internal struct FontXmlPart(
         Current = _next switch
         {
             Element.Header => TryWriteHeader(),
+            Element.Size => TryWriteSize(),
             Element.Color => TryWriteColor(),
-            _ => TryWriteName()
+            Element.Name => TryWriteName(),
+            _ => buffer.TryWrite("</font>"u8)
         };
 
         if (Current)
@@ -44,10 +46,7 @@ internal struct FontXmlPart(
         var strikethrough = font.Strikethrough ? "<strike/>"u8 : ""u8;
         var underline = GetUnderlineElement(font.Underline);
 
-        return buffer.TryWrite(
-            $"{"<font>"u8}" +
-            $"{bold}{italic}{strikethrough}{underline}" +
-            $"{"<sz val=\""u8}{font.Size}{"\"/>"u8}");
+        return buffer.TryWrite($"{"<font>"u8}{bold}{italic}{strikethrough}{underline}");
     }
 
     private static ReadOnlySpan<byte> GetUnderlineElement(Underline underline) => underline switch
@@ -59,30 +58,31 @@ internal struct FontXmlPart(
         _ => []
     };
 
+    private readonly bool TryWriteSize()
+    {
+        return font.Size is not { } size
+            || buffer.TryWrite($"{"<sz val=\""u8}{size}{"\"/>"u8}");
+    }
+
     private readonly bool TryWriteColor()
     {
-        if (font.Color is not { } color)
-            return true;
-
-        return buffer.TryWrite(
-            $"{"<color rgb=\""u8}" +
-            $"{color}" +
-            $"{"\"/>"u8}");
+        return font.Color is not { } color
+            || buffer.TryWrite($"{"<color rgb=\""u8}{color}{"\"/>"u8}");
     }
 
     private readonly bool TryWriteName()
     {
-        return buffer.TryWrite(
-            $"{"<name val=\""u8}" +
-            $"{font.Name}" +
-            $"{"\"/></font>"u8}");
+        return font.Name is not { } name
+            || buffer.TryWrite($"{"<name val=\""u8}{name}{"\"/>"u8}");
     }
 
     private enum Element
     {
         Header,
+        Size,
         Color,
         Name,
+        Footer,
         Done
     }
 }

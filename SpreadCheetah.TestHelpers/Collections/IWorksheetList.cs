@@ -1,5 +1,5 @@
-﻿using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers.Interfaces;
 
 namespace SpreadCheetah.TestHelpers.Collections;
 
-public interface IWorksheetList : IReadOnlyList<ISpreadsheetAssertSheet>, IDisposable;
+public interface IWorksheetList : IReadOnlyList<IWorksheet>, IDisposable;

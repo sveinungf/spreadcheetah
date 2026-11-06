@@ -1,7 +1,6 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using OfficeOpenXml;
 using Polyfills;
 using SpreadCheetah.Images;
 using SpreadCheetah.Styling;
@@ -13,7 +12,7 @@ using System.IO.Compression;
 using Color = System.Drawing.Color;
 using DataValidation = SpreadCheetah.Validations.DataValidation;
 using Fill = SpreadCheetah.Styling.Fill;
-using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.SpreadsheetAssert;
 using Table = SpreadCheetah.Tables.Table;
 using TableStyle = SpreadCheetah.Tables.TableStyle;
 
@@ -232,11 +231,16 @@ public class SpreadsheetTests
         SpreadsheetAssert.Valid(stream);
     }
 
-    [Fact]
-    public async Task Spreadsheet_Dispose_DisposeTwice()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Spreadsheet_Dispose_DisposeTwice(bool withWorksheet)
     {
         // Arrange
         var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        if (withWorksheet)
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
 #pragma warning disable
         spreadsheet.Dispose();
 #pragma warning restore
@@ -248,11 +252,16 @@ public class SpreadsheetTests
         Assert.Null(exception);
     }
 
-    [Fact]
-    public async Task Spreadsheet_DisposeAsync_DisposeTwice()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Spreadsheet_DisposeAsync_DisposeTwice(bool withWorksheet)
     {
         // Arrange
         var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
+        if (withWorksheet)
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
         await spreadsheet.DisposeAsync();
 
         // Act
@@ -589,19 +598,17 @@ public class SpreadsheetTests
         var expectedHidden = hidden;
 
         using var stream = new MemoryStream();
-        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token))
-        {
-            // Act
-            await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
-            await spreadsheet.FinishAsync(Token);
-        }
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
+        await spreadsheet.AddRowAsync([new(1)], Token);
+        await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
-        using var package = new ExcelPackage(stream);
-        var worksheet = package.Workbook.Worksheets.Single();
-        var actualHidden = worksheet.Column(1).Hidden;
-        Assert.Equal(expectedHidden, actualHidden);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var column = Assert.Single(sheet.Columns);
+        Assert.Equal(expectedHidden, column.Hidden);
     }
 
     [Theory]

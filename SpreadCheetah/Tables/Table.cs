@@ -70,10 +70,10 @@ public sealed class Table
         if (name is "C" or "c" or "R" or "r")
             TableThrowHelper.NameCanNotBeCorR(nameof(name));
 
-        if (!Regexes.TableNameValidCharacters().IsMatch(name))
+        if (!Regexes.TableNameValidCharacters.IsMatch(name))
             TableThrowHelper.NameHasInvalidCharacters(nameof(name));
 
-        if (Regexes.TableNameCellReference().IsMatch(name))
+        if (Regexes.TableNameCellReference.IsMatch(name))
             TableThrowHelper.NameIsCellReference(nameof(name));
     }
 

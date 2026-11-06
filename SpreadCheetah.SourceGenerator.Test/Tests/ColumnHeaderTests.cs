@@ -1,7 +1,7 @@
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnHeader;
-using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers;
 using SpreadCheetah.TestHelpers.Extensions;
 using System.Globalization;
 using System.Reflection;
@@ -48,7 +48,8 @@ string: "", \)",
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(expectedValues.Select(StringHelpers.ReplaceLineEndings), sheet.Row(1).Cells.StringValues().Select(StringHelpers.ReplaceLineEndings!));
+        var actualValues = sheet.Row(1).Cells.StringValues().Select(x => StringHelpers.ReplaceLineEndings(x ?? ""));
+        Assert.Equal(expectedValues.Select(StringHelpers.ReplaceLineEndings), actualValues);
     }
 
     [Fact]

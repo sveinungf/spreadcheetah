@@ -2,6 +2,7 @@
 [assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/sveinungf/spreadcheetah")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("SpreadCheetah.Benchmark")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("SpreadCheetah.Test")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("SpreadCheetah.TestHelpers")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v8.0", FrameworkDisplayName=".NET 8.0")]
 namespace SpreadCheetah
 {
@@ -67,6 +68,7 @@ namespace SpreadCheetah
         public Formula(string? formulaText) { }
         public static SpreadCheetah.Formula Hyperlink(System.Uri uri) { }
         public static SpreadCheetah.Formula Hyperlink(System.Uri uri, string friendlyName) { }
+        public static SpreadCheetah.Formula R1C1(string formula) { }
     }
     public enum SpreadCheetahCompressionLevel
     {
@@ -92,12 +94,14 @@ namespace SpreadCheetah
         public string? DefaultDateTimeNumberFormat { get; set; }
         public SpreadCheetah.Styling.DefaultFont? DefaultFont { get; set; }
         public SpreadCheetah.Metadata.DocumentProperties? DocumentProperties { get; set; }
+        public bool PreserveStringWhitespace { get; set; }
         public bool WriteCellReferenceAttributes { get; set; }
     }
     public sealed class Spreadsheet : System.IAsyncDisposable, System.IDisposable
     {
         public int NextRowNumber { get; }
         public System.Threading.Tasks.ValueTask AddAsRowAsync<T>(T obj, SpreadCheetah.SourceGeneration.WorksheetRowTypeInfo<T> typeInfo, System.Threading.CancellationToken token = default) { }
+        public void AddConditionalFormatRule(string reference, SpreadCheetah.ConditionalFormatting.ConditionalFormatRule rule) { }
         public void AddDataValidation(string reference, SpreadCheetah.Validations.DataValidation validation) { }
         public System.Threading.Tasks.ValueTask AddHeaderRowAsync(System.Collections.Generic.IList<string> headerNames, SpreadCheetah.Styling.StyleId? styleId = null, System.Threading.CancellationToken token = default) { }
         public System.Threading.Tasks.ValueTask AddHeaderRowAsync(System.ReadOnlyMemory<string> headerNames, SpreadCheetah.Styling.StyleId? styleId = null, System.Threading.CancellationToken token = default) { }
@@ -165,6 +169,121 @@ namespace SpreadCheetah
         public StyledCell(long value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(long? value, SpreadCheetah.Styling.StyleId? styleId) { }
         public StyledCell(string? value, SpreadCheetah.Styling.StyleId? styleId) { }
+    }
+}
+namespace SpreadCheetah.ConditionalFormatting
+{
+    public sealed class AverageComparisonFormatRule : SpreadCheetah.ConditionalFormatting.ConditionalFormatRule { }
+    public sealed class AverageComparisonFormatRuleBuilder
+    {
+        public SpreadCheetah.ConditionalFormatting.AverageComparisonFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
+    }
+    public sealed class ConditionalFormatBorder : System.IEquatable<SpreadCheetah.ConditionalFormatting.ConditionalFormatBorder>
+    {
+        public ConditionalFormatBorder() { }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatEdgeBorder Bottom { get; set; }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatEdgeBorder Left { get; set; }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatEdgeBorder Right { get; set; }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatEdgeBorder Top { get; set; }
+    }
+    public enum ConditionalFormatBorderStyle
+    {
+        None = 0,
+        Thin = 1,
+        Dashed = 3,
+        Dotted = 4,
+        Hair = 7,
+        DashDot = 9,
+        DashDotDot = 11,
+    }
+    public sealed class ConditionalFormatEdgeBorder : System.IEquatable<SpreadCheetah.ConditionalFormatting.ConditionalFormatEdgeBorder>
+    {
+        public ConditionalFormatEdgeBorder() { }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatBorderStyle BorderStyle { get; set; }
+        public System.Drawing.Color? Color { get; set; }
+    }
+    public sealed class ConditionalFormatFill : System.IEquatable<SpreadCheetah.ConditionalFormatting.ConditionalFormatFill>
+    {
+        public ConditionalFormatFill() { }
+        public System.Drawing.Color? Color { get; set; }
+    }
+    public sealed class ConditionalFormatFont : System.IEquatable<SpreadCheetah.ConditionalFormatting.ConditionalFormatFont>
+    {
+        public ConditionalFormatFont() { }
+        public bool Bold { get; set; }
+        public System.Drawing.Color? Color { get; set; }
+        public bool Italic { get; set; }
+        public bool Strikethrough { get; set; }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatUnderline Underline { get; set; }
+    }
+    public abstract class ConditionalFormatRule
+    {
+        public static SpreadCheetah.ConditionalFormatting.DuplicateValuesFormatRuleBuilder DuplicateValues() { }
+        public static SpreadCheetah.ConditionalFormatting.MatchesFormulaFormatRuleBuilder MatchesFormula(SpreadCheetah.Formula formula) { }
+        public static SpreadCheetah.ConditionalFormatting.UniqueValuesFormatRuleBuilder UniqueValues() { }
+        public static SpreadCheetah.ConditionalFormatting.ValuesFormatRuleBuilder Values() { }
+    }
+    public sealed class ConditionalFormatStyle : System.IEquatable<SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle>
+    {
+        public ConditionalFormatStyle() { }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatBorder Border { get; set; }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatFill Fill { get; set; }
+        public SpreadCheetah.ConditionalFormatting.ConditionalFormatFont Font { get; set; }
+        public string? Format { get; set; }
+    }
+    public enum ConditionalFormatUnderline
+    {
+        None = 0,
+        Single = 1,
+        Double = 3,
+    }
+    public sealed class DuplicateValuesFormatRule : SpreadCheetah.ConditionalFormatting.ConditionalFormatRule
+    {
+        public DuplicateValuesFormatRule() { }
+    }
+    public sealed class DuplicateValuesFormatRuleBuilder
+    {
+        public SpreadCheetah.ConditionalFormatting.DuplicateValuesFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
+    }
+    public sealed class MatchesFormulaFormatRule : SpreadCheetah.ConditionalFormatting.ConditionalFormatRule { }
+    public sealed class MatchesFormulaFormatRuleBuilder
+    {
+        public SpreadCheetah.ConditionalFormatting.MatchesFormulaFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
+    }
+    public sealed class NumericComparisonFormatRule : SpreadCheetah.ConditionalFormatting.ConditionalFormatRule { }
+    public sealed class NumericComparisonFormatRuleBuilder
+    {
+        public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
+    }
+    public sealed class NumericRangeFormatRule : SpreadCheetah.ConditionalFormatting.ConditionalFormatRule { }
+    public sealed class NumericRangeFormatRuleBuilder
+    {
+        public SpreadCheetah.ConditionalFormatting.NumericRangeFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
+    }
+    public sealed class UniqueValuesFormatRule : SpreadCheetah.ConditionalFormatting.ConditionalFormatRule
+    {
+        public UniqueValuesFormatRule() { }
+    }
+    public sealed class UniqueValuesFormatRuleBuilder
+    {
+        public SpreadCheetah.ConditionalFormatting.UniqueValuesFormatRule WithStyle(SpreadCheetah.ConditionalFormatting.ConditionalFormatStyle style) { }
+    }
+    public sealed class ValuesFormatRuleBuilder
+    {
+        public SpreadCheetah.ConditionalFormatting.AverageComparisonFormatRuleBuilder AboveAverage() { }
+        public SpreadCheetah.ConditionalFormatting.AverageComparisonFormatRuleBuilder BelowAverage() { }
+        public SpreadCheetah.ConditionalFormatting.NumericRangeFormatRuleBuilder Between(double firstValue, double secondValue) { }
+        public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder EqualTo(double value) { }
+        public SpreadCheetah.ConditionalFormatting.AverageComparisonFormatRuleBuilder EqualToOrAboveAverage() { }
+        public SpreadCheetah.ConditionalFormatting.AverageComparisonFormatRuleBuilder EqualToOrBelowAverage() { }
+        public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder GreaterThan(double value) { }
+        public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder GreaterThanOrEqualTo(double value) { }
+        public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder LessThan(double value) { }
+        public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder LessThanOrEqualTo(double value) { }
+        public SpreadCheetah.ConditionalFormatting.NumericRangeFormatRuleBuilder NotBetween(double firstValue, double secondValue) { }
+        public SpreadCheetah.ConditionalFormatting.NumericComparisonFormatRuleBuilder NotEqualTo(double value) { }
+        public SpreadCheetah.ConditionalFormatting.AverageComparisonFormatRuleBuilder StandardDeviationsAboveAverage(int standardDeviations) { }
+        public SpreadCheetah.ConditionalFormatting.AverageComparisonFormatRuleBuilder StandardDeviationsBelowAverage(int standardDeviations) { }
     }
 }
 namespace SpreadCheetah.Images
@@ -259,6 +378,12 @@ namespace SpreadCheetah.SourceGeneration
     public sealed class ColumnWidthAttribute : System.Attribute
     {
         public ColumnWidthAttribute(double width) { }
+        public double? Width { get; }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple=false)]
+    public sealed class DefaultColumnWidthAttribute : System.Attribute
+    {
+        public DefaultColumnWidthAttribute(double width) { }
         public double? Width { get; }
     }
     public static class EmptyWorksheetRowContext

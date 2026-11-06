@@ -13,20 +13,20 @@ internal sealed class StyledCellWriter : ICellWriter<StyledCell>
     {
         return cell.StyleId is null
             ? CellValueWriter.GetWriter(cell.DataCell.Type).TryWriteCell(cell.DataCell, state)
-            : CellValueWriter.GetWriter(cell.DataCell.Type).TryWriteCell(cell.DataCell, cell.StyleId, state.Buffer);
+            : CellValueWriter.GetWriter(cell.DataCell.Type).TryWriteCell(cell.DataCell, cell.StyleId, state);
     }
 
     public bool TryWrite(in StyledCell cell, StyleId styleId, CellWriterState state)
     {
         var actualStyleId = cell.StyleId ?? styleId;
-        return CellValueWriter.GetWriter(cell.DataCell.Type).TryWriteCell(cell.DataCell, actualStyleId, state.Buffer);
+        return CellValueWriter.GetWriter(cell.DataCell.Type).TryWriteCell(cell.DataCell, actualStyleId, state);
     }
 
     public void WriteStartElement(in StyledCell cell, StyleId? styleId, CellWriterState state)
     {
         var actualStyleId = cell.StyleId ?? styleId;
         Debug.Assert(CellValueWriter.GetWriter(cell.DataCell.Type) is StringCellValueWriterBase);
-        var result = StringCellValueWriterBase.WriteStartElement(actualStyleId, state.Buffer);
+        var result = StringCellValueWriterBase.WriteStartElement(actualStyleId, state);
         Debug.Assert(result);
     }
 

@@ -1,5 +1,5 @@
 using SpreadCheetah.Metadata;
-using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers;
 
 namespace SpreadCheetah.Test.Tests;
 

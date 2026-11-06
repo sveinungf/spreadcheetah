@@ -27,4 +27,14 @@ public class SpreadCheetahOptionsTests
         Assert.Equal(format, options.DefaultDateTimeNumberFormat);
     }
 #pragma warning restore CS0618 // Type or member is obsolete
+
+    [Fact]
+    public void SpreadCheetahOptions_PreserveStringWhitespace_DefaultIsFalse()
+    {
+        // Arrange & Act
+        var options = new SpreadCheetahOptions();
+
+        // Assert
+        Assert.False(options.PreserveStringWhitespace);
+    }
 }

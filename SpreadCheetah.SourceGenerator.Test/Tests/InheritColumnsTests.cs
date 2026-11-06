@@ -1,7 +1,7 @@
 using SpreadCheetah.SourceGenerator.Test.Models;
 using SpreadCheetah.SourceGenerator.Test.Models.Contexts;
 using SpreadCheetah.SourceGenerator.Test.Models.InheritColumns;
-using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers;
 using SpreadCheetah.TestHelpers.Extensions;
 using Xunit;
 

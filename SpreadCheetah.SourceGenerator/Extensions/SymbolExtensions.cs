@@ -8,6 +8,15 @@ namespace SpreadCheetah.SourceGenerator.Extensions;
 
 internal static class SymbolExtensions
 {
+    extension(ISymbol symbol)
+    {
+        public bool IsRowContextClass => symbol is INamedTypeSymbol
+        {
+            IsStatic: false,
+            BaseType.IsWorksheetRowContextBaseClass: true
+        };
+    }
+
     public static bool IsSupportedType(this ITypeSymbol type)
     {
         return type.IsSupportedValueType()
@@ -194,13 +203,13 @@ internal static class SymbolExtensions
             : null;
     }
 
-    private static bool TryGetInheritColumnsAttribute(this AttributeData attribute, out InheritedColumnsOrder result)
+    public static bool TryGetInheritColumnsAttribute(this AttributeData attribute, out InheritedColumnsOrder result)
     {
         result = default;
 
         if (attribute is not { AttributeClass.MetadataName: Attributes.InheritColumns })
             return false;
-        if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace())
+        if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace)
             return false;
 
         result = attribute.NamedArguments is [{ Value.Value: { } arg }] && arg.IsEnum(out InheritedColumnsOrder order)
@@ -218,7 +227,7 @@ internal static class SymbolExtensions
 
         if (attribute is not { AttributeClass.MetadataName: Attributes.InferColumnHeaders })
             return false;
-        if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace())
+        if (!attribute.AttributeClass.HasSpreadCheetahSrcGenNamespace)
             return false;
 
         var args = attribute.ConstructorArguments;
@@ -266,26 +275,10 @@ internal static class SymbolExtensions
                 continue;
             if (!string.Equals(attributeName, attributeClass.MetadataName, StringComparison.Ordinal))
                 continue;
-            if (attributeClass.HasSpreadCheetahSrcGenNamespace())
+            if (attributeClass.HasSpreadCheetahSrcGenNamespace)
                 return attribute;
         }
 
         return null;
-    }
-
-    public static bool HasSpreadCheetahSrcGenNamespace(this INamedTypeSymbol symbol)
-    {
-        return symbol is
-        {
-            ContainingNamespace:
-            {
-                Name: "SourceGeneration",
-                ContainingNamespace:
-                {
-                    Name: "SpreadCheetah",
-                    ContainingNamespace.IsGlobalNamespace: true
-                }
-            }
-        };
     }
 }

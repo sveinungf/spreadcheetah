@@ -19,7 +19,9 @@ internal static class Diagnostics
         AttributeCombinationNotSupportedDescriptor,
         AttributeTypeArgumentMustHaveDefaultConstructorDescriptor,
         MissingPropertyForColumnHeaderDescriptor,
-        PropertyForColumnHeaderMustBePublicDescriptor
+        PropertyForColumnHeaderMustBePublicDescriptor,
+        AttributeConflictingWithBaseClassDescriptor,
+        UseNewerCsharpVersionDescriptor
     ];
 
     public static Diagnostic NoPropertiesFound(Location? location, string rowTypeName)
@@ -141,5 +143,27 @@ internal static class Diagnostics
         messageFormat: "Can't use property '{0}' on '{1}' for ColumnHeader, because the property does not have a public getter. If the type is a resource file, make sure it has its access modifier set to public.",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static Diagnostic AttributeConflictingWithBaseClass(Location? location, string? attribute)
+        => Diagnostic.Create(AttributeConflictingWithBaseClassDescriptor, location, attribute ?? "attribute");
+
+    private static readonly DiagnosticDescriptor AttributeConflictingWithBaseClassDescriptor = new(
+        id: "SPCH1012",
+        title: "Duplicate attribute",
+        messageFormat: "Attribute '{0}' duplicates an attribute already defined on the base class, causing a conflict",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static Diagnostic UseNewerCsharpVersion(Location? location)
+        => Diagnostic.Create(UseNewerCsharpVersionDescriptor, location);
+
+    private static readonly DiagnosticDescriptor UseNewerCsharpVersionDescriptor = new(
+        id: "SPCH1013",
+        title: "Use a newer C# version",
+        messageFormat: "The SpreadCheetah source generator will soon require C# 12 or later. Update the C# version in your project file now to prevent issues in the future.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 }

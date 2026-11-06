@@ -1,6 +1,6 @@
 using SpreadCheetah.SourceGenerator.CSharp8Test.Models;
 using SpreadCheetah.Styling;
-using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;

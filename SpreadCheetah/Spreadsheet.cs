@@ -1,4 +1,5 @@
 using SpreadCheetah.CellReferences;
+using SpreadCheetah.ConditionalFormatting;
 using SpreadCheetah.Helpers;
 using SpreadCheetah.Images;
 using SpreadCheetah.Images.Internal;
@@ -6,6 +7,7 @@ using SpreadCheetah.Metadata;
 using SpreadCheetah.MetadataXml;
 using SpreadCheetah.MetadataXml.Styles;
 using SpreadCheetah.MetadataXml.Tables;
+using SpreadCheetah.MetadataXml.Worksheets;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Styling.Internal;
@@ -32,6 +34,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     private readonly SpreadsheetBuffer _buffer;
     private readonly DocumentProperties? _documentProperties;
     private readonly bool _writeCellReferenceAttributes;
+    private readonly InlineXmlTags _inlineXmlTags;
     private Dictionary<Type, WorksheetRowDependencyInfo>? _worksheetRowDependencyInfo;
     private FileCounter? _fileCounter;
     private StyleManager? _styleManager;
@@ -56,6 +59,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         _buffer = new SpreadsheetBuffer(bufferSize);
         _styleManager = CreateStyleManager(options);
         _writeCellReferenceAttributes = options?.WriteCellReferenceAttributes ?? false;
+        _inlineXmlTags = InlineXmlTags.For(options?.PreserveStringWhitespace ?? false);
 
         _documentProperties = options switch
         {
@@ -164,7 +168,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         var path = StringHelper.Invariant($"xl/worksheets/sheet{_worksheets.Count + 1}.xml");
         var entryStream = await _zipArchiveManager.OpenEntryAsync(path, token).ConfigureAwait(false);
         var columnStyles = GetColumnStyles(options);
-        _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes, options, columnStyles);
+        _worksheet = new Worksheet(entryStream, _styleManager?.DefaultStyling, _buffer, _writeCellReferenceAttributes, _inlineXmlTags, options, columnStyles);
         _worksheets.Add(new WorksheetMetadata(name, path, options?.Visibility ?? WorksheetVisibility.Visible));
 
         await WorksheetStartXml.WriteAsync(options, columnStyles, _buffer, entryStream, token).ConfigureAwait(false);
@@ -540,6 +544,15 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         return styleManager.AddStyleIfNotExists(style);
     }
 
+    private int? AddStyleInternal(ConditionalFormatStyle? style)
+    {
+        if (style is null or { IsDefault: true })
+            return null;
+
+        var styleManager = GetOrCreateStyleManager();
+        return styleManager.AddStyle(style);
+    }
+
     /// <summary>
     /// Get the <see cref="StyleId"/> from a named style.
     /// The named style must have previously been added to the spreadsheet with <see cref="AddStyle(Style, string, StyleNameVisibility?)"/>.
@@ -550,11 +563,33 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(name);
 
         var styleId = _styleManager?.GetStyleIdOrDefault(name);
-        if (styleId is not null)
-            return styleId;
+        if (styleId is null)
+            ThrowHelper.StyleNameNotFound(name);
 
-        ThrowHelper.StyleNameNotFound(name);
-        return null; // Unreachable
+        return styleId;
+    }
+
+    /// <summary>
+    /// Adds a conditional format rule to a cell or a range of cells. The reference must be in the A1 reference style. Some examples:
+    /// <list type="bullet">
+    ///   <item><term><c>A1</c></term><description>References the top left cell.</description></item>
+    ///   <item><term><c>C4</c></term><description>References the cell in column C row 4.</description></item>
+    ///   <item><term><c>A1:E5</c></term><description>References the range from cell A1 to E5.</description></item>
+    ///   <item><term><c>A1:A1048576</c></term><description>References all cells in column A.</description></item>
+    ///   <item><term><c>A5:XFD5</c></term><description>References all cells in row 5.</description></item>
+    /// </list>
+    /// Note that there can be max 16384 conditional format rules in a worksheet. This method throws a <see cref="SpreadCheetahException"/> if attempting to add more than that.
+    /// </summary>
+    public void AddConditionalFormatRule(string reference, ConditionalFormatRule rule)
+    {
+        ArgumentNullException.ThrowIfNull(reference);
+        ArgumentNullException.ThrowIfNull(rule);
+        var cellReference = SingleCellOrCellRangeReference.Create(reference);
+        var styleDxfId = AddStyleInternal(rule.Style);
+        var internalRule = rule.ToInternal(styleDxfId);
+
+        if (!Worksheet.TryAddConditionalFormatting(cellReference, internalRule))
+            ThrowHelper.MaxNumberOfConditionalFormatRules();
     }
 
     /// <summary>
@@ -587,8 +622,8 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
     /// </summary>
     public bool TryAddDataValidation(string reference, DataValidation validation)
     {
-        ArgumentNullException.ThrowIfNull(validation);
         ArgumentNullException.ThrowIfNull(reference);
+        ArgumentNullException.ThrowIfNull(validation);
         return Worksheet.TryAddDataValidation(reference, validation);
     }
 
@@ -709,7 +744,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
             Debug.Assert(notesFileIndex > 0);
             using var notesPooledArray = notes.ToPooledArray();
 
-            await CommentsXml.WriteAsync(_zipArchiveManager, _buffer, notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
+            await CommentsXml.WriteAsync(_zipArchiveManager, _buffer, _inlineXmlTags, notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
             await VmlDrawingXml.WriteAsync(_zipArchiveManager, _buffer, notesFileIndex, notesPooledArray.Memory, token).ConfigureAwait(false);
         }
 
@@ -767,7 +802,7 @@ public sealed class Spreadsheet : IDisposable, IAsyncDisposable
         await WorkbookXml.WriteAsync(zip, _buffer, _worksheets, token).ConfigureAwait(false);
 
         if (_styleManager is { HasStyles: true } styleManager)
-            await StylesXml.WriteAsync(zip, _buffer, styleManager, token).ConfigureAwait(false);
+            await zip.WriteStylesAsync(_buffer, styleManager, token).ConfigureAwait(false);
 
         _finished = true;
 

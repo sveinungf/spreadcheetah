@@ -1,6 +1,6 @@
 using SpreadCheetah.SourceGenerator.Test.Models.Formulas;
 using SpreadCheetah.Styling;
-using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers;
 using Xunit;
 
 namespace SpreadCheetah.SourceGenerator.Test.Tests;

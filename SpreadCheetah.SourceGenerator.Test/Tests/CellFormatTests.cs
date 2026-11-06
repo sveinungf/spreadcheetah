@@ -2,7 +2,7 @@ using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models.CellFormat;
 using SpreadCheetah.Styling;
-using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers;
 using System.Reflection;
 using Xunit;
 

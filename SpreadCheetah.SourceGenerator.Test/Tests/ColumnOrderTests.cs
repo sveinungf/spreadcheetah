@@ -3,7 +3,7 @@ using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models;
 using SpreadCheetah.SourceGenerator.Test.Models.ColumnOrdering;
 using SpreadCheetah.SourceGenerator.Test.Models.Contexts;
-using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers;
 using System.Reflection;
 using Xunit;
 

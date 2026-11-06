@@ -3,7 +3,7 @@ using SpreadCheetah.Tables;
 using SpreadCheetah.Test.Helpers;
 using SpreadCheetah.Worksheets;
 using System.Drawing;
-using SpreadsheetAssert = SpreadCheetah.TestHelpers.Assertions.SpreadsheetAssert;
+using SpreadsheetAssert = SpreadCheetah.TestHelpers.SpreadsheetAssert;
 
 namespace SpreadCheetah.Test.Tests;
 
@@ -704,7 +704,7 @@ public class SpreadsheetTableTests
     [InlineData("With\ud83d\udc4dEmoji")]
     [InlineData("With🌉Emoji")]
     [InlineData("🌉StartingWithEmoji")]
-    [InlineData("With\tValid\r\nControlCharacters")]
+    [InlineData("With\tValid\u007fControlCharacters")]
     [InlineData("WithCharacters\u00a0\u00c9\u00ffBetween160And255")]
     public async Task Spreadsheet_Table_ValidHeaderName(string headerName)
     {

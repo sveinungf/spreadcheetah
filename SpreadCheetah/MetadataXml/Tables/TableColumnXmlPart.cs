@@ -1,3 +1,4 @@
+using SpreadCheetah.Helpers;
 using SpreadCheetah.Tables;
 
 namespace SpreadCheetah.MetadataXml.Tables;
@@ -10,7 +11,7 @@ internal struct TableColumnXmlPart(
     TableTotalRowFunction? totalRowFunction)
 {
     private Element _next;
-    private int _currentStringIndex;
+    private BufferWriteProgress _progress;
 
     public bool TryWrite()
     {
@@ -30,59 +31,53 @@ internal struct TableColumnXmlPart(
         Current = _next switch
         {
             Element.Header => TryWriteHeader(),
-            Element.Name => TryWriteLongString(headerName),
-            Element.LabelAttribute => TryWriteLabelAttribute(),
+            Element.Name => TryWriteName(),
             Element.Label => TryWriteLabel(),
-            _ => TryWriteFooter()
+            Element.Function => TryWriteFunction(),
+            _ => buffer.TryWrite("/>"u8)
         };
 
         if (Current)
+        {
+            _progress = default;
             ++_next;
+        }
 
         return _next < Element.Done;
     }
 
     private readonly bool TryWriteHeader()
     {
-        return buffer.TryWrite(
-            $"{"<tableColumn id=\""u8}" +
-            $"{columnIndex + 1}" +
-            $"{"\" name=\""u8}");
+        return buffer.TryWrite($"{"<tableColumn id=\""u8}{columnIndex + 1}{"\""u8}");
     }
 
-    private readonly bool TryWriteLabelAttribute()
+    private bool TryWriteName()
     {
-        return totalRowLabel is null || buffer.TryWrite("\" totalsRowLabel=\""u8);
+        return buffer.TryWrite(
+            _progress, out _progress,
+            $"{" name=\""u8}{headerName}{"\""u8}");
     }
 
     private bool TryWriteLabel()
     {
-        return totalRowLabel is null || TryWriteLongString(totalRowLabel);
-    }
-
-    private bool TryWriteLongString(string value)
-    {
-        if (buffer.WriteLongString(value, ref _currentStringIndex))
-        {
-            _currentStringIndex = 0;
+        if (totalRowLabel is null)
             return true;
-        }
-
-        return false;
-    }
-
-    private readonly bool TryWriteFooter()
-    {
-        var functionAttribute = totalRowFunction is null ? [] : "\" totalsRowFunction=\""u8;
-        var functionAttributeValue = GetFunctionAttributeValue(totalRowFunction);
 
         return buffer.TryWrite(
-            $"{functionAttribute}" +
-            $"{functionAttributeValue}" +
-            $"{"\"/>"u8}");
+            _progress, out _progress,
+            $"{" totalsRowLabel=\""u8}{totalRowLabel}{"\""u8}");
     }
 
-    private static ReadOnlySpan<byte> GetFunctionAttributeValue(TableTotalRowFunction? function) => function switch
+    private readonly bool TryWriteFunction()
+    {
+        if (totalRowFunction is not { } function)
+            return true;
+
+        var functionAttributeValue = GetFunctionAttributeValue(function);
+        return buffer.TryWrite($"{" totalsRowFunction=\""u8}{functionAttributeValue}{"\""u8}");
+    }
+
+    private static ReadOnlySpan<byte> GetFunctionAttributeValue(TableTotalRowFunction function) => function switch
     {
         TableTotalRowFunction.Average => "average"u8,
         TableTotalRowFunction.Count => "count"u8,
@@ -91,16 +86,15 @@ internal struct TableColumnXmlPart(
         TableTotalRowFunction.Minimum => "min"u8,
         TableTotalRowFunction.StandardDeviation => "stdDev"u8,
         TableTotalRowFunction.Sum => "sum"u8,
-        TableTotalRowFunction.Variance => "var"u8,
-        _ => []
+        _ => "var"u8
     };
 
     private enum Element
     {
         Header,
         Name,
-        LabelAttribute,
         Label,
+        Function,
         Footer,
         Done
     }

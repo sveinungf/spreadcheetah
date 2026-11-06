@@ -14,9 +14,9 @@ internal sealed class DateTimeCellValueWriter : NumberCellValueWriterBase
             : state.Buffer.TryWrite($"{BeginDataCell}{new OADate(cell.Value.StringOrPrimitive.PrimitiveValue.LongValue)}{EndDefaultCell}");
     }
 
-    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state)
     {
-        return TryWriteDateTimeCell(cell, styleId.DateTimeId, buffer);
+        return TryWriteDateTimeCell(cell, styleId.DateTimeId, state.Buffer);
     }
 
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, CellWriterState state)

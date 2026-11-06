@@ -1,3 +1,4 @@
+using SpreadCheetah.Helpers;
 using System.Drawing;
 
 namespace SpreadCheetah.Styling;
@@ -8,7 +9,7 @@ namespace SpreadCheetah.Styling;
 public sealed record EdgeBorder
 {
     /// <summary>Border style. Defaults to None.</summary>
-    public BorderStyle BorderStyle { get; set; } = BorderStyle.None;
+    public BorderStyle BorderStyle { get; set => field = Guard.DefinedEnumValue(value); }
 
     /// <summary>ARGB (alpha, red, green, blue) color of the border.</summary>
     public Color? Color { get; set; }

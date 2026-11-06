@@ -29,7 +29,7 @@ internal abstract class CellValueWriter
     public static CellValueWriter GetWriter(CellWriterType type) => Writers[(int)type];
 
     public abstract bool TryWriteCell(in DataCell cell, CellWriterState state);
-    public abstract bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer);
+    public abstract bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state);
     public abstract bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, CellWriterState state);
     public abstract bool TryWriteCellWithReference(in DataCell cell, CellWriterState state);
     public abstract bool TryWriteCellWithReference(in DataCell cell, StyleId styleId, CellWriterState state);

@@ -15,6 +15,14 @@ internal sealed class DiagnosticsReporter(SymbolAnalysisContext context) : IDiag
         context.ReportDiagnostic(diagnostic);
     }
 
+    public void ReportAttributeConflictingWithBaseClass(AttributeData attribute, CancellationToken token)
+    {
+        var attributeSyntax = attribute.ApplicationSyntaxReference?.GetSyntax(token);
+        var name = attribute.AttributeClass?.Name;
+        var diagnostic = Diagnostics.AttributeConflictingWithBaseClass(attributeSyntax?.GetLocation(), name);
+        context.ReportDiagnostic(diagnostic);
+    }
+
     public void ReportDuplicateColumnOrdering(AttributeData attribute, CancellationToken token)
     {
         var attributeSyntax = attribute.ApplicationSyntaxReference?.GetSyntax(token);

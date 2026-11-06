@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SpreadCheetah.SourceGenerator;
 using SpreadCheetah.SourceGenerator.Extensions;
@@ -20,20 +21,39 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
 
+        context.RegisterCompilationStartAction(context =>
+        {
+            var csharpParseOptions = context.Compilation.SyntaxTrees
+                .Select(x => x.Options)
+                .OfType<CSharpParseOptions>()
+                .FirstOrDefault();
+
+            if (csharpParseOptions is { LanguageVersion: >= LanguageVersion.CSharp12 })
+                return;
+
+            context.RegisterSymbolAction(EmitUseNewerCsharpVersionWarning, SymbolKind.NamedType);
+        });
+
         context.RegisterSymbolAction(AnalyzeContextType, SymbolKind.NamedType);
         context.RegisterSymbolAction(AnalyzeRowType, SymbolKind.NamedType);
         context.RegisterSymbolAction(AnalyzeRowTypeProperty, SymbolKind.Property);
     }
 
+    private static void EmitUseNewerCsharpVersionWarning(SymbolAnalysisContext context)
+    {
+        if (!context.Symbol.IsRowContextClass)
+            return;
+
+        var location = context.Symbol.Locations.FirstOrDefault();
+        var diagnostic = Diagnostics.UseNewerCsharpVersion(location);
+        context.ReportDiagnostic(diagnostic);
+    }
+
     private static void AnalyzeContextType(SymbolAnalysisContext context)
     {
-        if (context.Symbol is not INamedTypeSymbol type)
+        if (!context.Symbol.IsRowContextClass)
             return;
-        if (type is not { IsStatic: false, BaseType: { } baseType })
-            return;
-        if (!"SpreadCheetah.SourceGeneration.WorksheetRowContext".Equals(baseType.ToDisplayString(), StringComparison.Ordinal))
-            return;
-        if (type.GetAttributes() is { Length: 0 } attributes)
+        if (context.Symbol.GetAttributes() is { Length: 0 } attributes)
             return;
 
         var suppressWarnings = false;
@@ -91,6 +111,10 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
         if (context.Symbol is not INamedTypeSymbol type)
             return;
 
+        var diagnostics = new DiagnosticsReporter(context);
+        var analyzer = new RowTypeAnalyzer(diagnostics, type);
+        analyzer.Analyze(context.CancellationToken);
+
         var typeHasColumnOrderAttribute = type
             .GetMembers()
             .OfType<IPropertySymbol>()
@@ -101,7 +125,6 @@ public sealed class WorksheetRowAnalyzer : DiagnosticAnalyzer
         if (!typeHasColumnOrderAttribute)
             return;
 
-        var diagnostics = new DiagnosticsReporter(context);
         var columnOrderValues = new HashSet<int>();
 
         foreach (var property in type.GetClassAndBaseClassProperties())

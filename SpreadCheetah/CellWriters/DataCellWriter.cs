@@ -16,13 +16,13 @@ internal sealed class DataCellWriter : ICellWriter<DataCell>
 
     public bool TryWrite(in DataCell cell, StyleId styleId, CellWriterState state)
     {
-        return CellValueWriter.GetWriter(cell.Type).TryWriteCell(cell, styleId, state.Buffer);
+        return CellValueWriter.GetWriter(cell.Type).TryWriteCell(cell, styleId, state);
     }
 
     public void WriteStartElement(in DataCell cell, StyleId? styleId, CellWriterState state)
     {
         Debug.Assert(CellValueWriter.GetWriter(cell.Type) is StringCellValueWriterBase);
-        var result = StringCellValueWriterBase.WriteStartElement(styleId, state.Buffer);
+        var result = StringCellValueWriterBase.WriteStartElement(styleId, state);
         Debug.Assert(result);
     }
 

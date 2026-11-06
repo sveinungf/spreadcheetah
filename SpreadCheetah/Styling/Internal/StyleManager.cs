@@ -1,3 +1,4 @@
+using SpreadCheetah.ConditionalFormatting;
 using SpreadCheetah.Helpers;
 using System.Diagnostics.CodeAnalysis;
 
@@ -18,9 +19,11 @@ internal sealed class StyleManager
 
     private void AddStyle(in AddedStyle style, StyleId styleId)
     {
-        _styleDictionary[style] = styleId;
-#if !NET9_0_OR_GREATER
-        _addedStyles.Add(style);
+#if NET9_0_OR_GREATER
+        _styleDictionary.TryAdd(style, styleId);
+#else
+        if (_styleDictionary.TryAdd(style, styleId))
+            _addedStyles.Add(style);
 #endif
     }
 
@@ -35,6 +38,7 @@ internal sealed class StyleManager
     public OrderedSet<ImmutableFont>? UniqueFonts { get; private set; }
     public OrderedSet<string>? UniqueCustomFormats { get; private set; }
 
+    public List<AddedDifferentialStyle>? DifferentialStyles { get; private set; }
     public Dictionary<string, (StyleId StyleId, int NamedStyleIndex)>? NamedStyles { get; private set; }
 
     public StyleManager(NumberFormat? defaultDateTimeFormat, DefaultFont? defaultFont)
@@ -89,49 +93,84 @@ internal sealed class StyleManager
         return newStyleId;
     }
 
+    public int AddStyle(ConditionalFormatStyle style)
+    {
+        var differentialStyle = new AddedDifferentialStyle
+        {
+            Border = ImmutableBorder.From(style.GetBorderOrDefault()),
+            Fill = ImmutableFill.From(style.GetFillOrDefault()),
+            Font = ImmutableFont.From(style.GetFontOrDefault()),
+            Format = style.Format
+        };
+
+        var differentialStyles = DifferentialStyles ??= [];
+        differentialStyles.Add(differentialStyle);
+        return differentialStyles.Count - 1;
+    }
+
     private AddedStyle MapToAddedStyle(Style style, string? name, StyleNameVisibility? visibility)
     {
-        var alignment = ImmutableAlignment.From(style.Alignment);
-        int? alignmentIndex = null;
-        if (alignment != default)
-        {
-            var uniqueAlignments = UniqueAlignments ??= new();
-            alignmentIndex = uniqueAlignments.Add(alignment);
-        }
-
-        var border = ImmutableBorder.From(style.Border);
-        int? borderIndex = null;
-        if (border != default)
-        {
-            var uniqueBorders = UniqueBorders ??= new();
-            borderIndex = uniqueBorders.Add(border);
-        }
-
-        var fill = ImmutableFill.From(style.Fill);
-        int? fillIndex = null;
-        if (fill != default)
-        {
-            var uniqueFills = UniqueFills ??= new();
-            fillIndex = uniqueFills.Add(fill);
-        }
-
-        var font = ImmutableFont.From(style.Font, DefaultFont);
-        int? fontIndex = null;
-        if (font != ImmutableFont.From(DefaultFont))
-        {
-            var uniqueFonts = UniqueFonts ??= new();
-            fontIndex = uniqueFonts.Add(font);
-        }
-
         return new AddedStyle(
-            AlignmentIndex: alignmentIndex,
-            BorderIndex: borderIndex,
-            FillIndex: fillIndex,
-            FontIndex: fontIndex,
+            AlignmentIndex: GetAlignmentIndex(style),
+            BorderIndex: GetBorderIndex(style),
+            FillIndex: GetFillIndex(style),
+            FontIndex: GetFontIndex(style),
             CustomFormatIndex: GetOrAddCustomFormat(style.Format?.CustomFormat),
             StandardFormat: style.Format?.StandardFormat,
             Name: name,
             Visibility: visibility);
+    }
+
+    private int? GetAlignmentIndex(Style style)
+    {
+        if (style.GetAlignmentOrDefault() is not { } styleAlignment)
+            return null;
+
+        var alignment = ImmutableAlignment.From(styleAlignment);
+        if (alignment.IsDefault)
+            return null;
+
+        var uniqueAlignments = UniqueAlignments ??= new();
+        return uniqueAlignments.Add(alignment);
+    }
+
+    private int? GetBorderIndex(Style style)
+    {
+        if (style.GetBorderOrDefault() is not { } styleBorder)
+            return null;
+
+        var border = ImmutableBorder.From(styleBorder);
+        if (border.IsDefault)
+            return null;
+
+        var uniqueBorders = UniqueBorders ??= new();
+        return uniqueBorders.Add(border);
+    }
+
+    private int? GetFillIndex(Style style)
+    {
+        if (style.GetFillOrDefault() is not { } styleFill)
+            return null;
+
+        var fill = ImmutableFill.From(styleFill);
+        if (fill.IsDefault)
+            return null;
+
+        var uniqueFills = UniqueFills ??= new();
+        return uniqueFills.Add(fill);
+    }
+
+    private int? GetFontIndex(Style style)
+    {
+        if (style.GetFontOrDefault() is not { } styleFont)
+            return null;
+
+        var font = ImmutableFont.From(styleFont, DefaultFont);
+        if (font == ImmutableFont.From(DefaultFont))
+            return null;
+
+        var uniqueFonts = UniqueFonts ??= new();
+        return uniqueFonts.Add(font);
     }
 
     private int? GetOrAddCustomFormat(string? customFormat)

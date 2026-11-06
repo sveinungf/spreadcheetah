@@ -35,7 +35,7 @@ internal readonly struct EquatableArray<T>(T[] underlyingArray)
 
         HashCode hashCode = default;
 
-        foreach (T item in array)
+        foreach (var item in array)
         {
             hashCode.Add(item);
         }

@@ -1,0 +1,5 @@
+﻿{
+  Type: ArgumentException,
+  Message: Invalid reference for a cell.,
+  ParamName: reference
+}

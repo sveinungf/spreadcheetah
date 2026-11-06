@@ -15,9 +15,9 @@ internal sealed class TrueBooleanCellValueWriter : BooleanCellValueWriter
         return state.Buffer.TryWrite("<c t=\"b\"><v>1</v></c>"u8);
     }
 
-    public override bool TryWriteCell(in DataCell cell, StyleId styleId, SpreadsheetBuffer buffer)
+    public override bool TryWriteCell(in DataCell cell, StyleId styleId, CellWriterState state)
     {
-        return buffer.TryWrite($"{BeginStyledBooleanCell}{styleId.Id}{EndStyleTrueBooleanValue}");
+        return state.Buffer.TryWrite($"{BeginStyledBooleanCell}{styleId.Id}{EndStyleTrueBooleanValue}");
     }
 
     public override bool TryWriteCell(string formulaText, in DataCell cachedValue, StyleId? styleId, CellWriterState state)

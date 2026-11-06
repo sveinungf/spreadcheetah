@@ -42,6 +42,14 @@ internal static class ThrowHelper
         => throw new ArgumentOutOfRangeException(paramName, value, "Font size must be between 1 and 409.");
 
     [DoesNotReturn]
+    public static void FormulaEmpty(string? paramName)
+        => throw new ArgumentException("The formula can not be empty.", paramName);
+
+    [DoesNotReturn]
+    public static void MaxNumberOfConditionalFormatRules()
+        => throw new SpreadCheetahException($"Can't add more than {SpreadsheetConstants.MaxNumberOfConditionalFormatRules} conditional format rules to a worksheet.");
+
+    [DoesNotReturn]
     public static void MaxNumberOfDataValidations()
         => throw new SpreadCheetahException($"Can't add more than {SpreadsheetConstants.MaxNumberOfDataValidations} data validations to a worksheet.");
 
@@ -102,6 +110,10 @@ internal static class ThrowHelper
         => throw new ArgumentException($"Note text can not exceed {SpreadsheetConstants.MaxNoteTextLength} characters.", paramName);
 
     [DoesNotReturn]
+    public static void R1C1ReferenceOutOfBounds(string formula)
+        => throw new SpreadCheetahException($"The R1C1 formula '{formula}' contains a reference that is outside the bounds of the worksheet when anchored to this cell.");
+
+    [DoesNotReturn]
     public static void ResizeAndMoveCellsCombinationNotSupported(string resizeParamName, string moveParamName)
         => throw new ArgumentException($"Enabling {resizeParamName} is not supported when {moveParamName} is false.", resizeParamName);
 
@@ -131,7 +143,7 @@ internal static class ThrowHelper
 
     [DoesNotReturn]
     public static void StreamContentNotSupportedImageType(string? paramName)
-        => throw new ArgumentException("The stream content is not a supported image type. Currently only PNG images are supported.", nameof(paramName));
+        => throw new ArgumentException("The stream content is not a supported image type. Currently only PNG images are supported.", paramName);
 
     [DoesNotReturn]
     public static void StyleNameAlreadyExists(string? paramName)
@@ -168,6 +180,10 @@ internal static class ThrowHelper
     [DoesNotReturn]
     public static void ValueIsNegative<T>(string? paramName, T value)
         => throw new ArgumentOutOfRangeException(paramName, value, "The value can not be negative.");
+
+    [DoesNotReturn]
+    public static void ValueNotFinite(string? paramName)
+        => throw new ArgumentOutOfRangeException(paramName, "The value must be a finite number.");
 
     [DoesNotReturn]
     public static void ValueTooLong(int maxLength, string? paramName)

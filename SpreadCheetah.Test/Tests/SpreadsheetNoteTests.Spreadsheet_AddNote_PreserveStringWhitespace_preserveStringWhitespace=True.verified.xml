@@ -1,0 +1,14 @@
+﻿<comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <authors>
+    <author />
+  </authors>
+  <commentList>
+    <comment ref="A1" authorId="0">
+      <text>
+        <r>
+          <t xml:space="preserve">  Note with surrounding whitespace  </t>
+        </r>
+      </text>
+    </comment>
+  </commentList>
+</comments>

@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Polyfills;
 using SpreadCheetah.Test.Extensions;
 using SpreadCheetah.Test.Helpers;
 using System.IO.Compression;
@@ -238,7 +239,7 @@ public class SpreadsheetNoteTests
         const string styleAttribute = " style=\"";
         var styleStartIndex = vml.IndexOf(styleAttribute, StringComparison.OrdinalIgnoreCase);
         var styleStartIndexActual = styleStartIndex + styleAttribute.Length;
-        var styleEndIndex = vml.IndexOf('"', styleStartIndexActual);
+        var styleEndIndex = vml.IndexOf('"', styleStartIndexActual, StringComparison.Ordinal);
         var style = vml.Substring(styleStartIndexActual, styleEndIndex - styleStartIndexActual);
         var strings = style.Split(';');
         var styles = strings.Select(x => x.Split(':')).ToDictionary(x => x[0], x => x[1], StringComparer.OrdinalIgnoreCase);
@@ -386,5 +387,30 @@ public class SpreadsheetNoteTests
             .Select(x => x.GetCellNoteText());
 
         Assert.Equal(notes.Select(x => x.NoteText), actualNoteText);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Spreadsheet_AddNote_PreserveStringWhitespace(bool preserveStringWhitespace)
+    {
+        // Arrange
+        const string noteText = "  Note with surrounding whitespace  ";
+        using var stream = new MemoryStream();
+        var options = new SpreadCheetahOptions { PreserveStringWhitespace = preserveStringWhitespace };
+        await using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream, options, Token))
+        {
+            await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
+
+            // Act
+            spreadsheet.AddNote("A1", noteText);
+            await spreadsheet.FinishAsync(Token);
+        }
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var zip = await ZipArchive.CreateAsync(stream, Token);
+        using var commentsStream = await zip.GetComments1XmlStreamAsync(Token);
+        await VerifyXml(commentsStream);
     }
 }

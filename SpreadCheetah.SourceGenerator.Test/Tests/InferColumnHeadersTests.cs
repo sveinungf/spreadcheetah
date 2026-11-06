@@ -1,5 +1,5 @@
 using SpreadCheetah.SourceGenerator.Test.Models.InferColumnHeaders;
-using SpreadCheetah.TestHelpers.Assertions;
+using SpreadCheetah.TestHelpers;
 using SpreadCheetah.TestHelpers.Extensions;
 using Xunit;
 

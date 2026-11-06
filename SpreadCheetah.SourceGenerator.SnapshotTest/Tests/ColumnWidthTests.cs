@@ -92,7 +92,7 @@ public class ColumnWidthTests
     }
 
     [Fact]
-    public Task ColumnWidth_ClassWithColumnWidthWithInvalidWidth()
+    public Task ColumnWidth_ClassWithInvalidColumnWidth()
     {
         // Arrange
         var context = AnalyzerTest.CreateContext();

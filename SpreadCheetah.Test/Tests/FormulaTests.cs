@@ -65,4 +65,14 @@ public static class FormulaTests
         // Act & Assert
         Assert.Throws<ArgumentException>(() => Formula.Hyperlink(uri, friendlyName));
     }
+
+    [Fact]
+    public static void Formula_R1C1_NullFormula()
+    {
+        // Arrange
+        string formula = null!;
+
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => Formula.R1C1(formula));
+    }
 }
