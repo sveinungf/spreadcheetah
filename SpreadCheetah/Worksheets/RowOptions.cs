@@ -9,6 +9,11 @@ namespace SpreadCheetah.Worksheets;
 public sealed class RowOptions
 {
     /// <summary>
+    /// Used on the summary row to indicate that the next outline level (detail rows) is currently in a collapsed state.
+    /// </summary>
+    public bool? Collapsed { get; set; }
+
+    /// <summary>
     /// The default style for cells in the row. This style will be applied to all cells in the row
     /// unless they have their own style set.
     /// </summary>
@@ -20,18 +25,13 @@ public sealed class RowOptions
     public double? Height { get; set => field = Guard.RowHeightInRange(value); }
 
     /// <summary>
-    /// The outline level for row grouping. Must be between 0 and 7, where 0 means no grouping.
-    /// Higher values indicate deeper nesting levels in the row hierarchy.
-    /// </summary>
-    public int? OutlineLevel { get; set => field = Guard.OutlineLevelInRange(value); }
-
-    /// <summary>
-    /// Indicates if the row is currently hidden due to a collapsed group. Can be used without outline level to hide a row
+    /// Set whether the row should be hidden or not.
     /// </summary>
     public bool? Hidden { get; set; }
 
     /// <summary>
-    /// Used on the summary row to indicate that the next outline level (detail rows) is currently in a collapsed state.
+    /// The outline level for row grouping. Must be between 0 and 7, where 0 means no grouping.
+    /// Higher values indicate deeper nesting levels in the row hierarchy.
     /// </summary>
-    public bool? Collapsed { get; set; }
+    public int? OutlineLevel { get; set => field = Guard.OutlineLevelInRange(value); }
 }

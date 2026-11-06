@@ -14,15 +14,15 @@ internal static class CellRowHelper
     public static bool TryWriteRowStart(uint rowIndex,
         RowOptions options, StyleId? rowStyleId, SpreadsheetBuffer buffer)
     {
-        if (options is null or { DefaultStyle: null, Height: null, OutlineLevel: null, Collapsed: null, Hidden: null })
+        if (options is null)
             return TryWriteRowStart(rowIndex, buffer);
 
         var sAttribute = new IntAttribute("s"u8, rowStyleId?.Id);
         var customFormatAttribute = new BooleanAttribute("customFormat"u8, rowStyleId is not null ? true : null);
         var htAttribute = new DoubleAttribute("ht"u8, options.Height);
+        var hiddenAttribute = new BooleanAttribute("hidden"u8, options.Hidden);
         var customHeightAttribute = new BooleanAttribute("customHeight"u8, options.Height is not null ? true : null);
         var outlineLevelAttribute = new IntAttribute("outlineLevel"u8, options.OutlineLevel);
-        var hiddenAttribute = new BooleanAttribute("hidden"u8, options.Hidden);
         var collapsedAttribute = new BooleanAttribute("collapsed"u8, options.Collapsed);
 
         return buffer.TryWrite(
@@ -32,9 +32,9 @@ internal static class CellRowHelper
             $"{sAttribute}" +
             $"{customFormatAttribute}" +
             $"{htAttribute}" +
+            $"{hiddenAttribute}" +
             $"{customHeightAttribute}" +
             $"{outlineLevelAttribute}" +
-            $"{hiddenAttribute}" +
             $"{collapsedAttribute}" +
             $"{">"u8}");
     }

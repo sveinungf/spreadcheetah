@@ -989,26 +989,22 @@ public class SpreadsheetRowTests
     }
 
     [Theory, CombinatorialData]
-    public async Task Spreadsheet_AddRow_RowHiiden(
+    public async Task Spreadsheet_AddRow_RowHidden(
         [CombinatorialValues(true, false, null)] bool? hidden,
         CellType type,
-        RowCollectionType rowType
-    )
+        RowCollectionType rowType)
     {
         // Arrange
-        var worksheetOptions = new WorksheetOptions();
-        var rowOptions = new RowOptions { Hidden = hidden };
-
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
-        await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, token: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
+        var rowOptions = new RowOptions { Hidden = hidden };
         await spreadsheet.AddRowAsync(CellFactory.Create(type, "My value"), rowType, rowOptions);
         await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
         Assert.Equal(hidden ?? false, sheet.Row(1).Hidden);
     }
@@ -1017,23 +1013,21 @@ public class SpreadsheetRowTests
     public async Task Spreadsheet_AddRow_RowCollapsed(
         [CombinatorialValues(true, false, null)] bool? collapsed,
         CellType type,
-        RowCollectionType rowType
-    )
+        RowCollectionType rowType)
     {
         // Arrange
-        var worksheetOptions = new WorksheetOptions();
-        var rowOptions = new RowOptions { Collapsed = collapsed };
-
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
-        await spreadsheet.StartWorksheetAsync("Sheet", worksheetOptions, token: Token);
+        await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
 
         // Act
+        var rowOptions = new RowOptions { Collapsed = collapsed };
         await spreadsheet.AddRowAsync(CellFactory.Create(type, "My value"), rowType, rowOptions);
         await spreadsheet.FinishAsync(Token);
 
         // Assert
-        SpreadsheetAssert.Valid(stream);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(collapsed ?? false, sheet.Row(1).Collapsed);
     }
 
     [Theory, CombinatorialData]
