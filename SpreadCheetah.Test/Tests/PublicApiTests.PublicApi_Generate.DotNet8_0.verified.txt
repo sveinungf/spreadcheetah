@@ -676,8 +676,10 @@ namespace SpreadCheetah.Worksheets
     public sealed class RowOptions
     {
         public RowOptions() { }
+        public bool? Collapsed { get; set; }
         public SpreadCheetah.Styling.Style? DefaultStyle { get; set; }
         public double? Height { get; set; }
+        public bool? Hidden { get; set; }
         public int? OutlineLevel { get; set; }
     }
     public sealed class WorksheetOptions

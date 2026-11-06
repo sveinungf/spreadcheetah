@@ -14,7 +14,7 @@ internal static class CellRowHelper
     public static bool TryWriteRowStart(uint rowIndex,
         RowOptions options, StyleId? rowStyleId, SpreadsheetBuffer buffer)
     {
-        if (options is null or { DefaultStyle: null, Height: null, OutlineLevel: null })
+        if (options is null or { DefaultStyle: null, Height: null, OutlineLevel: null, Collapsed: null, Hidden: null })
             return TryWriteRowStart(rowIndex, buffer);
 
         var sAttribute = new IntAttribute("s"u8, rowStyleId?.Id);
@@ -22,6 +22,8 @@ internal static class CellRowHelper
         var htAttribute = new DoubleAttribute("ht"u8, options.Height);
         var customHeightAttribute = new BooleanAttribute("customHeight"u8, options.Height is not null ? true : null);
         var outlineLevelAttribute = new IntAttribute("outlineLevel"u8, options.OutlineLevel);
+        var hiddenAttribute = new BooleanAttribute("hidden"u8, options.Hidden);
+        var collapsedAttribute = new BooleanAttribute("collapsed"u8, options.Collapsed);
 
         return buffer.TryWrite(
             $"{"<row r=\""u8}" +
@@ -32,6 +34,8 @@ internal static class CellRowHelper
             $"{htAttribute}" +
             $"{customHeightAttribute}" +
             $"{outlineLevelAttribute}" +
+            $"{hiddenAttribute}" +
+            $"{collapsedAttribute}" +
             $"{">"u8}");
     }
 }
