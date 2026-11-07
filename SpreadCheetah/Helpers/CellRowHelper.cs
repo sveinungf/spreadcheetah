@@ -14,9 +14,6 @@ internal static class CellRowHelper
     public static bool TryWriteRowStart(uint rowIndex,
         RowOptions options, StyleId? rowStyleId, SpreadsheetBuffer buffer)
     {
-        if (options is null)
-            return TryWriteRowStart(rowIndex, buffer);
-
         var sAttribute = new IntAttribute("s"u8, rowStyleId?.Id);
         var customFormatAttribute = new BooleanAttribute("customFormat"u8, rowStyleId is not null ? true : null);
         var htAttribute = new DoubleAttribute("ht"u8, options.Height);
