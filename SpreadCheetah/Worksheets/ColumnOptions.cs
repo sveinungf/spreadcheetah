@@ -21,7 +21,7 @@ public sealed class ColumnOptions
     public double? Width { get; set => field = Guard.ColumnWidthInRange(value); }
 
     /// <summary>
-    /// Is the column hidden or not. Defaults to <see langword="false"/>.
+    /// Set whether the column should be hidden or not. Defaults to <see langword="false"/>.
     /// </summary>
     public bool Hidden { get; set; }
 }
