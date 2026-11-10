@@ -20,7 +20,7 @@ internal readonly record struct ImmutableTable(
 
         if (table.ColumnOptions is not null)
         {
-            columnOptions = new(table.ColumnOptions.Count);
+            columnOptions = [with(table.ColumnOptions.Count)];
 
             foreach (var (columnNo, options) in table.ColumnOptions)
             {

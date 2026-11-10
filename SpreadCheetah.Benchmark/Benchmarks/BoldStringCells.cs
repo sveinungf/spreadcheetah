@@ -17,7 +17,7 @@ public class BoldStringCells
     [GlobalSetup]
     public void IterationSetup()
     {
-        _values = new List<List<string>>(NumberOfRows);
+        _values = [with(NumberOfRows)];
 
         for (var row = 1; row <= NumberOfRows; ++row)
         {

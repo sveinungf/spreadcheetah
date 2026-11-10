@@ -29,7 +29,7 @@ namespace SpreadCheetah;
 public sealed class Spreadsheet : IDisposable, IAsyncDisposable
 {
     private readonly Guid _spreadsheetGuid = Guid.NewGuid();
-    private readonly List<WorksheetMetadata> _worksheets = new(1);
+    private readonly List<WorksheetMetadata> _worksheets = [with(1)];
     private readonly ZipArchiveManager _zipArchiveManager;
     private readonly SpreadsheetBuffer _buffer;
     private readonly DocumentProperties? _documentProperties;

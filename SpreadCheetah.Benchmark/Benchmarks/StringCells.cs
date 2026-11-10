@@ -28,7 +28,7 @@ public class StringCells : IDisposable
     [GlobalSetup]
     public void GlobalSetup()
     {
-        Values = new List<IList<string>>(NumberOfRows);
+        Values = [with(NumberOfRows)];
         for (var row = 1; row <= NumberOfRows; ++row)
         {
             var cells = new List<string>(NumberOfColumns);
