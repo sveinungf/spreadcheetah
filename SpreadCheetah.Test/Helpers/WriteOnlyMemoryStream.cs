@@ -8,7 +8,7 @@ internal class WriteOnlyMemoryStream : MemoryStream
     public override long Position
     {
         get => base.Position;
-        set => throw new InvalidOperationException();
+        set => base.Position = value > base.Position ? value : throw new InvalidOperationException();
     }
 
     public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state)

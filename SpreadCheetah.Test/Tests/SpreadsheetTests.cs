@@ -56,6 +56,9 @@ public class SpreadsheetTests
 
     [Theory]
     [InlineData(false)]
+#if NET11_0_OR_GREATER
+    [InlineData(true)]
+#endif
     public async Task Spreadsheet_CreateNew_EmptyToWriteOnlyStream(bool asyncOnly)
     {
         // Arrange
