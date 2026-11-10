@@ -12,7 +12,7 @@ SpreadCheetah is a high-performance .NET library for generating spreadsheet (Mic
 - Async APIs
 - No dependency to Microsoft Excel
 - Supports .NET Standard 2.0 targets, such as .NET Framework
-- Supports .NET 6 to .NET 10, with more optimizations enabled for later versions
+- Supports .NET 6 to .NET 11, with more optimizations enabled for later versions
 - Trimmable and NativeAOT compatible
 
 SpreadCheetah is designed to create spreadsheet files in a forward-only manner.
