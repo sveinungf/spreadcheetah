@@ -17,8 +17,10 @@ jobs:
       uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 11.0.x
+    - name: Build
+      run: dotnet build SpreadCheetah --configuration Release
     - name: Pack
-      run: dotnet pack SpreadCheetah --configuration Release -o ./artifacts
+      run: dotnet pack SpreadCheetah --no-build --configuration Release -o ./artifacts
     - name: NuGet login (OIDC → temp API key)
       uses: NuGet/login@v1
       id: login
