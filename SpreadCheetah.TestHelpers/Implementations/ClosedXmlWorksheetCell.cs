@@ -9,6 +9,8 @@ internal sealed class ClosedXmlWorksheetCell(IXLCell cell) : IWorksheetCell
 
     public decimal? DecimalValue => cell.GetValue<decimal?>();
 
+    public double? DoubleValue => cell.GetValue<double?>();
+
     public string? StringValue => cell.Value.IsBlank ? null : cell.GetText();
 
     public DateTime? DateTimeValue => cell.TryGetValue<double>(out var value) ? DateTime.FromOADate(value) : null;

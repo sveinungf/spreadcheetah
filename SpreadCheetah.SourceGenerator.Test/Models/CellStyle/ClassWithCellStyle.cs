@@ -5,5 +5,5 @@ namespace SpreadCheetah.SourceGenerator.Test.Models.CellStyle;
 public class ClassWithCellStyle
 {
     [CellStyle("Price style")]
-    public decimal Price { get; set; }
+    public double Price { get; set; }
 }

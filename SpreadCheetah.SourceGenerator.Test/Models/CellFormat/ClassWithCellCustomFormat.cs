@@ -5,5 +5,5 @@ namespace SpreadCheetah.SourceGenerator.Test.Models.CellFormat;
 public class ClassWithCellCustomFormat
 {
     [CellFormat("#.0#")]
-    public decimal Price { get; set; }
+    public double Price { get; set; }
 }

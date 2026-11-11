@@ -1,9 +1,9 @@
-using System.Reflection;
 using SpreadCheetah.SourceGeneration;
 using SpreadCheetah.SourceGenerator.Test.Helpers;
 using SpreadCheetah.SourceGenerator.Test.Models.CellStyle;
 using SpreadCheetah.Styling;
 using SpreadCheetah.TestHelpers;
+using System.Reflection;
 using Xunit;
 
 namespace SpreadCheetah.SourceGenerator.Test.Tests;
@@ -21,7 +21,7 @@ public class CellStyleTests
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
         var style = new Style { Font = { Bold = true } };
         spreadsheet.AddStyle(style, "Price style");
-        var obj = new ClassWithCellStyle { Price = 199.90m };
+        var obj = new ClassWithCellStyle { Price = 199.9 };
 
         // Act
         await spreadsheet.AddAsRowAsync(obj, CellStyleContext.Default.ClassWithCellStyle, Token);
@@ -29,7 +29,7 @@ public class CellStyleTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(obj.Price, sheet["A1"].DecimalValue);
+        Assert.Equal(obj.Price, sheet["A1"].DoubleValue);
         Assert.True(sheet["A1"].Style.Font.Bold);
     }
 
@@ -129,7 +129,7 @@ public class CellStyleTests
         var priceStyle = new Style { Font = { Bold = true } };
         spreadsheet.AddStyle(nameStyle, "Name style");
         spreadsheet.AddStyle(priceStyle, "Price style");
-        var obj1 = new ClassWithCellStyle { Price = 199.90m };
+        var obj1 = new ClassWithCellStyle { Price = 199.9 };
         var obj2 = new RecordWithCellStyle { Name = "Tom" };
 
         // Act
@@ -139,7 +139,7 @@ public class CellStyleTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(obj1.Price, sheet["A1"].DecimalValue);
+        Assert.Equal(obj1.Price, sheet["A1"].DoubleValue);
         Assert.Equal(obj2.Name, sheet["A2"].StringValue);
         Assert.True(sheet["A1"].Style.Font.Bold);
         Assert.True(sheet["A2"].Style.Font.Italic);
@@ -156,7 +156,7 @@ public class CellStyleTests
         await spreadsheet.StartWorksheetAsync("Sheet 1", token: Token);
         var priceStyle = new Style { Font = { Bold = true } };
         spreadsheet.AddStyle(priceStyle, "Price style");
-        var obj1 = new ClassWithCellStyle { Price = 199.90m };
+        var obj1 = new ClassWithCellStyle { Price = 199.9 };
         await spreadsheet.AddAsRowAsync(obj1, CellStyleContext.Default.ClassWithCellStyle, Token);
 
         await spreadsheet.StartWorksheetAsync("Sheet 2", token: Token);
@@ -172,7 +172,7 @@ public class CellStyleTests
         Assert.Equal(2, sheets.Count);
 
         var sheet1 = sheets[0];
-        Assert.Equal(obj1.Price, sheet1["A1"].DecimalValue);
+        Assert.Equal(obj1.Price, sheet1["A1"].DoubleValue);
         Assert.True(sheet1["A1"].Style.Font.Bold);
 
         var sheet2 = sheets[1];
@@ -186,7 +186,7 @@ public class CellStyleTests
         // Arrange
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(Stream.Null, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-        var obj = new ClassWithCellStyle { Price = 199.90m };
+        var obj = new ClassWithCellStyle { Price = 199.9 };
 
         // Act
         var exception = await Record.ExceptionAsync(async () => await spreadsheet.AddAsRowAsync(obj, CellStyleContext.Default.ClassWithCellStyle, Token));
@@ -208,9 +208,9 @@ public class CellStyleTests
         var initialDependencyInfo = spreadsheet.GetOrCreateWorksheetRowDependencyInfo(typeInfo);
 
         // Act
-        await spreadsheet.AddAsRowAsync(new ClassWithCellStyle { Price = 10m }, typeInfo, Token);
-        await spreadsheet.AddAsRowAsync(new ClassWithCellStyle { Price = 20m }, typeInfo, Token);
-        await spreadsheet.AddAsRowAsync(new ClassWithCellStyle { Price = 30m }, typeInfo, Token);
+        await spreadsheet.AddAsRowAsync(new ClassWithCellStyle { Price = 10 }, typeInfo, Token);
+        await spreadsheet.AddAsRowAsync(new ClassWithCellStyle { Price = 20 }, typeInfo, Token);
+        await spreadsheet.AddAsRowAsync(new ClassWithCellStyle { Price = 30 }, typeInfo, Token);
         await spreadsheet.FinishAsync(Token);
 
         // Assert
