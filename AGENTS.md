@@ -1,6 +1,6 @@
-## Projects are multi-targeted — only build and test .NET 10
+## Projects are multi-targeted — only build and test .NET 11
 
-The projects target multiple frameworks (`netstandard2.0;net8.0;net9.0;net10.0`, plus `net472`/`net48` for the test and benchmark projects). In this environment only `net10.0` can be built and executed — the other runtimes are not installed (and `net472`/`net48` would need `mono`). Always pin the TFM when building or running tests, e.g. `-f net10.0`. Do not attempt to build or test the other TFMs.
+The projects target multiple frameworks (`netstandard2.0;net8.0;net10.0;net11.0`, plus `net472`/`net48` for the test and benchmark projects). In this environment only `net11.0` can be built and executed — the other runtimes are not installed (and `net472`/`net48` would need `mono`). Always pin the TFM when building or running tests, e.g. `-f net11.0`. Do not attempt to build or test the other TFMs.
 
 ## Build the test projects in Debug, not Release
 
@@ -18,11 +18,11 @@ The main `SpreadCheetah` library itself builds fine in both configurations.
 
 The runner is Microsoft.Testing.Platform (declared in `global.json`). **`dotnet test` is broken in this environment** — it fails with "is using VSTest test runner" because SDK 10.0.111 writes `*.csproj.nuget.g.targets` with backslash paths that fail `Exists()` on Linux. Cleaning `obj/` does NOT fix it (pre-existing, unrelated to your change). `dotnet build` is unaffected.
 
-So build, then run the test exe directly (`SpreadCheetah.Test/bin/Debug/net10.0/SpreadCheetah.Test.dll`):
+So build, then run the test exe directly (`SpreadCheetah.Test/bin/Debug/net11.0/SpreadCheetah.Test.dll`):
 
 ```bash
-dotnet build SpreadCheetah.Test/SpreadCheetah.Test.csproj -c Debug -f net10.0
-dotnet SpreadCheetah.Test/bin/Debug/net10.0/SpreadCheetah.Test.dll
+dotnet build SpreadCheetah.Test/SpreadCheetah.Test.csproj -c Debug -f net11.0
+dotnet SpreadCheetah.Test/bin/Debug/net11.0/SpreadCheetah.Test.dll
 ```
 
 A full run takes ~15s; look for the `total:` / `failed:` lines.
@@ -32,7 +32,7 @@ A full run takes ~15s; look for the `total:` / `failed:` lines.
 There is no `--filter-method` flag — it silently runs zero tests. Use `--filter` with the `FullyQualifiedName` property (`~` = contains, `=` = exact):
 
 ```bash
-dotnet SpreadCheetah.Test/bin/Debug/net10.0/SpreadCheetah.Test.dll --filter "FullyQualifiedName~NonFiniteValue"
+dotnet SpreadCheetah.Test/bin/Debug/net11.0/SpreadCheetah.Test.dll --filter "FullyQualifiedName~NonFiniteValue"
 ```
 
 If a filter matches nothing, the test was likely renamed — list real names with `dotnet <exe> --list-tests`. (`--trep` publishes results; it does not filter.)
@@ -40,7 +40,7 @@ If a filter matches nothing, the test was likely renamed — list real names wit
 ## `PublicApiTests.PublicApi_Generate` fails whenever public API changes
 
 The test snapshots the full public API per TFM into
-`SpreadCheetah.Test/Tests/PublicApiTests.PublicApi_Generate.{Net4_7,DotNet8_0,DotNet9_0,DotNet10_0}.verified.txt`.
+`SpreadCheetah.Test/Tests/PublicApiTests.PublicApi_Generate.{Net4_7,DotNet8_0,DotNet10_0,DotNet11_0}.verified.txt`.
 Adding any public type or member makes the test fail and writes a `*.received.*` file next to it (received files are gitignored). If your change intentionally changes the public API, regenerate by diffing received vs verified (the received file contains the new correct content).
 
 ## `SpreadCheetah/CompatibilitySuppressions.xml` is build noise
@@ -70,6 +70,6 @@ The global NuGet cache also contains the published `SpreadCheetah` package (olde
 
 ```xml
 <Reference Include="SpreadCheetah">
-  <HintPath>/f/_git/spreadcheetah/SpreadCheetah/bin/Debug/net10.0/SpreadCheetah.dll</HintPath>
+  <HintPath>/f/_git/spreadcheetah/SpreadCheetah/bin/Debug/net11.0/SpreadCheetah.dll</HintPath>
 </Reference>
 ```
