@@ -1,3 +1,4 @@
+using SpreadCheetah.MetadataXml.Attributes;
 using SpreadCheetah.Styling;
 using SpreadCheetah.Worksheets;
 
@@ -33,6 +34,8 @@ internal struct WorksheetColumnXmlPart(
             Element.Width => TryWriteWidth(),
             Element.Style => TryWriteStyle(),
             Element.Hidden => TryWriteHidden(),
+            Element.OutlineLevel => TryWriteOutlineLevel(),
+            Element.Collapsed => TryWriteCollapsed(),
             _ => buffer.TryWrite("/>"u8)
         };
 
@@ -62,7 +65,7 @@ internal struct WorksheetColumnXmlPart(
                 $"{"\" customWidth=\"1\""u8}");
         }
 
-        if (options.DefaultStyle is null)
+        if (options is { DefaultStyle: null, OutlineLevel: null, Collapsed: null })
             return true;
 
         return defaultColumnWidth is { } defaultWidth
@@ -81,12 +84,26 @@ internal struct WorksheetColumnXmlPart(
         return !options.Hidden || buffer.TryWrite(" hidden=\"1\""u8);
     }
 
+    private readonly bool TryWriteOutlineLevel()
+    {
+        return options.OutlineLevel is null
+            || buffer.TryWrite($"{new IntAttribute("outlineLevel"u8, options.OutlineLevel)}");
+    }
+
+    private readonly bool TryWriteCollapsed()
+    {
+        return options.Collapsed is null
+            || buffer.TryWrite($"{new BooleanAttribute("collapsed"u8, options.Collapsed)}");
+    }
+
     private enum Element
     {
         Header,
         Width,
         Style,
         Hidden,
+        OutlineLevel,
+        Collapsed,
         Footer,
         Done
     }

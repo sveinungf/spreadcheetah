@@ -18,4 +18,19 @@ public class ColumnOptionsTests
         // Assert
         Assert.IsType<ArgumentOutOfRangeException>(exception);
     }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(8)]
+    public void ColumnOptions_OutlineLevel_Invalid(int outlineLevel)
+    {
+        // Arrange
+        var options = new ColumnOptions();
+
+        // Act
+        var exception = Record.Exception(() => options.OutlineLevel = outlineLevel);
+
+        // Assert
+        Assert.IsType<ArgumentOutOfRangeException>(exception);
+    }
 }
