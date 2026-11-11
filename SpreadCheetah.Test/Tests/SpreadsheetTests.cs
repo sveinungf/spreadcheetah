@@ -538,6 +538,133 @@ public class SpreadsheetTests
     }
 
     [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(3)]
+    [InlineData(7)]
+    public async Task Spreadsheet_StartWorksheet_ColumnOutlineLevelWithoutMaxColumnOutlineLevel(int outlineLevel)
+    {
+        // Arrange
+        var worksheetOptions = new WorksheetOptions();
+        worksheetOptions.Column(2).OutlineLevel = outlineLevel;
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        // A grouped column without a width gets the same explicit default width as a column with only a style.
+        const double defaultWidthWrittenForColumn = 8.88671875;
+        Assert.Equal(outlineLevel, sheet.Column("B").OutlineLevel);
+        Assert.Equal(defaultWidthWrittenForColumn, sheet.Column("B").Width, 4);
+        Assert.Equal(0, sheet.Column("A").OutlineLevel);
+        Assert.Null(sheet.MaxColumnOutlineLevel);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(3)]
+    [InlineData(7)]
+    public async Task Spreadsheet_StartWorksheet_ColumnOutlineLevelWithMaxColumnOutlineLevel(int maxColumnOutlineLevel)
+    {
+        // Arrange
+        var worksheetOptions = new WorksheetOptions { MaxColumnOutlineLevel = maxColumnOutlineLevel };
+        worksheetOptions.Column(2).OutlineLevel = maxColumnOutlineLevel;
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(maxColumnOutlineLevel, sheet.Column("B").OutlineLevel);
+        Assert.Equal(maxColumnOutlineLevel, sheet.MaxColumnOutlineLevel);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_StartWorksheet_MaxRowAndColumnOutlineLevel()
+    {
+        // Arrange
+        var worksheetOptions = new WorksheetOptions { MaxRowOutlineLevel = 2, MaxColumnOutlineLevel = 3 };
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(2, sheet.MaxRowOutlineLevel);
+        Assert.Equal(3, sheet.MaxColumnOutlineLevel);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    [InlineData(null)]
+    public async Task Spreadsheet_StartWorksheet_ColumnCollapsed(bool? collapsed)
+    {
+        // Arrange
+        var worksheetOptions = new WorksheetOptions { MaxColumnOutlineLevel = 1 };
+        worksheetOptions.Column(2).OutlineLevel = 1;
+        worksheetOptions.Column(2).Hidden = collapsed ?? false;
+        worksheetOptions.Column(3).Collapsed = collapsed;
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Equal(collapsed ?? false, sheet.Column("C").Collapsed);
+        Assert.Equal(collapsed ?? false, sheet.Column("B").Hidden);
+        Assert.Equal(1, sheet.Column("B").OutlineLevel);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_StartWorksheet_ColumnOutlineLevelWithWidthAndStyle()
+    {
+        // Arrange
+        const double width = 20.0;
+        var fontColor = System.Drawing.Color.FromArgb(255, 255, 69);
+        var worksheetOptions = new WorksheetOptions { MaxColumnOutlineLevel = 2 };
+        worksheetOptions.Column(1).Width = width;
+        worksheetOptions.Column(1).DefaultStyle = new Style { Font = { Color = fontColor } };
+        worksheetOptions.Column(1).OutlineLevel = 2;
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        var column = sheet.Column("A");
+        Assert.Equal(2, column.OutlineLevel);
+        Assert.Equal(width, column.Width, 4);
+        Assert.Equal(fontColor, column.Style.Font.Color);
+    }
+
+    [Theory]
     [InlineData(10d)]
     [InlineData(100d)]
     [InlineData(255d)]

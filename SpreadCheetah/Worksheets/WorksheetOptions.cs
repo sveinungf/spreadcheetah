@@ -32,6 +32,13 @@ public sealed class WorksheetOptions
     public int? MaxRowOutlineLevel { get; set => field = Guard.OutlineLevelInRange(value); }
 
     /// <summary>
+    /// The maximum column outline level that will be used in the worksheet. Must be between 0 and 7.
+    /// This should be set when using column grouping with <see cref="ColumnOptions.OutlineLevel"/>.
+    /// While not strictly required, setting this improves compatibility and user experience in Excel.
+    /// </summary>
+    public int? MaxColumnOutlineLevel { get; set => field = Guard.OutlineLevelInRange(value); }
+
+    /// <summary>
     /// Option to hide a worksheet.
     /// </summary>
     public WorksheetVisibility Visibility { get; set => field = Guard.DefinedEnumValue(value); }

@@ -790,8 +790,10 @@ namespace SpreadCheetah.Worksheets
     public sealed class ColumnOptions
     {
         public ColumnOptions() { }
+        public bool? Collapsed { get; set; }
         public SpreadCheetah.Styling.Style? DefaultStyle { get; set; }
         public bool Hidden { get; set; }
+        public int? OutlineLevel { get; set; }
         public double? Width { get; set; }
     }
     public sealed class OutlineOptions
@@ -816,6 +818,7 @@ namespace SpreadCheetah.Worksheets
         public double? DefaultColumnWidth { get; set; }
         public int? FrozenColumns { get; set; }
         public int? FrozenRows { get; set; }
+        public int? MaxColumnOutlineLevel { get; set; }
         public int? MaxRowOutlineLevel { get; set; }
         public SpreadCheetah.Worksheets.OutlineOptions? OutlineOptions { get; set; }
         public bool? ShowGridlines { get; set; }

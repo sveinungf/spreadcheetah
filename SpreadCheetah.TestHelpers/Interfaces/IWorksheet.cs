@@ -9,6 +9,7 @@ public interface IWorksheet : IDisposable
     int CellCount { get; }
     int RowCount { get; }
     int? MaxRowOutlineLevel { get; }
+    int? MaxColumnOutlineLevel { get; }
 
     IEnumerable<IWorksheetCell> AllCells();
     IWorksheetColumn Column(string columnName);

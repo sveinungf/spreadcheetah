@@ -43,6 +43,8 @@ internal sealed class ClosedXmlWorksheet(
 
     public int? MaxRowOutlineLevel => openXmlWorksheet.SheetFormatProperties?.OutlineLevelRow?.Value;
 
+    public int? MaxColumnOutlineLevel => openXmlWorksheet.SheetFormatProperties?.OutlineLevelColumn?.Value;
+
     public IEnumerable<IWorksheetCell> AllCells()
     {
         return sheet.Cells().Select(x => new ClosedXmlWorksheetCell(x));

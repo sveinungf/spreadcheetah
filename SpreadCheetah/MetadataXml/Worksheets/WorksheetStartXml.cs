@@ -53,7 +53,7 @@ file struct WorksheetStartXmlWriter(
 
         foreach (var (columnIndex, option) in dictionary)
         {
-            if (option is { DefaultStyle: null, Width: null, Hidden: false })
+            if (option is { DefaultStyle: null, Width: null, Hidden: false, OutlineLevel: null, Collapsed: null })
                 continue;
 
             columns.Add((columnIndex, option));
@@ -213,17 +213,19 @@ file struct WorksheetStartXmlWriter(
 
     private readonly bool TryWriteSheetFormatProperties()
     {
-        if (options is null or { DefaultColumnWidth: null, MaxRowOutlineLevel: null })
+        if (options is null or { DefaultColumnWidth: null, MaxRowOutlineLevel: null, MaxColumnOutlineLevel: null })
             return true;
 
         var defaultColWidthAttribute = new DoubleAttribute("defaultColWidth"u8, options.DefaultColumnWidth);
         var outlineLevelRowAttribute = new IntAttribute("outlineLevelRow"u8, options.MaxRowOutlineLevel);
+        var outlineLevelColAttribute = new IntAttribute("outlineLevelCol"u8, options.MaxColumnOutlineLevel);
 
         return buffer.TryWrite(
             $"{"<sheetFormatPr"u8}" +
             $"{defaultColWidthAttribute}" +
             $"{" defaultRowHeight=\"14.4\""u8}" +
             $"{outlineLevelRowAttribute}" +
+            $"{outlineLevelColAttribute}" +
             $"{"/>"u8}");
     }
 
