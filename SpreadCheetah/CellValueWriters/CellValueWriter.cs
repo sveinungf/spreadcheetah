@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah.CellValueWriters;
 
-internal abstract class CellValueWriter
+internal closed class CellValueWriter
 {
     private static readonly CellValueWriter[] Writers =
     [

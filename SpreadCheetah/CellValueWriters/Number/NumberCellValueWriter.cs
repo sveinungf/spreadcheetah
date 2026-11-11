@@ -3,7 +3,7 @@ using SpreadCheetah.Styling;
 
 namespace SpreadCheetah.CellValueWriters.Number;
 
-internal abstract class NumberCellValueWriter : NumberCellValueWriterBase
+internal closed class NumberCellValueWriter : NumberCellValueWriterBase
 {
     public override bool WriteFormulaStartElement(StyleId? styleId, CellWriterState state)
     {

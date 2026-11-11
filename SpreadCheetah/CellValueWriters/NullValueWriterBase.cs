@@ -4,7 +4,7 @@ using SpreadCheetah.Styling;
 
 namespace SpreadCheetah.CellValueWriters;
 
-internal abstract class NullValueWriterBase : CellValueWriter
+internal closed class NullValueWriterBase : CellValueWriter
 {
     protected abstract int GetStyleId(StyleId styleId);
 
