@@ -24,4 +24,15 @@ public sealed class ColumnOptions
     /// Set whether the column should be hidden or not. Defaults to <see langword="false"/>.
     /// </summary>
     public bool Hidden { get; set; }
+
+    /// <summary>
+    /// The outline level for column grouping. Must be between 0 and 7, where 0 means no grouping.
+    /// Higher values indicate deeper nesting levels in the column hierarchy.
+    /// </summary>
+    public int? OutlineLevel { get; set => field = Guard.OutlineLevelInRange(value); }
+
+    /// <summary>
+    /// Used on the summary column to indicate that the next outline level (detail columns) is currently in a collapsed state.
+    /// </summary>
+    public bool? Collapsed { get; set; }
 }
