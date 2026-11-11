@@ -542,7 +542,7 @@ public class SpreadsheetTests
     [InlineData(1)]
     [InlineData(3)]
     [InlineData(7)]
-    public async Task Spreadsheet_StartWorksheet_ColumnOutlineLevelWithoutMaxColumnOutlineLevel(int outlineLevel)
+    public async Task Spreadsheet_StartWorksheet_ColumnOutlineLevel(int outlineLevel)
     {
         // Arrange
         var worksheetOptions = new WorksheetOptions();
@@ -562,19 +562,17 @@ public class SpreadsheetTests
         Assert.Equal(outlineLevel, sheet.Column("B").OutlineLevel);
         Assert.Equal(defaultWidthWrittenForColumn, sheet.Column("B").Width, 4);
         Assert.Equal(0, sheet.Column("A").OutlineLevel);
-        Assert.Null(sheet.MaxColumnOutlineLevel);
+        Assert.Equal(outlineLevel > 0 ? outlineLevel : null, sheet.MaxColumnOutlineLevel);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(3)]
-    [InlineData(7)]
-    public async Task Spreadsheet_StartWorksheet_ColumnOutlineLevelWithMaxColumnOutlineLevel(int maxColumnOutlineLevel)
+    [Fact]
+    public async Task Spreadsheet_StartWorksheet_MaxColumnOutlineLevel()
     {
         // Arrange
-        var worksheetOptions = new WorksheetOptions { MaxColumnOutlineLevel = maxColumnOutlineLevel };
-        worksheetOptions.Column(2).OutlineLevel = maxColumnOutlineLevel;
+        var worksheetOptions = new WorksheetOptions();
+        worksheetOptions.Column(2).OutlineLevel = 1;
+        worksheetOptions.Column(3).OutlineLevel = 3;
+        worksheetOptions.Column(4).OutlineLevel = 2;
 
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
@@ -586,15 +584,35 @@ public class SpreadsheetTests
         // Assert
         SpreadsheetAssert.Valid(stream);
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(maxColumnOutlineLevel, sheet.Column("B").OutlineLevel);
-        Assert.Equal(maxColumnOutlineLevel, sheet.MaxColumnOutlineLevel);
+        Assert.Equal(3, sheet.MaxColumnOutlineLevel);
+    }
+
+    [Fact]
+    public async Task Spreadsheet_StartWorksheet_NoColumnOutlineLevel()
+    {
+        // Arrange
+        var worksheetOptions = new WorksheetOptions { MaxRowOutlineLevel = 1 };
+        worksheetOptions.Column(1).Width = 20;
+
+        using var stream = new MemoryStream();
+        await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
+
+        // Act
+        await spreadsheet.StartWorksheetAsync("My sheet", worksheetOptions, Token);
+        await spreadsheet.FinishAsync(Token);
+
+        // Assert
+        SpreadsheetAssert.Valid(stream);
+        using var sheet = SpreadsheetAssert.SingleSheet(stream);
+        Assert.Null(sheet.MaxColumnOutlineLevel);
     }
 
     [Fact]
     public async Task Spreadsheet_StartWorksheet_MaxRowAndColumnOutlineLevel()
     {
         // Arrange
-        var worksheetOptions = new WorksheetOptions { MaxRowOutlineLevel = 2, MaxColumnOutlineLevel = 3 };
+        var worksheetOptions = new WorksheetOptions { MaxRowOutlineLevel = 2 };
+        worksheetOptions.Column(1).OutlineLevel = 3;
 
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
@@ -617,7 +635,7 @@ public class SpreadsheetTests
     public async Task Spreadsheet_StartWorksheet_ColumnCollapsed(bool? collapsed)
     {
         // Arrange
-        var worksheetOptions = new WorksheetOptions { MaxColumnOutlineLevel = 1 };
+        var worksheetOptions = new WorksheetOptions();
         worksheetOptions.Column(2).OutlineLevel = 1;
         worksheetOptions.Column(2).Hidden = collapsed ?? false;
         worksheetOptions.Column(3).Collapsed = collapsed;
@@ -643,7 +661,7 @@ public class SpreadsheetTests
         // Arrange
         const double width = 20.0;
         var fontColor = System.Drawing.Color.FromArgb(255, 255, 69);
-        var worksheetOptions = new WorksheetOptions { MaxColumnOutlineLevel = 2 };
+        var worksheetOptions = new WorksheetOptions();
         worksheetOptions.Column(1).Width = width;
         worksheetOptions.Column(1).DefaultStyle = new Style { Font = { Color = fontColor } };
         worksheetOptions.Column(1).OutlineLevel = 2;

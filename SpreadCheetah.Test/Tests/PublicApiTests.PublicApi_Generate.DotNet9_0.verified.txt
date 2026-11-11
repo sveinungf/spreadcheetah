@@ -818,7 +818,6 @@ namespace SpreadCheetah.Worksheets
         public double? DefaultColumnWidth { get; set; }
         public int? FrozenColumns { get; set; }
         public int? FrozenRows { get; set; }
-        public int? MaxColumnOutlineLevel { get; set; }
         public int? MaxRowOutlineLevel { get; set; }
         public SpreadCheetah.Worksheets.OutlineOptions? OutlineOptions { get; set; }
         public bool? ShowGridlines { get; set; }

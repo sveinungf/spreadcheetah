@@ -39,9 +39,19 @@ file struct WorksheetStartXmlWriter(
     private static ReadOnlySpan<byte> SheetDataBegin => "<sheetData>"u8;
 
     private readonly List<(int ColumnIndex, ColumnOptions Options)>? _columns = GetColumns(options?.ColumnOptions);
+    private readonly int? _maxColumnOutlineLevel = GetMaxColumnOutlineLevel(options?.ColumnOptions);
     private WorksheetColumnXmlPart? _columnXml;
     private Element _next;
     private int _nextIndex;
+
+    private static int? GetMaxColumnOutlineLevel(SortedDictionary<int, ColumnOptions>? dictionary)
+    {
+        if (dictionary is not { Count: > 0 })
+            return null;
+
+        var max = dictionary.Values.Max(static x => x.OutlineLevel.GetValueOrDefault());
+        return max > 0 ? max : null;
+    }
 
     private static List<(int ColumnIndex, ColumnOptions Options)>? GetColumns(
         SortedDictionary<int, ColumnOptions>? dictionary)
@@ -213,12 +223,12 @@ file struct WorksheetStartXmlWriter(
 
     private readonly bool TryWriteSheetFormatProperties()
     {
-        if (options is null or { DefaultColumnWidth: null, MaxRowOutlineLevel: null, MaxColumnOutlineLevel: null })
+        if (options is null || (options is { DefaultColumnWidth: null, MaxRowOutlineLevel: null } && _maxColumnOutlineLevel is null))
             return true;
 
         var defaultColWidthAttribute = new DoubleAttribute("defaultColWidth"u8, options.DefaultColumnWidth);
         var outlineLevelRowAttribute = new IntAttribute("outlineLevelRow"u8, options.MaxRowOutlineLevel);
-        var outlineLevelColAttribute = new IntAttribute("outlineLevelCol"u8, options.MaxColumnOutlineLevel);
+        var outlineLevelColAttribute = new IntAttribute("outlineLevelCol"u8, _maxColumnOutlineLevel);
 
         return buffer.TryWrite(
             $"{"<sheetFormatPr"u8}" +

@@ -48,19 +48,4 @@ public class WorksheetOptionsTests
         // Assert
         Assert.IsType<ArgumentOutOfRangeException>(exception);
     }
-
-    [Theory]
-    [InlineData(-1)]
-    [InlineData(8)]
-    public void WorksheetOptions_MaxColumnOutlineLevel_Invalid(int value)
-    {
-        // Arrange
-        var options = new WorksheetOptions();
-
-        // Act
-        var exception = Record.Exception(() => options.MaxColumnOutlineLevel = value);
-
-        // Assert
-        Assert.IsType<ArgumentOutOfRangeException>(exception);
-    }
 }
