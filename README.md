@@ -36,25 +36,24 @@ Install-Package SpreadCheetah
 
 ## Basic usage
 ```cs
-using (var spreadsheet = await Spreadsheet.CreateNewAsync(stream))
-{
-    // A spreadsheet must contain at least one worksheet.
-    await spreadsheet.StartWorksheetAsync("Sheet 1");
+await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream);
 
-    // Cells are inserted row by row.
-    var row = new List<Cell>
-    {
-        new Cell("Answer to the ultimate question:"),
-        new Cell(42)
-    };
+// A spreadsheet must contain at least one worksheet.
+await spreadsheet.StartWorksheetAsync("Sheet 1");
 
-    // Rows are inserted from top to bottom.
-    await spreadsheet.AddRowAsync(row);
+// Cells are inserted row by row.
+List<Cell> row =
+[
+    new("Answer to the ultimate question:"),
+    new(42)
+];
 
-    // Remember to call Finish before disposing.
-    // This is important to properly finalize the XLSX file.
-    await spreadsheet.FinishAsync();
-}
+// Rows are inserted from top to bottom.
+await spreadsheet.AddRowAsync(row);
+
+// Remember to call Finish before disposing.
+// This is important to properly finalize the XLSX file.
+await spreadsheet.FinishAsync();
 ```
 
 See the [Getting started](https://github.com/sveinungf/spreadcheetah/wiki#getting-started) guide in the wiki.
@@ -79,7 +78,7 @@ namespace MyNamespace;
 // The order of the properties will decide the order of the cells.
 public class MyObject
 {
-    public string Question { get; set; }
+    public string? Question { get; set; }
     public int Answer { get; set; }
 }
 ```
