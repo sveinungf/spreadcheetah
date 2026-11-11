@@ -4,7 +4,7 @@ using SpreadCheetah.Styling;
 
 namespace SpreadCheetah.CellValueWriters.Boolean;
 
-internal abstract class BooleanCellValueWriter : CellValueWriter
+internal closed class BooleanCellValueWriter : CellValueWriter
 {
     protected static ReadOnlySpan<byte> BeginStyledBooleanCell => "<c t=\"b\" s=\""u8;
     protected static ReadOnlySpan<byte> BeginBooleanFormulaCell => "<c t=\"b\"><f>"u8;

@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace SpreadCheetah.CellWriters;
 
-internal abstract class BaseRowWriter<T>(
+internal closed class BaseRowWriter<T>(
     ICellWriter<T> cellWriter,
     CellWriterState state)
     where T : struct

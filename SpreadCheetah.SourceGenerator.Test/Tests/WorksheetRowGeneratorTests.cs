@@ -298,11 +298,11 @@ public class WorksheetRowGeneratorTests
     public async Task Spreadsheet_AddRangeAsRows_ObjectWithColumnOrdering(ObjectType type)
     {
         // Arrange
-        var values = new (string FirstName, string LastName, decimal Gpa, int Age)[]
+        var values = new (string FirstName, string LastName, double Gpa, int Age)[]
         {
-            ("Ola", "Nordmann", 3.2m, 30),
-            ("Ingrid", "Hansen", 3.4m, 28),
-            ("Oskar", "Berg", 2.8m, 29)
+            ("Ola", "Nordmann", 3.2, 30),
+            ("Ingrid", "Hansen", 3.4, 28),
+            ("Oskar", "Berg", 2.8, 29)
         };
 
         var ctx = ColumnOrderingContext.Default;
@@ -331,7 +331,7 @@ public class WorksheetRowGeneratorTests
         Assert.Equal(values.Select(x => x.LastName), sheet.Column("A").Cells.StringValues());
         Assert.Equal(values.Select(x => x.FirstName), sheet.Column("B").Cells.StringValues());
         Assert.Equal(values.Select(x => x.Age), sheet.Column("C").Cells.Select(x => x.IntValue ?? -1));
-        Assert.Equal(values.Select(x => x.Gpa), sheet.Column("D").Cells.Select(x => x.DecimalValue ?? -1));
+        Assert.Equal(values.Select(x => x.Gpa), sheet.Column("D").Cells.Select(x => x.DoubleValue ?? -1));
         Assert.Equal(3, sheet.RowCount);
     }
 

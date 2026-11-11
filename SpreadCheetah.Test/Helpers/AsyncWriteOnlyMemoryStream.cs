@@ -12,6 +12,12 @@ internal class AsyncWriteOnlyMemoryStream : WriteOnlyMemoryStream
     {
         throw new NotImplementedException();
     }
+
+    public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+    {
+        Position += buffer.Length;
+        return ValueTask.CompletedTask;
+    }
 #endif
 
     public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state)
@@ -37,5 +43,10 @@ internal class AsyncWriteOnlyMemoryStream : WriteOnlyMemoryStream
     public override void Flush()
     {
         throw new NotImplementedException();
+    }
+
+    public override Task FlushAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
     }
 }

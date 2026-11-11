@@ -19,7 +19,7 @@ public class CellFormatTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-        var obj = new ClassWithCellStandardFormat { Price = 199.90m };
+        var obj = new ClassWithCellStandardFormat { Price = 199.9 };
 
         // Act
         await spreadsheet.AddAsRowAsync(obj, CellFormatContext.Default.ClassWithCellStandardFormat, Token);
@@ -27,7 +27,7 @@ public class CellFormatTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(obj.Price, sheet["A1"].DecimalValue);
+        Assert.Equal(obj.Price, sheet["A1"].DoubleValue);
         Assert.Equal(StandardNumberFormat.TwoDecimalPlaces, sheet["A1"].Style.NumberFormat.StandardFormat);
     }
 
@@ -38,7 +38,7 @@ public class CellFormatTests
         using var stream = new MemoryStream();
         await using var spreadsheet = await Spreadsheet.CreateNewAsync(stream, cancellationToken: Token);
         await spreadsheet.StartWorksheetAsync("Sheet", token: Token);
-        var obj = new ClassWithCellCustomFormat { Price = 199.90m };
+        var obj = new ClassWithCellCustomFormat { Price = 199.9 };
 
         // Act
         await spreadsheet.AddAsRowAsync(obj, CellFormatContext.Default.ClassWithCellCustomFormat, Token);
@@ -46,7 +46,7 @@ public class CellFormatTests
 
         // Assert
         using var sheet = SpreadsheetAssert.SingleSheet(stream);
-        Assert.Equal(obj.Price, sheet["A1"].DecimalValue);
+        Assert.Equal(obj.Price, sheet["A1"].DoubleValue);
         Assert.Equal("#.0#", sheet["A1"].Style.NumberFormat.CustomFormat);
     }
 

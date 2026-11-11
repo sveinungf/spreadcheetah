@@ -53,7 +53,7 @@ internal sealed class FileCounter
 
     public string AssignTableNameForCurrentWorksheet()
     {
-        var tableNames = TableNames ??= new(StringComparer.OrdinalIgnoreCase);
+        var tableNames = TableNames ??= [with(StringComparer.OrdinalIgnoreCase)];
         var tableName = TableNameGenerator.GenerateUniqueTableName(tableNames);
         var result = TryAssignTableNameForCurrentWorksheet(tableName);
         Debug.Assert(result);
@@ -62,7 +62,7 @@ internal sealed class FileCounter
 
     public bool TryAssignTableNameForCurrentWorksheet(string tableName)
     {
-        var tableNames = TableNames ??= new(StringComparer.OrdinalIgnoreCase);
+        var tableNames = TableNames ??= [with(StringComparer.OrdinalIgnoreCase)];
 
         if (!tableNames.Add(tableName))
             return false;

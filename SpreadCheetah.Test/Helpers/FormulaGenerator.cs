@@ -27,7 +27,7 @@ internal static class FormulaGenerator
             }
 
             sb.Append('"');
-            sb.Append(new string('b', remaining - 2));
+            sb.Append('b', remaining - 2);
             sb.Append('"');
             remaining = 0;
         }

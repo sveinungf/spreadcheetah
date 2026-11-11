@@ -5,7 +5,7 @@ using SpreadCheetah.Styling;
 
 namespace SpreadCheetah.CellValueWriters.Characters;
 
-internal abstract class StringCellValueWriterBase : CellValueWriter
+internal closed class StringCellValueWriterBase : CellValueWriter
 {
     private static ReadOnlySpan<byte> BeginStyledStringCell => "<c t=\"inlineStr\" s=\""u8;
     private static ReadOnlySpan<byte> BeginStringFormulaCell => "<c t=\"str\"><f>"u8;

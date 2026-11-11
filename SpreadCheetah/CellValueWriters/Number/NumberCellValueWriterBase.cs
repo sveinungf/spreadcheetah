@@ -3,7 +3,7 @@ using SpreadCheetah.Helpers;
 
 namespace SpreadCheetah.CellValueWriters.Number;
 
-internal abstract class NumberCellValueWriterBase : CellValueWriter
+internal closed class NumberCellValueWriterBase : CellValueWriter
 {
     protected static ReadOnlySpan<byte> BeginDataCell => "<c><v>"u8;
     protected static ReadOnlySpan<byte> EndQuoteBeginValue => "\"><v>"u8;

@@ -187,7 +187,7 @@ internal sealed class StyleManager
     {
         styleId = null;
 
-        var namedStyles = NamedStyles ??= new(StringComparer.OrdinalIgnoreCase);
+        var namedStyles = NamedStyles ??= [with(StringComparer.OrdinalIgnoreCase)];
         if (namedStyles.ContainsKey(name))
             return false;
 
