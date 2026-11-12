@@ -29,8 +29,6 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-
     <!-- Strong name -->
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>spreadcheetahKey.snk</AssemblyOriginatorKeyFile>
